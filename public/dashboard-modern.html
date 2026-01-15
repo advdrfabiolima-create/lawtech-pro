@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <title>LawTech Pro — Dashboard</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+
+    <style>
+        :root { 
+            --bg: #f8fafc;
+            --sidebar: #0f172a; 
+            --sidebar-hover: rgba(255, 255, 255, 0.1);
+            --text-menu: #cbd5e1;
+            --primary: #2563eb; 
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --muted: #64748b;
+            --text-main: #1e293b;
+            --radius: 12px;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+        }
+
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.5; }
+
+        /* Sidebar Fixa */
+        .sidebar { 
+            width: 250px; background: var(--sidebar); color: #fff; padding: 24px 20px; 
+            display: flex; flex-direction: column; height: 100vh; position: fixed; 
+            left: 0; top: 0; z-index: 1000; 
+        }
+        .sidebar-header { text-align: center; margin-bottom: 32px; }
+        .sidebar-header img { width: 100%; max-width: 160px; height: auto; }
+
+        .menu { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
+        .menu a { 
+            display: flex; align-items: center; padding: 12px; 
+            color: var(--text-menu); text-decoration: none; 
+            border-radius: 8px; font-size: 14px; transition: 0.2s;
+        }
+        .menu a i { margin-right: 12px; font-size: 18px; }
+        .menu a:hover, .menu a.active { background: var(--sidebar-hover); color: #fff; }
+        .menu a.active { background: var(--primary); font-weight: 500; }
+
+        .sidebar-footer {
+            padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 11px; color: #94a3b8; margin-top: auto;
+        }
+
+        /* Área Principal */
+        .main { margin-left: 250px; min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* Cabeçalho */
+        .header {
+            background: var(--white); height: 72px; padding: 0 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900;
+        }
+        .header input { 
+            background: #f1f5f9; border: 1px solid var(--border); 
+            padding: 10px 16px; border-radius: 8px; width: 320px; font-size: 13px;
+        }
+
+        /* Conteúdo e Cards */
+        .content { padding: 32px; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 32px; }
+        
+        .card { 
+            background: var(--white); border-radius: var(--radius); padding: 24px; 
+            border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .card small { color: var(--muted); font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+        .card h2 { margin-top: 8px; font-size: 28px; font-weight: 700; color: var(--text-main); }
+
+        /* Listas de Prazos */
+        .section { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 24px; margin-bottom: 24px; }
+        .section h3 { font-size: 18px; margin-bottom: 20px; color: var(--text-main); }
+        .prazo { 
+            border-left: 4px solid var(--primary); padding: 16px; margin-bottom: 12px; 
+            border-radius: 8px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center;
+        }
+        .prazo.vencido { border-color: var(--danger); }
+        .prazo.semana { border-color: var(--warning); }
+        .prazo.futuro { border-color: var(--success); }
+
+        /* Progress Bar */
+        .progress { height: 10px; background: #f1f5f9; border-radius: 10px; overflow: hidden; margin: 16px 0; }
+        .progress div { height: 100%; background: var(--primary); transition: width 0.6s ease; }
+
+        .btn-primary { 
+            background: var(--primary); color: #fff; border: none; 
+            padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;
+        }
+
+        /* Mensagem Premium Elegante */
+        .premium-badge {
+            display: none; align-items: center; gap: 8px; color: #059669; 
+            font-weight: 600; background: #ecfdf5; padding: 10px 16px; 
+            border-radius: 8px; border: 1px solid #10b981; width: fit-content;
+        }
+        
+        /* Dropdown de Notificações */
+        #notif-dropdown {
+            display: none; position: absolute; top: 45px; right: 0; width: 300px; 
+            background: white; border: 1px solid var(--border); border-radius: var(--radius); 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 1001; padding: 16px;
+        }
+
+        .skeleton { background: #e2e8f0; border-radius: 4px; display: inline-block; animation: pulse 1.5s infinite; min-width: 40px; min-height: 28px; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+        </div>
+        
+        <nav class="menu">
+            <a href="/dashboard" class="active"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+            <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+            <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
+            <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+            <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+            <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+            <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+            <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
+            <a href="/ia-page" style="display: flex; align-items: center; gap: 10px;">
+                <i class="lucide lucide-sparkles" style="color: #fbbf24;"></i> IA Jurídica 
+                <span style="font-size: 9px; background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; margin-left: auto;">PREMIUM</span>
+            </a>
+            <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+            <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div style="margin-bottom: 6px;">
+                <span style="color:#64748b">Usuário:</span> <span id="userEmail" style="color:#fff">...</span>
+            </div>
+            <div>
+                <span style="color:#64748b">Plano:</span> <span id="planNameFooter" style="color:#fff">...</span>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main">
+        <header class="header">
+            <input type="text" placeholder="Buscar processo ou prazo..." id="inputBuscaDash">
+            
+            <div style="display:flex; gap:25px; align-items:center; position: relative;">
+                
+                <div id="notif-container" style="position: relative; cursor: pointer;">
+                    <span id="bell-icon" style="font-size:20px;">🔔</span>
+                    <span id="notif-count" style="display: none; position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 10px; border: 2px solid white;">0</span>
+                    
+                    <div id="notif-dropdown">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+                            <strong style="font-size: 14px;">Notificações</strong>
+                            <small onclick="limparNotificacoes()" style="color: #2563eb; font-size: 11px; cursor: pointer;">Limpar</small>
+                        </div>
+                        <div id="notif-list" style="max-height: 250px; overflow-y: auto;">
+                            <p style="font-size: 12px; color: #64748b; text-align: center; padding: 10px;">Nenhum alerta novo.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="logout()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-weight:600; font-size:14px;">Sair</button>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="cards">
+                <div class="card">
+                    <small>Prazos Vencidos</small>
+                    <h2 id="count-vencidos" class="skeleton"></h2>
+                </div>
+                
+                <div class="card" onclick="window.location.href='/audiencias-page'" style="cursor:pointer; border-left: 5px solid #2563eb;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <p style="color:#64748b; font-size:11px; font-weight:700; text-transform:uppercase;">Audiências</p>
+                            <h3 id="totalAudiencias" style="font-size:24px; margin:5px 0;">--</h3>
+                        </div>
+                        <i class="lucide lucide-calendar-days" style="color:#2563eb; opacity:0.2;"></i>
+                    </div>
+                    <p style="font-size:11px; color:#25d366; margin-top:10px; font-weight:600;">Ver agenda completa →</p>
+                </div>
+
+                <div class="card">
+                    <small>Prazos da Semana</small>
+                    <h2 id="count-semana" class="skeleton"></h2>
+                </div>
+                <div class="card">
+                    <small>Consumo do Plano</small>
+                    <h2 id="count-consumo" class="skeleton"></h2>
+                </div>
+            </div>
+
+            <div class="cards">
+                <div class="card" onclick="window.location.href='/calculos-page'" style="cursor:pointer; border-left: 5px solid #8b5cf6;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <p style="color:#64748b; font-size:11px; font-weight:700; text-transform:uppercase;">Ferramentas</p>
+                            <h3 style="font-size:20px; margin:5px 0;">Cálculos</h3>
+                        </div>
+                        <i class="lucide lucide-calculator" style="color:#8b5cf6; opacity:0.2;"></i>
+                    </div>
+                    <p style="font-size:11px; color:#8b5cf6; margin-top:10px;">Atualização e Correção →</p>
+                </div>
+
+                <div class="card" onclick="window.location.href='/ia-page'" style="cursor:pointer; border-left: 5px solid #fbbf24; background: linear-gradient(to right, #ffffff, #fffbeb);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <p style="color:#64748b; font-size:11px; font-weight:700; text-transform:uppercase;">Recurso Premium</p>
+                            <h3 style="font-size:20px; margin:5px 0;">Assistente IA</h3>
+                        </div>
+                        <i class="lucide lucide-bot" style="color:#fbbf24; opacity:0.3;"></i>
+                    </div>
+                    <p style="font-size:11px; color:#b45309; margin-top:10px;">Consulte jurisprudência e teses →</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📅 Prazos Próximos</h3>
+                <div id="lista-prazos"></div>
+            </div>
+
+            <div class="section">
+                <h3>📦 Seu Plano</h3>
+                <p style="margin-bottom:8px;">Você está no plano: <strong id="planoAtual" style="color:var(--primary)">Carregando...</strong></p>
+                <div class="progress">
+                    <div id="progressBar" style="width: 0%"></div>
+                </div>
+                
+                <button id="btnUpgrade" class="btn-primary" onclick="window.location.href='/planos-page'">🚀 Fazer Upgrade</button>
+                
+                <div id="premiumWelcome" class="premium-badge">
+                    <i class="lucide lucide-check-circle" style="width: 18px;"></i>
+                    Você agora é Premium ✨
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login.html';
+
+        // Lógica do Sino de Notificações
+        const notifContainer = document.getElementById('notif-container');
+        const notifDropdown = document.getElementById('notif-dropdown');
+        const notifList = document.getElementById('notif-list');
+        const notifCount = document.getElementById('notif-count');
+
+        notifContainer.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifDropdown.style.display = notifDropdown.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.addEventListener('click', () => notifDropdown.style.display = 'none');
+
+        async function inicializarDashboard() {
+            try {
+                const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+                const dataUser = await resUser.json();
+                if (dataUser.ok) document.getElementById('userEmail').innerText = dataUser.usuario.email;
+
+                const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+                const dataPlan = await resPlan.json();
+                
+                const planName = dataPlan.plano || '---';
+                document.getElementById('planNameFooter').innerText = planName;
+                document.getElementById('planoAtual').innerText = planName;
+                
+                const btnUpgrade = document.getElementById('btnUpgrade');
+                const premiumWelcome = document.getElementById('premiumWelcome');
+
+                if (planName.toLowerCase() === 'premium') {
+                    btnUpgrade.style.display = 'none';
+                    premiumWelcome.style.display = 'flex';
+                } else {
+                    btnUpgrade.style.display = 'inline-block';
+                    premiumWelcome.style.display = 'none';
+                }
+
+                const usados = dataPlan.prazos_usados || 0;
+                const limite = dataPlan.limite_prazos;
+                const countConsumo = document.getElementById('count-consumo');
+                countConsumo.classList.remove('skeleton');
+                countConsumo.innerText = limite ? `${usados} / ${limite}` : `${usados} / ∞`;
+
+                const barra = document.getElementById('progressBar');
+                if (limite) {
+                    const percent = Math.min((usados / limite) * 100, 100);
+                    barra.style.width = percent + '%';
+                    barra.style.background = percent >= 90 ? '#ef4444' : '#2563eb';
+                } else {
+                    barra.style.width = '100%';
+                    barra.style.background = '#10b981';
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        async function carregarPrazos() {
+            const categorias = [
+                { url: '/api/dashboard/prazos-vencidos', countId: 'count-vencidos', classe: 'vencido' },
+                { url: '/api/dashboard/prazos-semana', countId: 'count-semana', classe: 'semana' }
+            ];
+
+            const containerGeral = document.getElementById('lista-prazos');
+            containerGeral.innerHTML = '';
+            let totalNotificacoes = 0;
+            notifList.innerHTML = '';
+
+            for (const cat of categorias) {
+                try {
+                    const res = await fetch(cat.url, { headers: { Authorization: `Bearer ${token}` } });
+                    const prazos = await res.json();
+                    
+                    document.getElementById(cat.countId).innerText = prazos.length || 0;
+                    document.getElementById(cat.countId).classList.remove('skeleton');
+
+                    prazos.forEach(p => {
+                        // Lista principal
+                        containerGeral.innerHTML += `
+                            <div class="prazo ${cat.classe}">
+                                <div>
+                                    <strong style="display:block; font-size:14px;">${p.tipo}</strong>
+                                    <small style="color:#64748b">Processo: ${p.processo_numero}</small>
+                                </div>
+                                <div style="text-align:right">
+                                    <span style="font-size:12px; font-weight:600; color:#1e293b">📅 ${new Date(p.data_limite).toLocaleDateString('pt-BR')}</span>
+                                </div>
+                            </div>`;
+                        
+                        // Alimenta o sino se for Urgente ou Vencido
+                        if (cat.classe === 'vencido' || cat.classe === 'semana') {
+                            totalNotificacoes++;
+                            notifList.innerHTML += `
+                                <div style="padding: 10px; border-radius: 8px; background: ${cat.classe === 'vencido' ? '#fef2f2' : '#fffbeb'}; margin-bottom: 8px; border-left: 3px solid ${cat.classe === 'vencido' ? '#ef4444' : '#f59e0b'};">
+                                    <p style="font-size: 11px; font-weight: 700; margin: 0;">${cat.classe === 'vencido' ? '❌ PRAZO VENCIDO' : '⚠️ VENCE EM BREVE'}</p>
+                                    <p style="font-size: 10px; margin: 4px 0;">${p.tipo} - Proc: ${p.processo_numero}</p>
+                                </div>`;
+                        }
+                    });
+                } catch (err) { console.error(err); }
+            }
+            
+            if (totalNotificacoes > 0) {
+                notifCount.innerText = totalNotificacoes;
+                notifCount.style.display = 'block';
+            } else {
+                notifList.innerHTML = '<p style="font-size: 12px; color: #64748b; text-align: center; padding: 10px;">Nenhum alerta novo.</p>';
+            }
+        }
+
+        function limparNotificacoes() {
+            notifCount.style.display = 'none';
+            notifList.innerHTML = '<p style="font-size: 12px; color: #64748b; text-align: center; padding: 10px;">Nenhum alerta novo.</p>';
+        }
+
+        function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
+
+        window.onload = () => {
+    inicializarDashboard(); // Já usa /api internamente
+    carregarPrazos();      // Já usa /api internamente
+    // CORREÇÃO AQUI: Adicionado /api/ antes de audiencias
+    fetch('/api/audiencias', { headers: { 'Authorization': `Bearer ${token}` } })
+        .then(res => res.json())
+        .then(dados => document.getElementById('totalAudiencias').innerText = dados.length)
+        .catch(err => console.error(err));
+};
+        
+    </script>
+</body>
+</html>

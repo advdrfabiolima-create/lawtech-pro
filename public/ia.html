@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LawTech Pro — Assistente Jurídico IA</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        :root { 
+            --bg: #f8fafc;
+            --sidebar: #0f172a; 
+            --sidebar-hover: rgba(255, 255, 255, 0.1);
+            --text-menu: #cbd5e1;
+            --primary: #2563eb; 
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --muted: #64748b;
+            --text-main: #1e293b;
+            --radius: 12px;
+            --ai-bubble: #f1f5f9;
+            --user-bubble: #2563eb;
+        }
+
+        /* Reset LawTech Standard */
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Sidebar Fixa (250px) */
+        .sidebar { 
+            width: 250px; background: var(--sidebar); color: #fff; padding: 24px 20px; 
+            display: flex; flex-direction: column; height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; 
+        }
+        .sidebar-header { text-align: center; margin-bottom: 32px; }
+        .sidebar-header img { width: 100%; max-width: 160px; height: auto; }
+
+        .menu { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
+        .menu a { 
+            display: flex; align-items: center; padding: 12px; 
+            color: var(--text-menu); text-decoration: none; 
+            border-radius: 8px; font-size: 14px; transition: 0.2s;
+        }
+        .menu a i { margin-right: 12px; font-size: 18px; }
+        .menu a:hover, .menu a.active { background: var(--sidebar-hover); color: #fff; }
+        .menu a.active { background: var(--primary); font-weight: 500; }
+        .sidebar-footer { padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #94a3b8; margin-top: auto; }
+
+        /* Área Principal */
+        .main { margin-left: 250px; flex: 1; display: flex; flex-direction: column; height: 100vh; background: var(--bg); }
+
+        /* Cabeçalho (72px) */
+        .header {
+            background: var(--white); height: 72px; padding: 0 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border); flex-shrink: 0;
+        }
+
+        /* Chat Container */
+        #chat-container {
+            flex: 1; overflow-y: auto; padding: 32px;
+            display: flex; flex-direction: column; gap: 20px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 75%; padding: 16px 20px; border-radius: 16px;
+            font-size: 14px; line-height: 1.6; position: relative;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .user-message {
+            align-self: flex-end; background-color: var(--user-bubble);
+            color: white; border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .ai-message {
+            align-self: flex-start; background-color: var(--white);
+            color: var(--text-main); border: 1px solid var(--border);
+            border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        /* Área de Input */
+        .input-area-container {
+            background: var(--white); padding: 24px 32px;
+            border-top: 1px solid var(--border); flex-shrink: 0;
+        }
+
+        .input-box {
+            display: flex; align-items: center; gap: 12px;
+            background: #f1f5f9; padding: 8px 16px; border-radius: 30px;
+            border: 1px solid var(--border); transition: 0.2s;
+        }
+
+        .input-box:focus-within { border-color: var(--primary); background: var(--white); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+
+        input[type="text"] {
+            flex: 1; border: none; background: transparent;
+            padding: 10px; outline: none; font-size: 14px; color: var(--text-main);
+        }
+
+        .btn-send {
+            background: var(--primary); color: white; border: none;
+            width: 40px; height: 40px; border-radius: 50%;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
+        }
+        .btn-send:disabled { background: var(--muted); cursor: not-allowed; }
+        .btn-send:hover:not(:disabled) { transform: scale(1.1); background: #1d4ed8; }
+
+        .status-badge { font-size: 12px; color: var(--muted); margin-bottom: 8px; display: none; align-items: center; gap: 6px; }
+        .dot-flashing { width: 6px; height: 6px; border-radius: 50%; background-color: var(--primary); animation: dotFlashing 1s infinite linear alternate; }
+        @keyframes dotFlashing { from { opacity: 1; } to { opacity: 0.3; } }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+        </div>
+        <nav class="menu">
+            <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+            <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+            <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
+            <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+            <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+            <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+            <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+            <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
+            <a href="/ia-page" class="active" style="display: flex; align-items: center; gap: 10px;">
+                <i class="lucide lucide-sparkles" style="color: #fbbf24;"></i> IA Jurídica 
+                <span style="font-size: 9px; background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; margin-left: auto;">PREMIUM</span>
+            </a>
+            <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+            <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
+        </nav>
+        <div class="sidebar-footer">
+            <div style="margin-bottom: 6px;">
+                <span style="color:#64748b">Usuário:</span> <span id="userEmail" style="color:#fff">...</span>
+            </div>
+            <div>
+                <span style="color:#64748b">Plano:</span> <span id="planNameFooter" style="color:#fff">...</span>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main">
+        <header class="header">
+            <div>
+                <h2 style="font-size: 18px; font-weight: 600;">✨ Assistente Jurídico IA</h2>
+                <p style="color: var(--muted); font-size: 12px; font-weight: 500;">Consulte jurisprudência e resuma teses instantaneamente.</p>
+            </div>
+            <button onclick="logout()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-weight:600; font-size:14px;">Sair</button>
+        </header>
+
+        <div id="chat-container">
+            <div class="message ai-message">
+                Olá! Sou o seu assistente jurídico sênior alimentado por IA. Posso ajudar com prazos, sugestões de teses ou resumos de jurisprudência. Como posso ser útil agora?
+            </div>
+        </div>
+
+        <div class="input-area-container">
+            <div id="status-ia" class="status-badge">
+                <div class="dot-flashing"></div> Analisando base jurídica...
+            </div>
+            <div class="input-box">
+                <input type="text" id="pergunta" placeholder="Digite sua dúvida jurídica aqui..." onkeypress="if(event.key === 'Enter') enviarPergunta()">
+                <button id="btn-enviar" class="btn-send" onclick="enviarPergunta()">
+                    <i class="lucide lucide-send" style="width: 18px; height: 18px;"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+const token = localStorage.getItem('token');
+if (!token) window.location.href = '/login.html';
+
+let planoAtual = null;
+
+async function carregarInfoRodape() {
+  const resPlan = await fetch('/api/plano-consumo', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const dataPlan = await resPlan.json();
+  planoAtual = (dataPlan.plano || '').toLowerCase();
+  document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
+}
+
+async function enviarPergunta() {
+  const input = document.getElementById('pergunta');
+  const chat = document.getElementById('chat-container');
+  const statusIa = document.getElementById('status-ia');
+  const pergunta = input.value.trim();
+  if (!pergunta) return;
+
+  // UI usuário
+  chat.innerHTML += `<div class="message user-message">${pergunta}</div>`;
+  input.value = '';
+  statusIa.style.display = 'flex';
+
+  try {
+    const res = await fetch('/api/ia/perguntar', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ pergunta })
+    });
+
+    const data = await res.json();
+    let respostaHTML = '';
+
+    if (res.ok) {
+      respostaHTML = marked.parse(data.resposta);
+    } 
+    else if (res.status === 403) {
+      respostaHTML = `
+        <strong>🔒 Recurso Premium</strong><br><br>
+        Disponível apenas no plano Premium.<br><br>
+        <a href="/planos-page">👉 Fazer upgrade</a>
+      `;
+    }
+    else if (res.status === 429) {
+      respostaHTML = `
+        <strong>⏳ Limite atingido</strong><br><br>
+        Aguarde alguns segundos e tente novamente.
+      `;
+    } 
+    else {
+      respostaHTML = `<strong>Erro:</strong> ${data.erro}`;
+    }
+
+    chat.innerHTML += `<div class="message ai-message">${respostaHTML}</div>`;
+  } catch {
+    chat.innerHTML += `<div class="message ai-message">Erro de conexão.</div>`;
+  } finally {
+    statusIa.style.display = 'none';
+    chat.scrollTop = chat.scrollHeight;
+  }
+}
+
+window.onload = carregarInfoRodape;
+</script>
+
+</body>
+</html>

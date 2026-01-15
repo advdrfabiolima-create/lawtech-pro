@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>LawTech Pro — Juriscalc Pericial SELIC</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+
+    <style>
+        :root { 
+            --bg: #f8fafc;
+            --sidebar: #0f172a; 
+            --sidebar-hover: rgba(255, 255, 255, 0.1);
+            --text-menu: #cbd5e1;
+            --primary: #2563eb; 
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --muted: #64748b;
+            --text-main: #1e293b;
+            --radius: 12px;
+            --orange: #f59e0b;
+            --success: #10b981;
+        }
+
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; }
+
+        /* Sidebar Standard */
+        .sidebar { width: 250px; background: var(--sidebar); color: #fff; padding: 24px 20px; display: flex; flex-direction: column; height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; }
+        .sidebar-header { text-align: center; margin-bottom: 32px; }
+        .sidebar-header img { width: 100%; max-width: 160px; height: auto; }
+        .menu { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
+        .menu a { display: flex; align-items: center; padding: 12px; color: var(--text-menu); text-decoration: none; border-radius: 8px; font-size: 14px; transition: 0.2s; }
+        .menu a i { margin-right: 12px; font-size: 18px; }
+        .menu a:hover, .menu a.active { background: var(--sidebar-hover); color: #fff; }
+        .menu a.active { background: var(--primary); font-weight: 500; }
+        .sidebar-footer { padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #94a3b8; margin-top: auto; }
+
+        /* Main Area */
+        .main { margin-left: 250px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+        .header { 
+            background: var(--white); 
+            min-height: 72px; /* Mudado de height para min-height */
+            padding: 10px 32px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            flex-wrap: wrap; /* Permite que botões se ajustem em telas menores */
+            gap: 10px;
+            border-bottom: 1px solid var(--border); 
+            position: sticky; 
+            top: 0; 
+            z-index: 900; 
+        }
+        .content { padding: 32px; margin-top: 10px; }
+
+        /* Cards Periciais */
+        .section-card { background: white; border-radius: var(--radius); border: 1px solid var(--border); padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .section-title { color: var(--primary); font-weight: 700; border-left: 4px solid var(--primary); padding-left: 12px; margin-bottom: 20px; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+        
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 15px; }
+        input, select, textarea { padding: 10px; border: 1px solid var(--border); border-radius: 8px; width: 100%; margin-top: 6px; font-size: 13px; outline: none; transition: 0.2s; }
+        input:focus, select:focus { border-color: var(--primary); }
+        
+        .btn-primary { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-secondary { background: var(--success); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-top: 10px; font-size: 12px; font-weight: 600; }
+
+        /* Demonstrativo Memory */
+        .demonstrativo { background: #fff; border: 2px solid var(--sidebar); border-radius: 8px; display: none; margin-top: 24px; overflow: hidden; }
+        .dem-header { background: var(--sidebar); color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .dem-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .dem-table th { background: #f8fafc; padding: 12px; border-bottom: 2px solid var(--border); text-align: left; font-weight: 700; }
+        .dem-table td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+
+        .total-final-row { background-color: #eff6ff !important; color: #1e40af !important; font-size: 18px !important; font-weight: 800 !important; border-top: 3px solid #1e40af !important; }
+
+        @media print {
+            .no-print, .sidebar { display: none !important; }
+            body { background: white; } 
+            .main { margin-left: 0; }
+            .content { padding: 0; }
+            .demonstrativo { display: block !important; border: 1px solid #000; width: 100%; }
+            .total-final-row { background-color: #eff6ff !important; color: #1e40af !important; -webkit-print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar no-print">
+        <div class="sidebar-header">
+            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+        </div>
+        <nav class="menu">
+    <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+    <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+    <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
+    <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+    <a href="/audiencias-page" id="link-audiencias"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+    <a href="/calculos-page" class="active"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+    <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+    <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
+    <a href="/ia-page" style="display: flex; align-items: center; gap: 10px;">
+        <i class="lucide lucide-sparkles" style="color: #fbbf24;"></i> IA Jurídica 
+        <span style="font-size: 9px; background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; margin-left: auto;">PREMIUM</span>
+    </a>
+    <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+    <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
+</nav>
+        <div class="sidebar-footer">
+            <div><span style="color:#64748b">Usuário:</span> <span id="userEmail" style="color:#fff">...</span></div>
+            <div><span style="color:#64748b">Plano:</span> <span id="planNameFooter" style="color:#fff">...</span></div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="header no-print">
+            <h2 style="font-size: 18px; font-weight: 600;">⚖️ Juriscalc Pericial Pro</h2>
+            <div style="display:flex; gap:12px;">
+                <button class="btn-primary" style="background:var(--sidebar);" onclick="window.print()">
+                    <i class="lucide lucide-printer"></i> Imprimir PDF
+                </button>
+                <button class="btn-primary" onclick="processarCalculo()">
+                    <i class="lucide lucide-calculator"></i> Calcular
+                </button>
+                <button class="btn-primary" style="background:var(--success);" onclick="salvarNoBanco()">
+    <i class="lucide lucide-save"></i> Salvar no Histórico
+</button>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="section-card no-print">
+                <div class="section-title">Parâmetros do Cálculo</div>
+                <div class="grid-4">
+                    <div><label>Data Final</label><input type="date" id="dataFinal" value="2026-01-12"></div>
+                    <div><label>Processo (CNJ)</label><input type="text" id="procNum" oninput="mascaraCNJ(this)" placeholder="0000000-00.0000.0.00.0000"></div>
+                    <div><label>Credor</label><input type="text" id="credor" placeholder="Parte Ativa"></div>
+                    <div><label>Devedor</label><input type="text" id="devedor" placeholder="Parte Passiva"></div>
+                </div>
+                <div style="width: 50%; margin-top: 15px;">
+                    <label>Correção Monetária</label>
+                    <select id="indice">
+                        <option value="tjdft">Oficiais TJDFT (INPC até 08/24, IPCA após)</option>
+                        <option value="inpc">INPC (Todo o período)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section-card no-print">
+                <div class="section-title" style="border-color: var(--success); color: var(--success);">Valores Nominais</div>
+                <table id="tabelaValores" style="width:100%;">
+                    <thead>
+                        <tr><th style="width:25%;">Valor (R$)</th><th style="width:25%;">Vencimento</th><th>Descrição do Débito</th><th style="width:40px;"></th></tr>
+                    </thead>
+                    <tbody id="listaValores">
+                        <tr>
+                            <td><input type="number" class="val-bruto" value="1000.00"></td>
+                            <td><input type="date" class="val-data" value="2024-01-01"></td>
+                            <td><input type="text" class="val-desc" value="Principal"></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button class="btn-secondary" onclick="addLinha()"><i class="lucide lucide-plus" style="width:12px;"></i> Adicionar Item</button>
+                <div class="section-card no-print">
+                <div class="section-title">🕒 Últimos Cálculos Salvos</div>
+                <div id="listaHistorico" style="font-size: 13px;">Carregando histórico...</div>
+                </div>
+                </div>
+
+                <div class="section-card no-print">
+                <div class="section-title" style="border-color: var(--orange); color: var(--orange);">Juros Moratórios</div>
+                <div class="grid-4">
+                    <div style="grid-column: span 2;">
+                        <label>Incidência dos Juros</label>
+                        <select id="jurosIncidencia" onchange="toggleCitacao()">
+                            <option value="valores">A partir do vencimento de cada valor</option>
+                            <option value="citacao">A partir da data da citação</option>
+                        </select>
+                    </div>
+                    <div id="divCitacao" style="display:none; grid-column: span 1;">
+                        <label>Data da Citação</label>
+                        <input type="date" id="dataCitacao">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card no-print">
+                <div class="section-title" style="border-color: var(--danger); color: var(--danger);">Honorários e Multas</div>
+                <div class="grid-4">
+                    <div><label>Honorários (%)</label><input type="number" id="percHon" value="10"></div>
+                    <div><label>Custas (R$)</label><input type="number" id="custas" value="0.00"></div>
+                    <div style="grid-column: span 2; background:#fffbeb; padding:15px; border-radius:8px; border: 1px solid #fef3c7;">
+                        <label><strong>Cumprimento de Sentença (Art. 523 CPC)</strong></label>
+                        <div style="display:flex; gap:20px; margin-top:8px;">
+                            <span><input type="checkbox" id="multa523" style="width:auto;"> Multa 10%</span>
+                            <span><input type="checkbox" id="honor523" style="width:auto;"> Honorários 10%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="resCalculo" class="demonstrativo">
+                <div class="dem-header">
+                    <h3>MEMÓRIA DE CÁLCULO ATUALIZADA</h3>
+                    <span id="dataGeracao" style="font-size:11px; opacity: 0.8;"></span>
+                </div>
+                
+                <div style="padding: 20px; border-bottom: 1px solid var(--border); font-size: 12px; line-height: 1.8; display: grid; grid-template-columns: 1fr 1fr; background: #fafafa;">
+                    <div><strong>Processo:</strong> <span id="outProc"></span><br><strong>Credor:</strong> <span id="outCredor"></span></div>
+                    <div><strong>Data do Cálculo:</strong> <span id="outDataF"></span><br><strong>Devedor:</strong> <span id="outDevedor"></span></div>
+                </div>
+
+                <table class="dem-table">
+                    <thead>
+                        <tr><th>Discriminação</th><th>Vencimento</th><th>Vl. Nominal</th><th>Juros Acum.</th><th>Total Atualizado</th></tr>
+                    </thead>
+                    <tbody id="corpoMemoria"></tbody>
+                    <tfoot style="font-size: 14px;">
+                        <tr style="background:#f8fafc; font-weight:700;"><td colspan="4">Subtotal (Principal + Juros)</td><td id="resSub" style="text-align:right;"></td></tr>
+                        <tr><td colspan="4">Custas Processuais Reembolsáveis</td><td id="resCustas" style="text-align:right;"></td></tr>
+                        <tr><td colspan="4">Honorários Advocatícios (<span id="outPercHon"></span>%)</td><td id="resHon" style="text-align:right;"></td></tr>
+                        <tr id="linhaMulta" style="display:none; color:var(--danger);"><td colspan="4">Multa Art. 523, §1º CPC (10%)</td><td id="resMulta" style="text-align:right;"></td></tr>
+                        <tr id="linhaHon523" style="display:none; color:var(--danger);"><td colspan="4">Honorários Art. 523, §1º CPC (10%)</td><td id="resHon523" style="text-align:right;"></td></tr>
+                        <tr class="total-final-row">
+                            <td colspan="4" style="padding: 18px 24px;">TOTAL DEVIDO ATÉ <span id="outDataFinalTotal"></span></td>
+                            <td id="resTotal" style="padding: 18px 12px; text-align: right;"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login.html';
+
+        let taxaSelicAtual = 0.0085; 
+
+        // Sincronização em tempo real com o BCB
+        async function buscarSelicBCB() {
+            try {
+                const response = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.4390/dados/ultimos/1?formato=json');
+                const dados = await response.json();
+                taxaSelicAtual = parseFloat(dados[0].valor) / 100;
+                console.log("SELIC Banco Central Atualizada:", dados[0].valor + "%");
+            } catch (error) { console.error("Erro API BCB", error); }
+        }
+
+        async function carregarInfoRodape() {
+            try {
+                const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+                const dataUser = await resUser.json();
+                if (dataUser.ok) document.getElementById('userEmail').innerText = dataUser.usuario.email;
+
+                const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+                const dataPlan = await resPlan.json();
+                document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
+            } catch (err) { console.error(err); }
+        }
+
+        function toggleCitacao() {
+            const select = document.getElementById('jurosIncidencia');
+            const div = document.getElementById('divCitacao');
+            div.style.display = select.value === 'citacao' ? 'block' : 'none';
+        }
+
+        function mascaraCNJ(i) {
+            let v = i.value.replace(/\D/g, "");
+            if (v.length > 20) v = v.substring(0, 20);
+            if (v.length <= 7) i.value = v;
+            else if (v.length <= 9) i.value = v.replace(/(\d{7})(\d{2})/, "$1-$2");
+            else if (v.length <= 13) i.value = v.replace(/(\d{7})(\d{2})(\d{4})/, "$1-$2.$3");
+            else if (v.length <= 14) i.value = v.replace(/(\d{7})(\d{2})(\d{4})(\d{1})/, "$1-$2.$3.$4");
+            else if (v.length <= 16) i.value = v.replace(/(\d{7})(\d{2})(\d{4})(\d{1})(\d{2})/, "$1-$2.$3.$4.$5");
+            else i.value = v.replace(/(\d{7})(\d{2})(\d{4})(\d{1})(\d{2})(\d{4})/, "$1-$2.$3.$4.$5.$6");
+        }
+
+        function addLinha() {
+            const row = document.getElementById('listaValores').insertRow();
+            row.innerHTML = `<td><input type="number" class="val-bruto" value="0.00"></td><td><input type="date" class="val-data"></td><td><input type="text" class="val-desc"></td><td><button onclick="this.parentElement.parentElement.remove()" style="color:var(--danger); border:none; background:none; cursor:pointer;">✕</button></td>`;
+        }
+
+        // Lógica Pericial Blindada (Pre-2003, Post-2003 e SELIC 2024)
+        // --- LÓGICA PERICIAL REVISADA ---
+function calcularJurosFases(valor, dataInicio, dataFim) {
+    let inicio = new Date(dataInicio);
+    let fim = new Date(dataFim);
+    
+    if (inicio >= fim) return 0;
+
+    const dCC = new Date('2003-01-11');    // Novo Código Civil
+    const dSelic = new Date('2024-08-30'); // Marco da Lei 14.905 (ou sua regra de negócio)
+    
+    let totalJuros = 0;
+    let dataAtual = new Date(inicio);
+
+    // Loop mês a mês para precisão pericial
+    while (dataAtual < fim) {
+        let taxaMensal = 0.01; // Padrão 1% a.m. (Art. 406 CC/2002)
+        
+        if (dataAtual < dCC) {
+            taxaMensal = 0.005; // 0.5% a.m. (CC/1916)
+        } else if (dataAtual >= dSelic) {
+            taxaMensal = taxaSelicAtual; // Taxa SELIC do BCB (já buscada pela API)
+        }
+
+        totalJuros += valor * taxaMensal;
+        dataAtual.setMonth(dataAtual.getMonth() + 1);
+    }
+
+    return totalJuros;
+}
+
+function processarCalculo() {
+    const dataF = new Date(document.getElementById('dataFinal').value);
+    const incidencia = document.getElementById('jurosIncidencia').value;
+    const dataCitacao = new Date(document.getElementById('dataCitacao').value);
+    const indiceSelecionado = document.getElementById('indice').value;
+    
+    const corpo = document.getElementById('corpoMemoria');
+    corpo.innerHTML = "";
+    
+    let pAcum = 0; // Principal Corrigido
+    let jAcum = 0; // Juros Acumulados
+    const f = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    document.querySelectorAll('#listaValores tr').forEach(row => {
+        const valNominal = parseFloat(row.querySelector('.val-bruto').value) || 0;
+        const dRaw = row.querySelector('.val-data').value;
+        
+        if (valNominal > 0 && dRaw) {
+            const dI = new Date(dRaw);
+            
+            // 1. Simulação de Correção Monetária (Exemplo: 1.05 = 5% de inflação no período)
+            // Em um sistema real, aqui buscaríamos o índice INPC/IPCA da data
+            let fatorCorrecao = 1.0; 
+            if (indiceSelecionado === 'inpc') fatorCorrecao = 1.08; // Simulação de 8%
+            
+            const valorCorrigido = valNominal * fatorCorrecao;
+
+            // 2. Cálculo de Juros sobre o valor JÁ CORRIGIDO (Regra padrão)
+            let dataInicioJuros = (incidencia === 'citacao' && !isNaN(dataCitacao)) ? dataCitacao : dI;
+            const juros = calcularJurosFases(valorCorrigido, dataInicioJuros, dataF);
+            
+            pAcum += valorCorrigido; 
+            jAcum += juros;
+
+            corpo.innerHTML += `
+                <tr>
+                    <td>${row.querySelector('.val-desc').value || 'Principal'}</td>
+                    <td>${dI.toLocaleDateString('pt-BR')}</td>
+                    <td>${f(valorCorrigido)} <small>(Corr. Aplicada)</small></td>
+                    <td>${f(juros)}</td>
+                    <td><strong style="color:var(--primary);">${f(valorCorrigido + juros)}</strong></td>
+                </tr>`;
+        }
+    });
+
+    // Cálculos de penduricalhos (Honorários, Custas, Multas)
+    const custas = parseFloat(document.getElementById('custas').value) || 0;
+    const sub = pAcum + jAcum;
+    const percHon = parseFloat(document.getElementById('percHon').value) / 100;
+    const hon = sub * percHon;
+    
+    const m523 = document.getElementById('multa523').checked ? sub * 0.1 : 0;
+    const h523 = document.getElementById('honor523').checked ? sub * 0.1 : 0;
+    
+    const total = sub + custas + hon + m523 + h523;
+
+    // Atualiza o rodapé da tabela
+    document.getElementById('resSub').innerText = f(sub);
+    document.getElementById('resCustas').innerText = f(custas);
+    document.getElementById('resHon').innerText = f(hon);
+    document.getElementById('outPercHon').innerText = (percHon * 100).toFixed(0);
+    document.getElementById('resMulta').innerText = f(m523);
+    document.getElementById('resHon523').innerText = f(h523);
+    document.getElementById('resTotal').innerText = f(total);
+
+    // Ajusta visualização de linhas de multa
+    document.getElementById('linhaMulta').style.display = m523 > 0 ? 'table-row' : 'none';
+    document.getElementById('linhaHon523').style.display = h523 > 0 ? 'table-row' : 'none';
+    
+    // Dados do cabeçalho do relatório
+    document.getElementById('outProc').innerText = document.getElementById('procNum').value || '---';
+    document.getElementById('outCredor').innerText = document.getElementById('credor').value || '---';
+    document.getElementById('outDevedor').innerText = document.getElementById('devedor').value || '---';
+    document.getElementById('outDataF').innerText = dataF.toLocaleDateString('pt-BR');
+    document.getElementById('outDataFinalTotal').innerText = dataF.toLocaleDateString('pt-BR');
+    document.getElementById('dataGeracao').innerText = "Processado em: " + new Date().toLocaleString();
+    
+    document.getElementById('resCalculo').style.display = 'block';
+    document.getElementById('resCalculo').scrollIntoView({ behavior: 'smooth' });
+}
+async function salvarNoBanco() {
+    const dataF = document.getElementById('dataFinal').value;
+    const processo = document.getElementById('procNum').value;
+    const credor = document.getElementById('credor').value;
+    const devedor = document.getElementById('devedor').value;
+    
+    // Pegamos o valor total que já foi calculado na tela
+    const totalStr = document.getElementById('resTotal').innerText.replace('R$', '').replace('.', '').replace(',', '.').trim();
+    const total = parseFloat(totalStr);
+
+    if (!processo || isNaN(total)) {
+        return alert("Calcule primeiro e preencha o número do processo!");
+    }
+
+    const res = await fetch('/api/calculos/salvar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+            processo, credor, devedor, 
+            dataFinal: dataF, 
+            total: total,
+            detalhes: { dataGeracao: new Date() } // Opcional: guardar mais infos
+        })
+    });
+
+    if (res.ok) alert("✅ Cálculo salvo com sucesso no histórico!");
+    else alert("❌ Erro ao salvar cálculo.");
+}
+async function carregarHistorico() {
+    try {
+        const res = await fetch('/api/calculos/historico', { headers: { Authorization: `Bearer ${token}` } });
+        const dados = await res.json();
+        const container = document.getElementById('listaHistorico');
+        if (dados.length === 0) { container.innerHTML = "Nenhum cálculo salvo."; return; }
+
+        container.innerHTML = dados.map(c => `
+            <div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">
+                <span><strong>${c.processo_numero}</strong> - ${c.credor} vs ${c.devedor}</span>
+                <span style="color:var(--primary); font-weight:700;">R$ ${parseFloat(c.total_devido).toLocaleString('pt-BR')}</span>
+            </div>
+        `).join('');
+    } catch (e) { console.error(e); }
+}
+// Chama a função ao carregar
+carregarHistorico();
+        function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
+
+        window.onload = () => {
+            buscarSelicBCB();
+            carregarInfoRodape();
+            if (typeof carregarHistorico === "function") {
+                carregarHistorico();
+            }
+        };
+    </script>
+</body>
+</html>

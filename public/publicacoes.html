@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <title>LawTech Pro — Publicações DJEN</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+
+    <style>
+        :root { 
+            --bg: #f8fafc;
+            --sidebar: #0f172a; 
+            --sidebar-hover: rgba(255, 255, 255, 0.1);
+            --text-menu: #cbd5e1;
+            --primary: #2563eb; 
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --muted: #64748b;
+            --text-main: #1e293b;
+            --radius: 12px;
+        }
+
+        /* Reset e Base conforme Dashboard Modern */
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; }
+
+        /* Sidebar Fixa (250px) */
+        .sidebar { 
+            width: 250px; background: var(--sidebar); color: #fff; padding: 24px 20px; 
+            display: flex; flex-direction: column; height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; 
+        }
+        .sidebar-header { text-align: center; margin-bottom: 32px; }
+        .sidebar-header img { width: 100%; max-width: 160px; height: auto; }
+
+        .menu { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
+        .menu a { 
+            display: flex; align-items: center; padding: 12px; 
+            color: var(--text-menu); text-decoration: none; 
+            border-radius: 8px; font-size: 14px; transition: 0.2s;
+        }
+        .menu a i { margin-right: 12px; font-size: 18px; }
+        .menu a:hover, .menu a.active { background: var(--sidebar-hover); color: #fff; }
+        .menu a.active { background: var(--primary); font-weight: 500; }
+        .sidebar-footer { padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #94a3b8; margin-top: auto; }
+
+        /* Área Principal */
+        .main { margin-left: 250px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+        
+        /* Cabeçalho (72px) */
+        .header {
+            background: var(--white); height: 72px; padding: 0 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900;
+        }
+        .content { padding: 32px; }
+
+        /* Cards de Publicação */
+        .card-pub { 
+            background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); 
+            padding: 24px; margin-bottom: 20px; transition: 0.3s ease; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .card-pub:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        
+        .pub-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .processo-tag { background: #eff6ff; color: var(--primary); padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; }
+        .data-tag { color: var(--muted); font-size: 12px; font-weight: 600; }
+        
+        .texto-corpo { 
+            font-size: 14px; line-height: 1.7; color: #334155; margin-bottom: 20px; 
+            display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; 
+            -webkit-box-orient: vertical; overflow: hidden; 
+        }
+        .card-pub:hover .texto-corpo { -webkit-line-clamp: unset; line-clamp: unset; } /* Expande ao passar o mouse */
+
+        .btn-converter { 
+            background: var(--primary); color: white; border: none; padding: 10px 20px; 
+            border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;
+            display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;
+        }
+        .btn-converter:hover { background: #1d4ed8; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+        </div>
+        <nav class="menu">
+            <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+            <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+            <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
+            <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+            <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+            <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+            <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+            <a href="/publicacoes-page" class="active"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
+            <a href="/ia-page" style="display: flex; align-items: center; gap: 10px;">
+                <i class="lucide lucide-sparkles" style="color: #fbbf24;"></i> IA Jurídica 
+                <span style="font-size: 9px; background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; margin-left: auto;">PREMIUM</span>
+            </a>
+            <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+            <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div style="margin-bottom: 6px;">
+                <span style="color:#64748b">Usuário:</span> <span id="userEmail" style="color:#fff">...</span>
+            </div>
+            <div>
+                <span style="color:#64748b">Plano:</span> <span id="planNameFooter" style="color:#fff">...</span>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main">
+        <header class="header">
+            <div>
+                <h2 style="font-size: 18px; font-weight: 600;">📡 Captura de Publicações DJEN</h2>
+                <p style="color:var(--muted); font-size: 12px; font-weight: 500;">Monitoramento: Dr. Fábio Lima da Silva (OAB/BA 51.288)</p>
+            </div>
+            <button onclick="logout()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-weight:600; font-size:14px;">Sair</button>
+        </header>
+
+        <main class="content">
+            <div id="lista-publicacoes">
+                <p style="color:var(--muted); text-align:center; padding:50px;">Sincronizando com o Tribunal... 🔄</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login.html';
+
+        async function carregarInfoRodape() {
+    try {
+        // Ajustado para bater com as rotas do seu server.js
+        const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        const dataUser = await resUser.json();
+        if (dataUser.ok) document.getElementById('userEmail').innerText = dataUser.usuario.email;
+
+        // O seu server.js registrou app.use(prazosRoutes), então a rota é direta:
+        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+        const dataPlan = await resPlan.json();
+        document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
+    } catch (err) { 
+        console.error("Erro rodapé:", err); 
+    }
+}
+
+window.onload = async () => {
+    await carregarInfoRodape(); // Carrega o rodapé primeiro
+    await carregarPublicacoes(); // Depois tenta as publicações
+};
+
+        async function carregarPublicacoes() {
+    const container = document.getElementById('lista-publicacoes');
+    try {
+        const res = await fetch('/api/publicacoes-pendentes', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!res.ok) throw new Error('Falha na requisição');
+        
+        const dados = await res.json();
+
+        if (!dados || dados.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:60px; background:white; border-radius:12px; border:1px solid var(--border);">
+                    <i class="lucide lucide-coffee" style="font-size:40px; color:var(--muted); margin-bottom:15px;"></i>
+                    <p style="color:var(--muted); font-weight:500;">Nenhuma publicação nova encontrada. Tudo em dia!</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = dados.map(pub => `
+            <div class="card-pub">
+                <div class="pub-header">
+                    <span class="processo-tag">${pub.processo_numero}</span>
+                    <span class="data-tag">📅 Publicado em: ${new Date(pub.data_publicacao).toLocaleDateString('pt-BR')}</span>
+                </div>
+                <div class="texto-corpo">${pub.texto_publicacao}</div>
+                <button class="btn-converter" onclick="gerarPrazo(${pub.id}, '${pub.processo_numero}')">
+                    <i class="lucide lucide-zap" style="width:14px;"></i> Gerar Prazo Útil
+                </button>
+            </div>
+        `).join('');
+    } catch (err) {
+        console.error("Erro:", err);
+        container.innerHTML = `<p style="text-align:center; color:red; padding:20px;">Erro ao carregar publicações. Verifique a conexão com o servidor.</p>`;
+    }
+}
+
+        // Lógica de Identificação de Prazos
+        function adicionarDiasUteis(dataInicial, dias) {
+    let data = new Date(dataInicial);
+    let diasAdicionados = 0;
+    while (diasAdicionados < dias) {
+        data.setDate(data.getDate() + 1);
+        // 0 = Domingo, 6 = Sábado
+        if (data.getDay() !== 0 && data.getDay() !== 6) {
+            diasAdicionados++;
+        }
+    }
+    return data;
+}
+
+async function gerarPrazo(idPub, processo) {
+    const card = event.target.closest('.card-pub');
+    const texto = card.querySelector('.texto-corpo').innerText.toLowerCase();
+    
+    // Sugestão inteligente baseada no texto
+    let diasSugeridos = 15;
+    if (texto.includes("5 dias")) diasSugeridos = 5;
+    if (texto.includes("10 dias")) diasSugeridos = 10;
+
+    const tipo = prompt("Qual o tipo do prazo?", "Manifestação sobre Publicação");
+    if (!tipo) return;
+
+    const diasInput = prompt(`Quantos dias ÚTEIS para o prazo?`, diasSugeridos);
+    const dias = parseInt(diasInput);
+    if (isNaN(dias)) return;
+
+    // Calculamos a data real pulando fins de semana
+    const dataVencimentoObjeto = adicionarDiasUteis(new Date(), dias);
+    const dataFormatadaISO = dataVencimentoObjeto.toISOString().split('T')[0];
+
+    try {
+        const res = await fetch('/api/converter-publicacao', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            // Enviamos os dados para a rota que você já tem no prazos.routes.js
+            body: JSON.stringify({ 
+                id_publicacao: idPub, 
+                tipo: tipo, 
+                dias: dias,
+                dataCalculada: dataFormatadaISO // Opcional: garantir que o back use esta data
+            })
+        });
+
+        if (res.ok) {
+            alert(`⚡ Sucesso! Prazo de ${dias} dias úteis gerado para: ${dataVencimentoObjeto.toLocaleDateString('pt-BR')}`);
+            carregarPublicacoes();
+        }
+    } catch (err) {
+        console.error("Erro ao converter:", err);
+    }
+}
+    </script>
+</body>
+</html>

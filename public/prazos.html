@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <title>LawTech Pro — Gestão de Prazos</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+
+    <style>
+        :root { 
+            --bg: #f8fafc;
+            --sidebar: #0f172a; 
+            --sidebar-hover: rgba(255, 255, 255, 0.1);
+            --text-menu: #cbd5e1;
+            --primary: #2563eb; 
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --muted: #64748b;
+            --text-main: #1e293b;
+            --radius: 12px;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+        }
+
+        /* Reset e Base */
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Sidebar Fixa 250px */
+        .sidebar { 
+            width: 250px; background: var(--sidebar); color: #fff; padding: 24px 20px; 
+            display: flex; flex-direction: column; height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; 
+        }
+        .sidebar-header { text-align: center; margin-bottom: 32px; }
+        .sidebar-header img { width: 100%; max-width: 160px; height: auto; }
+
+        .menu { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
+        .menu a { 
+            display: flex; align-items: center; padding: 12px; 
+            color: var(--text-menu); text-decoration: none; 
+            border-radius: 8px; font-size: 14px; transition: 0.2s;
+        }
+        .menu a i { margin-right: 12px; font-size: 18px; }
+        .menu a:hover, .menu a.active { background: var(--sidebar-hover); color: #fff; }
+        .menu a.active { background: var(--primary); font-weight: 500; }
+        .sidebar-footer { padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #94a3b8; margin-top: auto; }
+
+        /* Área Principal */
+        .main { margin-left: 250px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; }
+        .header { background: var(--white); height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; }
+        .content { padding: 32px; }
+
+        /* Estilos de Prazos e Badges */
+        .section { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 24px; margin-bottom: 24px; }
+        .prazo { border-left: 4px solid var(--primary); padding: 16px; margin-bottom: 12px; border-radius: 8px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .prazo:hover { transform: translateX(4px); background: #f1f5f9; }
+        .prazo.vencido { border-color: var(--danger); background: #fef2f2; }
+        .prazo.semana { border-color: var(--warning); background: #fffbeb; }
+        .prazo.futuro { border-color: var(--success); }
+
+        .badge { font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700; text-transform: uppercase; margin-left: 8px; }
+        .badge.urgente-hoje { background: var(--danger); color: #fff; animation: pulse 1.5s infinite; }
+        .badge.urgente-amanha { background: var(--warning); color: #fff; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
+        .btn-primary { background: var(--primary); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .btn-secondary { background: #f1f5f9; color: var(--muted); border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .btn-secondary.active { background: var(--primary); color: #fff; }
+
+        /* Modal */
+        .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:10000; align-items:center; justify-content:center; }
+        .modal-content { background:#fff; width:100%; max-width:450px; padding:30px; border-radius:12px; }
+        
+        #toast { position: fixed; bottom: 20px; right: 20px; color: #fff; padding: 12px 16px; border-radius: 8px; display: none; z-index: 11000; font-weight: 600; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+        </div>
+        <nav class="menu">
+            <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+            <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+            <a href="/prazos-page" class="active"><i class="lucide lucide-clock"></i> Prazos</a>
+            <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+            <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+            <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+            <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+            <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
+            <a href="/ia-page" style="display: flex; align-items: center; gap: 10px;">
+                <i class="lucide lucide-sparkles" style="color: #fbbf24;"></i> IA Jurídica 
+                <span style="font-size: 9px; background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; margin-left: auto;">PREMIUM</span>
+            </a>
+            <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+            <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
+        </nav>
+        <div class="sidebar-footer">
+            <div style="margin-bottom: 6px;">
+                <span style="color:#64748b">Usuário:</span> <span id="userEmail" style="color:#fff">...</span>
+            </div>
+            <div>
+                <span style="color:#64748b">Plano:</span> <span id="planNameFooter" style="color:#fff">...</span>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main">
+        <header class="header">
+            <h2 style="font-size: 18px; font-weight: 600;">📅 Gestão de Prazos Processuais</h2>
+            <div style="display:flex; gap:20px; align-items:center;">
+                <button onclick="logout()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-weight:600; font-size:14px;">Sair</button>
+            </div>
+        </header>
+
+        <main class="content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <div style="display: flex; gap: 10px;">
+                    <button id="abaTodos" class="btn-secondary active" onclick="mostrarAba('todos')">📅 Prazos Ativos</button>
+                    <button id="abaConcluidos" class="btn-secondary" onclick="mostrarAba('concluidos')">✔️ Concluídos</button>
+                </div>
+                <button id="btnNovoPrazo" class="btn-primary" onclick="abrirModalPrazo()">
+                    <i class="lucide lucide-plus"></i> Novo Prazo
+                </button>
+            </div>
+
+            <div class="section" style="padding: 15px; display: flex; gap: 15px; align-items: center; margin-bottom: 20px;">
+                <i class="lucide lucide-search" style="color: var(--muted); width: 18px;"></i>
+                <input type="text" id="buscaPrazo" placeholder="Buscar por processo ou tipo de prazo..." 
+                       style="flex: 1; border: none; outline: none; font-size: 14px; background: transparent;">
+                <select id="filtroStatus" style="border: 1px solid var(--border); padding: 5px 10px; border-radius: 6px; outline: none; font-size: 13px;">
+                    <option value="todos">Todos os Status</option>
+                    <option value="vencido">Vencidos</option>
+                    <option value="semana">Desta Semana</option>
+                    <option value="futuro">Futuros</option>
+                </select>
+            </div>
+
+            <div id="aba-todos">
+                <div id="lista-vencidos"></div>
+                <div id="lista-semana"></div>
+                <div id="lista-futuros"></div>
+            </div>
+
+            <div id="aba-concluidos" style="display:none;">
+                <div id="lista-concluidos"></div>
+            </div>
+        </main>
+    </div>
+
+    <div id="modalPrazo" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px; font-weight: 700;">📅 Gerenciar Prazo</h3>
+            <input type="hidden" id="prazoId">
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--muted);">PROCESSO (CNJ)</label>
+                    <select id="processoId" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;"></select>
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--muted);">TIPO DO PRAZO</label>
+                    <input id="tipoPrazo" placeholder="Ex: Contestação, Recurso..." style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;">
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--muted);">DATA LIMITE (VENCIMENTO)</label>
+                    <input type="date" id="dataPrazo" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;">
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--muted);">OBSERVAÇÕES (OPCIONAL)</label>
+                    <textarea id="descricaoPrazo" rows="3" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; resize: none; margin-top: 5px;"></textarea>
+                </div>
+            </div>
+            <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn-primary" onclick="salvarPrazo()">Salvar Prazo</button>
+                <button class="btn-secondary" onclick="fecharModalPrazo()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+    <div id="loader" style="position: fixed; inset: 0; background: rgba(255,255,255,.6); display: none; align-items: center; justify-content: center; z-index: 10000;">
+        <div style="width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login.html';
+        let todosPrazos = [];
+
+        // 1. Inicialização e Rodapé
+        window.onload = () => {
+            carregarInfoRodape();
+            carregarPrazosModernos();
+            document.getElementById('buscaPrazo').addEventListener('input', aplicarFiltros);
+            document.getElementById('filtroStatus').addEventListener('change', aplicarFiltros);
+        };
+
+        async function carregarInfoRodape() {
+            try {
+                const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+                const dataUser = await resUser.json();
+                if (dataUser.ok) document.getElementById('userEmail').innerText = dataUser.usuario.email;
+
+                const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+                const dataPlan = await resPlan.json();
+                document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
+                
+                // Trava de botão conforme o plano
+                const btnNovoPrazo = document.getElementById('btnNovoPrazo');
+                if (dataPlan.limite_prazos && dataPlan.prazos_usados >= dataPlan.limite_prazos && dataPlan.plano !== 'Premium') {
+                    btnNovoPrazo.style.display = 'none';
+                }
+            } catch (err) { console.error("Erro sincronização:", err); }
+        }
+
+        // 2. Motor de Prazos
+        async function carregarPrazosModernos() {
+            const map = [
+                { url: '/api/dashboard/prazos-vencidos', container: 'lista-vencidos', classe: 'vencido' },
+                { url: '/api/dashboard/prazos-semana', container: 'lista-semana', classe: 'semana' },
+                { url: '/api/dashboard/prazos-futuros', container: 'lista-futuros', classe: 'futuro' }
+            ];
+            todosPrazos = [];
+            mostrarLoader();
+            for (const item of map) {
+                try {
+                    const res = await fetch(item.url, { headers: { Authorization: `Bearer ${token}` } });
+                    const prazos = await res.json();
+                    const container = document.getElementById(item.container);
+                    container.innerHTML = '';
+                    
+                    if (prazos.length === 0) {
+                        container.innerHTML = `<p style="color:var(--muted); font-size:12px; padding:10px;">Nenhum prazo ${item.classe}.</p>`;
+                    }
+
+                    prazos.forEach(p => {
+                        todosPrazos.push({ ...p, status: item.classe });
+                        const urgencia = calcularUrgencia(p.data_limite);
+                        container.innerHTML += `
+                            <div class="prazo ${item.classe}">
+                                <div>
+                                    <strong style="font-size: 14px;">${p.tipo} — Proc. ${p.processo_numero} 
+                                        ${urgencia ? `<span class="badge ${urgencia.classe}">${urgencia.label}</span>` : ''}
+                                    </strong>
+                                    <small style="display: block; margin-top: 4px; color:var(--muted);">📅 Vencimento: ${new Date(p.data_limite).toLocaleDateString('pt-BR')}</small>
+                                </div>
+                                <div style="display: flex; gap: 12px;">
+                                    <i class="lucide lucide-edit" onclick="editarPrazo(${p.id})" style="cursor:pointer; color:var(--primary); width:18px;"></i>
+                                    <i class="lucide lucide-check-circle" onclick="concluirPrazo(${p.id})" style="cursor:pointer; color:var(--success); width:18px;"></i>
+                                    <i class="lucide lucide-trash-2" onclick="excluirPrazo(${p.id})" style="cursor:pointer; color:var(--danger); width:18px;"></i>
+                                </div>
+                            </div>`;
+                    });
+                } catch (err) { console.error(err); }
+            }
+            esconderLoader();
+        }
+
+        async function carregarPrazosConcluidos() {
+            const container = document.getElementById('lista-concluidos');
+            container.innerHTML = '<p style="padding:20px;">Carregando...</p>';
+            try {
+                const res = await fetch('/api/prazos-concluidos', { headers: { Authorization: `Bearer ${token}` } });
+                const prazos = await res.json();
+                container.innerHTML = '';
+                if (prazos.length === 0) {
+                    container.innerHTML = '<p style="padding:20px; color:var(--muted);">Nenhum prazo concluído ainda.</p>';
+                    return;
+                }
+                prazos.forEach(p => {
+                    container.innerHTML += `
+                        <div class="prazo futuro">
+                            <div>
+                                <strong style="font-size: 14px;">${p.tipo} — Proc. ${p.processo_numero} <span class="badge" style="background:#e2e8f0; color:#475569;">CONCLUÍDO</span></strong>
+                                <small style="display: block; margin-top: 4px;">✅ Concluído em: ${new Date(p.concluido_em || p.updated_at).toLocaleDateString('pt-BR')}</small>
+                            </div>
+                        </div>`;
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        // 3. Funções de Ação
+        async function salvarPrazo() {
+    const id = document.getElementById('prazoId').value;
+    const dados = {
+        processoId: document.getElementById('processoId').value,
+        tipo: document.getElementById('tipoPrazo').value,
+        dataLimite: document.getElementById('dataPrazo').value,
+        descricao: document.getElementById('descricaoPrazo').value
+    };
+
+    if(!dados.processoId || !dados.tipo || !dados.dataLimite) {
+        return mostrarToast("Preencha os campos obrigatórios!", "erro");
+    }
+
+    const metodo = id ? 'PUT' : 'POST';
+    const url = id ? `/api/prazos/${id}` : '/api/prazos';
+    
+    try {
+        const res = await fetch(url, {
+            method: metodo,
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify(dados)
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            fecharModalPrazo();
+            mostrarAba('todos'); 
+            await carregarPrazosModernos();
+            mostrarToast("Prazo salvo com sucesso!", "sucesso");
+        } else if (res.status === 403 && data.codigo === 'LIMITE_PLANO_ATINGIDO') {
+            // Aqui chamamos sua função de aviso que já está no arquivo
+            fecharModalPrazo();
+            exibirAvisoUpgrade(data.erro); 
+        } else {
+            mostrarToast(data.erro || "Erro ao salvar prazo", "erro");
+        }
+    } catch (err) {
+        console.error("Erro na requisição:", err);
+        mostrarToast("Erro de conexão com o servidor", "erro");
+    }
+}
+
+        async function concluirPrazo(id) {
+            if (!confirm("Marcar este prazo como concluído?")) return;
+            const res = await fetch(`/api/prazos/${id}/concluir`, {
+                method: 'PATCH',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                mostrarToast("Parabéns! Prazo concluído.", "sucesso");
+                carregarPrazosModernos();
+            }
+        }
+
+        async function excluirPrazo(id) {
+            if (!confirm("Deseja realmente excluir este prazo?")) return;
+            const res = await fetch(`/api/prazos/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                mostrarToast("Prazo removido.", "sucesso");
+                carregarPrazosModernos();
+            }
+        }
+
+        function editarPrazo(id) {
+            const p = todosPrazos.find(x => x.id === id);
+            if (!p) return;
+            abrirModalPrazo();
+            document.getElementById('prazoId').value = p.id;
+            document.getElementById('processoId').value = p.processo_id;
+            document.getElementById('tipoPrazo').value = p.tipo;
+            document.getElementById('dataPrazo').value = new Date(p.data_limite).toISOString().split('T')[0];
+            document.getElementById('descricaoPrazo').value = p.descricao || '';
+        }
+
+        // 4. Interface e Apoio
+        function mostrarAba(aba) {
+            document.getElementById('aba-todos').style.display = aba === 'todos' ? 'block' : 'none';
+            document.getElementById('aba-concluidos').style.display = aba === 'concluidos' ? 'block' : 'none';
+            document.getElementById('abaTodos').classList.toggle('active', aba === 'todos');
+            document.getElementById('abaConcluidos').classList.toggle('active', aba === 'concluidos');
+            if (aba === 'concluidos') carregarPrazosConcluidos();
+        }
+
+        function abrirModalPrazo() { 
+            document.getElementById('modalPrazo').style.display = 'flex'; 
+            carregarProcessosSelect();
+        }
+        function fecharModalPrazo() { 
+            document.getElementById('modalPrazo').style.display = 'none'; 
+            document.getElementById('prazoId').value = '';
+        }
+
+        async function carregarProcessosSelect() {
+            const select = document.getElementById('processoId');
+            const res = await fetch('/api/processos', { headers: { Authorization: `Bearer ${token}` } });
+            const processos = await res.json();
+            select.innerHTML = '<option value="">Selecione o Processo</option>';
+            processos.forEach(p => { select.innerHTML += `<option value="${p.id}">${p.numero}</option>`; });
+        }
+
+        function aplicarFiltros() {
+            const termo = document.getElementById('buscaPrazo').value.toLowerCase();
+            const status = document.getElementById('filtroStatus').value;
+            document.querySelectorAll('.prazo').forEach(card => {
+                const texto = card.innerText.toLowerCase();
+                const matchTexto = texto.includes(termo);
+                const matchStatus = status === 'todos' || card.classList.contains(status);
+                card.style.display = (matchTexto && matchStatus) ? 'flex' : 'none';
+            });
+        }
+
+        function calcularUrgencia(data) {
+            const diff = Math.ceil((new Date(data) - new Date()) / (1000 * 60 * 60 * 24));
+            if (diff === 0) return { label: 'HOJE', classe: 'urgente-hoje' };
+            if (diff === 1) return { label: 'AMANHÃ', classe: 'urgente-amanha' };
+            return null;
+        }
+
+        function exibirAvisoUpgrade(mensagem) {
+        const overlay = document.createElement('div');
+        overlay.id = "overlay-upgrade"; // Adicionado ID para facilitar remoção
+        overlay.style = "position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:20000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(5px);";
+        overlay.innerHTML = `
+        <div style="background:#fff; padding:40px; border-radius:20px; text-align:center; max-width:350px;">
+            <div style="font-size:50px;">🚀</div>
+            <h3 style="margin-top:15px; color:var(--sidebar);">Limite Atingido</h3>
+            <p style="color:var(--muted); margin:15px 0;">${mensagem}</p>
+            <button onclick="window.location.href='/planos-page'" class="btn-primary" style="width:100%; justify-content:center; margin-bottom:10px;">Fazer Upgrade Agora</button>
+            <button onclick="document.getElementById('overlay-upgrade').remove()" style="background:none; border:none; margin-top:5px; color:var(--muted); cursor:pointer; font-weight:600;">Depois</button>
+        </div>`;
+        document.body.appendChild(overlay);
+        }
+
+        function mostrarLoader() { document.getElementById('loader').style.display = 'flex'; }
+        function esconderLoader() { document.getElementById('loader').style.display = 'none'; }
+        function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
+        
+        function mostrarToast(msg, tipo) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.background = tipo === 'sucesso' ? 'var(--success)' : 'var(--danger)';
+            t.style.display = 'block';
+            setTimeout(() => { t.style.display = 'none'; }, 3000);
+        }
+    </script>
+</body>
+</html>

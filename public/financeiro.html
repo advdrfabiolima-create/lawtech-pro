@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>LawTech Pro — Central Financeira e Cobrança</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root { 
+            --bg: #f8fafc; --sidebar: #0f172a; --sidebar-hover: rgba(255, 255, 255, 0.1);
+            --text-menu: #cbd5e1; --primary: #2563eb; --white: #ffffff;
+            --border: #e2e8f0; --muted: #64748b; --text-main: #1e293b;
+            --radius: 12px; --danger: #ef4444; --success: #10b981; --warning: #f59e0b;
+        }
+
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; }
+
+        .sidebar { width: 250px; background: var(--sidebar); color: #fff; padding: 24px 20px; display: flex; flex-direction: column; height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; }
+        .sidebar-header { text-align: center; margin-bottom: 32px; }
+        .sidebar-header img { width: 100%; max-width: 160px; height: auto; }
+        .menu { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
+        .menu a { display: flex; align-items: center; padding: 12px; color: var(--text-menu); text-decoration: none; border-radius: 8px; font-size: 14px; transition: 0.2s; }
+        .menu a i { margin-right: 12px; font-size: 18px; }
+        .menu a:hover, .menu a.active { background: var(--sidebar-hover); color: #fff; }
+        .menu a.active { background: var(--primary); font-weight: 500; }
+        .sidebar-footer { padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #94a3b8; margin-top: auto; }
+
+        .main { margin-left: 250px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+        .header { background: var(--white); height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; }
+        .content { padding: 32px; }
+
+        .cards-financeiro { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 32px; }
+        .card-stat { background: var(--white); border-radius: var(--radius); padding: 18px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .card-label { color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
+        .card-value { font-size: 20px; font-weight: 700; margin-top: 6px; }
+
+        .analytics-grid { display: grid; grid-template-columns: 1.2fr 1fr 0.8fr; gap: 20px; margin-bottom: 32px; }
+        .card-center { background: var(--white); border-radius: var(--radius); padding: 20px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .card-title { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+
+        .billing-list { display: flex; flex-direction: column; gap: 10px; max-height: 180px; overflow-y: auto; }
+        .billing-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border); }
+        .btn-mini-boleto { background: var(--primary); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        
+        .filter-row { display: flex; gap: 10px; margin-bottom: 24px; align-items: center; }
+        .btn-filter { background: #fff; border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; color: var(--muted); font-weight: 600; }
+        .btn-filter.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; background: #f8fafc; color: var(--muted); padding: 14px 16px; border-bottom: 2px solid var(--border); font-size: 11px; text-transform: uppercase; font-weight: 700; }
+        td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 13px; }
+
+        .modal { display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.7); z-index:10000; align-items:center; justify-content:center; backdrop-filter: blur(4px); }
+        .modal-content { background:#fff; width:100%; max-width:450px; padding:32px; border-radius:16px; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 5px; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+
+        @media print { .no-print, .sidebar, .header, .analytics-grid { display: none !important; } .main { margin-left: 0; } }
+    </style>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header"><img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro"></div>
+        <nav class="menu">
+            <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+            <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+            <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
+            <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+            <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+            <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+            <a href="/financeiro-page" class="active"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+            <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
+            <a href="/ia-page" style="display: flex; align-items: center; gap: 10px;">
+                <i class="lucide lucide-sparkles" style="color: #fbbf24;"></i> IA Jurídica 
+                <span style="font-size: 9px; background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; margin-left: auto;">PREMIUM</span>
+            </a>
+            <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+            <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
+        </nav>
+        <div class="sidebar-footer">
+            <div>Usuário: <span id="userEmail" style="color:#fff">...</span></div>
+            <div>Plano: <span id="planNameFooter" style="color:#fff; font-weight:700;">...</span></div>
+        </div>
+    </aside>
+
+    <div class="main">
+        <header class="header">
+            <h2 style="font-size: 18px; font-weight: 700;">💰 Fluxo de Caixa Estratégico</h2>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <button class="btn-mini-boleto" style="padding: 10px 20px; font-size: 13px;" onclick="abrirModalLancamento()">+ Novo Lançamento</button>
+                <button onclick="logout()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-weight:600;">Sair</button>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="cards-financeiro">
+                <div id="cardSaldoReal" class="card-stat" style="background: var(--sidebar); color: white; border: none; display: none;">
+                    <p class="card-label" style="color: #94a3b8;">🏦 Saldo em Carteira</p>
+                    <h3 id="saldoAsaasReal" class="card-value">R$ 0,00</h3>
+                    <small style="font-size: 9px; color: #10b981; font-weight: 700;">● CONTA VINCULADA</small>
+                </div>
+                <div class="card-stat" style="border-left: 4px solid var(--success);"><p class="card-label">Receitas Reais</p><h3 id="totalReceitas" class="card-value" style="color: var(--success);">R$ 0,00</h3></div>
+                <div class="card-stat" style="border-left: 4px solid var(--danger);"><p class="card-label">Despesas Pagas</p><h3 id="totalDespesas" class="card-value" style="color: var(--danger);">R$ 0,00</h3></div>
+                <div class="card-stat" style="border-left: 4px solid #34d399;"><p class="card-label">Boleto / A Receber</p><h3 id="totalAReceber" class="card-value" style="color: #34d399;">R$ 0,00</h3></div>
+                <div class="card-stat" style="border-left: 4px solid var(--warning);"><p class="card-label">Contas a Pagar</p><h3 id="totalAPagar" class="card-value" style="color: var(--warning);">R$ 0,00</h3></div>
+                <div class="card-stat" style="background: #eff6ff; border-left: 4px solid var(--primary);"><p class="card-label">Saldo Líquido</p><h3 id="saldoTotal" class="card-value" style="color: var(--primary);">R$ 0,00</h3></div>
+            </div>
+
+            <div class="analytics-grid no-print">
+                <div class="card-center">
+                    <div class="card-title"><i class="lucide lucide-trending-up"></i> Evolução Financeira</div>
+                    <canvas id="financeChart" height="130"></canvas>
+                </div>
+
+                <div class="card-center" style="border-top: 4px solid var(--primary);">
+                    <div class="card-title" style="color: var(--primary);"><i class="lucide lucide-barcode"></i> Cobrança de Pendentes</div>
+                    <div class="billing-list" id="listaCobrancaRapida"></div>
+                    <button class="btn-filter" style="width:100%; margin-top:15px; border-style: dashed;" onclick="rolarParaTabela()">Ver todas as pendências ↓</button>
+                </div>
+
+                <div class="card-center">
+                    <div class="card-title"><i class="lucide lucide-file-text"></i> Resumo Analítico</div>
+                    <div id="resumoTexto" style="font-size: 13px; color: var(--muted); line-height: 1.6;">Processando métricas...</div>
+                </div>
+            </div>
+
+            <div class="filter-row no-print">
+                <button class="btn-filter active">Todos os Lançamentos</button>
+                <button class="btn-filter" onclick="window.print()" style="margin-left: auto; border-color: var(--primary); color: var(--primary);"><i class="lucide lucide-printer"></i> Imprimir Relatório</button>
+            </div>
+
+            <div class="table-card" style="background: white; border-radius: 12px; border: 1px solid var(--border);">
+                <table>
+                    <thead>
+                        <tr><th>Descrição</th><th>Valor</th><th>Vencimento</th><th>Status</th><th style="text-align: center;">Ações</th></tr>
+                    </thead>
+                    <tbody id="corpoTabela"></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <div id="modalNovoLancamento" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px; font-weight: 800;">💰 Novo Lançamento Financeiro</h3>
+            <div class="form-group">
+                <label>DESCRIÇÃO</label>
+                <input type="text" id="addDescricao" placeholder="Ex: Honorários Processo X">
+            </div>
+            <div class="form-group">
+                <label>VALOR (R$)</label>
+                <input type="number" id="addValor" step="0.01" placeholder="0.00">
+            </div>
+            <div class="form-group">
+                <label>TIPO</label>
+                <select id="addTipo">
+                    <option value="Receita">Receita (Honorários/Entrada)</option>
+                    <option value="Despesa">Despesa (Custas/Saída)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>DATA DE VENCIMENTO</label>
+                <input type="date" id="addData">
+            </div>
+            <button class="btn-mini-boleto" style="width: 100%; padding: 14px; font-size: 14px; justify-content: center;" onclick="salvarLancamento()">SALVAR NO FLUXO</button>
+            <button style="width: 100%; margin-top: 10px; background: none; border: none; color: var(--muted); cursor: pointer;" onclick="fecharModalLancamento()">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="modalCobranca" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 12px; font-weight: 800;">📄 Emissão de Boleto Registrado</h3>
+            <p id="cobrancaResumo" style="font-size: 13px; color: var(--muted); margin-bottom: 15px; padding: 12px; background: #f0f7ff; border-radius: 8px;"></p>
+            
+            <div class="form-group">
+                <label>CLIENTE PARA O BOLETO</label>
+                <select id="selectClienteBoleto"><option value="">Carregando clientes...</option></select>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <div style="flex:1"><label style="font-size:11px; font-weight:700;">MULTA (2%)</label><input type="number" id="cobMulta" value="2.00" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;"></div>
+                <div style="flex:1"><label style="font-size:11px; font-weight:700;">JUROS (1%)</label><input type="number" id="cobJuros" value="1.00" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;"></div>
+            </div>
+
+            <button class="btn-mini-boleto" style="width:100%; justify-content:center; padding:14px; font-size:14px;" onclick="confirmarBoleto()">GERAR E ENVIAR BOLETO</button>
+            <button style="width:100%; margin-top:10px; background:#f1f5f9; border:none; color:var(--text-main); padding:12px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600;" 
+                    onclick="document.getElementById('modalCobranca').style.display='none'">
+                CANCELAR E VOLTAR
+            </button>
+        </div>
+    </div>
+
+    <div id="modalEditarLancamento" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-bottom: 20px; font-weight: 800;">📝 Editar Lançamento</h3>
+        <input type="hidden" id="editId"> <div class="form-group">
+            <label>DESCRIÇÃO</label>
+            <input type="text" id="editDescricao">
+        </div>
+        <div class="form-group">
+            <label>VALOR (R$)</label>
+            <input type="number" id="editValor" step="0.01">
+        </div>
+        <div class="form-group">
+            <label>TIPO</label>
+            <select id="editTipo">
+                <option value="Receita">Receita</option>
+                <option value="Despesa">Despesa</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>DATA DE VENCIMENTO</label>
+            <input type="date" id="editData">
+        </div>
+        <button class="btn-mini-boleto" style="width: 100%; padding: 14px; font-size: 14px; justify-content: center;" onclick="atualizarLancamento()">SALVAR ALTERAÇÕES</button>
+        <button style="width: 100%; margin-top: 10px; background: none; border: none; color: var(--muted); cursor: pointer;" onclick="document.getElementById('modalEditarLancamento').style.display='none'">Cancelar</button>
+    </div>
+</div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login.html';
+        
+        let originalData = [];
+        let financeChart;
+        let lancamentoParaCobrar = null;
+
+        // --- INICIALIZAÇÃO ÚNICA ---
+        window.onload = async () => {
+            await inicializar();
+            await atualizarSaldoRealAsaas();
+            await carregarClientesParaBoleto();
+        };
+
+        async function inicializar() {
+    try {
+        // AJUSTE: Adicionado /api antes de auth e plano-consumo
+        const resU = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        const du = await resU.json(); 
+        if(du.ok) document.getElementById('userEmail').innerText = du.usuario.email;
+
+        const resP = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+        const dp = await resP.json(); 
+        document.getElementById('planNameFooter').innerText = dp.plano || '---';
+
+        await carregarDados();
+    } catch (e) { console.error(e); }
+}
+
+        async function carregarDados() {
+            const res = await fetch('/api/financeiro', { headers: { Authorization: `Bearer ${token}` } });
+            originalData = await res.json();
+            renderizar(originalData);
+        }
+
+        function renderizar(lista) {
+    const corpo = document.getElementById('corpoTabela');
+    const listaCobranca = document.getElementById('listaCobrancaRapida');
+    
+    corpo.innerHTML = '';
+    listaCobranca.innerHTML = '';
+    let liqR = 0, liqD = 0, pendR = 0, pendD = 0;
+
+    lista.forEach(item => {
+        const v = parseFloat(item.valor);
+        const isR = item.tipo === 'Receita';
+        const isP = item.status === 'Pago';
+
+        if (isP) { 
+            if (isR) liqR += v; else liqD += v; 
+        } else { 
+            if (isR) pendR += v; else pendD += v; 
+        }
+
+        // Card de Cobrança Rápida
+        if (!isP && isR) {
+            listaCobranca.innerHTML += `
+                <div class="billing-item">
+                    <div>
+                        <div style="font-size:11px; font-weight:700;">${item.descricao}</div>
+                        <div style="font-size:10px; color:var(--danger);">Vence: ${new Date(item.data_vencimento).toLocaleDateString('pt-BR')}</div>
+                    </div>
+                    <button class="btn-mini-boleto" onclick="prepararBoleto(${item.id}, '${item.descricao}', ${v})">
+                        <i data-lucide="barcode"></i> BOLETO
+                    </button>
+                </div>`;
+        }
+
+        // Montagem das Ações (Pagar, Editar, Excluir)
+        const btnPagar = !isP ? `<i data-lucide="check-circle" onclick="marcarComoPago(${item.id})" style="cursor:pointer; color:var(--success); margin-right:12px; width:18px;" title="Pagar"></i>` : '';
+        const btnEditar = `<i data-lucide="pencil" onclick="editarLancamento(${item.id})" style="cursor:pointer; color:var(--primary); margin-right:12px; width:18px;" title="Editar"></i>`;
+        const btnExcluir = `<i data-lucide="trash-2" onclick="deletar(${item.id})" style="cursor:pointer; color:var(--danger); width:18px;" title="Excluir"></i>`;
+
+        corpo.innerHTML += `
+            <tr>
+                <td><strong>${item.descricao}</strong></td>
+                <td><strong style="color: ${isR ? 'var(--success)' : 'var(--danger)'}">R$ ${v.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong></td>
+                <td>${new Date(item.data_vencimento).toLocaleDateString('pt-BR')}</td>
+                <td><span style="font-weight:700; font-size:11px; color: ${isP ? 'var(--success)' : 'var(--warning)'}">${item.status.toUpperCase()}</span></td>
+                <td style="text-align: center; white-space: nowrap;">
+                    ${btnPagar} ${btnEditar} ${btnExcluir}
+                </td>
+            </tr>`;
+    });
+
+    // COMANDO ESSENCIAL: Transforma o código acima em ícones visíveis
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+
+    // Atualiza os Cards de Resumo
+    document.getElementById('totalReceitas').innerText = `R$ ${liqR.toLocaleString('pt-BR')}`;
+    document.getElementById('totalDespesas').innerText = `R$ ${liqD.toLocaleString('pt-BR')}`;
+    document.getElementById('totalAReceber').innerText = `R$ ${pendR.toLocaleString('pt-BR')}`;
+    document.getElementById('totalAPagar').innerText = `R$ ${pendD.toLocaleString('pt-BR')}`;
+    document.getElementById('saldoTotal').innerText = `R$ ${(liqR - liqD).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+    
+    atualizarGrafico(liqR, liqD, pendR, pendD);
+}
+
+        // --- FUNÇÕES DE NEGÓCIO ---
+        function abrirModalLancamento() { document.getElementById('modalNovoLancamento').style.display = 'flex'; }
+        function fecharModalLancamento() { document.getElementById('modalNovoLancamento').style.display = 'none'; }
+
+        async function salvarLancamento() {
+            const descricao = document.getElementById('addDescricao').value;
+            const valor = document.getElementById('addValor').value;
+            const tipo = document.getElementById('addTipo').value;
+            const data_vencimento = document.getElementById('addData').value;
+
+            if(!descricao || !valor || !data_vencimento) return alert("Preencha todos os campos!");
+
+            const res = await fetch('/api/financeiro', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ descricao, valor, tipo, data_vencimento })
+            });
+
+            if(res.ok) {
+                fecharModalLancamento();
+                carregarDados();
+                document.getElementById('addDescricao').value = '';
+                document.getElementById('addValor').value = '';
+                document.getElementById('addData').value = '';
+            } else { alert("Erro ao salvar."); }
+        }
+
+        async function marcarComoPago(id) {
+            if(!confirm("Deseja marcar como Pago?")) return;
+            const res = await fetch(`/api/financeiro/${id}/pagar`, { method: 'PATCH', headers: { Authorization: `Bearer ${token}` } });
+            if(res.ok) carregarDados();
+        }
+
+        async function deletar(id) {
+            if(confirm('Deseja excluir?')) {
+                const res = await fetch(`/api/financeiro/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+                if(res.ok) carregarDados();
+            }
+        }
+
+        function editarLancamento(id) {
+    // Busca o lançamento específico na nossa lista original de dados
+    const item = originalData.find(i => i.id === id);
+    if (!item) return;
+
+    // Preenche os campos do modal de edição
+    document.getElementById('editId').value = item.id;
+    document.getElementById('editDescricao').value = item.descricao;
+    document.getElementById('editValor').value = item.valor;
+    document.getElementById('editTipo').value = item.tipo;
+    
+    // Formata a data para o padrão YYYY-MM-DD exigido pelo input date
+    const dataFormatada = new Date(item.data_vencimento).toISOString().split('T')[0];
+    document.getElementById('editData').value = dataFormatada;
+
+    // Abre o modal
+    document.getElementById('modalEditarLancamento').style.display = 'flex';
+}
+
+// 2. Envia as alterações para o Servidor
+async function atualizarLancamento() {
+    const id = document.getElementById('editId').value;
+    const dados = {
+        descricao: document.getElementById('editDescricao').value,
+        valor: document.getElementById('editValor').value,
+        tipo: document.getElementById('editTipo').value,
+        data_vencimento: document.getElementById('editData').value
+    };
+
+    try {
+        const res = await fetch(`/api/financeiro/${id}`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify(dados)
+        });
+
+        if (res.ok) {
+            document.getElementById('modalEditarLancamento').style.display = 'none';
+            carregarDados(); // Recarrega a tabela e os gráficos
+        } else {
+            alert("Erro ao atualizar lançamento.");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Erro de conexão.");
+    }
+}
+
+        function prepararBoleto(id, desc, valor) {
+            lancamentoParaCobrar = { id, desc, valor };
+            document.getElementById('cobrancaResumo').innerHTML = `
+                <div style="background:var(--bg); padding:15px; border-radius:8px; border-left:4px solid var(--primary);">
+                    <p><strong>Honorários:</strong> ${desc}</p>
+                    <p><strong>Valor a Receber:</strong> R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+                </div>
+                <p style="margin-top:10px; font-size:12px; color:var(--muted);">
+                    * O valor será creditado na conta bancária configurada no seu perfil.
+                </p>
+            `;
+            document.getElementById('modalCobranca').style.display = 'flex';
+        }
+
+        async function carregarClientesParaBoleto() {
+    const select = document.getElementById('selectClienteBoleto');
+    try {
+        const res = await fetch('/api/clientes', { 
+            headers: { Authorization: `Bearer ${token}` } 
+        });
+        
+        if (!res.ok) throw new Error("Erro na requisição");
+
+        const clientes = await res.json();
+        
+        select.innerHTML = '<option value="">Selecione o cliente...</option>';
+        clientes.forEach(c => {
+            select.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
+        });
+    } catch (err) { // Mudamos de 'e' para 'err' ou apenas garantimos a declaração
+        console.error("Erro ao carregar clientes:", err);
+        select.innerHTML = '<option value="">Erro ao carregar clientes</option>';
+    }
+}
+
+        async function confirmarBoleto() {
+            if (!lancamentoParaCobrar) return;
+            const btn = document.querySelector('#modalCobranca .btn-mini-boleto');
+            const originalText = btn.innerText;
+
+            try {
+                btn.innerText = "⏳ Gerando...";
+                btn.disabled = true;
+
+                const res = await fetch('/api/financeiro/gerar-boleto-honorarios', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                        lancamentoId: lancamentoParaCobrar.id,
+                        valor: lancamentoParaCobrar.valor,
+                        descricao: lancamentoParaCobrar.desc,
+                        clienteId: document.getElementById('selectClienteBoleto').value
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok && data.url) {
+                    window.open(data.url, '_blank');
+                    alert("✅ Boleto gerado com sucesso!");
+                    document.getElementById('modalCobranca').style.display = 'none';
+                } else { alert("❌ Erro: " + (data.erro || "Falha na geração.")); }
+            } catch (err) { alert("Erro de conexão."); } 
+            finally { btn.innerText = originalText; btn.disabled = false; }
+        }
+
+        async function atualizarSaldoRealAsaas() {
+            try {
+                const res = await fetch('/api/financeiro/saldo-real', { headers: { Authorization: `Bearer ${token}` } });
+                const data = await res.json();
+                const card = document.getElementById('cardSaldoReal');
+                if (!data.apiKeyExiste) { card.style.display = 'none'; return; }
+                card.style.display = 'block';
+                if (data.saldo !== undefined) {
+                    document.getElementById('saldoAsaasReal').innerText = `R$ ${data.saldo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+                }
+            } catch (e) { console.error("Erro saldo:", e); }
+        }
+
+        function atualizarGrafico(r1, d1, r2, d2) {
+            const ctx = document.getElementById('financeChart').getContext('2d');
+            if (financeChart) financeChart.destroy();
+            financeChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Realizado', 'Previsto'],
+                    datasets: [
+                        { label: 'Receitas', data: [r1, r2], backgroundColor: '#10b981', borderRadius: 5 },
+                        { label: 'Despesas', data: [d1, d2], backgroundColor: '#ef4444', borderRadius: 5 }
+                    ]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        function rolarParaTabela() { window.scrollTo({ top: 600, behavior: 'smooth' }); }
+        function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
+    </script>
+</body>
+</html>

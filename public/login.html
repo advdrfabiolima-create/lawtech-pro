@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>LawTech Pro — Login</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --dark: #0f172a;
+            --text-main: #1e293b;
+            --muted: #64748b;
+            --white: #ffffff;
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        body { background: var(--white); height: 100vh; display: flex; overflow: hidden; }
+
+        /* Lado Esquerdo: Marketing */
+        .marketing-side {
+            flex: 1.2;
+            background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+            color: var(--white);
+            position: relative;
+        }
+
+        input.input-error {
+            border-color: #ef4444 !important;
+            background-color: #fef2f2;
+        }
+
+        /* Animação suave de erro */
+          @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          75% { transform: translateX(4px); }
+        }
+
+.shake { animation: shake 0.2s ease-in-out 0s 2; }
+
+        .marketing-content { position: relative; z-index: 1; text-align: center; max-width: 500px; }
+        .marketing-content h1 { font-size: 42px; font-weight: 800; line-height: 1.1; margin-bottom: 24px; }
+        .marketing-content p { font-size: 18px; color: #cbd5e1; margin-bottom: 40px; line-height: 1.6; }
+        .logo-main { width: 220px; margin-bottom: 50px; }
+
+        /* Lado Direito: Login */
+        .login-side { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; background-color: #f8fafc; }
+
+        .login-card {
+            width: 100%; max-width: 400px; background: var(--white);
+            padding: 40px; border-radius: var(--radius);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        .login-header { text-align: center; margin-bottom: 32px; }
+        .login-header h2 { font-size: 24px; font-weight: 700; color: var(--dark); }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
+        
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-wrapper i { position: absolute; left: 16px; color: var(--muted); font-size: 18px; }
+        
+        input {
+            width: 100%; padding: 14px 16px 14px 48px;
+            border: 1px solid #e2e8f0; border-radius: 8px;
+            font-size: 15px; outline: none; transition: 0.2s;
+        }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+
+        .btn-login {
+            width: 100%; padding: 14px; background: var(--primary);
+            color: var(--white); border: none; border-radius: 8px;
+            font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s;
+        }
+        .btn-login:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+        @media (max-width: 992px) { .marketing-side { display: none; } }
+    </style>
+</head>
+<body>
+
+    <section class="marketing-side">
+        <div class="marketing-content">
+            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro" class="logo-main">
+            <h1>Sua advocacia em um novo patamar.</h1>
+            <p>Gestão de prazos, processos e finanças com a inteligência que o seu escritório merece.</p>
+        </div>
+    </section>
+
+    <main class="login-side">
+        <div class="login-card">
+            <div class="login-header">
+                <h2>Bem-vindo</h2>
+                <p style="color: var(--muted); font-size: 14px;">Acesse sua conta para continuar</p>
+            </div>
+
+            <div class="form-group">
+                <label>E-mail</label>
+                <div class="input-wrapper">
+                    <i class="lucide lucide-mail"></i>
+                    <input type="email" id="email" placeholder="nome@exemplo.com">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Senha</label>
+                <div class="input-wrapper">
+                    <i class="lucide lucide-lock"></i>
+                    <input type="password" id="senha" placeholder="••••••••">
+                </div>
+            </div>
+
+            <button class="btn-login" onclick="login()">Entrar no Sistema</button>
+
+            <div style="text-align: center; margin: 20px 0;">
+                <div style="text-align: center; margin: 20px 0;">
+    <a href="/recuperar-senha" style="color: var(--primary); text-decoration: none; font-size: 13px; font-weight: 700; text-transform: uppercase;">Esqueceu sua senha?</a>
+</div>
+            </div>
+
+            <div id="erro" class="text-center" style="color: #ef4444; font-size: 13px; font-weight: 600; margin-bottom: 10px; min-height: 20px;"></div>
+
+            <div class="footer-legal" style="text-align: center; border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px;">
+                <p style="font-size: 11px; color: var(--muted); line-height: 1.4;">
+                    Ao entrar você concorda com os 
+                    <a href="/termos" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 600;">Termos de Uso</a> e a 
+                    <a href="/privacidade" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 600;">Política de Privacidade</a> da LawTech Pro.
+                </p>
+            </div>
+            <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #94a3b8;">
+            © copyright 2026 - LawTech Pro Systems
+        </div>
+    </div> </main>
+        </div>
+    </main>
+
+<script>
+    // 1. COLE O CÓDIGO DE VALIDAÇÃO AQUI (conforme a image_01c90e.png)
+    function validarCampo(input) {
+        if (input.value.trim() === "") {
+            input.classList.add('input-error'); // Deixa a borda vermelha
+            input.classList.add('shake');       // Dá a tremidinha de erro
+            setTimeout(() => input.classList.remove('shake'), 200);
+        } else {
+            input.classList.remove('input-error');
+        }
+    }
+
+    // Configura os avisos em tempo real
+    document.addEventListener('DOMContentLoaded', () => {
+        const emailInput = document.getElementById('email');
+        const senhaInput = document.getElementById('senha');
+
+        // Dispara o erro quando o Dr. Fábio clica fora do campo vazio
+        emailInput.addEventListener('blur', () => validarCampo(emailInput));
+        senhaInput.addEventListener('blur', () => validarCampo(senhaInput));
+
+        // Limpa o erro assim que ele volta a digitar
+        emailInput.addEventListener('input', () => emailInput.classList.remove('input-error'));
+        senhaInput.addEventListener('input', () => senhaInput.classList.remove('input-error'));
+    });
+
+    // 2. ABAIXO SEGUE A SUA FUNÇÃO DE LOGIN QUE JÁ EXISTIA
+    if (localStorage.getItem('token')) {
+        window.location.href = '/dashboard-modern.html';
+    }
+
+    async function login() {
+        const email = document.getElementById('email').value;
+        const senha = document.getElementById('senha').value;
+        const btn = document.querySelector('.btn-login');
+        const erroDiv = document.getElementById('erro');
+
+        // Limpa erros anteriores
+        erroDiv.innerText = '';
+
+        if (!email || !senha) {
+            erroDiv.innerText = 'Preencha todos os campos';
+            return;
+        }
+
+        try {
+            btn.innerText = 'Autenticando...';
+            btn.disabled = true;
+
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, senha })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                erroDiv.innerText = data.erro || 'Credenciais inválidas';
+                btn.innerText = 'Entrar no Sistema';
+                btn.disabled = false;
+                return;
+            }
+
+            localStorage.setItem('token', data.token);
+            window.location.href = '/dashboard-modern.html';
+
+        } catch (err) {
+            erroDiv.innerText = 'Erro de conexão com o servidor';
+            btn.innerText = 'Entrar no Sistema';
+            btn.disabled = false;
+        }
+    }
+
+    // Atalho Enter
+    document.addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <title>LawTech Pro — Agenda de Audiências</title>
+    <link rel="icon" type="image/png" href="favicon.png"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --bg: #f8fafc;
+            --sidebar: #0f172a; 
+            --sidebar-hover: rgba(255, 255, 255, 0.1);
+            --text-menu: #cbd5e1;
+            --primary: #2563eb; 
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --muted: #64748b;
+            --text-main: #1e293b;
+            --radius: 12px;
+            --danger: #ef4444;
+            --success: #10b981;
+            --whatsapp: #25d366;
+        }
+
+        /* Reset LawTech Pro */
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; }
+        
+        /* Sidebar (250px) */
+        .sidebar { 
+            width: 250px; background: var(--sidebar); color: #fff; padding: 24px 20px; 
+            display: flex; flex-direction: column; height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; 
+        }
+        .sidebar-header { text-align: center; margin-bottom: 32px; }
+        .sidebar-header img { width: 100%; max-width: 160px; height: auto; }
+
+        .menu { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
+        .menu a { 
+            display: flex; align-items: center; padding: 12px; 
+            color: var(--text-menu); text-decoration: none; 
+            border-radius: 8px; font-size: 14px; transition: 0.2s;
+        }
+        .menu a i { margin-right: 12px; font-size: 18px; }
+        .menu a:hover, .menu a.active { background: var(--sidebar-hover); color: #fff; }
+        .menu a.active { background: var(--primary); font-weight: 500; }
+
+        .sidebar-footer {
+            padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 11px; color: #94a3b8; margin-top: auto;
+        }
+
+        /* Main Area */
+        .main { margin-left: 250px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* Cabeçalho (72px) */
+        .header {
+            background: var(--white); height: 72px; padding: 0 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900;
+        }
+
+        .content { padding: 32px; }
+
+        /* Card e Tabela */
+        .card { 
+            background: var(--white); border-radius: var(--radius); padding: 24px; 
+            border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; color: var(--muted); padding: 12px; border-bottom: 2px solid var(--border); font-size: 12px; text-transform: uppercase; font-weight: 700; }
+        td { padding: 16px 12px; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-main); vertical-align: middle; }
+
+        /* Botões */
+        .btn-primary { 
+            background: var(--primary); color: #fff; border: none; 
+            padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .btn-whatsapp { 
+            background: var(--whatsapp); color: white; border: none; padding: 8px 12px; 
+            border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; 
+            display: inline-flex; align-items: center; gap: 6px; transition: 0.3s;
+        }
+        .btn-whatsapp:hover { background: #1eb954; transform: scale(1.02); }
+
+        /* Modal */
+        .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:10000; align-items:center; justify-content:center; }
+        .modal-content { background:#fff; width:100%; max-width:480px; padding:32px; border-radius:12px; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+        </div>
+        
+        <nav class="menu">
+    <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+    <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+    <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
+    <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+    <a href="/audiencias-page" class="active"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+    <a href="/calculos-page" id="link-calculos"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+    <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+    <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
+    <a href="/ia-page" style="display: flex; align-items: center; gap: 10px;">
+        <i class="lucide lucide-sparkles" style="color: #fbbf24;"></i> IA Jurídica 
+        <span style="font-size: 9px; background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; margin-left: auto;">PREMIUM</span>
+    </a>
+    <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+    <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
+</nav>
+
+        <div class="sidebar-footer">
+            <div style="margin-bottom: 6px;">
+                <span style="color:#64748b">Usuário:</span> <span id="footerEmail" style="color:#fff">...</span>
+            </div>
+            <div>
+                <span style="color:#64748b">Plano:</span> <span id="footerPlano" style="color:#fff">...</span>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main">
+        <header class="header">
+            <h2 style="font-size: 18px; font-weight: 600;">📅 Agenda de Audiências</h2>
+            <div style="display:flex; gap:20px; align-items:center;">
+                <button class="btn-primary" onclick="abrirModalAudiencia()">
+                    <i class="lucide lucide-plus"></i> Nova Audiência
+                </button>
+                <button onclick="logout()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-weight:600; font-size:14px;">Sair</button>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Processo/Cliente</th>
+                            <th>Tipo</th>
+                            <th>Local/Link</th>
+                            <th style="text-align: center;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaAudiencias">
+                        <tr><td colspan="5" style="text-align:center; padding:40px; color: var(--muted);">Carregando audiências...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <div id="modalAudiencia" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 24px; font-size: 18px;">⚖️ Agendar Audiência</h3>
+            <form id="formAudiencia">
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px;">Vincular Processo</label>
+                    <select id="audProcessoId" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;" required></select>
+                </div>
+                
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px;">Tipo de Audiência</label>
+                    <input type="text" id="audTipo" placeholder="Ex: Conciliação" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;" required>
+                </div>
+                
+                <div style="display:flex; gap:12px; margin-bottom:15px;">
+                    <div style="flex:1;">
+                        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px;">Data</label>
+                        <input type="date" id="audData" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;" required>
+                    </div>
+                    <div style="flex:1;">
+                        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px;">Hora</label>
+                        <input type="time" id="audHora" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;" required>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:24px;">
+                    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px;">Link ou Local Físico</label>
+                    <input type="text" id="audLocal" placeholder="Link da sala virtual ou endereço" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
+                </div>
+
+                <div style="display:flex; gap:12px;">
+                    <button type="submit" class="btn-primary" style="flex:1; justify-content:center;">Salvar</button>
+                    <button type="button" onclick="fecharModalAudiencia()" style="flex:1; background:#f1f5f9; border:none; border-radius:8px; cursor:pointer; font-weight: 600; color: var(--muted);">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login.html';
+
+        async function inicializarPagina() {
+            try {
+                // Info do Usuário
+                const resUser = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                const dataUser = await resUser.json();
+                if (dataUser.ok) document.getElementById('footerEmail').innerText = dataUser.usuario.email;
+
+                // Info do Plano
+                const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+                const dataPlan = await resPlan.json();
+                document.getElementById('footerPlano').innerText = dataPlan.plano || '---';
+
+                await carregarAudiencias();
+            } catch (err) { console.error(err); }
+        }
+
+        async function carregarAudiencias() {
+            try {
+                const res = await fetch('/api/audiencias', { headers: { 'Authorization': `Bearer ${token}` } });
+                const dados = await res.json();
+                const corpo = document.getElementById('listaAudiencias');
+                
+                if (dados.length === 0) {
+                    corpo.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--muted);">Nenhuma audiência agendada.</td></tr>';
+                    return;
+                }
+
+                corpo.innerHTML = dados.map(a => `
+                    <tr>
+                        <td>
+                            <strong style="color:var(--primary);">${new Date(a.data_audiencia).toLocaleDateString('pt-BR')}</strong><br>
+                            <span style="font-size:12px; font-weight:600; color:var(--muted);">${a.hora_audiencia.slice(0,5)}</span>
+                        </td>
+                        <td>
+                            <div style="font-weight:700; color:var(--text-main);">${a.processo_numero}</div>
+                            <div style="font-size:12px; color:var(--muted);">${a.cliente}</div>
+                        </td>
+                        <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600;">${a.tipo_audiencia}</span></td>
+                        <td style="font-size:12px; color:var(--muted); max-width:200px; overflow:hidden; text-overflow:ellipsis;">${a.local_virtual || '-'}</td>
+                        <td style="text-align: center;">
+                            <div style="display:flex; flex-direction:column; gap:8px; align-items:center;">
+                                <button class="btn-whatsapp" onclick="avisarZap('${a.cliente}', '${a.processo_numero}', '${a.tipo_audiencia}', '${a.data_audiencia}', '${a.hora_audiencia}', '${a.local_virtual}', '${a.telefone}')">
+                                    <i class="lucide lucide-message-circle"></i> Zap Cliente
+                                </button>
+                                <button onclick="excluirAudiencia(${a.id})" style="color:var(--danger); background:none; border:none; cursor:pointer; font-weight:700; font-size:11px;">
+                                    <i class="lucide lucide-trash-2" style="width:12px; vertical-align:middle;"></i> EXCLUIR
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) { console.error(err); }
+        }
+
+        // Lógica de WhatsApp original mantida
+        function avisarZap(cliente, processo, tipo, data, hora, local, telefone) {
+            if (!telefone || telefone === 'null' || telefone === 'undefined') {
+                alert("Atenção: Este cliente não possui telefone cadastrado!");
+                return;
+            }
+            const foneLimpo = telefone.replace(/\D/g, "");
+            const dataFormatada = new Date(data).toLocaleDateString('pt-BR');
+            const mensagem = `*AVISO DE AUDIÊNCIA - LawTech Pro*%0A%0A` +
+                             `Olá, *${cliente}*!%0A` +
+                             `Confirmamos o agendamento da sua audiência:%0A%0A` +
+                             `📂 *Processo:* ${processo}%0A` +
+                             `⚖️ *Tipo:* ${tipo}%0A` +
+                             `📅 *Data:* ${dataFormatada}%0A` +
+                             `🕒 *Hora:* ${hora.slice(0,5)}%0A` +
+                             `📍 *Local/Link:* ${local || 'A definir'}%0A%0A` +
+                             `Atenciosamente,%0A` +
+                             `*Dr. Fábio Lima da Silva (OAB/BA 51.288)*`;
+            window.open(`https://wa.me/55${foneLimpo}?text=${mensagem}`, '_blank');
+        }
+
+        function abrirModalAudiencia() {
+            document.getElementById('modalAudiencia').style.display = 'flex';
+            carregarProcessosSelect();
+        }
+
+        function fecharModalAudiencia() { document.getElementById('modalAudiencia').style.display = 'none'; }
+
+        async function carregarProcessosSelect() {
+            const res = await fetch('/api/processos', { headers: { 'Authorization': `Bearer ${token}` } });
+            const processos = await res.json();
+            const select = document.getElementById('audProcessoId');
+            select.innerHTML = '<option value="">Selecione o processo...</option>' + 
+                processos.map(p => `<option value="${p.id}">${p.numero} - ${p.cliente}</option>`).join('');
+        }
+
+        async function excluirAudiencia(id) {
+            if (!confirm("Deseja realmente excluir esta audiência?")) return;
+            try {
+                const res = await fetch(`/api/audiencias/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) carregarAudiencias();
+            } catch (err) { console.error(err); }
+        }
+
+        document.getElementById('formAudiencia').onsubmit = async (e) => {
+            e.preventDefault();
+            const dados = {
+                processo_id: document.getElementById('audProcessoId').value,
+                tipo: document.getElementById('audTipo').value,
+                data: document.getElementById('audData').value,
+                hora: document.getElementById('audHora').value,
+                local: document.getElementById('audLocal').value
+            };
+            await fetch('/api/audiencias', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(dados)
+            });
+            fecharModalAudiencia();
+            carregarAudiencias();
+        };
+
+        function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
+        window.onload = inicializarPagina;
+    </script>
+</body>
+</html>
