@@ -2,46 +2,57 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
 
-// 1. Função de Registro (Corrigida para exportação única)
+// 1. Função de Registro
 const register = async (req, res) => {
-    // Adicionado escritorio_id para suportar a estrutura multitenant do seu SQL
-    const { nome, email, senha, role, escritorio_id } = req.body;
+    // Agora capturamos também os dados de faturamento vindos do novo register.html
+    const { nome, email, senha, planoId, documento, cep, endereco } = req.body;
 
     if (!nome || !email || !senha) {
         return res.status(400).json({ erro: 'Dados obrigatórios não informados' });
     }
 
     try {
-        const existe = await pool.query(
-            'SELECT id FROM usuarios WHERE email = $1',
-            [email]
-        );
-
+        // 1. Verifica se o e-mail já existe
+        const existe = await pool.query('SELECT id FROM usuarios WHERE email = $1', [email]);
         if (existe.rowCount > 0) {
-            return res.status(409).json({ erro: 'E-mail já cadastrado' });
+            return res.status(409).json({ erro: 'Este e-mail já está em uso' });
         }
 
-        const senhaHash = await bcrypt.hash(senha, 10);
+        // 2. Define lógica de status inicial do plano
+        const planoParaDefinir = planoId || 1;
+        // Se o plano for maior que 1 (pago), o status nasce como 'pendente'
+        const statusInicial = (planoParaDefinir > 1) ? 'pendente' : 'ativo';
 
+        // 3. Cria o Escritório com dados completos
+        const novoEscritorio = await pool.query(
+            `INSERT INTO escritorios 
+                (nome, plano_id, documento, cep, endereco, plano_financeiro_status) 
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+            [`Escritório de ${nome}`, planoParaDefinir, documento, cep, endereco, statusInicial]
+        );
+        const escritorioId = novoEscritorio.rows[0].id;
+
+        // 4. Criptografa a senha e salva o usuário como 'admin'
+        const senhaHash = await bcrypt.hash(senha, 10);
         const result = await pool.query(
             `INSERT INTO usuarios (nome, email, senha, role, escritorio_id)
-             VALUES ($1, $2, $3, $4, $5)
+             VALUES ($1, $2, $3, 'admin', $4)
              RETURNING id, nome, email, role, escritorio_id`,
-            [nome, email, senhaHash, role || 'advogado', escritorio_id]
+            [nome, email, senhaHash, escritorioId]
         );
 
         res.status(201).json({
-            mensagem: 'Usuário cadastrado com sucesso',
+            mensagem: 'Conta criada com sucesso!',
             usuario: result.rows[0]
         });
 
     } catch (error) {
-        console.error("Erro no registro:", error);
-        res.status(500).json({ erro: 'Erro ao cadastrar usuário' });
+        console.error("Erro no auto-registro:", error);
+        res.status(500).json({ erro: 'Falha ao processar cadastro. Tente novamente.' });
     }
 };
 
-// 2. Função de Login
+// 2. Função de Login com Verificação de Pagamento
 const login = async (req, res) => {
     const { email, senha } = req.body;
 
@@ -66,7 +77,22 @@ const login = async (req, res) => {
             return res.status(401).json({ erro: 'Usuário ou senha inválidos' });
         }
 
-        // Importante: escritorio_id no Token é o que permite a IA checar o plano no server.js
+        // --- VERIFICAÇÃO DE STATUS DO PLANO (BLOQUEIO) ---
+        const escCheck = await pool.query(
+            'SELECT plano_id, plano_financeiro_status, documento, oab FROM escritorios WHERE id = $1',
+            [usuario.escritorio_id]
+        );
+        const escritorio = escCheck.rows[0];
+
+        // Se o plano for pago e o status ainda for pendente, bloqueia o acesso
+        if (escritorio.plano_id > 1 && escritorio.plano_financeiro_status === 'pendente') {
+            return res.status(402).json({ 
+                erro: 'Pagamento pendente', 
+                detalhe: 'Acesse o link enviado ao seu e-mail para quitar a fatura e liberar o acesso.' 
+            });
+        }
+
+        // Geração do Token JWT
         const token = jwt.sign(
             { 
                 id: usuario.id, 
@@ -78,6 +104,8 @@ const login = async (req, res) => {
             { expiresIn: '1d' }
         );
 
+        const perfilCompleto = !!(escritorio.documento && escritorio.oab);
+
         res.json({ 
           token,
           usuario: {
@@ -85,22 +113,22 @@ const login = async (req, res) => {
             nome: usuario.nome,
             email: usuario.email,
             role: usuario.role,
-            escritorio_id: usuario.escritorio_id
+            escritorio_id: usuario.escritorio_id,
+            perfilCompleto
           }
         });
+
     } catch (error) {
         console.error("Erro no login:", error);
         res.status(500).json({ erro: 'Erro ao realizar login' });
     }
 };
 
-// Adicione esta função caso ela não exista entre as 128 linhas
 async function alterarSenha(req, res) {
     const { novaSenha } = req.body;
     try {
         const salt = await bcrypt.genSalt(10);
         const senhaHash = await bcrypt.hash(novaSenha, salt);
-        // req.user.id vem do seu authMiddleware
         await pool.query('UPDATE usuarios SET senha = $1 WHERE id = $2', [senhaHash, req.user.id]);
         res.json({ ok: true, mensagem: 'Senha alterada com sucesso!' });
     } catch (err) {
@@ -108,9 +136,8 @@ async function alterarSenha(req, res) {
     }
 }
 
-// GARANTA QUE ESTA EXPORTAÇÃO ESTEJA NO FINAL (ajuste os nomes conforme suas funções)
 module.exports = { 
-    login: exports.login || login, 
-    register: exports.register || register, 
+    login, 
+    register, 
     alterarSenha 
 };

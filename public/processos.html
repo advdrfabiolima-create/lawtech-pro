@@ -18,8 +18,9 @@
         }
 
         * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.5; }
         
+        /* Sidebar Padronizada */
         .sidebar { width: 250px; background: var(--sidebar); color: #fff; padding: 24px 20px; display: flex; flex-direction: column; height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; }
         .sidebar-header { text-align: center; margin-bottom: 32px; }
         .sidebar-header img { width: 100%; max-width: 160px; height: auto; }
@@ -31,20 +32,34 @@
         .menu a.active { background: var(--primary); font-weight: 500; }
         .sidebar-footer { padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #94a3b8; margin-top: auto; }
 
-        .main { margin-left: 250px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+        /* Área Principal */
+        .main { margin-left: 250px; min-height: 100vh; display: flex; flex-direction: column; }
         .header { background: var(--white); height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; }
         .content { padding: 32px; }
 
-        .filters-container { background: var(--white); padding: 16px; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 24px; }
-        .btn-filter { background: #f8fafc; border: 1px solid var(--border); padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--muted); transition: 0.2s; }
-        .btn-filter:hover { border-color: var(--primary); color: var(--primary); }
-        .btn-filter.active { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); }
+        /* Filtros Estilizados */
+        .filters-container { background: var(--white); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .filter-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-right: 15px; }
+        
+        .btn-filter { background: #f1f5f9; border: 1px solid transparent; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); transition: 0.2s; }
+        .btn-filter:hover { background: #e2e8f0; color: var(--text-main); }
+        .btn-filter.active { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
 
-        .card { background: var(--white); border-radius: var(--radius); padding: 24px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        /* Tabela de Elite */
+        .card { background: var(--white); border-radius: var(--radius); padding: 0; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: var(--muted); padding: 12px; border-bottom: 2px solid var(--border); font-size: 12px; text-transform: uppercase; font-weight: 700; }
-        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-main); }
-        .btn-primary { background: var(--primary); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
+        th { text-align: left; color: var(--muted); padding: 16px 24px; border-bottom: 2px solid var(--border); font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+        td { padding: 16px 24px; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-main); }
+        tr:hover td { background-color: #f8fafc; }
+        
+        .status-pill { color: var(--success); font-weight: 700; font-size: 11px; background: #ecfdf5; padding: 4px 10px; border-radius: 50px; border: 1px solid #d1fae5; }
+
+        .btn-primary { background: var(--primary); color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.2s; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+        /* Modal */
+        #modalProcesso { backdrop-filter: blur(4px); }
+        .modal-content { background:#fff; width:100%; max-width:480px; padding:32px; border-radius:16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
     </style>
 </head>
 <body>
@@ -76,10 +91,9 @@
     <div class="main">
         <header class="header">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <h2 id="tituloPagina" style="font-size: 18px; font-weight: 600;">📂 Gestão de Processos</h2>
-                <button id="btnLimparFiltro" onclick="limparFiltro()" style="display: none; background: #f1f5f9; color: var(--muted); border: 1px solid var(--border); padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700;">✕ LIMPAR</button>
+                <h2 style="font-size: 18px; font-weight: 700;">📂 Gestão de Processos</h2>
             </div>
-            <div style="display:flex; gap:20px; align-items:center;">
+            <div style="display:flex; gap:15px; align-items:center;">
                 <button class="btn-primary" onclick="abrirModalProcesso()">+ Novo Processo</button>
                 <button onclick="logout()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-weight:600; font-size:14px;">Sair</button>
             </div>
@@ -87,8 +101,8 @@
 
         <main class="content">
             <div class="filters-container">
-                <div id="region-filter" style="display: flex; gap: 10px; margin-bottom: 12px; align-items: center;">
-                    <span style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Região:</span>
+                <div id="region-filter" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                    <span class="filter-label">Filtrar por Região:</span>
                     <button class="btn-filter active" onclick="filtrarRegiao('TODOS', this)">Todos</button>
                     <button class="btn-filter" onclick="filtrarRegiao('SUL', this)">Sul</button>
                     <button class="btn-filter" onclick="filtrarRegiao('SUDESTE', this)">Sudeste</button>
@@ -96,8 +110,8 @@
                     <button class="btn-filter" onclick="filtrarRegiao('NORDESTE', this)">Nordeste</button>
                     <button class="btn-filter" onclick="filtrarRegiao('NORTE', this)">Norte</button>
                 </div>
-                <div id="state-filter" style="display: none; gap: 10px; align-items: center; padding-top: 12px; border-top: 1px solid var(--border);">
-                    <span style="font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Estados:</span>
+                <div id="state-filter" style="display: none; gap: 10px; align-items: center; padding-top: 15px; margin-top: 15px; border-top: 1px solid var(--border);">
+                    <span class="filter-label">Estados:</span>
                     <div id="state-buttons" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
                 </div>
             </div>
@@ -105,48 +119,48 @@
             <div class="card">
                 <table>
                     <thead>
-                        <tr><th>Nº Processo (CNJ)</th><th>Cliente</th><th>Estado/Tribunal</th><th>Status</th></tr>
+                        <tr><th>Nº Processo (CNJ)</th><th>Cliente</th><th>Estado/Tribunal</th><th style="text-align: right;">Status</th></tr>
                     </thead>
                     <tbody id="listaProcessos">
-                        <tr><td colspan="4" style="text-align: center; color: var(--muted); padding: 40px;">Carregando processos...</td></tr>
+                        <tr><td colspan="4" style="text-align: center; color: var(--muted); padding: 40px;">Carregando sua base de processos...</td></tr>
                     </tbody>
                 </table>
             </div>
         </main>
     </div>
 
-    <div id="modalProcesso" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:10000; align-items:center; justify-content:center;">
-        <div style="background:#fff; width:100%; max-width:480px; padding:32px; border-radius:12px;">
-            <h3 style="margin-bottom: 24px; font-size: 18px; font-weight: 600;">📂 Cadastrar Novo Processo</h3>
+    <div id="modalProcesso" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.7); z-index:10000; align-items:center; justify-content:center;">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 24px; font-size: 20px; font-weight: 700; color: var(--sidebar);">📂 Novo Processo</h3>
             <form id="formProcesso">
                 <div style="margin-bottom:16px;">
-                    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Nº do Processo (CNJ)</label>
-                    <input type="text" id="procNumero" placeholder="0000000-00.0000.0.00.0000" maxlength="25" oninput="mascaraCNJ(this)" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;" required>
+                    <label style="display:block; font-size:11px; font-weight:700; color: var(--muted); margin-bottom:6px; text-transform:uppercase;">Nº do Processo (CNJ)</label>
+                    <input type="text" id="procNumero" placeholder="0000000-00.0000.0.00.0000" maxlength="25" oninput="mascaraCNJ(this)" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:8px;" required>
                 </div>
                 <div style="margin-bottom:16px;">
-                    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Vincular Cliente</label>
-                    <select id="procClienteId" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;" required>
+                    <label style="display:block; font-size:11px; font-weight:700; color: var(--muted); margin-bottom:6px; text-transform:uppercase;">Vincular Cliente</label>
+                    <select id="procClienteId" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:8px;" required>
                         <option value="">Carregando clientes...</option>
                     </select>
                 </div>
-                <div style="display:flex; gap:16px; margin-bottom:24px;">
+                <div style="display:flex; gap:16px; margin-bottom:30px;">
                     <div style="flex:1;">
-                        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Estado (UF)</label>
-                        <select id="procEstado" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;" required>
+                        <label style="display:block; font-size:11px; font-weight:700; color: var(--muted); margin-bottom:6px; text-transform:uppercase;">Estado</label>
+                        <select id="procEstado" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:8px;" required>
                             <option value="">Selecione...</option>
                             <option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option>
                         </select>
                     </div>
                     <div style="flex:1;">
-                        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Instância</label>
-                        <select id="procInstancia" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;" required>
+                        <label style="display:block; font-size:11px; font-weight:700; color: var(--muted); margin-bottom:6px; text-transform:uppercase;">Instância</label>
+                        <select id="procInstancia" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:8px;" required>
                             <option value="1">1ª Instância</option><option value="2">2ª Instância</option><option value="STJ">STJ/STF</option>
                         </select>
                     </div>
                 </div>
                 <div style="display:flex; gap:12px;">
-                    <button type="submit" class="btn-primary" style="flex:1;">Salvar Processo</button>
-                    <button type="button" onclick="fecharModalProcesso()" style="flex:1; background:#f1f5f9; border:none; border-radius:8px; cursor:pointer; font-weight: 600; color: var(--muted);">Cancelar</button>
+                    <button type="submit" class="btn-primary" style="flex:1.5;">Salvar Processo</button>
+                    <button type="button" onclick="fecharModalProcesso()" style="flex:1; background:#f1f5f9; border:none; border-radius:8px; cursor:pointer; font-weight: 700; color: var(--muted); font-size: 13px;">Cancelar</button>
                 </div>
             </form>
         </div>
@@ -166,33 +180,39 @@
         };
 
         async function inicializar() {
-    try {
-        // Rota corrigida com /api/auth/me
-        const resUser = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
-        const dataUser = await resUser.json();
-        if (dataUser.ok) document.getElementById('footerEmail').innerText = dataUser.usuario.email;
+            try {
+                const resUser = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                const dataUser = await resUser.json();
+                if (dataUser.ok) document.getElementById('footerEmail').innerText = dataUser.usuario.email;
 
-        // Rota corrigida com /api/plano-consumo
-        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
-        const dataPlan = await resPlan.json();
-        document.getElementById('footerPlano').innerText = dataPlan.plano || '---';
+                const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+                const dataPlan = await resPlan.json();
+                document.getElementById('footerPlano').innerText = dataPlan.plano || '---';
 
-        await carregarProcessos(); // Certifique-se que esta função usa fetch('/api/processos')
-    } catch (err) { console.error(err); }
-}
+                await carregarProcessos();
+            } catch (err) { console.error(err); }
+        }
+
+        async function carregarProcessos() {
+            try {
+                const res = await fetch('/api/processos', { headers: { 'Authorization': `Bearer ${token}` } });
+                todosProcessos = await res.json();
+                renderizarTabela(todosProcessos);
+            } catch (err) { console.error(err); }
+        }
 
         function renderizarTabela(lista) {
             const tabela = document.getElementById('listaProcessos');
             if (lista.length === 0) {
-                tabela.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:50px; color:var(--muted);">Nenhum processo encontrado.</td></tr>';
+                tabela.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:50px; color:var(--muted); font-size: 14px;">Nenhum processo cadastrado nesta categoria.</td></tr>';
                 return;
             }
             tabela.innerHTML = lista.map(p => `
                 <tr>
-                    <td>${p.numero}</td>
+                    <td style="font-weight: 600; color: var(--primary);">${p.numero}</td>
                     <td><strong>${p.cliente}</strong></td>
-                    <td>${p.uf || ''} / ${p.instancia || '1ª'} Inst.</td>
-                    <td><span style="color:var(--success); font-weight:600; font-size:12px; background:#f0fdf4; padding:4px 8px; border-radius:12px;">ATIVO</span></td>
+                    <td><span style="color: var(--muted); font-size: 12px; font-weight: 700;">${p.uf || '--'}</span> / ${p.instancia || '1'}ª Inst.</td>
+                    <td style="text-align: right;"><span class="status-pill">ATIVO</span></td>
                 </tr>
             `).join('');
         }
@@ -232,7 +252,6 @@
             carregarClientesNoSelect();
         }
         function fecharModalProcesso() { document.getElementById('modalProcesso').style.display = 'none'; }
-        function limparFiltro() { window.location.href = '/processos-page'; }
 
         async function carregarClientesNoSelect() {
             const res = await fetch('/api/clientes', { headers: { 'Authorization': `Bearer ${token}` } });
@@ -269,33 +288,7 @@
         }
 
         function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
-        window.onload = async () => {
-    await inicializar(); // Isso chamará carregarProcessos() internamente
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
-};
-async function carregarProcessos() {
-    try {
-        const tabela = document.getElementById('listaProcessos');
-        tabela.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:40px;">Carregando processos...</td></tr>';
-
-        // Chamada para a rota que definimos no server.js
-        const res = await fetch('/api/processos', { 
-            headers: { 'Authorization': `Bearer ${token}` } 
-        });
-
-        if (!res.ok) throw new Error('Falha ao buscar processos no servidor');
-
-        todosProcessos = await res.json(); // Salva na variável global para os filtros funcionarem
-        renderizarTabela(todosProcessos); // Chama a função que já existe no seu código
-
-    } catch (err) {
-        console.error('❌ Erro ao carregar processos:', err);
-        const tabela = document.getElementById('listaProcessos');
-        tabela.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:40px; color:var(--danger);">Erro ao carregar dados. Verifique o terminal.</td></tr>`;
-    }
-}
+        window.onload = inicializar;
     </script>
 </body>
 </html>

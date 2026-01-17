@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LawTech Pro — CRM & Funil</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+    <style>
+        :root { 
+            --bg: #f8fafc; --sidebar: #0f172a; --sidebar-hover: rgba(255, 255, 255, 0.1);
+            --text-menu: #cbd5e1; --primary: #2563eb; --white: #ffffff; 
+            --border: #e2e8f0; --text-main: #1e293b; --muted: #64748b; --radius: 16px;
+        }
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text-main); display: flex; }
+
+        /* Sidebar Padronizada (Fiel ao Dashboard Modern) */
+        .sidebar { width: 260px; background: var(--sidebar); color: #fff; padding: 24px 20px; display: flex; flex-direction: column; height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; }
+        .sidebar-header { text-align: center; margin-bottom: 32px; padding: 0 10px; }
+        .sidebar-header img { width: 100%; max-width: 180px; height: auto; }
+        
+        .menu { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; overflow-y: auto; }
+        .menu a { display: flex; align-items: center; padding: 12px 16px; color: var(--text-menu); text-decoration: none; border-radius: 10px; font-size: 14px; transition: all 0.2s; }
+        .menu a i { margin-right: 12px; font-size: 18px; opacity: 0.7; }
+        .menu a:hover { background: var(--sidebar-hover); color: #fff; }
+        .menu a.active { background: var(--primary); color: #fff; font-weight: 600; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
+
+        /* Rodapé Corrigido */
+        .sidebar-footer { padding: 20px 10px 0; border-top: 1px solid rgba(255,255,255,0.1); margin-top: auto; }
+        .user-info { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .user-avatar { width: 42px; height: 42px; background: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: 16px; flex-shrink: 0; }
+        .user-details { display: flex; flex-direction: column; overflow: hidden; }
+        .user-name { font-size: 14px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-plan { font-size: 12px; color: #94a3b8; display: flex; align-items: center; gap: 4px; }
+
+        /* Main Area */
+        .main { margin-left: 260px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+        .header { background: var(--white); height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; }
+        .content { padding: 32px; max-width: 1400px; margin: 0 auto; width: 100%; }
+
+        /* Kanban */
+        .kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 24px; align-items: start; }
+        .column { background: #f1f5f9; border-radius: var(--radius); padding: 16px; min-height: 75vh; border: 1px solid var(--border); }
+        .column-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .column-title { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; }
+        .badge { background: var(--white); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; color: var(--primary); }
+        
+        .lead-card { background: var(--white); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .lead-name { font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+        .lead-meta { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+        
+        .btn-status { margin-top: 12px; width: 100%; padding: 8px; font-size: 11px; font-weight: 600; border: 1px solid var(--border); border-radius: 8px; background: #f8fafc; color: var(--muted); cursor: pointer; }
+
+        /* Modal Novo Lead */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal-content { background: #fff; width: 100%; max-width: 400px; padding: 32px; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; outline: none; }
+        .form-group input:focus { border-color: var(--primary); }
+
+        .btn-add { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro"></div>
+        <nav class="menu">
+            <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+            <a href="/crm-page" class="active"><i class="lucide lucide-trello"></i> CRM Leads</a>
+            <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+            <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
+            <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+            <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+            <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+            <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+            <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
+            <a href="/ia-page" style="display: flex; align-items: center; gap: 10px;">
+                <i class="lucide lucide-sparkles" style="color: #fbbf24;"></i> IA Jurídica 
+                <span style="font-size: 9px; background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; margin-left: auto;">PREMIUM</span>
+            </a>
+            <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+            <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userInitial">L</div>
+                <div class="user-details">
+                    <span class="user-name" id="userNameFooter">Carregando...</span>
+                    <span class="user-plan"><i class="lucide lucide-shield-check" style="width:12px;"></i> <span id="planNameFooter">Aguardando...</span></span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main">
+        <header class="header">
+            <h2 style="font-size: 18px; font-weight: 700;">🚀 Funil de Prospecção</h2>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <button class="btn-add" onclick="abrirModalLead()">
+                    <i class="lucide lucide-plus"></i> Novo Lead
+                </button>
+                <button onclick="logout()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-size:14px; font-weight:600;">Sair</button>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="kanban">
+                <div class="column"><div class="column-header"><span class="column-title">Novos Leads</span> <span class="badge" id="count-Novo">0</span></div><div class="list" id="list-Novo"></div></div>
+                <div class="column"><div class="column-header"><span class="column-title">Reunião</span> <span class="badge" id="count-Reunião">0</span></div><div class="list" id="list-Reunião"></div></div>
+                <div class="column"><div class="column-header"><span class="column-title">Proposta</span> <span class="badge" id="count-Proposta">0</span></div><div class="list" id="list-Proposta"></div></div>
+                <div class="column"><div class="column-header"><span class="column-title">Ganho</span> <span class="badge" id="count-Ganho">0</span></div><div class="list" id="list-Ganho"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalLead" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px;">Captar Novo Lead</h3>
+            <form id="formNovoLead">
+                <div class="form-group"><label>Nome do Lead</label><input type="text" id="leadNome" required></div>
+                <div class="form-group"><label>WhatsApp</label><input type="text" id="leadFone" placeholder="(00) 00000-0000"></div>
+                <div class="form-group"><label>E-mail</label><input type="email" id="leadEmail"></div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn-add" style="flex: 1; justify-content: center;">Salvar Lead</button>
+                    <button type="button" onclick="fecharModalLead()" style="flex: 1; background: #f1f5f9; border: none; border-radius: 10px; cursor: pointer;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login.html';
+
+        async function inicializar() {
+            try {
+                const resMe = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                const dataMe = await resMe.json();
+                if (dataMe.ok) {
+                    document.getElementById('userNameFooter').innerText = dataMe.usuario.nome || 'Usuário';
+                    document.getElementById('userInitial').innerText = (dataMe.usuario.nome || 'L').charAt(0).toUpperCase();
+                }
+
+                const resPlan = await fetch('/api/plano-consumo', { headers: { 'Authorization': `Bearer ${token}` } });
+                const dataPlan = await resPlan.json();
+                document.getElementById('planNameFooter').innerText = dataPlan.plano || 'Básico';
+
+                carregarLeads();
+            } catch (err) { console.error(err); }
+        }
+
+        async function carregarLeads() {
+            const res = await fetch('/api/crm/leads', { headers: { 'Authorization': `Bearer ${token}` } });
+            const leads = await res.json();
+            const statusList = ['Novo', 'Reunião', 'Proposta', 'Ganho'];
+            
+            statusList.forEach(s => {
+                const list = document.getElementById(`list-${s}`);
+                const count = document.getElementById(`count-${s}`);
+                list.innerHTML = '';
+                const filtrados = leads.filter(l => l.status === s);
+                count.innerText = filtrados.length;
+                filtrados.forEach(l => {
+                    list.innerHTML += `
+                        <div class="lead-card">
+                            <div class="lead-name">${l.nome}</div>
+                            <div class="lead-meta"><i class="lucide lucide-phone" style="width:12px;"></i> ${l.telefone || '-'}</div>
+                            <select class="btn-status" onchange="alterarStatus(${l.id}, this.value)">
+                                <option value="Novo" ${s === 'Novo' ? 'selected' : ''}>Mover para Novo</option>
+                                <option value="Reunião" ${s === 'Reunião' ? 'selected' : ''}>Mover para Reunião</option>
+                                <option value="Proposta" ${s === 'Proposta' ? 'selected' : ''}>Mover para Proposta</option>
+                                <option value="Ganho" ${s === 'Ganho' ? 'selected' : ''}>Mover para Ganho</option>
+                            </select>
+                        </div>`;
+                });
+            });
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        async function alterarStatus(id, novoStatus) {
+            await fetch(`/api/crm/lead/${id}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ status: novoStatus })
+            });
+            carregarLeads();
+        }
+
+        function abrirModalLead() { document.getElementById('modalLead').style.display = 'flex'; }
+        function fecharModalLead() { document.getElementById('modalLead').style.display = 'none'; }
+
+        document.getElementById('formNovoLead').onsubmit = async (e) => {
+            e.preventDefault();
+            const dados = {
+                nome: document.getElementById('leadNome').value,
+                telefone: document.getElementById('leadFone').value,
+                email: document.getElementById('leadEmail').value
+            };
+            // Usamos a rota pública por simplicidade ou criamos uma privada. Vou usar a lógica de criação de lead.
+            const res = await fetch('/api/public/lead', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+            if (res.ok) { fecharModalLead(); carregarLeads(); }
+        };
+
+        function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
+        window.onload = inicializar;
+    </script>
+</body>
+</html>

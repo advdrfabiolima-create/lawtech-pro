@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LawTech Pro — Criar Conta Profissional</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #0f172a;
+            --text-main: #1e293b;
+            --muted: #64748b;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
+
+        .auth-card {
+            background: var(--white);
+            width: 100%;
+            max-width: 550px; /* Aumentado para acomodar mais campos */
+            padding: 40px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+        }
+
+        .auth-header { text-align: center; margin-bottom: 32px; }
+        .auth-header img { width: 180px; margin-bottom: 16px; }
+        .auth-header h2 { font-size: 20px; font-weight: 700; color: var(--secondary); }
+        .auth-header p { color: var(--muted); font-size: 14px; margin-top: 8px; }
+
+        /* Grid para campos lado a lado */
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
+        .form-group { flex: 1; margin-bottom: 15px; }
+        .form-group.small { flex: 0 0 120px; }
+
+        .form-group label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; }
+        .form-group input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: 0.2s;
+            outline: none;
+        }
+        .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+
+        .btn-register {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 15px;
+        }
+        .btn-register:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+        .auth-footer { text-align: center; margin-top: 24px; font-size: 13px; color: var(--muted); }
+        .auth-footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+
+        .error-message {
+            background: #fef2f2;
+            color: #ef4444;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid #fee2e2;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/imask"></script>
+</head>
+<body>
+
+    <div class="auth-card">
+        <div class="auth-header">
+            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+            <h2>Finalize seu Cadastro Profissional</h2>
+            <p id="planoTexto">Crie sua conta e ative sua gestão jurídica.</p>
+        </div>
+
+        <div id="errorBox" class="error-message"></div>
+
+        <form id="formRegister">
+            <div class="form-group">
+                <label>Nome Completo / Escritório</label>
+                <input type="text" id="nome" placeholder="Dr(a). Nome Sobrenome" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>E-mail Profissional</label>
+                    <input type="email" id="email" placeholder="nome@exemplo.com" required>
+                </div>
+                <div class="form-group">
+                    <label>CPF / CNPJ (Para Faturamento)</label>
+                    <input type="text" id="documento" placeholder="000.000.000-00" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group small">
+                    <label>CEP</label>
+                    <input type="text" id="cep" placeholder="00000-000" onblur="buscarEndereco(this.value)">
+                </div>
+                <div class="form-group">
+                    <label>Endereço</label>
+                    <input type="text" id="endereco" placeholder="Rua, Número, Bairro">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Senha de Acesso</label>
+                    <input type="password" id="senha" placeholder="Mínimo 6 caracteres" required>
+                </div>
+                <div class="form-group">
+                    <label>Confirmar Senha</label>
+                    <input type="password" id="confirmarSenha" placeholder="Repita a senha" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register" id="btnSubmit">Criar Conta e Continuar</button>
+        </form>
+
+        <div class="auth-footer">
+            Já possui uma conta? <a href="/login">Acesse aqui</a>
+        </div>
+    </div>
+
+    <script>
+        // Aplicar Máscaras (Similar ao config.html)
+        IMask(document.getElementById('documento'), {
+            mask: [ { mask: '000.000.000-00' }, { mask: '00.000.000/0000-00' } ]
+        });
+        IMask(document.getElementById('cep'), { mask: '00000-000' });
+
+        const form = document.getElementById('formRegister');
+        const errorBox = document.getElementById('errorBox');
+        const btnSubmit = document.getElementById('btnSubmit');
+
+        window.onload = () => {
+            const nomePlano = localStorage.getItem('plano_escolhido_nome');
+            if(nomePlano) {
+                document.getElementById('planoTexto').innerHTML = `Assinando plano: <strong style="color:#2563eb">${nomePlano}</strong>`;
+            }
+        };
+
+        async function buscarEndereco(cep) {
+            const v = cep.replace(/\D/g, '');
+            if(v.length === 8) {
+                const res = await fetch(`https://viacep.com.br/ws/${v}/json/`);
+                const data = await res.json();
+                if(!data.erro) {
+                    document.getElementById('endereco').value = `${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`;
+                }
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorBox.style.display = 'none';
+            
+            const senha = document.getElementById('senha').value;
+            if (senha !== document.getElementById('confirmarSenha').value) return showError("Senhas não coincidem.");
+            if (senha.length < 6) return showError("A senha deve ter 6+ caracteres.");
+
+            btnSubmit.innerText = "Processando...";
+            btnSubmit.disabled = true;
+
+            try {
+                const payload = {
+                    nome: document.getElementById('nome').value,
+                    email: document.getElementById('email').value,
+                    senha: senha,
+                    documento: document.getElementById('documento').value,
+                    cep: document.getElementById('cep').value,
+                    endereco: document.getElementById('endereco').value,
+                    planoId: localStorage.getItem('plano_escolhido_id') || 1
+                };
+
+                // 1. Registro
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // 2. Login Automático
+                    const loginRes = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: payload.email, senha: payload.senha })
+                    });
+                    
+                    const loginData = await loginRes.json();
+                    localStorage.setItem('token', loginData.token);
+
+                    // 3. Pagamento
+                    const pId = localStorage.getItem('plano_escolhido_id');
+                    if (pId && pId != "1") {
+                        const payRes = await fetch('/api/pagamentos/assinar-plano', {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${loginData.token}` 
+                            },
+                            body: JSON.stringify({
+                                planoId: pId,
+                                nomePlano: localStorage.getItem('plano_escolhido_nome'),
+                                valor: localStorage.getItem('plano_escolhido_valor'),
+                                cpfUsuario: payload.documento // AGORA ENVIAMOS O DOCUMENTO REAL
+                            })
+                        });
+
+                        const payData = await payRes.json();
+                        if (payData.url) {
+                            localStorage.removeItem('plano_escolhido_id');
+                            window.location.href = payData.url;
+                            return;
+                        }
+                    }
+                    window.location.href = '/dashboard';
+                } else {
+                    showError(data.erro || "Falha ao criar conta.");
+                }
+            } catch (err) {
+                showError("Erro de conexão.");
+            } finally {
+                btnSubmit.innerText = "Criar Conta e Continuar";
+                btnSubmit.disabled = false;
+            }
+        });
+
+        function showError(msg) {
+            errorBox.innerText = msg;
+            errorBox.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

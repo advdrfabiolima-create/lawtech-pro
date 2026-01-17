@@ -8,13 +8,8 @@ const roleMiddleware = require('../middlewares/roleMiddleware');
 // 🔓 LOGIN (público)
 router.post('/login', authController.login);
 
-// 🔐 REGISTER (somente ADMIN)
-router.post(
-  '/register',
-  authMiddleware,
-  roleMiddleware('admin'),
-  authController.register
-);
+// 🔓 REGISTER (Tornado público para novos clientes da Landing Page)
+router.post('/register', authController.register);
 
 router.post('/alterar-senha', authMiddleware, authController.alterarSenha);
 

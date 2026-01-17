@@ -22,7 +22,6 @@
         * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
         body { background: var(--white); height: 100vh; display: flex; overflow: hidden; }
 
-        /* Lado Esquerdo: Marketing */
         .marketing-side {
             flex: 1.2;
             background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%);
@@ -40,21 +39,19 @@
             background-color: #fef2f2;
         }
 
-        /* Animação suave de erro */
-          @keyframes shake {
+        @keyframes shake {
           0%, 100% { transform: translateX(0); }
           25% { transform: translateX(-4px); }
           75% { transform: translateX(4px); }
         }
 
-.shake { animation: shake 0.2s ease-in-out 0s 2; }
+        .shake { animation: shake 0.2s ease-in-out 0s 2; }
 
         .marketing-content { position: relative; z-index: 1; text-align: center; max-width: 500px; }
         .marketing-content h1 { font-size: 42px; font-weight: 800; line-height: 1.1; margin-bottom: 24px; }
         .marketing-content p { font-size: 18px; color: #cbd5e1; margin-bottom: 40px; line-height: 1.6; }
         .logo-main { width: 220px; margin-bottom: 50px; }
 
-        /* Lado Direito: Login */
         .login-side { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; background-color: #f8fafc; }
 
         .login-card {
@@ -125,12 +122,10 @@
             <button class="btn-login" onclick="login()">Entrar no Sistema</button>
 
             <div style="text-align: center; margin: 20px 0;">
-                <div style="text-align: center; margin: 20px 0;">
-    <a href="/recuperar-senha" style="color: var(--primary); text-decoration: none; font-size: 13px; font-weight: 700; text-transform: uppercase;">Esqueceu sua senha?</a>
-</div>
+                <a href="/recuperar-senha" style="color: var(--primary); text-decoration: none; font-size: 13px; font-weight: 700; text-transform: uppercase;">Esqueceu sua senha?</a>
             </div>
 
-            <div id="erro" class="text-center" style="color: #ef4444; font-size: 13px; font-weight: 600; margin-bottom: 10px; min-height: 20px;"></div>
+            <div id="erro" style="color: #ef4444; font-size: 13px; font-weight: 600; margin-bottom: 10px; min-height: 40px; text-align: center;"></div>
 
             <div class="footer-legal" style="text-align: center; border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px;">
                 <p style="font-size: 11px; color: var(--muted); line-height: 1.4;">
@@ -140,50 +135,42 @@
                 </p>
             </div>
             <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #94a3b8;">
-            © copyright 2026 - LawTech Pro Systems
-        </div>
-    </div> </main>
+                © copyright 2026 - LawTech Pro Systems
+            </div>
         </div>
     </main>
 
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
-    // 1. COLE O CÓDIGO DE VALIDAÇÃO AQUI (conforme a image_01c90e.png)
+    lucide.createIcons();
+
     function validarCampo(input) {
         if (input.value.trim() === "") {
-            input.classList.add('input-error'); // Deixa a borda vermelha
-            input.classList.add('shake');       // Dá a tremidinha de erro
+            input.classList.add('input-error');
+            input.classList.add('shake');
             setTimeout(() => input.classList.remove('shake'), 200);
         } else {
             input.classList.remove('input-error');
         }
     }
 
-    // Configura os avisos em tempo real
     document.addEventListener('DOMContentLoaded', () => {
         const emailInput = document.getElementById('email');
         const senhaInput = document.getElementById('senha');
 
-        // Dispara o erro quando o Dr. Fábio clica fora do campo vazio
         emailInput.addEventListener('blur', () => validarCampo(emailInput));
         senhaInput.addEventListener('blur', () => validarCampo(senhaInput));
 
-        // Limpa o erro assim que ele volta a digitar
         emailInput.addEventListener('input', () => emailInput.classList.remove('input-error'));
         senhaInput.addEventListener('input', () => senhaInput.classList.remove('input-error'));
     });
 
-    // 2. ABAIXO SEGUE A SUA FUNÇÃO DE LOGIN QUE JÁ EXISTIA
-    if (localStorage.getItem('token')) {
-        window.location.href = '/dashboard-modern.html';
-    }
-
-    async function login() {
+        async function login() {
         const email = document.getElementById('email').value;
         const senha = document.getElementById('senha').value;
         const btn = document.querySelector('.btn-login');
         const erroDiv = document.getElementById('erro');
 
-        // Limpa erros anteriores
         erroDiv.innerText = '';
 
         if (!email || !senha) {
@@ -203,15 +190,24 @@
 
             const data = await res.json();
 
-            if (!res.ok) {
-                erroDiv.innerText = data.erro || 'Credenciais inválidas';
+            if (res.ok) {
+                // Login permitido
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('usuario', JSON.stringify(data.usuario));
+                window.location.href = '/dashboard-modern.html';
+            } 
+            else if (res.status === 402) {
+                // AQUI ESTÁ A TRAVA FINANCEIRA
+                erroDiv.innerHTML = `💳 <strong>Pagamento Pendente:</strong><br>O acesso será liberado automaticamente após a confirmação do pagamento do seu plano.`;
                 btn.innerText = 'Entrar no Sistema';
                 btn.disabled = false;
-                return;
+            } 
+            else {
+                // Outros erros (senha errada, usuário inexistente)
+                erroDiv.innerText = data.erro || 'E-mail ou senha incorretos';
+                btn.innerText = 'Entrar no Sistema';
+                btn.disabled = false;
             }
-
-            localStorage.setItem('token', data.token);
-            window.location.href = '/dashboard-modern.html';
 
         } catch (err) {
             erroDiv.innerText = 'Erro de conexão com o servidor';
@@ -220,7 +216,6 @@
         }
     }
 
-    // Atalho Enter
     document.addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
 </script>
 </body>

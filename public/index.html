@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LawTech Pro — O Futuro da Gestão Jurídica</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #0f172a;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --bg-light: #f8fafc;
+            --white: #ffffff;
+            --gold: #fbbf24;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { color: var(--text-main); line-height: 1.6; overflow-x: hidden; }
+
+        /* Navigation */
+        nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 10%; background: var(--white);
+            position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid #e2e8f0;
+        }
+        .logo img { height: 40px; }
+        .nav-links a { text-decoration: none; color: var(--text-main); font-weight: 500; margin-left: 30px; font-size: 14px; }
+        .btn-nav { background: var(--primary); color: white !important; padding: 10px 20px; border-radius: 8px; }
+
+        /* Hero Section */
+        header.hero {
+            padding: 100px 10% 140px;
+            background: radial-gradient(circle at top right, #eff6ff, #ffffff);
+            text-align: center;
+        }
+        .hero h1 { font-size: 48px; font-weight: 800; color: var(--secondary); margin-bottom: 20px; letter-spacing: -1px; }
+        .hero p { font-size: 20px; color: var(--text-muted); max-width: 700px; margin: 0 auto 40px; }
+        .hero-btns { display: flex; justify-content: center; gap: 20px; }
+        
+        /* Buttons */
+        .btn-lg { padding: 16px 32px; border-radius: 12px; font-weight: 700; text-decoration: none; transition: 0.3s; }
+        .btn-hero-primary { background: var(--primary); color: white; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3); }
+        .btn-hero-primary:hover { transform: translateY(-3px); background: var(--primary-dark); }
+        .btn-hero-outline { border: 2px solid var(--primary); color: var(--primary); }
+
+        /* Features */
+        .features { padding: 100px 10%; background: var(--white); }
+        .section-title { text-align: center; margin-bottom: 60px; }
+        .section-title h2 { font-size: 32px; color: var(--secondary); }
+        .grid-features { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; }
+        .feature-card { padding: 30px; border-radius: 20px; border: 1px solid #f1f5f9; transition: 0.3s; }
+        .feature-card:hover { border-color: var(--primary); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); }
+        .feature-card i { font-size: 32px; color: var(--primary); margin-bottom: 20px; display: block; }
+        .feature-card h3 { margin-bottom: 12px; }
+
+        /* Pricing (Baseado no seu planos.html) */
+        .pricing { padding: 100px 10%; background: var(--bg-light); }
+        .grid-pricing { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .price-card { 
+            background: white; padding: 40px; border-radius: 24px; border: 1px solid #e2e8f0; 
+            position: relative; transition: 0.3s; 
+        }
+        .price-card.featured { border: 2px solid var(--primary); transform: scale(1.05); z-index: 10; }
+        .badge-featured { 
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            background: var(--primary); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 700;
+        }
+        .price-card h4 { font-size: 20px; margin-bottom: 10px; }
+        .price-card .amount { font-size: 44px; font-weight: 800; margin-bottom: 20px; }
+        .price-card .amount span { font-size: 16px; color: var(--text-muted); }
+        .price-card ul { list-style: none; margin-bottom: 30px; }
+        .price-card ul li { margin-bottom: 12px; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+        .price-card ul li i { color: #10b981; font-size: 16px; }
+
+        /* Footer */
+        footer { background: var(--secondary); color: white; padding: 60px 10% 30px; text-align: center; }
+        .footer-links { margin-bottom: 40px; }
+        .footer-links a { color: #94a3b8; text-decoration: none; margin: 0 15px; font-size: 14px; }
+        .copyright { border-top: 1px solid #1e293b; padding-top: 20px; font-size: 12px; color: #64748b; }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 32px; }
+            .hero-btns { flex-direction: column; }
+            .price-card.featured { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">
+            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+        </div>
+        <div class="nav-links">
+            <a href="#funcionalidades">Funcionalidades</a>
+            <a href="#precos">Planos</a>
+            <a href="/login" class="btn-nav">Acessar Sistema</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <h1>Transforme seu escritório com <br><span style="color: var(--primary);">Inteligência Jurídica</span></h1>
+        <p>A plataforma completa para advogados modernos: Gestão de processos, cálculos periciais SELIC e Inteligência Artificial Senior em um só lugar.</p>
+        <div class="hero-btns">
+            <a href="/register" class="btn-lg btn-hero-primary">Começar Agora</a>
+            <a href="#funcionalidades" class="btn-lg btn-hero-outline">Ver Funcionalidades</a>
+        </div>
+    
+        <script src="https://cdn.jsdelivr.net/npm/imask"></script>
+
+    </header>
+
+    <section class="features" id="funcionalidades">
+        <div class="section-title">
+            <h2>Gestão sem burocracia</h2>
+        </div>
+        <div class="grid-features">
+            <div class="feature-card">
+                <i class="lucide lucide-sparkles" style="color: var(--gold);"></i>
+                <h3>IA Jurídica Sênior</h3>
+                <p>Consulte teses, jurisprudências e peça auxílio técnico para um robô treinado em Direito Civil e Trabalhista.</p>
+            </div>
+            <div class="feature-card">
+                <i class="lucide lucide-calculator"></i>
+                <h3>Cálculos Periciais</h3>
+                <p>Juriscalc integrado com Taxa SELIC e correção automática via API do Banco Central.</p>
+            </div>
+            <div class="feature-card">
+                <i class="lucide lucide-clock"></i>
+                <h3>Prazos Inteligentes</h3>
+                <p>Captura automática de publicações do DJEN e alertas por e-mail em tempo real.</p>
+            </div>
+            <div class="feature-card">
+                <i class="lucide lucide-credit-card"></i>
+                <h3>Financeiro e Cobrança</h3>
+                <p>Emita boletos para seus clientes e controle seu fluxo de caixa de forma profissional.</p>
+            </div>
+        </div>
+    </section>
+
+<section class="pricing" id="precos">
+        <div class="section-title">
+            <h2>Planos sob medida para sua produtividade</h2>
+        </div>
+        <div class="grid-pricing" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+            
+            <div class="price-card">
+                <h4>Básico</h4>
+                <div class="amount">R$ 49,90<span>/mês</span></div>
+                <ul>
+                    <li><i class="lucide lucide-check-circle"></i> Até 20 prazos mensais</li>
+                    <li><i class="lucide lucide-check-circle"></i> Gestão de Processos</li>
+                    <li><i class="lucide lucide-check-circle"></i> Financeiro Básico</li>
+                </ul>
+                <button onclick="selecionarPlano(1, 'Básico', 49.90)" class="btn-nav" style="display: block; width: 100%; text-align: center; border: none; cursor: pointer;">Assinar Agora</button>
+            </div>
+
+            <div class="price-card featured" style="border-color: var(--primary); transform: scale(1.05); box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.1);">
+                <div class="badge-featured">MAIS ESCOLHIDO</div>
+                <h4>Intermediário</h4>
+                <div class="amount">R$ 149,90<span>/mês</span></div>
+                <ul>
+                    <li><i class="lucide lucide-check-circle"></i> Até 100 prazos mensais</li>
+                    <li><i class="lucide lucide-check-circle"></i> Cobrança Asaas</li>
+                    <li><i class="lucide lucide-check-circle"></i> Suporte Prioritário</li>
+                </ul>
+                <button onclick="selecionarPlano(2, 'Intermediário', 149.90)" class="btn-nav" style="display: block; width: 100%; text-align: center; border: none; cursor: pointer;">Assinar Agora</button>
+            </div>
+
+            <div class="price-card">
+                <h4>Avançado</h4>
+                <div class="amount">R$ 199,90<span>/mês</span></div>
+                <ul>
+                    <li><i class="lucide lucide-check-circle"></i> Até 500 prazos mensais</li>
+                    <li><i class="lucide lucide-check-circle"></i> Juriscalc Pericial Pro</li>
+                    <li><i class="lucide lucide-check-circle"></i> Alertas via WhatsApp</li>
+                </ul>
+                <button onclick="selecionarPlano(3, 'Avançado', 199.90)" class="btn-nav" style="display: block; width: 100%; text-align: center; border: none; cursor: pointer;">Assinar Agora</button>
+            </div>
+
+            <div class="price-card" style="background: linear-gradient(135deg, #FFFDF5 0%, #FEF9E7 100%); border: 2px solid #D4AF37; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15);">
+                
+                <div style="position: absolute; top: -100px; left: -100px; width: 300px; height: 300px; background: linear-gradient(45deg, transparent, rgba(212, 175, 55, 0.1), transparent); transform: rotate(45deg); pointer-events: none;"></div>
+                
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <span style="background: #D4AF37; color: white; padding: 4px 12px; border-radius: 50px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Experiência Elite</span>
+                </div>
+
+                <h4 style="color: #856404; font-weight: 800; text-align: center;">✨ PREMIUM PRO</h4>
+                <div class="amount" style="color: #856404; text-align: center;">R$ 299,90<span style="color: #B8860B;">/mês</span></div>
+                
+                <ul style="color: #533f03; margin-top: 20px;">
+                    <li style="border-bottom: 1px solid rgba(212, 175, 55, 0.2); padding-bottom: 8px;"><i class="lucide lucide-check-circle" style="color: #D4AF37;"></i> Prazos Ilimitados</li>
+                    <li style="border-bottom: 1px solid rgba(212, 175, 55, 0.2); padding-bottom: 8px;"><i class="lucide lucide-check-circle" style="color: #D4AF37;"></i> <b>IA Jurídica Sênior</b></li>
+                    <li><i class="lucide lucide-check-circle" style="color: #D4AF37;"></i> Publicações DJEN</li>
+                </ul>
+
+                <button onclick="selecionarPlano(4, 'Premium', 299.90)" class="btn-nav" style="display: block; width: 100%; text-align: center; border: none; cursor: pointer; background: linear-gradient(90deg, #D4AF37, #B8860B);">ASSINAR PREMIUM</button>
+            </div>
+    </section>
+
+    <section id="contato" style="padding: 80px 10%; background: #fff;">
+    <div style="max-width: 600px; margin: 0 auto; background: #f8fafc; padding: 40px; border-radius: 20px; border: 1px solid #e2e8f0;">
+        <h2 style="text-align: center; margin-bottom: 10px; color: #0f172a;">Fale com um Especialista</h2>
+        <p style="text-align: center; color: #64748b; margin-bottom: 30px; font-size: 14px;">Deixe seus dados e entraremos em contato para uma consultoria jurídica.</p>
+        
+        <form id="formLandingPage">
+    <input type="text" id="nomeLead" placeholder="Seu Nome" required>
+    <input type="email" id="emailLead" placeholder="Seu E-mail" required>
+    <input type="text" id="telLead" placeholder="Seu WhatsApp" required>
+    <button type="submit">Enviar Mensagem</button>
+</form>
+    </div>
+</section>
+
+<script>
+document.getElementById('formLandingPage').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const dados = {
+            nome: document.getElementById('nomeLead').value,
+            email: document.getElementById('emailLead').value,
+            telefone: document.getElementById('telLead').value
+        };
+
+        try {
+            const res = await fetch('/api/public/lead', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+
+            if (res.ok) {
+                alert('Obrigado! Em breve um de nossos advogados entrará em contato.');
+                e.target.reset();
+            } else {
+                alert('Erro ao enviar. Tente novamente mais tarde.');
+            }
+        } catch (err) {
+            console.error('Erro na captura:', err);
+        }
+    });
+</script>
+
+    <footer>
+        <div class="footer-links">
+            <a href="/termos">Termos de Uso</a>
+            <a href="/privacidade">Privacidade</a>
+            <a href="mailto:contato@lawtechpro.com.br">Suporte</a>
+        </div>
+        <p>LawTech Pro — Desenvolvido para Advogados de Performance</p>
+        <p class="copyright">&copy; 2026 LawTech Pro. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      lucide.createIcons();
+    </script>
+
+    <div id="modalEspecialista" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(6px);">
+    <div style="background: #fff; width: 90%; max-width: 450px; padding: 40px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); position: relative;">
+        
+        <button onclick="fecharModalEspecialista()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b;">&times;</button>
+        
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div style="background: #eff6ff; width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                <i class="lucide lucide-message-square" style="color: #2563eb; width: 30px; height: 30px;"></i>
+            </div>
+            <h3 style="font-size: 22px; font-weight: 700; color: #0f172a;">Fale com um Especialista</h3>
+            <p style="color: #64748b; font-size: 14px; margin-top: 8px;">Preencha os dados abaixo e entraremos em contato via WhatsApp o mais breve possível.</p>
+        </div>
+
+        <form id="formLandingPage">
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px; text-transform: uppercase;">Nome Completo</label>
+                <input type="text" id="nomeLead" placeholder="Ex: João Silva" required style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 12px; outline: none; transition: 0.2s;">
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px; text-transform: uppercase;">WhatsApp</label>
+                <input type="text" id="telLead" placeholder="(00) 00000-0000" required style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 12px; outline: none;">
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px; text-transform: uppercase;">E-mail (Opcional)</label>
+                <input type="email" id="emailLead" placeholder="exemplo@email.com" style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 12px; outline: none;">
+            </div>
+
+            <button type="submit" style="width: 100%; background: #2563eb; color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s;">Enviar Mensagem agora</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // 1. Funções de abrir e fechar o modal
+    function abrirModalEspecialista() { document.getElementById('modalEspecialista').style.display = 'flex'; }
+    function fecharModalEspecialista() { document.getElementById('modalEspecialista').style.display = 'none'; }
+
+    // 2. Aplica a Máscara de WhatsApp (IMask)
+    const telInput = document.getElementById('telLead');
+    const maskOptions = { mask: '(00) 00000-0000' };
+    const mask = IMask(telInput, maskOptions);
+
+    // 3. Envio do Formulário para o CRM
+    document.getElementById('formLandingPage').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const btn = e.target.querySelector('button');
+        btn.innerText = 'Enviando...';
+        btn.disabled = true;
+
+        const dados = {
+            nome: document.getElementById('nomeLead').value,
+            email: document.getElementById('emailLead').value,
+            telefone: document.getElementById('telLead').value
+        };
+
+        try {
+            // Rota pública que configuramos no crmController.js 
+            const res = await fetch('/api/public/lead', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+
+            if (res.ok) {
+                alert('🚀 Sucesso! Em instantes entraremos em contato pelo WhatsApp.');
+                fecharModalEspecialista();
+                e.target.reset();
+            } else {
+                alert('❌ Erro ao enviar contato. Tente novamente.');
+            }
+        } catch (err) {
+            console.error('Erro:', err);
+            alert('❌ Falha na conexão com o servidor.');
+        } finally {
+            btn.innerText = 'Enviar Mensagem agora';
+            btn.disabled = false;
+        }
+    });
+</script>
+<script>
+    /**
+     * Função para memorizar o plano escolhido e levar ao registro
+     */
+    function selecionarPlano(id, nome, valor) {
+        // Armazena os dados no navegador do cliente
+        localStorage.setItem('plano_escolhido_id', id);
+        localStorage.setItem('plano_escolhido_nome', nome);
+        localStorage.setItem('plano_escolhido_valor', valor);
+        
+        // Redireciona para a página de registro
+        window.location.href = '/register';
+    }
+
+    // Caso o usuário clique em "Começar Agora" no topo da página (Hero), 
+    // podemos definir o plano Básico como padrão se ele não escolher um específico.
+    document.querySelector('.btn-hero-primary').addEventListener('click', (e) => {
+        if(!localStorage.getItem('plano_escolhido_id')) {
+            localStorage.setItem('plano_escolhido_id', 1);
+            localStorage.setItem('plano_escolhido_nome', 'Básico');
+            localStorage.setItem('plano_escolhido_valor', 49.90);
+        }
+    });
+</script>
+</body>
+</html>
