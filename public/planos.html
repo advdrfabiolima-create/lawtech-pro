@@ -21,199 +21,93 @@
       --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     }
 
-    body {
-      margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--secondary);
-    }
+    body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--secondary); }
+    header { background: var(--secondary); padding: 40px 20px; text-align: center; border-bottom: 4px solid var(--primary); }
+    header img { max-width: 180px; height: auto; }
+    main { max-width: 1200px; margin: -40px auto 60px; padding: 0 20px; }
 
-    header {
-      background: var(--secondary);
-      padding: 40px 20px;
-      text-align: center;
-      border-bottom: 4px solid var(--primary);
-    }
-
-    header img {
-      max-width: 180px;
-      height: auto;
-    }
-
-    main {
-      max-width: 1200px;
-      margin: -40px auto 60px;
-      padding: 0 20px;
-    }
-
-    .header-text {
-      text-align: center;
-      margin-bottom: 50px;
-      background: var(--white);
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-    }
-
-    .header-text h2 {
-      margin: 0;
-      font-size: 28px;
-      font-weight: 700;
-    }
-
-    .subtitle {
-      color: var(--muted);
-      margin-top: 10px;
-    }
-
-    .planos-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
-    }
-
-    .plano-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 32px;
-      text-align: center;
-      position: relative;
+    /* Estilo do Interruptor (Switch) */
+    .toggle-container {
       display: flex;
-      flex-direction: column;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
-    }
-
-    .plano-card:hover {
-      transform: translateY(-10px);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-      border-color: var(--primary);
-    }
-
-    .plano-card h3 {
-      font-size: 20px;
-      margin-bottom: 8px;
-      color: var(--secondary);
-    }
-
-    .preco {
-      font-size: 32px;
-      font-weight: 700;
-      margin: 15px 0;
-      color: var(--primary);
-    }
-
-    .descricao {
-      color: var(--muted);
-      font-size: 14px;
-      min-height: 40px;
-      margin-bottom: 24px;
-      line-height: 1.5;
-    }
-
-    .plano-card ul {
-      list-style: none;
-      padding: 0;
-      text-align: left;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
       margin-bottom: 30px;
-      flex-grow: 1;
     }
 
-    .plano-card ul li {
-      margin-bottom: 12px;
-      padding-left: 28px;
-      font-size: 14px;
+    .switch {
       position: relative;
-      color: #475569;
+      display: inline-block;
+      width: 50px;
+      height: 26px;
     }
 
-    /* Checkmark estilizado */
-    .plano-card ul li::before {
-      content: "";
+    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .slider {
       position: absolute;
-      left: 0;
-      top: 2px;
-      width: 18px;
-      height: 18px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
-      background-size: contain;
-      background-repeat: no-repeat;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 14px;
-      border-radius: 12px;
-      border: none;
-      font-size: 15px;
-      font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #cbd5e1;
+      transition: .4s;
+      border-radius: 34px;
     }
 
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px; width: 18px;
+      left: 4px; bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider { background-color: var(--primary); }
+    input:checked + .slider:before { transform: translateX(24px); }
+
+    .toggle-label { font-size: 14px; font-weight: 600; color: var(--muted); transition: 0.3s; }
+    .toggle-label.active { color: var(--primary); }
+
+    .header-text { text-align: center; margin-bottom: 20px; background: var(--white); padding: 30px; border-radius: 16px; box-shadow: var(--shadow); }
+    .header-text h2 { margin: 0; font-size: 28px; font-weight: 700; }
+    .subtitle { color: var(--muted); margin-top: 10px; }
+
+    .planos-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+    .plano-card { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 32px; text-align: center; position: relative; display: flex; flex-direction: column; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); }
+    .plano-card:hover { transform: translateY(-10px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); border-color: var(--primary); }
+    .plano-card h3 { font-size: 20px; margin-bottom: 8px; color: var(--secondary); }
+    
+    .preco {
+    font-size: 28px; /* Reduzido de 32px para garantir alinhamento */
+    font-weight: 700;
+    margin: 15px 0;
+    color: var(--primary);
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px;
+    white-space: nowrap; /* Impede a quebra de linha */
+}
+    .descricao { color: var(--muted); font-size: 14px; min-height: 40px; margin-bottom: 24px; line-height: 1.5; }
+    .plano-card ul { list-style: none; padding: 0; text-align: left; margin-bottom: 30px; flex-grow: 1; }
+    .plano-card ul li { margin-bottom: 12px; padding-left: 28px; font-size: 14px; position: relative; color: #475569; }
+    .plano-card ul li::before { content: ""; position: absolute; left: 0; top: 2px; width: 18px; height: 18px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E"); background-size: contain; background-repeat: no-repeat; }
+
+    .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
     .btn.primary { background: var(--primary); color: var(--white); }
     .btn.primary:hover { background: #1d4ed8; }
-    
-    .btn.premium-btn { 
-      background: linear-gradient(135deg, #059669, #10b981); 
-      color: var(--white); 
-    }
-
+    .btn.premium-btn { background: linear-gradient(135deg, #059669, #10b981); color: var(--white); }
     .btn.secondary { background: #f1f5f9; color: #475569; }
 
-    /* Destaque Intermediário */
-    .plano-card.destaque {
-      border: 2px solid var(--primary);
-      background: linear-gradient(to bottom, #ffffff, #f0f7ff);
-    }
-
-    .badge-destaque {
-      position: absolute;
-      top: -14px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--primary);
-      color: var(--white);
-      padding: 6px 16px;
-      border-radius: 50px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    /* Destaque Premium */
+    .plano-card.destaque { border: 2px solid var(--primary); background: linear-gradient(to bottom, #ffffff, #f0f7ff); }
+    .badge-destaque { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--primary); color: var(--white); padding: 6px 16px; border-radius: 50px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
     .plano-card.premium { border: 2px solid #ca8a04; }
-    .badge-premium {
-      position: absolute;
-      top: -14px;
-      right: 20px;
-      background: linear-gradient(135deg, #facc15, #ca8a04);
-      color: var(--white);
-      padding: 6px 16px;
-      border-radius: 50px;
-      font-size: 11px;
-      font-weight: 700;
-      box-shadow: 0 4px 12px rgba(202, 138, 4, 0.3);
-    }
+    .badge-premium { position: absolute; top: -14px; right: 20px; background: linear-gradient(135deg, #facc15, #ca8a04); color: var(--white); padding: 6px 16px; border-radius: 50px; font-size: 11px; font-weight: 700; box-shadow: 0 4px 12px rgba(202, 138, 4, 0.3); }
 
-    .btn.disabled {
-      background: #e2e8f0 !important;
-      color: #94a3b8 !important;
-      cursor: default;
-      transform: none !important;
-    }
-
+    .btn.disabled { background: #e2e8f0 !important; color: #94a3b8 !important; cursor: default; transform: none !important; }
     footer { text-align: center; margin: 40px 0; }
-    footer a { 
-      color: var(--primary); 
-      text-decoration: none; 
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
+    footer a { color: var(--primary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
 
     @media (max-width: 768px) {
       main { margin-top: 20px; }
@@ -232,15 +126,24 @@
 
   <main>
     <div class="header-text">
-        <h2>Escolha o plano ideal para o seu escritório</h2>
-        <p class="subtitle">Soluções inteligentes para advogados que buscam alta performance.</p>
+      <h2>Escolha o plano ideal para o seu escritório</h2>
+      <p class="subtitle">Soluções inteligentes para advogados que buscam alta performance.</p>
+    </div>
+
+    <div class="toggle-container">
+      <span id="text-mensal" class="toggle-label active">Mensal</span>
+      <label class="switch">
+        <input type="checkbox" id="billing-toggle" onchange="alternarPrecos()">
+        <span class="slider"></span>
+      </label>
+      <span id="text-anual" class="toggle-label">Anual <small style="color:var(--success)">(Economize 17%)</small></span>
     </div>
 
     <div class="planos-container">
 
       <div class="plano-card">
         <h3>Básico</h3>
-        <p class="preco">R$ 49,90<small style="font-size: 14px; color: var(--muted)">/mês</small></p>
+        <p class="preco">R$ <span class="val" data-mensal="49,90" data-anual="499,00">49,90</span><small class="periodo" style="font-size: 14px; color: var(--muted)">/mês</small></p>
         <p class="descricao">Ideal para quem está iniciando a digitalização do escritório.</p>
         <ul>
           <li>Até 10 prazos ativos</li>
@@ -253,7 +156,7 @@
       <div class="plano-card destaque">
         <span class="badge-destaque">⭐ Mais escolhido</span>
         <h3>Intermediário</h3>
-        <p class="preco">R$ 149,90<small style="font-size: 14px; color: var(--muted)">/mês</small></p>
+        <p class="preco">R$ <span class="val" data-mensal="149,90" data-anual="1.499,00">149,90</span><small class="periodo" style="font-size: 14px; color: var(--muted)">/mês</small></p>
         <p class="descricao">A escolha perfeita para advogados autônomos de alta demanda.</p>
         <ul>
           <li>Até 100 prazos ativos</li>
@@ -266,7 +169,7 @@
 
       <div class="plano-card">
         <h3>Avançado</h3>
-        <p class="preco">R$ 199,90<small style="font-size: 14px; color: var(--muted)">/mês</small></p>
+        <p class="preco">R$ <span class="val" data-mensal="199,90" data-anual="1.999,00">199,90</span><small class="periodo" style="font-size: 14px; color: var(--muted)">/mês</small></p>
         <p class="descricao">Para sociedades de advogados em expansão acelerada.</p>
         <ul>
           <li>Até 500 prazos ativos</li>
@@ -280,7 +183,7 @@
       <div class="plano-card premium">
         <span class="badge-premium">👑 Full Access</span>
         <h3>Premium</h3>
-        <p class="preco">R$ 299,90<small style="font-size: 14px; color: var(--muted)">/mês</small></p>
+        <p class="preco">R$ <span class="val" data-mensal="299,90" data-anual="2.999,00">299,90</span><small class="periodo" style="font-size: 14px; color: var(--muted)">/mês</small></p>
         <p class="descricao">Controle total, automação e suporte prioritário.</p>
         <ul>
           <li>Prazos e processos ilimitados</li>
@@ -316,6 +219,31 @@
   </div>
 
 <script>
+// FUNÇÃO PARA ALTERNAR PREÇOS (MENSAL/ANUAL)
+function alternarPrecos() {
+    const isAnual = document.getElementById('billing-toggle').checked;
+    const valores = document.querySelectorAll('.val');
+    const periodos = document.querySelectorAll('.periodo');
+    const labelMensal = document.getElementById('text-mensal');
+    const labelAnual = document.getElementById('text-anual');
+
+    valores.forEach(span => {
+        span.innerText = isAnual ? span.getAttribute('data-anual') : span.getAttribute('data-mensal');
+    });
+
+    periodos.forEach(small => {
+        small.innerText = isAnual ? '/ano' : '/mês';
+    });
+
+    if (isAnual) {
+        labelAnual.classList.add('active');
+        labelMensal.classList.remove('active');
+    } else {
+        labelMensal.classList.add('active');
+        labelAnual.classList.remove('active');
+    }
+}
+
 const BOTOES_MAP = {
     1: 'btn-plano-Basico',
     2: 'btn-plano-Intermediario',
@@ -327,13 +255,16 @@ let planoSelecionado = null;
 
 function abrirModalConfirmacao(nomePlano) {
     planoSelecionado = nomePlano;
+    const isAnual = document.getElementById('billing-toggle').checked;
+    const ciclo = isAnual ? 'Anual' : 'Mensal';
+
     const BENEFICIOS = {
         'Básico': 'Configuração essencial para o seu dia a dia.',
         'Intermediário': 'Ideal para quem busca produtividade e avisos por e-mail. 📧',
         'Avançado': 'Relatórios avançados para gestão completa. 📊',
         'Premium': 'O poder máximo da LawTech Pro em suas mãos. 👑'
     };
-    document.getElementById('tituloPlano').innerText = `Plano ${nomePlano}`;
+    document.getElementById('tituloPlano').innerText = `Plano ${nomePlano} (${ciclo})`;
     document.getElementById('descricaoPlano').innerHTML = `<strong>Excelente escolha!</strong><br>${BENEFICIOS[nomePlano]}`;
     document.getElementById('modalPlano').style.display = 'block';
 }
@@ -345,11 +276,13 @@ function fecharModalPlano() {
 async function confirmarUpgrade() {
     if (!planoSelecionado) return;
     const token = localStorage.getItem('token');
+    const isAnual = document.getElementById('billing-toggle').checked;
+    
     const nomesParaId = { 'Básico': 1, 'Intermediário': 2, 'Avançado': 3, 'Premium': 4 };
     const novoPlanoId = nomesParaId[planoSelecionado];
 
     try {
-        const response = await fetch('/api/pagamentos/assinar-plano', {
+        const response = await fetch('/api/planos/upgrade', { 
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -358,19 +291,73 @@ async function confirmarUpgrade() {
             body: JSON.stringify({
                 planoId: novoPlanoId,
                 nomePlano: planoSelecionado,
+                ciclo: isAnual ? 'anual' : 'mensal',
                 cpfUsuario: '00000000000'
             })
         });
 
         if (response.ok) {
-            alert("✅ Plano atualizado com sucesso! Seu escritório agora é " + planoSelecionado);
-            window.location.reload();
+            alert("✅ Plano atualizado com sucesso!");
+            window.location.href = window.location.pathname + '?t=' + Date.now();
         }
     } catch (error) {
         console.error("Erro no upgrade:", error);
     }
 }
 
+// 1. Variável global para guardar o estado vindo do banco
+let meuPlanoAtual = { id: 0, ciclo: 'mensal' };
+
+// 2. Função Unificada para Atualizar os Botões
+function atualizarEstadoDosBotoes() {
+    const isAnual = document.getElementById('billing-toggle').checked;
+    const cicloSelecionado = isAnual ? 'anual' : 'mensal';
+
+    Object.keys(BOTOES_MAP).forEach(id => {
+        const btn = document.getElementById(BOTOES_MAP[id]);
+        if (btn) {
+            // Regra: Só bloqueia se o ID do plano E o Ciclo forem iguais ao que está no banco
+            if (parseInt(id) === meuPlanoAtual.id && cicloSelecionado === meuPlanoAtual.ciclo) {
+                btn.innerText = "Plano Ativo";
+                btn.disabled = true;
+                btn.classList.add('disabled');
+                btn.closest('.plano-card').style.borderColor = "var(--success)";
+            } else {
+                // Libera para troca
+                btn.innerText = (id == 4) ? "Ativar Premium" : (id == 1 ? "Selecionar Básico" : "Selecionar plano");
+                btn.disabled = false;
+                btn.classList.remove('disabled');
+                btn.closest('.plano-card').style.borderColor = "var(--border)";
+                if(id == 2) btn.closest('.plano-card').style.borderColor = "var(--primary)"; // Mantém destaque do Intermediário
+            }
+        }
+    });
+}
+
+// 3. Atualize sua função alternarPrecos para incluir a chamada
+function alternarPrecos() {
+    const isAnual = document.getElementById('billing-toggle').checked;
+    const valores = document.querySelectorAll('.val');
+    const periodos = document.querySelectorAll('.periodo');
+    const labelMensal = document.getElementById('text-mensal');
+    const labelAnual = document.getElementById('text-anual');
+
+    valores.forEach(span => {
+        span.innerText = isAnual ? span.getAttribute('data-anual') : span.getAttribute('data-mensal');
+    });
+
+    periodos.forEach(small => {
+        small.innerText = isAnual ? '/ano' : '/mês';
+    });
+
+    labelAnual.classList.toggle('active', isAnual);
+    labelMensal.classList.toggle('active', !isAnual);
+
+    // 🚀 A MÁGICA ESTÁ AQUI: Atualiza os botões ao virar a chave
+    atualizarEstadoDosBotoes();
+}
+
+// 4. Carregamento Inicial
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -381,25 +368,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         if (response.ok) {
-            const meuPlano = await response.json();
-            const planoIdAtual = parseInt(meuPlano.id);
-            const idBotao = BOTOES_MAP[planoIdAtual];
-            const btn = document.getElementById(idBotao);
-
-            if (btn) {
-                btn.innerText = "Plano Ativo";
-                btn.disabled = true;
-                btn.classList.add('disabled');
-                const card = btn.closest('.plano-card');
-                if (card) {
-                    card.style.borderColor = "var(--success)";
-                    card.style.background = "#f0fdf4";
-                }
+            const dados = await response.json();
+            // 🚀 Sincroniza a variável global com o banco
+            meuPlanoAtual = { id: parseInt(dados.id), ciclo: dados.ciclo || 'mensal' };
+            
+            // 🚀 Se no banco estiver 'anual', vira a chave visualmente
+            if (meuPlanoAtual.ciclo === 'anual') {
+                document.getElementById('billing-toggle').checked = true;
             }
+            
+            // Atualiza os textos e os botões conforme a posição da chave
+            alternarPrecos(); 
         }
-    } catch (err) {
-        console.error('Erro ao identificar plano atual:', err);
-    }
+    } catch (err) { console.error('Erro na carga inicial:', err); }
 });
 </script>
 

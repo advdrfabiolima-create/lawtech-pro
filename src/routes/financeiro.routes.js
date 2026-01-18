@@ -73,81 +73,70 @@ router.delete('/financeiro/:id', authMiddleware, async (req, res) => {
     }
 });
 
-// --- 2. SERVIÇOS DE INTEGRAÇÃO API V3 ---
+// --- 2. SERVIÇOS DE INTEGRAÇÃO API V3 (CORRIGIDOS) ---
 
 router.post('/financeiro/configurar-subconta', authMiddleware, async (req, res) => {
     try {
         const escritorioId = req.user.escritorio_id;
+        
+        // Busca os dados e já formata a data para o padrão do Asaas (YYYY-MM-DD)
         const esc = await pool.query(
-            'SELECT nome, documento, email, data_nascimento, endereco, cidade, cep, banco_codigo, agencia, conta, conta_digito, renda_mensal FROM escritorios WHERE id = $1', 
+            `SELECT nome, documento, email, TO_CHAR(data_nascimento, 'YYYY-MM-DD') as data_nascimento, 
+            endereco, cidade, estado, cep, banco_codigo, agencia, conta, conta_digito, renda_mensal 
+             FROM escritorios WHERE id = $1`, 
             [escritorioId]
         );
         const e = esc.rows[0];
 
+        // LOG DE SEGURANÇA: Verificando o que o servidor capturou do banco
+        console.log(`📡 ENVIANDO DATA: ${e.data_nascimento} PARA O ESCRITÓRIO: ${e.nome}`);
+
         const payloadAsaas = {
-            name: e.nome,
-            email: e.email,
-            cpfCnpj: e.documento.replace(/\D/g, ''),
+            name: String(e.nome),
+            email: String(e.email),
+            cpfCnpj: String(e.documento).replace(/\D/g, ''),
+            birthDate: String(e.data_nascimento), // Força a conversão para texto puro
+            companyType: String(e.documento).replace(/\D/g, '').length > 11 ? 'LIMITED' : 'INDIVIDUAL',
             incomeValue: parseFloat(e.renda_mensal) || 1000,
-            address: e.endereco,
-            province: e.cidade,
-            postalCode: e.cep,
+            address: String(e.endereco),
+            province: String(e.cidade),
+            postalCode: String(e.cep).replace(/\D/g, ''),
+            mobilePhone: '71987654321', 
             bankAccount: {
-                bank: { code: e.banco_codigo },
-                agency: e.agencia,
-                account: e.conta,
-                accountDigit: e.conta_digito,
-                type: 'CONTA_CORRENTE'
+                bank: String(e.banco_codigo),
+                agency: String(e.agencia),
+                account: String(e.conta),
+                accountDigit: String(e.conta_digito),
+                bankAccountType: 'CONTA_CORRENTE',
+                ownerName: String(e.nome),
+                cpfCnpj: String(e.documento).replace(/\D/g, ''),
+                // Adicionando os dados de contato conforme sua sugestão:
+                email: String(e.email),
+                mobilePhone: '71987654321', // O mesmo celular validado anteriormente
+                address: String(e.endereco),
+                province: String(e.cidade),
+                postalCode: String(e.cep).replace(/\D/g, ''),
+                addressNumber: 'S/N' // Campo que costuma ser obrigatório junto com endereço
             }
         };
 
-        const response = await axios.post('https://sandbox.asaas.com/api/v3/accounts', payloadAsaas, {
-            headers: { 'access_token': TOKEN_ASAAS }
+        // USANDO SEMPRE A URL E CHAVE DO .ENV (Para facilitar a troca para Real depois)
+        const response = await axios.post(`${process.env.ASAAS_URL}/accounts`, payloadAsaas, {
+            headers: { 'access_token': process.env.ASAAS_API_KEY }
         });
 
+        // Atualiza as colunas que o senhor criou no Neon
         await pool.query(
-            'UPDATE escritorios SET asaas_wallet_id = $1, asaas_api_key_subconta = $2 WHERE id = $3',
-            [response.data.id, response.data.apiKey, escritorioId]
+            'UPDATE escritorios SET asaas_id = $1, asaas_api_key = $2, plano_financeiro_status = $3 WHERE id = $4',
+            [response.data.id, response.data.apiKey, 'ativo', escritorioId]
         );
 
-        res.json({ ok: true, mensagem: 'Subconta ativada!' });
+        res.json({ ok: true, mensagem: 'Subconta ativada com sucesso!' });
     } catch (err) {
-        res.status(500).json({ erro: 'Falha na comunicação com gateway.' });
-    }
-});
-
-router.get('/financeiro/saldo-real', authMiddleware, async (req, res) => {
-    try {
-        const response = await axios.get('https://sandbox.asaas.com/api/v3/finance/balance', {
-            headers: { 'access_token': TOKEN_ASAAS }
-        });
-        res.json({ apiKeyExiste: true, saldo: response.data.balance });
-    } catch (err) {
-        res.status(500).json({ erro: 'Timeout ou erro de autenticação no gateway.' });
-    }
-});
-
-router.post('/financeiro/gerar-boleto-honorarios', authMiddleware, async (req, res) => {
-    const { valor, descricao, clienteId } = req.body; 
-    try {
-        const clienteRes = await pool.query('SELECT asaas_customer_id, nome FROM clientes WHERE id = $1', [clienteId]);
-        const cliente = clienteRes.rows[0];
-
-        const response = await axios.post('https://sandbox.asaas.com/api/v3/payments', {
-            customer: cliente.asaas_customer_id, 
-            billingType: 'BOLETO',
-            value: valor,
-            dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-            description: `${descricao} - Cliente: ${cliente.nome}`,
-            externalReference: `LANC_CLI_${Date.now()}`
-        }, {
-            headers: { 'access_token': TOKEN_ASAAS }
-        });
-
-        res.json({ url: response.data.invoiceUrl });
-    } catch (err) {
-        console.error("❌ STACK TRACE GATEWAY:", err.response?.data || err.message);
-        res.status(500).json({ erro: 'Erro na emissão do título.' });
+        // Log detalhado para o senhor ver o erro exato do Asaas no terminal
+        const erroMsg = err.response?.data?.errors?.[0]?.description || 'Falha na comunicação com gateway.';
+        console.error("❌ ERRO NO ASAAS:", erroMsg);
+        res.status(500).json({ erro: erroMsg });
     }
 });
 

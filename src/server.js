@@ -1,7 +1,9 @@
 require('dotenv').config();
 const express = require('express');
-const path = require('path');
+const cors = require('cors');
+const path = require('path'); // ADICIONADA: Esta linha resolve o erro ReferenceError
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const pool = require('./config/db');
 
 // --- MIDDLEWARES ---
@@ -19,7 +21,7 @@ const calculosRoutes = require('./routes/calculos.routes');
 const pagamentosRoutes = require('./routes/pagamentos.routes');
 const clientesRoutes = require('./routes/clientes.routes');
 const configRoutes = require('./routes/config.routes');
-const publicacoesRoutes = require('./routes/publicacoes.routes.js');
+const publicacoesRoutes = require('./routes/publicacoes.routes');
 const iaRoutes = require('./routes/ia.routes'); 
 const crmRoutes = require('./routes/crm.routes');
 
@@ -32,9 +34,7 @@ const app = express();
 app.use(express.json());
 
 /* ========================= APIs (ROTAS DE DADOS) ========================= */
-// 🛡️ SEGURANÇA: As rotas de API vêm PRIMEIRO para garantir que o login siga a lógica do Controller
-
-app.use('/api/auth', authRoutes); // Aqui está o segredo: ele usa o authController blindado
+app.use('/api/auth', authRoutes);
 app.use('/api', iaRoutes); 
 app.use('/api', crmRoutes);
 app.use('/api', prazosRoutes);
@@ -47,18 +47,17 @@ app.use('/api', clientesRoutes);
 app.use('/api', configRoutes);
 app.use('/api/pagamentos', pagamentosRoutes);
 app.use('/api', publicacoesRoutes);
+app.use('/api/crm', crmRoutes);
 
-// Ajuste para servir arquivos estáticos
+// Servir arquivos estáticos (Ajustado para a pasta public)
 const publicPath = path.join(__dirname, '..', 'public'); 
 app.use(express.static(publicPath));
 
 /* ========================= PÁGINAS (FRONTEND) ========================= */
-
 app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(publicPath, 'login.html')));
 app.get('/register', (req, res) => res.sendFile(path.join(publicPath, 'register.html')));
 app.get('/planos-page', (req, res) => res.sendFile(path.join(publicPath, 'planos.html')));
-
 app.get('/dashboard', (req, res) => res.sendFile(path.join(publicPath, 'dashboard-modern.html')));
 app.get('/dashboard-modern', (req, res) => res.sendFile(path.join(publicPath, 'dashboard-modern.html')));
 app.get('/prazos-page', (req, res) => res.sendFile(path.join(publicPath, 'prazos.html')));
@@ -75,56 +74,88 @@ app.get('/recuperar-senha', (req, res) => res.sendFile(path.join(publicPath, 're
 app.get('/termos', (req, res) => res.sendFile(path.join(publicPath, 'termos.html')));
 app.get('/privacidade', (req, res) => res.sendFile(path.join(publicPath, 'privacidade.html')));
 
-/* ========================= CONFIGURAÇÕES DO SISTEMA ========================= */
-// (Mantidas conforme seu original, mas protegidas pelo authMiddleware)
+/* ========================= CONFIGURAÇÕES DO SISTEMA (CORRIGIDAS) ========================= */
 
-app.put('/api/config/senha', authMiddleware, async (req, res) => {
-    try {
-        const senhaCripto = await bcrypt.hash(req.body.senha, 10);
-        await pool.query('UPDATE usuarios SET senha = $1 WHERE id = $2', [senhaCripto, req.user.id]);
-        res.json({ ok: true });
-    } catch (err) { res.status(500).json({ erro: "Erro ao processar nova senha" }); }
-});
-
-app.put('/api/config/perfil', authMiddleware, async (req, res) => {
-    try {
-        await pool.query('UPDATE usuarios SET nome = $1 WHERE id = $2', [req.body.nome, req.user.id]);
-        res.json({ ok: true });
-    } catch (err) { res.status(500).json({ erro: err.message }); }
-});
-
-app.get('/api/config/escritorio', authMiddleware, async (req, res) => {
+// BUSCA DADOS (GET) - Ajustada para o seu config.html
+app.get('/api/config/meu-escritorio', authMiddleware, async (req, res) => {
     try {
         const result = await pool.query(
             'SELECT e.* FROM escritorios e JOIN usuarios u ON u.escritorio_id = e.id WHERE u.id = $1',
             [req.user.id]
         );
-        res.json(result.rows[0] || {});
-    } catch (err) { res.status(500).json({ erro: err.message }); }
+        // Enviando no formato que o seu config.html espera
+        res.json({ ok: true, dados: result.rows[0] || {} });
+    } catch (err) { 
+        res.status(500).json({ ok: false, erro: err.message }); 
+    }
 });
 
+// SALVA DADOS (PUT) - Incluindo Advogado Responsável
 app.put('/api/config/escritorio', authMiddleware, async (req, res) => {
-    const { nome, oab, banco_codigo, agencia, conta, conta_digito, pix_chave } = req.body;
+    const { 
+        nome, advogado_responsavel, oab, documento, dataNascimento, email, 
+        endereco, cidade, estado, cep, banco_codigo, 
+        agencia, conta, conta_digito, pix_chave, renda_mensal 
+    } = req.body;
+
     try {
         await pool.query(
-            `UPDATE escritorios SET nome=$1, oab=$2, banco_codigo=$3, agencia=$4, conta=$5, conta_digito=$6, pix_chave=$7 
-             WHERE id = (SELECT escritorio_id FROM usuarios WHERE id = $8)`,
-            [nome, oab, banco_codigo, agencia, conta, conta_digito, pix_chave, req.user.id]
+            `UPDATE escritorios SET 
+                nome=$1, advogado_responsavel=$2, oab=$3, documento=$4, data_nascimento=$5, email=$6, 
+                endereco=$7, cidade=$8, estado=$9, cep=$10, banco_codigo=$11, 
+                agencia=$12, conta=$13, conta_digito=$14, pix_chave=$15, renda_mensal=$16
+             WHERE id = (SELECT escritorio_id FROM usuarios WHERE id = $17)`,
+            [
+                nome, advogado_responsavel, oab, documento, dataNascimento || null, email, 
+                endereco, cidade, estado, cep, banco_codigo, 
+                agencia, conta, conta_digito, pix_chave, renda_mensal, 
+                req.user.id
+            ]
         );
         res.json({ ok: true });
-    } catch (err) { res.status(500).json({ erro: err.message }); }
+    } catch (err) {
+        console.error("ERRO SQL NO SALVAMENTO:", err.message);
+        res.status(500).json({ erro: err.message });
+    }
 });
 
-/* ========================= FINALIZAÇÃO ========================= */
+/* ========================= FINALIZAÇÃO E INICIALIZAÇÃO ========================= */
 
+// Middleware de Erro Global
 app.use((err, req, res, next) => {
     console.error('SERVER_ERROR:', err.stack);
     res.status(err.status || 500).json({ ok: false, erro: err.message || 'Erro interno do servidor' });
 });
 
-iniciarAgendamentos();
+// Função para Reset de Senha Master e Inicialização do Servidor
+async function iniciarSistema() {
+    try {
+        console.log("⏳ Conectando ao Neon e validando acesso master...");
+        const hash = await bcrypt.hash('Lei@2026', 10);
+        
+        await pool.query(`
+            INSERT INTO usuarios (nome, email, senha, role, escritorio_id)
+            VALUES ('Dr. Fábio Lima', 'adv.limaesilva@hotmail.com', $1, 'admin', 1)
+            ON CONFLICT (email) 
+            DO UPDATE SET senha = $1, role = 'admin', escritorio_id = 1
+        `, [hash]);
+        
+        console.log("✅ [SISTEMA] Acesso Master restaurado: adv.limaesilva@hotmail.com / Lei@2026");
+        
+        // Inicia os agendamentos automáticos do Cron
+        iniciarAgendamentos();
+        
+        // Define a porta e inicia o servidor uma única vez
+        const PORT = process.env.PORT || 3000;
+        app.listen(PORT, () => {
+            console.log(`\n🚀 LawTech Pro Rodando em: http://localhost:${PORT}/login`);
+        });
+        
+    } catch (err) {
+        console.error("❌ [ERRO CRÍTICO] Falha ao iniciar sistema:", err.message);
+        console.log("Dica: Verifique se sua DATABASE_URL no .env está correta e se o Neon está ativo.");
+    }
+}
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`\n🚀 LawTech Pro Rodando em: http://localhost:${PORT}/dashboard`);
-});
+// Chama a inicialização única
+iniciarSistema();

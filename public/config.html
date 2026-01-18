@@ -7,6 +7,8 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         :root { 
@@ -58,8 +60,12 @@
             border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; 
         }
 
-        .content { padding: 32px; max-width: 1000px; width: 100%; }
-
+        .content { 
+            padding: 40px; 
+            max-width: 900px; /* Largura ideal para formulários */
+            margin: 0 auto;  /* Centraliza na tela */
+            width: 100%; 
+        }
         /* Cards Estilo Dashboard */
         .card { 
             background: var(--white); padding: 28px; border-radius: var(--radius); 
@@ -96,6 +102,14 @@
             cursor: pointer; transition: 0.2s; width: 100%; 
         }
         .btn-save:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+        .btn-pdf { 
+            padding: 12px 20px; background: #10b981; color: white; 
+            border: none; border-radius: 8px; font-size: 13px; font-weight: 600; 
+            cursor: pointer; transition: 0.2s; margin-top: 10px; width: 100%;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-pdf:hover { background: #059669; }
         
         .status-badge { 
             font-size: 12px; margin-top: 10px; display: block; 
@@ -142,79 +156,218 @@
 
     <div class="main">
         <header class="header">
-            <h2 style="font-size: 18px; font-weight: 600;">⚙️ Configurações da Conta</h2>
-            <button onclick="logout()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-weight:600; font-size: 14px;">Sair</button>
-        </header>
+    <h2 style="font-size: 18px; font-weight: 600;">⚙️ Configurações</h2>
+    
+    <div style="position: relative; display: flex; align-items: center; gap: 15px;">
+        <span id="userNameHeader" style="font-size: 14px; font-weight: 500; color: var(--muted);">Advogado</span>
+        <div onclick="toggleUserMenu()" style="width: 40px; height: 40px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; border: 2px solid #e2e8f0;">
+            FL </div>
+        
+        <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 200px; z-index: 1000;">
+            <a href="/config-page" style="display: block; padding: 12px 16px; color: var(--text-main); text-decoration: none; font-size: 14px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
+            <a href="#" onclick="logout()" style="display: block; padding: 12px 16px; color: #ef4444; text-decoration: none; font-size: 14px;">🚪 Sair</a>
+        </div>
+    </div>
+</header>
 
         <div class="content">
-            <div class="card">
-                <div class="card-title"><i class="lucide lucide-user"></i> Perfil do Advogado</div>
-                <div class="form-grid">
-                    <div><label>Nome Completo</label><input type="text" id="perfilNome" placeholder="Seu Nome"></div>
-                    <div><label>E-mail de Acesso</label><input type="email" id="perfilEmail" readonly></div>
-                </div>
-                <button class="btn-save" style="margin-top:20px" onclick="salvarPerfil()">Atualizar Perfil</button>
+    <div class="card">
+        <div class="card-title"><i class="lucide lucide-user"></i> Acesso Pessoal</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="form-group">
+                <label>Seu Nome Completo</label>
+                <input type="text" id="perfilNome" placeholder="Seu Nome">
             </div>
-
-            <div class="card">
-                <div class="card-title"><i class="lucide lucide-building-2"></i> Dados do Escritório e Faturamento</div>
-                <div class="form-grid">
-                    <div style="grid-column: span 2;"><label>Nome / Razão Social <span style="color:red">*</span></label><input type="text" id="confEscritorio"></div>
-                    <div><label>OAB Principal <span style="color:red">*</span></label><input type="text" id="confOab" oninput="aplicarMascaraOAB(this)" placeholder="000.000/UF"></div>
-                    <div><label>E-mail de Faturamento <span style="color:red">*</span></label><input type="email" id="confEmailFaturamento"></div>
-                    <div><label>Renda Mensal (R$) <span style="color:red">*</span></label><input type="text" id="confRendaMensal" oninput="mascaraMoeda(this)"></div>
-                    <div>
-                        <label>Tipo de Documento <span style="color:red">*</span></label>
-                        <div class="radio-group">
-                            <label class="radio-option"><input type="radio" name="tipoDoc" value="CPF" checked onclick="ajustarMascaraDoc()"> CPF</label>
-                            <label class="radio-option"><input type="radio" name="tipoDoc" value="CNPJ" onclick="ajustarMascaraDoc()"> CNPJ</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-grid" style="margin-top:20px">
-                    <div><label>Documento (CPF/CNPJ) <span style="color:red">*</span></label><input type="text" id="confDocumento" oninput="aplicarMascaraDoc(this)"></div>
-                    <div id="groupDataNascimento"><label>Data de Nascimento <span style="color:red">*</span></label><input type="date" id="confDataNascimento"></div>
-                </div>
-
-                <div class="form-grid" style="margin-top:20px">
-                    <div><label>CEP <span style="color:red">*</span></label><input type="text" id="confCep" oninput="mascaraCEP(this)" onblur="buscarCep()"></div>
-                    <div><label>UF <span style="color:red">*</span></label><input type="text" id="confEstado" maxlength="2" style="text-transform: uppercase;"></div>
-                    <div style="grid-column: span 2;"><label>Endereço Completo <span style="color:red">*</span></label><input type="text" id="confEndereco" placeholder="Rua, Número, Bairro"></div>
-                    <div style="grid-column: span 2;"><label>Cidade <span style="color:red">*</span></label><input type="text" id="confCidade"></div>
-                </div>
-                <button class="btn-save" style="margin-top:20px" onclick="salvarDadosJuridicos()">Salvar Dados do Escritório</button>
+            <div class="form-group">
+                <label>E-mail de Login</label>
+                <input type="email" id="perfilEmail" readonly>
             </div>
+        </div>
+        <button class="btn-save" style="margin-top:15px; width: auto; padding: 10px 30px;" onclick="salvarPerfil()">Atualizar Nome</button>
+    </div>
 
-            <div class="card">
-                <div class="card-title"><i class="lucide lucide-banknote"></i> Dados Bancários (Asaas)</div>
-                <div class="form-grid">
-                    <div style="grid-column: span 2;"><label>Banco <span style="color:red">*</span></label><select id="confBanco"><option value="">Carregando bancos...</option></select></div>
-                    <div><label>Agência <span style="color:red">*</span></label><input type="text" id="confAgencia"></div>
-                    <div><label>Conta <span style="color:red">*</span></label><input type="text" id="confConta"></div>
-                    <div><label>Dígito <span style="color:red">*</span></label><input type="text" id="confContaDigito"></div>
-                    <div><label>Chave PIX</label><input type="text" id="confPixChave"></div>
-                </div>
-                <button class="btn-save" style="background:#16a34a; margin-top:20px" onclick="ativarFinanceiro()">🚀 Ativar Faturamento Profissional</button>
-                <span class="status-badge" id="statusFinanceiroBadge">Status: Verifique seus dados antes de ativar.</span>
-            </div>
-
-            <div class="card">
-                <div class="card-title"><i class="lucide lucide-lock"></i> Segurança</div>
-                <div class="form-grid">
-                    <div><label>Nova Senha</label><input type="password" id="novaSenha"></div>
-                    <div><label>Confirmar Senha</label><input type="password" id="confirmaSenha"></div>
-                </div>
-                <button class="btn-save" style="background:#64748b; margin-top:20px" onclick="alterarSenha()">Alterar Senha de Acesso</button>
-            </div>
+   <div class="card">
+    <div class="card-title"><i class="lucide lucide-building-2"></i> Dados do Escritório e Faturamento</div>
+    
+    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+        <div class="form-group">
+            <label>Advogado Responsável <span style="color:red">*</span></label>
+            <input type="text" id="confAdvogadoResponsavel">
+        </div>
+        <div class="form-group">
+            <label>OAB Principal <span style="color:red">*</span></label>
+            <input type="text" id="confOab" oninput="aplicarMascaraOAB(this)">
+        </div>
+        <div class="form-group">
+            <label>Renda Mensal (R$) <span style="color:red">*</span></label>
+            <input type="text" id="confRendaMensal" oninput="mascaraMoeda(this)">
         </div>
     </div>
 
+    <div style="display: grid; grid-template-columns: 2fr 1.2fr 0.8fr; gap: 15px; margin-bottom: 15px;">
+        <div class="form-group">
+            <label>Nome / Razão Social <span style="color:red">*</span></label>
+            <input type="text" id="confEscritorio">
+        </div>
+        <div class="form-group">
+            <label>Documento <span style="color:red">*</span></label>
+            <input type="text" id="confDocumento" oninput="aplicarMascaraDoc(this)">
+        </div>
+        <div class="form-group" id="groupDataNascimento">
+            <label>Nascimento <span style="color:red">*</span></label>
+            <input type="date" id="confDataNascimento">
+        </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 15px;">
+        <label>Tipo de Documento <span style="color:red">*</span></label>
+        <div class="radio-group" style="display: flex; gap: 20px;">
+            <label><input type="radio" name="tipoDoc" value="CPF" checked onclick="ajustarMascaraDoc()"> CPF</label>
+            <label><input type="radio" name="tipoDoc" value="CNPJ" onclick="ajustarMascaraDoc()"> CNPJ</label>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 15px; margin-bottom: 15px;">
+        <div class="form-group">
+            <label>CEP <span style="color:red">*</span></label>
+            <input type="text" id="confCep" oninput="mascaraCEP(this)" onblur="buscarCep()">
+        </div>
+        <div class="form-group">
+            <label>Cidade <span style="color:red">*</span></label>
+            <input type="text" id="confCidade">
+        </div>
+        <div class="form-group">
+            <label>UF <span style="color:red">*</span></label>
+            <input type="text" id="confEstado" maxlength="2">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Endereço Completo <span style="color:red">*</span></label>
+        <input type="text" id="confEndereco">
+    </div>
+
+    <div style="display: flex; gap: 15px; margin-top: 25px;">
+        <button class="btn-save" onclick="salvarDadosJuridicos()">Salvar Dados Escritório</button>
+        <button class="btn-pdf" onclick="gerarRelatorioPDF()">Comprovante Premium</button>
+    </div>
+</div>
+
+    <div class="card">
+        <div class="card-title"><i class="lucide lucide-banknote"></i> Faturamento Asaas</div>
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1.5fr 0.5fr; gap: 12px; margin-bottom: 15px;">
+            <div class="form-group"><label>Banco <span style="color:red">*</span></label><select id="confBanco"></select></div>
+            <div class="form-group"><label>Agência <span style="color:red">*</span></label><input type="text" id="confAgencia"></div>
+            <div class="form-group"><label>Conta <span style="color:red">*</span></label><input type="text" id="confConta"></div>
+            <div class="form-group"><label>Dígito <span style="color:red">*</span></label><input type="text" id="confContaDigito"></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 15px; align-items: end;">
+            <div class="form-group">
+                <label>Chave PIX de Repasse</label>
+                <input type="text" id="confPixChave" placeholder="E-mail, CPF ou Aleatória">
+            </div>
+            <button class="btn-save" style="background:#16a34a;" onclick="ativarFinanceiro()">🚀 Ativar Faturamento</button>
+        </div>
+        <span class="status-badge" id="statusFinanceiroBadge">Status: Verifique seus dados antes de ativar.</span>
+    </div>
+
+    <div class="card">
+        <div class="card-title"><i class="lucide lucide-users"></i> Gestão de Equipe</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 15px;">
+            <div class="form-group"><label>Nome</label><input type="text" id="eqNome" autocomplete="off"></div>
+            <div class="form-group"><label>E-mail</label><input type="email" id="eqEmail" autocomplete="off"></div>
+            <div class="form-group"><label>Senha</label><input type="password" id="eqSenha" autocomplete="new-password"></div>
+            <div class="form-group">
+                <label>Permissão</label>
+                <select id="eqRole">
+                    <option value="operador">Operador</option>
+                    <option value="visualizador">Leitura</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn-save" style="background:var(--primary); width: auto; padding: 10px 30px;" onclick="salvarMembro()">Adicionar à Equipe</button>
+        <div id="listaEquipe" style="margin-top: 15px; border-top: 1px solid var(--border);"></div> 
+    </div>
+
+    <div class="card">
+        <div class="card-title"><i class="lucide lucide-lock"></i> Alterar Minha Senha</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="form-group"><label>Nova Senha</label><input type="password" id="novaSenha"></div>
+            <div class="form-group"><label>Confirmar</label><input type="password" id="confirmaSenha"></div>
+        </div>
+        <button class="btn-save" style="background:#64748b; margin-top:15px; width: auto; padding: 10px 30px;" onclick="alterarSenha()">Alterar Senha</button>
+    </div>
+</div>
+
     <script>
         const token = localStorage.getItem('token');
-        if (!token) window.location.href = '/login.html';
+    if (!token) window.location.href = '/login.html';
 
-        // Funções de Máscara e Utilidades
+    // ... (suas funções de máscara permanecem as mesmas) ...
+
+async function carregarInfoRodape() {
+    try {
+        // 1. GARANTE O NOME E AS INICIAIS (Primeira prioridade)
+        const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        const dataUser = await resUser.json();
+        
+        if (dataUser.ok && dataUser.usuario) {
+            const nomeReal = dataUser.usuario.nome || 'Advogado';
+            
+            // Atualiza os textos
+            document.getElementById('userNameHeader').innerText = nomeReal;
+            document.getElementById('userEmailFooter').innerText = dataUser.usuario.email;
+            if(document.getElementById('perfilEmail')) document.getElementById('perfilEmail').value = dataUser.usuario.email;
+            if(document.getElementById('perfilNome')) document.getElementById('perfilNome').value = nomeReal;
+
+            // FIXA AS INICIAIS "FL" (Isso para o pisca-pisca da letra A)
+            const iniciais = nomeReal.split(' ').filter(n => n).map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            const circuloPerfil = document.querySelector('[onclick="toggleUserMenu()"]');
+            if (circuloPerfil) circuloPerfil.innerText = iniciais || 'AD';
+        }
+
+        // 2. CARREGA O PLANO
+        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+        const dataPlan = await resPlan.json();
+        if(document.getElementById('planNameFooter')) document.getElementById('planNameFooter').innerText = dataPlan.plano || 'Individual';
+
+        // 3. BUSCA DADOS DO ESCRITÓRIO (Com proteção contra erros)
+        const resEsc = await fetch('/api/config/meu-escritorio', { 
+    headers: { Authorization: `Bearer ${token}` } 
+});
+        const dataEsc = await resEsc.json();
+        
+        if(dataEsc.ok && dataEsc.dados) {
+            const d = dataEsc.dados;
+            
+            // Lista de IDs que DEVEM existir no seu HTML
+            const campos = {
+                'confAdvogadoResponsavel': d.advogado_responsavel,
+                'confEscritorio': d.nome,
+                'confOab': d.oab,
+                'confEmailFaturamento': d.email,
+                'confDocumento': d.documento,
+                'confCep': d.cep,
+                'confCidade': d.cidade,
+                'confEstado': d.estado,
+                'confEndereco': d.endereco
+            };
+
+            // Preenchimento Seguro: Só preenche se o campo existir na página
+            for (const [id, valor] of Object.entries(campos)) {
+                const elemento = document.getElementById(id);
+                if (elemento) {
+                    elemento.value = valor || '';
+                }
+            }
+        }
+    } catch (err) { 
+        console.warn("Aviso: Alguns campos não foram encontrados na tela, mas o perfil foi carregado."); 
+    }
+}
+
+        // --- RESTANTE DAS SUAS FUNÇÕES ORIGINAIS ---
         function mascaraCEP(i) {
             let v = i.value.replace(/\D/g, ''); 
             if (v.length > 5) i.value = v.slice(0, 2) + '.' + v.slice(2, 5) + '-' + v.slice(5, 8);
@@ -246,24 +399,38 @@
         }
 
         function ajustarMascaraDoc() {
-            const i = document.getElementById('confDocumento');
-            const groupData = document.getElementById('groupDataNascimento');
-            i.value = '';
-            const tipo = document.querySelector('input[name="tipoDoc"]:checked').value;
-            if (tipo === 'CPF') {
-                i.placeholder = '000.000.000-00';
-                groupData.style.display = 'block';
-            } else {
-                i.placeholder = '00.000.000/0000-00';
-                groupData.style.display = 'none';
-            }
+        const inputDoc = document.getElementById('confDocumento');
+        const groupData = document.getElementById('groupDataNascimento');
+        const radioCpf = document.querySelector('input[name="tipoDoc"]:checked');
+
+        // Se o campo de documento não existir na tela, a função para aqui sem dar erro
+        if (!inputDoc) return;
+
+        inputDoc.value = '';
+    
+        // Se o radio button existir, pegamos o valor dele. Se não, assumimos CPF como padrão.
+        const tipo = radioCpf ? radioCpf.value : 'CPF';
+
+        if (tipo === 'CPF') {
+        inputDoc.placeholder = '000.000.000-00';
+        if (groupData) groupData.style.display = 'block';
+        } else {
+        inputDoc.placeholder = '00.000.000/0000-00';
+        if (groupData) groupData.style.display = 'none';
+        }
         }
 
         function aplicarMascaraDoc(i) {
-            const tipo = document.querySelector('input[name="tipoDoc"]:checked').value;
-            let v = i.value.replace(/\D/g, '');
-            if (tipo === 'CPF') i.value = v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4").slice(0, 14);
-            else i.value = v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5").slice(0, 18);
+        if (!i) return;
+        const radioCpf = document.querySelector('input[name="tipoDoc"]:checked');
+        const tipo = radioCpf ? radioCpf.value : 'CPF';
+    
+        let v = i.value.replace(/\D/g, '');
+        if (tipo === 'CPF') {
+        i.value = v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4").slice(0, 14);
+        } else {
+        i.value = v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5").slice(0, 18);
+        }
         }
 
         function aplicarMascaraOAB(i) {
@@ -273,7 +440,6 @@
             else i.value = v;
         }
 
-        // Lógica de API
         async function carregarBancos() {
             try {
                 const res = await fetch('https://brasilapi.com.br/api/banks/v1');
@@ -286,35 +452,87 @@
             } catch (e) { document.getElementById('confBanco').innerHTML = '<option value="">Erro ao carregar bancos</option>'; }
         }
 
-        async function carregarInfoRodape() {
-            try {
-                const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
-                const dataUser = await resUser.json();
-                if (dataUser.ok) {
-                    document.getElementById('userEmailFooter').innerText = dataUser.usuario.email;
-                    document.getElementById('perfilEmail').value = dataUser.usuario.email;
-                    document.getElementById('perfilNome').value = dataUser.usuario.nome || '';
-                }
-                const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
-                const dataPlan = await resPlan.json();
-                document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
-            } catch (err) { console.error(err); }
+  async function carregarInfoRodape() {
+    try {
+        // 1. DADOS DE ACESSO (NOME E INICIAIS)
+        const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        const dataUser = await resUser.json();
+        
+        if (dataUser.ok) {
+            const nomeReal = dataUser.usuario.nome || 'Advogado';
+            document.getElementById('userNameHeader').innerText = nomeReal;
+            document.getElementById('userEmailFooter').innerText = dataUser.usuario.email;
+            document.getElementById('perfilEmail').value = dataUser.usuario.email;
+            document.getElementById('perfilNome').value = dataUser.usuario.nome || '';
+
+            // RESOLVE O PROBLEMA DA LETRA "A": Gera as iniciais corretamente
+            const iniciais = nomeReal.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            const circuloPerfil = document.querySelector('[onclick="toggleUserMenu()"]');
+            if (circuloPerfil) circuloPerfil.innerText = iniciais;
         }
+
+        // 2. DADOS DO PLANO
+        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+        const dataPlan = await resPlan.json();
+        document.getElementById('planNameFooter').innerText = dataPlan.plano || 'Individual';
+
+        // 3. DADOS DO ESCRITÓRIO (PREENCHIMENTO AUTOMÁTICO)
+        const resEsc = await fetch('/api/config/meu-escritorio', { headers: { Authorization: `Bearer ${token}` } });
+        const dataEsc = await resEsc.json();
+        
+        if(dataEsc.ok && dataEsc.dados) {
+            const d = dataEsc.dados;
+            // Mapeamento seguro de campos para evitar que o script "pisque" e pare
+            const camposParaPreencher = {
+                'confAdvogadoResponsavel': d.advogado_responsavel,
+                'confEscritorio': d.nome,
+                'confOab': d.oab,
+                'confEmailFaturamento': d.email,
+                'confDocumento': d.documento,
+                'confDataNascimento': d.data_nascimento ? d.data_nascimento.split('T')[0] : '',
+                'confCep': d.cep,
+                'confCidade': d.cidade,
+                'confEstado': d.estado,
+                'confEndereco': d.endereco,
+                'confAgencia': d.agencia,
+                'confConta': d.conta,
+                'confContaDigito': d.conta_digito,
+                'confPixChave': d.pix_chave,
+                'confBanco': d.banco_codigo
+            };
+
+            // Preenche apenas o que existir, sem dar erro
+            Object.keys(camposParaPreencher).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = camposParaPreencher[id] || '';
+            });
+
+            // Formata a Renda se ela existir
+            if(d.renda_mensal && document.getElementById('confRendaMensal')) {
+                document.getElementById('confRendaMensal').value = 'R$ ' + parseFloat(d.renda_mensal).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            }
+        }
+    } catch (err) { 
+        console.error("Aviso: Alguns dados ainda não foram preenchidos no perfil."); 
+    }
+}
 
         async function salvarPerfil() {
             const nome = document.getElementById('perfilNome').value;
-            const res = await fetch('/api/auth/atualizar-perfil', {
+            const res = await fetch('/api/config/perfil', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ nome })
             });
-            if(res.ok) alert("✅ Perfil atualizado!");
+            if (res.ok) { alert("✅ Perfil atualizado!"); carregarInfoRodape(); }
+            else { alert("❌ Erro ao atualizar perfil."); }
         }
 
         async function salvarDadosJuridicos() {
             const rendaCrua = document.getElementById('confRendaMensal').value;
             const rendaTratada = rendaCrua.replace(/[R$\s.]/g, '').replace(',', '.');
             const dados = {
+                advogado_responsavel: document.getElementById('confAdvogadoResponsavel').value,
                 nome: document.getElementById('confEscritorio').value,
                 oab: document.getElementById('confOab').value,
                 documento: document.getElementById('confDocumento').value,
@@ -347,19 +565,128 @@
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) alert("✅ Faturamento Profissional Ativado!");
-            else alert("❌ Erro na ativação. Verifique se todos os campos marcados com * estão preenchidos.");
+            else alert("❌ Erro na ativação. Verifique campos obrigatórios.");
         }
 
         async function alterarSenha() {
             const s1 = document.getElementById('novaSenha').value;
-            if (!s1 || s1 !== document.getElementById('confirmaSenha').value) return alert("Senhas não conferem!");
-            const res = await fetch('/api/auth/alterar-senha', {
-                method: 'POST',
+            const s2 = document.getElementById('confirmaSenha').value;
+            if (!s1 || s1 !== s2) return alert("Senhas não conferem!");
+            const res = await fetch('/api/config/senha', {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ novaSenha: s1 })
+                body: JSON.stringify({ senha: s1 })
             });
-            if (res.ok) alert("✅ Senha alterada!");
+            if (res.ok) { alert("✅ Senha alterada!"); }
+            else { alert("❌ Erro ao alterar senha."); }
         }
+
+        // Função para carregar a equipe
+    async function carregarEquipe() {
+    const tokenEquipe = localStorage.getItem('token');
+    const res = await fetch('/api/auth/equipe', { 
+        headers: { 'Authorization': `Bearer ${tokenEquipe}` } 
+    });
+    const membros = await res.json();
+    const listaDiv = document.getElementById('listaEquipe'); // Alinhado com seu layout atual
+    listaDiv.innerHTML = '';
+
+    membros.forEach(m => {
+        listaDiv.innerHTML += `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #f1f5f9;">
+                <div>
+                    <div style="font-weight:600; font-size:14px; color: var(--text-main);">${m.nome}</div>
+                    <div style="font-size:12px; color:var(--muted);">${m.email}</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span style="background:#e0e7ff; color:#4338ca; padding:4px 8px; border-radius:6px; font-size:10px; font-weight:700; text-transform: uppercase;">
+                        ${m.role}
+                    </span>
+                    <button onclick="excluirMembro(${m.id})" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:5px; display: flex; align-items: center;">
+                        <i class="lucide lucide-trash-2" style="width:18px;"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+async function excluirMembro(id) {
+    if(!confirm('Deseja remover este acesso imediatamente? O funcionário será deslogado e não poderá mais entrar.')) return;
+
+    const tokenExclusao = localStorage.getItem('token');
+    const res = await fetch(`/api/auth/equipe/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${tokenExclusao}` }
+    });
+
+    if(res.ok) {
+        alert('Acesso revogado com sucesso.');
+        carregarEquipe(); // Atualiza a lista na hora
+    }
+}
+
+async function salvarMembro() {
+    // 1. Forçamos a leitura do token direto do armazenamento do Chrome
+    const tokenSeguro = localStorage.getItem('token');
+    
+    // TESTE DE DIAGNÓSTICO: Isso vai imprimir no seu console se o token existe ou não
+    console.log("DEBUG - Token encontrado:", tokenSeguro ? "SIM (Preenchido)" : "NÃO (Vazio)");
+
+    if (!tokenSeguro) {
+        alert("❌ Erro local: Seu login expirou. Por favor, saia do sistema e entre novamente.");
+        return;
+    }
+
+    const nome = document.getElementById('eqNome').value;
+    const email = document.getElementById('eqEmail').value;
+    const senha = document.getElementById('eqSenha').value;
+    const role = document.getElementById('eqRole').value;
+
+    if (!nome || !email || !senha) {
+        alert("⚠️ Por favor, preencha Nome, E-mail e Senha.");
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/auth/convidar-funcionario', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${tokenSeguro}` // Usando a variável local segura
+            },
+            body: JSON.stringify({ nome, email, senha, role })
+        });
+
+        if (res.ok) {
+            alert('✅ Funcionário adicionado com sucesso!');
+            document.getElementById('eqNome').value = '';
+            document.getElementById('eqEmail').value = '';
+            document.getElementById('eqSenha').value = '';
+            carregarEquipe(); 
+        } else {
+            const erroData = await res.json();
+            // Se o erro for 403, o servidor vai dizer o motivo real aqui
+            alert('❌ Erro do Servidor: ' + (erroData.erro || 'Acesso negado (403)'));
+        }
+    } catch (err) {
+        alert('❌ Erro crítico de conexão.');
+    }
+}
+
+    async function excluirMembro(id) {
+        if(!confirm('Deseja remover este acesso imediatamente? O funcionário será deslogado e não poderá mais entrar.')) return;
+
+        const res = await fetch(`/api/auth/equipe/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if(res.ok) {
+            carregarEquipe();
+        }
+    }
 
         function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
 
@@ -367,7 +694,20 @@
             carregarBancos();
             carregarInfoRodape();
             ajustarMascaraDoc();
+            carregarEquipe();
         };
+
+        function toggleUserMenu() {
+        const menu = document.getElementById('userDropdown');
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Fecha o menu se clicar fora dele
+        window.onclick = function(event) {
+        if (!event.target.matches('[onclick="toggleUserMenu()"]') && !event.target.closest('#userDropdown')) {
+        document.getElementById('userDropdown').style.display = 'none';
+        }
+        }
     </script>
 </body>
 </html>

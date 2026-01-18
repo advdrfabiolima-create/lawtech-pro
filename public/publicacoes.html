@@ -157,9 +157,10 @@ window.onload = async () => {
     await carregarPublicacoes(); // Depois tenta as publicações
 };
 
-        async function carregarPublicacoes() {
+async function carregarPublicacoes() {
     const container = document.getElementById('lista-publicacoes');
     try {
+        // 🚀 Chama a rota correta que envia JSON
         const res = await fetch('/api/publicacoes-pendentes', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -168,6 +169,7 @@ window.onload = async () => {
         
         const dados = await res.json();
 
+        // Se a lista vier vazia, mostra a mensagem de "Tudo em dia"
         if (!dados || dados.length === 0) {
             container.innerHTML = `
                 <div style="text-align:center; padding:60px; background:white; border-radius:12px; border:1px solid var(--border);">
@@ -177,21 +179,23 @@ window.onload = async () => {
             return;
         }
 
+        // 🚀 Mapeia os dados usando os nomes exatos do seu banco Neon
         container.innerHTML = dados.map(pub => `
             <div class="card-pub">
                 <div class="pub-header">
-                    <span class="processo-tag">${pub.processo_numero}</span>
+                    <span class="processo-tag">${pub.numero_processo}</span>
                     <span class="data-tag">📅 Publicado em: ${new Date(pub.data_publicacao).toLocaleDateString('pt-BR')}</span>
                 </div>
-                <div class="texto-corpo">${pub.texto_publicacao}</div>
-                <button class="btn-converter" onclick="gerarPrazo(${pub.id}, '${pub.processo_numero}')">
+                <div class="texto-corpo">${pub.conteudo}</div>
+                <button class="btn-converter" onclick="gerarPrazo(${pub.id}, '${pub.numero_processo}')">
                     <i class="lucide lucide-zap" style="width:14px;"></i> Gerar Prazo Útil
                 </button>
             </div>
         `).join('');
+
     } catch (err) {
-        console.error("Erro:", err);
-        container.innerHTML = `<p style="text-align:center; color:red; padding:20px;">Erro ao carregar publicações. Verifique a conexão com o servidor.</p>`;
+        console.error("Erro ao carregar:", err);
+        container.innerHTML = `<p style="text-align:center; color:red; padding:20px;">Erro ao sincronizar dados. Tente atualizar a página.</p>`;
     }
 }
 

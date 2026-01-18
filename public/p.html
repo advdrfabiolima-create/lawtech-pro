@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultoria Jurídica Especializada</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+    <style>
+        :root { --primary: #2563eb; --dark: #0f172a; --bg: #f8fafc; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--dark); }
+        
+        .hero { background: white; padding: 60px 20px; text-align: center; border-bottom: 1px solid #e2e8f0; }
+        .hero h1 { font-size: 28px; font-weight: 800; margin-bottom: 10px; color: var(--dark); }
+        .hero p { color: #64748b; font-size: 16px; max-width: 600px; margin: 0 auto; }
+
+        .container { max-width: 500px; margin: -40px auto 40px; padding: 0 20px; }
+        .card-form { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        
+        .field { margin-bottom: 20px; }
+        label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 8px; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 15px; outline: none; }
+        input:focus { border-color: var(--primary); }
+
+        .btn-send { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .btn-send:hover { background: #1d4ed8; transform: translateY(-2px); }
+        
+        footer { text-align: center; padding: 40px; color: #94a3b8; font-size: 12px; }
+        .success-msg { display: none; text-align: center; padding: 20px; color: #10b981; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <section class="hero">
+        <h1 id="advogadoNome">Consultoria Jurídica</h1>
+        <p>Preencha os dados abaixo para uma análise preliminar do seu caso. Retornaremos em breve.</p>
+    </section>
+
+    <div class="container">
+        <div class="card-form" id="formContainer">
+            <form id="leadForm">
+                <input type="hidden" id="escritorio_id">
+                
+                <div class="field">
+                    <label>Seu Nome Completo</label>
+                    <input type="text" id="nome" placeholder="Ex: João Silva" required>
+                </div>
+
+                <div class="field">
+                    <label>WhatsApp / Telefone</label>
+                    <input type="text" id="telefone" placeholder="(00) 00000-0000" required>
+                </div>
+
+                <div class="field">
+                    <label>Assunto</label>
+                    <select id="assunto">
+                        <option value="Cível">Direito Cível</option>
+                        <option value="Trabalhista">Direito Trabalhista</option>
+                        <option value="Família">Direito de Família</option>
+                        <option value="Outros">Outros Assuntos</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Breve resumo do caso</label>
+                    <textarea id="mensagem" rows="3" placeholder="Como podemos te ajudar?"></textarea>
+                </div>
+
+                <button type="submit" class="btn-send" id="btnSubmit">Enviar Solicitação</button>
+            </form>
+            <div id="msgSucesso" class="success-msg">
+                <i class="lucide lucide-check-circle" style="font-size: 40px; margin-bottom: 10px;"></i>
+                <p>Recebemos seus dados! <br> Entraremos em contato em breve.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>LawTech Pro AI System — Atendimento Digital Privado</p>
+    </footer>
+
+    <script>
+        // 1. CAPTURA O ID DO ESCRITÓRIO PELA URL (ex: p.html?id=1)
+        const urlParams = new URLSearchParams(window.location.search);
+        const escritorioId = urlParams.get('id');
+        document.getElementById('escritorio_id').value = escritorioId;
+
+        // 2. ENVIO DO FORMULÁRIO
+        document.getElementById('leadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmit');
+            btn.innerText = "Enviando...";
+            btn.disabled = true;
+
+            const dados = {
+                escritorio_id: escritorioId,
+                nome: document.getElementById('nome').value,
+                telefone: document.getElementById('telefone').value,
+                assunto: document.getElementById('assunto').value,
+                mensagem: document.getElementById('mensagem').value
+            };
+
+            try {
+                const res = await fetch('/api/crm/public/captura-lead', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
+
+                if (res.ok) {
+                    document.getElementById('leadForm').style.display = 'none';
+                    document.getElementById('msgSucesso').style.display = 'block';
+                } else {
+                    alert("Erro ao enviar. Tente novamente.");
+                    btn.innerText = "Enviar Solicitação";
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Erro de conexão.");
+            }
+        });
+    </script>
+</body>
+</html>

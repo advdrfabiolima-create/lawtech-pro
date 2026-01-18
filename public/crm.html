@@ -154,32 +154,46 @@
         }
 
         async function carregarLeads() {
-            const res = await fetch('/api/crm/leads', { headers: { 'Authorization': `Bearer ${token}` } });
-            const leads = await res.json();
-            const statusList = ['Novo', 'Reunião', 'Proposta', 'Ganho'];
-            
-            statusList.forEach(s => {
-                const list = document.getElementById(`list-${s}`);
-                const count = document.getElementById(`count-${s}`);
-                list.innerHTML = '';
-                const filtrados = leads.filter(l => l.status === s);
-                count.innerText = filtrados.length;
-                filtrados.forEach(l => {
-                    list.innerHTML += `
-                        <div class="lead-card">
-                            <div class="lead-name">${l.nome}</div>
-                            <div class="lead-meta"><i class="lucide lucide-phone" style="width:12px;"></i> ${l.telefone || '-'}</div>
-                            <select class="btn-status" onchange="alterarStatus(${l.id}, this.value)">
-                                <option value="Novo" ${s === 'Novo' ? 'selected' : ''}>Mover para Novo</option>
-                                <option value="Reunião" ${s === 'Reunião' ? 'selected' : ''}>Mover para Reunião</option>
-                                <option value="Proposta" ${s === 'Proposta' ? 'selected' : ''}>Mover para Proposta</option>
-                                <option value="Ganho" ${s === 'Ganho' ? 'selected' : ''}>Mover para Ganho</option>
-                            </select>
-                        </div>`;
-                });
-            });
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
+    const res = await fetch('/api/crm/leads', { headers: { 'Authorization': `Bearer ${token}` } });
+    const leads = await res.json();
+    
+    // Status que você definiu nas suas colunas do HTML
+    const statusList = ['Novo', 'Reunião', 'Proposta', 'Ganho'];
+    
+    statusList.forEach(s => {
+        const list = document.getElementById(`list-${s}`);
+        const count = document.getElementById(`count-${s}`);
+        if(!list) return;
+
+        list.innerHTML = '';
+        // Filtra leads, aceitando "Novo" ou "Novo Lead" para a primeira coluna
+        const filtrados = leads.filter(l => (s === 'Novo' ? (l.status === 'Novo' || l.status === 'Novo Lead') : l.status === s));
+        
+        count.innerText = filtrados.length;
+        
+        filtrados.forEach(l => {
+            const telLimpo = l.telefone ? l.telefone.replace(/\D/g, '') : '';
+            list.innerHTML += `
+                <div class="lead-card">
+                    <div class="lead-name">${l.nome}</div>
+                    <div class="lead-meta"><i class="lucide lucide-phone" style="width:12px;"></i> ${l.telefone || '-'}</div>
+                    <div style="display:flex; gap:5px; margin-top:10px;">
+                        <select class="btn-status" style="flex:1" onchange="alterarStatus(${l.id}, this.value)">
+                            <option value="Novo" ${l.status.includes('Novo') ? 'selected' : ''}>Novo</option>
+                            <option value="Reunião" ${l.status === 'Reunião' ? 'selected' : ''}>Reunião</option>
+                            <option value="Proposta" ${l.status === 'Proposta' ? 'selected' : ''}>Proposta</option>
+                            <option value="Ganho" ${l.status === 'Ganho' ? 'selected' : ''}>Ganho</option>
+                        </select>
+                        <a href="https://wa.me/55${telLimpo}" target="_blank" 
+                           style="padding:8px; background:#25d366; color:white; border-radius:8px; display:flex; align-items:center;">
+                            <i class="lucide lucide-message-circle" style="width:14px;"></i>
+                        </a>
+                    </div>
+                </div>`;
+        });
+    });
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
 
         async function alterarStatus(id, novoStatus) {
             await fetch(`/api/crm/lead/${id}/status`, {
@@ -194,20 +208,25 @@
         function fecharModalLead() { document.getElementById('modalLead').style.display = 'none'; }
 
         document.getElementById('formNovoLead').onsubmit = async (e) => {
-            e.preventDefault();
-            const dados = {
-                nome: document.getElementById('leadNome').value,
-                telefone: document.getElementById('leadFone').value,
-                email: document.getElementById('leadEmail').value
-            };
-            // Usamos a rota pública por simplicidade ou criamos uma privada. Vou usar a lógica de criação de lead.
-            const res = await fetch('/api/public/lead', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dados)
-            });
-            if (res.ok) { fecharModalLead(); carregarLeads(); }
-        };
+    e.preventDefault();
+    const dados = {
+        nome: document.getElementById('leadNome').value,
+        telefone: document.getElementById('leadFone').value,
+        email: document.getElementById('leadEmail').value
+    };
+    
+    const res = await fetch('/api/crm/manual-lead', { // Rota corrigida
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(dados)
+    });
+    
+    if (res.ok) { 
+        fecharModalLead(); 
+        carregarLeads(); 
+        document.getElementById('formNovoLead').reset();
+    }
+};
 
         function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
         window.onload = inicializar;
