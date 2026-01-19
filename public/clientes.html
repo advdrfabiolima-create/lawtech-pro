@@ -205,7 +205,7 @@
 
     <div id="modalCliente" class="modal">
     <div class="modal-content">
-        <h3 style="margin-bottom: 24px; font-size: 20px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 10px;">
+        <h3 id="modalTitle" style="margin-bottom: 24px; font-size: 20px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 10px;">
             <i class="lucide lucide-user-plus" style="color: #2563eb;"></i> Novo Cliente
         </h3>
         
@@ -217,23 +217,37 @@
                 </div>
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label id="labelDoc">CPF / CNPJ</label>
-                    <input type="text" id="cliDocumento" placeholder="000.000.000-00" required>
-                </div>
-                <div class="form-group">
-                    <label>E-mail</label>
-                    <input type="email" id="cliEmail" placeholder="cliente@email.com">
-                </div>
-            </div>
+           <div class="form-row">
+    <div class="form-group">
+        <label>Tipo de Pessoa</label>
+        <select id="cliTipo" onchange="alternarCamposPessoa(this.value)">
+            <option value="fisica">Pessoa Física (CPF)</option>
+            <option value="juridica">Pessoa Jurídica (CNPJ)</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label id="labelDoc">CPF</label>
+        <input type="text" id="cliDocumento" placeholder="000.000.000-00" required>
+    </div>
+</div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Telefone (WhatsApp)</label>
-                    <input type="text" id="cliTelefone" placeholder="(00) 00000-0000">
-                </div>
-            </div>
+<div class="form-row">
+    <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" id="cliEmail" placeholder="cliente@email.com">
+    </div>
+    <div class="form-group" id="groupNascimento">
+        <label>Data de Nascimento</label>
+        <input type="date" id="cliDataNascimento">
+    </div>
+</div>
+
+<div class="form-row">
+    <div class="form-group">
+        <label>Telefone (WhatsApp)</label>
+        <input type="text" id="cliTelefone" placeholder="(00) 00000-0000">
+    </div>
+</div>
 
             <div class="form-row">
                 <div class="form-group small">
@@ -400,13 +414,16 @@ if (typeof lucide !== 'undefined') {
 
     const dados = {
     nome: document.getElementById('cliNome').value,
-    documento: document.getElementById('cliDocumento').value, // Use o ID cliDocumento
+    documento: document.getElementById('cliDocumento').value,
     email: document.getElementById('cliEmail').value,
     telefone: document.getElementById('cliTelefone').value,
     cep: document.getElementById('cliCep').value,
     endereco: document.getElementById('cliEndereco').value,
     cidade: document.getElementById('cliCidade').value,
-    estado: document.getElementById('cliUf').value // Use o ID cliUf (ou o que estiver no select)
+    estado: document.getElementById('cliUf').value,
+    tipo_pessoa: document.getElementById('cliTipo').value,
+    // Se for CNPJ, envia nulo para o nascimento automaticamente
+    data_nascimento: document.getElementById('cliTipo').value === 'fisica' ? document.getElementById('cliDataNascimento').value : null
 };
 
     // Validação simples antes de enviar
@@ -450,7 +467,7 @@ if (typeof lucide !== 'undefined') {
     abrirModal();
     document.getElementById('modalTitle').innerText = "📝 Editar Cliente";
     document.getElementById('cliNome').value = nome;
-    document.getElementById('cliDoc').value = cpf;
+    document.getElementById('cliDocumento').value = cpf;
     document.getElementById('cliEmail').value = email;
     document.getElementById('cliTelefone').value = telefone || '';
     
@@ -458,7 +475,7 @@ if (typeof lucide !== 'undefined') {
     document.getElementById('cliCep').value = cep || '';
     document.getElementById('cliEndereco').value = endereco || '';
     document.getElementById('cliCidade').value = cidade || '';
-    document.getElementById('cliEstado').value = estado || '';
+    document.getElementById('cliUf').value = estado || '';
     
     document.getElementById('formCliente').dataset.editId = id;
 }
@@ -537,6 +554,19 @@ window.onload = () => {
         document.getElementById('cliEndereco').value = `${data.logradouro}, ${data.bairro}`;
         document.getElementById('cliCidade').value = data.localidade;
         document.getElementById('cliEstado').value = data.uf;
+    }
+}
+
+function alternarCamposPessoa(tipo) {
+    const labelDoc = document.getElementById('labelDoc');
+    const groupNasc = document.getElementById('groupNascimento');
+
+    if (tipo === 'fisica') {
+        labelDoc.innerText = "CPF";
+        groupNasc.style.display = "flex"; // Mostra Nascimento para CPF
+    } else {
+        labelDoc.innerText = "CNPJ";
+        groupNasc.style.display = "none"; // Esconde Nascimento para CNPJ
     }
 }
     </script>

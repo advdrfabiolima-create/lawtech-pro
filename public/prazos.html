@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8" />
     <title>LawTech Pro — Gestão de Prazos</title>
-    <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
         :root { 
@@ -221,11 +220,9 @@
 
         // 2. Motor de Prazos
         async function carregarPrazosModernos() {
-            const map = [
-                { url: '/api/dashboard/prazos-vencidos', container: 'lista-vencidos', classe: 'vencido' },
-                { url: '/api/dashboard/prazos-semana', container: 'lista-semana', classe: 'semana' },
-                { url: '/api/dashboard/prazos-futuros', container: 'lista-futuros', classe: 'futuro' }
-            ];
+          const map = [
+            { url: '/api/dashboard/prazos-futuros', container: 'lista-futuros', classe: 'futuro' }
+        ];
             todosPrazos = [];
             mostrarLoader();
             for (const item of map) {
@@ -242,21 +239,33 @@
                     prazos.forEach(p => {
                         todosPrazos.push({ ...p, status: item.classe });
                         const urgencia = calcularUrgencia(p.data_limite);
+                        
+                        // Aqui é a montagem blindada do card
                         container.innerHTML += `
                             <div class="prazo ${item.classe}">
-                                <div>
-                                    <strong style="font-size: 14px;">${p.tipo} — Proc. ${p.processo_numero} 
-                                        ${urgencia ? `<span class="badge ${urgencia.classe}">${urgencia.label}</span>` : ''}
-                                    </strong>
-                                    <small style="display: block; margin-top: 4px; color:var(--muted);">📅 Vencimento: ${new Date(p.data_limite).toLocaleDateString('pt-BR')}</small>
-                                </div>
-                                <div style="display: flex; gap: 12px;">
-                                    <i class="lucide lucide-edit" onclick="editarPrazo(${p.id})" style="cursor:pointer; color:var(--primary); width:18px;"></i>
-                                    <i class="lucide lucide-check-circle" onclick="concluirPrazo(${p.id})" style="cursor:pointer; color:var(--success); width:18px;"></i>
-                                    <i class="lucide lucide-trash-2" onclick="excluirPrazo(${p.id})" style="cursor:pointer; color:var(--danger); width:18px;"></i>
-                                </div>
-                            </div>`;
-                    });
+            <div>
+                <strong style="font-size: 14px;">${p.tipo || 'Prazo'}</strong>
+                ${urgencia ? `<span class="badge ${urgencia.classe}">${urgencia.label}</span>` : ''}
+                <small style="display: block; margin-top: 4px; color:var(--muted);">
+                    📅 Vencimento: ${new Date(p.data_limite).toLocaleDateString('pt-BR')}
+                </small>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <button onclick="analisarComDeepSeek('${p.tipo}', '${p.descricao || 'Prazo processual'}')"
+        style="background: #fbbf24; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+    <i data-lucide="sparkles" style="color: #000; width: 16px;"></i>
+</button>
+
+                <i data-lucide="pencil" onclick="editarPrazo(${p.id})" style="cursor:pointer; color:var(--primary); width:18px;"></i>
+                <i data-lucide="check-circle" onclick="concluirPrazo(${p.id})" style="cursor:pointer; color:var(--success); width:18px;"></i>
+                <i data-lucide="trash-2" onclick="excluirPrazo(${p.id})" style="cursor:pointer; color:var(--danger); width:18px;"></i>
+            </div>
+        </div>`;
+});
+
+// GATILHO DE ATIVAÇÃO: Movemos para garantir que ele execute APÓS os botões existirem
+setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 200);
+
                 } catch (err) { console.error(err); }
             }
             esconderLoader();
@@ -268,6 +277,7 @@
             try {
                 const res = await fetch('/api/prazos-concluidos', { headers: { Authorization: `Bearer ${token}` } });
                 const prazos = await res.json();
+                console.log("Prazos carregados do Neon:", prazos); // ADICIONE ESTA LINHA AQUI
                 container.innerHTML = '';
                 if (prazos.length === 0) {
                     container.innerHTML = '<p style="padding:20px; color:var(--muted);">Nenhum prazo concluído ainda.</p>';
@@ -282,6 +292,7 @@
                             </div>
                         </div>`;
                 });
+                if (window.lucide) lucide.createIcons();
             } catch (err) { console.error(err); }
         }
 
@@ -434,6 +445,52 @@
             t.style.display = 'block';
             setTimeout(() => { t.style.display = 'none'; }, 3000);
         }
+        async function analisarComDeepSeek(tipo, descricao) {
+    const modal = document.getElementById('modalIA');
+    const content = document.getElementById('aiResponseContent');
+    const tokenMaster = localStorage.getItem('token'); // Recupera seu acesso master
+
+    if (modal) modal.style.display = 'flex';
+    content.innerText = "Doutor, o DeepSeek está processando os dados jurídicos... Aguarde.";
+
+    try {
+        const response = await fetch('/api/analisar-prazo', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${tokenMaster}` 
+            },
+            body: JSON.stringify({ tipo: tipo, descricao: descricao }) 
+        });
+        
+        const data = await response.json();
+        
+        // Se o servidor retornar a análise, exibe; caso contrário, avisa o erro técnico
+        if (data.analise) {
+            content.innerText = data.analise;
+        } else {
+            content.innerText = "O servidor Master recebeu o pedido, mas o DeepSeek retornou vazio. Verifique sua chave API no .env.";
+        }
+    } catch (err) {
+        content.innerText = "Erro Crítico: O navegador não conseguiu falar com o servidor Master na porta 3000.";
+    }
+}
+setInterval(() => { if (window.lucide) lucide.createIcons(); }, 1000);
     </script>
+    <div id="modalIA" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.7); z-index:9999; justify-content:center; align-items:center; backdrop-filter: blur(4px);">
+    <div style="background:white; padding:35px; border-radius:16px; max-width:700px; width:90%; max-height:85vh; overflow-y:auto; position:relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #e2e8f0;">
+        
+        <span onclick="document.getElementById('modalIA').style.display='none'" style="position:absolute; top:20px; right:20px; cursor:pointer; font-size:20px; color:#94a3b8; font-weight:bold;">&times;</span>
+        
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px; border-bottom:2px solid #f1f5f9; padding-bottom:15px;">
+            <i class="lucide-sparkles" style="color:#fbbf24; width:24px; height:24px;"></i>
+            <h3 style="margin:0; color:#0f172a; font-size:20px; font-weight:700;">Parecer Técnico DeepSeek</h3>
+        </div>
+
+        <div id="aiResponseContent" style="white-space:pre-wrap; line-height:1.8; color:#334155; font-size:15px; font-family:'Inter', sans-serif; letter-spacing:-0.01em;"></div>
+        
+        <div style="margin-bottom: 10px;"></div>
+    </div>
+</div>
 </body>
 </html>

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
+const { analisarPrazoComGemini } = require('../controllers/iaController');
 
 router.post('/ia/perguntar', authMiddleware, async (req, res) => {
   try {
@@ -60,7 +61,7 @@ router.post('/ia/perguntar', authMiddleware, async (req, res) => {
     // Extração do texto da resposta
     const respostaIA = data.choices[0].message.content;
 
-    return res.json({ resposta: respostaIA });
+    return res.json({ resposta: respostaIA }); 
 
   } catch (err) {
     console.error('ERRO NO ASSISTENTE JURÍDICO:', err.message);
@@ -79,5 +80,8 @@ router.post('/ia/perguntar', authMiddleware, async (req, res) => {
     });
   }
 });
+// --- NOVA ROTA (GEMINI / DASHBOARD) ---
+// Esta rota chama a função de análise técnica via Gemini
+router.post('/analisar-prazo', authMiddleware, analisarPrazoComGemini);
 
 module.exports = router;

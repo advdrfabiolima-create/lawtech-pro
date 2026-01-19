@@ -1,12 +1,12 @@
 const pool = require('../config/db');
-const axios = require('axios');
 
-// 1. Listar Clientes (Com contagem de processos vinculados)
+// 1. Listar Clientes (Nomes de colunas alinhados com o Neon)
 async function listarClientes(req, res) {
     try {
         const escritorioId = req.user.escritorio_id;
+        // Trocamos 'cpf' por 'documento' para bater com o seu banco
         const query = `
-            SELECT c.*, 
+            SELECT id, nome, documento, email, telefone, cep, endereco, cidade, estado, 
             (SELECT COUNT(*)::int FROM processos p WHERE p.cliente = c.nome AND p.escritorio_id = $1) as total_processos
             FROM clientes c 
             WHERE c.escritorio_id = $1 
@@ -15,82 +15,39 @@ async function listarClientes(req, res) {
         const result = await pool.query(query, [escritorioId]);
         res.json(result.rows || []); 
     } catch (error) {
-        console.error('Erro ao listar clientes:', error);
-        res.status(500).json({ erro: 'Erro ao listar clientes' });
+        console.error('❌ Erro ao listar clientes:', error.message);
+        res.status(500).json({ erro: 'Erro ao carregar lista de clientes' });
     }
 }
 
-// 2. Criar Cliente (Corrigido, Unificado e com Integração Asaas)
+// 2. Criar Cliente (Sem Asaas e com nomes de colunas corretos)
 async function criarCliente(req, res) {
-    const { nome, documento, email, telefone, cep, endereco, cidade, estado } = req.body;
+    const { nome, documento, email, telefone, cep, endereco, cidade, estado, data_nascimento } = req.body;
     const escritorioId = req.user.escritorio_id;
 
     try {
-        // Busca a API Key da Subconta do escritório
-        const escRes = await pool.query(
-            'SELECT asaas_api_key_subconta FROM escritorios WHERE id = $1',
-            [escritorioId]
-        );
-        const apiKey = escRes.rows[0]?.asaas_api_key_subconta;
-
-        let asaas_customer_id = null; // Variável unificada para o banco
-
-        // Se o escritório tiver Asaas ativado, cria o cliente no Asaas
-        if (apiKey) {
-            try {
-                const asaasRes = await axios.post('https://sandbox.asaas.com/api/v3/customers', {
-    name: nome,
-    cpfCnpj: documento.replace(/\D/g, ''),
-    email: email,
-    mobilePhone: telefone,
-    postalCode: cep.replace(/\D/g, ''),
-    address: endereco,
-    province: cidade,
-    state: estado
-}, {
-    headers: { 
-        'access_token': '$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OmExYWIzNmQ1LTZhZTQtNDcyNS04YzgzLTA5MDVjOWQ3NzAwYzo6JGFhY2hfYTY2YzE5YzQtZDM2YS00MDJjLWE1YWItYjkzNWM4ZDNmZGU5'
-    }
-});
-
-                asaas_customer_id = asaasRes.data.id;
-                console.log(`✅ Cliente "${nome}" espelhado no Asaas com ID: ${asaas_customer_id}`);
-            } catch (errAsaas) {
-                console.error("❌ Erro Asaas:", errAsaas.response?.data || errAsaas.message);
-                // O processo continua para salvar no banco local mesmo se a API falhar
-            }
-        }
-
         const query = `
             INSERT INTO clientes (
-                nome, documento, email, telefone, cep, endereco, cidade, estado, asaas_customer_id, escritorio_id
+                nome, documento, email, telefone, cep, endereco, cidade, estado, escritorio_id, data_nascimento
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             RETURNING *
         `;
 
         const values = [
-            nome, 
-            documento, 
-            email, 
-            telefone, 
-            cep, 
-            endereco, 
-            cidade, 
-            estado, 
-            asaas_customer_id, // Agora a variável coincide com a query
-            escritorioId
+            nome, documento, email, telefone, cep, endereco, cidade, estado, escritorioId, data_nascimento || null
         ];
 
         const resultado = await pool.query(query, values);
+        console.log("✅ Cliente salvo com sucesso no banco local!");
         res.status(201).json(resultado.rows[0]);
 
     } catch (err) {
-        console.error("❌ Erro ao criar cliente local:", err.message);
-        res.status(500).json({ erro: "Erro ao salvar cliente no banco de dados." });
+        console.error("❌ Erro ao criar cliente:", err.message);
+        res.status(500).json({ erro: "Erro ao salvar: " + err.message });
     }
 }
 
-// 3. Editar Cliente
+// 3. Editar Cliente (Alinhado com 'documento')
 async function editarCliente(req, res) {
     const { id } = req.params;
     const { nome, documento, email, telefone } = req.body;
@@ -101,8 +58,7 @@ async function editarCliente(req, res) {
         );
         res.json({ ok: true });
     } catch (error) {
-        console.error('Erro ao editar cliente:', error);
-        res.status(500).json({ erro: 'Erro ao editar cliente' });
+        res.status(500).json({ erro: 'Erro ao editar' });
     }
 }
 
@@ -113,15 +69,8 @@ async function excluirCliente(req, res) {
         await pool.query('DELETE FROM clientes WHERE id = $1 AND escritorio_id = $2', [id, req.user.escritorio_id]);
         res.json({ ok: true });
     } catch (error) {
-        console.error('Erro ao excluir cliente:', error);
-        res.status(500).json({ erro: 'Erro ao excluir cliente' });
+        res.status(500).json({ erro: 'Erro ao excluir' });
     }
 }
 
-// EXPORTAÇÃO ÚNICA - RESOLVE O REFERENCE ERROR DEFINITIVAMENTE
-module.exports = { 
-    listarClientes, 
-    criarCliente, 
-    editarCliente, 
-    excluirCliente 
-};
+module.exports = { listarClientes, criarCliente, editarCliente, excluirCliente };

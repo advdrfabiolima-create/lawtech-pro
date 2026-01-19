@@ -205,6 +205,26 @@
     transition: all 0.3s ease;
     background: var(--primary); /* Azul sólido para evitar transparência no 'A' */
 }
+
+/* Botão de IA na lista de prazos */
+.btn-ia-analise {
+    background: #fdf2f2; color: #b45309; border: 1px solid #fde68a;
+    padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.3s;
+}
+.btn-ia-analise:hover { background: #fef3c7; transform: scale(1.05); }
+
+/* Modal da IA */
+#modalIA {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+}
+.modal-ia-content {
+    background: white; width: 90%; max-width: 600px; padding: 24px;
+    border-radius: 16px; position: relative; max-height: 80vh; overflow-y: auto;
+}
+.modal-ia-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+.ai-text-response { font-size: 14px; color: #334155; line-height: 1.6; white-space: pre-wrap; }
     </style>
 </head>
 <body>
@@ -375,8 +395,10 @@
 
     <script>
 const token = localStorage.getItem('token');
+        let gPlanName = '';
+        let gEscritorioId = null;
         if (!token) window.location.href = '/login.html';
-
+        
         // Elementos do Modal de Notificações
         const notifContainer = document.getElementById('notif-container');
         const notifDropdown = document.getElementById('notif-dropdown');
@@ -465,13 +487,44 @@ const token = localStorage.getItem('token');
             window.location.href = '/planos-page';
             return; // Para a execução do restante da página
         }
-
         const planName = dataPlan.plano || 'Individual';
         const cicloFaturamento = dataPlan.ciclo === 'anual' ? 'Anual' : 'Mensal';
-        const nomeExibicaoPlano = `${planName} - ${cicloFaturamento}`;
+        
+       // 🚀 Identidade Master Garantida
+        const idUsuarioLogado = dataUser.usuario?.escritorio_id || gEscritorioId;
+        const ehMaster = (idUsuarioLogado === 1 || userEmail.innerText.includes('adv.limaesilva'));
+        
+        const nomeExibicaoPlano = ehMaster ? "LawTech Master - Vitalício" : `${planName} - ${cicloFaturamento}`;
 
+        // Aplica no Rodapé e no Card
         document.getElementById('planNameFooter').innerText = nomeExibicaoPlano;
         document.getElementById('planoAtual').innerText = nomeExibicaoPlano;
+        
+        // Atualiza Rodapé e Título do Card
+        document.getElementById('planNameFooter').innerText = nomeExibicaoPlano;
+        document.getElementById('planoAtual').innerText = nomeExibicaoPlano;
+
+        // 🏆 Inserção do Selo Master no Card
+        const badgeContainer = document.getElementById('premiumWelcome');
+        if (ehMaster && badgeContainer) {
+            badgeContainer.style.display = 'inline-flex';
+            badgeContainer.style.alignItems = 'center';
+            badgeContainer.style.gap = '8px';
+            badgeContainer.style.padding = '10px 20px';
+            badgeContainer.style.borderRadius = '12px';
+            // Efeito de Vidro Dourado
+            badgeContainer.style.background = 'linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(217, 119, 6, 0.3) 100%)';
+            badgeContainer.style.backdropFilter = 'blur(10px)';
+            badgeContainer.style.border = '1px solid rgba(251, 191, 36, 0.5)';
+            badgeContainer.style.boxShadow = '0 4px 15px rgba(251, 191, 36, 0.2)';
+            
+            badgeContainer.innerHTML = `
+                <i class="lucide lucide-shield-check" style="color: #d97706; width: 18px;"></i>
+                <span style="color: #92400e; font-weight: 800; font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase;">
+                    LawTech Master Vitalício
+                </span>
+            `;
+        }
         
         // Exibe Link Premium e Badge se for o caso
         if (planName.toLowerCase() === 'premium') {
@@ -486,23 +539,42 @@ const token = localStorage.getItem('token');
             }
         }
 
-        // 3. BARRA DE CONSUMO
+        // 3. BARRA DE CONSUMO (Ajuste Master/Premium)
         const usados = dataPlan.prazos_usados || 0;
-        const limite = dataPlan.limite_prazos || 0;
-        let percent = limite > 0 ? Math.min((usados / limite) * 100, 100) : (planName.toLowerCase() === 'premium' ? 100 : 0);
+        const limite = dataPlan.limite_prazos; 
+        gPlanName = (dataPlan.plano || '').toLowerCase(); // Salva na variável global
 
-        document.getElementById('percentualTexto').innerText = limite > 0 ? Math.round(percent) + '%' : '100%';
-        document.getElementById('textoConsumoNumerico').innerText = limite > 0 ? `${usados} de ${limite} prazos` : `${usados} prazos (Ilimitado)`;
+        let percent;
+        let textoConsumo;
+
+        // Regra para Barra Cheia e Infinito
+        if (limite === null || gPlanName.includes('master') || gPlanName.includes('premium') || gEscritorioId === 1) {
+            percent = 100;
+            textoConsumo = `${usados} prazos (Ilimitado)`;
+            document.getElementById('percentualTexto').innerText = '∞';
+            document.getElementById('progressBar').style.background = 'linear-gradient(90deg, #fbbf24, #d97706)';
+        } else {
+            percent = limite > 0 ? Math.min((usados / limite) * 100, 100) : 0;
+            textoConsumo = `${usados} de ${limite} prazos`;
+            document.getElementById('percentualTexto').innerText = Math.round(percent) + '%';
+            document.getElementById('progressBar').style.background = 'linear-gradient(90deg, var(--primary), #3b82f6)';
+        }
+
+        document.getElementById('textoConsumoNumerico').innerText = textoConsumo;
         document.getElementById('progressBar').style.width = percent + '%';
-        
+
         if (document.getElementById('count-total-prazos')) {
             document.getElementById('count-total-prazos').innerText = usados;
         }
 
-        // Recarregar ícones do Lucide para os novos banners
+        // Carregar prazos após processar os dados do plano
+        carregarPrazos();
+
         if (typeof lucide !== 'undefined') lucide.createIcons();
 
-    } catch (err) { console.error("Erro ao carregar Dashboard:", err); }
+    } catch (err) { 
+        console.error("Erro ao carregar Dashboard:", err); 
+    }
 }
 
 let totalLeadsAtual = 0;
@@ -567,7 +639,7 @@ window.addEventListener('click', function(e) {
             
             let totalNotificacoes = 0;
             if (notifList) notifList.innerHTML = '';
-
+            
             for (const cat of categorias) {
                 try {
                     const res = await fetch(cat.url, { headers: { Authorization: `Bearer ${token}` } });
@@ -580,18 +652,23 @@ window.addEventListener('click', function(e) {
                     }
 
                     prazos.forEach(p => {
-                        if (containerGeral) {
-                            containerGeral.innerHTML += `
-                                <div class="prazo ${cat.classe}">
-                                    <div>
-                                        <strong style="display:block; font-size:14px;">${p.tipo}</strong>
-                                        <small style="color:#64748b">Proc: ${p.processo_numero}</small>
-                                    </div>
-                                    <div style="text-align:right">
-                                        <span style="font-size:12px; font-weight:600;">📅 ${new Date(p.data_limite).toLocaleDateString('pt-BR')}</span>
-                                    </div>
-                                </div>`;
-                        }
+                        // Trava de segurança: verifica se é Master (ID 1), Premium ou Avançado
+                        const podeIA = (gPlanName.includes('premium') || gPlanName.includes('avançado') || gEscritorioId === 1);
+
+                        containerGeral.innerHTML += `
+                            <div class="prazo ${cat.classe}" style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid #eee;">
+                                <div>
+                                    <strong style="display:block; font-size:14px;">${p.tipo}</strong>
+                                    <small style="color:#64748b">Proc: ${p.processo_numero}</small>
+                                    ${podeIA ? `
+                                        <button class="btn-ia-analise" onclick="chamarGemini('${p.tipo}', '${p.processo_numero}')">
+                                            <i class="lucide lucide-sparkles" style="width:12px;"></i> Analisar com IA
+                                        </button>` : ''}
+                                </div>
+                                <div style="text-align:right">
+                                    <span style="font-size:12px; font-weight:600;">📅 ${new Date(p.data_limite).toLocaleDateString('pt-BR')}</span>
+                                </div>
+                            </div>`;
                         
                         // Alimenta o sino de notificações
                         if (notifList) {
@@ -642,6 +719,43 @@ window.addEventListener('click', function(e) {
             // Ativa ícones Lucide se existirem
             if (typeof lucide !== 'undefined') lucide.createIcons();
         };
+async function chamarGemini(descricao, processo) {
+    const modal = document.getElementById('modalIA');
+    const content = document.getElementById('aiResponseContent');
+    
+    if (modal) modal.style.display = 'flex';
+    if (content) content.innerText = "Doutor, estou analisando os detalhes jurídicos deste prazo... Por favor, aguarde.";
+
+    try {
+        // Ajuste da rota para bater exatamente com o ia.routes.js
+        const response = await fetch('/api/analisar-prazo', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify({ descricao, processo })
+        });
+
+        // Verificação de segurança para evitar erro de JSON
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Erro do servidor:", errorText);
+            throw new Error(`Servidor respondeu com erro ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.analise) {
+            content.innerText = data.analise;
+        } else {
+            content.innerText = "Houve um erro na análise: " + (data.erro || "Tente novamente.");
+        }
+    } catch (err) {
+        console.error("Erro na chamada Fetch:", err);
+        content.innerText = "Erro ao conectar com o servidor. Verifique se o servidor Node.js está ligado.";
+    }
+}
     </script>
     <div id="modalWelcome" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.9); z-index:2000; align-items:center; justify-content:center; backdrop-filter: blur(8px);">
         <div style="background:white; width:90%; max-width:500px; padding:40px; border-radius:24px; text-align:center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
@@ -659,6 +773,17 @@ window.addEventListener('click', function(e) {
             </button>
         </div>
     </div>
+
+    <div id="modalIA">
+    <div class="modal-ia-content">
+        <div class="modal-ia-header">
+            <i class="lucide lucide-sparkles" style="color: var(--gold);"></i>
+            <h3 style="font-size: 18px; font-weight: 800;">Análise Jurídica Gemini</h3>
+            <button onclick="document.getElementById('modalIA').style.display='none'" style="margin-left:auto; background:none; border:none; cursor:pointer; font-size: 20px;">&times;</button>
+        </div>
+        <div id="aiResponseContent" class="ai-text-response">Processando análise...</div>
+    </div>
+</div>
 </body>
 <audio id="notificacaoSom" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
 </html>
