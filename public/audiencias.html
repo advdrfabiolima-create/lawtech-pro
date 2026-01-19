@@ -221,23 +221,28 @@
                 const dados = await res.json();
                 const corpo = document.getElementById('listaAudiencias');
                 
-                if (dados.length === 0) {
+                if (!dados || dados.length === 0) {
                     corpo.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--muted);">Nenhuma audiência agendada.</td></tr>';
                     return;
                 }
 
-                corpo.innerHTML = dados.map(a => `
+                corpo.innerHTML = dados.map(a => {
+                    // Proteção contra dados nulos
+                    const dataFormatada = a.data_audiencia ? new Date(a.data_audiencia).toLocaleDateString('pt-BR') : '---';
+                    const horaFormatada = a.hora_audiencia ? a.hora_audiencia.slice(0,5) : '--:--';
+
+                    return `
                     <tr>
                         <td>
-                            <strong style="color:var(--primary);">${new Date(a.data_audiencia).toLocaleDateString('pt-BR')}</strong><br>
-                            <span style="font-size:12px; font-weight:600; color:var(--muted);">${a.hora_audiencia.slice(0,5)}</span>
+                            <strong style="color:var(--primary);">${dataFormatada}</strong><br>
+                            <span style="font-size:12px; font-weight:600; color:var(--muted);">${horaFormatada}</span>
                         </td>
                         <td>
-                            <div style="font-weight:700; color:var(--text-main);">${a.processo_numero}</div>
-                            <div style="font-size:12px; color:var(--muted);">${a.cliente}</div>
+                            <div style="font-weight:700; color:var(--text-main);">${a.processo_numero || 'Sem Número'}</div>
+                            <div style="font-size:12px; color:var(--muted);">${a.cliente || 'Consumidor'}</div>
                         </td>
-                        <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600;">${a.tipo_audiencia}</span></td>
-                        <td style="font-size:12px; color:var(--muted); max-width:200px; overflow:hidden; text-overflow:ellipsis;">${a.local_virtual || '-'}</td>
+                        <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600;">${a.tipo_audiencia || a.tipo || 'Audiência'}</span></td>
+                        <td style="font-size:12px; color:var(--muted); max-width:200px; overflow:hidden; text-overflow:ellipsis;">${a.local_virtual || a.local || '-'}</td>
                         <td style="text-align: center;">
                             <div style="display:flex; flex-direction:column; gap:8px; align-items:center;">
                                 <button class="btn-whatsapp" onclick="avisarZap('${a.cliente}', '${a.processo_numero}', '${a.tipo_audiencia}', '${a.data_audiencia}', '${a.hora_audiencia}', '${a.local_virtual}', '${a.telefone}')">
@@ -248,10 +253,43 @@
                                 </button>
                             </div>
                         </td>
-                    </tr>
-                `).join('');
-            } catch (err) { console.error(err); }
+                    </tr>`;
+                }).join('');
+            } catch (err) { 
+                console.error("Erro ao listar audiências:", err);
+                document.getElementById('listaAudiencias').innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Erro ao carregar dados.</td></tr>';
+            }
         }
+
+        document.getElementById('formAudiencia').onsubmit = async (e) => {
+            e.preventDefault();
+            // Alinhando os nomes dos campos com o que o Backend Master espera
+            const dados = {
+                processo_id: document.getElementById('audProcessoId').value,
+                tipo_audiencia: document.getElementById('audTipo').value,
+                data_audiencia: document.getElementById('audData').value,
+                hora_audiencia: document.getElementById('audHora').value,
+                local_virtual: document.getElementById('audLocal').value
+            };
+            
+            try {
+                const response = await fetch('/api/audiencias', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(dados)
+                });
+                
+                if (response.ok) {
+                    fecharModalAudiencia();
+                    document.getElementById('formAudiencia').reset(); // Limpa o formulário
+                    await carregarAudiencias(); // Recarrega a lista imediatamente
+                } else {
+                    alert("Erro ao salvar audiência no servidor.");
+                }
+            } catch (err) {
+                console.error("Erro no salvamento:", err);
+            }
+        };
 
         // Lógica de WhatsApp original mantida
         function avisarZap(cliente, processo, tipo, data, hora, local, telefone) {
@@ -299,24 +337,6 @@
                 if (res.ok) carregarAudiencias();
             } catch (err) { console.error(err); }
         }
-
-        document.getElementById('formAudiencia').onsubmit = async (e) => {
-            e.preventDefault();
-            const dados = {
-                processo_id: document.getElementById('audProcessoId').value,
-                tipo: document.getElementById('audTipo').value,
-                data: document.getElementById('audData').value,
-                hora: document.getElementById('audHora').value,
-                local: document.getElementById('audLocal').value
-            };
-            await fetch('/api/audiencias', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(dados)
-            });
-            fecharModalAudiencia();
-            carregarAudiencias();
-        };
 
         function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
         window.onload = inicializarPagina;

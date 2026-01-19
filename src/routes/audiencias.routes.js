@@ -20,13 +20,14 @@ router.get('/audiencias', authMiddleware, async (req, res) => {
 });
 
 // Cadastrar nova audiência
+// Cadastrar nova audiência - VERSÃO CORRIGIDA MASTER
 router.post('/audiencias', authMiddleware, async (req, res) => {
-    const { processo_id, tipo, data, hora, local } = req.body;
+    const { processo_id, tipo_audiencia, data_audiencia, hora_audiencia, local_virtual } = req.body;
     try {
         await pool.query(
             `INSERT INTO audiencias (usuario_id, processo_id, tipo_audiencia, data_audiencia, hora_audiencia, local_virtual)
              VALUES ($1, $2, $3, $4, $5, $6)`,
-            [req.user.id, processo_id, tipo, data, hora, local]
+            [req.user.id, processo_id, tipo_audiencia, data_audiencia, hora_audiencia, local_virtual]
         );
         res.status(201).json({ ok: true });
     } catch (err) {

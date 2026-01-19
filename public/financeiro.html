@@ -159,7 +159,7 @@
             </div>
             <div class="form-group">
                 <label>VALOR (R$)</label>
-                <input type="number" id="addValor" step="0.01" placeholder="0.00">
+                <input type="text" id="addValor" placeholder="R$ 0,00">
             </div>
             <div class="form-group">
                 <label>TIPO</label>
@@ -333,27 +333,43 @@
         function fecharModalLancamento() { document.getElementById('modalNovoLancamento').style.display = 'none'; }
 
         async function salvarLancamento() {
-            const descricao = document.getElementById('addDescricao').value;
-            const valor = document.getElementById('addValor').value;
-            const tipo = document.getElementById('addTipo').value;
-            const data_vencimento = document.getElementById('addData').value;
+    const descricao = document.getElementById('addDescricao').value;
+    const valorComMascara = document.getElementById('addValor').value; 
+    const tipo = document.getElementById('addTipo').value;
+    const data_vencimento = document.getElementById('addData').value;
 
-            if(!descricao || !valor || !data_vencimento) return alert("Preencha todos os campos!");
+    if(!descricao || !valorComMascara || !data_vencimento) return alert("Preencha todos os campos!");
 
-            const res = await fetch('/api/financeiro', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ descricao, valor, tipo, data_vencimento })
-            });
+    // --- LIMPEZA DE VALOR PARA O BANCO ---
+    // Remove o R$, remove os pontos de milhar e troca a vírgula por ponto decimal
+    const valorNumerico = parseFloat(valorComMascara.replace("R$ ", "").replace(/\./g, "").replace(",", "."));
 
-            if(res.ok) {
-                fecharModalLancamento();
-                carregarDados();
-                document.getElementById('addDescricao').value = '';
-                document.getElementById('addValor').value = '';
-                document.getElementById('addData').value = '';
-            } else { alert("Erro ao salvar."); }
+    if (isNaN(valorNumerico)) return alert("Por favor, insira um valor válido.");
+
+    const dados = { descricao, valor: valorNumerico, tipo, data_vencimento };
+
+    try {
+        const res = await fetch('/api/financeiro', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(dados)
+        });
+
+        if (res.ok) {
+            fecharModalLancamento();
+            await carregarDados(); // Recarrega a tabela e os gráficos
+            document.getElementById('addDescricao').value = '';
+            document.getElementById('addValor').value = '';
+            document.getElementById('addData').value = '';
+        } else {
+            const erroRes = await res.json();
+            alert("Erro no Servidor: " + (erroRes.error || "Erro ao salvar."));
         }
+    } catch (err) {
+        console.error("Erro na conexão:", err);
+        alert("Erro de conexão com o servidor Master.");
+    }
+}
 
         async function marcarComoPago(id) {
             if(!confirm("Deseja marcar como Pago?")) return;
@@ -515,6 +531,20 @@ async function atualizarLancamento() {
 
         function rolarParaTabela() { window.scrollTo({ top: 600, behavior: 'smooth' }); }
         function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
+
+        // Máscara aplicada ao ID correto do modal: addValor
+        const campoValor = document.getElementById('addValor');
+        if (campoValor) {
+        campoValor.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, "");
+        if (!value) { e.target.value = ""; return; }
+        value = (value / 100).toFixed(2) + "";
+        value = value.replace(".", ",");
+        value = value.replace(/(\d)(\d{3})(\d{3}),/g, "$1.$2.$3,");
+        value = value.replace(/(\d)(\d{3}),/g, "$1.$2,");
+        e.target.value = "R$ " + value;
+    });
+}
     </script>
 </body>
 </html>
