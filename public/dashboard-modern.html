@@ -394,7 +394,7 @@
     </div>
 
     <script>
-const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
         let gPlanName = '';
         let gEscritorioId = null;
         if (!token) window.location.href = '/login.html';
@@ -405,13 +405,19 @@ const token = localStorage.getItem('token');
         const notifList = document.getElementById('notif-list');
         const notifCount = document.getElementById('notif-count');
 
-        // Controle do Dropdown de Notificações
-        if (notifContainer) {
-            notifContainer.addEventListener('click', (e) => { 
-                e.stopPropagation(); 
-                notifDropdown.style.display = notifDropdown.style.display === 'none' ? 'block' : 'none'; 
-            });
-        }
+        // 🔒 Proteção contra elementos inexistentes
+        if (notifContainer && notifDropdown) {
+        notifContainer.addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        notifDropdown.style.display =
+            notifDropdown.style.display === 'none' ? 'block' : 'none'; 
+        });
+    }
+
+document.addEventListener('click', () => {
+    if (notifDropdown) notifDropdown.style.display = 'none';
+    });
+           
         document.addEventListener('click', () => { if(notifDropdown) notifDropdown.style.display = 'none'; });
 
         /**
@@ -539,29 +545,34 @@ const token = localStorage.getItem('token');
             }
         }
 
-        // 3. BARRA DE CONSUMO (Ajuste Master/Premium)
-        const usados = dataPlan.prazos_usados || 0;
-        const limite = dataPlan.limite_prazos; 
-        gPlanName = (dataPlan.plano || '').toLowerCase(); // Salva na variável global
+       // --- CORREÇÃO DA BARRA DE CONSUMO ---
+const usados = dataPlan.prazos_usados || 0;
+// 🚀 AJUSTE: Tentamos ler 'limite' ou 'limite_prazos' para garantir compatibilidade
+const limite = dataPlan.limite || dataPlan.limite_prazos; 
 
-        let percent;
-        let textoConsumo;
+let percent;
+let textoConsumo;
 
-        // Regra para Barra Cheia e Infinito
-        if (limite === null || gPlanName.includes('master') || gPlanName.includes('premium') || gEscritorioId === 1) {
-            percent = 100;
-            textoConsumo = `${usados} prazos (Ilimitado)`;
-            document.getElementById('percentualTexto').innerText = '∞';
-            document.getElementById('progressBar').style.background = 'linear-gradient(90deg, #fbbf24, #d97706)';
-        } else {
-            percent = limite > 0 ? Math.min((usados / limite) * 100, 100) : 0;
-            textoConsumo = `${usados} de ${limite} prazos`;
-            document.getElementById('percentualTexto').innerText = Math.round(percent) + '%';
-            document.getElementById('progressBar').style.background = 'linear-gradient(90deg, var(--primary), #3b82f6)';
-        }
+// Regra para Barra Cheia e Infinito (Master ou Premium)
+if (limite === null || gPlanName.includes('master') || gPlanName.includes('premium')) {
+    percent = 100;
+    textoConsumo = `${usados} prazos (Ilimitado)`;
+    document.getElementById('percentualTexto').innerText = '∞';
+    document.getElementById('progressBar').style.background = 'linear-gradient(90deg, #fbbf24, #d97706)';
+} else {
+    percent = (limite > 0) ? Math.min((usados / limite) * 100, 100) : 0;
+    // 🚀 CORREÇÃO DO TEXTO: Garantimos que o limite apareça corretamente
+    textoConsumo = `${usados} de ${limite} prazos usados`;
+    document.getElementById('percentualTexto').innerText = Math.round(percent) + '%';
+    document.getElementById('progressBar').style.background = 'linear-gradient(90deg, var(--primary), #3b82f6)';
+}
 
-        document.getElementById('textoConsumoNumerico').innerText = textoConsumo;
-        document.getElementById('progressBar').style.width = percent + '%';
+// 🚀 AQUI ESTÁ O FIX PARA O "UNDEFINED" DO PRINT
+const textoConsumoElemento = document.getElementById('textoConsumoNumerico');
+if (textoConsumoElemento) {
+    textoConsumoElemento.innerText = textoConsumo;
+}
+document.getElementById('progressBar').style.width = percent + '%';
 
         if (document.getElementById('count-total-prazos')) {
             document.getElementById('count-total-prazos').innerText = usados;
@@ -605,13 +616,6 @@ function copiarLink() {
 function limparBolinha() {
     document.getElementById('dotNotificacao').style.display = 'none';
 }
-
-// Ativa o monitoramento no window.onload
-const originalOnload = window.onload;
-window.onload = () => {
-    if(originalOnload) originalOnload();
-    setInterval(checarNovosLeads, 60000); 
-};
 
 // Funções de controle do Menu
 function toggleUserMenu() {
@@ -729,12 +733,7 @@ async function concluirPrazoDash(id) {
             localStorage.removeItem('usuario');
             window.location.href = '/login.html'; 
         }
-
-        // Eventos ao carregar
-        window.onload = () => {
-            inicializarDashboard(); 
-            carregarPrazos();
-            
+                 
             // Busca total de audiências para o card
             fetch('/api/audiencias', { headers: { 'Authorization': `Bearer ${token}` } })
                 .then(res => res.json())
@@ -746,7 +745,7 @@ async function concluirPrazoDash(id) {
             
             // Ativa ícones Lucide se existirem
             if (typeof lucide !== 'undefined') lucide.createIcons();
-        };
+        ;
 async function chamarGemini(descricao, processo) {
     const modal = document.getElementById('modalIA');
     const content = document.getElementById('aiResponseContent');
@@ -784,7 +783,25 @@ async function chamarGemini(descricao, processo) {
         content.innerText = "Erro ao conectar com o servidor. Verifique se o servidor Node.js está ligado.";
     }
 }
+    window.onload = () => {
+    inicializarDashboard();
+    carregarPrazos();
+    setInterval(checarNovosLeads, 60000);
+
+    fetch('/api/audiencias', {
+        headers: { Authorization: `Bearer ${token}` }
+    })
+    .then(res => res.json())
+    .then(dados => {
+        const audElem = document.getElementById('totalAudiencias');
+        if (audElem) audElem.innerText = dados.length;
+    })
+    .catch(() => {});
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    };
     </script>
+    
     <div id="modalWelcome" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.9); z-index:2000; align-items:center; justify-content:center; backdrop-filter: blur(8px);">
         <div style="background:white; width:90%; max-width:500px; padding:40px; border-radius:24px; text-align:center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
             <div style="background:#eff6ff; width:80px; height:80px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin: 0 auto 24px;">

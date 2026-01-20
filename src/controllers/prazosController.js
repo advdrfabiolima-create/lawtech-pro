@@ -66,6 +66,28 @@ async function concluirPrazo(req, res) {
   } catch (err) { res.status(500).json({ erro: err.message }); }
 }
 
+async function limparPrazosConcluidos(req, res) {
+  try {
+    const resultado = await pool.query(
+      `
+      DELETE FROM prazos
+      WHERE status = 'concluido'
+        AND escritorio_id = $1
+      `,
+      [req.user.escritorio_id]
+    );
+
+    res.json({
+      sucesso: true,
+      removidos: resultado.rowCount
+    });
+
+  } catch (err) {
+    console.error('Erro ao limpar prazos concluídos:', err);
+    res.status(500).json({ erro: 'Erro ao limpar prazos concluídos' });
+  }
+}
+
 async function excluirPrazo(req, res) {
   try {
     await pool.query('DELETE FROM prazos WHERE id = $1 AND escritorio_id = $2', [req.params.id, req.user.escritorio_id]);
@@ -107,6 +129,14 @@ async function listarPrazosDashboard(req, res) {
 }
 
 module.exports = {
-  criarPrazo, listarPrazosVencidos, listarPrazosSemana, listarPrazosFuturos,
-  listarPrazosConcluidos, concluirPrazo, excluirPrazo, atualizarPrazo, planoEConsumo, listarPrazosDashboard
+  criarPrazo,
+  listarPrazosVencidos,
+  listarPrazosSemana,
+  listarPrazosFuturos,
+  listarPrazosConcluidos,
+  concluirPrazo,
+  excluirPrazo,
+  atualizarPrazo,
+  listarPrazosDashboard,
+  limparPrazosConcluidos
 };

@@ -157,41 +157,32 @@
         const errorBox = document.getElementById('errorBox');
         const btnSubmit = document.getElementById('btnSubmit');
 
-        window.onload = () => {
+window.onload = () => {
     const params = new URLSearchParams(window.location.search);
-
     const plano = params.get('plano');
     const cobranca = params.get('cobranca');
 
-    // Mapeamento oficial dos planos
+    // Mapeamento com IDs e Valores para o fluxo de pagamento
     const planosMap = {
-        basico:   { id: 1, nome: 'Básico' },
-        intermediario: { id: 2, nome: 'Intermediário' },
-        avancado: { id: 3, nome: 'Avançado' },
-        premium:  { id: 4, nome: 'Premium' }
+        basico:   { id: 1, nome: 'Básico', mensal: "49.90", anual: "499.00" },
+        intermediario: { id: 2, nome: 'Intermediário', mensal: "149.90", anual: "1499.00" },
+        avancado: { id: 3, nome: 'Avançado', mensal: "199.90", anual: "1999.00" },
+        premium:  { id: 4, nome: 'Premium', mensal: "299.90", anual: "2999.00" }
     };
 
-    // 👉 PRIORIDADE: URL
     if (plano && planosMap[plano]) {
-        const planoInfo = planosMap[plano];
+        const info = planosMap[plano];
+        const valorFinal = (cobranca === 'anual') ? info.anual : info.mensal;
 
-        // Atualiza texto visual
+        // Atualiza o texto na tela para o cliente
         document.getElementById('planoTexto').innerHTML =
-            `Assinando plano: <strong style="color:#2563eb">${planoInfo.nome}</strong>` +
-            (cobranca ? ` <span style="color:#64748b">(${cobranca})</span>` : '');
+            `Assinando plano: <strong style="color:#2563eb">${info.nome}</strong> (${cobranca || 'mensal'})`;
 
-        // Salva para o restante do fluxo (pagamento)
-        localStorage.setItem('plano_escolhido_id', planoInfo.id);
-        localStorage.setItem('plano_escolhido_nome', planoInfo.nome);
+        // SALVAMENTO OBRIGATÓRIO PARA O DIRECIONAMENTO DE PAGAMENTO
+        localStorage.setItem('plano_escolhido_id', info.id);
+        localStorage.setItem('plano_escolhido_nome', info.nome);
+        localStorage.setItem('plano_escolhido_valor', valorFinal); // Linha crucial para a API
         localStorage.setItem('plano_escolhido_cobranca', cobranca || 'mensal');
-    }
-    // 👉 FALLBACK: fluxo antigo
-    else {
-        const nomePlano = localStorage.getItem('plano_escolhido_nome');
-        if (nomePlano) {
-            document.getElementById('planoTexto').innerHTML =
-                `Assinando plano: <strong style="color:#2563eb">${nomePlano}</strong>`;
-        }
     }
 };
 
@@ -248,31 +239,49 @@
                     const loginData = await loginRes.json();
                     localStorage.setItem('token', loginData.token);
 
-                    // 3. Pagamento
-                    const pId = localStorage.getItem('plano_escolhido_id');
-                    if (pId && pId != "1") {
-                        const payRes = await fetch('/api/pagamentos/assinar-plano', {
-                            method: 'POST',
-                            headers: { 
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${loginData.token}` 
-                            },
-                            body: JSON.stringify({
-                                planoId: pId,
-                                nomePlano: localStorage.getItem('plano_escolhido_nome'),
-                                valor: localStorage.getItem('plano_escolhido_valor'),
-                                cpfUsuario: payload.documento // AGORA ENVIAMOS O DOCUMENTO REAL
-                            })
-                        });
+// 3. Pagamento OBRIGATÓRIO para todos os planos (ID 1, 2, 3 e 4)
+const pId = localStorage.getItem('plano_escolhido_id');
+const pValor = localStorage.getItem('plano_escolhido_valor');
 
-                        const payData = await payRes.json();
-                        if (payData.url) {
-                            localStorage.removeItem('plano_escolhido_id');
-                            window.location.href = payData.url;
-                            return;
-                        }
-                    }
-                    window.location.href = '/dashboard';
+// Se houver um plano selecionado, o sistema DEVE gerar um link de pagamento
+if (pId && pValor) {
+    try {
+        const payRes = await fetch('/api/pagamentos/assinar-plano', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${loginData.token}` 
+            },
+            body: JSON.stringify({
+                planoId: pId,
+                nomePlano: localStorage.getItem('plano_escolhido_nome'),
+                valor: pValor,
+                cpfUsuario: payload.documento
+            })
+        });
+
+        const payData = await payRes.json();
+        
+        if (payRes.ok && payData.url) {
+            // Limpa o plano para evitar loops, mas SÓ redireciona para o pagamento
+            localStorage.removeItem('plano_escolhido_id');
+            localStorage.removeItem('plano_escolhido_valor');
+            window.location.href = payData.url;
+            return; // Bloqueio total: o usuário não passa daqui sem o link
+        } else {
+            // Se falhar a geração do link, o sistema TRAVA e avisa o usuário
+            showError("Falha ao processar faturamento. Por favor, tente novamente ou contate o suporte.");
+            return;
+        }
+    } catch (payErr) {
+        console.error("Erro na API de pagamentos:", payErr);
+        showError("Sistema de pagamentos indisponível no momento.");
+        return;
+    }
+}
+
+// O redirecionamento abaixo só acontece se NÃO houver plano nenhum (cadastro simples)
+window.location.href = '/dashboard';
                 } else {
                     showError(data.erro || "Falha ao criar conta.");
                 }

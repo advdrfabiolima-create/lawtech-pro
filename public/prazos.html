@@ -76,6 +76,33 @@
         .modal-content { background:#fff; width:100%; max-width:450px; padding:30px; border-radius:12px; }
         
         #toast { position: fixed; bottom: 20px; right: 20px; color: #fff; padding: 12px 16px; border-radius: 8px; display: none; z-index: 11000; font-weight: 600; font-size: 13px; }
+
+        .acoes-concluidos {
+  display: flex;
+  justify-content: flex-end;
+  margin: 12px 0 20px;
+}
+
+.btn-limpar-concluidos {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-limpar-concluidos:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+       
     </style>
 </head>
 <body>
@@ -128,7 +155,12 @@
                     <i class="lucide lucide-plus"></i> Novo Prazo
                 </button>
             </div>
-
+<div id="acoes-concluidos" style="display: none; justify-content: flex-end; margin-bottom: 16px;">
+  <button class="btn-limpar-concluidos" onclick="limparPrazosConcluidos()">
+    <i data-lucide="trash-2"></i>
+    Limpar Concluídos
+  </button>
+</div>
             <div class="section" style="padding: 15px; display: flex; gap: 15px; align-items: center; margin-bottom: 20px;">
                 <i class="lucide lucide-search" style="color: var(--muted); width: 18px;"></i>
                 <input type="text" id="buscaPrazo" placeholder="Buscar por processo ou tipo de prazo..." 
@@ -258,6 +290,7 @@
 
                 <i data-lucide="pencil" onclick="editarPrazo(${p.id})" style="cursor:pointer; color:var(--primary); width:18px;"></i>
                 <i data-lucide="check-circle" onclick="concluirPrazo(${p.id})" style="cursor:pointer; color:var(--success); width:18px;"></i>
+               
                 <i data-lucide="trash-2" onclick="excluirPrazo(${p.id})" style="cursor:pointer; color:var(--danger); width:18px;"></i>
             </div>
         </div>`;
@@ -340,17 +373,35 @@ setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 200);
     }
 }
 
-        async function concluirPrazo(id) {
-            if (!confirm("Marcar este prazo como concluído?")) return;
-            const res = await fetch(`/api/prazos/${id}/concluir`, {
-                method: 'PATCH',
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) {
-                mostrarToast("Parabéns! Prazo concluído.", "sucesso");
-                carregarPrazosModernos();
-            }
-        }
+async function concluirPrazo(id) {
+  if (!confirm("Marcar este prazo como concluído?")) return;
+
+  const res = await fetch(`/api/prazos/${id}/concluir`, {
+    method: 'PUT',
+    headers: { 
+      Authorization: `Bearer ${token}` 
+    },
+  });
+
+  if (!res.ok) {
+    alert('Erro ao concluir prazo');
+    return;
+  }
+
+  carregarPrazosModernos();
+}
+
+function mostrarConcluidos() {
+  abaAtual = 'concluidos';
+  carregarPrazosModernos();
+  document.getElementById('acoes-concluidos').style.display = 'flex';
+}
+
+function mostrarAtivos() {
+  abaAtual = 'ativos';
+  carregarPrazosModernos();
+  document.getElementById('acoes-concluidos').style.display = 'none';
+}
 
         async function excluirPrazo(id) {
             if (!confirm("Deseja realmente excluir este prazo?")) return;
@@ -375,6 +426,35 @@ setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 200);
             document.getElementById('descricaoPrazo').value = p.descricao || '';
         }
 
+        async function limparPrazosConcluidos() {
+  if (!confirm("Tem certeza que deseja apagar TODOS os prazos concluídos? Essa ação não pode ser desfeita.")) {
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/prazos/concluidos/limpar', {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.erro || 'Erro ao limpar prazos concluídos');
+      return;
+    }
+
+    alert(`✔️ ${data.removidos} prazos concluídos foram removidos.`);
+    carregarPrazosModernos();
+
+  } catch (err) {
+    alert('Erro de conexão com o servidor');
+  }
+}
+
+
         // 4. Interface e Apoio
         function mostrarAba(aba) {
             document.getElementById('aba-todos').style.display = aba === 'todos' ? 'block' : 'none';
@@ -382,6 +462,11 @@ setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 200);
             document.getElementById('abaTodos').classList.toggle('active', aba === 'todos');
             document.getElementById('abaConcluidos').classList.toggle('active', aba === 'concluidos');
             if (aba === 'concluidos') carregarPrazosConcluidos();
+
+            // 👇 CONTROLE DO BOTÃO "LIMPAR CONCLUÍDOS"
+            const acoesConcluidos = document.getElementById('acoes-concluidos');
+            acoesConcluidos.style.display = aba === 'concluidos' ? 'flex' : 'none';
+
         }
 
         function abrirModalPrazo() { 

@@ -4,18 +4,18 @@ const pool = require('../config/db'); // Conexão com o banco
 const authMiddleware = require('../middlewares/authMiddleware');
 
 // Importando as funções do Controller que estavam faltando
-const { 
-    criarPrazo, 
-    listarPrazosVencidos, 
-    listarPrazosSemana, 
-    listarPrazosFuturos, 
-    listarPrazosConcluidos, 
-    concluirPrazo,
-    excluirPrazo,
-    atualizarPrazo,
-    planoEConsumo
-    
-    } = require('../controllers/prazosController');
+const {
+  criarPrazo,
+  listarPrazosVencidos,
+  listarPrazosSemana,
+  listarPrazosFuturos,
+  listarPrazosConcluidos,
+  concluirPrazo,
+  excluirPrazo,
+  atualizarPrazo,
+  listarPrazosDashboard,
+  limparPrazosConcluidos // 👈 ESTA LINHA
+} = require('../controllers/prazosController');
 
 // ============================
 // PUBLICAÇÕES DJEN
@@ -88,15 +88,13 @@ router.get('/dashboard/prazos-semana', authMiddleware, listarPrazosSemana);
 router.get('/dashboard/prazos-futuros', authMiddleware, listarPrazosFuturos);
 router.get('/prazos-concluidos', authMiddleware, listarPrazosConcluidos);
 
-router.post('/prazos/:id/concluir', authMiddleware, concluirPrazo);
 router.put('/prazos/:id', authMiddleware, atualizarPrazo);
 router.delete('/prazos/:id', authMiddleware, excluirPrazo);
+router.put('/prazos/:id/concluir', authMiddleware, concluirPrazo);
+router.delete('/prazos/concluidos/limpar', authMiddleware, limparPrazosConcluidos);
 
-// ============================
-// PLANO & CONSUMO
-// ============================
 
-router.get('/plano-consumo', authMiddleware, planoEConsumo);
+
 
 // Exportação única ao final do arquivo
 module.exports = router;

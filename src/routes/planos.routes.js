@@ -1,18 +1,27 @@
 const express = require('express');
 const router = express.Router();
+const authMiddleware = require('../middlewares/authMiddleware');
 
-// Importamos apenas as referências das funções do Controller
+// Importamos as funções do Controller
 const {
   listarPlanos,
   upgradePlano,
-  meuPlano
+  meuPlano,
+  planoEConsumo // 👈 IMPORTANTE
 } = require('../controllers/planoController');
 
-const authMiddleware = require('../middlewares/authMiddleware');
+// ============================
+// ROTAS DE PLANOS
+// ============================
 
-// Rotas: Elas apenas chamam as funções. Não usamos 'await' aqui.
 router.get('/planos', authMiddleware, listarPlanos);
 router.get('/planos/meu-plano', authMiddleware, meuPlano);
 router.post('/planos/upgrade', authMiddleware, upgradePlano);
+
+// ============================
+// PLANO & CONSUMO (DASHBOARD)
+// ============================
+
+router.get('/plano-consumo', authMiddleware, planoEConsumo);
 
 module.exports = router;

@@ -128,21 +128,37 @@ async function listarPrazosConcluidos(req, res) {
 }
 
 async function concluirPrazo(req, res) {
-  const { id } = req.params;
-  const usuarioId = req.user.id;
-  const escritorioId = req.user.escritorio_id;
   try {
-    const result = await pool.query(
-      `UPDATE prazos SET status = 'concluido', concluido_em = NOW(), concluido_por = $1
-      WHERE id = $2 AND EXISTS (SELECT 1 FROM usuarios u WHERE u.id = prazos.usuario_id AND u.escritorio_id = $3)`,
-      [usuarioId, id, escritorioId]
+    const resultado = await pool.query(
+      `
+      UPDATE prazos 
+      SET 
+        status = 'concluido',
+        concluido_em = NOW(),
+        concluido_por = $1
+      WHERE id = $2
+        AND escritorio_id = $3
+        AND status <> 'concluido'
+      RETURNING id
+      `,
+      [req.user.id, req.params.id, req.user.escritorio_id]
     );
-    if (result.rowCount === 0) return res.status(403).json({ erro: 'Prazo não encontrado ou sem permissão' });
+
+    // 🔴 Nenhuma linha foi atualizada
+    if (resultado.rowCount === 0) {
+      return res.status(404).json({
+        erro: 'Prazo não encontrado ou não pertence a este escritório'
+      });
+    }
+
     res.json({ sucesso: true });
-  } catch (error) {
-    res.status(500).json({ erro: 'Erro ao concluir prazo' });
+
+  } catch (err) {
+    console.error('Erro ao concluir prazo:', err);
+    res.status(500).json({ erro: 'Erro interno ao concluir prazo' });
   }
 }
+
 
 /**
  * ============================
