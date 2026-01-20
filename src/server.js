@@ -156,6 +156,5 @@ async function iniciarSistema() {
         console.log("Dica: Verifique se sua DATABASE_URL no .env está correta e se o Neon está ativo.");
     }
 }
-
 // Chama a inicialização única
 iniciarSistema();

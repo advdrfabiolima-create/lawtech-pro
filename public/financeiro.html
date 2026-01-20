@@ -282,13 +282,18 @@
             if (isR) pendR += v; else pendD += v; 
         }
 
-        // Card de Cobrança Rápida
+       // Card de Cobrança Rápida com VALOR em destaque
         if (!isP && isR) {
             listaCobranca.innerHTML += `
                 <div class="billing-item">
                     <div>
-                        <div style="font-size:11px; font-weight:700;">${item.descricao}</div>
-                        <div style="font-size:10px; color:var(--danger);">Vence: ${new Date(item.data_vencimento).toLocaleDateString('pt-BR')}</div>
+                        <div style="font-size:11px; font-weight:700; color:var(--text-main);">${item.descricao}</div>
+                        <div style="font-size:12px; font-weight:800; color:var(--success); margin: 2px 0;">
+                            R$ ${v.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                        </div>
+                        <div style="font-size:10px; color:var(--danger); font-weight:600;">
+                            Vence: ${new Date(item.data_vencimento).toLocaleDateString('pt-BR')}
+                        </div>
                     </div>
                     <button class="btn-mini-boleto" onclick="prepararBoleto(${item.id}, '${item.descricao}', ${v})">
                         <i data-lucide="barcode"></i> BOLETO

@@ -629,68 +629,96 @@ window.addEventListener('click', function(e) {
         /**
          * CARREGAMENTO DE PRAZOS E ALERTAS
          */
-        async function carregarPrazos() {
-            const categorias = [
-                { url: '/api/dashboard/prazos-vencidos', countId: 'count-vencidos', classe: 'vencido' },
-                { url: '/api/dashboard/prazos-semana', countId: 'count-semana', classe: 'semana' }
-            ];
-            const containerGeral = document.getElementById('lista-prazos');
-            if (containerGeral) containerGeral.innerHTML = '';
-            
-            let totalNotificacoes = 0;
-            if (notifList) notifList.innerHTML = '';
-            
-            for (const cat of categorias) {
-                try {
-                    const res = await fetch(cat.url, { headers: { Authorization: `Bearer ${token}` } });
-                    const prazos = await res.json();
-                    
-                    const countElem = document.getElementById(cat.countId);
-                    if (countElem) {
-                        countElem.innerText = prazos.length || 0;
-                        countElem.classList.remove('skeleton');
-                    }
+/**
+ * CARREGAMENTO DE PRAZOS COM TAGS E AÇÕES
+ */
+async function carregarPrazos() {
+    const containerGeral = document.getElementById('lista-prazos');
+    if (!containerGeral) return;
+    
+    try {
+        // Buscamos a lista da semana (que agora no seu back traz tudo o que está aberto)
+        const res = await fetch('/api/dashboard/prazos-semana', { 
+            headers: { Authorization: `Bearer ${token}` } 
+        });
+        const prazos = await res.json();
+        
+        containerGeral.innerHTML = '';
+        
+        // LIMITAR A 5 PRAZOS PARA LIMPAR O DASHBOARD
+        const prazosExibicao = prazos.slice(0, 5);
 
-                    prazos.forEach(p => {
-                        // Trava de segurança: verifica se é Master (ID 1), Premium ou Avançado
-                        const podeIA = (gPlanName.includes('premium') || gPlanName.includes('avançado') || gEscritorioId === 1);
-
-                        containerGeral.innerHTML += `
-                            <div class="prazo ${cat.classe}" style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid #eee;">
-                                <div>
-                                    <strong style="display:block; font-size:14px;">${p.tipo}</strong>
-                                    <small style="color:#64748b">Proc: ${p.processo_numero}</small>
-                                    ${podeIA ? `
-                                        <button class="btn-ia-analise" onclick="chamarGemini('${p.tipo}', '${p.processo_numero}')">
-                                            <i class="lucide lucide-sparkles" style="width:12px;"></i> Analisar com IA
-                                        </button>` : ''}
-                                </div>
-                                <div style="text-align:right">
-                                    <span style="font-size:12px; font-weight:600;">📅 ${new Date(p.data_limite).toLocaleDateString('pt-BR')}</span>
-                                </div>
-                            </div>`;
-                        
-                        // Alimenta o sino de notificações
-                        if (notifList) {
-                            totalNotificacoes++;
-                            notifList.innerHTML += `
-                                <div style="padding: 10px; border-radius: 8px; background: ${cat.classe === 'vencido' ? '#fef2f2' : '#fffbeb'}; margin-bottom: 8px; border-left: 3px solid ${cat.classe === 'vencido' ? '#ef4444' : '#f59e0b'};">
-                                    <p style="font-size: 10px; font-weight: 700; margin: 0;">${cat.classe === 'vencido' ? '❌ VENCIDO' : '⚠️ URGENTE'}</p>
-                                    <p style="font-size: 10px; margin: 2px 0;">${p.tipo} - Proc: ${p.processo_numero}</p>
-                                </div>`;
-                        }
-                    });
-                } catch (err) { console.error(err); }
-            }
-
-            if (totalNotificacoes > 0 && notifCount) { 
-                notifCount.innerText = totalNotificacoes; 
-                notifCount.style.display = 'block'; 
-            } else if (notifList) { 
-                notifList.innerHTML = '<p style="font-size: 12px; color: #64748b; text-align: center; padding: 10px;">Nenhum alerta novo.</p>'; 
-            }
+        if (prazosExibicao.length === 0) {
+            containerGeral.innerHTML = '<p style="text-align:center; padding:20px; color:#64748b;">Nenhum prazo pendente. Bom trabalho!</p>';
+            return;
         }
 
+        prazosExibicao.forEach(p => {
+            // LÓGICA UNIFICADA DAS TAGS (Hoje / Amanhã / X dias)
+            const agora = new Date();
+            const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate()).getTime();
+
+            const d = new Date(p.data_limite);
+            const dataPrazo = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()).getTime();
+
+            const diffTempo = dataPrazo - hoje;
+            const diffDias = Math.floor(diffTempo / (1000 * 60 * 60 * 24));
+
+            let tagHtml = '';
+            if (diffDias === 0) {
+                tagHtml = '<span style="background:#fef2f2; color:#ef4444; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800; margin-left:8px; border:1px solid #fecaca;">HOJE</span>';
+            } else if (diffDias === 1) {
+                tagHtml = '<span style="background:#fffbeb; color:#d97706; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800; margin-left:8px; border:1px solid #fde68a;">AMANHÃ</span>';
+            } else if (diffDias > 1) {
+                tagHtml = `<span style="background:#f0fdf4; color:#16a34a; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800; margin-left:8px; border:1px solid #bbf7d0;">EM ${diffDias} DIAS</span>`;
+            }
+
+            containerGeral.innerHTML += `
+                <div class="prazo-item" style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid #f1f5f9;">
+                    <div>
+                        <strong style="display:block; font-size:14px; color:#0f172a;">
+                            ${p.tipo} ${tagHtml}
+                        </strong>
+                        <small style="color:#64748b; font-size:12px;">Processo: ${p.processo_numero}</small>
+                    </div>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <span style="font-size:12px; font-weight:700; color:#334155;">
+                            ${new Date(p.data_limite).toLocaleDateString('pt-BR')}
+                        </span>
+                        <button onclick="concluirPrazoDash(${p.id})" title="Concluir Prazo" 
+                            style="background:#f0fdf4; border:1px solid #bbf7d0; color:#16a34a; padding:6px; border-radius:8px; cursor:pointer; transition:0.2s;">
+                            <i class="lucide lucide-check-circle" style="width:16px;"></i>
+                        </button>
+                    </div>
+                </div>`;
+        });
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+    } catch (err) {
+        console.error("Erro ao carregar prazos no Dash:", err);
+    }
+}
+
+// FUNÇÃO PARA CONCLUIR DIRETO DO DASHBOARD
+async function concluirPrazoDash(id) {
+    if (!confirm("Deseja marcar este prazo como concluído? Ele sairá da lista principal.")) return;
+    
+    try {
+        const res = await fetch(`/api/prazos/${id}/concluir`, {
+            method: 'PUT',
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+            alert("✅ Prazo arquivado com sucesso!");
+            carregarPrazos(); // Atualiza a lista na hora
+            inicializarDashboard(); // Atualiza os contadores dos cards lá em cima
+        }
+    } catch (err) {
+        alert("Erro ao concluir prazo.");
+    }
+}
         function limparNotificacoes() { 
             if (notifCount) notifCount.style.display = 'none'; 
             if (notifList) notifList.innerHTML = '<p style="font-size: 12px; color: #64748b; text-align: center; padding: 10px;">Nenhum alerta novo.</p>'; 

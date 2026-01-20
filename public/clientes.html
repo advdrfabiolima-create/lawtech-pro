@@ -371,32 +371,32 @@ function abrirModal() {
                     }
 
                     clientes.forEach(cli => {
-    // Limpa aspas extras se houver no CPF
-    const cpfLimpo = cli.cpf ? cli.cpf.replace(/"/g, '') : '';
-    
-    // HTML DAS AÇÕES PADRONIZADAS COM ÍCONES
-    const acoes = `
-        <div style="display: flex; gap: 15px; align-items: center;">
-            <i data-lucide="eye" onclick="verProcessos('${cli.nome}')" style="cursor:pointer; color:#10b981; width:18px;" title="Ver Processos"></i>
-            <i data-lucide="pencil" onclick="prepararEdicao(${cli.id}, '${cli.nome}', '${cpfLimpo}', '${cli.email}', '${cli.telefone || ''}')" style="cursor:pointer; color:#2563eb; width:18px;" title="Editar"></i>
-            <i data-lucide="trash-2" onclick="excluirCliente(${cli.id})" style="cursor:pointer; color:#ef4444; width:18px;" title="Excluir"></i>
-        </div>
-    `;
+            // Ajuste Sênior: Agora lemos 'documento' que vem do Neon
+            const documentoLimpo = cli.documento ? cli.documento.replace(/"/g, '') : '---';
+            
+            // Montagem das ações passando todos os campos para o modal não abrir vazio
+            const acoes = `
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <i data-lucide="eye" onclick="verProcessos('${cli.nome}')" style="cursor:pointer; color:#10b981; width:18px;" title="Ver Processos"></i>
+                    <i data-lucide="pencil" onclick="prepararEdicao(${cli.id}, '${cli.nome}', '${documentoLimpo}', '${cli.email}', '${cli.telefone || ''}', '${cli.cep || ''}', '${cli.endereco || ''}', '${cli.cidade || ''}', '${cli.estado || ''}')" style="cursor:pointer; color:#2563eb; width:18px;" title="Editar"></i>
+                    <i data-lucide="trash-2" onclick="excluirCliente(${cli.id})" style="cursor:pointer; color:#ef4444; width:18px;" title="Excluir"></i>
+                </div>
+            `;
 
-    tabela.innerHTML += `
-        <tr>
-            <td><strong style="color:var(--text-main);">${cli.nome}</strong></td>
-            <td>${cpfLimpo}</td>
-            <td>${cli.email}</td>
-            <td>${cli.telefone || '-'}</td>
-            <td>
-                <span style="background:#eff6ff; color:#2563eb; padding:4px 10px; border-radius:12px; font-weight:600; font-size:11px;">
-                    ${cli.total_processos || 0} processos
-                </span>
-            </td>
-            <td>${acoes}</td>
-        </tr>`;
-});
+            tabela.innerHTML += `
+                <tr>
+                    <td><strong style="color:var(--text-main);">${cli.nome}</strong></td>
+                    <td>${documentoLimpo}</td>
+                    <td>${cli.email}</td>
+                    <td>${cli.telefone || '-'}</td>
+                    <td>
+                        <span style="background:#eff6ff; color:#2563eb; padding:4px 10px; border-radius:12px; font-weight:600; font-size:11px;">
+                            ${cli.total_processos || 0} processos
+                        </span>
+                    </td>
+                    <td>${acoes}</td>
+                </tr>`;
+        });
 
 // GATILHO ESSENCIAL: Transforma o código em ícones reais
 if (typeof lucide !== 'undefined') {
@@ -413,18 +413,17 @@ if (typeof lucide !== 'undefined') {
     const url = editId ? `/api/clientes/${editId}` : '/api/clientes';
 
     const dados = {
-    nome: document.getElementById('cliNome').value,
-    documento: document.getElementById('cliDocumento').value,
-    email: document.getElementById('cliEmail').value,
-    telefone: document.getElementById('cliTelefone').value,
-    cep: document.getElementById('cliCep').value,
-    endereco: document.getElementById('cliEndereco').value,
-    cidade: document.getElementById('cliCidade').value,
-    estado: document.getElementById('cliUf').value,
-    tipo_pessoa: document.getElementById('cliTipo').value,
-    // Se for CNPJ, envia nulo para o nascimento automaticamente
-    data_nascimento: document.getElementById('cliTipo').value === 'fisica' ? document.getElementById('cliDataNascimento').value : null
-};
+            nome: document.getElementById('cliNome').value,
+            documento: document.getElementById('cliDocumento').value, // Deve ser 'documento'
+            email: document.getElementById('cliEmail').value,
+            telefone: document.getElementById('cliTelefone').value,
+            cep: document.getElementById('cliCep').value,
+            endereco: document.getElementById('cliEndereco').value, // Verifique se este ID está correto
+            cidade: document.getElementById('cliCidade').value,
+            estado: document.getElementById('cliUf').value,
+            tipo_pessoa: document.getElementById('cliTipo').value,
+            data_nascimento: document.getElementById('cliDataNascimento').value || null
+        };
 
     // Validação simples antes de enviar
     if (!dados.cep || !dados.endereco) {
@@ -463,20 +462,21 @@ if (typeof lucide !== 'undefined') {
     if (res.ok) carregarClientes();
 }
 
-        function prepararEdicao(id, nome, cpf, email, telefone, cep, endereco, cidade, estado) {
+        function prepararEdicao(id, nome, documento, email, telefone, cep, endereco, cidade, estado) {
     abrirModal();
     document.getElementById('modalTitle').innerText = "📝 Editar Cliente";
+    
+    // Preenchendo os campos com os novos parâmetros recebidos
     document.getElementById('cliNome').value = nome;
-    document.getElementById('cliDocumento').value = cpf;
+    document.getElementById('cliDocumento').value = documento;
     document.getElementById('cliEmail').value = email;
     document.getElementById('cliTelefone').value = telefone || '';
-    
-    // Preenchendo os novos campos na edição
     document.getElementById('cliCep').value = cep || '';
     document.getElementById('cliEndereco').value = endereco || '';
     document.getElementById('cliCidade').value = cidade || '';
     document.getElementById('cliUf').value = estado || '';
     
+    // Define o ID no dataset para o sistema saber que é um UPDATE
     document.getElementById('formCliente').dataset.editId = id;
 }
 

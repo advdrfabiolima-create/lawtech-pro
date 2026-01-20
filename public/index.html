@@ -1,374 +1,524 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LawTech Pro — O Futuro da Gestão Jurídica</title>
-    <link rel="icon" type="image/png" href="favicon.png">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <title>LawTech Pro — Sistema Completo de Gestão Jurídica</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="favicon.png">
 
-    <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --secondary: #0f172a;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --bg-light: #f8fafc;
-            --white: #ffffff;
-            --gold: #fbbf24;
-        }
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { color: var(--text-main); line-height: 1.6; overflow-x: hidden; }
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --dark: #0f172a;
+      --bg: #f8fafc;
+      --white: #ffffff;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --radius: 16px;
+    }
 
-        /* Navigation */
-        nav {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 20px 10%; background: var(--white);
-            position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid #e2e8f0;
-        }
-        .logo img { height: 40px; }
-        .nav-links a { text-decoration: none; color: var(--text-main); font-weight: 500; margin-left: 30px; font-size: 14px; }
-        .btn-nav { background: var(--primary); color: white !important; padding: 10px 20px; border-radius: 8px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background: var(--bg); color: var(--dark); line-height: 1.6; }
 
-        /* Hero Section */
-        header.hero {
-            padding: 100px 10% 140px;
-            background: radial-gradient(circle at top right, #eff6ff, #ffffff);
-            text-align: center;
-        }
-        .hero h1 { font-size: 48px; font-weight: 800; color: var(--secondary); margin-bottom: 20px; letter-spacing: -1px; }
-        .hero p { font-size: 20px; color: var(--text-muted); max-width: 700px; margin: 0 auto 40px; }
-        .hero-btns { display: flex; justify-content: center; gap: 20px; }
-        
-        /* Buttons */
-        .btn-lg { padding: 16px 32px; border-radius: 12px; font-weight: 700; text-decoration: none; transition: 0.3s; }
-        .btn-hero-primary { background: var(--primary); color: white; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3); }
-        .btn-hero-primary:hover { transform: translateY(-3px); background: var(--primary-dark); }
-        .btn-hero-outline { border: 2px solid var(--primary); color: var(--primary); }
+    /* NAV */
+    nav {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 8%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    nav img { height: 42px; }
+    nav a {
+      margin-left: 28px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    .btn-nav {
+      background: var(--primary);
+      color: #fff !important;
+      padding: 10px 20px;
+      border-radius: 10px;
+    }
 
-        /* Features */
-        .features { padding: 100px 10%; background: var(--white); }
-        .section-title { text-align: center; margin-bottom: 60px; }
-        .section-title h2 { font-size: 32px; color: var(--secondary); }
-        .grid-features { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; }
-        .feature-card { padding: 30px; border-radius: 20px; border: 1px solid #f1f5f9; transition: 0.3s; }
-        .feature-card:hover { border-color: var(--primary); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); }
-        .feature-card i { font-size: 32px; color: var(--primary); margin-bottom: 20px; display: block; }
-        .feature-card h3 { margin-bottom: 12px; }
+    /* HERO */
+    .hero {
+      padding: 110px 8% 130px;
+      background: radial-gradient(circle at top right, #eef2ff, #ffffff);
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 46px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 24px;
+    }
+    .hero p {
+      font-size: 20px;
+      color: var(--muted);
+      max-width: 820px;
+      margin: 0 auto 40px;
+    }
+    .hero .actions {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
 
-        /* Pricing (Baseado no seu planos.html) */
-        .pricing { padding: 100px 10%; background: var(--bg-light); }
-        .grid-pricing { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
-        .price-card { 
-            background: white; padding: 40px; border-radius: 24px; border: 1px solid #e2e8f0; 
-            position: relative; transition: 0.3s; 
-        }
-        .price-card.featured { border: 2px solid var(--primary); transform: scale(1.05); z-index: 10; }
-        .badge-featured { 
-            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
-            background: var(--primary); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 700;
-        }
-        .price-card h4 { font-size: 20px; margin-bottom: 10px; }
-        .price-card .amount { font-size: 44px; font-weight: 800; margin-bottom: 20px; }
-        .price-card .amount span { font-size: 16px; color: var(--text-muted); }
-        .price-card ul { list-style: none; margin-bottom: 30px; }
-        .price-card ul li { margin-bottom: 12px; font-size: 14px; display: flex; align-items: center; gap: 10px; }
-        .price-card ul li i { color: #10b981; font-size: 16px; }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      padding: 16px 34px;
+      border-radius: var(--radius);
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 15px 30px -10px rgba(37,99,235,.45);
+    }
+    .btn-outline {
+      border: 2px solid var(--primary);
+      color: var(--primary);
+      padding: 14px 32px;
+      border-radius: var(--radius);
+      font-weight: 700;
+      text-decoration: none;
+    }
 
-        /* Footer */
-        footer { background: var(--secondary); color: white; padding: 60px 10% 30px; text-align: center; }
-        .footer-links { margin-bottom: 40px; }
-        .footer-links a { color: #94a3b8; text-decoration: none; margin: 0 15px; font-size: 14px; }
-        .copyright { border-top: 1px solid #1e293b; padding-top: 20px; font-size: 12px; color: #64748b; }
+    /* ECOSSISTEMA */
+    .ecosystem {
+      padding: 110px 8%;
+      background: var(--white);
+    }
+    .ecosystem h2 {
+      font-size: 34px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .ecosystem p.sub {
+      text-align: center;
+      color: var(--muted);
+      max-width: 900px;
+      margin: 0 auto 60px;
+      font-size: 17px;
+    }
+    .ecosystem-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 32px;
+    }
+    .module {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      transition: .3s;
+      background: #fff;
+    }
+    .module:hover { transform: translateY(-6px); box-shadow: 0 25px 40px -20px rgba(0,0,0,.15); }
+    .module i { font-size: 32px; color: var(--primary); margin-bottom: 16px; display: block; }
+    .module h3 { font-size: 18px; margin-bottom: 10px; }
+    .module p { font-size: 14px; color: var(--muted); }
+    .badge {
+      display: inline-block;
+      margin-top: 14px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+    .badge.ok { background: #ecfdf5; color: #065f46; }
+    .badge.dev { background: #eff6ff; color: #1d4ed8; }
+    .badge.premium { background: #fef3c7; color: #92400e; }
 
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 32px; }
-            .hero-btns { flex-direction: column; }
-            .price-card.featured { transform: scale(1); }
-        }
-    </style>
+    .badge-plan {
+    display: inline-block;
+    align-self: flex-start;
+    margin-bottom: 12px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 800;
+    border-radius: 999px;
+    }
+
+    .badge-plan.best-seller {
+    background: #eef2ff;
+    color: var(--primary);
+    }
+
+    .badge-plan.premium {
+    background: #fff7ed;
+    color: #c2410c;
+    }
+
+    /* PLANOS */
+    .pricing {
+      padding: 120px 8%;
+      background: var(--bg);
+    }
+    .pricing h2 { text-align: center; font-size: 34px; margin-bottom: 20px; }
+    .pricing p { text-align: center; color: var(--muted); margin-bottom: 50px; }
+
+    .plans {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 28px;
+    }
+
+    .plan {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 36px;
+        display: flex;
+        flex-direction: column;
+        transition: 
+        transform 0.35s ease,
+        box-shadow 0.35s ease;
+    }
+
+    .plan:hover {
+        transform: scale(1.04);
+        box-shadow: 0 25px 50px -20px rgba(0,0,0,0.25);
+    }
+
+    .plan.featured { border: 2px solid var(--primary); transform: scale(1.04); }
+    .plan h3 { font-size: 22px; margin-bottom: 10px; }
+    .price { font-size: 34px; font-weight: 800; color: var(--primary); margin: 20px 0; }
+    .price small { font-size: 14px; color: var(--muted); }
+    .plan ul { list-style: none; margin-top: 10px; flex-grow: 1; }
+    .plan ul li { margin-bottom: 12px; font-size: 14px; }
+    .features li {
+  margin-bottom: 14px;
+}
+
+.features strong {
+  display: block;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.features span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+    .plan button {
+      margin-top: 30px;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* DISCLAIMER */
+    .disclaimer {
+      margin-top: 60px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    footer {
+      background: var(--dark);
+      color: #cbd5e1;
+      text-align: center;
+      padding: 60px 20px 30px;
+      margin-top: 120px;
+    }
+    footer a { color: #94a3b8; text-decoration: none; margin: 0 12px; font-weight: 600; }
+
+    table th,
+    table td {
+    padding: 16px;
+    text-align: center;
+    vertical-align: middle;
+    }
+
+    table td:first-child,
+    table th:first-child {
+    text-align: left;
+    width: 28%;
+    }
+
+
+    @media(max-width:768px){
+      .hero h1{font-size:34px}
+      .hero p{font-size:16px}
+      .plan.featured{transform:none}
+    }
+
+    /* TOGGLE MENSAL / ANUAL */
+.toggle-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 50px;
+}
+
+.switch {
+  position: relative;
+  width: 52px;
+  height: 28px;
+}
+
+.switch input {
+  display: none;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  background: #cbd5e1;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  top: 4px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.switch input:checked + .slider {
+  background: var(--primary);
+}
+
+.switch input:checked + .slider::before {
+  transform: translateX(24px);
+}
+  </style>
 </head>
 <body>
 
-    <nav>
-        <div class="logo">
-            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
-        </div>
-        <div class="nav-links">
-            <a href="#funcionalidades">Funcionalidades</a>
-            <a href="#precos">Planos</a>
-            <a href="/login" class="btn-nav">Acessar Sistema</a>
-        </div>
-    </nav>
+<nav>
+  <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+  <div>
+    <a href="#ecossistema">Funcionalidades</a>
+    <a href="#planos">Planos</a>
+    <a href="/login" class="btn-nav">Entrar</a>
+  </div>
+</nav>
 
-    <header class="hero">
-        <h1>Transforme seu escritório com <br><span style="color: var(--primary);">Inteligência Jurídica</span></h1>
-        <p>A plataforma completa para advogados modernos: Gestão de processos, cálculos periciais SELIC e Inteligência Artificial Senior em um só lugar.</p>
-        <div class="hero-btns">
-            <a href="/register" class="btn-lg btn-hero-primary">Começar Agora</a>
-            <a href="#funcionalidades" class="btn-lg btn-hero-outline">Ver Funcionalidades</a>
-        </div>
-    
-        <script src="https://cdn.jsdelivr.net/npm/imask"></script>
+<section class="hero">
+  <h1>Sistema completo de gestão jurídica<br><span style="color:var(--primary)">para advogados e escritórios</span></h1>
+  <p>O LawTech Pro centraliza clientes, processos, prazos, audiências, financeiro, CRM e inteligência artificial em uma única plataforma profissional, segura e escalável.</p>
+  <div class="actions">
+    <a href="/register" class="btn-primary">Começar agora</a>
+    <a href="#planos" class="btn-outline">Ver planos</a>
+  </div>
+</section>
 
-    </header>
+<section class="ecosystem" id="ecossistema">
+  <h2>Um ecossistema jurídico completo</h2>
+  <p class="sub">Pensado para o advogado autônomo que busca organização e para escritórios que precisam escalar com controle, segurança e visão estratégica.</p>
 
-    <section class="features" id="funcionalidades">
-        <div class="section-title">
-            <h2>Gestão sem burocracia</h2>
-        </div>
-        <div class="grid-features">
-            <div class="feature-card">
-                <i class="lucide lucide-sparkles" style="color: var(--gold);"></i>
-                <h3>IA Jurídica Sênior</h3>
-                <p>Consulte teses, jurisprudências e peça auxílio técnico para um robô treinado em Direito Civil e Trabalhista.</p>
-            </div>
-            <div class="feature-card">
-                <i class="lucide lucide-calculator"></i>
-                <h3>Cálculos Periciais</h3>
-                <p>Juriscalc integrado com Taxa SELIC e correção automática via API do Banco Central.</p>
-            </div>
-            <div class="feature-card">
-                <i class="lucide lucide-clock"></i>
-                <h3>Prazos Inteligentes</h3>
-                <p>Captura automática de publicações do DJEN e alertas por e-mail em tempo real.</p>
-            </div>
-            <div class="feature-card">
-                <i class="lucide lucide-credit-card"></i>
-                <h3>Financeiro e Cobrança</h3>
-                <p>Emita boletos para seus clientes e controle seu fluxo de caixa de forma profissional.</p>
-            </div>
-        </div>
-    </section>
+  <div class="ecosystem-grid">
+    <div class="module"><i class="lucide lucide-users"></i><h3>Gestão de Clientes</h3><p>Cadastro completo, histórico de atendimentos e organização profissional do relacionamento com o cliente.</p><span class="badge ok">Disponível</span></div>
+    <div class="module"><i class="lucide lucide-folder"></i><h3>Gestão de Processos</h3><p>Controle do acervo processual com filtros, status e visão estratégica dos casos.</p><span class="badge ok">Disponível</span></div>
+    <div class="module"><i class="lucide lucide-clock"></i><h3>Gestão de Prazos</h3><p>Alertas inteligentes, níveis de urgência e segurança para a rotina jurídica.</p><span class="badge ok">Disponível</span></div>
+    <div class="module"><i class="lucide lucide-calendar-days"></i><h3>Audiências</h3><p>Agenda integrada aos processos, com visualização clara e comunicação facilitada.</p><span class="badge ok">Disponível</span></div>
+    <div class="module"><i class="lucide lucide-credit-card"></i><h3>Financeiro Jurídico</h3><p>Controle de receitas, cobranças, indicadores financeiros e relatórios do escritório.</p><span class="badge ok">Disponível</span></div>
+    <div class="module"><i class="lucide lucide-bar-chart-3"></i><h3>CRM Jurídico</h3><p>Funil de captação e negociação para transformar atendimentos em contratos.</p><span class="badge dev">Em evolução</span></div>
+    <div class="module"><i class="lucide lucide-calculator"></i><h3>Cálculos Jurídicos</h3><p>Ferramentas especializadas para cálculos jurídicos e periciais com base legal.</p><span class="badge ok">Disponível</span></div>
+    <div class="module"><i class="lucide lucide-sparkles"></i><h3>IA Jurídica</h3><p>Assistente inteligente integrada ao sistema para automações e produtividade avançada.</p><span class="badge premium">Exclusivo Premium</span></div>
+  </div>
+</section>
 
-<section class="pricing" id="precos">
-        <div class="section-title">
-            <h2>Planos sob medida para sua produtividade</h2>
-        </div>
-        <div class="grid-pricing" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
-            
-            <div class="price-card">
-                <h4>Básico</h4>
-                <div class="amount">R$ 49,90<span>/mês</span></div>
-                <ul>
-                    <li><i class="lucide lucide-check-circle"></i> Até 20 prazos mensais</li>
-                    <li><i class="lucide lucide-check-circle"></i> Gestão de Processos</li>
-                    <li><i class="lucide lucide-check-circle"></i> Financeiro Básico</li>
-                </ul>
-                <button onclick="selecionarPlano(1, 'Básico', 49.90)" class="btn-nav" style="display: block; width: 100%; text-align: center; border: none; cursor: pointer;">Assinar Agora</button>
-            </div>
+<section class="pricing" id="planos">
+  <h2>Planos claros, comparáveis e sem surpresas</h2>
+  <p>Escolha entre cobrança mensal ou anual e saiba exatamente o que está contratando.</p>
 
-            <div class="price-card featured" style="border-color: var(--primary); transform: scale(1.05); box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.1);">
-                <div class="badge-featured">MAIS ESCOLHIDO</div>
-                <h4>Intermediário</h4>
-                <div class="amount">R$ 149,90<span>/mês</span></div>
-                <ul>
-                    <li><i class="lucide lucide-check-circle"></i> Até 100 prazos mensais</li>
-                    <li><i class="lucide lucide-check-circle"></i> Cobrança Asaas</li>
-                    <li><i class="lucide lucide-check-circle"></i> Suporte Prioritário</li>
-                </ul>
-                <button onclick="selecionarPlano(2, 'Intermediário', 149.90)" class="btn-nav" style="display: block; width: 100%; text-align: center; border: none; cursor: pointer;">Assinar Agora</button>
-            </div>
+  <!-- TOGGLE MENSAL / ANUAL -->
+  <div class="toggle-container" style="display:flex;justify-content:center;align-items:center;gap:16px;margin-bottom:50px;">
+    <span id="label-mensal" style="font-weight:700;color:var(--primary)">Mensal</span>
+    <label class="switch" style="position:relative;width:52px;height:28px;">
+      <input type="checkbox" id="billingToggle" style="display:none" onchange="toggleBilling()">
+      <span class="slider" style="position:absolute;inset:0;background:#cbd5e1;border-radius:999px;cursor:pointer;transition:.3s"></span>
+    </label>
+    <span id="label-anual" style="font-weight:700;color:var(--muted)">Anual <small style="color:var(--success)">(economize 17%)</small></span>
+  </div>
 
-            <div class="price-card">
-                <h4>Avançado</h4>
-                <div class="amount">R$ 199,90<span>/mês</span></div>
-                <ul>
-                    <li><i class="lucide lucide-check-circle"></i> Até 500 prazos mensais</li>
-                    <li><i class="lucide lucide-check-circle"></i> Juriscalc Pericial Pro</li>
-                    <li><i class="lucide lucide-check-circle"></i> Alertas via WhatsApp</li>
-                </ul>
-                <button onclick="selecionarPlano(3, 'Avançado', 199.90)" class="btn-nav" style="display: block; width: 100%; text-align: center; border: none; cursor: pointer;">Assinar Agora</button>
-            </div>
-
-            <div class="price-card" style="background: linear-gradient(135deg, #FFFDF5 0%, #FEF9E7 100%); border: 2px solid #D4AF37; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15);">
-                
-                <div style="position: absolute; top: -100px; left: -100px; width: 300px; height: 300px; background: linear-gradient(45deg, transparent, rgba(212, 175, 55, 0.1), transparent); transform: rotate(45deg); pointer-events: none;"></div>
-                
-                <div style="text-align: center; margin-bottom: 15px;">
-                    <span style="background: #D4AF37; color: white; padding: 4px 12px; border-radius: 50px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Experiência Elite</span>
-                </div>
-
-                <h4 style="color: #856404; font-weight: 800; text-align: center;">✨ PREMIUM PRO</h4>
-                <div class="amount" style="color: #856404; text-align: center;">R$ 299,90<span style="color: #B8860B;">/mês</span></div>
-                
-                <ul style="color: #533f03; margin-top: 20px;">
-                    <li style="border-bottom: 1px solid rgba(212, 175, 55, 0.2); padding-bottom: 8px;"><i class="lucide lucide-check-circle" style="color: #D4AF37;"></i> Prazos Ilimitados</li>
-                    <li style="border-bottom: 1px solid rgba(212, 175, 55, 0.2); padding-bottom: 8px;"><i class="lucide lucide-check-circle" style="color: #D4AF37;"></i> <b>IA Jurídica Sênior</b></li>
-                    <li><i class="lucide lucide-check-circle" style="color: #D4AF37;"></i> Publicações DJEN</li>
-                </ul>
-
-                <button onclick="selecionarPlano(4, 'Premium', 299.90)" class="btn-nav" style="display: block; width: 100%; text-align: center; border: none; cursor: pointer; background: linear-gradient(90deg, #D4AF37, #B8860B);">ASSINAR PREMIUM</button>
-            </div>
-    </section>
-
-    <section id="contato" style="padding: 80px 10%; background: #fff;">
-    <div style="max-width: 600px; margin: 0 auto; background: #f8fafc; padding: 40px; border-radius: 20px; border: 1px solid #e2e8f0;">
-        <h2 style="text-align: center; margin-bottom: 10px; color: #0f172a;">Fale com um Especialista</h2>
-        <p style="text-align: center; color: #64748b; margin-bottom: 30px; font-size: 14px;">Deixe seus dados e entraremos em contato para uma consultoria jurídica.</p>
-        
-        <form id="formLandingPage">
-    <input type="text" id="nomeLead" placeholder="Seu Nome" required>
-    <input type="email" id="emailLead" placeholder="Seu E-mail" required>
-    <input type="text" id="telLead" placeholder="Seu WhatsApp" required>
-    <button type="submit">Enviar Mensagem</button>
-</form>
+  <!-- CARDS DE PLANOS -->
+  <div class="plans">
+    <div class="plan">
+      <h3>Básico</h3>
+      <div class="price">R$ <span class="price-value" data-mensal="49,90" data-anual="499,00">49,90</span> <small class="period">/mês</small></div>
+      <ul class="features">
+  <li>
+    <strong>Gestão de Clientes</strong>
+    <span>Cadastro completo, histórico de atendimentos e organização do relacionamento.</span>
+  </li>
+  <li>
+    <strong>Gestão de Processos</strong>
+    <span>Controle do acervo processual com status, filtros e visão estratégica.</span>
+  </li>
+  <li>
+    <strong>Gestão de Prazos</strong>
+    <span>Alertas inteligentes, vencimentos e níveis de urgência.</span>
+  </li>
+  <li>
+    <strong>Audiências</strong>
+    <span>Agenda integrada aos processos, com visualização clara.</span>
+  </li>
+</ul>
+      <small style="color:var(--muted)">Ideal para advogado autônomo</small>
+      <button onclick="selecionarPlano('basico')">Selecionar</button>
     </div>
+
+    <div class="plan featured">
+      <h3>Intermediário</h3>
+      <span class="badge-plan best-seller">Mais vendido</span>
+      <div class="price">R$ <span class="price-value" data-mensal="149,90" data-anual="1.499,00">149,90</span> <small class="period">/mês</small></div>
+      <ul class="features">
+  <li>
+    <strong>Gestão de Clientes</strong>
+    <span>Cadastro completo, histórico de atendimentos e organização do relacionamento.</span>
+  </li>
+  <li>
+    <strong>Gestão de Processos</strong>
+    <span>Controle do acervo processual com status, filtros e visão estratégica.</span>
+  </li>
+  <li>
+    <strong>Gestão de Prazos</strong>
+    <span>Alertas inteligentes, vencimentos e níveis de urgência.</span>
+  </li>
+  <li>
+    <strong>Audiências</strong>
+    <span>Agenda integrada aos processos, com visualização clara.</span>
+  </li>
+</ul>
+
+      <small style="color:var(--muted)">Mais escolhido por escritórios iniciantes</small>
+      <button onclick="selecionarPlano('intermediario')">Mais escolhido</button>
+
+    </div>
+
+    <div class="plan">
+      <h3>Avançado</h3>
+      <div class="price">R$ <span class="price-value" data-mensal="199,90" data-anual="1.999,00">199,90</span> <small class="period">/mês</small></div>
+      <ul class="features">
+  <li>
+    <strong>Gestão de Clientes</strong>
+    <span>Cadastro completo, histórico de atendimentos e organização do relacionamento.</span>
+  </li>
+  <li>
+    <strong>Gestão de Processos</strong>
+    <span>Controle do acervo processual com status, filtros e visão estratégica.</span>
+  </li>
+  <li>
+    <strong>Gestão de Prazos</strong>
+    <span>Alertas inteligentes, vencimentos e níveis de urgência.</span>
+  </li>
+  <li>
+    <strong>Audiências</strong>
+    <span>Agenda integrada aos processos, com visualização clara.</span>
+  </li>
+</ul>
+
+      <small style="color:var(--muted)">Para quem quer controle financeiro</small>
+      <button onclick="selecionarPlano('avancado')">Selecionar</button>
+    </div>
+
+    <div class="plan" style="border:2px solid #f59e0b">
+      <h3>Premium</h3>
+      <span class="badge-plan premium">O mais completo</span>
+      <div class="price">R$ <span class="price-value" data-mensal="299,90" data-anual="2.999,00">299,90</span> <small class="period">/mês</small></div>
+      <ul class="features">
+  <li>
+    <strong>Gestão de Clientes</strong>
+    <span>Cadastro completo, histórico de atendimentos e organização do relacionamento.</span>
+  </li>
+  <li>
+    <strong>Gestão de Processos</strong>
+    <span>Controle do acervo processual com status, filtros e visão estratégica.</span>
+  </li>
+  <li>
+    <strong>Gestão de Prazos</strong>
+    <span>Alertas inteligentes, vencimentos e níveis de urgência.</span>
+  </li>
+  <li>
+    <strong>Audiências</strong>
+    <span>Agenda integrada aos processos, com visualização clara.</span>
+  </li>
+</ul>
+
+      <small style="color:var(--warning);font-weight:600">Escala máxima do escritório</small>
+      <button onclick="selecionarPlano('premium')">Ativar Premium</button>
+    </div>
+  </div>
+
+  <!-- TABELA COMPARATIVA -->
+  <div style="margin-top:80px;overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;background:#fff;border-radius:16px;overflow:hidden">
+      <thead>
+        <tr style="background:#f1f5f9">
+          <th style="padding:16px;text-align:left">Funcionalidade</th>
+          <th>Básico</th><th>Intermediário</th><th>Avançado</th><th>Premium</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding:14px">Clientes</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr>
+        <tr><td style="padding:14px">Processos</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr>
+        <tr><td style="padding:14px">Prazos</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr>
+        <tr><td style="padding:14px">Audiências</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr>
+        <tr><td style="padding:14px">Financeiro</td><td>—</td><td>—</td><td>✔</td><td>✔</td></tr>
+        <tr><td style="padding:14px">Cálculos Jurídicos</td><td>—</td><td>—</td><td>✔</td><td>✔</td></tr>
+        <tr><td style="padding:14px">CRM Jurídico</td><td>—</td><td>—</td><td>—</td><td>✔</td></tr>
+        <tr><td style="padding:14px">IA Jurídica</td><td>—</td><td>—</td><td>—</td><td>✔</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="disclaimer">O LawTech Pro é uma plataforma em constante evolução, com melhorias contínuas nos módulos existentes, sem prejuízo ao uso contratado.</div>
 </section>
 
 <script>
-document.getElementById('formLandingPage').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const dados = {
-            nome: document.getElementById('nomeLead').value,
-            email: document.getElementById('emailLead').value,
-            telefone: document.getElementById('telLead').value
-        };
-
-        try {
-            const res = await fetch('/api/public/lead', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dados)
-            });
-
-            if (res.ok) {
-                alert('Obrigado! Em breve um de nossos advogados entrará em contato.');
-                e.target.reset();
-            } else {
-                alert('Erro ao enviar. Tente novamente mais tarde.');
-            }
-        } catch (err) {
-            console.error('Erro na captura:', err);
-        }
-    });
+function toggleBilling() {
+  const anual = document.getElementById('billingToggle').checked;
+  document.querySelectorAll('.price-value').forEach(el => {
+    el.textContent = anual ? el.dataset.anual : el.dataset.mensal;
+  });
+  document.querySelectorAll('.period').forEach(el => {
+    el.textContent = anual ? '/ano' : '/mês';
+  });
+  document.getElementById('label-mensal').style.color = anual ? 'var(--muted)' : 'var(--primary)';
+  document.getElementById('label-anual').style.color = anual ? 'var(--primary)' : 'var(--muted)';
+}
+function selecionarPlano(plano) {
+  const billing = document.getElementById('billingToggle')?.checked ? 'anual' : 'mensal';
+  window.location.href = `/register?plano=${plano}&cobranca=${billing}`;
+}
 </script>
 
-    <footer>
-        <div class="footer-links">
-            <a href="/termos">Termos de Uso</a>
-            <a href="/privacidade">Privacidade</a>
-            <a href="mailto:contato@lawtechpro.com.br">Suporte</a>
-        </div>
-        <p>LawTech Pro — Desenvolvido para Advogados de Performance</p>
-        <p class="copyright">&copy; 2026 LawTech Pro. Todos os direitos reservados.</p>
-    </footer>
+<footer>
+  <p>LawTech Pro — Gestão jurídica moderna e profissional</p>
+  <div>
+    <a href="/termos">Termos de Uso</a> · <a href="/privacidade">Política de Privacidade</a> · <a href="mailto:suporte@lawtechpro.com.br">Suporte</a>
+  </div>
+  <p style="margin-top:20px;font-size:12px">© 2026 LawTech Pro</p>
+</footer>
 
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-      lucide.createIcons();
-    </script>
-
-    <div id="modalEspecialista" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(6px);">
-    <div style="background: #fff; width: 90%; max-width: 450px; padding: 40px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); position: relative;">
-        
-        <button onclick="fecharModalEspecialista()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b;">&times;</button>
-        
-        <div style="text-align: center; margin-bottom: 30px;">
-            <div style="background: #eff6ff; width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
-                <i class="lucide lucide-message-square" style="color: #2563eb; width: 30px; height: 30px;"></i>
-            </div>
-            <h3 style="font-size: 22px; font-weight: 700; color: #0f172a;">Fale com um Especialista</h3>
-            <p style="color: #64748b; font-size: 14px; margin-top: 8px;">Preencha os dados abaixo e entraremos em contato via WhatsApp o mais breve possível.</p>
-        </div>
-
-        <form id="formLandingPage">
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px; text-transform: uppercase;">Nome Completo</label>
-                <input type="text" id="nomeLead" placeholder="Ex: João Silva" required style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 12px; outline: none; transition: 0.2s;">
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px; text-transform: uppercase;">WhatsApp</label>
-                <input type="text" id="telLead" placeholder="(00) 00000-0000" required style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 12px; outline: none;">
-            </div>
-
-            <div style="margin-bottom: 24px;">
-                <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px; text-transform: uppercase;">E-mail (Opcional)</label>
-                <input type="email" id="emailLead" placeholder="exemplo@email.com" style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 12px; outline: none;">
-            </div>
-
-            <button type="submit" style="width: 100%; background: #2563eb; color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s;">Enviar Mensagem agora</button>
-        </form>
-    </div>
-</div>
-
-<script>
-    // 1. Funções de abrir e fechar o modal
-    function abrirModalEspecialista() { document.getElementById('modalEspecialista').style.display = 'flex'; }
-    function fecharModalEspecialista() { document.getElementById('modalEspecialista').style.display = 'none'; }
-
-    // 2. Aplica a Máscara de WhatsApp (IMask)
-    const telInput = document.getElementById('telLead');
-    const maskOptions = { mask: '(00) 00000-0000' };
-    const mask = IMask(telInput, maskOptions);
-
-    // 3. Envio do Formulário para o CRM
-    document.getElementById('formLandingPage').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const btn = e.target.querySelector('button');
-        btn.innerText = 'Enviando...';
-        btn.disabled = true;
-
-        const dados = {
-            nome: document.getElementById('nomeLead').value,
-            email: document.getElementById('emailLead').value,
-            telefone: document.getElementById('telLead').value
-        };
-
-        try {
-            // Rota pública que configuramos no crmController.js 
-            const res = await fetch('/api/public/lead', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dados)
-            });
-
-            if (res.ok) {
-                alert('🚀 Sucesso! Em instantes entraremos em contato pelo WhatsApp.');
-                fecharModalEspecialista();
-                e.target.reset();
-            } else {
-                alert('❌ Erro ao enviar contato. Tente novamente.');
-            }
-        } catch (err) {
-            console.error('Erro:', err);
-            alert('❌ Falha na conexão com o servidor.');
-        } finally {
-            btn.innerText = 'Enviar Mensagem agora';
-            btn.disabled = false;
-        }
-    });
-</script>
-<script>
-    /**
-     * Função para memorizar o plano escolhido e levar ao registro
-     */
-    function selecionarPlano(id, nome, valor) {
-        // Armazena os dados no navegador do cliente
-        localStorage.setItem('plano_escolhido_id', id);
-        localStorage.setItem('plano_escolhido_nome', nome);
-        localStorage.setItem('plano_escolhido_valor', valor);
-        
-        // Redireciona para a página de registro
-        window.location.href = '/register';
-    }
-
-    // Caso o usuário clique em "Começar Agora" no topo da página (Hero), 
-    // podemos definir o plano Básico como padrão se ele não escolher um específico.
-    document.querySelector('.btn-hero-primary').addEventListener('click', (e) => {
-        if(!localStorage.getItem('plano_escolhido_id')) {
-            localStorage.setItem('plano_escolhido_id', 1);
-            localStorage.setItem('plano_escolhido_nome', 'Básico');
-            localStorage.setItem('plano_escolhido_valor', 49.90);
-        }
-    });
-</script>
 </body>
 </html>

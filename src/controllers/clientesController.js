@@ -47,17 +47,22 @@ async function criarCliente(req, res) {
     }
 }
 
-// 3. Editar Cliente (Alinhado com 'documento')
+// 3. Editar Cliente (Sincronizado com Documento e Endereço)
 async function editarCliente(req, res) {
     const { id } = req.params;
-    const { nome, documento, email, telefone } = req.body;
+    const { nome, documento, email, telefone, endereco, cep, cidade, estado } = req.body;
     try {
-        await pool.query(
-            'UPDATE clientes SET nome = $1, documento = $2, email = $3, telefone = $4 WHERE id = $5 AND escritorio_id = $6',
-            [nome, documento, email, telefone, id, req.user.escritorio_id]
-        );
+        const query = `
+            UPDATE clientes 
+            SET nome = $1, documento = $2, email = $3, telefone = $4, endereco = $5, cep = $6, cidade = $7, estado = $8 
+            WHERE id = $9 AND escritorio_id = $10
+        `;
+        const values = [nome, documento, email, telefone, endereco, cep, cidade, estado, id, req.user.escritorio_id];
+        
+        await pool.query(query, values);
         res.json({ ok: true });
     } catch (error) {
+        console.error('❌ Erro ao editar cliente:', error.message);
         res.status(500).json({ erro: 'Erro ao editar' });
     }
 }

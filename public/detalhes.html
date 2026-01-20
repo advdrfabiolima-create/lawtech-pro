@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>LawTech Pro - Detalhes do Processo</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+        .badge { background: #e74c3c; color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8em; }
+        .movimentacao { background: #f9f9f9; padding: 15px; border-left: 5px solid #3498db; margin-top: 20px; }
+        .upload-section { background: #f0fff4; padding: 15px; border-left: 5px solid #27ae60; margin-top: 20px; border-radius: 4px; }
+        .btn-voltar { text-decoration: none; color: #3498db; font-weight: bold; display: block; margin-bottom: 20px; }
+        button { background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #219150; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <a href="dashboard.html" class="btn-voltar">← Voltar ao Dashboard</a>
+        
+        <h2 id="npu-titulo">Carregando...</h2>
+        <p><strong>Tribunal:</strong> TJBA (Simulado)</p>
+        
+        <div class="movimentacao">
+            <h3>Última Movimentação:</h3>
+            <p id="teor-movimentacao">Buscando...</p>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <h3>Prazo Calculado:</h3>
+            <p id="prazo-info">
+                <span class="badge" id="tipo-prazo">---</span> 
+                Vence em: <span id="data-prazo">---</span>
+            </p>
+        </div>
+
+        <div class="upload-section">
+            <h3>Documentos do Processo</h3>
+            <div id="areaUpload">
+                <input type="file" id="pdfInput" accept="application/pdf">
+                <button onclick="fazerUpload()">Anexar PDF</button>
+            </div>
+            
+            <div id="areaDownload" style="display:none; margin-top: 15px;">
+                <a id="linkPdf" href="#" target="_blank" style="color: #27ae60; font-weight: bold; text-decoration: none; font-size: 1.1em;">
+                    📄 CLIQUE AQUI PARA ABRIR O PDF
+                </a>
+                <p style="font-size: 0.8em; color: #666;">(O arquivo já está salvo no servidor)</p>
+            </div>
+            <p id="msgUpload" style="font-weight: bold; color: #27ae60;"></p>
+        </div>
+    </div>
+
+    <script>
+        // 1. Pegar o ID do processo pela URL
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+
+        // 2. Buscar dados ao carregar a página
+        fetch(`/api/processos/${id}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('npu-titulo').innerText = "Processo: " + data.numero;
+                document.getElementById('teor-movimentacao').innerText = data.prazo_desc || "Sem descrição";
+                document.getElementById('tipo-prazo').innerText = data.prazo_tipo || "ANALISE";
+                document.getElementById('data-prazo').innerText = data.data_limite ? new Date(data.data_limite).toLocaleDateString('pt-BR') : "---";
+
+                // 3. MOSTRAR LINK DO PDF SE EXISTIR
+                if (data.arquivo_url) {
+                    document.getElementById('areaDownload').style.display = 'block';
+                    document.getElementById('linkPdf').href = '/' + data.arquivo_url;
+                    document.getElementById('msgUpload').innerText = "✅ Documento vinculado.";
+                }
+            })
+            .catch(err => console.error("Erro ao buscar detalhes:", err));
+
+        // 4. Função de Upload
+        async function fazerUpload() {
+            const fileInput = document.getElementById('pdfInput');
+            if (fileInput.files.length === 0) return alert("Selecione um PDF primeiro!");
+
+            const formData = new FormData();
+            formData.append('pdf', fileInput.files[0]);
+
+            document.getElementById('msgUpload').innerText = "Enviando...";
+
+            const res = await fetch(`/api/processos/${id}/upload`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (res.ok) {
+                alert("Arquivo anexado com sucesso!");
+                location.reload(); // Recarrega para mostrar o link verde
+            } else {
+                alert("Erro no upload.");
+            }
+        }
+    </script>
+</body>
+</html>

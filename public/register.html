@@ -158,11 +158,42 @@
         const btnSubmit = document.getElementById('btnSubmit');
 
         window.onload = () => {
-            const nomePlano = localStorage.getItem('plano_escolhido_nome');
-            if(nomePlano) {
-                document.getElementById('planoTexto').innerHTML = `Assinando plano: <strong style="color:#2563eb">${nomePlano}</strong>`;
-            }
-        };
+    const params = new URLSearchParams(window.location.search);
+
+    const plano = params.get('plano');
+    const cobranca = params.get('cobranca');
+
+    // Mapeamento oficial dos planos
+    const planosMap = {
+        basico:   { id: 1, nome: 'Básico' },
+        intermediario: { id: 2, nome: 'Intermediário' },
+        avancado: { id: 3, nome: 'Avançado' },
+        premium:  { id: 4, nome: 'Premium' }
+    };
+
+    // 👉 PRIORIDADE: URL
+    if (plano && planosMap[plano]) {
+        const planoInfo = planosMap[plano];
+
+        // Atualiza texto visual
+        document.getElementById('planoTexto').innerHTML =
+            `Assinando plano: <strong style="color:#2563eb">${planoInfo.nome}</strong>` +
+            (cobranca ? ` <span style="color:#64748b">(${cobranca})</span>` : '');
+
+        // Salva para o restante do fluxo (pagamento)
+        localStorage.setItem('plano_escolhido_id', planoInfo.id);
+        localStorage.setItem('plano_escolhido_nome', planoInfo.nome);
+        localStorage.setItem('plano_escolhido_cobranca', cobranca || 'mensal');
+    }
+    // 👉 FALLBACK: fluxo antigo
+    else {
+        const nomePlano = localStorage.getItem('plano_escolhido_nome');
+        if (nomePlano) {
+            document.getElementById('planoTexto').innerHTML =
+                `Assinando plano: <strong style="color:#2563eb">${nomePlano}</strong>`;
+        }
+    }
+};
 
         async function buscarEndereco(cep) {
             const v = cep.replace(/\D/g, '');

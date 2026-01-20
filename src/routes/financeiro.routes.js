@@ -173,5 +173,43 @@ router.put('/financeiro/:id', authMiddleware, async (req, res) => {
         res.status(500).send('Erro de consistência de dados.');
     }
 });
+// ROTA PARA GERAR BOLETO DE HONORÁRIOS (ASAAS)
+router.post('/financeiro/gerar-boleto-honorarios', authMiddleware, async (req, res) => {
+    const { lancamentoId, valor, descricao, clienteId } = req.body;
 
+    try {
+        // 1. Busca os dados do cliente no seu banco
+        const clienteRes = await pool.query('SELECT * FROM clientes WHERE id = $1', [clienteId]);
+        const cliente = clienteRes.rows[0];
+
+        if (!cliente) return res.status(400).json({ erro: 'Cliente não encontrado.' });
+
+        // 2. Criar o cliente no Asaas (ou recuperar ID se já existir)
+        const documentoLimpo = cliente.documento ? cliente.documento.replace(/\D/g, '') : '';
+        
+        const asaasCliente = await axios.post(`${process.env.ASAAS_URL}/customers`, {
+            name: cliente.nome,
+            cpfCnpj: documentoLimpo, // Envia apenas os números (11 ou 14 dígitos)
+            email: cliente.email
+        }, { headers: { 'access_token': TOKEN_ASAAS } });
+
+        // 3. Gerar a cobrança no Asaas
+        const cobranca = await axios.post(`${process.env.ASAAS_URL}/payments`, {
+            customer: asaasCliente.data.id,
+            billingType: 'BOLETO',
+            value: valor,
+            dueDate: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0], // Vence em 3 dias
+            description: `Honorários: ${descricao}`,
+            externalReference: String(lancamentoId)
+        }, { headers: { 'access_token': TOKEN_ASAAS } });
+
+        // 4. Retorna a URL do boleto para o frontend abrir
+        res.json({ url: cobranca.data.bankInvoiceUrl || cobranca.data.invoiceUrl });
+
+    } catch (err) {
+        const msg = err.response?.data?.errors?.[0]?.description || 'Erro ao comunicar com Asaas.';
+        console.error("ERRO BOLETO:", msg);
+        res.status(500).json({ erro: msg });
+    }
+});
 module.exports = router;
