@@ -157,8 +157,9 @@
     }
 
     .badge-plan.premium {
-    background: #fff7ed;
-    color: #c2410c;
+    background: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fcd34d;
     }
 
     /* PLANOS */
@@ -186,6 +187,44 @@
         transform 0.35s ease,
         box-shadow 0.35s ease;
     }
+
+    /* PREMIUM DESTACADO */
+.plan.premium-highlight {
+  background: linear-gradient(180deg, #fef3c7, #fde68a);
+  color: #1f2933;
+  border: 1px solid #fcd34d;
+  box-shadow: 0 25px 50px -20px rgba(245, 158, 11, 0.35);
+}
+
+.plan.premium-highlight h3,
+.plan.premium-highlight .price {
+  color: #1f2933;
+}
+
+.plan.premium-highlight .price small {
+  color: #374151;
+}
+
+.plan.premium-highlight .features strong {
+  color: #1f2933;
+}
+
+.plan.premium-highlight .features span {
+  color: #374151;
+}
+
+.plan.premium-highlight button {
+  background: #1f2933;
+  color: #fff;
+}
+
+.plan.premium-highlight button:hover {
+  background: #020617;
+}
+
+.plan.premium-highlight:hover {
+  transform: scale(1.06);
+}
 
     .plan:hover {
         transform: scale(1.04);
@@ -408,6 +447,10 @@
     <strong>Audiências</strong>
     <span>Agenda integrada aos processos, com visualização clara.</span>
   </li>
+  <li>
+  <strong>Financeiro Jurídico</strong>
+  <span>Controle de receitas, cobranças, indicadores financeiros e relatórios do escritório.</span>
+</li>
 </ul>
 
       <small style="color:var(--muted)">Mais escolhido por escritórios iniciantes</small>
@@ -435,15 +478,22 @@
     <strong>Audiências</strong>
     <span>Agenda integrada aos processos, com visualização clara.</span>
   </li>
+  <li>
+  <strong>Cálculos Jurídicos</strong>
+  <span>Ferramentas especializadas para cálculos jurídicos e periciais com base legal.</span>
+</li>
+  <li>
+  <strong>Financeiro Jurídico</strong>
+  <span>Controle de receitas, cobranças, indicadores financeiros e relatórios do escritório.</span>
 </ul>
 
       <small style="color:var(--muted)">Para quem quer controle financeiro</small>
       <button onclick="selecionarPlano('avancado')">Selecionar</button>
     </div>
 
-    <div class="plan" style="border:2px solid #f59e0b">
+    <div class="plan premium-highlight">
       <h3>Premium</h3>
-      <span class="badge-plan premium">O mais completo</span>
+      <span class="badge-plan premium">Plano Premium</span>
       <div class="price">R$ <span class="price-value" data-mensal="299,90" data-anual="2.999,00">299,90</span> <small class="period">/mês</small></div>
       <ul class="features">
   <li>
@@ -452,19 +502,37 @@
   </li>
   <li>
     <strong>Gestão de Processos</strong>
-    <span>Controle do acervo processual com status, filtros e visão estratégica.</span>
+    <span>Controle total do acervo processual com filtros, status e visão estratégica.</span>
   </li>
   <li>
     <strong>Gestão de Prazos</strong>
-    <span>Alertas inteligentes, vencimentos e níveis de urgência.</span>
+    <span>Alertas inteligentes, vencimentos críticos e segurança máxima.</span>
   </li>
   <li>
     <strong>Audiências</strong>
-    <span>Agenda integrada aos processos, com visualização clara.</span>
+    <span>Agenda integrada com processos e acompanhamento profissional.</span>
+  </li>
+  <li>
+    <strong>Financeiro Jurídico</strong>
+    <span>Controle completo de receitas, cobranças, indicadores e relatórios.</span>
+  </li>
+  <li>
+    <strong>Cálculos Jurídicos</strong>
+    <span>Ferramentas especializadas para cálculos jurídicos e periciais.</span>
+  </li>
+  <li>
+    <strong>CRM Jurídico</strong>
+    <span>Funil de captação e gestão de contratos para escalar o escritório.</span>
+  </li>
+  <li>
+    <strong>IA Jurídica</strong>
+    <span>Assistente inteligente para automações, análises e produtividade avançada.</span>
   </li>
 </ul>
 
-      <small style="color:var(--warning);font-weight:600">Escala máxima do escritório</small>
+      <small style="color:#92400e;font-weight:600">
+  Para escritórios que exigem escala, inteligência e máxima performance
+</small>
       <button onclick="selecionarPlano('premium')">Ativar Premium</button>
     </div>
   </div>
@@ -483,7 +551,14 @@
         <tr><td style="padding:14px">Processos</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr>
         <tr><td style="padding:14px">Prazos</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr>
         <tr><td style="padding:14px">Audiências</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr>
-        <tr><td style="padding:14px">Financeiro</td><td>—</td><td>—</td><td>✔</td><td>✔</td></tr>
+        <tr>
+  <td style="padding:14px">Financeiro Jurídico</td>
+  <td>—</td>
+  <td>✔</td>
+  <td>✔</td>
+  <td>✔</td>
+</tr>
+
         <tr><td style="padding:14px">Cálculos Jurídicos</td><td>—</td><td>—</td><td>✔</td><td>✔</td></tr>
         <tr><td style="padding:14px">CRM Jurídico</td><td>—</td><td>—</td><td>—</td><td>✔</td></tr>
         <tr><td style="padding:14px">IA Jurídica</td><td>—</td><td>—</td><td>—</td><td>✔</td></tr>
@@ -517,7 +592,7 @@ function selecionarPlano(plano) {
   <div>
     <a href="/termos">Termos de Uso</a> · <a href="/privacidade">Política de Privacidade</a> · <a href="mailto:suporte@lawtechpro.com.br">Suporte</a>
   </div>
-  <p style="margin-top:20px;font-size:12px">© 2026 LawTech Pro</p>
+  <p style="margin-top:20px;font-size:12px">© 2026 LawTech Pro Systems</p>
 </footer>
 
 </body>
