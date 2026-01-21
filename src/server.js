@@ -33,6 +33,65 @@ const app = express();
 // --- CONFIGURAÇÕES GLOBAIS ---
 app.use(express.json());
 
+/* ========================= GESTÃO DINÂMICA DE PROCESSOS (MOVIDO PARA CÁ) ========================= */
+
+// 📂 ROTA PARA ARQUIVAR
+app.patch('/api/processos/:id/arquivar', authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(
+            "UPDATE processos SET status = 'arquivado', acao_por = $1, acao_data = NOW() WHERE id = $2 AND escritorio_id = (SELECT escritorio_id FROM usuarios WHERE id = $3)",
+            [req.user.email, id, req.user.id]
+        );
+        res.json({ ok: true }); 
+    } catch (err) { res.status(500).json({ erro: err.message }); }
+});
+
+// 🗑️ ROTA PARA EXCLUIR (LIXEIRA)
+app.patch('/api/processos/:id/excluir', authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(
+            "UPDATE processos SET status = 'excluido', acao_por = $1, acao_data = NOW() WHERE id = $2 AND escritorio_id = (SELECT escritorio_id FROM usuarios WHERE id = $3)",
+            [req.user.email, id, req.user.id]
+        );
+        res.json({ ok: true });
+    } catch (err) { res.status(500).json({ erro: err.message }); }
+});
+
+// ➕ ROTA PARA CRIAR NOVO PROCESSO COM PARTE CONTRÁRIA
+app.post('/api/processos', authMiddleware, async (req, res) => {
+    try {
+        const { numero, cliente, uf, instancia, parte_contraria } = req.body;
+        const escritorioId = req.user.escritorio_id;
+
+        const query = `
+            INSERT INTO processos (numero, cliente, uf, instancia, escritorio_id, status, parte_contraria)
+            VALUES ($1, $2, $3, $4, $5, 'ativo', $6) RETURNING *
+        `;
+        
+        const result = await pool.query(query, [numero, cliente, uf, instancia, escritorioId, parte_contraria]);
+        res.json({ ok: true, processo: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+});
+
+// 🔍 ROTA DE LISTAGEM ATUALIZADA
+app.get('/api/processos', authMiddleware, async (req, res) => {
+    try {
+        const resultado = await pool.query(
+            // 🚀 ADICIONEI 'parte_contraria' ABAIXO
+            "SELECT id, numero, cliente, uf, instancia, status, acao_por, acao_data, parte_contraria FROM processos WHERE escritorio_id = (SELECT escritorio_id FROM usuarios WHERE id = $1) ORDER BY id DESC",
+            [req.user.id]
+        );
+        res.json(resultado.rows);
+    } catch (err) {
+        console.error("Erro ao buscar processos:", err.message);
+        res.status(500).json({ erro: "Erro ao carregar lista de processos." });
+    }
+});
+
 /* ========================= APIs (ROTAS DE DADOS) ========================= */
 app.use('/api/auth', authRoutes);
 app.use('/api', iaRoutes); 

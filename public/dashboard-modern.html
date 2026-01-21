@@ -225,6 +225,39 @@
 }
 .modal-ia-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
 .ai-text-response { font-size: 14px; color: #334155; line-height: 1.6; white-space: pre-wrap; }
+
+/* 🚀 BOTÃO CRM GOLD - PADRONIZADO */
+.btn-crm-gold {
+    background: var(--gold) !important;
+    color: #000 !important;
+    font-weight: 800 !important;
+    margin-top: 20px !important;
+    height: 45px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    transition: 0.2s;
+    box-shadow: 0 4px 10px rgba(251, 191, 36, 0.2);
+}
+
+.btn-crm-gold:hover { 
+    transform: translateY(-1px); 
+    background: #facc15 !important; 
+    box-shadow: 0 6px 15px rgba(251, 191, 36, 0.3);
+}
+
+/* Sidebar Footer Adjust */
+.sidebar-footer {
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 20px;
+}
     </style>
 </head>
 <body>
@@ -628,28 +661,45 @@ window.addEventListener('click', function(e) {
     if (!document.querySelector('.user-profile-nav').contains(e.target)) {
         document.getElementById('userDropdown').style.display = 'none';
     }
-});
+});   
 
-        /**
-         * CARREGAMENTO DE PRAZOS E ALERTAS
-         */
-/**
- * CARREGAMENTO DE PRAZOS COM TAGS E AÇÕES
- */
 async function carregarPrazos() {
     const containerGeral = document.getElementById('lista-prazos');
     if (!containerGeral) return;
-    
+
+    // 🚀 1. BUSCA DE CONTADORES PARA OS CARDS SUPERIORES
     try {
-        // Buscamos a lista da semana (que agora no seu back traz tudo o que está aberto)
+        // Busca Vencidos
+        fetch('/api/dashboard/prazos-vencidos', { headers: { Authorization: `Bearer ${token}` } })
+            .then(res => res.json())
+            .then(dados => {
+                const elem = document.getElementById('count-vencidos');
+                if (elem) {
+                    elem.innerText = dados.length;
+                    elem.classList.remove('skeleton');
+                }
+            });
+
+        // Busca Prazos da Semana
+        fetch('/api/dashboard/prazos-semana', { headers: { Authorization: `Bearer ${token}` } })
+            .then(res => res.json())
+            .then(dados => {
+                const elem = document.getElementById('count-semana');
+                if (elem) {
+                    elem.innerText = dados.length;
+                    elem.classList.remove('skeleton');
+                }
+            });
+    } catch (e) { console.error("Erro nos contadores:", e); }
+
+    // 🚀 2. BUSCA E RENDERIZAÇÃO DA LISTA DE PRAZOS
+    try {
         const res = await fetch('/api/dashboard/prazos-semana', { 
             headers: { Authorization: `Bearer ${token}` } 
         });
         const prazos = await res.json();
         
         containerGeral.innerHTML = '';
-        
-        // LIMITAR A 5 PRAZOS PARA LIMPAR O DASHBOARD
         const prazosExibicao = prazos.slice(0, 5);
 
         if (prazosExibicao.length === 0) {
@@ -658,24 +708,27 @@ async function carregarPrazos() {
         }
 
         prazosExibicao.forEach(p => {
-            // LÓGICA UNIFICADA DAS TAGS (Hoje / Amanhã / X dias)
             const agora = new Date();
             const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate()).getTime();
-
             const d = new Date(p.data_limite);
             const dataPrazo = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()).getTime();
 
             const diffTempo = dataPrazo - hoje;
             const diffDias = Math.floor(diffTempo / (1000 * 60 * 60 * 24));
 
+            // 🚀 NOVA LÓGICA DE TAGS INCLUINDO VENCIDOS
             let tagHtml = '';
-            if (diffDias === 0) {
-                tagHtml = '<span style="background:#fef2f2; color:#ef4444; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800; margin-left:8px; border:1px solid #fecaca;">HOJE</span>';
+
+            if (diffDias < 0) {
+            // Caso o prazo já tenha vencido
+            tagHtml = `<span style="background:#fef2f2; color:#ef4444; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800; margin-left:8px; border:1px solid #fecaca;">VENCIDO HÁ ${Math.abs(diffDias)} DIAS</span>`;
+            } else if (diffDias === 0) {
+            tagHtml = '<span style="background:#fef2f2; color:#ef4444; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800; margin-left:8px; border:1px solid #fecaca;">HOJE</span>';
             } else if (diffDias === 1) {
-                tagHtml = '<span style="background:#fffbeb; color:#d97706; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800; margin-left:8px; border:1px solid #fde68a;">AMANHÃ</span>';
+            tagHtml = '<span style="background:#fffbeb; color:#d97706; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800; margin-left:8px; border:1px solid #fde68a;">AMANHÃ</span>';
             } else if (diffDias > 1) {
-                tagHtml = `<span style="background:#f0fdf4; color:#16a34a; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800; margin-left:8px; border:1px solid #bbf7d0;">EM ${diffDias} DIAS</span>`;
-            }
+            tagHtml = `<span style="background:#f0fdf4; color:#16a34a; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800; margin-left:8px; border:1px solid #bbf7d0;">EM ${diffDias} DIAS</span>`;
+        }
 
             containerGeral.innerHTML += `
                 <div class="prazo-item" style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid #f1f5f9;">
@@ -683,7 +736,14 @@ async function carregarPrazos() {
                         <strong style="display:block; font-size:14px; color:#0f172a;">
                             ${p.tipo} ${tagHtml}
                         </strong>
-                        <small style="color:#64748b; font-size:12px;">Processo: ${p.processo_numero}</small>
+                        <div style="margin-top:4px;">
+                            <span style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase;">
+                                ${p.cliente_nome || 'Cliente não identificado'}
+                            </span>
+                            <small style="display:block; color:#64748b; font-size:11px; font-family:monospace;">
+                                NPU: ${p.processo_numero}
+                            </small>
+                        </div>
                     </div>
                     <div style="display:flex; gap:10px; align-items:center;">
                         <span style="font-size:12px; font-weight:700; color:#334155;">

@@ -7,7 +7,7 @@ async function criarPrazo(req, res) {
     const usuarioId = req.user.id;
     const escritorioId = req.user.escritorio_id;
 
-    // Inserção direta ignorando limites para o Dr. Fábio (ID 1)
+    // Inserção direta ignorando limites para o Dr. Fábio (Acesso Master)
     const insertResult = await pool.query(
       `INSERT INTO prazos (processo_id, tipo, descricao, data_limite, status, usuario_id, escritorio_id) 
        VALUES ($1, $2, $3, $4, 'aberto', $5, $6) RETURNING *`,
@@ -21,13 +21,13 @@ async function criarPrazo(req, res) {
   }
 }
 
-// 2. LISTAGEM COMPLETA (MOSTRA TUDO O QUE ESTÁ NO DASHBOARD)
+// 2. LISTAGEM COMPLETA (ATUALIZADA COM NOME DO CLIENTE PARA A PÁGINA DE PRAZOS)
 async function listarPrazosSemana(req, res) {
   try {
     const escritorioId = req.user.escritorio_id;
-    // Query idêntica à do Dashboard para garantir que o que aparece lá apareça aqui
+    // Buscando dados do processo e nome do cliente via JOIN
     const result = await pool.query(
-      `SELECT pr.*, proc.numero AS processo_numero
+      `SELECT pr.*, proc.numero AS processo_numero, proc.cliente AS cliente_nome
        FROM prazos pr
        JOIN processos proc ON proc.id = pr.processo_id
        WHERE pr.escritorio_id = $1 AND pr.status = 'aberto'
@@ -36,26 +36,34 @@ async function listarPrazosSemana(req, res) {
     );
     res.json(result.rows);
   } catch (error) {
+    console.error('ERRO AO LISTAR:', error.message);
     res.status(500).json({ erro: 'Erro ao listar prazos' });
   }
 }
 
-// 3. MANTEM AS OUTRAS ROTAS PARA NÃO DAR ERRO NO FRONTEND
+// 3. MANTÉM AS OUTRAS ROTAS PARA NÃO DAR ERRO NO FRONTEND
 async function listarPrazosVencidos(req, res) { await listarPrazosSemana(req, res); }
 async function listarPrazosFuturos(req, res) { await listarPrazosSemana(req, res); }
 
+// 4. LISTAGEM DE CONCLUÍDOS (ATUALIZADA COM NOME DO CLIENTE)
 async function listarPrazosConcluidos(req, res) {
   try {
     const result = await pool.query(
-      `SELECT p.*, pr.numero AS processo_numero FROM prazos p 
+      `SELECT p.*, pr.numero AS processo_numero, pr.cliente AS cliente_nome 
+       FROM prazos p 
        JOIN processos pr ON pr.id = p.processo_id
-       WHERE p.escritorio_id = $1 AND p.status = 'concluido' ORDER BY p.concluido_em DESC`, 
+       WHERE p.escritorio_id = $1 AND p.status = 'concluido' 
+       ORDER BY p.concluido_em DESC`, 
       [req.user.escritorio_id]
     );
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ erro: err.message }); }
+  } catch (err) { 
+    console.error('ERRO CONCLUÍDOS:', err.message);
+    res.status(500).json({ erro: err.message }); 
+  }
 }
 
+// 5. CONCLUIR PRAZO
 async function concluirPrazo(req, res) {
   try {
     await pool.query(
@@ -66,14 +74,11 @@ async function concluirPrazo(req, res) {
   } catch (err) { res.status(500).json({ erro: err.message }); }
 }
 
+// 6. LIMPAR PRAZOS CONCLUÍDOS
 async function limparPrazosConcluidos(req, res) {
   try {
     const resultado = await pool.query(
-      `
-      DELETE FROM prazos
-      WHERE status = 'concluido'
-        AND escritorio_id = $1
-      `,
+      `DELETE FROM prazos WHERE status = 'concluido' AND escritorio_id = $1`,
       [req.user.escritorio_id]
     );
 
@@ -81,13 +86,13 @@ async function limparPrazosConcluidos(req, res) {
       sucesso: true,
       removidos: resultado.rowCount
     });
-
   } catch (err) {
     console.error('Erro ao limpar prazos concluídos:', err);
     res.status(500).json({ erro: 'Erro ao limpar prazos concluídos' });
   }
 }
 
+// 7. EXCLUIR PRAZO
 async function excluirPrazo(req, res) {
   try {
     await pool.query('DELETE FROM prazos WHERE id = $1 AND escritorio_id = $2', [req.params.id, req.user.escritorio_id]);
@@ -95,6 +100,7 @@ async function excluirPrazo(req, res) {
   } catch (err) { res.status(500).json({ erro: err.message }); }
 }
 
+// 8. ATUALIZAR PRAZO
 async function atualizarPrazo(req, res) {
   try {
     const { tipo, dataLimite, descricao } = req.body;
@@ -106,22 +112,18 @@ async function atualizarPrazo(req, res) {
   } catch (err) { res.status(500).json({ erro: err.message }); }
 }
 
-async function planoEConsumo(req, res) {
-    res.json({ plano: "LawTech Master", ciclo: "Vitalício", limite_prazos: null, status_pagamento: 'ativo' });
-}
-
-// Função otimizada para o Dashboard
+// 9. FUNÇÃO OTIMIZADA PARA O DASHBOARD (COM NOME DO CLIENTE)
 async function listarPrazosDashboard(req, res) {
   try {
     const result = await pool.query(
-      `SELECT pr.*, proc.numero AS processo_numero
+      `SELECT pr.*, proc.numero AS processo_numero, proc.cliente AS cliente_nome
        FROM prazos pr
        JOIN processos proc ON proc.id = pr.processo_id
        WHERE pr.escritorio_id = $1 
          AND pr.status = 'aberto'
-         AND pr.data_limite >= CURRENT_DATE -- Não mostra o que já venceu e não foi limpo
+         -- 🚀 A LINHA "AND pr.data_limite >= CURRENT_DATE" FOI REMOVIDA DAQUI
        ORDER BY pr.data_limite ASC
-       LIMIT 5`, // 🚀 LIMITA AOS 5 MAIS PRÓXIMOS
+       LIMIT 5`, 
       [req.user.escritorio_id]
     );
     res.json(result.rows);

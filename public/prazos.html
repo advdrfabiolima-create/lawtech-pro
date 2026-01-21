@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <title>LawTech Pro — Gestão de Prazos</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
@@ -252,8 +253,9 @@
 
         // 2. Motor de Prazos
         async function carregarPrazosModernos() {
-          const map = [
-            { url: '/api/dashboard/prazos-futuros', container: 'lista-futuros', classe: 'futuro' }
+        const map = [
+        // 🚀 ALTERADO: Agora busca a listagem completa que permite ver os vencidos
+        { url: '/api/dashboard/prazos-semana', container: 'lista-futuros', classe: 'futuro' }
         ];
             todosPrazos = [];
             mostrarLoader();
@@ -268,32 +270,61 @@
                         container.innerHTML = `<p style="color:var(--muted); font-size:12px; padding:10px;">Nenhum prazo ${item.classe}.</p>`;
                     }
 
-                    prazos.forEach(p => {
-                        todosPrazos.push({ ...p, status: item.classe });
-                        const urgencia = calcularUrgencia(p.data_limite);
-                        
-                        // Aqui é a montagem blindada do card
-                        container.innerHTML += `
-                            <div class="prazo ${item.classe}">
-            <div>
-                <strong style="font-size: 14px;">${p.tipo || 'Prazo'}</strong>
-                ${urgencia ? `<span class="badge ${urgencia.classe}">${urgencia.label}</span>` : ''}
-                <small style="display: block; margin-top: 4px; color:var(--muted);">
+prazos.forEach(p => {
+    todosPrazos.push({ ...p, status: item.classe });
+    
+    // 1. Cálculo de dias para definir a cor
+    const hoje = new Date();
+    hoje.setHours(0,0,0,0);
+    const vencimento = new Date(p.data_limite);
+    vencimento.setHours(0,0,0,0);
+    const diff = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
+
+    // 2. 🚀 LÓGICA DE CORES UNIFICADA (Igual ao Dashboard)
+    let estiloTag = 'background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;'; // Verde padrão
+
+    if (diff < 0) {
+    // Vermelho para Vencidos
+    estiloTag = 'background: #fef2f2; color: #ef4444; border: 1px solid #fecaca;';
+    } else if (diff === 0 || diff === 1) {
+    // Amarelo/Laranja para Hoje e Amanhã
+    estiloTag = 'background: #fffbeb; color: #d97706; border: 1px solid #fde68a;';
+    }
+
+    const contagemDias = calcularDiferencaDiasFormatado(p.data_limite);
+    const urgencia = calcularUrgencia(p.data_limite);
+
+    container.innerHTML += `
+        <div class="prazo ${item.classe}">
+            <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <strong style="font-size: 15px; color: var(--sidebar);">${p.tipo || 'Prazo'}</strong>
+                    
+                    <span class="badge" style="${estiloTag} font-size: 10px; font-weight: 800;">
+                        ${contagemDias}
+                    </span>
+                    
+                    ${urgencia ? `<span class="badge ${urgencia.classe}">${urgencia.label}</span>` : ''}
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="user" style="width: 14px; color: var(--muted);"></i>
+                        <span style="font-size: 13px; font-weight: 700; color: var(--text-main); text-transform: uppercase;">
+                            ${p.cliente_nome || 'Cliente não identificado'}
+                        </span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding-left: 20px;">
+                        <span style="background: #f1f5f9; color: #475569; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-family: monospace;">
+                            NPU: ${p.processo_numero || 'Não vinculado'}
+                        </span>
+                    </div>
+                </div>
+                <small style="display: block; margin-top: 8px; color:var(--muted);">
                     📅 Vencimento: ${new Date(p.data_limite).toLocaleDateString('pt-BR')}
                 </small>
             </div>
-            <div style="display: flex; gap: 12px; align-items: center;">
-                <button onclick="analisarComDeepSeek('${p.tipo}', '${p.descricao || 'Prazo processual'}')"
-        style="background: #fbbf24; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-    <i data-lucide="sparkles" style="color: #000; width: 16px;"></i>
-</button>
-
-                <i data-lucide="pencil" onclick="editarPrazo(${p.id})" style="cursor:pointer; color:var(--primary); width:18px;"></i>
-                <i data-lucide="check-circle" onclick="concluirPrazo(${p.id})" style="cursor:pointer; color:var(--success); width:18px;"></i>
-               
-                <i data-lucide="trash-2" onclick="excluirPrazo(${p.id})" style="cursor:pointer; color:var(--danger); width:18px;"></i>
-            </div>
-        </div>`;
+            </div>`;
 });
 
 // GATILHO DE ATIVAÇÃO: Movemos para garantir que ele execute APÓS os botões existirem
@@ -415,16 +446,42 @@ function mostrarAtivos() {
             }
         }
 
-        function editarPrazo(id) {
-            const p = todosPrazos.find(x => x.id === id);
-            if (!p) return;
-            abrirModalPrazo();
-            document.getElementById('prazoId').value = p.id;
-            document.getElementById('processoId').value = p.processo_id;
-            document.getElementById('tipoPrazo').value = p.tipo;
-            document.getElementById('dataPrazo').value = new Date(p.data_limite).toISOString().split('T')[0];
-            document.getElementById('descricaoPrazo').value = p.descricao || '';
-        }
+        async function editarPrazo(id) {
+    const p = todosPrazos.find(x => x.id === id);
+    if (!p) return;
+
+    document.getElementById('modalPrazo').style.display = 'flex';
+    
+    // 🚀 BLOQUEIO: Desativa o select para não permitir troca de processo na edição
+    const selectProcesso = document.getElementById('processoId');
+    selectProcesso.disabled = true; 
+    selectProcesso.style.backgroundColor = "#f1f5f9";
+    selectProcesso.style.cursor = "not-allowed";
+
+    await carregarProcessosSelect();
+
+    document.getElementById('prazoId').value = p.id;
+    document.getElementById('processoId').value = p.processo_id;
+    document.getElementById('tipoPrazo').value = p.tipo;
+    
+    if (p.data_limite) {
+        document.getElementById('dataPrazo').value = new Date(p.data_limite).toISOString().split('T')[0];
+    }
+    
+    document.getElementById('descricaoPrazo').value = p.descricao || '';
+}
+
+// 🔄 IMPORTANTE: Precisamos liberar o campo ao fechar ou ao clicar em "Novo Prazo"
+function fecharModalPrazo() { 
+    document.getElementById('modalPrazo').style.display = 'none'; 
+    document.getElementById('prazoId').value = '';
+    
+    // Reativa o campo para que o "Novo Prazo" funcione normalmente
+    const selectProcesso = document.getElementById('processoId');
+    selectProcesso.disabled = false;
+    selectProcesso.style.backgroundColor = "#fff";
+    selectProcesso.style.cursor = "default";
+}
 
         async function limparPrazosConcluidos() {
   if (!confirm("Tem certeza que deseja apagar TODOS os prazos concluídos? Essa ação não pode ser desfeita.")) {
@@ -561,6 +618,21 @@ function mostrarAtivos() {
     }
 }
 setInterval(() => { if (window.lucide) lucide.createIcons(); }, 1000);
+
+function calcularDiferencaDiasFormatado(dataVencimento) {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const vencimento = new Date(dataVencimento);
+    vencimento.setHours(0, 0, 0, 0);
+    
+    const diffTime = vencimento - hoje;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return `VENCIDO HÁ ${Math.abs(diffDays)} DIAS`;
+    if (diffDays === 0) return "VENCE HOJE";
+    if (diffDays === 1) return "VENCE AMANHÃ";
+    return `VENCE EM ${diffDays} DIAS`;
+}
     </script>
     <div id="modalIA" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.7); z-index:9999; justify-content:center; align-items:center; backdrop-filter: blur(4px);">
     <div style="background:white; padding:35px; border-radius:16px; max-width:700px; width:90%; max-height:85vh; overflow-y:auto; position:relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #e2e8f0;">

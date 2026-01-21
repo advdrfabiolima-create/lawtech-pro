@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
         :root { 
@@ -116,11 +116,23 @@
                 </div>
             </div>
 
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button id="btnTabAtivo" class="btn-filter active" onclick="mudarAba('ativo')">📂 Processos Ativos</button>
+                <button id="btnTabArquivado" class="btn-filter" onclick="mudarAba('arquivado')">📥 Arquivados</button>
+                <button id="btnTabExcluido" class="btn-filter" onclick="mudarAba('excluido')" style="color: var(--danger);">🗑️ Lixeira (Auditoria)</button>
+            </div>
+
             <div class="card">
                 <table>
-                    <thead>
-                        <tr><th>Nº Processo (CNJ)</th><th>Cliente</th><th>Estado/Tribunal</th><th style="text-align: right;">Status</th></tr>
-                    </thead>
+<thead>
+    <tr>
+        <th>Nº Processo (CNJ)</th>
+        <th>Cliente</th>
+        <th>Estado/Tribunal</th>
+        <th style="text-align: center;">Status</th>
+        <th id="colunaAcaoTitulo" style="text-align: right;">Ações</th>
+    </tr>
+</thead>
                     <tbody id="listaProcessos">
                         <tr><td colspan="4" style="text-align: center; color: var(--muted); padding: 40px;">Carregando sua base de processos...</td></tr>
                     </tbody>
@@ -136,6 +148,10 @@
                 <div style="margin-bottom:16px;">
                     <label style="display:block; font-size:11px; font-weight:700; color: var(--muted); margin-bottom:6px; text-transform:uppercase;">Nº do Processo (CNJ)</label>
                     <input type="text" id="procNumero" placeholder="0000000-00.0000.0.00.0000" maxlength="25" oninput="mascaraCNJ(this)" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:8px;" required>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label style="display:block; font-size:11px; font-weight:700; color: var(--muted); margin-bottom:6px; text-transform:uppercase;">Parte Contrária (Ex: Empresa X / Réu)</label>
+                    <input type="text" id="procParteContraria" placeholder="Nome da parte adversa" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:8px;">
                 </div>
                 <div style="margin-bottom:16px;">
                     <label style="display:block; font-size:11px; font-weight:700; color: var(--muted); margin-bottom:6px; text-transform:uppercase;">Vincular Cliente</label>
@@ -170,6 +186,7 @@
         const token = localStorage.getItem('token');
         if (!token) window.location.href = '/login.html';
         let todosProcessos = [];
+        let abaAtual = 'ativo';
 
         const regioesMap = {
             'SUL': ['PR', 'RS', 'SC'],
@@ -201,21 +218,116 @@
             } catch (err) { console.error(err); }
         }
 
-        function renderizarTabela(lista) {
-            const tabela = document.getElementById('listaProcessos');
-            if (lista.length === 0) {
-                tabela.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:50px; color:var(--muted); font-size: 14px;">Nenhum processo cadastrado nesta categoria.</td></tr>';
-                return;
-            }
-            tabela.innerHTML = lista.map(p => `
-                <tr>
-                    <td style="font-weight: 600; color: var(--primary);">${p.numero}</td>
-                    <td><strong>${p.cliente}</strong></td>
-                    <td><span style="color: var(--muted); font-size: 12px; font-weight: 700;">${p.uf || '--'}</span> / ${p.instancia || '1'}ª Inst.</td>
-                    <td style="text-align: right;"><span class="status-pill">ATIVO</span></td>
-                </tr>
-            `).join('');
+function renderizarTabela(lista) {
+    const tabela = document.getElementById('listaProcessos');
+    const tituloAcao = document.getElementById('colunaAcaoTitulo');
+    
+    // Atualiza o título da coluna conforme a aba
+    if (tituloAcao) {
+        tituloAcao.innerText = abaAtual === 'excluido' ? 'Excluído por' : 'Ações';
+    }
+
+    const listaFiltrada = lista.filter(p => (p.status || 'ativo') === abaAtual);
+
+    if (listaFiltrada.length === 0) {
+        tabela.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:50px; color:var(--muted); font-size: 14px;">Nenhum processo ${abaAtual} encontrado.</td></tr>`;
+        return;
+    }
+
+    tabela.innerHTML = listaFiltrada.map(p => `
+        <tr>
+            <td style="font-weight: 600; color: var(--primary);">
+    ${p.numero}
+    <div style="font-size: 11px; color: var(--muted); font-weight: 400; margin-top: 2px;">
+        vs. ${p.parte_contraria || 'Não informada'}
+    </div>
+</td>
+            <td><strong>${p.cliente || 'Sem Cliente'}</strong></td>
+            <td><span style="color: var(--muted); font-size: 12px; font-weight: 700;">${p.uf || '--'}</span> / ${p.instancia || '1'}ª Inst.</td>
+            <td style="text-align: center;">
+                <span class="status-pill" style="${(p.status || 'ativo') === 'arquivado' ? 'background:#f1f5f9; color:#64748b; border-color:#e2e8f0;' : (p.status === 'excluido' ? 'background:#fef2f2; color:#ef4444; border-color:#fecaca;' : '')}">
+                    ${(p.status || 'ativo').toUpperCase()}
+                </span>
+            </td>
+            <td style="text-align: right;">
+                ${abaAtual === 'excluido' ? 
+                    `<div style="line-height:1.2; text-align:right;">
+                        <span style="font-size:11px; font-weight:700; color:var(--danger); display:block;">${p.acao_por || 'Sistema'}</span>
+                        <small style="font-size:10px; color:var(--muted);">${p.acao_data ? new Date(p.acao_data).toLocaleDateString('pt-BR') : ''}</small>
+                    </div>` :
+                    `<div style="display: flex; gap: 15px; justify-content: flex-end; align-items: center;">
+                        ${(p.status || 'ativo') === 'ativo' ? `
+                            <button onclick="arquivarProcesso(${p.id})" style="background:none; border:none; color:#f59e0b; cursor:pointer;" title="Arquivar">
+                                <i data-lucide="archive" style="width:18px; height:18px;"></i>
+                            </button>
+                        ` : ''}
+                        <button onclick="excluirProcesso(${p.id})" style="background:none; border:none; color:#ef4444; cursor:pointer;" title="Excluir">
+                            <i data-lucide="trash-2" style="width:18px; height:18px;"></i>
+                        </button>
+                    </div>`
+                }
+            </td>
+        </tr>
+    `).join('');
+
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+function mudarAba(aba) {
+    abaAtual = aba;
+    
+    // 1. Garante que todos os filtros de região voltem para 'TODOS' ao trocar de aba
+    // Isso evita que um processo arquivado suma por causa de um filtro de estado ativo
+    const btnTodos = document.querySelector('#region-filter .btn-filter');
+    if (btnTodos) filtrarRegiao('TODOS', btnTodos);
+
+    // 2. Gerenciamento visual das abas
+    document.getElementById('btnTabAtivo').classList.remove('active');
+    document.getElementById('btnTabArquivado').classList.remove('active');
+    document.getElementById('btnTabExcluido').classList.remove('active');
+    
+    if (aba === 'ativo') document.getElementById('btnTabAtivo').classList.add('active');
+    if (aba === 'arquivado') document.getElementById('btnTabArquivado').classList.add('active');
+    if (aba === 'excluido') document.getElementById('btnTabExcluido').classList.add('active');
+    
+    // 3. Renderiza a tabela com os dados atualizados
+    renderizarTabela(todosProcessos);
+}
+
+// 📂 Função para Arquivar
+async function arquivarProcesso(id) {
+    if (!confirm("Deseja mover este processo para os Arquivados?")) return;
+    try {
+        const res = await fetch(`/api/processos/${id}/arquivar`, { 
+            method: 'PATCH', 
+            headers: { 'Authorization': `Bearer ${token}` } 
+        });
+        const data = await res.json();
+        if (data.ok) {
+            alert("Processo arquivado com sucesso!");
+            // 🚀 RECARREGA TUDO E MANTÉM NA ABA ATUAL (ELE SUMIRÁ DAQUI)
+            await carregarProcessos(); 
         }
+    } catch (err) { alert("Erro na comunicação com o servidor."); }
+}
+
+async function excluirProcesso(id) {
+    if (!confirm("Deseja enviar este processo para a Lixeira de Auditoria?")) return;
+    try {
+        const res = await fetch(`/api/processos/${id}/excluir`, { 
+            method: 'PATCH', 
+            headers: { 'Authorization': `Bearer ${token}` } 
+        });
+        const data = await res.json();
+        if (data.ok) {
+            alert("Processo enviado para a Lixeira.");
+            // 🚀 RECARREGA TUDO
+            await carregarProcessos();
+        }
+    } catch (err) { alert("Erro na comunicação com o servidor."); }
+}
 
         function filtrarRegiao(regiao, elemento) {
             document.querySelectorAll('#region-filter .btn-filter').forEach(btn => btn.classList.remove('active'));
@@ -267,7 +379,8 @@
                 numero: document.getElementById('procNumero').value,
                 cliente: document.getElementById('procClienteId').value,
                 uf: document.getElementById('procEstado').value,
-                instancia: document.getElementById('procInstancia').value
+                instancia: document.getElementById('procInstancia').value,
+                parte_contraria: document.getElementById('procParteContraria').value
             };
             const res = await fetch('/api/processos', {
                 method: 'POST',
@@ -286,6 +399,9 @@
             if (v.length > 16) v = v.replace(/^(\d{7})-(\d{2})\.(\d{4})\.(\d{1})\.(\d{2})(\d)/, "$1-$2.$3.$4.$5.$6");
             i.value = v;
         }
+
+        // Força a criação de ícones a cada 1 segundo (garantia extra)
+        setInterval(() => { if (window.lucide) lucide.createIcons(); }, 1000);
 
         function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
         window.onload = inicializar;

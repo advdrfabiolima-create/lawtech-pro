@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
         :root { 
@@ -35,13 +35,13 @@
         .sidebar-header img { width: 100%; max-width: 160px; height: auto; }
         .menu { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
         .menu a { display: flex; align-items: center; padding: 12px; color: var(--text-menu); text-decoration: none; border-radius: 8px; font-size: 14px; transition: 0.2s; }
-        .menu a i { margin-right: 12px; font-size: 18px; }
+        .menu a i { margin-right: 12px; font-size: 18px; display: flex; align-items: center; }
         .menu a:hover, .menu a.active { background: var(--sidebar-hover); color: #fff; }
         .menu a.active { background: var(--primary); font-weight: 500; }
         .sidebar-footer { padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #94a3b8; margin-top: auto; }
 
-        /* Área Principal Alinhada */
-        .main { margin-left: 250px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+        /* Área Principal */
+        .main { margin-left: 250px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; width: calc(100% - 250px); }
         
         .header { 
             background: var(--white); min-height: 72px; padding: 0 32px; 
@@ -75,7 +75,7 @@
         }
         input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); outline: none; }
 
-        /* Botões de Ação Profissional */
+        /* Botões */
         .btn-group { display: flex; gap: 12px; }
         .btn-primary { 
             background: var(--primary); color: white; border: none; 
@@ -85,10 +85,10 @@
         }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
         
-        .btn-ghost { background: #f1f5f9; color: var(--muted); border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
+        .btn-ghost { background: #f1f5f9; color: var(--muted); border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
         .btn-ghost:hover { background: var(--border); color: var(--text-main); }
 
-        /* Relatório de Saída Prime */
+        /* Relatório de Saída */
         .demonstrativo { 
             background: var(--white); border: 1px solid var(--sidebar); 
             border-radius: 20px; display: none; margin-top: 32px; 
@@ -104,14 +104,36 @@
         .total-final-row { background: #eff6ff !important; color: var(--primary) !important; font-size: 20px !important; font-weight: 800 !important; }
 
         #listaHistorico { display: flex; flex-direction: column; gap: 8px; }
-        .hist-item { padding: 12px; background: #f8fafc; border-radius: 10px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .hist-item { padding: 12px; background: #f8fafc; border-radius: 10px; border: 1px solid var(--border); transition: 0.2s; }
+        .hist-item:hover { border-color: var(--primary); background: #fff; }
 
         @media print {
-            .no-print, .sidebar { display: none !important; }
-            body { background: white; } .main { margin-left: 0; }
-            .demonstrativo { display: block !important; border: 1px solid #000; box-shadow: none; margin: 0; }
+            .no-print, .sidebar, .btn-group { display: none !important; }
+            body { background: white; } 
+            .main { margin-left: 0; width: 100%; }
+            .content { padding: 0; margin: 0; max-width: 100%; }
+            .demonstrativo { display: block !important; border: 1px solid #000; box-shadow: none; margin: 0; border-radius: 0; }
         }
+
+        /* Botão CRM Gold - Estilo Independente */
+.btn-crm-gold-nav {
+    background: #fbbf24 !important; /* Cor Gold */
+    color: #000 !important;
+    font-weight: 800 !important;
+    margin-top: 15px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 12px !important;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.3s;
+}
+.btn-crm-gold-nav:hover { background: #facc15 !important; transform: scale(1.02); }
+.btn-crm-gold-nav i { margin-right: 10px; }
     </style>
+</head>
 </head>
 <body>
     <aside class="sidebar no-print">
@@ -133,6 +155,9 @@
             </a>
             <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
             <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
+            <a href="/crm-page" class="btn-crm-gold-nav">
+         <i data-lucide="trending-up"></i> CRM PROSPECÇÃO
+        </a>
         </nav>
         <div class="sidebar-footer">
             <div><span style="color:#64748b">Usuário:</span> <span id="userEmail" style="color:#fff">...</span></div>
@@ -172,13 +197,18 @@
                 <div class="section-title">Lançamento de Débitos Nominais</div>
                 <table style="width:100%; border-spacing: 0 10px; border-collapse: separate;">
                     <thead>
-                        <tr><th style="text-align:left; font-size:11px; color:var(--muted);">VALOR (R$)</th><th style="text-align:left; font-size:11px; color:var(--muted);">VENCIMENTO</th><th style="text-align:left; font-size:11px; color:var(--muted);">DESCRIÇÃO</th><th style="width:50px;"></th></tr>
+                        <tr>
+                            <th style="text-align:left; font-size:11px; color:var(--muted);">VALOR (R$)</th>
+                            <th style="text-align:left; font-size:11px; color:var(--muted);">VENCIMENTO</th>
+                            <th style="text-align:left; font-size:11px; color:var(--muted);">DESCRIÇÃO</th>
+                            <th style="width:50px;"></th>
+                        </tr>
                     </thead>
                     <tbody id="listaValores">
                         <tr>
-                            <td><input type="number" class="val-bruto" value="1000.00"></td>
+                            <td><input type="text" class="val-bruto" placeholder="0,00" oninput="aplicarMascaraDinheiro(this)"></td>
                             <td><input type="date" class="val-data" value="2024-01-01"></td>
-                            <td><input type="text" class="val-desc" value="Principal Corrigido"></td>
+                            <td><input type="text" class="val-desc" placeholder="Ex: Principal Corrigido"></td>
                             <td></td>
                         </tr>
                     </tbody>
@@ -204,7 +234,10 @@
                     <div class="section-title">Encargos e Multas</div>
                     <div class="grid-4" style="grid-template-columns: 1fr 1fr;">
                         <div><label>Honorários (%)</label><input type="number" id="percHon" value="10"></div>
-                        <div><label>Custas (R$)</label><input type="number" id="custas" value="0.00"></div>
+                        <div>
+                            <label>Custas (R$)</label>
+                            <input type="text" id="custas" placeholder="0,00" oninput="aplicarMascaraDinheiro(this)">
+                        </div>
                     </div>
                     <div style="margin-top: 20px; padding: 15px; background: #fffbeb; border-radius: 12px; border: 1px solid #fef3c7;">
                         <label style="color:#b45309;">Art. 523 CPC (Cumprimento de Sentença)</label>
@@ -225,12 +258,12 @@
                 <div class="dem-header">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <h3>RELATÓRIO PERICIAL ATUALIZADO</h3>
+                            <h3 style="margin:0;">RELATÓRIO PERICIAL ATUALIZADO</h3>
                             <p style="opacity: 0.7; font-size: 12px; margin-top: 4px;">Gerado por LawTech Pro — Perícia SELIC</p>
                         </div>
-                        <div style="text-align: right;">
-                            <span id="dataGeracao" style="font-size:11px; font-weight: 600;"></span>
-                        </div>
+                        <button class="btn-ghost no-print" onclick="editarCampos()" style="background:white; color:var(--sidebar); border: 1px solid var(--border); padding: 8px 16px; font-size: 12px; font-weight: 600;">
+                            ✏️ Corrigir Dados
+                        </button>
                     </div>
                 </div>
                 
@@ -274,7 +307,7 @@
         </div>
     </main>
 
-    <script>
+<script>
         const token = localStorage.getItem('token');
         if (!token) window.location.href = '/login.html';
 
@@ -317,9 +350,23 @@
             else i.value = v.replace(/(\d{7})(\d{2})(\d{4})(\d{1})(\d{2})(\d{4})/, "$1-$2.$3.$4.$5.$6");
         }
 
+        function aplicarMascaraDinheiro(i) {
+            let v = i.value.replace(/\D/g, "");
+            v = (v / 100).toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            i.value = v;
+        }
+
         function addLinha() {
             const row = document.getElementById('listaValores').insertRow();
-            row.innerHTML = `<td><input type="number" class="val-bruto" value="0.00"></td><td><input type="date" class="val-data"></td><td><input type="text" class="val-desc"></td><td><button onclick="this.parentElement.parentElement.remove()" style="color:var(--danger); border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></td>`;
+            row.innerHTML = `
+                <td><input type="text" class="val-bruto" placeholder="0,00" oninput="aplicarMascaraDinheiro(this)"></td>
+                <td><input type="date" class="val-data"></td>
+                <td><input type="text" class="val-desc" placeholder="Descrição"></td>
+                <td><button onclick="this.parentElement.parentElement.remove()" style="color:var(--danger); border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></td>
+            `;
         }
 
         function calcularJurosFases(valor, dataInicio, dataFim) {
@@ -347,22 +394,36 @@
             let pAcum = 0; let jAcum = 0;
             const f = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+            const custasRaw = document.getElementById('custas').value || "0,00";
+            const custas = parseFloat(custasRaw.replace(/\./g, '').replace(',', '.')) || 0;
+
             document.querySelectorAll('#listaValores tr').forEach(row => {
-                const valNominal = parseFloat(row.querySelector('.val-bruto').value) || 0;
+                const valRaw = row.querySelector('.val-bruto').value || "0,00";
+                const valNominal = parseFloat(valRaw.replace(/\./g, '').replace(',', '.')) || 0;
                 const dRaw = row.querySelector('.val-data').value;
+
                 if (valNominal > 0 && dRaw) {
                     const dI = new Date(dRaw);
                     let fatorCorrecao = 1.0; 
                     if (indiceSelecionado === 'inpc') fatorCorrecao = 1.08; 
+                    
                     const valorCorrigido = valNominal * fatorCorrecao;
                     let dataInicioJuros = (incidencia === 'citacao' && !isNaN(dataCitacao)) ? dataCitacao : dI;
+                    
                     const juros = calcularJurosFases(valorCorrigido, dataInicioJuros, dataF);
                     pAcum += valorCorrigido; jAcum += juros;
-                    corpo.innerHTML += `<tr><td>${row.querySelector('.val-desc').value || 'Principal'}</td><td>${dI.toLocaleDateString('pt-BR')}</td><td>${f(valorCorrigido)}</td><td>${f(juros)}</td><td><strong style="color:var(--primary);">${f(valorCorrigido + juros)}</strong></td></tr>`;
+                    
+                    corpo.innerHTML += `
+                        <tr>
+                            <td>${row.querySelector('.val-desc').value || 'Principal'}</td>
+                            <td>${dI.toLocaleDateString('pt-BR')}</td>
+                            <td>${f(valorCorrigido)}</td>
+                            <td>${f(juros)}</td>
+                            <td><strong style="color:var(--primary);">${f(valorCorrigido + juros)}</strong></td>
+                        </tr>`;              
                 }
             });
 
-            const custas = parseFloat(document.getElementById('custas').value) || 0;
             const sub = pAcum + jAcum;
             const percHon = parseFloat(document.getElementById('percHon').value) / 100;
             const hon = sub * percHon;
@@ -377,25 +438,61 @@
             document.getElementById('resMulta').innerText = f(m523);
             document.getElementById('resHon523').innerText = f(h523);
             document.getElementById('resTotal').innerText = f(total);
+            
             document.getElementById('linhaMulta').style.display = m523 > 0 ? 'table-row' : 'none';
             document.getElementById('linhaHon523').style.display = h523 > 0 ? 'table-row' : 'none';
+            
             document.getElementById('outProc').innerText = document.getElementById('procNum').value || 'PROCESSO NÃO INFORMADO';
             document.getElementById('outCredor').innerText = document.getElementById('credor').value || '---';
             document.getElementById('outDevedor').innerText = document.getElementById('devedor').value || '---';
             document.getElementById('outDataF').innerText = dataF.toLocaleDateString('pt-BR');
             document.getElementById('dataGeracao').innerText = "EMISSÃO: " + new Date().toLocaleString();
+            
             document.getElementById('resCalculo').style.display = 'block';
             document.getElementById('resCalculo').scrollIntoView({ behavior: 'smooth' });
+
+            setTimeout(() => {
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }, 100);
         }
 
         async function salvarNoBanco() {
-            const dataF = document.getElementById('dataFinal').value;
             const processo = document.getElementById('procNum').value;
-            const totalStr = document.getElementById('resTotal').innerText.replace('R$', '').replace('.', '').replace(',', '.').trim();
+            const totalStr = document.getElementById('resTotal').innerText.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
             const total = parseFloat(totalStr);
+
             if (!processo || isNaN(total)) return alert("Calcule primeiro e preencha o número do processo!");
-            const res = await fetch('/api/calculos/salvar', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ processo, credor: document.getElementById('credor').value, devedor: document.getElementById('devedor').value, dataFinal: dataF, total: total }) });
-            if (res.ok) { alert("✅ Cálculo salvo com sucesso!"); carregarHistorico(); }
+
+            let memoriaTexto = `MEMÓRIA DE CÁLCULO - PROCESSO ${processo}\n`;
+            memoriaTexto += `Credor: ${document.getElementById('credor').value} | Devedor: ${document.getElementById('devedor').value}\n`;
+            memoriaTexto += `Data Base: ${document.getElementById('dataFinal').value}\n\n`;
+            
+            document.querySelectorAll('#corpoMemoria tr').forEach(row => {
+                const cols = row.querySelectorAll('td');
+                memoriaTexto += `- ${cols[0].innerText}: Base ${cols[2].innerText} + Juros ${cols[3].innerText} = Total ${cols[4].innerText}\n`;
+            });
+
+            const dadosParaSalvar = {
+                processo,
+                credor: document.getElementById('credor').value,
+                devedor: document.getElementById('devedor').value,
+                dataFinal: document.getElementById('dataFinal').value,
+                total: total,
+                memoria: memoriaTexto 
+            };
+
+            try {
+                const res = await fetch('/api/calculos/salvar', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
+                    body: JSON.stringify(dadosParaSalvar) 
+                });
+
+                if (res.ok) { 
+                    alert("✅ Cálculo e Memória salvos com sucesso!"); 
+                    carregarHistorico(); 
+                }
+            } catch (e) { alert("Erro de conexão."); }
         }
 
         async function carregarHistorico() {
@@ -403,13 +500,60 @@
                 const res = await fetch('/api/calculos/historico', { headers: { Authorization: `Bearer ${token}` } });
                 const dados = await res.json();
                 const container = document.getElementById('listaHistorico');
-                if (dados.length === 0) { container.innerHTML = "<p style='color:var(--muted); font-size:12px;'>Nenhum cálculo salvo recentemente.</p>"; return; }
-                container.innerHTML = dados.slice(0, 5).map(c => `<div class="hist-item"><span><strong>${c.processo_numero}</strong></span><span style="color:var(--primary); font-weight:700;">R$ ${parseFloat(c.total_devido).toLocaleString('pt-BR')}</span></div>`).join('');
-            } catch (e) { console.error(e); }
+                
+                if (!dados || dados.length === 0) { 
+                    container.innerHTML = "<p style='color:var(--muted); font-size:12px; padding:10px;'>Nenhum cálculo recente.</p>"; 
+                    return; 
+                }
+
+                container.innerHTML = dados.slice(0, 10).map(c => `
+                    <div class="hist-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border);">
+                        <div>
+                            <strong style="display:block; font-size:13px; color:var(--sidebar);">${c.processo_numero}</strong>
+                            <small style="color:var(--muted); font-size:10px;">${new Date(c.data_calculo).toLocaleDateString()}</small>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <span style="color:var(--primary); font-weight:700; font-size:14px;">R$ ${parseFloat(c.total_devido).toLocaleString('pt-BR')}</span>
+                            <i data-lucide="eye" onclick="verMemoria('${btoa(unescape(encodeURIComponent(c.memoria_calculo)))}')" style="width:18px; height:18px; cursor:pointer; color:var(--muted);" title="Ver Memória"></i>
+                            <i data-lucide="trash-2" onclick="confirmarExclusao('${c.id}')" style="width:18px; height:18px; cursor:pointer; color:#ef4444;" title="Excluir"></i>
+                        </div>
+                    </div>
+                `).join('');
+                
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            } catch (e) { console.error("Erro histórico:", e); }
+        }
+
+        function verMemoria(memoriaBase64) {
+            try {
+                const texto = decodeURIComponent(escape(atob(memoriaBase64)));
+                alert("📝 MEMÓRIA DE CÁLCULO DETALHADA:\n\n" + texto);
+            } catch (e) { alert("Erro ao ler memória."); }
+        }
+
+        async function confirmarExclusao(id) {
+            if (!confirm("Deseja realmente excluir este registro?")) return;
+            try {
+                const res = await fetch(`/api/calculos/excluir/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+                if (res.ok) { alert("✅ Registro removido."); carregarHistorico(); }
+            } catch (e) { alert("Erro ao conectar ao servidor."); }
+        }
+
+        function editarCampos() {
+            window.scrollTo({top: 0, behavior: 'smooth'});
+            const areaInputs = document.querySelector('.section-card');
+            areaInputs.style.boxShadow = "0 0 15px rgba(37, 99, 235, 0.3)";
+            setTimeout(() => areaInputs.style.boxShadow = "none", 2000);
         }
 
         function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
-        window.onload = () => { buscarSelicBCB(); carregarInfoRodape(); carregarHistorico(); if (typeof lucide !== 'undefined') lucide.createIcons(); };
+
+        window.onload = async () => { 
+            await buscarSelicBCB(); 
+            await carregarInfoRodape(); 
+            await carregarHistorico(); 
+            if (typeof lucide !== 'undefined') lucide.createIcons(); 
+        };
     </script>
 </body>
 </html>
