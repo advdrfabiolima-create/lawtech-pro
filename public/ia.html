@@ -117,6 +117,26 @@
         .status-badge { font-size: 12px; color: var(--muted); margin-bottom: 8px; display: none; align-items: center; gap: 6px; }
         .dot-flashing { width: 6px; height: 6px; border-radius: 50%; background-color: var(--primary); animation: dotFlashing 1s infinite linear alternate; }
         @keyframes dotFlashing { from { opacity: 1; } to { opacity: 0.3; } }
+
+        .btn-crm-gold-nav {
+    background: #fbbf24 !important; /* Cor Gold */
+    color: #000 !important;
+    font-weight: 800 !important;
+    margin-top: 15px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 12px !important;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.3s;
+}
+.btn-crm-gold-nav:hover { 
+    background: #facc15 !important; 
+    transform: scale(1.02); 
+}
+.btn-crm-gold-nav i { margin-right: 10px; }
     </style>
 </head>
 <body>
@@ -140,6 +160,9 @@
             </a>
             <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
             <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
+            <a href="/crm-page" class="btn-crm-gold-nav">
+            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+            </a>
         </nav>
         <div class="sidebar-footer">
             <div style="margin-bottom: 6px;">
@@ -179,76 +202,84 @@
         </div>
     </div>
 
-    <script>
-const token = localStorage.getItem('token');
-if (!token) window.location.href = '/login.html';
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login.html';
 
-let planoAtual = null;
+    let planoAtual = null;
 
-async function carregarInfoRodape() {
-  const resPlan = await fetch('/api/plano-consumo', {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  const dataPlan = await resPlan.json();
-  planoAtual = (dataPlan.plano || '').toLowerCase();
-  document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
-}
+    // 🚀 FUNÇÃO UNIFICADA: Carrega Usuário e Plano 
+    async function carregarInfoRodape() {
+    try {
+        // 1. Busca dados do Usuário (E-mail)
+        const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        const dataUser = await resUser.json();
+        if (dataUser.ok) {
+            document.getElementById('userEmail').innerText = dataUser.usuario.email;
+        }
 
-async function enviarPergunta() {
-  const input = document.getElementById('pergunta');
-  const chat = document.getElementById('chat-container');
-  const statusIa = document.getElementById('status-ia');
-  const pergunta = input.value.trim();
-  if (!pergunta) return;
+        // 2. Busca dados do Plano
+        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+        const dataPlan = await resPlan.json();
+        
+        planoAtual = (dataPlan.plano || '').toLowerCase();
+        document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
 
-  // UI usuário
-  chat.innerHTML += `<div class="message user-message">${pergunta}</div>`;
-  input.value = '';
-  statusIa.style.display = 'flex';
-
-  try {
-    const res = await fetch('/api/ia/perguntar', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ pergunta })
-    });
-
-    const data = await res.json();
-    let respostaHTML = '';
-
-    if (res.ok) {
-      respostaHTML = marked.parse(data.resposta);
-    } 
-    else if (res.status === 403) {
-      respostaHTML = `
-        <strong>🔒 Recurso Premium</strong><br><br>
-        Disponível apenas no plano Premium.<br><br>
-        <a href="/planos-page">👉 Fazer upgrade</a>
-      `;
+    } catch (err) {
+        console.error("Erro ao carregar rodapé IA:", err);
     }
-    else if (res.status === 429) {
-      respostaHTML = `
-        <strong>⏳ Limite atingido</strong><br><br>
-        Aguarde alguns segundos e tente novamente.
-      `;
-    } 
-    else {
-      respostaHTML = `<strong>Erro:</strong> ${data.erro}`;
+}
+    async function enviarPergunta() {
+        const input = document.getElementById('pergunta');
+        const chat = document.getElementById('chat-container');
+        const statusIa = document.getElementById('status-ia');
+        const pergunta = input.value.trim();
+        if (!pergunta) return;
+
+        chat.innerHTML += `<div class="message user-message">${pergunta}</div>`;
+        input.value = '';
+        statusIa.style.display = 'flex';
+        chat.scrollTop = chat.scrollHeight;
+
+        try {
+            const res = await fetch('/api/ia/perguntar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ pergunta })
+            });
+
+            const data = await res.json();
+            let respostaHTML = '';
+
+            if (res.ok) {
+                respostaHTML = marked.parse(data.resposta);
+            } 
+            else if (res.status === 403) {
+                respostaHTML = `
+                    <div style="text-align:center; padding:10px;">
+                        <strong>🔒 Recurso Premium</strong><br>
+                        Esta funcionalidade é exclusiva para assinantes Premium.<br>
+                        <a href="/planos-page" style="color:var(--primary); font-weight:bold;">Fazer upgrade agora</a>
+                    </div>
+                `;
+            }
+            else {
+                respostaHTML = `<strong>Erro:</strong> ${data.erro || 'Falha na resposta'}`;
+            }
+
+            chat.innerHTML += `<div class="message ai-message">${respostaHTML}</div>`;
+        } catch {
+            chat.innerHTML += `<div class="message ai-message">Erro de conexão com o servidor de IA.</div>`;
+        } finally {
+            statusIa.style.display = 'none';
+            chat.scrollTop = chat.scrollHeight;
+        }
     }
 
-    chat.innerHTML += `<div class="message ai-message">${respostaHTML}</div>`;
-  } catch {
-    chat.innerHTML += `<div class="message ai-message">Erro de conexão.</div>`;
-  } finally {
-    statusIa.style.display = 'none';
-    chat.scrollTop = chat.scrollHeight;
-  }
-}
-
-window.onload = carregarInfoRodape;
+    window.onload = carregarInfoRodape;
 </script>
 
 </body>

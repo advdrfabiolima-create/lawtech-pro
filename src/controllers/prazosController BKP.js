@@ -72,12 +72,13 @@ async function criarPrazo(req, res) {
 async function listarPrazosVencidos(req, res) {
   try {
     const escritorioId = req.user.escritorio_id;
-    // Removido o JOIN com usuarios para evitar ocultar prazos salvos sem ID de usuário
+    // Removido o filtro "AND pr.data_limite < NOW()"
+    // Agora trazemos tudo que está aberto. O seu Dashboard mostrará a tag "VENCIDO" se a data for passada.
     const result = await pool.query(
       `SELECT pr.*, proc.numero AS processo_numero
        FROM prazos pr
        JOIN processos proc ON proc.id = pr.processo_id
-       WHERE pr.escritorio_id = $1 AND pr.status = 'aberto' AND pr.data_limite < NOW()
+       WHERE pr.escritorio_id = $1 AND pr.status = 'aberto'
        ORDER BY pr.data_limite ASC`, 
       [escritorioId]
     );
@@ -89,16 +90,23 @@ async function listarPrazosVencidos(req, res) {
 }
 
 async function listarPrazosSemana(req, res) {
-  const escritorioId = req.user.escritorio_id;
-  const result = await pool.query(
-  `SELECT pr.*, proc.numero AS processo_numero
-   FROM prazos pr
-   JOIN processos proc ON proc.id = pr.processo_id
-   WHERE pr.escritorio_id = $1 AND pr.status = 'aberto'
-   ORDER BY pr.data_limite ASC`, 
-  [escritorioId]
-);
-  res.json(result.rows);
+  try {
+    const escritorioId = req.user.escritorio_id;
+    // Trazemos todos os prazos em aberto do escritório.
+    // A lógica de "EM X DIAS" ou "HOJE" que você pos no frontend cuidará do resto.
+    const result = await pool.query(
+    `SELECT pr.*, proc.numero AS processo_numero
+     FROM prazos pr
+     JOIN processos proc ON proc.id = pr.processo_id
+     WHERE pr.escritorio_id = $1 AND pr.status = 'aberto'
+     ORDER BY pr.data_limite ASC`, 
+    [escritorioId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Erro ao listar semana:', error.message);
+    res.status(500).json({ erro: 'Erro ao listar prazos da semana' });
+  }
 }
 
 async function listarPrazosFuturos(req, res) {

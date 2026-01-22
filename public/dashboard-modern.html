@@ -227,28 +227,22 @@
 .ai-text-response { font-size: 14px; color: #334155; line-height: 1.6; white-space: pre-wrap; }
 
 /* 🚀 BOTÃO CRM GOLD - PADRONIZADO */
-.btn-crm-gold {
-    background: var(--gold) !important;
+.btn-crm-gold-nav {
+    background: #fbbf24 !important; /* Cor Gold */
     color: #000 !important;
     font-weight: 800 !important;
-    margin-top: 20px !important;
-    height: 45px !important;
+    margin-top: 15px !important;
     display: flex !important;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    padding: 12px !important;
     border-radius: 8px;
     text-decoration: none;
-    font-size: 13px;
-    transition: 0.2s;
-    box-shadow: 0 4px 10px rgba(251, 191, 36, 0.2);
+    font-size: 14px;
+    transition: 0.3s;
 }
-
-.btn-crm-gold:hover { 
-    transform: translateY(-1px); 
-    background: #facc15 !important; 
-    box-shadow: 0 6px 15px rgba(251, 191, 36, 0.3);
-}
+.btn-crm-gold-nav:hover { background: #facc15 !important; transform: scale(1.02); }
+.btn-crm-gold-nav i { margin-right: 10px; }
 
 /* Sidebar Footer Adjust */
 .sidebar-footer {
@@ -280,7 +274,9 @@
             <a href="/config-page" onclick="limparBolinha()">
     <i class="lucide lucide-settings"></i> Configurações
     <span id="dotNotificacao" style="display:none; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-left: 8px; box-shadow: 0 0 8px #ef4444;"></span>
-</a>
+    <a href="/crm-page" class="btn-crm-gold-nav">
+         <i data-lucide="trending-up"></i> CRM PROSPECÇÃO
+        </a>
         </nav>
         <div class="sidebar-footer">
             <div><span style="color:#64748b">Usuário:</span> <span id="userEmail" style="color:#fff">...</span></div>
@@ -328,17 +324,26 @@
     </button>
 </div>
             <div class="cards">
-                <div class="card"><small>Prazos Vencidos</small><h2 id="count-vencidos" class="skeleton"></h2></div>
-                <div class="card" onclick="window.location.href='/audiencias-page'" style="cursor:pointer; border-left: 5px solid var(--primary);">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div><p style="color:#64748b; font-size:11px; font-weight:700; text-transform:uppercase;">Audiências</p><h3 id="totalAudiencias" style="font-size:24px; margin:5px 0;">--</h3></div>
-                        <i class="lucide lucide-calendar-days" style="color:var(--primary); opacity:0.2;"></i>
-                    </div>
-                    <p style="font-size:11px; color:var(--success); margin-top:10px; font-weight:600;">Ver agenda completa →</p>
-                </div>
-                <div class="card"><small>Prazos da Semana</small><h2 id="count-semana" class="skeleton"></h2></div>
-                <div class="card"><small>Total de Prazos</small><h2 id="count-total-prazos" class="skeleton"></h2></div>
-            </div>
+    <div class="card" style="border-left: 5px solid var(--danger);">
+        <small>Prazos Vencidos</small>
+        <h2 id="count-vencidos">1</h2>
+    </div>
+
+    <div class="card" style="border-left: 5px solid var(--primary);">
+        <small>Audiências</small>
+        <h3 id="totalAudiencias">1</h3>
+    </div>
+
+    <div class="card" style="border-left: 5px solid var(--warning);">
+        <small>Prazos da Semana</small>
+        <h2 id="count-semana">0</h2>
+    </div>
+
+    <div class="card" style="border-left: 5px solid var(--success);">
+        <small>Total de Prazos</small>
+        <h2 id="count-total-prazos">3</h2>
+    </div>
+</div>
 
             <div class="cards">
                 <div class="card" onclick="window.location.href='/calculos-page'" style="cursor:pointer; border-left: 5px solid #8b5cf6;">
@@ -526,44 +531,67 @@ document.addEventListener('click', () => {
             window.location.href = '/planos-page';
             return; // Para a execução do restante da página
         }
-        const planName = dataPlan.plano || 'Individual';
-        const cicloFaturamento = dataPlan.ciclo === 'anual' ? 'Anual' : 'Mensal';
-        
-       // 🚀 Identidade Master Garantida
-        const idUsuarioLogado = dataUser.usuario?.escritorio_id || gEscritorioId;
-        const ehMaster = (idUsuarioLogado === 1 || userEmail.innerText.includes('adv.limaesilva'));
-        
-        const nomeExibicaoPlano = ehMaster ? "LawTech Master - Vitalício" : `${planName} - ${cicloFaturamento}`;
+        // --- 🚀 INÍCIO DO BLOCO CORRIGIDO (SÊNIOR) ---
 
-        // Aplica no Rodapé e no Card
-        document.getElementById('planNameFooter').innerText = nomeExibicaoPlano;
-        document.getElementById('planoAtual').innerText = nomeExibicaoPlano;
-        
-        // Atualiza Rodapé e Título do Card
-        document.getElementById('planNameFooter').innerText = nomeExibicaoPlano;
-        document.getElementById('planoAtual').innerText = nomeExibicaoPlano;
+const planName = dataPlan.plano || 'Individual';
+const cicloFaturamento = dataPlan.ciclo === 'anual' ? 'Anual' : 'Mensal';
 
-        // 🏆 Inserção do Selo Master no Card
-        const badgeContainer = document.getElementById('premiumWelcome');
-        if (ehMaster && badgeContainer) {
-            badgeContainer.style.display = 'inline-flex';
-            badgeContainer.style.alignItems = 'center';
-            badgeContainer.style.gap = '8px';
-            badgeContainer.style.padding = '10px 20px';
-            badgeContainer.style.borderRadius = '12px';
-            // Efeito de Vidro Dourado
-            badgeContainer.style.background = 'linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(217, 119, 6, 0.3) 100%)';
-            badgeContainer.style.backdropFilter = 'blur(10px)';
-            badgeContainer.style.border = '1px solid rgba(251, 191, 36, 0.5)';
-            badgeContainer.style.boxShadow = '0 4px 15px rgba(251, 191, 36, 0.2)';
-            
-            badgeContainer.innerHTML = `
-                <i class="lucide lucide-shield-check" style="color: #d97706; width: 18px;"></i>
-                <span style="color: #92400e; font-weight: 800; font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase;">
-                    LawTech Master Vitalício
+// 1. Identidade Visual (Rodapé: Apenas o Nome do Plano)
+const nomePlanoRodape = planName; 
+
+// 2. Informação do Comprador (Card: Nome + Ciclo)
+const nomePlanoCard = `${planName} - ${cicloFaturamento}`;
+
+// Aplica nos elementos de texto
+document.getElementById('planNameFooter').innerText = nomePlanoRodape;
+if(document.getElementById('planoAtual')) {
+    document.getElementById('planoAtual').innerText = nomePlanoCard;
+}
+
+// 🏆 3. GESTÃO DINÂMICA DO SELO PREMIUM GOLD (DESIGN RETANGULAR)
+const badgeContainer = document.getElementById('premiumWelcome');
+
+if (badgeContainer) {
+    // Limpa selos antigos/estáticos (Master Vitalício)
+    badgeContainer.style.display = 'none';
+    badgeContainer.innerHTML = ''; 
+
+    // Aplica o novo Design Gold apenas se for Premium
+    if (planName.toLowerCase() === 'premium') {
+        badgeContainer.style.display = 'inline-flex';
+        badgeContainer.style.alignItems = 'center';
+        
+        // Estilo Retangular Gold Edition
+        badgeContainer.style.background = 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)';
+        badgeContainer.style.border = '1px solid #b45309';
+        badgeContainer.style.padding = '8px 20px';
+        badgeContainer.style.borderRadius = '6px'; // Bordas quase quadradas
+        badgeContainer.style.boxShadow = '0 4px 12px rgba(217, 119, 6, 0.3)';
+        badgeContainer.style.transition = 'all 0.3s ease';
+        
+        badgeContainer.innerHTML = `
+            <i class="lucide lucide-scale" style="color: #451a03; width: 18px; margin-right: 12px; stroke-width: 2.5;"></i>
+            <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                <span style="color: #451a03; font-weight: 900; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; line-height: 1;">
+                    PLANO PREMIUM
                 </span>
-            `;
-        }
+                <span style="color: #78350f; font-weight: 700; font-size: 8px; text-transform: uppercase; margin-top: 2px;">
+                    Acesso Total LawTech Pro
+                </span>
+            </div>
+        `;
+
+        // Efeito de elevação sutil
+        badgeContainer.onmouseover = () => {
+            badgeContainer.style.transform = 'translateY(-2px)';
+            badgeContainer.style.boxShadow = '0 6px 15px rgba(217, 119, 6, 0.4)';
+        };
+        badgeContainer.onmouseout = () => {
+            badgeContainer.style.transform = 'translateY(0)';
+            badgeContainer.style.boxShadow = '0 4px 12px rgba(217, 119, 6, 0.3)';
+        };
+    }
+}
         
         // Exibe Link Premium e Badge se for o caso
         if (planName.toLowerCase() === 'premium') {
@@ -694,12 +722,14 @@ async function carregarPrazos() {
 
     // 🚀 2. BUSCA E RENDERIZAÇÃO DA LISTA DE PRAZOS
     try {
-        const res = await fetch('/api/dashboard/prazos-semana', { 
+        // MUDANÇA AQUI: Apontamos para a rota que entrega o objeto completo (nomes e NPUs)
+        const res = await fetch('/api/dashboard/prazos-geral', { 
             headers: { Authorization: `Bearer ${token}` } 
         });
         const prazos = await res.json();
         
         containerGeral.innerHTML = '';
+        // Mostramos apenas os 5 primeiros para manter o design clean
         const prazosExibicao = prazos.slice(0, 5);
 
         if (prazosExibicao.length === 0) {
@@ -708,27 +738,31 @@ async function carregarPrazos() {
         }
 
         prazosExibicao.forEach(p => {
-            const agora = new Date();
-            const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate()).getTime();
-            const d = new Date(p.data_limite);
-            const dataPrazo = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()).getTime();
+    const agora = new Date();
+    // Zeramos as horas para comparar apenas as datas puras
+    const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate()).getTime();
+    const d = new Date(p.data_limite);
+    const dataPrazo = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()).getTime();
 
-            const diffTempo = dataPrazo - hoje;
-            const diffDias = Math.floor(diffTempo / (1000 * 60 * 60 * 24));
+    const diffTempo = dataPrazo - hoje;
+    const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
 
-            // 🚀 NOVA LÓGICA DE TAGS INCLUINDO VENCIDOS
-            let tagHtml = '';
+    let tagHtml = '';
 
-            if (diffDias < 0) {
-            // Caso o prazo já tenha vencido
-            tagHtml = `<span style="background:#fef2f2; color:#ef4444; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800; margin-left:8px; border:1px solid #fecaca;">VENCIDO HÁ ${Math.abs(diffDias)} DIAS</span>`;
-            } else if (diffDias === 0) {
-            tagHtml = '<span style="background:#fef2f2; color:#ef4444; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800; margin-left:8px; border:1px solid #fecaca;">HOJE</span>';
-            } else if (diffDias === 1) {
-            tagHtml = '<span style="background:#fffbeb; color:#d97706; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800; margin-left:8px; border:1px solid #fde68a;">AMANHÃ</span>';
-            } else if (diffDias > 1) {
-            tagHtml = `<span style="background:#f0fdf4; color:#16a34a; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800; margin-left:8px; border:1px solid #bbf7d0;">EM ${diffDias} DIAS</span>`;
-        }
+    // 🔥 NOVA LÓGICA DE SEGURANÇA JURÍDICA
+    if (diffDias < 0) {
+        // PRAZO JÁ VENCEU: Fica em vermelho berrante
+        tagHtml = `<span style="background:#fef2f2; color:#ef4444; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:900; border:1px solid #fecaca; margin-left:8px;">⚠️ VENCIDO HÁ ${Math.abs(diffDias)}D</span>`;
+    } else if (diffDias === 0) {
+        // VENCE HOJE: Alerta máximo
+        tagHtml = `<span style="background:#fff7ed; color:#ea580c; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:900; border:1px solid #fdba74; margin-left:8px;">🚨 VENCE HOJE</span>`;
+    } else if (diffDias <= 3) {
+        // PRÓXIMO: Laranja de atenção
+        tagHtml = `<span style="background:#fffbeb; color:#d97706; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:800; border:1px solid #fde68a; margin-left:8px;">EM ${diffDias} DIAS</span>`;
+    } else {
+        // PRAZO SEGURO: Verde
+        tagHtml = `<span style="background:#f0fdf4; color:#16a34a; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:800; border:1px solid #bbf7d0; margin-left:8px;">PENDENTE</span>`;
+    }
 
             containerGeral.innerHTML += `
                 <div class="prazo-item" style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid #f1f5f9;">

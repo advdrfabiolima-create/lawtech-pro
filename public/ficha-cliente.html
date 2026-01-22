@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha Cadastral — LawTech Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .logo { text-align: center; margin-bottom: 20px; }
+        .logo img { max-width: 150px; }
+        h2 { text-align: center; font-size: 1.2rem; margin-bottom: 10px; color: var(--primary); }
+        p { text-align: center; font-size: 0.9rem; color: #64748b; margin-bottom: 25px; }
+        .form-group { margin-bottom: 15px; }
+        label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; display: block; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1); }
+        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+        button:hover { background: #1d4ed8; }
+        .row { display: flex; gap: 15px; }
+        .row .form-group { flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo"><img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro"></div>
+        <h2>Ficha de Início de Processo</h2>
+        <p>Olá! Para darmos andamento ao seu caso, por favor preencha os dados oficiais abaixo.</p>
+        
+        <form id="formFicha">
+            <div class="form-group">
+                <label>Nome Completo / Razão Social</label>
+                <input type="text" id="nome" required>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label>Tipo</label>
+                    <select id="tipoPessoa" onchange="alternarTipoPessoa(this.value)">
+                        <option value="PF">Pessoa Física</option>
+                        <option value="PJ">Pessoa Jurídica</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label id="labelDoc">CPF</label>
+                    <input type="text" id="documento" placeholder="000.000.000-00" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" id="email" required>
+            </div>
+
+            <div class="form-group" id="grupoNascimento">
+                <label>Data de Nascimento</label>
+                <input type="date" id="nascimento" required>
+            </div>
+
+            <div class="form-group">
+                <label>CEP</label>
+                <input type="text" id="cep" onblur="buscarEndereco(this.value)" placeholder="00000-000" required>
+            </div>
+
+            <div class="form-group">
+                <label>Endereço Completo</label>
+                <input type="text" id="endereco" placeholder="Rua, número, bairro..." required>
+            </div>
+
+            <button type="submit">Enviar Dados para o Dr. Fábio</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/imask"></script>
+    <script>
+        // Configuração das Máscaras
+        let maskDoc = IMask(document.getElementById('documento'), { mask: '000.000.000-00' });
+        IMask(document.getElementById('cep'), { mask: '00000-000' });
+
+        function alternarTipoPessoa(tipo) {
+            const labelDoc = document.getElementById('labelDoc');
+            const grupoNasc = document.getElementById('grupoNascimento');
+            const inputNasc = document.getElementById('nascimento');
+            const inputDoc = document.getElementById('documento');
+
+            maskDoc.destroy(); // Remove a máscara atual
+
+            if (tipo === 'PF') {
+                labelDoc.innerText = "CPF";
+                inputDoc.placeholder = "000.000.000-00";
+                maskDoc = IMask(inputDoc, { mask: '000.000.000-00' });
+                grupoNasc.style.display = "block";
+                inputNasc.required = true;
+            } else {
+                labelDoc.innerText = "CNPJ";
+                inputDoc.placeholder = "00.000.000/0000-00";
+                maskDoc = IMask(inputDoc, { mask: '00.000.000/0000-00' });
+                grupoNasc.style.display = "none";
+                inputNasc.required = false;
+                inputNasc.value = ""; // Limpa o valor se mudar para PJ
+            }
+        }
+
+        async function buscarEndereco(cep) {
+            const v = cep.replace(/\D/g, '');
+            if(v.length === 8) {
+                const res = await fetch(`https://viacep.com.br/ws/${v}/json/`);
+                const data = await res.json();
+                if(!data.erro) {
+                    document.getElementById('endereco').value = `${data.logradouro}, ${data.bairro}, ${data.localidade}/${data.uf}`;
+                }
+            }
+        }
+
+document.getElementById('formFicha').onsubmit = async (e) => {
+    e.preventDefault();
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const leadId = urlParams.get('leadId') || 1; // Força o ID 1 para o seu teste
+
+    const dados = {
+        leadId: leadId,
+        nome: document.getElementById('nome').value,
+        tipoPessoa: document.getElementById('tipoPessoa').value,
+        documento: document.getElementById('documento').value,
+        email: document.getElementById('email').value,
+        nascimento: document.getElementById('nascimento').value || null,
+        cep: document.getElementById('cep').value,
+        endereco: document.getElementById('endereco').value
+    };
+
+    try {
+        // 🚀 AJUSTE DA URL PARA O TESTE
+        const res = await fetch('/api/crm/public/onboarding', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+
+        if (res.ok) {
+            alert("✅ Dados enviados! Verifique a aba de clientes.");
+            location.reload(); 
+        } else {
+            alert("Erro no servidor. Verifique se a rota /api/crm/public/onboarding existe.");
+        }
+    } catch (err) {
+        alert("Falha de conexão. O servidor está ligado?");
+    }
+};
+    </script>
+</body>
+</html>

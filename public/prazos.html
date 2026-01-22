@@ -103,7 +103,45 @@
   color: #b91c1c;
   border-color: #fecaca;
 }
-       
+
+.actions-prazo { display: flex; gap: 8px; margin-left: 15px; }
+.btn-action {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-action i { width: 16px; height: 16px; }
+.btn-action.success { color: var(--success); }
+.btn-action.success:hover { background: #ecfdf5; border-color: var(--success); }
+.btn-action.edit { color: var(--primary); }
+.btn-action.edit:hover { background: #eff6ff; border-color: var(--primary); }
+.btn-action.danger { color: var(--danger); }
+.btn-action.danger:hover { background: #fef2f2; border-color: var(--danger); }
+       .btn-crm-gold-nav {
+    background: #fbbf24 !important; /* Cor Gold */
+    color: #000 !important;
+    font-weight: 800 !important;
+    margin-top: 15px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 12px !important;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.3s;
+}
+.btn-crm-gold-nav:hover { 
+    background: #facc15 !important; 
+    transform: scale(1.02); 
+}
+.btn-crm-gold-nav i { margin-right: 10px; }
     </style>
 </head>
 <body>
@@ -127,6 +165,9 @@
             </a>
             <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
             <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
+            <a href="/crm-page" class="btn-crm-gold-nav">
+            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+        </a>
         </nav>
         <div class="sidebar-footer">
             <div style="margin-bottom: 6px;">
@@ -252,88 +293,106 @@
         }
 
         // 2. Motor de Prazos
-        async function carregarPrazosModernos() {
-        const map = [
-        // 🚀 ALTERADO: Agora busca a listagem completa que permite ver os vencidos
-        { url: '/api/dashboard/prazos-semana', container: 'lista-futuros', classe: 'futuro' }
-        ];
-            todosPrazos = [];
-            mostrarLoader();
-            for (const item of map) {
-                try {
-                    const res = await fetch(item.url, { headers: { Authorization: `Bearer ${token}` } });
-                    const prazos = await res.json();
-                    const container = document.getElementById(item.container);
-                    container.innerHTML = '';
-                    
-                    if (prazos.length === 0) {
-                        container.innerHTML = `<p style="color:var(--muted); font-size:12px; padding:10px;">Nenhum prazo ${item.classe}.</p>`;
-                    }
-
-prazos.forEach(p => {
-    todosPrazos.push({ ...p, status: item.classe });
+async function carregarPrazosModernos() {
+    // Agora o mapa cobre todas as frentes: Vencidos, Semana e Futuros
+    const map = [
+        { url: '/api/todos-prazos-ativos', container: 'lista-futuros', classe: 'futuro' }
+    ];
     
-    // 1. Cálculo de dias para definir a cor
-    const hoje = new Date();
-    hoje.setHours(0,0,0,0);
-    const vencimento = new Date(p.data_limite);
-    vencimento.setHours(0,0,0,0);
-    const diff = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
+    todosPrazos = [];
+    mostrarLoader();
 
-    // 2. 🚀 LÓGICA DE CORES UNIFICADA (Igual ao Dashboard)
-    let estiloTag = 'background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;'; // Verde padrão
+    try {
+        const res = await fetch('/api/todos-prazos-ativos', { 
+            headers: { Authorization: `Bearer ${token}` } 
+        });
+        const prazos = await res.json();
+        
+        // Limpa os containers antes de distribuir
+        document.getElementById('lista-vencidos').innerHTML = '';
+        document.getElementById('lista-semana').innerHTML = '';
+        document.getElementById('lista-futuros').innerHTML = '';
 
-    if (diff < 0) {
-    // Vermelho para Vencidos
-    estiloTag = 'background: #fef2f2; color: #ef4444; border: 1px solid #fecaca;';
-    } else if (diff === 0 || diff === 1) {
-    // Amarelo/Laranja para Hoje e Amanhã
-    estiloTag = 'background: #fffbeb; color: #d97706; border: 1px solid #fde68a;';
-    }
-
-    const contagemDias = calcularDiferencaDiasFormatado(p.data_limite);
-    const urgencia = calcularUrgencia(p.data_limite);
-
-    container.innerHTML += `
-        <div class="prazo ${item.classe}">
-            <div style="flex: 1;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                    <strong style="font-size: 15px; color: var(--sidebar);">${p.tipo || 'Prazo'}</strong>
-                    
-                    <span class="badge" style="${estiloTag} font-size: 10px; font-weight: 800;">
-                        ${contagemDias}
-                    </span>
-                    
-                    ${urgencia ? `<span class="badge ${urgencia.classe}">${urgencia.label}</span>` : ''}
-                </div>
+        if (!prazos || prazos.length === 0) {
+            document.getElementById('lista-futuros').innerHTML = `<p style="color:var(--muted); font-size:12px; padding:10px;">Nenhum prazo encontrado.</p>`;
+        } else {
+            prazos.forEach(p => {
+                todosPrazos.push(p);
                 
-                <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <i data-lucide="user" style="width: 14px; color: var(--muted);"></i>
-                        <span style="font-size: 13px; font-weight: 700; color: var(--text-main); text-transform: uppercase;">
-                            ${p.cliente_nome || 'Cliente não identificado'}
-                        </span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px; padding-left: 20px;">
-                        <span style="background: #f1f5f9; color: #475569; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-family: monospace;">
-                            NPU: ${p.processo_numero || 'Não vinculado'}
-                        </span>
-                    </div>
-                </div>
-                <small style="display: block; margin-top: 8px; color:var(--muted);">
-                    📅 Vencimento: ${new Date(p.data_limite).toLocaleDateString('pt-BR')}
-                </small>
-            </div>
-            </div>`;
-});
+                // Cálculo de dias para distribuição nos containers corretos
+                const hoje = new Date();
+                hoje.setHours(0,0,0,0);
+                const vencimento = new Date(p.data_limite);
+                vencimento.setHours(0,0,0,0);
+                const diff = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
 
-// GATILHO DE ATIVAÇÃO: Movemos para garantir que ele execute APÓS os botões existirem
-setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 200);
+                let idContainer = 'lista-futuros';
+                let classeCard = 'futuro';
 
-                } catch (err) { console.error(err); }
-            }
-            esconderLoader();
+                if (diff < 0) {
+                    idContainer = 'lista-vencidos';
+                    classeCard = 'vencido';
+                } else if (diff <= 7) {
+                    idContainer = 'lista-semana';
+                    classeCard = 'semana';
+                }
+
+                const container = document.getElementById(idContainer);
+                const contagemDias = calcularDiferencaDiasFormatado(p.data_limite);
+                const urgencia = calcularUrgencia(p.data_limite);
+
+                // Renderização do Card (Preservando sua estrutura impecável)
+                container.innerHTML += `
+                <div class="prazo ${classeCard}" onclick="exibirObservacaoAtualizada(${p.id})" style="cursor:pointer;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <strong style="font-size: 15px; color: var(--sidebar);">${p.tipo || 'Prazo'}</strong>
+                            <span class="badge" style="font-size: 10px; font-weight: 800;">${contagemDias}</span>
+                            ${urgencia ? `<span class="badge ${urgencia.classe}">${urgencia.label}</span>` : ''}
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="user" style="width: 14px; color: var(--muted);"></i>
+                                <span style="font-size: 13px; font-weight: 700; color: var(--text-main); text-transform: uppercase;">
+                                    ${p.cliente_nome || 'Cliente não identificado'}
+                                </span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px; padding-left: 20px;">
+                                <span style="background: #f1f5f9; color: #475569; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-family: monospace;">
+                                    NPU: ${p.processo_numero || 'Não vinculado'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="actions-prazo" onclick="event.stopPropagation()">
+                        <button onclick="concluirPrazo(${p.id})" class="btn-action success"><i data-lucide="check-circle"></i></button>
+                        <button onclick="editarPrazo(${p.id})" class="btn-action edit"><i data-lucide="edit-3"></i></button>
+                        <button onclick="excluirPrazo(${p.id})" class="btn-action danger"><i data-lucide="trash-2"></i></button>
+                    </div>
+                </div>`;
+            });
         }
+        if (window.lucide) lucide.createIcons();
+    } catch (err) { 
+        console.error("Erro ao carregar:", err); 
+    }
+    esconderLoader();
+}
+
+        function verDetalhesPrazo(texto) {
+    // Usando o modal da IA para mostrar a observação com estilo LawTech Pro
+    const modal = document.getElementById('modalIA');
+    const content = document.getElementById('aiResponseContent');
+    const title = document.querySelector('#modalIA h3');
+
+    if (modal && content) {
+        title.innerText = "📝 Observações do Prazo";
+        content.innerText = texto;
+        modal.style.display = 'flex';
+    } else {
+        alert("Observações:\n" + texto);
+    }
+}
 
         async function carregarPrazosConcluidos() {
             const container = document.getElementById('lista-concluidos');
@@ -471,18 +530,6 @@ function mostrarAtivos() {
     document.getElementById('descricaoPrazo').value = p.descricao || '';
 }
 
-// 🔄 IMPORTANTE: Precisamos liberar o campo ao fechar ou ao clicar em "Novo Prazo"
-function fecharModalPrazo() { 
-    document.getElementById('modalPrazo').style.display = 'none'; 
-    document.getElementById('prazoId').value = '';
-    
-    // Reativa o campo para que o "Novo Prazo" funcione normalmente
-    const selectProcesso = document.getElementById('processoId');
-    selectProcesso.disabled = false;
-    selectProcesso.style.backgroundColor = "#fff";
-    selectProcesso.style.cursor = "default";
-}
-
         async function limparPrazosConcluidos() {
   if (!confirm("Tem certeza que deseja apagar TODOS os prazos concluídos? Essa ação não pode ser desfeita.")) {
     return;
@@ -527,20 +574,51 @@ function fecharModalPrazo() {
         }
 
         function abrirModalPrazo() { 
-            document.getElementById('modalPrazo').style.display = 'flex'; 
-            carregarProcessosSelect();
-        }
-        function fecharModalPrazo() { 
-            document.getElementById('modalPrazo').style.display = 'none'; 
-            document.getElementById('prazoId').value = '';
-        }
+    // 1. Limpa todos os campos
+    document.getElementById('prazoId').value = '';
+    document.getElementById('tipoPrazo').value = '';
+    document.getElementById('dataPrazo').value = '';
+    document.getElementById('descricaoPrazo').value = '';
+    
+    // 2. Garante que o select de processo esteja liberado
+    const selectProcesso = document.getElementById('processoId');
+    selectProcesso.disabled = false;
+    selectProcesso.style.backgroundColor = "#fff";
+    selectProcesso.style.cursor = "default";
+    selectProcesso.value = '';
+
+    // 3. Abre o modal e carrega a lista de processos
+    document.getElementById('modalPrazo').style.display = 'flex'; 
+    carregarProcessosSelect();
+}
+
+// 🚀 CORREÇÃO: Garante que nada sobre para a próxima abertura
+function fecharModalPrazo() { 
+    document.getElementById('modalPrazo').style.display = 'none'; 
+    document.getElementById('prazoId').value = '';
+    
+    // Reset visual do campo de processo
+    const selectProcesso = document.getElementById('processoId');
+    selectProcesso.disabled = false;
+    selectProcesso.style.backgroundColor = "#fff";
+}
+
+function exibirObservacaoAtualizada(id) {
+    // Busca o prazo atualizado dentro do array que está na memória
+    const prazo = todosPrazos.find(x => x.id === id);
+    const texto = (prazo && prazo.descricao && prazo.descricao.trim() !== "") 
+                  ? prazo.descricao 
+                  : "Sem observações cadastradas para este prazo.";
+                  
+    verDetalhesPrazo(texto);
+}
 
         async function carregarProcessosSelect() {
             const select = document.getElementById('processoId');
             const res = await fetch('/api/processos', { headers: { Authorization: `Bearer ${token}` } });
             const processos = await res.json();
             select.innerHTML = '<option value="">Selecione o Processo</option>';
-            processos.forEach(p => { select.innerHTML += `<option value="${p.id}">${p.numero}</option>`; });
+            processos.forEach(p => { select.innerHTML += `<option value="${p.id}">${p.processo_numero || 'Não vinculado'}</option>`; });
         }
 
         function aplicarFiltros() {

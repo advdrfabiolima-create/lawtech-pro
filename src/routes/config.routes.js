@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const axios = require('axios'); // 🚀 Adicionado para falar com o Escavador
 const authMiddleware = require('../middlewares/authMiddleware');
 
 // ============================================================
@@ -15,12 +16,12 @@ router.put('/escritorio', authMiddleware, async (req, res) => {
     const escritorioId = req.user.escritorio_id;
 
     try {
-        // Limpeza da OAB para o robô nacional
-        const oabLimpa = oab ? oab.replace(/\D/g, '') : null;
-        
-        // Tratamento da Renda
+        // 1. Limpeza e Preparação dos dados
+        const oabApenasNumeros = oab ? oab.replace(/\D/g, '') : null;
+        const ufFinal = estado ? estado.toUpperCase() : 'BA';
         const rendaTratada = (renda_mensal && renda_mensal !== '') ? parseFloat(renda_mensal) : 0;
         
+        // 2. Salva no Banco de Dados Neon
         const query = `
             UPDATE escritorios SET 
                 nome = $1, 
@@ -45,30 +46,43 @@ router.put('/escritorio', authMiddleware, async (req, res) => {
         `;
 
         const values = [
-            nome || null, 
-            advogado_responsavel || '', 
-            oabLimpa, 
-            documento || null, 
-            dataNascimento || null, 
-            email || null, 
-            endereco || null, 
-            cidade || null, 
-            estado ? estado.toUpperCase() : 'BA', 
-            cep || null, 
-            banco_codigo || null, 
-            agencia || null, 
-            conta || null, 
-            conta_digito || null, 
-            pix_chave || null, 
-            rendaTratada, 
-            escritorioId
+            nome || null, advogado_responsavel || '', oabApenasNumeros, 
+            documento || null, dataNascimento || null, email || null, 
+            endereco || null, cidade || null, ufFinal, cep || null, 
+            banco_codigo || null, agencia || null, conta || null, 
+            conta_digito || null, pix_chave || null, rendaTratada, escritorioId
         ];
 
         await pool.query(query, values);
-        res.json({ ok: true, mensagem: 'Configurações salvas e Monitoramento Premium ativado!' });
+
+        // 🚀 3. GATILHO DO RADAR ESCAVADOR (ESCALA AUTOMÁTICA)
+        if (oabApenasNumeros) {
+            const termoFormatado = `${oabApenasNumeros}-${ufFinal}`;
+            console.log(`📡 [ESCALA] Registrando OAB no Escavador: ${termoFormatado}`);
+
+            // Envia para o Escavador em segundo plano (não trava o usuário)
+            axios.post(`https://api.escavador.com/api/v1/monitoramentos`, {
+                tipo: "termo",
+                termo: termoFormatado,
+                frequencia: "diaria",
+                origens_ids: [1, 8, 140] // DJEN e tribunais base
+            }, {
+                headers: { 
+                    'Authorization': `Bearer ${process.env.ESCAVADOR_API_KEY}`,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            }).then(() => {
+                console.log(`✅ [ESCALA] Sucesso: ${termoFormatado} agora está sendo monitorada.`);
+            }).catch(err => {
+                console.log(`ℹ️ [ESCALA] Aviso: ${termoFormatado} já possui registro ou aguarda saldo.`);
+            });
+        }
+
+        res.json({ ok: true, mensagem: 'Configurações salvas e Radar DJEN ativado para sua OAB!' });
+
     } catch (err) {
         console.error("❌ ERRO SQL NO SALVAMENTO:", err.message);
-        res.status(500).json({ erro: 'Erro ao salvar no banco Neon: ' + err.message });
+        res.status(500).json({ erro: 'Erro ao salvar no banco: ' + err.message });
     }
 });
 
@@ -78,18 +92,14 @@ router.put('/escritorio', authMiddleware, async (req, res) => {
 router.get('/meu-escritorio', authMiddleware, async (req, res) => {
     try {
         const escritorioId = req.user.escritorio_id;
-        
-        const query = "SELECT * FROM escritorios WHERE id = $1";
-        const resultado = await pool.query(query, [escritorioId]);
+        const resultado = await pool.query("SELECT * FROM escritorios WHERE id = $1", [escritorioId]);
 
         if (resultado.rowCount > 0) {
-            // Retorna os dados para preencher o config.html automaticamente
             res.json({ ok: true, dados: resultado.rows[0] });
         } else {
             res.json({ ok: false, mensagem: "Escritório não encontrado." });
         }
     } catch (err) {
-        console.error("❌ ERRO AO BUSCAR DADOS:", err.message);
         res.status(500).json({ ok: false, erro: err.message });
     }
 });

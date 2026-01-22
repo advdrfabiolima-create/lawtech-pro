@@ -81,6 +81,26 @@
             display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;
         }
         .btn-converter:hover { background: #1d4ed8; }
+
+        .btn-crm-gold-nav {
+    background: #fbbf24 !important; /* Cor Gold */
+    color: #000 !important;
+    font-weight: 800 !important;
+    margin-top: 15px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 12px !important;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.3s;
+}
+.btn-crm-gold-nav:hover { 
+    background: #facc15 !important; 
+    transform: scale(1.02); 
+}
+.btn-crm-gold-nav i { margin-right: 10px; }
     </style>
 </head>
 <body>
@@ -104,6 +124,9 @@
             </a>
             <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
             <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
+            <a href="/crm-page" class="btn-crm-gold-nav">
+            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+            </a>
         </nav>
 
         <div class="sidebar-footer">
@@ -122,6 +145,10 @@
                 <h2 style="font-size: 18px; font-weight: 600;">📡 Captura de Publicações DJEN</h2>
                 <p style="color:var(--muted); font-size: 12px; font-weight: 500;">Monitoramento: Dr. Fábio Lima da Silva (OAB/BA 51.288)</p>
             </div>
+            <div style="display:flex; gap: 12px;">
+                <button class="btn-converter" id="btnSincronizar" onclick="sincronizarEscavadorManual()" style="background: #0f172a;">
+                    <i class="lucide lucide-refresh-cw" id="iconSync"></i> Sincronizar DJEN
+                </button>
             <button onclick="logout()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-weight:600; font-size:14px;">Sair</button>
         </header>
 
@@ -198,6 +225,30 @@ async function carregarPublicacoes() {
         container.innerHTML = `<p style="text-align:center; color:red; padding:20px;">Erro ao sincronizar dados. Tente atualizar a página.</p>`;
     }
 }
+
+// 🚀 NOVA FUNÇÃO PARA SINCRONIZAR COM ESCAVADOR
+        async function sincronizarEscavadorManual() {
+            const btn = document.getElementById('btnSincronizar');
+            const icon = document.getElementById('iconSync');
+            btn.disabled = true;
+            icon.classList.add('lucide-spin');
+            
+            try {
+                // Chama a rota que você tem no publicacoes.routes.js
+                const res = await fetch('/api/publicacoes/fetch-all', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    alert("✅ Varredura no DJEN concluída com sucesso!");
+                    await carregarPublicacoes();
+                } else {
+                    alert("Falha na sincronização. Verifique sua API Key no servidor.");
+                }
+            } catch (err) { alert("Erro de conexão."); } finally {
+                btn.disabled = false;
+                icon.classList.remove('lucide-spin');
+            }
+        }
 
         // Lógica de Identificação de Prazos
         function adicionarDiasUteis(dataInicial, dias) {

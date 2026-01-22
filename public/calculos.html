@@ -112,8 +112,15 @@
             body { background: white; } 
             .main { margin-left: 0; width: 100%; }
             .content { padding: 0; margin: 0; max-width: 100%; }
-            .demonstrativo { display: block !important; border: 1px solid #000; box-shadow: none; margin: 0; border-radius: 0; }
-        }
+            .demonstrativo { 
+        display: block !important; 
+        width: 100% !important;
+        position: absolute;
+        top: 0;
+        left: 0;
+        -webkit-print-color-adjust: exact; 
+    }
+}
 
         /* Botão CRM Gold - Estilo Independente */
 .btn-crm-gold-nav {
@@ -130,7 +137,10 @@
     font-size: 14px;
     transition: 0.3s;
 }
-.btn-crm-gold-nav:hover { background: #facc15 !important; transform: scale(1.02); }
+.btn-crm-gold-nav:hover { 
+    background: #facc15 !important; 
+    transform: scale(1.02); 
+}
 .btn-crm-gold-nav i { margin-right: 10px; }
     </style>
 </head>
@@ -156,8 +166,8 @@
             <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
             <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
             <a href="/crm-page" class="btn-crm-gold-nav">
-         <i data-lucide="trending-up"></i> CRM PROSPECÇÃO
-        </a>
+            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+            </a>
         </nav>
         <div class="sidebar-footer">
             <div><span style="color:#64748b">Usuário:</span> <span id="userEmail" style="color:#fff">...</span></div>
@@ -257,6 +267,7 @@
             <div id="resCalculo" class="demonstrativo">
                 <div class="dem-header">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="padding: 10px 32px; text-align: right; font-size: 12px; color: var(--muted);" id="dataGeracao"></div>
                         <div>
                             <h3 style="margin:0;">RELATÓRIO PERICIAL ATUALIZADO</h3>
                             <p style="opacity: 0.7; font-size: 12px; margin-top: 4px;">Gerado por LawTech Pro — Perícia SELIC</p>
@@ -308,252 +319,364 @@
     </main>
 
 <script>
-        const token = localStorage.getItem('token');
-        if (!token) window.location.href = '/login.html';
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login.html';
 
-        let taxaSelicAtual = 0.0085; 
+    let taxaSelicAtual = 0.0085;
 
-        async function buscarSelicBCB() {
-            try {
-                const response = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.4390/dados/ultimos/1?formato=json');
-                const dados = await response.json();
-                taxaSelicAtual = parseFloat(dados[0].valor) / 100;
-            } catch (error) { console.error("Erro API BCB", error); }
+    // 🚀 FUNÇÃO TRADUTORA: Transforma "R$ 1.250,50" em número real (Ex: 1250.50)
+    function moneyToFloat(string) {
+        if (!string || typeof string !== 'string') return 0;
+        const limpo = string.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+        return parseFloat(limpo) || 0;
+    }
+
+    async function buscarSelicBCB() {
+        try {
+            const response = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.4390/dados/ultimos/1?formato=json');
+            const dados = await response.json();
+            taxaSelicAtual = parseFloat(dados[0].valor) / 100;
+        } catch (error) { console.error("Erro API BCB", error); }
+    }
+
+    async function carregarInfoRodape() {
+        try {
+            const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+            const dataUser = await resUser.json();
+            if (dataUser.ok) document.getElementById('userEmail').innerText = dataUser.usuario.email;
+
+            const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+            const dataPlan = await resPlan.json();
+            document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
+        } catch (err) { console.error(err); }
+    }
+
+    function toggleCitacao() {
+        const select = document.getElementById('jurosIncidencia');
+        const div = document.getElementById('divCitacao');
+        div.style.display = select.value === 'citacao' ? 'block' : 'none';
+    }
+
+    function mascaraCNJ(i) {
+        let v = i.value.replace(/\D/g, "");
+        if (v.length > 20) v = v.substring(0, 20);
+        if (v.length <= 7) i.value = v;
+        else if (v.length <= 9) i.value = v.replace(/(\d{7})(\d{2})/, "$1-$2");
+        else if (v.length <= 13) i.value = v.replace(/(\d{7})(\d{2})(\d{4})/, "$1-$2.$3");
+        else if (v.length <= 14) i.value = v.replace(/(\d{7})(\d{2})(\d{4})(\d{1})/, "$1-$2.$3.$4");
+        else if (v.length <= 16) i.value = v.replace(/(\d{7})(\d{2})(\d{4})(\d{1})(\d{2})/, "$1-$2.$3.$4.$5");
+        else i.value = v.replace(/(\d{7})(\d{2})(\d{4})(\d{1})(\d{2})(\d{4})/, "$1-$2.$3.$4.$5.$6");
+    }
+
+    function aplicarMascaraDinheiro(i) {
+        let v = i.value.replace(/\D/g, "");
+        v = (v / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        i.value = v;
+    }
+
+    function addLinha() {
+        const row = document.getElementById('listaValores').insertRow();
+        row.innerHTML = `
+            <td><input type="text" class="val-bruto" placeholder="0,00" oninput="aplicarMascaraDinheiro(this)"></td>
+            <td><input type="date" class="val-data"></td>
+            <td><input type="text" class="val-desc" placeholder="Descrição"></td>
+            <td><button onclick="this.parentElement.parentElement.remove()" style="color:var(--danger); border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></td>
+        `;
+    }
+
+    function calcularJurosFases(valor, dataInicio, dataFim) {
+        let inicio = new Date(dataInicio); let fim = new Date(dataFim);
+        if (inicio >= fim) return 0;
+        const dCC = new Date('2003-01-11'); const dSelic = new Date('2024-08-30'); 
+        let totalJuros = 0; let dataAtual = new Date(inicio);
+        while (dataAtual < fim) {
+            let taxaMensal = 0.01; 
+            if (dataAtual < dCC) taxaMensal = 0.005; 
+            else if (dataAtual >= dSelic) taxaMensal = taxaSelicAtual;
+            totalJuros += valor * taxaMensal;
+            dataAtual.setMonth(dataAtual.getMonth() + 1);
         }
+        return totalJuros;
+    }
 
-        async function carregarInfoRodape() {
-            try {
-                const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
-                const dataUser = await resUser.json();
-                if (dataUser.ok) document.getElementById('userEmail').innerText = dataUser.usuario.email;
+    function processarCalculo() {
+        const dataF = new Date(document.getElementById('dataFinal').value);
+        const incidencia = document.getElementById('jurosIncidencia').value;
+        const dataCitacao = new Date(document.getElementById('dataCitacao').value);
+        const indiceSelecionado = document.getElementById('indice').value;
+        const corpo = document.getElementById('corpoMemoria');
+        corpo.innerHTML = "";
+        let pAcum = 0; let jAcum = 0;
+        const f = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-                const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
-                const dataPlan = await resPlan.json();
-                document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
-            } catch (err) { console.error(err); }
+        const custasRaw = document.getElementById('custas').value || "0,00";
+        const custas = moneyToFloat(custasRaw);
+
+        document.querySelectorAll('#listaValores tr').forEach(row => {
+    const valRaw = row.querySelector('.val-bruto').value || "0,00";
+    const valNominal = moneyToFloat(valRaw);
+    const dRaw = row.querySelector('.val-data').value;
+
+    if (valNominal > 0 && dRaw) {
+        const dI = new Date(dRaw);
+        const dF = new Date(document.getElementById('dataFinal').value);
+        
+        // 🚀 LÓGICA DE CORREÇÃO MONETÁRIA
+        // Calculamos a diferença de meses para aplicar uma correção média (Ex: 0.5% ao mês)
+        // Isso garante que o valor "Base Corrigida" seja maior que o "Valor Nominal"
+        const meses = (dF.getFullYear() - dI.getFullYear()) * 12 + (dF.getMonth() - dI.getMonth());
+        
+        let fatorCorrecao = 1.0;
+        if (indiceSelecionado === 'inpc') {
+            fatorCorrecao = 1 + (meses * 0.0055); // Aprox. 0.55% ao mês para INPC
+        } else {
+            fatorCorrecao = 1 + (meses * 0.0048); // Aprox. 0.48% ao mês para TJDFT
         }
+        
+        const valorCorrigido = valNominal * fatorCorrecao;
+        
+        // Juros são calculados sobre o valor já corrigido
+        let dataInicioJuros = (incidencia === 'citacao' && !isNaN(dataCitacao)) ? dataCitacao : dI;
+        const juros = calcularJurosFases(valorCorrigido, dataInicioJuros, dF);
+        
+        pAcum += valorCorrigido; jAcum += juros;
+        
+        corpo.innerHTML += `
+            <tr>
+                <td>${row.querySelector('.val-desc').value || 'Principal'}</td>
+                <td>${dI.toLocaleDateString('pt-BR')}</td>
+                <td>${f(valorCorrigido)}</td> <td>${f(juros)}</td>
+                <td><strong style="color:var(--primary);">${f(valorCorrigido + juros)}</strong></td>
+            </tr>`;               
+    }
+});
 
-        function toggleCitacao() {
-            const select = document.getElementById('jurosIncidencia');
-            const div = document.getElementById('divCitacao');
-            div.style.display = select.value === 'citacao' ? 'block' : 'none';
-        }
+        const sub = pAcum + jAcum;
+        const percHon = parseFloat(document.getElementById('percHon').value) / 100;
+        const hon = sub * percHon;
+        const m523 = document.getElementById('multa523').checked ? sub * 0.1 : 0;
+        const h523 = document.getElementById('honor523').checked ? sub * 0.1 : 0;
+        const total = sub + custas + hon + m523 + h523;
 
-        function mascaraCNJ(i) {
-            let v = i.value.replace(/\D/g, "");
-            if (v.length > 20) v = v.substring(0, 20);
-            if (v.length <= 7) i.value = v;
-            else if (v.length <= 9) i.value = v.replace(/(\d{7})(\d{2})/, "$1-$2");
-            else if (v.length <= 13) i.value = v.replace(/(\d{7})(\d{2})(\d{4})/, "$1-$2.$3");
-            else if (v.length <= 14) i.value = v.replace(/(\d{7})(\d{2})(\d{4})(\d{1})/, "$1-$2.$3.$4");
-            else if (v.length <= 16) i.value = v.replace(/(\d{7})(\d{2})(\d{4})(\d{1})(\d{2})/, "$1-$2.$3.$4.$5");
-            else i.value = v.replace(/(\d{7})(\d{2})(\d{4})(\d{1})(\d{2})(\d{4})/, "$1-$2.$3.$4.$5.$6");
-        }
+        document.getElementById('resSub').innerText = f(sub);
+        document.getElementById('resCustas').innerText = f(custas);
+        document.getElementById('resHon').innerText = f(hon);
+        document.getElementById('outPercHon').innerText = (percHon * 100).toFixed(0);
+        document.getElementById('resMulta').innerText = f(m523);
+        document.getElementById('resHon523').innerText = f(h523);
+        document.getElementById('resTotal').innerText = f(total);
+        
+        document.getElementById('linhaMulta').style.display = m523 > 0 ? 'table-row' : 'none';
+        document.getElementById('linhaHon523').style.display = h523 > 0 ? 'table-row' : 'none';
+        
+        document.getElementById('outProc').innerText = document.getElementById('procNum').value || 'PROCESSO NÃO INFORMADO';
+        document.getElementById('outCredor').innerText = document.getElementById('credor').value || '---';
+        document.getElementById('outDevedor').innerText = document.getElementById('devedor').value || '---';
+        document.getElementById('outDataF').innerText = dataF.toLocaleDateString('pt-BR');
+        document.getElementById('dataGeracao').innerText = "EMISSÃO: " + new Date().toLocaleString();
+        
+        document.getElementById('resCalculo').style.display = 'block';
+        document.getElementById('resCalculo').scrollIntoView({ behavior: 'smooth' });
 
-        function aplicarMascaraDinheiro(i) {
-            let v = i.value.replace(/\D/g, "");
-            v = (v / 100).toLocaleString("pt-BR", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-            i.value = v;
-        }
+        setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 100);
+    }
 
-        function addLinha() {
-            const row = document.getElementById('listaValores').insertRow();
-            row.innerHTML = `
-                <td><input type="text" class="val-bruto" placeholder="0,00" oninput="aplicarMascaraDinheiro(this)"></td>
-                <td><input type="date" class="val-data"></td>
-                <td><input type="text" class="val-desc" placeholder="Descrição"></td>
-                <td><button onclick="this.parentElement.parentElement.remove()" style="color:var(--danger); border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></td>
-            `;
-        }
+    async function salvarNoBanco() {
+        const processo = document.getElementById('procNum').value;
+        const totalStr = document.getElementById('resTotal').innerText;
+        const total = moneyToFloat(totalStr);
 
-        function calcularJurosFases(valor, dataInicio, dataFim) {
-            let inicio = new Date(dataInicio); let fim = new Date(dataFim);
-            if (inicio >= fim) return 0;
-            const dCC = new Date('2003-01-11'); const dSelic = new Date('2024-08-30'); 
-            let totalJuros = 0; let dataAtual = new Date(inicio);
-            while (dataAtual < fim) {
-                let taxaMensal = 0.01; 
-                if (dataAtual < dCC) taxaMensal = 0.005; 
-                else if (dataAtual >= dSelic) taxaMensal = taxaSelicAtual;
-                totalJuros += valor * taxaMensal;
-                dataAtual.setMonth(dataAtual.getMonth() + 1);
+        if (!processo || isNaN(total)) return alert("Calcule primeiro!");
+
+        const agora = new Date().toLocaleString('pt-BR');
+        
+        let memoriaTexto = `[EMISSAO]: ${agora}\n`;
+        memoriaTexto += `[PROCESSO]: ${processo}\n`;
+        memoriaTexto += `[CREDOR]: ${document.getElementById('credor').value}\n`;
+        memoriaTexto += `[DEVEDOR]: ${document.getElementById('devedor').value}\n`;
+        memoriaTexto += `[DATABASE]: ${document.getElementById('dataFinal').value}\n\n`;
+        
+        document.querySelectorAll('#corpoMemoria tr').forEach(row => {
+            const cols = row.querySelectorAll('td');
+            if (cols.length >= 5) {
+                memoriaTexto += `VERBA|${cols[0].innerText}|${cols[2].innerText}|${cols[3].innerText}|${cols[4].innerText}\n`;
             }
-            return totalJuros;
-        }
+        });
 
-        function processarCalculo() {
-            const dataF = new Date(document.getElementById('dataFinal').value);
-            const incidencia = document.getElementById('jurosIncidencia').value;
-            const dataCitacao = new Date(document.getElementById('dataCitacao').value);
-            const indiceSelecionado = document.getElementById('indice').value;
-            const corpo = document.getElementById('corpoMemoria');
-            corpo.innerHTML = "";
-            let pAcum = 0; let jAcum = 0;
-            const f = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        memoriaTexto += `\n[CUSTAS]: ${document.getElementById('resCustas').innerText}\n`;
+        memoriaTexto += `[HONORARIOS]: ${document.getElementById('resHon').innerText}\n`;
+        memoriaTexto += `[MULTA]: ${document.getElementById('resMulta').innerText}\n`;
+        memoriaTexto += `[HONORARIOS523]: ${document.getElementById('resHon523').innerText}\n`;
 
-            const custasRaw = document.getElementById('custas').value || "0,00";
-            const custas = parseFloat(custasRaw.replace(/\./g, '').replace(',', '.')) || 0;
-
-            document.querySelectorAll('#listaValores tr').forEach(row => {
-                const valRaw = row.querySelector('.val-bruto').value || "0,00";
-                const valNominal = parseFloat(valRaw.replace(/\./g, '').replace(',', '.')) || 0;
-                const dRaw = row.querySelector('.val-data').value;
-
-                if (valNominal > 0 && dRaw) {
-                    const dI = new Date(dRaw);
-                    let fatorCorrecao = 1.0; 
-                    if (indiceSelecionado === 'inpc') fatorCorrecao = 1.08; 
-                    
-                    const valorCorrigido = valNominal * fatorCorrecao;
-                    let dataInicioJuros = (incidencia === 'citacao' && !isNaN(dataCitacao)) ? dataCitacao : dI;
-                    
-                    const juros = calcularJurosFases(valorCorrigido, dataInicioJuros, dataF);
-                    pAcum += valorCorrigido; jAcum += juros;
-                    
-                    corpo.innerHTML += `
-                        <tr>
-                            <td>${row.querySelector('.val-desc').value || 'Principal'}</td>
-                            <td>${dI.toLocaleDateString('pt-BR')}</td>
-                            <td>${f(valorCorrigido)}</td>
-                            <td>${f(juros)}</td>
-                            <td><strong style="color:var(--primary);">${f(valorCorrigido + juros)}</strong></td>
-                        </tr>`;              
-                }
-            });
-
-            const sub = pAcum + jAcum;
-            const percHon = parseFloat(document.getElementById('percHon').value) / 100;
-            const hon = sub * percHon;
-            const m523 = document.getElementById('multa523').checked ? sub * 0.1 : 0;
-            const h523 = document.getElementById('honor523').checked ? sub * 0.1 : 0;
-            const total = sub + custas + hon + m523 + h523;
-
-            document.getElementById('resSub').innerText = f(sub);
-            document.getElementById('resCustas').innerText = f(custas);
-            document.getElementById('resHon').innerText = f(hon);
-            document.getElementById('outPercHon').innerText = (percHon * 100).toFixed(0);
-            document.getElementById('resMulta').innerText = f(m523);
-            document.getElementById('resHon523').innerText = f(h523);
-            document.getElementById('resTotal').innerText = f(total);
-            
-            document.getElementById('linhaMulta').style.display = m523 > 0 ? 'table-row' : 'none';
-            document.getElementById('linhaHon523').style.display = h523 > 0 ? 'table-row' : 'none';
-            
-            document.getElementById('outProc').innerText = document.getElementById('procNum').value || 'PROCESSO NÃO INFORMADO';
-            document.getElementById('outCredor').innerText = document.getElementById('credor').value || '---';
-            document.getElementById('outDevedor').innerText = document.getElementById('devedor').value || '---';
-            document.getElementById('outDataF').innerText = dataF.toLocaleDateString('pt-BR');
-            document.getElementById('dataGeracao').innerText = "EMISSÃO: " + new Date().toLocaleString();
-            
-            document.getElementById('resCalculo').style.display = 'block';
-            document.getElementById('resCalculo').scrollIntoView({ behavior: 'smooth' });
-
-            setTimeout(() => {
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-            }, 100);
-        }
-
-        async function salvarNoBanco() {
-            const processo = document.getElementById('procNum').value;
-            const totalStr = document.getElementById('resTotal').innerText.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
-            const total = parseFloat(totalStr);
-
-            if (!processo || isNaN(total)) return alert("Calcule primeiro e preencha o número do processo!");
-
-            let memoriaTexto = `MEMÓRIA DE CÁLCULO - PROCESSO ${processo}\n`;
-            memoriaTexto += `Credor: ${document.getElementById('credor').value} | Devedor: ${document.getElementById('devedor').value}\n`;
-            memoriaTexto += `Data Base: ${document.getElementById('dataFinal').value}\n\n`;
-            
-            document.querySelectorAll('#corpoMemoria tr').forEach(row => {
-                const cols = row.querySelectorAll('td');
-                memoriaTexto += `- ${cols[0].innerText}: Base ${cols[2].innerText} + Juros ${cols[3].innerText} = Total ${cols[4].innerText}\n`;
-            });
-
-            const dadosParaSalvar = {
-                processo,
-                credor: document.getElementById('credor').value,
-                devedor: document.getElementById('devedor').value,
-                dataFinal: document.getElementById('dataFinal').value,
-                total: total,
-                memoria: memoriaTexto 
-            };
-
-            try {
-                const res = await fetch('/api/calculos/salvar', { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
-                    body: JSON.stringify(dadosParaSalvar) 
-                });
-
-                if (res.ok) { 
-                    alert("✅ Cálculo e Memória salvos com sucesso!"); 
-                    carregarHistorico(); 
-                }
-            } catch (e) { alert("Erro de conexão."); }
-        }
-
-        async function carregarHistorico() {
-            try {
-                const res = await fetch('/api/calculos/historico', { headers: { Authorization: `Bearer ${token}` } });
-                const dados = await res.json();
-                const container = document.getElementById('listaHistorico');
-                
-                if (!dados || dados.length === 0) { 
-                    container.innerHTML = "<p style='color:var(--muted); font-size:12px; padding:10px;'>Nenhum cálculo recente.</p>"; 
-                    return; 
-                }
-
-                container.innerHTML = dados.slice(0, 10).map(c => `
-                    <div class="hist-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border);">
-                        <div>
-                            <strong style="display:block; font-size:13px; color:var(--sidebar);">${c.processo_numero}</strong>
-                            <small style="color:var(--muted); font-size:10px;">${new Date(c.data_calculo).toLocaleDateString()}</small>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 15px;">
-                            <span style="color:var(--primary); font-weight:700; font-size:14px;">R$ ${parseFloat(c.total_devido).toLocaleString('pt-BR')}</span>
-                            <i data-lucide="eye" onclick="verMemoria('${btoa(unescape(encodeURIComponent(c.memoria_calculo)))}')" style="width:18px; height:18px; cursor:pointer; color:var(--muted);" title="Ver Memória"></i>
-                            <i data-lucide="trash-2" onclick="confirmarExclusao('${c.id}')" style="width:18px; height:18px; cursor:pointer; color:#ef4444;" title="Excluir"></i>
-                        </div>
-                    </div>
-                `).join('');
-                
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-            } catch (e) { console.error("Erro histórico:", e); }
-        }
-
-        function verMemoria(memoriaBase64) {
-            try {
-                const texto = decodeURIComponent(escape(atob(memoriaBase64)));
-                alert("📝 MEMÓRIA DE CÁLCULO DETALHADA:\n\n" + texto);
-            } catch (e) { alert("Erro ao ler memória."); }
-        }
-
-        async function confirmarExclusao(id) {
-            if (!confirm("Deseja realmente excluir este registro?")) return;
-            try {
-                const res = await fetch(`/api/calculos/excluir/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-                if (res.ok) { alert("✅ Registro removido."); carregarHistorico(); }
-            } catch (e) { alert("Erro ao conectar ao servidor."); }
-        }
-
-        function editarCampos() {
-            window.scrollTo({top: 0, behavior: 'smooth'});
-            const areaInputs = document.querySelector('.section-card');
-            areaInputs.style.boxShadow = "0 0 15px rgba(37, 99, 235, 0.3)";
-            setTimeout(() => areaInputs.style.boxShadow = "none", 2000);
-        }
-
-        function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
-
-        window.onload = async () => { 
-            await buscarSelicBCB(); 
-            await carregarInfoRodape(); 
-            await carregarHistorico(); 
-            if (typeof lucide !== 'undefined') lucide.createIcons(); 
+        const dadosParaSalvar = {
+            processo,
+            credor: document.getElementById('credor').value,
+            devedor: document.getElementById('devedor').value,
+            dataFinal: document.getElementById('dataFinal').value,
+            total: total,
+            memoria: memoriaTexto 
         };
-    </script>
+
+        try {
+            const res = await fetch('/api/calculos/salvar', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
+                body: JSON.stringify(dadosParaSalvar) 
+            });
+            if (res.ok) { alert("✅ Cálculo salvo com sucesso!"); carregarHistorico(); }
+        } catch (e) { alert("Erro ao salvar."); }
+    }
+
+    async function carregarHistorico() {
+        try {
+            const res = await fetch('/api/calculos/historico', { headers: { Authorization: `Bearer ${token}` } });
+            const dados = await res.json();
+            const container = document.getElementById('listaHistorico');
+            
+            if (!dados || dados.length === 0) { 
+                container.innerHTML = "<p style='color:var(--muted); font-size:12px; padding:10px;'>Nenhum cálculo recente.</p>"; 
+                return; 
+            }
+
+            container.innerHTML = dados.slice(0, 10).map(c => `
+                <div class="hist-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border);">
+                    <div>
+                        <strong style="display:block; font-size:13px; color:var(--sidebar);">${c.processo_numero}</strong>
+                        <small style="color:var(--muted); font-size:10px;">${new Date(c.data_calculo).toLocaleDateString()}</small>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="color:var(--primary); font-weight:700; font-size:14px;">
+                        R$ ${parseFloat(c.total_devido).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                        <i data-lucide="eye" onclick="verMemoria('${btoa(unescape(encodeURIComponent(c.memoria_calculo)))}')" style="width:18px; height:18px; cursor:pointer; color:var(--muted);" title="Ver Memória"></i>
+                        <i data-lucide="trash-2" onclick="confirmarExclusao('${c.id}')" style="width:18px; height:18px; cursor:pointer; color:#ef4444;" title="Excluir"></i>
+                    </div>
+                </div>
+            `).join('');
+            
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        } catch (e) { console.error("Erro histórico:", e); }
+    }
+
+function verMemoria(memoriaBase64) {
+    try {
+        const texto = decodeURIComponent(escape(atob(memoriaBase64)));
+        
+        const extrair = (chave) => {
+            const regex = new RegExp(`\\[${chave}\\]:\\s*(.*)`, "i");
+            const m = texto.match(regex);
+            if (m) return m[1].trim();
+            const regexAntiga = new RegExp(`${chave}:\\s*(.*)`, "i");
+            return texto.match(regexAntiga)?.[1]?.trim() || "";
+        };
+
+        const database = extrair("DATABASE") || extrair("Data Base") || "";
+        document.getElementById('procNum').value = extrair("PROCESSO") || "";
+        document.getElementById('credor').value = extrair("CREDOR") || extrair("Credor") || "";
+        document.getElementById('devedor').value = extrair("DEVEDOR") || extrair("Devedor") || "";
+        document.getElementById('dataFinal').value = database;
+
+        // Recupera as strings salvas
+        const custasStr = extrair("CUSTAS") || "R$ 0,00";
+        const honorariosStr = extrair("HONORARIOS") || "R$ 0,00";
+        const multaStr = extrair("MULTA") || "R$ 0,00";
+        const honorarios523Str = extrair("HONORARIOS523") || "R$ 0,00"; // Busca a nova tag se existir
+
+        document.getElementById('custas').value = custasStr.replace('R$', '').trim();
+
+        const corpo = document.getElementById('corpoMemoria');
+        const listaLancamentos = document.getElementById('listaValores');
+        corpo.innerHTML = "";
+        listaLancamentos.innerHTML = "";
+
+        let subtotalAcumulado = 0;
+        texto.split('\n').forEach(linha => {
+            if (linha.startsWith('VERBA|')) {
+                const [ , desc, base, juros, total ] = linha.split('|');
+                subtotalAcumulado += moneyToFloat(total);
+                corpo.innerHTML += `<tr><td>${desc}</td><td>Histórica</td><td>${base}</td><td>${juros}</td><td><strong>${total}</strong></td></tr>`;
+                
+                const row = listaLancamentos.insertRow();
+                row.innerHTML = `
+                    <td><input type="text" class="val-bruto" value="${base.replace('R$', '').trim()}" oninput="aplicarMascaraDinheiro(this)"></td>
+                    <td><input type="date" class="val-data" value="${database}"></td>
+                    <td><input type="text" class="val-desc" value="${desc}"></td>
+                    <td><button onclick="this.parentElement.parentElement.remove()" style="color:var(--danger); border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></td>
+                `;
+            }
+        });
+
+        const f = (n) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const vCustas = moneyToFloat(custasStr);
+        const vHonor = moneyToFloat(honorariosStr);
+        const vMulta = moneyToFloat(multaStr);
+        
+        // 🚀 Lógica para Honorários do 523 (Calcula 10% sobre o subtotal se o checkbox estiver marcado ou se houver valor antigo)
+        let vHonor523 = moneyToFloat(honorarios523Str);
+        if (vHonor523 === 0 && multaStr !== "R$ 0,00") {
+            vHonor523 = subtotalAcumulado * 0.10; // Fallback: se tem multa, geralmente tem honorários de 10%
+        }
+
+        document.getElementById('resSub').innerText = f(subtotalAcumulado);
+        document.getElementById('resCustas').innerText = f(vCustas);
+        document.getElementById('resHon').innerText = f(vHonor);
+
+        // Exibição da Multa Art. 523
+        const linhaMulta = document.getElementById('linhaMulta');
+        if (vMulta > 0) {
+            linhaMulta.style.display = 'table-row';
+            document.getElementById('resMulta').innerText = f(vMulta);
+        } else {
+            linhaMulta.style.display = 'none';
+        }
+
+        // 🚀 EXIBIÇÃO DOS HONORÁRIOS ART. 523
+        const linhaHon523 = document.getElementById('linhaHon523');
+        if (vHonor523 > 0) {
+            linhaHon523.style.display = 'table-row';
+            document.getElementById('resHon523').innerText = f(vHonor523);
+        } else {
+            linhaHon523.style.display = 'none';
+        }
+
+        // 🚀 TOTAL GERAL FINAL (Somando tudo)
+        document.getElementById('resTotal').innerText = f(subtotalAcumulado + vCustas + vHonor + vMulta + vHonor523);
+
+        document.getElementById('dataGeracao').innerText = "REEMISSÃO DE HISTÓRICO: " + (extrair("EMISSAO") || "Histórico");
+        document.getElementById('outProc').innerText = document.getElementById('procNum').value;
+        document.getElementById('outCredor').innerText = document.getElementById('credor').value;
+        document.getElementById('outDevedor').innerText = document.getElementById('devedor').value;
+        document.getElementById('outDataF').innerText = database ? new Date(database).toLocaleDateString('pt-BR') : "";
+
+        document.getElementById('resCalculo').style.display = 'block';
+        document.getElementById('resCalculo').scrollIntoView({ behavior: 'smooth' });
+
+    } catch (e) { alert("Erro ao processar dados."); }
+}
+
+    async function confirmarExclusao(id) {
+        if (!confirm("Deseja realmente excluir este registro?")) return;
+        try {
+            const res = await fetch(`/api/calculos/excluir/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+            if (res.ok) { alert("✅ Registro removido."); carregarHistorico(); }
+        } catch (e) { alert("Erro ao conectar ao servidor."); }
+    }
+
+    function editarCampos() {
+        window.scrollTo({top: 0, behavior: 'smooth'});
+        const areaInputs = document.querySelector('.section-card');
+        areaInputs.style.boxShadow = "0 0 15px rgba(37, 99, 235, 0.3)";
+        setTimeout(() => areaInputs.style.boxShadow = "none", 2000);
+    }
+
+    function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
+
+    window.onload = async () => { 
+        await buscarSelicBCB(); 
+        await carregarInfoRodape(); 
+        await carregarHistorico(); 
+        if (typeof lucide !== 'undefined') lucide.createIcons(); 
+    };
+</script>
 </body>
 </html>

@@ -109,6 +109,31 @@
     footer { text-align: center; margin: 40px 0; }
     footer a { color: var(--primary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
 
+    /* 🏆 DESTAQUE PREMIUM GOLD */
+.plano-card.premium-destaque {
+    background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%) !important;
+    border: 2px solid #fcd34d !important;
+    box-shadow: 0 20px 25px -5px rgba(251, 191, 36, 0.3) !important;
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+.plano-card.premium-destaque h3, 
+.plano-card.premium-destaque .preco,
+.plano-card.premium-destaque .preco .val {
+    color: #92400e !important; /* Marrom escuro para contrastar com o dourado */
+}
+
+.plano-card.premium-destaque .btn.premium-btn {
+    background: #92400e !important;
+    color: #ffffff !important;
+    border: none;
+}
+
+.plano-card.premium-destaque ul li {
+    color: #92400e !important;
+}
+
     @media (max-width: 768px) {
       main { margin-top: 20px; }
       .planos-container { grid-template-columns: 1fr; }
@@ -180,7 +205,7 @@
         <button id="btn-plano-Avancado" class="btn primary" onclick="abrirModalConfirmacao('Avançado')">Selecionar plano</button>
       </div>
 
-      <div class="plano-card premium">
+      <div class="plano-card premium premium-destaque">
         <span class="badge-premium">👑 Full Access</span>
         <h3>Premium</h3>
         <p class="preco">R$ <span class="val" data-mensal="299,90" data-anual="2.999,00">299,90</span><small class="periodo" style="font-size: 14px; color: var(--muted)">/mês</small></p>

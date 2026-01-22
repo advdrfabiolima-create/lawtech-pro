@@ -64,6 +64,26 @@
         .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
 
         @media print { .no-print, .sidebar, .header, .analytics-grid { display: none !important; } .main { margin-left: 0; } }
+
+        .btn-crm-gold-nav {
+    background: #fbbf24 !important; /* Cor Gold */
+    color: #000 !important;
+    font-weight: 800 !important;
+    margin-top: 15px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 12px !important;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.3s;
+}
+.btn-crm-gold-nav:hover { 
+    background: #facc15 !important; 
+    transform: scale(1.02); 
+}
+.btn-crm-gold-nav i { margin-right: 10px; }
     </style>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -86,6 +106,9 @@
             </a>
             <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
             <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
+            <a href="/crm-page" class="btn-crm-gold-nav">
+            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+            </a>
         </nav>
         <div class="sidebar-footer">
             <div>Usuário: <span id="userEmail" style="color:#fff">...</span></div>

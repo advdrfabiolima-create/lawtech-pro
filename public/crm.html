@@ -5,155 +5,526 @@
     <title>LawTech Pro — CRM Prospecção</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
 
     <style>
         :root { 
-            --bg: #f8fafc; --sidebar: #0f172a; --sidebar-hover: rgba(255, 255, 255, 0.1);
-            --text-menu: #cbd5e1; --primary: #2563eb; --white: #ffffff;
-            --border: #e2e8f0; --muted: #64748b; --text-main: #1e293b;
-            --radius: 12px; --gold: #fbbf24;
+            --bg: #f8fafc;
+            --sidebar: #0f172a; 
+            --sidebar-hover: rgba(255, 255, 255, 0.1);
+            --text-menu: #cbd5e1;
+            --primary: #2563eb; 
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --muted: #64748b;
+            --text-main: #1e293b;
+            --radius: 12px;
+            --gold: #fbbf24;
+            --success: #10b981;
+            --warning: #f59e0b;
         }
 
         * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
         body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; }
 
-        /* Sidebar Master Unificada */
-        .sidebar { 
-    width: 250px; background: var(--sidebar); color: #fff; padding: 24px 20px; 
-    display: flex; flex-direction: column; height: 100vh; position: fixed; 
-    left: 0; top: 0; z-index: 1000; 
-}
-.sidebar-header { text-align: center; margin-bottom: 30px; }
-.sidebar-header img { width: 100%; max-width: 150px; height: auto; }
+        /* Sidebar - Padrão clientes.html */
+        .sidebar { width: 250px; background: var(--sidebar); color: #fff; padding: 24px 20px; display: flex; flex-direction: column; height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; }
+        .sidebar-header { text-align: center; margin-bottom: 32px; }
+        .sidebar-header img { width: 100%; max-width: 160px; height: auto; }
+        .menu { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
+        .menu a { display: flex; align-items: center; padding: 12px; color: var(--text-menu); text-decoration: none; border-radius: 8px; font-size: 14px; transition: 0.2s; }
+        .menu a i { margin-right: 12px; font-size: 18px; }
+        .menu a:hover, .menu a.active { background: var(--sidebar-hover); color: #fff; }
+        .menu a.active { background: var(--primary); font-weight: 500; }
+        .sidebar-footer { padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #94a3b8; margin-top: auto; }
 
-.menu { display: flex; flex-direction: column; gap: 2px; flex-grow: 1; overflow-y: auto; }
-.menu a { 
-    display: block; padding: 12px 15px; color: var(--text-menu); 
-    text-decoration: none; border-radius: 8px; font-size: 14px; transition: 0.2s;
-}
-.menu a:hover { background: var(--sidebar-hover); color: #fff; }
-.menu a.active { background: var(--primary); color: #fff; font-weight: 600; }
-
-/* 🚀 BOTÃO CRM GOLD - DESTAQUE TOTAL NO FINAL */
-.btn-crm-gold {
-    background: var(--gold) !important;
-    color: #000 !important;
-    font-weight: 800 !important;
-    margin-top: 20px !important;
-    height: 45px !important; /* Altura fixa para garantir igualdade */
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 13px;
-    transition: 0.2s;
-    box-shadow: 0 4px 10px rgba(251, 191, 36, 0.2);
-    border: none !important; /* Remove bordas que a classe 'active' possa colocar */
-    padding: 0 15px !important; /* Padding fixo lateral */
-}
-
-.btn-crm-gold:hover { 
-    transform: translateY(-1px); 
-    background: #facc15 !important; 
-    box-shadow: 0 6px 15px rgba(251, 191, 36, 0.3);
-}
-
-/* Garante que mesmo 'active', ele não mude de tamanho */
-.btn-crm-gold.active {
-    background: var(--gold) !important;
-    color: #000 !important;
-    box-shadow: inset 0 0 0 2px rgba(0,0,0,0.1); /* Sutil marca de ativo sem crescer o botão */
-}
-
-.sidebar-footer {
-    padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);
-    font-size: 11px; color: #94a3b8; margin-top: 15px;
-}
+        /* Botão CRM Gold na Barra Lateral */
+        .btn-crm-gold-nav { background: var(--gold) !important; color: #000 !important; font-weight: 800 !important; margin-top: 15px !important; display: flex !important; align-items: center; justify-content: center; padding: 12px !important; border-radius: 8px; text-decoration: none; font-size: 14px; transition: 0.3s; }
+        .btn-crm-gold-nav:hover { background: #facc15 !important; transform: scale(1.02); }
 
         /* Área Principal */
-        .main { margin-left: 250px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; width: calc(100% - 250px); }
+        .main { margin-left: 250px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
         .header { background: var(--white); height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; }
         .content { padding: 32px; }
 
-        /* Kanban Board */
-        .kanban-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-        .kanban-col { background: #f1f5f9; border-radius: 16px; padding: 20px; min-height: 75vh; }
-        .col-title { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 20px; }
+        /* Kanban / Pipeline */
+        .pipeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; min-height: 70vh; align-items: flex-start; }
+        .column { background: #f1f5f9; border-radius: 12px; padding: 16px; min-height: 500px; border: 1px solid var(--border); }
+        .column-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid var(--border); }
+        .column-header h3 { font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px; }
+        .column-count { background: var(--white); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; color: var(--primary); }
 
-        .btn-primary { background: var(--primary); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+        /* Cards do Lead */
+        .lead-card { background: var(--white); border-radius: 10px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); cursor: grab; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .lead-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border-color: var(--primary); }
+        .lead-card strong { display: block; font-size: 14px; color: var(--text-main); margin-bottom: 4px; }
+        .lead-card span { display: block; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+        .lead-card .tag { margin-top: 10px; display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: #f1f5f9; color: var(--muted); }
+
+        /* Estilos de Status */
+        .column[data-status="lead"] { border-top: 4px solid var(--muted); }
+        .column[data-status="triagem"] { border-top: 4px solid var(--warning); }
+        .column[data-status="proposta"] { border-top: 4px solid var(--primary); }
+        .column[data-status="ganho"] { border-top: 4px solid var(--success); }
+
+        /* Estilo do Modal de Detalhes */
+#modalDetalhes {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.7);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+.modal-crm-content {
+    background: white;
+    width: 90%;
+    max-width: 500px;
+    padding: 32px;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+}
+
+.modal-crm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.notes-area {
+    width: 100%;
+    height: 150px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    resize: none;
+    margin-top: 8px;
+    background: #f8fafc;
+}
+
+.notes-area:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: #fff;
+}
+
+/* Botões Modernizados */
+.btn-primary { 
+    background: var(--primary); 
+    color: #fff; 
+    border: none; 
+    padding: 12px 24px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-weight: 600; 
+    font-size: 14px; 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 8px; 
+    transition: 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+}
+
+.btn-primary:hover { 
+    transform: translateY(-1px); 
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+    filter: brightness(1.1);
+}
+
+.btn-secondary { 
+    background: #f1f5f9; 
+    color: #475569; 
+    border: 1px solid var(--border); 
+    padding: 12px 24px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-weight: 600; 
+    transition: 0.2s;
+}
+
+.btn-secondary:hover { background: var(--border); }
     </style>
 </head>
 <body>
+
     <aside class="sidebar">
-    <div class="sidebar-header">
-        <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
-    </div>
-    
-    <nav class="menu">
-        <a href="/dashboard">Dashboard</a>
-        <a href="/clientes-page">Clientes</a>
-        <a href="/prazos-page">Prazos</a>
-        <a href="/processos-page">Processos</a>
-        <a href="/audiencias-page">Audiências</a>
-        <a href="/calculos-page">Cálculos Jurídicos</a>
-        <a href="/financeiro-page">Financeiro</a>
-        <a href="/publicacoes-page">Publicações DJEN</a>
-        <a href="/ia-page">IA Jurídica</a>
-        <a href="/planos-page">Gestão de Planos</a>
-        <a href="/config-page">Configurações</a>
-        
-        <a href="/crm-page" class="btn-crm-gold active">
-            <i data-lucide="trending-up" style="width:16px;"></i> CRM PROSPECÇÃO
-        </a>
-    </nav>
-    
-    <div class="sidebar-footer">
-        <div style="margin-bottom: 5px;">Usuário: <span id="userEmailSidebar" style="color:#fff">...</span></div>
-        <div>Plano: <span id="planNameSidebar" style="color:var(--gold); font-weight:700">...</span></div>
-    </div>
-</aside>
+        <div class="sidebar-header"><img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro"></div>
+        <nav class="menu">
+            <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+            <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+            <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
+            <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+            <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+            <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+            <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+            <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
+            <a href="/ia-page" style="display: flex; align-items: center; gap: 10px;">
+                <i class="lucide lucide-sparkles" style="color: var(--gold);"></i> IA Jurídica 
+                <span style="font-size: 9px; background: var(--gold); color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; margin-left: auto;">PREMIUM</span>
+            </a>
+            <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+            <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
+            <a href="/crm-page" class="active btn-crm-gold-nav">
+                <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div style="margin-bottom: 6px;">
+                <span style="color:#64748b">Usuário:</span> <span id="userEmail" style="color:#fff">...</span>
+            </div>
+            <div>
+                <span style="color:#64748b">Plano:</span> <span id="planNameFooter" style="color:#fff">...</span>
+            </div>
+        </div>
+    </aside>
 
     <div class="main">
         <header class="header">
-            <h2 style="font-size: 18px; font-weight: 700;">🤝 CRM de Prospecção</h2>
-            <button class="btn-primary" onclick="alert('Funcionalidade em desenvolvimento')">
-                <i data-lucide="plus-circle"></i> Novo Lead
-            </button>
+            <h2 style="font-size: 18px; font-weight: 700;">📈 CRM — Pipeline de Prospecção</h2>
+            <div style="display:flex; gap:20px; align-items:center;">
+                <button onclick="logout()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-weight:600; font-size:14px;">Sair</button>
+            </div>
         </header>
+
         <main class="content">
-            <div class="kanban-board">
-                <div class="kanban-col"><div class="col-title">Novos Contatos</div><div id="lista-novos"></div></div>
-                <div class="kanban-col"><div class="col-title">Em Negociação</div><div id="lista-negociacao"></div></div>
-                <div class="kanban-col"><div class="col-title">Ganhos / Fechados</div><div id="lista-ganhos"></div></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+    <div>
+        <h1 style="font-size: 24px; font-weight: 800;">Gestão Comercial</h1>
+        <p style="color: var(--muted); font-size: 14px;">Arraste os leads entre as colunas para atualizar o status.</p>
+    </div>
+    <button class="btn-primary" onclick="abrirModalCadastro()">
+        <i class="lucide lucide-user-plus"></i> Novo Lead Manual
+    </button>
+</div>
+
+            <div class="pipeline">
+                <div class="column" data-status="lead" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <div class="column-header">
+                        <h3>Novos Leads</h3>
+                        <span class="column-count" id="count-lead">0</span>
+                    </div>
+                    <div id="container-lead"></div>
+                </div>
+
+                <div class="column" data-status="triagem" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <div class="column-header">
+                        <h3>Em Triagem</h3>
+                        <span class="column-count" id="count-triagem">0</span>
+                    </div>
+                    <div id="container-triagem"></div>
+                </div>
+
+                <div class="column" data-status="proposta" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <div class="column-header">
+                        <h3>Proposta</h3>
+                        <span class="column-count" id="count-proposta">0</span>
+                    </div>
+                    <div id="container-proposta"></div>
+                </div>
+
+                <div class="column" data-status="ganho" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <div class="column-header">
+                        <h3>Contrato Ganho</h3>
+                        <span class="column-count" id="count-ganho">0</span>
+                    </div>
+                    <div id="container-ganho"></div>
+                </div>
             </div>
         </main>
     </div>
 
-    <script>
-        const token = localStorage.getItem('token');
-        if (!token) window.location.href = '/login.html';
+    <script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    // 🔔 Configuração do Alerta Sonoro
+const somNotificacao = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
 
-        async function carregarDadosSidebar() {
-            try {
-                const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
-                const dataUser = await resUser.json();
-                const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
-                const dataPlan = await resPlan.json();
+// Função para tocar o bip
+function tocarBip() {
+    somNotificacao.play().catch(e => console.log("O navegador bloqueou o som inicial. Clique em qualquer lugar da página para ativar os alertas."));
+}
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login.html';
 
-                if (dataUser.ok) {
-                    document.getElementById('userEmailSidebar').innerText = dataUser.usuario.email;
-                    const ehMaster = (dataUser.usuario.escritorio_id === 1);
-                    document.getElementById('planNameSidebar').innerText = ehMaster ? "LawTech Master" : (dataPlan.plano || "Premium");
-                }
-                if (window.lucide) lucide.createIcons();
-            } catch (e) { console.error(e); }
+    let leadSelecionadoId = null;
+
+    // 1. CARREGA O RODAPÉ COM SEGURANÇA
+    async function carregarInfoRodape() {
+        try {
+            const res = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.ok) {
+                const emailElem = document.getElementById('userEmail');
+                if (emailElem) emailElem.innerText = data.usuario.email;
+            }
+            const resP = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+            const dataP = await resP.json();
+            const planElem = document.getElementById('planNameFooter');
+            if (planElem) planElem.innerText = dataP.plano || '---';
+        } catch (e) { console.warn("Rodapé não carregado."); }
+    }
+
+    // 2. CARREGA OS LEADS (EVITA ERRO DE INNERHTML NULL)
+    async function carregarLeads() {
+    try {
+        const res = await fetch('/api/crm/leads', { headers: { Authorization: `Bearer ${token}` } });
+        const leads = await res.json();
+        
+        // Limpa os containers (Atenção aos IDs do banco: 'Novo', 'Reunião', 'Proposta', 'Ganho')
+        const mapeamentoStatus = { 'Novo': 'lead', 'Reunião': 'triagem', 'Proposta': 'proposta', 'Ganho': 'ganho' };
+        
+        document.querySelectorAll('.column div[id^="container-"]').forEach(c => c.innerHTML = '');
+        const counts = { lead: 0, triagem: 0, proposta: 0, ganho: 0 };
+
+        leads.forEach(lead => {
+            const statusKey = mapeamentoStatus[lead.status] || 'lead';
+            counts[statusKey]++;
+            
+            const container = document.getElementById(`container-${statusKey}`);
+            if (container) {
+                // No seu banco, as notas estão na coluna 'mensagem'
+                const notasLimpas = lead.mensagem ? lead.mensagem.replace(/'/g, "\\'") : '';
+                container.innerHTML += `
+    <div class="lead-card" id="lead-${lead.id}" draggable="true" ondragstart="drag(event)" 
+         onclick="abrirDetalhes(${lead.id}, '${lead.nome}', '${lead.telefone || ''}', '${lead.area_interesse || ''}', '${notasLimpas}')">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <strong>${lead.nome}</strong>
+            <i class="lucide lucide-message-circle" 
+               onclick="abrirWhatsApp(event, '${lead.telefone}', '${lead.nome}')" 
+               style="width:16px; color: var(--success); cursor: pointer;" 
+               title="Chamar no WhatsApp"></i>
+        </div>
+        <span><i class="lucide lucide-phone" style="width:12px;"></i> ${lead.telefone || '---'}</span>
+    </div>`;
+            }
+        });
+
+        for (let s in counts) {
+            const el = document.getElementById(`count-${s}`);
+            if (el) el.innerText = counts[s];
         }
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    } catch (e) { console.error("Erro ao carregar leads:", e); }
+}
 
-        window.onload = carregarDadosSidebar;
-    </script>
+    // 3. SALVAR NOVO LEAD (CORRIGE O BOTÃO SEM AÇÃO)
+async function salvarNovoLead(e) {
+    if(e) e.preventDefault();
+    const dados = {
+        nome: document.getElementById('novoNome').value,
+        telefone: document.getElementById('novoTelefone').value,
+        area_interesse: document.getElementById('novoInteresse').value,
+        status: 'lead'
+    };
+
+    try {
+        // 🚀 ROTA CORRIGIDA PARA O PADRÃO DA SUA API
+        const res = await fetch('/api/crm/leads', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(dados)
+        });
+
+        if (res.ok) {
+            fecharModalCadastro();
+            await carregarLeads(); // Isso fará o card aparecer na Pipeline
+        } else {
+            alert("Erro de conexão com o servidor. Verifique se a rota existe.");
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+    // MODAIS E DRAG&DROP
+    function abrirModalCadastro() { document.getElementById('modalNovoLead').style.display = 'flex'; }
+    function fecharModalCadastro() { 
+        document.getElementById('modalNovoLead').style.display = 'none'; 
+        document.getElementById('formNovoLead')?.reset(); 
+    }
+    function abrirDetalhes(id, nome, tel, int, notas) {
+        leadSelecionadoId = id;
+        document.getElementById('detalheNome').innerText = nome;
+        document.getElementById('detalheTelefone').innerText = tel;
+        document.getElementById('detalheInteresse').innerText = int;
+        document.getElementById('detalheNotas').value = (notas === 'null' || !notas) ? '' : notas;
+        document.getElementById('modalDetalhes').style.display = 'flex';
+    }
+    function fecharModalDetalhes() { document.getElementById('modalDetalhes').style.display = 'none'; }
+    
+    async function salvarNotas() {
+        const notas = document.getElementById('detalheNotas').value;
+        await fetch(`/api/crm/leads/${leadSelecionadoId}/notas`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ notas }) });
+        fecharModalDetalhes();
+        carregarLeads();
+    }
+
+    async function excluirLead() {
+        if (!confirm("Excluir este lead?")) return;
+        await fetch(`/api/crm/leads/${leadSelecionadoId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+        fecharModalDetalhes();
+        carregarLeads();
+    }
+
+    function allowDrop(ev) { ev.preventDefault(); }
+    function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
+    async function drop(ev) {
+    ev.preventDefault();
+    const id = ev.dataTransfer.getData("text").replace('lead-', '');
+    const targetStatus = ev.currentTarget.getAttribute('data-status');
+    
+    // Traduz do ID da coluna para o nome no banco de dados
+    const statusParaBanco = { 'lead': 'Novo', 'triagem': 'Reunião', 'proposta': 'Proposta', 'ganho': 'Ganho' };
+    const statusFinal = statusParaBanco[targetStatus];
+
+    await fetch(`/api/crm/lead/${id}/status`, { 
+        method: 'PATCH', // Seu crm.routes usa PATCH para status
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, 
+        body: JSON.stringify({ status: statusFinal }) 
+    });
+    carregarLeads();
+}
+
+    window.onload = () => {
+        carregarInfoRodape();
+        carregarLeads();
+        const form = document.getElementById('formNovoLead');
+        if (form) form.onsubmit = salvarNovoLead;
+    };
+
+    function abrirWhatsApp(event, telefone, nome) {
+    // Impede que o clique no ícone abra o modal de detalhes
+    event.stopPropagation();
+
+    if (!telefone || telefone === '---') {
+        alert("Este lead não possui telefone cadastrado.");
+        return;
+    }
+
+    // Limpa o número (remove parênteses, espaços e traços)
+    const foneLimpo = telefone.replace(/\D/g, '');
+    
+    // Mensagem de saudação personalizada
+    const mensagem = window.encodeURIComponent(`Olá, ${nome}! Sou o Dr. Fábio, da LawTech Pro. Recebi seu interesse em nosso escritório. Como posso lhe ajudar hoje?`);
+    
+    // Abre o WhatsApp Web ou App
+    window.open(`https://wa.me/55${foneLimpo}?text=${mensagem}`, '_blank');
+}
+
+function enviarLinkFicha() {
+    const nome = document.getElementById('detalheNome').innerText;
+    const telefone = document.getElementById('detalheTelefone').innerText;
+    const foneLimpo = telefone.replace(/\D/g, '');
+    
+    // Supondo que seu site seja lawtechpro.com.br
+    const linkFicha = `https://seusite.com.br/ficha-cliente.html?leadId=${leadSelecionadoId}`;
+    
+    const mensagem = window.encodeURIComponent(`Parabéns pelo fechamento, ${nome}! 🚀 Para iniciarmos seu processo, por favor, preencha seus dados oficiais neste link seguro: ${linkFicha}`);
+    
+    window.open(`https://wa.me/55${foneLimpo}?text=${mensagem}`, '_blank');
+}
+
+let quantidadeLeadsAnterior = 0;
+
+async function verificarNovosLeads() {
+    try {
+        const res = await fetch('/api/crm/leads', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const leads = await res.json();
+        
+        // Se o número atual de leads for maior que o anterior, toca o bip!
+        if (leads.length > quantidadeLeadsAnterior && quantidadeLeadsAnterior !== 0) {
+            tocarBip();
+            // Opcional: Mostrar uma notificação visual temporária
+            console.log("🔔 Novo lead recebido!");
+        }
+        
+        quantidadeLeadsAnterior = leads.length;
+        renderizarLeads(leads); // Sua função que desenha os cards na tela
+    } catch (err) {
+        console.error("Erro ao verificar leads:", err);
+    }
+}
+
+// Faz o sistema verificar novos leads a cada 30 segundos
+setInterval(verificarNovosLeads, 30000); 
+
+// Carrega a primeira vez ao abrir a página
+verificarNovosLeads();
+
+</script>
+
+<div id="modalNovoLead" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="modal-crm-content" style="background: white; padding: 30px; border-radius: 15px; width: 400px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+        <h3 style="margin-bottom: 20px; font-weight: 800; color: var(--sidebar);">Cadastrar Novo Lead</h3>
+        <form id="formNovoLead">
+            <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Nome do Lead</label>
+            <input type="text" id="novoNome" placeholder="Ex: Daniel" style="width: 100%; margin-bottom: 15px; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" required>
+            
+            <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;">WhatsApp</label>
+            <input type="text" id="novoTelefone" placeholder="(75) 98131-8131" style="width: 100%; margin-bottom: 15px; padding: 12px; border: 1px solid var(--border); border-radius: 8px;">
+            
+            <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Área de Interesse</label>
+            <select id="novoInteresse" style="width: 100%; margin-bottom: 25px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: white;">
+                <option value="Trabalhista">Trabalhista</option>
+                <option value="Cível">Cível</option>
+                <option value="Cálculos Periciais">Cálculos Periciais</option>
+            </select>
+            
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-primary" style="flex: 1; justify-content: center;">Criar Lead</button>
+                <button type="button" onclick="fecharModalCadastro()" style="flex: 1; background: #f1f5f9; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modalDetalhes" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="modal-crm-content" style="background: white; padding: 32px; border-radius: 20px; width: 450px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);">
+        
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+            <div>
+                <h3 id="detalheNome" style="font-size: 18px; font-weight: 800; color: var(--sidebar); margin-bottom: 5px;"></h3>
+                
+                <p style="font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px;">
+                    <strong>Contato:</strong> <span id="detalheTelefone"></span>
+                    <button onclick="abrirWhatsApp(event, document.getElementById('detalheTelefone').innerText, document.getElementById('detalheNome').innerText)" 
+                            style="background:#f0fdf4; border:1px solid #bbf7d0; color:#16a34a; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold; display:flex; align-items:center; gap:4px;">
+                        <i class="lucide lucide-message-circle" style="width:12px;"></i> WhatsApp
+                    </button>
+                </p>
+
+                <p style="font-size: 13px; color: var(--muted); margin-top: 5px;">
+                    <strong>Interesse:</strong> <span id="detalheInteresse"></span>
+                </p>
+            </div>
+            <button onclick="fecharModalDetalhes()" style="background:none; border:none; cursor:pointer; font-size: 24px; color:var(--muted);">&times;</button>
+        </div>
+
+        <button onclick="enviarLinkFicha()" style="width: 100%; background: #0f172a; color: white; padding: 12px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s;">
+            <i class="lucide lucide-share-2" style="width:16px;"></i> Enviar Ficha Cadastral p/ Cliente
+        </button>
+        
+        <label style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; display: block;">Histórico de Conversas e Notas</label>
+        <textarea id="detalheNotas" class="notes-area" placeholder="Anote aqui o que foi conversado..." style="width: 100%; height: 120px; margin-top: 8px; border-radius: 8px; padding: 10px; border: 1px solid var(--border);"></textarea>
+        
+        <div style="display: flex; gap: 10px; margin-top: 25px;">
+            <button onclick="salvarNotas()" class="btn-primary" style="flex: 2; justify-content: center;">
+                <i class="lucide lucide-save" style="width:16px;"></i> Salvar Notas
+            </button>
+            <button onclick="excluirLead()" style="flex: 1; background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                <i class="lucide lucide-trash-2" style="width:14px;"></i> Excluir
+            </button>
+        </div>
+    </div>
+</div>
 </body>
 </html>

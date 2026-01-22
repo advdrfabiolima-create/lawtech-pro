@@ -77,18 +77,17 @@ app.post('/api/processos', authMiddleware, async (req, res) => {
     }
 });
 
-// 🔍 ROTA DE LISTAGEM ATUALIZADA
+// 🔍 ROTA DE LISTAGEM ATUALIZADA NO SERVER.JS
 app.get('/api/processos', authMiddleware, async (req, res) => {
     try {
         const resultado = await pool.query(
-            // 🚀 ADICIONEI 'parte_contraria' ABAIXO
-            "SELECT id, numero, cliente, uf, instancia, status, acao_por, acao_data, parte_contraria FROM processos WHERE escritorio_id = (SELECT escritorio_id FROM usuarios WHERE id = $1) ORDER BY id DESC",
+            // 🚀 O SEGREDO: 'numero AS processo_numero' para o seletor do modal funcionar
+            "SELECT id, numero AS processo_numero, cliente, uf, instancia, status FROM processos WHERE escritorio_id = (SELECT escritorio_id FROM usuarios WHERE id = $1) ORDER BY id DESC",
             [req.user.id]
         );
         res.json(resultado.rows);
     } catch (err) {
-        console.error("Erro ao buscar processos:", err.message);
-        res.status(500).json({ erro: "Erro ao carregar lista de processos." });
+        res.status(500).json({ erro: "Erro ao carregar processos." });
     }
 });
 

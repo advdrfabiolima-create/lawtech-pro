@@ -60,6 +60,26 @@
         /* Modal */
         #modalProcesso { backdrop-filter: blur(4px); }
         .modal-content { background:#fff; width:100%; max-width:480px; padding:32px; border-radius:16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+
+        .btn-crm-gold-nav {
+    background: #fbbf24 !important; /* Cor Gold */
+    color: #000 !important;
+    font-weight: 800 !important;
+    margin-top: 15px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 12px !important;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.3s;
+}
+.btn-crm-gold-nav:hover { 
+    background: #facc15 !important; 
+    transform: scale(1.02); 
+}
+.btn-crm-gold-nav i { margin-right: 10px; }
     </style>
 </head>
 <body>
@@ -81,6 +101,9 @@
             </a>
             <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
             <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
+            <a href="/crm-page" class="btn-crm-gold-nav">
+            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+        </a>
         </nav>
         <div class="sidebar-footer">
             <div><span style="color:#64748b">Usuário:</span> <span id="footerEmail" style="color:#fff">...</span></div>

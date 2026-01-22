@@ -59,5 +59,20 @@ async function excluirCalculo(req, res) {
     }
 }
 
+async function obterFatorAcumulado(req, res) {
+    try {
+        const { dataInicio, dataFim, indice } = req.query;
+        // Lógica que soma os índices do período selecionado
+        const result = await pool.query(
+            `SELECT SUM(${indice === 'inpc' ? 'valor_inpc' : 'valor_ipca'}) as acumulado 
+             FROM indices_correcao 
+             WHERE mes_ano >= $1 AND mes_ano <= $2`,
+            [dataInicio, dataFim]
+        );
+        res.json({ fator: 1 + (parseFloat(result.rows[0].acumulado) || 0) });
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+}
 // Não esqueça de exportar a nova função:
 module.exports = { salvarCalculo, listarHistorico, excluirCalculo };
