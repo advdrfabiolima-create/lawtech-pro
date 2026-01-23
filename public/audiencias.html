@@ -269,7 +269,7 @@
                         <td style="text-align: center;">
                             <div style="display:flex; flex-direction:column; gap:8px; align-items:center;">
                                 <button class="btn-whatsapp" onclick="avisarZap('${a.cliente}', '${a.processo_numero}', '${a.tipo_audiencia}', '${a.data_audiencia}', '${a.hora_audiencia}', '${a.local_virtual}', '${a.telefone}')">
-                                    <i class="lucide lucide-message-circle"></i> Zap Cliente
+                                    <i class="lucide lucide-message-circle"></i> WhatsApp Cliente
                                 </button>
                                 <button onclick="excluirAudiencia(${a.id})" style="color:var(--danger); background:none; border:none; cursor:pointer; font-weight:700; font-size:11px;">
                                     <i class="lucide lucide-trash-2" style="width:12px; vertical-align:middle;"></i> EXCLUIR
@@ -322,7 +322,7 @@
             }
             const foneLimpo = telefone.replace(/\D/g, "");
             const dataFormatada = new Date(data).toLocaleDateString('pt-BR');
-            const mensagem = `*AVISO DE AUDIÊNCIA - LawTech Pro*%0A%0A` +
+            const mensagem = `*AVISO DE AUDIÊNCIA*%0A%0A` +
                              `Olá, *${cliente}*!%0A` +
                              `Confirmamos o agendamento da sua audiência:%0A%0A` +
                              `📂 *Processo:* ${processo}%0A` +

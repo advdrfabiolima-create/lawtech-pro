@@ -32,42 +32,64 @@ async function obterMetricasFunil(req, res) {
         };
 
         result.rows.forEach(row => {
-    const statusRaw = (row.status || '').trim();
-    const status = statusRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // remove acentos
-    const count = parseInt(row.total, 10) || 0;
+            const statusRaw = (row.status || '').trim();
+            const statusNorm = statusRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // remove acentos
+            const count = parseInt(row.total, 10) || 0;
 
-    // Leads
-    if (status.includes('novo') || status.includes('lead') || status.includes('pista') || statusRaw === 'Novo') {
-        stats.leads += count;
-    } 
-    // Triagem / Reunião
-    else if (status.includes('reuniao') || status.includes('reunio') || status.includes('triagem') || statusRaw.includes('Reunião') || statusRaw.includes('Triagem')) {
-        stats.reuniao += count;
-    } 
-    // Proposta
-    else if (status.includes('proposta') || status.includes('propost') || statusRaw.includes('Proposta') || statusRaw.includes('Propostas')) {
-        stats.proposta += count;
-    } 
-    // GANHO - agora inclui "ganhar" explicitamente
-    else if (
-        status.includes('ganho') ||
-        status.includes('ganhar') ||          // ← ESSENCIAL PARA O SEU CASO
-        status.includes('ganhho') ||
-        status.includes('ganhos') ||
-        status.includes('contrato') ||
-        status.includes('fechado') ||
-        statusRaw.includes('Ganho') ||
-        statusRaw.includes('Ganhar') ||
-        statusRaw.includes('GANHAR') ||
-        statusRaw.includes('GANHO')
-    ) {
-        stats.ganho += count;
-        console.log(`[DEBUG] Mapeado como GANHO: status="${statusRaw}" → count=${count}`); // Log para confirmar
+            // Mapeamento ultra-tolerante baseado nos valores reais do seu banco
+            if (
+                statusNorm.includes('novo') ||
+                statusNorm === 'novo' ||
+                statusRaw === 'Novo' ||
+                statusNorm.includes('lead') ||
+                statusNorm.includes('pista')
+            ) {
+                stats.leads += count;
+            }
+            else if (
+                statusNorm.includes('reuniao') ||
+                statusNorm.includes('reunio') ||
+                statusNorm.includes('reuni') ||
+                statusNorm.includes('triagem') ||
+                statusRaw.includes('Reunião') ||
+                statusRaw.includes('Triagem')
+            ) {
+                stats.reuniao += count;
+            }
+            else if (
+                statusNorm.includes('proposta') ||
+                statusNorm.includes('propost') ||
+                statusRaw.includes('Proposta') ||
+                statusRaw.includes('Propostas')
+            ) {
+                stats.proposta += count;
+            }
+            else if (
+    statusNorm.includes('ganho') ||
+    statusNorm.includes('ganhar') ||          // seu status real
+    statusNorm.includes('ganhho') ||
+    statusNorm.includes('ganhos') ||
+    statusNorm.includes('contrato') ||
+    statusNorm.includes('fechado') ||
+    statusNorm.includes('ganh') ||            // pega qualquer variação com "ganh"
+    statusRaw.includes('Ganho') ||
+    statusRaw.includes('Ganhar') ||
+    statusRaw.includes('GANHO')
+) {
+    stats.ganho += count;
+    console.log(`Mapeado como GANHO: "${statusRaw}" → ${count}`); // debug
+}
+        });
+
+        console.log(`Métricas reais retornadas para escritório ${escritorioId}:`, stats);
+        console.log('Resumo final de métricas enviadas:', stats);
+
+        res.json(stats);
+    } catch (error) {
+        console.error('Erro CRM Metricas:', error.message);
+        res.status(500).json({ erro: 'Erro ao carregar métricas do pipeline' });
     }
-
-    // Log geral para debug
-    console.log(`[DEBUG] Status processado: "${statusRaw}" (normalizado: "${status}") → count=${count}`);
-});
+}
 
 /* As outras funções permanecem iguais, mas corrigi pequenos detalhes de robustez */
 
