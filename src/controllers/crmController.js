@@ -3,21 +3,27 @@ const pool = require('../config/db');
 
 /**
  * 1. OBTER MÉTRICAS DO FUNIL
- * Agrupa os leads por status para exibir os totais no Dashboard/CRM
+ * Contagem robusta para os 4 cards do pipeline:
+ * leads    → Novos Leads
+ * reuniao  → Em Triagem
+ * proposta → Propostas
+ * ganho    → Ganhos
  */
 async function obterMetricasFunil(req, res) {
     try {
         const escritorioId = req.user.escritorio_id;
-        
+
         const query = `
             SELECT status, COUNT(*) as total 
             FROM leads 
             WHERE escritorio_id = $1 
+              AND status IS NOT NULL
+              AND LOWER(status) NOT IN ('perdido', 'arquivado', 'excluido', 'cancelado', 'recusado')
             GROUP BY status
         `;
-        
+
         const result = await pool.query(query, [escritorioId]);
-        
+
         const stats = {
             leads: 0,
             reuniao: 0,
@@ -26,23 +32,45 @@ async function obterMetricasFunil(req, res) {
         };
 
         result.rows.forEach(row => {
-            if (row.status === 'Novo') stats.leads = parseInt(row.total);
-            if (row.status === 'Reunião') stats.reuniao = parseInt(row.total);
-            if (row.status === 'Proposta') stats.proposta = parseInt(row.total);
-            if (row.status === 'Ganho') stats.ganho = parseInt(row.total);
-        });
+    const statusRaw = (row.status || '').trim();
+    const status = statusRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // remove acentos
+    const count = parseInt(row.total, 10) || 0;
 
-        res.json(stats);
-    } catch (error) {
-        console.error('Erro CRM Metricas:', error.message);
-        res.status(500).json({ erro: 'Erro ao carregar métricas do CRM' });
+    // Leads
+    if (status.includes('novo') || status.includes('lead') || status.includes('pista') || statusRaw === 'Novo') {
+        stats.leads += count;
+    } 
+    // Triagem / Reunião
+    else if (status.includes('reuniao') || status.includes('reunio') || status.includes('triagem') || statusRaw.includes('Reunião') || statusRaw.includes('Triagem')) {
+        stats.reuniao += count;
+    } 
+    // Proposta
+    else if (status.includes('proposta') || status.includes('propost') || statusRaw.includes('Proposta') || statusRaw.includes('Propostas')) {
+        stats.proposta += count;
+    } 
+    // GANHO - agora inclui "ganhar" explicitamente
+    else if (
+        status.includes('ganho') ||
+        status.includes('ganhar') ||          // ← ESSENCIAL PARA O SEU CASO
+        status.includes('ganhho') ||
+        status.includes('ganhos') ||
+        status.includes('contrato') ||
+        status.includes('fechado') ||
+        statusRaw.includes('Ganho') ||
+        statusRaw.includes('Ganhar') ||
+        statusRaw.includes('GANHAR') ||
+        statusRaw.includes('GANHO')
+    ) {
+        stats.ganho += count;
+        console.log(`[DEBUG] Mapeado como GANHO: status="${statusRaw}" → count=${count}`); // Log para confirmar
     }
-}
 
-/**
- * 2. LISTAR LEADS
- * Busca todos os leads do escritório logado
- */
+    // Log geral para debug
+    console.log(`[DEBUG] Status processado: "${statusRaw}" (normalizado: "${status}") → count=${count}`);
+});
+
+/* As outras funções permanecem iguais, mas corrigi pequenos detalhes de robustez */
+
 async function listarLeads(req, res) {
     try {
         const escritorioId = req.user.escritorio_id;
@@ -57,24 +85,18 @@ async function listarLeads(req, res) {
     }
 }
 
-/**
- * 3. CRIAR LEAD PÚBLICO
- * Rota usada pela Landing Page (index.html) para captar novos clientes
- */
 async function criarLeadPublico(req, res) {
     const { nome, email, telefone } = req.body;
-    // Vincula o lead ao seu escritório principal (ID 1)
-    const MEU_ESCRITORIO_ID = 1; 
+    const MEU_ESCRITORIO_ID = 1;
 
     try {
         const query = `
             INSERT INTO leads (nome, email, telefone, origem, status, escritorio_id)
-            VALUES ($1, $2, $3, 'Landing Page', 'Novo', $4)
+            VALUES ($1, $2, $3, 'Landing Page', 'novo', $4)
             RETURNING id
         `;
         await pool.query(query, [nome, email, telefone, MEU_ESCRITORIO_ID]);
 
-        // Dispara E-mail de Alerta via Brevo (se configurado no .env)
         if (process.env.BREVO_API_KEY) {
             try {
                 await axios.post('https://api.brevo.com/v3/smtp/email', {
@@ -84,51 +106,53 @@ async function criarLeadPublico(req, res) {
                     htmlContent: `
                         <h2>Novo Contato Recebido</h2>
                         <p><strong>Nome:</strong> ${nome}</p>
-                        <p><strong>E-mail:</strong> ${email}</p>
-                        <p><strong>WhatsApp:</strong> ${telefone}</p>
+                        <p><strong>E-mail:</strong> ${email || '—'}</p>
+                        <p><strong>WhatsApp:</strong> ${telefone || '—'}</p>
                     `
-                }, {
-                    headers: { 'api-key': process.env.BREVO_API_KEY }
-                });
+                }, { headers: { 'api-key': process.env.BREVO_API_KEY } });
             } catch (mailErr) {
-                console.warn("Aviso: Lead salvo, mas e-mail não enviado:", mailErr.message);
+                console.warn("E-mail de alerta falhou:", mailErr.message);
             }
         }
 
-        res.status(201).json({ ok: true, mensagem: 'Mensagem enviada com sucesso!' });
+        res.status(201).json({ ok: true, mensagem: 'Lead captado!' });
     } catch (error) {
-        console.error('Erro ao captar lead:', error.message);
-        res.status(500).json({ erro: 'Falha ao processar contato.' });
+        console.error('Erro ao criar lead público:', error.message);
+        res.status(500).json({ erro: 'Falha ao processar lead' });
     }
 }
 
-/**
- * 4. ATUALIZAR STATUS DO LEAD
- * Altera a fase do lead no funil (Mover entre colunas)
- */
 async function atualizarStatusLead(req, res) {
     const { id } = req.params;
-    const { status } = req.body;
+    let { status } = req.body;
     const escritorioId = req.user.escritorio_id;
 
     try {
+        // Normaliza para o padrão mais comum no seu banco
+        const statusMap = {
+            'lead': 'Novo',
+            'triagem': 'Reunião',
+            'proposta': 'Proposta',
+            'ganho': 'Ganho'
+        };
+        const statusFinal = statusMap[status.toLowerCase()] || status.trim();
+
         const result = await pool.query(
-            'UPDATE leads SET status = $1 WHERE id = $2 AND escritorio_id = $3',
-            [status, id, escritorioId]
+            'UPDATE leads SET status = $1 WHERE id = $2 AND escritorio_id = $3 RETURNING id',
+            [statusFinal, id, escritorioId]
         );
 
         if (result.rowCount === 0) {
-            return res.status(404).json({ erro: 'Lead não encontrado ou sem permissão.' });
+            return res.status(404).json({ erro: 'Lead não encontrado ou sem permissão' });
         }
 
-        res.json({ ok: true });
+        res.json({ ok: true, status: statusFinal });
     } catch (err) {
-        console.error('Erro ao atualizar status do lead:', err.message);
-        res.status(500).json({ erro: 'Erro interno ao atualizar status' });
+        console.error('Erro ao atualizar status:', err.message);
+        res.status(500).json({ erro: 'Erro ao mover lead' });
     }
 }
 
-// Exportação unificada das funções
 module.exports = { 
     obterMetricasFunil, 
     listarLeads, 

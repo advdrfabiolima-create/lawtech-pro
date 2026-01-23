@@ -12,6 +12,7 @@ const controller = require('../controllers/prazosController');
 // Página Principal de Prazos (Resolve o sumiço dos dados na listagem geral)
 router.get('/prazos', authMiddleware, controller.listarPrazosGeral);
 router.get('/todos-prazos-ativos', authMiddleware, controller.listarPrazosGeral);
+router.get('/plano-consumo', authMiddleware, controller.planoEConsumo);
 
 // Histórico de Concluídos
 router.get('/prazos-concluidos', authMiddleware, controller.listarPrazosConcluidos);
@@ -23,10 +24,16 @@ router.get('/prazos-concluidos', authMiddleware, controller.listarPrazosConcluid
  */
 
 // Card de Vencidos (Bolinha vermelha do Dashboard)
-router.get('/dashboard/prazos-vencidos', authMiddleware, controller.listarPrazosVencidos);
+router.get(
+  '/dashboard/prazos-vencidos',
+  authMiddleware,
+  controller.listarPrazosVencidos
+);
+
 
 // Card da Semana (Bolinha amarela do Dashboard)
 router.get('/dashboard/prazos-semana', authMiddleware, controller.listarPrazosSemana);
+//router.get('/dashboard/prazos-futuros', authMiddleware, controller.listarPrazosFuturos);
 
 // Lista de 10 Próximos (Onde as Tags de dias agora vão funcionar)
 router.get('/dashboard/prazos-geral', authMiddleware, controller.listarPrazosDashboard);

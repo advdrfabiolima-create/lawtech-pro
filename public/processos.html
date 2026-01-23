@@ -205,229 +205,257 @@
         </div>
     </div>
 
-    <script>
-        const token = localStorage.getItem('token');
-        if (!token) window.location.href = '/login.html';
-        let todosProcessos = [];
-        let abaAtual = 'ativo';
+ <script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login.html';
+    let todosProcessos = [];
+    let abaAtual = 'ativo';
 
-        const regioesMap = {
-            'SUL': ['PR', 'RS', 'SC'],
-            'SUDESTE': ['ES', 'MG', 'RJ', 'SP'],
-            'CENTRO': ['DF', 'GO', 'MT', 'MS'],
-            'NORDESTE': ['AL', 'BA', 'CE', 'MA', 'PB', 'PE', 'PI', 'RN', 'SE'],
-            'NORTE': ['AC', 'AM', 'AP', 'PA', 'RO', 'RR', 'TO']
-        };
+    const regioesMap = {
+        'SUL': ['PR', 'RS', 'SC'],
+        'SUDESTE': ['ES', 'MG', 'RJ', 'SP'],
+        'CENTRO': ['DF', 'GO', 'MT', 'MS'],
+        'NORDESTE': ['AL', 'BA', 'CE', 'MA', 'PB', 'PE', 'PI', 'RN', 'SE'],
+        'NORTE': ['AC', 'AM', 'AP', 'PA', 'RO', 'RR', 'TO']
+    };
 
-        async function inicializar() {
-            try {
-                const resUser = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
-                const dataUser = await resUser.json();
-                if (dataUser.ok) document.getElementById('footerEmail').innerText = dataUser.usuario.email;
+    async function inicializar() {
+        try {
+            const resUser = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+            const dataUser = await resUser.json();
+            if (dataUser.ok) document.getElementById('footerEmail').innerText = dataUser.usuario.email;
 
-                const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
-                const dataPlan = await resPlan.json();
-                document.getElementById('footerPlano').innerText = dataPlan.plano || '---';
+            const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+            const dataPlan = await resPlan.json();
+            document.getElementById('footerPlano').innerText = dataPlan.plano || '---';
 
-                await carregarProcessos();
-            } catch (err) { console.error(err); }
-        }
-
-        async function carregarProcessos() {
-            try {
-                const res = await fetch('/api/processos', { headers: { 'Authorization': `Bearer ${token}` } });
-                todosProcessos = await res.json();
-                renderizarTabela(todosProcessos);
-            } catch (err) { console.error(err); }
-        }
-
-function renderizarTabela(lista) {
-    const tabela = document.getElementById('listaProcessos');
-    const tituloAcao = document.getElementById('colunaAcaoTitulo');
-    
-    // Atualiza o título da coluna conforme a aba
-    if (tituloAcao) {
-        tituloAcao.innerText = abaAtual === 'excluido' ? 'Excluído por' : 'Ações';
-    }
-
-    const listaFiltrada = lista.filter(p => (p.status || 'ativo') === abaAtual);
-
-    if (listaFiltrada.length === 0) {
-        tabela.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:50px; color:var(--muted); font-size: 14px;">Nenhum processo ${abaAtual} encontrado.</td></tr>`;
-        return;
-    }
-
-    tabela.innerHTML = listaFiltrada.map(p => `
-        <tr>
-            <td style="font-weight: 600; color: var(--primary);">
-    ${p.numero}
-    <div style="font-size: 11px; color: var(--muted); font-weight: 400; margin-top: 2px;">
-        vs. ${p.parte_contraria || 'Não informada'}
-    </div>
-</td>
-            <td><strong>${p.cliente || 'Sem Cliente'}</strong></td>
-            <td><span style="color: var(--muted); font-size: 12px; font-weight: 700;">${p.uf || '--'}</span> / ${p.instancia || '1'}ª Inst.</td>
-            <td style="text-align: center;">
-                <span class="status-pill" style="${(p.status || 'ativo') === 'arquivado' ? 'background:#f1f5f9; color:#64748b; border-color:#e2e8f0;' : (p.status === 'excluido' ? 'background:#fef2f2; color:#ef4444; border-color:#fecaca;' : '')}">
-                    ${(p.status || 'ativo').toUpperCase()}
-                </span>
-            </td>
-            <td style="text-align: right;">
-                ${abaAtual === 'excluido' ? 
-                    `<div style="line-height:1.2; text-align:right;">
-                        <span style="font-size:11px; font-weight:700; color:var(--danger); display:block;">${p.acao_por || 'Sistema'}</span>
-                        <small style="font-size:10px; color:var(--muted);">${p.acao_data ? new Date(p.acao_data).toLocaleDateString('pt-BR') : ''}</small>
-                    </div>` :
-                    `<div style="display: flex; gap: 15px; justify-content: flex-end; align-items: center;">
-                        ${(p.status || 'ativo') === 'ativo' ? `
-                            <button onclick="arquivarProcesso(${p.id})" style="background:none; border:none; color:#f59e0b; cursor:pointer;" title="Arquivar">
-                                <i data-lucide="archive" style="width:18px; height:18px;"></i>
-                            </button>
-                        ` : ''}
-                        <button onclick="excluirProcesso(${p.id})" style="background:none; border:none; color:#ef4444; cursor:pointer;" title="Excluir">
-                            <i data-lucide="trash-2" style="width:18px; height:18px;"></i>
-                        </button>
-                    </div>`
-                }
-            </td>
-        </tr>
-    `).join('');
-
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
-}
-
-function mudarAba(aba) {
-    abaAtual = aba;
-    
-    // 1. Garante que todos os filtros de região voltem para 'TODOS' ao trocar de aba
-    // Isso evita que um processo arquivado suma por causa de um filtro de estado ativo
-    const btnTodos = document.querySelector('#region-filter .btn-filter');
-    if (btnTodos) filtrarRegiao('TODOS', btnTodos);
-
-    // 2. Gerenciamento visual das abas
-    document.getElementById('btnTabAtivo').classList.remove('active');
-    document.getElementById('btnTabArquivado').classList.remove('active');
-    document.getElementById('btnTabExcluido').classList.remove('active');
-    
-    if (aba === 'ativo') document.getElementById('btnTabAtivo').classList.add('active');
-    if (aba === 'arquivado') document.getElementById('btnTabArquivado').classList.add('active');
-    if (aba === 'excluido') document.getElementById('btnTabExcluido').classList.add('active');
-    
-    // 3. Renderiza a tabela com os dados atualizados
-    renderizarTabela(todosProcessos);
-}
-
-// 📂 Função para Arquivar
-async function arquivarProcesso(id) {
-    if (!confirm("Deseja mover este processo para os Arquivados?")) return;
-    try {
-        const res = await fetch(`/api/processos/${id}/arquivar`, { 
-            method: 'PATCH', 
-            headers: { 'Authorization': `Bearer ${token}` } 
-        });
-        const data = await res.json();
-        if (data.ok) {
-            alert("Processo arquivado com sucesso!");
-            // 🚀 RECARREGA TUDO E MANTÉM NA ABA ATUAL (ELE SUMIRÁ DAQUI)
-            await carregarProcessos(); 
-        }
-    } catch (err) { alert("Erro na comunicação com o servidor."); }
-}
-
-async function excluirProcesso(id) {
-    if (!confirm("Deseja enviar este processo para a Lixeira de Auditoria?")) return;
-    try {
-        const res = await fetch(`/api/processos/${id}/excluir`, { 
-            method: 'PATCH', 
-            headers: { 'Authorization': `Bearer ${token}` } 
-        });
-        const data = await res.json();
-        if (data.ok) {
-            alert("Processo enviado para a Lixeira.");
-            // 🚀 RECARREGA TUDO
             await carregarProcessos();
+        } catch (err) { console.error(err); }
+    }
+
+    async function carregarProcessos() {
+        try {
+            const res = await fetch('/api/processos', { headers: { 'Authorization': `Bearer ${token}` } });
+            todosProcessos = await res.json();
+            renderizarTabela(todosProcessos);
+        } catch (err) { console.error(err); }
+    }
+
+    function renderizarTabela(lista) {
+        const tabela = document.getElementById('listaProcessos');
+        const tituloAcao = document.getElementById('colunaAcaoTitulo');
+        
+        if (tituloAcao) {
+            tituloAcao.innerText = abaAtual === 'excluido' ? 'Excluído por' : 'Ações';
         }
-    } catch (err) { alert("Erro na comunicação com o servidor."); }
-}
 
-        function filtrarRegiao(regiao, elemento) {
-            document.querySelectorAll('#region-filter .btn-filter').forEach(btn => btn.classList.remove('active'));
-            elemento.classList.add('active');
-            const stateFilterDiv = document.getElementById('state-filter');
-            const stateButtonsDiv = document.getElementById('state-buttons');
+        const listaFiltrada = lista.filter(p => (p.status || 'ativo') === abaAtual);
 
-            if (regiao === 'TODOS') {
-                stateFilterDiv.style.display = 'none';
-                renderizarTabela(todosProcessos);
-                return;
-            }
+        if (listaFiltrada.length === 0) {
+            tabela.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:50px; color:var(--muted); font-size: 14px;">Nenhum processo ${abaAtual} encontrado.</td></tr>`;
+            return;
+        }
 
-            stateFilterDiv.style.display = 'flex';
-            stateButtonsDiv.innerHTML = '';
-            regioesMap[regiao].forEach(uf => {
-                const btn = document.createElement('button');
-                btn.className = 'btn-filter';
-                btn.innerText = uf;
-                btn.onclick = () => filtrarPorEstado(uf, btn);
-                stateButtonsDiv.appendChild(btn);
+        tabela.innerHTML = listaFiltrada.map(p => `
+            <tr>
+                <td style="font-weight: 600; color: var(--primary);">
+                    ${p.numero}
+                    <div style="font-size: 11px; color: var(--muted); font-weight: 400; margin-top: 2px;">
+                        vs. ${p.parte_contraria || 'Não informada'}
+                    </div>
+                </td>
+                <td><strong>${p.cliente || 'Sem Cliente'}</strong></td>
+                <td><span style="color: var(--muted); font-size: 12px; font-weight: 700;">${p.uf || '--'}</span> / ${p.instancia || '1'}ª Inst.</td>
+                <td style="text-align: center;">
+                    <span class="status-pill" style="${(p.status || 'ativo') === 'arquivado' ? 'background:#f1f5f9; color:#64748b; border-color:#e2e8f0;' : (p.status === 'excluido' ? 'background:#fef2f2; color:#ef4444; border-color:#fecaca;' : '')}">
+                        ${(p.status || 'ativo').toUpperCase()}
+                    </span>
+                </td>
+                <td style="text-align: right;">
+                    ${abaAtual === 'excluido' ? 
+                        `<div style="line-height:1.2; text-align:right;">
+                            <span style="font-size:11px; font-weight:700; color:var(--danger); display:block;">${p.acao_por || 'Sistema'}</span>
+                            <small style="font-size:10px; color:var(--muted);">${p.acao_data ? new Date(p.acao_data).toLocaleDateString('pt-BR') : ''}</small>
+                        </div>` :
+                        `<div style="display: flex; gap: 15px; justify-content: flex-end; align-items: center;">
+                            ${(p.status || 'ativo') === 'ativo' ? `
+                                <button onclick="arquivarProcesso(${p.id})" style="background:none; border:none; color:#f59e0b; cursor:pointer;" title="Arquivar">
+                                    <i data-lucide="archive" style="width:18px; height:18px;"></i>
+                                </button>
+                            ` : ''}
+                            <button onclick="excluirProcesso(${p.id})" style="background:none; border:none; color:#ef4444; cursor:pointer;" title="Excluir">
+                                <i data-lucide="trash-2" style="width:18px; height:18px;"></i>
+                            </button>
+                        </div>`
+                    }
+                </td>
+            </tr>
+        `).join('');
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function mudarAba(aba) {
+        abaAtual = aba;
+        const btnTodos = document.querySelector('#region-filter .btn-filter');
+        if (btnTodos) filtrarRegiao('TODOS', btnTodos);
+
+        ['btnTabAtivo', 'btnTabArquivado', 'btnTabExcluido'].forEach(id => {
+            document.getElementById(id).classList.remove('active');
+        });
+        
+        if (aba === 'ativo') document.getElementById('btnTabAtivo').classList.add('active');
+        if (aba === 'arquivado') document.getElementById('btnTabArquivado').classList.add('active');
+        if (aba === 'excluido') document.getElementById('btnTabExcluido').classList.add('active');
+        
+        renderizarTabela(todosProcessos);
+    }
+
+    // 📂 Funções de Ação (Arquivar/Excluir)
+    async function arquivarProcesso(id) {
+        if (!confirm("Deseja mover este processo para os Arquivados?")) return;
+        try {
+            const res = await fetch(`/api/processos/${id}/arquivar`, { 
+                method: 'PATCH', 
+                headers: { 'Authorization': `Bearer ${token}` } 
             });
-            renderizarTabela(todosProcessos.filter(p => regioesMap[regiao].includes(p.uf)));
+            const data = await res.json();
+            if (data.ok) {
+                alert("Processo arquivado com sucesso!");
+                await carregarProcessos(); 
+            }
+        } catch (err) { alert("Erro na comunicação com o servidor."); }
+    }
+
+    async function excluirProcesso(id) {
+        if (!confirm("Deseja enviar este processo para a Lixeira de Auditoria?")) return;
+        try {
+            const res = await fetch(`/api/processos/${id}/excluir`, { 
+                method: 'PATCH', 
+                headers: { 'Authorization': `Bearer ${token}` } 
+            });
+            const data = await res.json();
+            if (data.ok) {
+                alert("Processo enviado para a Lixeira.");
+                await carregarProcessos();
+            }
+        } catch (err) { alert("Erro na comunicação com o servidor."); }
+    }
+
+    // 🔍 Funções de Filtro
+    function filtrarRegiao(regiao, elemento) {
+        document.querySelectorAll('#region-filter .btn-filter').forEach(btn => btn.classList.remove('active'));
+        elemento.classList.add('active');
+        const stateFilterDiv = document.getElementById('state-filter');
+        const stateButtonsDiv = document.getElementById('state-buttons');
+
+        if (regiao === 'TODOS') {
+            stateFilterDiv.style.display = 'none';
+            renderizarTabela(todosProcessos);
+            return;
         }
 
-        function filtrarPorEstado(uf, elemento) {
-            document.querySelectorAll('#state-buttons .btn-filter').forEach(btn => btn.classList.remove('active'));
-            elemento.classList.add('active');
-            renderizarTabela(todosProcessos.filter(p => p.uf === uf));
-        }
+        stateFilterDiv.style.display = 'flex';
+        stateButtonsDiv.innerHTML = '';
+        regioesMap[regiao].forEach(uf => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-filter';
+            btn.innerText = uf;
+            btn.onclick = () => filtrarPorEstado(uf, btn);
+            stateButtonsDiv.appendChild(btn);
+        });
+        renderizarTabela(todosProcessos.filter(p => regioesMap[regiao].includes(p.uf)));
+    }
 
-        function abrirModalProcesso() {
-            document.getElementById('modalProcesso').style.display = 'flex';
-            carregarClientesNoSelect();
-        }
-        function fecharModalProcesso() { document.getElementById('modalProcesso').style.display = 'none'; }
+    function filtrarPorEstado(uf, elemento) {
+        document.querySelectorAll('#state-buttons .btn-filter').forEach(btn => btn.classList.remove('active'));
+        elemento.classList.add('active');
+        renderizarTabela(todosProcessos.filter(p => p.uf === uf));
+    }
 
-        async function carregarClientesNoSelect() {
+    // 🚀 Funções do Modal (CORRIGIDAS)
+    function abrirModalProcesso() {
+        limparModalProcesso(); // Garante que abra vazio
+        document.getElementById('modalProcesso').style.display = 'flex';
+        carregarClientesNoSelect();
+    }
+
+    function limparModalProcesso() {
+        // IDs ajustados para bater com o formulário
+        if(document.getElementById('procNumero')) document.getElementById('procNumero').value = '';
+        if(document.getElementById('procParteContraria')) document.getElementById('procParteContraria').value = '';
+        if(document.getElementById('procClienteId')) document.getElementById('procClienteId').selectedIndex = 0;
+        if(document.getElementById('procEstado')) document.getElementById('procEstado').selectedIndex = 0;
+        if(document.getElementById('procInstancia')) document.getElementById('procInstancia').selectedIndex = 0;
+    }
+
+    function fecharModalProcesso() { 
+        limparModalProcesso(); 
+        document.getElementById('modalProcesso').style.display = 'none'; 
+    }
+
+    async function carregarClientesNoSelect() {
+        try {
             const res = await fetch('/api/clientes', { headers: { 'Authorization': `Bearer ${token}` } });
             const clientes = await res.json();
             const select = document.getElementById('procClienteId');
             select.innerHTML = '<option value="">Selecione o Cliente...</option>' + 
                 clientes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
-        }
+        } catch (err) { console.error("Erro ao carregar clientes"); }
+    }
 
-        document.getElementById('formProcesso').onsubmit = async (e) => {
-            e.preventDefault();
-            const dados = {
-                numero: document.getElementById('procNumero').value,
-                cliente: document.getElementById('procClienteId').value,
-                uf: document.getElementById('procEstado').value,
-                instancia: document.getElementById('procInstancia').value,
-                parte_contraria: document.getElementById('procParteContraria').value
-            };
+    // 💾 Salvamento do Formulário
+    document.getElementById('formProcesso').onsubmit = async (e) => {
+        e.preventDefault();
+        const btnSalvar = e.target.querySelector('button[type="submit"]');
+        btnSalvar.disabled = true;
+        btnSalvar.innerText = "Salvando...";
+
+        const dados = {
+            numero: document.getElementById('procNumero').value,
+            cliente: document.getElementById('procClienteId').value,
+            uf: document.getElementById('procEstado').value,
+            instancia: document.getElementById('procInstancia').value,
+            parte_contraria: document.getElementById('procParteContraria').value
+        };
+
+        try {
             const res = await fetch('/api/processos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(dados)
             });
-            if (res.ok) { fecharModalProcesso(); carregarProcessos(); }
-        };
 
-        function mascaraCNJ(i) {
-            let v = i.value.replace(/\D/g, "");
-            if (v.length > 7) v = v.replace(/^(\d{7})(\d)/, "$1-$2");
-            if (v.length > 9) v = v.replace(/^(\d{7})-(\d{2})(\d)/, "$1-$2.$3");
-            if (v.length > 13) v = v.replace(/^(\d{7})-(\d{2})\.(\d{4})(\d)/, "$1-$2.$3.$4");
-            if (v.length > 14) v = v.replace(/^(\d{7})-(\d{2})\.(\d{4})\.(\d{1})(\d)/, "$1-$2.$3.$4.$5");
-            if (v.length > 16) v = v.replace(/^(\d{7})-(\d{2})\.(\d{4})\.(\d{1})\.(\d{2})(\d)/, "$1-$2.$3.$4.$5.$6");
-            i.value = v;
+            if (res.ok) { 
+                alert("Processo salvo com sucesso!");
+                fecharModalProcesso(); // Isso já limpa os campos
+                await carregarProcessos(); 
+            } else {
+                const errData = await res.json();
+                alert("Erro: " + (errData.erro || "Falha ao salvar"));
+            }
+        } catch (err) {
+            alert("Erro de conexão.");
+        } finally {
+            btnSalvar.disabled = false;
+            btnSalvar.innerText = "Salvar Processo";
         }
+    };
 
-        // Força a criação de ícones a cada 1 segundo (garantia extra)
-        setInterval(() => { if (window.lucide) lucide.createIcons(); }, 1000);
+    function mascaraCNJ(i) {
+        let v = i.value.replace(/\D/g, "");
+        if (v.length > 7) v = v.replace(/^(\d{7})(\d)/, "$1-$2");
+        if (v.length > 9) v = v.replace(/^(\d{7})-(\d{2})(\d)/, "$1-$2.$3");
+        if (v.length > 13) v = v.replace(/^(\d{7})-(\d{2})\.(\d{4})(\d)/, "$1-$2.$3.$4");
+        if (v.length > 14) v = v.replace(/^(\d{7})-(\d{2})\.(\d{4})\.(\d{1})(\d)/, "$1-$2.$3.$4.$5");
+        if (v.length > 16) v = v.replace(/^(\d{7})-(\d{2})\.(\d{4})\.(\d{1})\.(\d{2})(\d)/, "$1-$2.$3.$4.$5.$6");
+        i.value = v;
+    }
 
-        function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
-        window.onload = inicializar;
-    </script>
+    setInterval(() => { if (window.lucide) lucide.createIcons(); }, 1000);
+
+    function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
+    window.onload = inicializar;
+</script>
 </body>
 </html>

@@ -13,7 +13,9 @@ router.post('/register', authController.register);
 
 router.post('/alterar-senha', authMiddleware, authController.alterarSenha);
 
-router.get('/me', authMiddleware, (req, res) => res.json({ ok: true, usuario: req.user }));
+router.get('/me', authMiddleware, (req, res) => {
+    res.json({ ok: true, usuario: req.user });
+});
 
 // 👥 ROTA DE CONVITE (EQUIPE)
 router.post('/convidar-funcionario', authMiddleware, async (req, res) => {

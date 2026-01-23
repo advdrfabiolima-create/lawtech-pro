@@ -9,7 +9,7 @@ const axios = require('axios');
 const iniciarAgendamentos = () => {
     
     // --- TAREFA 1: ATUALIZAR STATUS DE PRAZOS (A cada 30 min) ---
-    cron.schedule('*/30 * * * *', async () => {
+    cron.schedule('*/5 8-20 * * 1-5', async () => {   // seg-sex, 8h às 20h
         try {
             await pool.query(`
             UPDATE prazos 

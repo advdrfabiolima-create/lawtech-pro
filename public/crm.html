@@ -242,108 +242,128 @@
     </div>
 
     <script src="https://unpkg.com/lucide@latest"></script>
-<script>
-    // 🔔 Configuração do Alerta Sonoro
-const somNotificacao = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+<script src="https://unpkg.com/lucide@latest"></script>
 
-// Função para tocar o bip
-function tocarBip() {
-    somNotificacao.play().catch(e => console.log("O navegador bloqueou o som inicial. Clique em qualquer lugar da página para ativar os alertas."));
-}
+<script>
     const token = localStorage.getItem('token');
     if (!token) window.location.href = '/login.html';
 
     let leadSelecionadoId = null;
+    let quantidadeLeadsAnterior = 0;
+    const somNotificacao = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
 
-    // 1. CARREGA O RODAPÉ COM SEGURANÇA
+    function tocarBip() {
+        somNotificacao.play().catch(e => console.log("Som bloqueado:", e));
+    }
+
     async function carregarInfoRodape() {
         try {
             const res = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
             const data = await res.json();
-            if (data.ok) {
-                const emailElem = document.getElementById('userEmail');
-                if (emailElem) emailElem.innerText = data.usuario.email;
+            if (data.ok && document.getElementById('userEmail')) {
+                document.getElementById('userEmail').innerText = data.usuario.email;
             }
+
             const resP = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
             const dataP = await resP.json();
-            const planElem = document.getElementById('planNameFooter');
-            if (planElem) planElem.innerText = dataP.plano || '---';
-        } catch (e) { console.warn("Rodapé não carregado."); }
+            if (document.getElementById('planNameFooter')) {
+                document.getElementById('planNameFooter').innerText = dataP.plano || '---';
+            }
+        } catch (e) {
+            console.warn("Rodapé não carregado:", e);
+        }
     }
 
-    // 2. CARREGA OS LEADS (EVITA ERRO DE INNERHTML NULL)
-    async function carregarLeads() {
-    try {
-        const res = await fetch('/api/crm/leads', { headers: { Authorization: `Bearer ${token}` } });
-        const leads = await res.json();
-        
-        // Limpa os containers (Atenção aos IDs do banco: 'Novo', 'Reunião', 'Proposta', 'Ganho')
-        const mapeamentoStatus = { 'Novo': 'lead', 'Reunião': 'triagem', 'Proposta': 'proposta', 'Ganho': 'ganho' };
-        
-        document.querySelectorAll('.column div[id^="container-"]').forEach(c => c.innerHTML = '');
-        const counts = { lead: 0, triagem: 0, proposta: 0, ganho: 0 };
-
-        leads.forEach(lead => {
-            const statusKey = mapeamentoStatus[lead.status] || 'lead';
-            counts[statusKey]++;
-            
-            const container = document.getElementById(`container-${statusKey}`);
-            if (container) {
-                // No seu banco, as notas estão na coluna 'mensagem'
-                const notasLimpas = lead.mensagem ? lead.mensagem.replace(/'/g, "\\'") : '';
-                container.innerHTML += `
-    <div class="lead-card" id="lead-${lead.id}" draggable="true" ondragstart="drag(event)" 
-         onclick="abrirDetalhes(${lead.id}, '${lead.nome}', '${lead.telefone || ''}', '${lead.area_interesse || ''}', '${notasLimpas}')">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-            <strong>${lead.nome}</strong>
-            <i class="lucide lucide-message-circle" 
-               onclick="abrirWhatsApp(event, '${lead.telefone}', '${lead.nome}')" 
-               style="width:16px; color: var(--success); cursor: pointer;" 
-               title="Chamar no WhatsApp"></i>
-        </div>
-        <span><i class="lucide lucide-phone" style="width:12px;"></i> ${lead.telefone || '---'}</span>
-    </div>`;
-            }
-        });
-
-        for (let s in counts) {
-            const el = document.getElementById(`count-${s}`);
-            if (el) el.innerText = counts[s];
-        }
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-    } catch (e) { console.error("Erro ao carregar leads:", e); }
-}
-
-    // 3. SALVAR NOVO LEAD (CORRIGE O BOTÃO SEM AÇÃO)
-async function salvarNovoLead(e) {
-    if(e) e.preventDefault();
-    const dados = {
-        nome: document.getElementById('novoNome').value,
-        telefone: document.getElementById('novoTelefone').value,
-        area_interesse: document.getElementById('novoInteresse').value,
-        status: 'lead'
+    // Mapeamento flexível para aceitar variações reais do banco
+    const mapeamentoStatus = (status) => {
+        const s = (status || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (s.includes('novo') || s === 'novo') return 'lead';
+        if (s.includes('reuniao') || s.includes('reuni') || s.includes('triagem')) return 'triagem';
+        if (s.includes('proposta') || s.includes('propost')) return 'proposta';
+        if (s.includes('ganho') || s.includes('ganhar') || s.includes('ganhho') || s.includes('ganhos')) return 'ganho';
+        return 'lead'; // fallback
     };
 
-    try {
-        // 🚀 ROTA CORRIGIDA PARA O PADRÃO DA SUA API
-        const res = await fetch('/api/crm/leads', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify(dados)
-        });
+    async function carregarLeads() {
+        try {
+            // 1. Carrega a lista completa de leads
+            const resLeads = await fetch('/api/crm/leads', { headers: { Authorization: `Bearer ${token}` } });
+            if (!resLeads.ok) throw new Error('Erro ao carregar leads');
+            const leads = await resLeads.json();
 
-        if (res.ok) {
-            fecharModalCadastro();
-            await carregarLeads(); // Isso fará o card aparecer na Pipeline
-        } else {
-            alert("Erro de conexão com o servidor. Verifique se a rota existe.");
+            // 2. Carrega as métricas para atualizar os contadores das colunas
+            const resMetricas = await fetch('/api/crm/metricas', { headers: { Authorization: `Bearer ${token}` } });
+            if (!resMetricas.ok) throw new Error('Erro ao carregar métricas');
+            const metricas = await resMetricas.json();
+
+            // Atualiza os contadores das colunas (usando as métricas do backend)
+            document.getElementById('count-lead').innerText = metricas.leads || 0;
+            document.getElementById('count-triagem').innerText = metricas.reuniao || 0;
+            document.getElementById('count-proposta').innerText = metricas.proposta || 0;
+            document.getElementById('count-ganho').innerText = metricas.ganho || 0;
+
+            // Limpa os containers
+            document.querySelectorAll('[id^="container-"]').forEach(c => c.innerHTML = '');
+
+            // Renderiza os cards individuais
+            leads.forEach(lead => {
+                const statusKey = mapeamentoStatus(lead.status);
+                const container = document.getElementById(`container-${statusKey}`);
+                if (container) {
+                    const notasLimpas = (lead.mensagem || '').replace(/'/g, "\\'");
+                    container.innerHTML += `
+                        <div class="lead-card" id="lead-${lead.id}" draggable="true" ondragstart="drag(event)" 
+                             onclick="abrirDetalhes(${lead.id}, '${lead.nome.replace(/'/g, "\\'")}', '${(lead.telefone || '').replace(/'/g, "\\'")}', '${(lead.area_interesse || '').replace(/'/g, "\\'")}', '${notasLimpas}')">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <strong>${lead.nome}</strong>
+                                <i class="lucide lucide-message-circle" 
+                                   onclick="abrirWhatsApp(event, '${lead.telefone || ''}', '${lead.nome.replace(/'/g, "\\'")}')" 
+                                   style="width:16px; color: var(--success); cursor: pointer;" 
+                                   title="Chamar no WhatsApp"></i>
+                            </div>
+                            <span><i class="lucide lucide-phone" style="width:12px;"></i> ${lead.telefone || '---'}</span>
+                        </div>`;
+                }
+            });
+
+            // Notificação de novo lead
+            const totalAtual = leads.length;
+            if (totalAtual > quantidadeLeadsAnterior && quantidadeLeadsAnterior > 0) {
+                tocarBip();
+                console.log("🔔 Novo lead recebido!");
+            }
+            quantidadeLeadsAnterior = totalAtual;
+
+            lucide.createIcons();
+        } catch (e) {
+            console.error("Erro ao carregar pipeline CRM:", e);
         }
-    } catch (e) {
-        console.error(e);
     }
-}
 
-    // MODAIS E DRAG&DROP
+    async function salvarNovoLead(e) {
+        e.preventDefault();
+        const nome = document.getElementById('novoNome').value;
+        const email = document.getElementById('novoEmail').value || '';
+        const telefone = document.getElementById('novoTelefone').value || '';
+        const area_interesse = document.getElementById('novoInteresse').value || '';
+
+        try {
+            const res = await fetch('/api/crm/leads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ nome, email, telefone, area_interesse })
+            });
+            if (res.ok) {
+                fecharModalCadastro();
+                carregarLeads();
+            } else {
+                alert('Erro ao criar lead');
+            }
+        } catch (e) {
+            console.error('Erro ao criar lead manual:', e);
+        }
+    }
+
     function abrirModalCadastro() { document.getElementById('modalNovoLead').style.display = 'flex'; }
     function fecharModalCadastro() { 
         document.getElementById('modalNovoLead').style.display = 'none'; 
@@ -361,7 +381,11 @@ async function salvarNovoLead(e) {
     
     async function salvarNotas() {
         const notas = document.getElementById('detalheNotas').value;
-        await fetch(`/api/crm/leads/${leadSelecionadoId}/notas`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ notas }) });
+        await fetch(`/api/crm/leads/${leadSelecionadoId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ mensagem: notas })
+        });
         fecharModalDetalhes();
         carregarLeads();
     }
@@ -376,90 +400,62 @@ async function salvarNovoLead(e) {
     function allowDrop(ev) { ev.preventDefault(); }
     function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
     async function drop(ev) {
-    ev.preventDefault();
-    const id = ev.dataTransfer.getData("text").replace('lead-', '');
-    const targetStatus = ev.currentTarget.getAttribute('data-status');
-    
-    // Traduz do ID da coluna para o nome no banco de dados
-    const statusParaBanco = { 'lead': 'Novo', 'triagem': 'Reunião', 'proposta': 'Proposta', 'ganho': 'Ganho' };
-    const statusFinal = statusParaBanco[targetStatus];
+        ev.preventDefault();
+        const id = ev.dataTransfer.getData("text").replace('lead-', '');
+        const targetStatus = ev.currentTarget.getAttribute('data-status');
+        
+        // Traduz do ID da coluna para o nome no banco de dados
+        const statusParaBanco = { 'lead': 'Novo', 'triagem': 'Reunião', 'proposta': 'Proposta', 'ganho': 'Ganho' };
+        const statusFinal = statusParaBanco[targetStatus];
 
-    await fetch(`/api/crm/lead/${id}/status`, { 
-        method: 'PATCH', // Seu crm.routes usa PATCH para status
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, 
-        body: JSON.stringify({ status: statusFinal }) 
-    });
-    carregarLeads();
-}
+        try {
+            const res = await fetch(`/api/crm/lead/${id}/status`, { 
+                method: 'PATCH', 
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, 
+                body: JSON.stringify({ status: statusFinal }) 
+            });
+            if (res.ok) {
+                carregarLeads(); // Atualiza após mover
+            } else {
+                console.error('Erro ao atualizar status:', res.status);
+            }
+        } catch (e) {
+            console.error('Erro no drop:', e);
+        }
+    }
 
     window.onload = () => {
         carregarInfoRodape();
         carregarLeads();
         const form = document.getElementById('formNovoLead');
-        if (form) form.onsubmit = salvarNovoLead;
+        if (form) form.addEventListener('submit', salvarNovoLead);
+
+        // Atualiza a cada 30 segundos
+        setInterval(carregarLeads, 30000);
     };
 
     function abrirWhatsApp(event, telefone, nome) {
-    // Impede que o clique no ícone abra o modal de detalhes
-    event.stopPropagation();
-
-    if (!telefone || telefone === '---') {
-        alert("Este lead não possui telefone cadastrado.");
-        return;
-    }
-
-    // Limpa o número (remove parênteses, espaços e traços)
-    const foneLimpo = telefone.replace(/\D/g, '');
-    
-    // Mensagem de saudação personalizada
-    const mensagem = window.encodeURIComponent(`Olá, ${nome}! Sou o Dr. Fábio, da LawTech Pro. Recebi seu interesse em nosso escritório. Como posso lhe ajudar hoje?`);
-    
-    // Abre o WhatsApp Web ou App
-    window.open(`https://wa.me/55${foneLimpo}?text=${mensagem}`, '_blank');
-}
-
-function enviarLinkFicha() {
-    const nome = document.getElementById('detalheNome').innerText;
-    const telefone = document.getElementById('detalheTelefone').innerText;
-    const foneLimpo = telefone.replace(/\D/g, '');
-    
-    // Supondo que seu site seja lawtechpro.com.br
-    const linkFicha = `https://seusite.com.br/ficha-cliente.html?leadId=${leadSelecionadoId}`;
-    
-    const mensagem = window.encodeURIComponent(`Parabéns pelo fechamento, ${nome}! 🚀 Para iniciarmos seu processo, por favor, preencha seus dados oficiais neste link seguro: ${linkFicha}`);
-    
-    window.open(`https://wa.me/55${foneLimpo}?text=${mensagem}`, '_blank');
-}
-
-let quantidadeLeadsAnterior = 0;
-
-async function verificarNovosLeads() {
-    try {
-        const res = await fetch('/api/crm/leads', {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        const leads = await res.json();
-        
-        // Se o número atual de leads for maior que o anterior, toca o bip!
-        if (leads.length > quantidadeLeadsAnterior && quantidadeLeadsAnterior !== 0) {
-            tocarBip();
-            // Opcional: Mostrar uma notificação visual temporária
-            console.log("🔔 Novo lead recebido!");
+        event.stopPropagation();
+        if (!telefone || telefone === '---') {
+            alert("Este lead não possui telefone cadastrado.");
+            return;
         }
-        
-        quantidadeLeadsAnterior = leads.length;
-        renderizarLeads(leads); // Sua função que desenha os cards na tela
-    } catch (err) {
-        console.error("Erro ao verificar leads:", err);
+        const foneLimpo = telefone.replace(/\D/g, '');
+        const mensagem = window.encodeURIComponent(`Olá, ${nome}! Sou o Dr. Fábio, da LawTech Pro. Recebi seu interesse em nosso escritório. Como posso lhe ajudar hoje?`);
+        window.open(`https://wa.me/55${foneLimpo}?text=${mensagem}`, '_blank');
     }
-}
 
-// Faz o sistema verificar novos leads a cada 30 segundos
-setInterval(verificarNovosLeads, 30000); 
-
-// Carrega a primeira vez ao abrir a página
-verificarNovosLeads();
-
+    function enviarLinkFicha() {
+        const nome = document.getElementById('detalheNome').innerText;
+        const telefone = document.getElementById('detalheTelefone').innerText;
+        const foneLimpo = telefone.replace(/\D/g, '');
+        
+        const linkFicha = `https://seusite.com.br/ficha-cliente.html?leadId=${leadSelecionadoId}`;
+        
+        const mensagem = window.encodeURIComponent(`Parabéns pelo fechamento, ${nome}! 🚀 Para iniciarmos seu processo, por favor, preencha seus dados oficiais neste link seguro: ${linkFicha}`);
+        
+        window.open(`https://wa.me/55${foneLimpo}?text=${mensagem}`, '_blank');
+    }
 </script>
 
 <div id="modalNovoLead" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">

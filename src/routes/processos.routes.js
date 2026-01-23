@@ -3,10 +3,11 @@ const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
 
-// 1. Listar Processos do Escritório
+// 1. Listar Processos do Escritório (Atualizada com parte_contraria)
 router.get('/processos', authMiddleware, async (req, res) => {
     try {
-        const query = 'SELECT id, numero, cliente, uf, instancia FROM processos WHERE escritorio_id = $1 ORDER BY id DESC';
+        // 🚀 ADICIONADO: 'parte_contraria' na query
+        const query = 'SELECT id, numero, cliente, uf, instancia, parte_contraria FROM processos WHERE escritorio_id = $1 ORDER BY id DESC';
         const result = await pool.query(query, [req.user.escritorio_id]);
         res.json(result.rows);
     } catch (error) {
@@ -15,16 +16,26 @@ router.get('/processos', authMiddleware, async (req, res) => {
     }
 });
 
-// 2. Cadastrar Novo Processo
+// 2. Cadastrar Novo Processo (Atualizada para receber e salvar parte_contraria)
 router.post('/processos', authMiddleware, async (req, res) => {
-    const { numero, cliente, uf, instancia, cliente_id } = req.body;
+    // 🚀 ADICIONADO: 'parte_contraria' vinda do corpo da requisição
+    const { numero, cliente, uf, instancia, cliente_id, parte_contraria } = req.body;
     try {
         await pool.query(
-            `INSERT INTO processos (numero, cliente, uf, instancia, usuario_id, escritorio_id, cliente_id) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [numero.trim(), cliente.trim(), uf, instancia, req.user.id, req.user.escritorio_id, cliente_id || null]     
+            `INSERT INTO processos (numero, cliente, uf, instancia, usuario_id, escritorio_id, cliente_id, parte_contraria) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [
+                numero.trim(), 
+                cliente.trim(), 
+                uf, 
+                instancia, 
+                req.user.id, 
+                req.user.escritorio_id, 
+                cliente_id || null,
+                parte_contraria || null // 🚀 SALVANDO NO BANCO
+            ]     
         );
-        res.status(201).json({ mensagem: "Processo cadastrado com sucesso!" });
+        res.status(201).json({ ok: true, mensagem: "Processo cadastrado com sucesso!" });
     } catch (err) {
         console.error("Erro ao cadastrar processo:", err.message);
         res.status(500).json({ erro: "Erro ao salvar processo" });

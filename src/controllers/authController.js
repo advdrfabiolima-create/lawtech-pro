@@ -4,35 +4,56 @@ const pool = require('../config/db');
 
 // 1. Função de Registro
 const register = async (req, res) => {
-    // Agora capturamos também os dados de faturamento vindos do novo register.html
-    const { nome, email, senha, planoId, documento, cep, endereco } = req.body;
+    const { 
+        nome, email, senha, planoId, documento, 
+        tipoPessoa, dataNascimento, cep, endereco, 
+        cidade, estado, pagamento 
+    } = req.body;
 
     if (!nome || !email || !senha) {
         return res.status(400).json({ erro: 'Dados obrigatórios não informados' });
     }
 
     try {
-        // 1. Verifica se o e-mail já existe
         const existe = await pool.query('SELECT id FROM usuarios WHERE email = $1', [email]);
         if (existe.rowCount > 0) {
             return res.status(409).json({ erro: 'Este e-mail já está em uso' });
         }
 
-        // 2. Define lógica de status inicial do plano
         const planoParaDefinir = planoId || 1;
-        // Se o plano for maior que 1 (pago), o status nasce como 'pendente'
-        const statusInicial = (planoParaDefinir > 1) ? 'pendente' : 'ativo';
+        let statusInicial = (planoParaDefinir > 1) ? 'pendente' : 'ativo';
+        
+        if (pagamento && pagamento.numero && pagamento.numero.length > 10) {
+            statusInicial = 'ativo'; 
+        }
 
-        // 3. Cria o Escritório com dados completos
-        const novoEscritorio = await pool.query(
-            `INSERT INTO escritorios 
-                (nome, plano_id, documento, cep, endereco, plano_financeiro_status) 
-             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-            [`Escritório de ${nome}`, planoParaDefinir, documento, cep, endereco, statusInicial]
-        );
+        const queryEscritorio = `
+            INSERT INTO escritorios 
+                (nome, plano_id, documento, tipo_pessoa, data_nascimento, cep, 
+                 endereco, cidade, estado, plano_financeiro_status, 
+                 card_hash, card_validade, criado_em) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW()) 
+            RETURNING id
+        `;
+
+        const valoresEscritorio = [
+            `Escritório de ${nome}`, 
+            planoParaDefinir, 
+            documento, 
+            tipoPessoa || 'fisica',
+            dataNascimento || null,
+            cep, 
+            endereco,
+            cidade,
+            estado,
+            statusInicial,
+            pagamento ? pagamento.numero : null,
+            pagamento ? pagamento.validade : null
+        ];
+
+        const novoEscritorio = await pool.query(queryEscritorio, valoresEscritorio);
         const escritorioId = novoEscritorio.rows[0].id;
 
-        // 4. Criptografa a senha e salva o usuário como 'admin'
         const senhaHash = await bcrypt.hash(senha, 10);
         const result = await pool.query(
             `INSERT INTO usuarios (nome, email, senha, role, escritorio_id)
@@ -42,17 +63,18 @@ const register = async (req, res) => {
         );
 
         res.status(201).json({
+            ok: true,
             mensagem: 'Conta criada com sucesso!',
             usuario: result.rows[0]
         });
 
     } catch (error) {
         console.error("Erro no auto-registro:", error);
-        res.status(500).json({ erro: 'Falha ao processar cadastro. Tente novamente.' });
+        res.status(500).json({ erro: 'Falha ao processar cadastro.' });
     }
 };
 
-// 2. Função de Login com Verificação de Pagamento
+// 2. Função de Login com Bloqueio de 7 Dias
 const login = async (req, res) => {
     const { email, senha } = req.body;
 
@@ -61,10 +83,7 @@ const login = async (req, res) => {
     }
 
     try {
-        const result = await pool.query(
-            'SELECT * FROM usuarios WHERE email = $1',
-            [email]
-        );
+        const result = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
 
         if (result.rowCount === 0) {
             return res.status(401).json({ erro: 'Usuário ou senha inválidos' });
@@ -76,45 +95,56 @@ const login = async (req, res) => {
         if (!senhaOk) {
             return res.status(401).json({ erro: 'Usuário ou senha inválidos' });
         }
+        console.log("--- DIAGNÓSTICO DE LOGIN ---");
+        console.log("ESCRITÓRIO ID DO USUÁRIO:", usuario.escritorio_id);
+        console.log("----------------------------");
 
-        // --- VERIFICAÇÃO DE STATUS DO PLANO (BLOQUEIO) ---
+// --- 🛡️ BLOCO DE VERIFICAÇÃO DE TRIAL (VERSÃO INFALÍVEL) ---
         const escCheck = await pool.query(
-            'SELECT plano_id, plano_financeiro_status, documento, oab FROM escritorios WHERE id = $1',
+            `SELECT id, plano_id, plano_financeiro_status, criado_em,
+             EXTRACT(DAY FROM (NOW() - criado_em)) as dias_passados
+             FROM escritorios WHERE id = $1`,
             [usuario.escritorio_id]
         );
-        const escritorio = escCheck.rows[0];
 
-        // Se o plano for pago e o status ainda for pendente, bloqueia o acesso
-        if (escritorio.plano_id > 1 && escritorio.plano_financeiro_status === 'pendente') {
-            return res.status(402).json({ 
-                erro: 'Pagamento pendente', 
-                detalhe: 'Acesse o link enviado ao seu e-mail para quitar a fatura e liberar o acesso.' 
-            });
+        if (escCheck.rowCount > 0) {
+            let escritorio = escCheck.rows[0];
+            const statusAtivo = ['ativo', 'active'].includes(escritorio.plano_financeiro_status);
+            
+            // Log para você ver no terminal quantos dias o sistema está contando
+            console.log(`DIAS DESDE A CRIAÇÃO: ${escritorio.dias_passados}`);
+
+            // Se passaram 7 dias ou mais (>= 7), bloqueia
+            if (escritorio.plano_id > 1 && statusAtivo && escritorio.dias_passados >= 7) {
+                console.log("!!! TRIAL VENCIDO - APLICANDO BLOQUEIO !!!");
+                await pool.query(
+                    "UPDATE escritorios SET plano_financeiro_status = 'pendente' WHERE id = $1",
+                    [escritorio.id]
+                );
+                escritorio.plano_financeiro_status = 'pendente';
+            }
+
+            // Barra o login se estiver pendente
+            if (escritorio.plano_id > 1 && escritorio.plano_financeiro_status === 'pendente') {
+                return res.status(402).json({ 
+                    erro: 'Período de teste expirado', 
+                    detalhe: 'Seu trial de 7 dias chegou ao fim. Realize o pagamento para liberar o acesso total.' 
+                });
+            }
         }
+        // -----------------------------------------
 
-        // Geração do Token JWT
         const token = jwt.sign(
-            { 
-                id: usuario.id, 
-                email: usuario.email, 
-                role: usuario.role, 
-                escritorio_id: usuario.escritorio_id 
-            },
+            { id: usuario.id, email: usuario.email, role: usuario.role, escritorio_id: usuario.escritorio_id },
             process.env.JWT_SECRET || 'segredo_temporario',
             { expiresIn: '1d' }
         );
 
-        const perfilCompleto = !!(escritorio.documento && escritorio.oab);
-
         res.json({ 
           token,
           usuario: {
-            id: usuario.id,
-            nome: usuario.nome,
-            email: usuario.email,
-            role: usuario.role,
-            escritorio_id: usuario.escritorio_id,
-            perfilCompleto
+            id: usuario.id, nome: usuario.nome, email: usuario.email,
+            role: usuario.role, escritorio_id: usuario.escritorio_id
           }
         });
 
@@ -124,6 +154,7 @@ const login = async (req, res) => {
     }
 };
 
+// 3. Função de Alterar Senha
 async function alterarSenha(req, res) {
     const { novaSenha } = req.body;
     try {
@@ -136,8 +167,4 @@ async function alterarSenha(req, res) {
     }
 }
 
-module.exports = { 
-    login, 
-    register, 
-    alterarSenha 
-};
+module.exports = { login, register, alterarSenha };

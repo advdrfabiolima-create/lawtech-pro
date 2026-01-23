@@ -107,25 +107,49 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label>E-mail Profissional</label>
-                    <input type="email" id="email" placeholder="nome@exemplo.com" required>
-                </div>
-                <div class="form-group">
-                    <label>CPF / CNPJ (Para Faturamento)</label>
-                    <input type="text" id="documento" placeholder="000.000.000-00" required>
-                </div>
+                <label>Tipo de Pessoa</label>
+                    <select id="tipoPessoa" onchange="ajustarCamposDocumento(this.value)" style="width: 100%; padding: 11px; border: 1px solid var(--border); border-radius: 8px; outline: none;">
+                    <option value="fisica">Pessoa Física (CPF)</option>
+                    <option value="juridica">Pessoa Jurídica (CNPJ)</option>
+                </select>
+            </div>
+        <div class="form-group">
+                <label id="labelDocumento">CPF (Para Faturamento)</label>
+                <input type="text" id="documento" placeholder="000.000.000-00" required>
+            </div>
+        </div>
+
+            <div class="form-group" id="groupNascimento">
+                <label>Data de Nascimento</label>
+                <input type="date" id="dataNascimento">
+        </div>
+
+            <div class="form-group">
+                <label>E-mail Profissional</label>
+                <input type="email" id="email" placeholder="nome@exemplo.com" required>
             </div>
 
             <div class="form-row">
                 <div class="form-group small">
-                    <label>CEP</label>
-                    <input type="text" id="cep" placeholder="00000-000" onblur="buscarEndereco(this.value)">
-                </div>
-                <div class="form-group">
-                    <label>Endereço</label>
-                    <input type="text" id="endereco" placeholder="Rua, Número, Bairro">
-                </div>
+                <label>CEP</label>
+                <input type="text" id="cep" placeholder="00000-000" onblur="buscarEndereco(this.value)">
             </div>
+            <div class="form-group">
+                <label>Logradouro e Número</label>
+                <input type="text" id="endereco" placeholder="Rua, Número, Bairro">
+            </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                <label>Cidade</label>
+                <input type="text" id="cidade" placeholder="Ex: Feira de Santana">
+            </div>
+            <div class="form-group small" style="flex: 0 0 80px;">
+                <label>UF</label>
+                <input type="text" id="estado" placeholder="BA" maxlength="2">
+            </div>
+        </div>
 
             <div class="form-row">
                 <div class="form-group">
@@ -137,6 +161,32 @@
                     <input type="password" id="confirmarSenha" placeholder="Repita a senha" required>
                 </div>
             </div>
+
+            <div style="margin: 25px 0; padding: 20px; background: #f1f5f9; border-radius: 12px; border: 1px dashed #cbd5e1;">
+    <h4 style="font-size: 13px; color: var(--secondary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+        <i class="lucide-credit-card" style="font-size: 16px; color: var(--primary);"></i> 
+        Ativar Período de Teste (7 Dias Grátis)
+    </h4>
+    
+    <div class="form-group">
+        <label>Número do Cartão</label>
+        <input type="text" id="card_numero" placeholder="0000 0000 0000 0000">
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Validade</label>
+            <input type="text" id="card_validade" placeholder="MM/AA">
+        </div>
+        <div class="form-group small">
+            <label>CVC</label>
+            <input type="text" id="card_cvc" placeholder="123">
+        </div>
+    </div>
+    <p style="font-size: 11px; color: var(--muted); line-height: 1.4;">
+        * Seu cartão não será cobrado hoje. A primeira mensalidade será processada automaticamente após 7 dias, caso não cancele.
+    </p>
+</div>
 
             <button type="submit" class="btn-register" id="btnSubmit">Criar Conta e Continuar</button>
         </form>
@@ -152,6 +202,9 @@
             mask: [ { mask: '000.000.000-00' }, { mask: '00.000.000/0000-00' } ]
         });
         IMask(document.getElementById('cep'), { mask: '00000-000' });
+        IMask(document.getElementById('card_numero'), { mask: '0000 0000 0000 0000' });
+        IMask(document.getElementById('card_validade'), { mask: '00/00' });
+        IMask(document.getElementById('card_cvc'), { mask: '000' });
 
         const form = document.getElementById('formRegister');
         const errorBox = document.getElementById('errorBox');
@@ -187,15 +240,20 @@ window.onload = () => {
 };
 
         async function buscarEndereco(cep) {
-            const v = cep.replace(/\D/g, '');
-            if(v.length === 8) {
-                const res = await fetch(`https://viacep.com.br/ws/${v}/json/`);
-                const data = await res.json();
-                if(!data.erro) {
-                    document.getElementById('endereco').value = `${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`;
-                }
+    const v = cep.replace(/\D/g, '');
+    if(v.length === 8) {
+        try {
+            const res = await fetch(`https://viacep.com.br/ws/${v}/json/`);
+            const data = await res.json();
+            if(!data.erro) {
+                // Preenche os campos separados para o Asaas
+                document.getElementById('endereco').value = `${data.logradouro}, ${data.bairro}`;
+                document.getElementById('cidade').value = data.localidade;
+                document.getElementById('estado').value = data.uf;
             }
-        }
+        } catch (err) { console.error("Erro ao buscar CEP"); }
+    }
+}
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -212,12 +270,21 @@ window.onload = () => {
                 const payload = {
                     nome: document.getElementById('nome').value,
                     email: document.getElementById('email').value,
-                    senha: senha,
+                    senha: document.getElementById('senha').value,
                     documento: document.getElementById('documento').value,
+                    tipoPessoa: document.getElementById('tipoPessoa').value,
+                    dataNascimento: document.getElementById('dataNascimento').value,
                     cep: document.getElementById('cep').value,
                     endereco: document.getElementById('endereco').value,
-                    planoId: localStorage.getItem('plano_escolhido_id') || 1
-                };
+                    cidade: document.getElementById('cidade').value, // NOVO
+                    estado: document.getElementById('estado').value, // NOVO
+                    planoId: localStorage.getItem('plano_escolhido_id') || 1,
+                    pagamento: {
+                    numero: document.getElementById('card_numero').value,
+                    validade: document.getElementById('card_validade').value,
+                    cvc: document.getElementById('card_cvc').value
+                }
+            };
 
                 // 1. Registro
                 const response = await fetch('/api/auth/register', {
@@ -297,6 +364,39 @@ window.location.href = '/dashboard';
             errorBox.innerText = msg;
             errorBox.style.display = 'block';
         }
+
+        function ajustarCamposDocumento(tipo) {
+    const label = document.getElementById('labelDocumento');
+    const input = document.getElementById('documento');
+    const groupNascimento = document.getElementById('groupNascimento');
+
+    if (tipo === 'fisica') {
+        label.innerText = 'CPF (Para Faturamento)';
+        input.placeholder = '000.000.000-00';
+        groupNascimento.style.display = 'block';
+        // Reinicia a máscara para CPF
+        documentoMask.updateOptions({ mask: '000.000.000-00' });
+    } else {
+        label.innerText = 'CNPJ (Para Faturamento)';
+        input.placeholder = '00.000.000/0000-00';
+        groupNascimento.style.display = 'none';
+        document.getElementById('dataNascimento').value = ''; // Limpa para não enviar lixo
+        // Reinicia a máscara para CNPJ
+        documentoMask.updateOptions({ mask: '00.000.000/0000-00' });
+    }
+}
+
+// 2. Ajuste na definição da máscara (Substitua a linha do IMask antigo do documento por esta)
+const documentoMask = IMask(document.getElementById('documento'), { mask: '000.000.000-00' });
+
+// 3. No seu 'payload', adicione o novo campo
+const payload = {
+    // ... campos anteriores ...
+    documento: document.getElementById('documento').value,
+    dataNascimento: document.getElementById('dataNascimento').value, // Novo campo para o Asaas
+    tipoPessoa: document.getElementById('tipoPessoa').value,
+    // ... restante do payload ...
+};
     </script>
 </body>
 </html>

@@ -165,7 +165,7 @@
         senhaInput.addEventListener('input', () => senhaInput.classList.remove('input-error'));
     });
 
-        async function login() {
+async function login() {
         const email = document.getElementById('email').value;
         const senha = document.getElementById('senha').value;
         const btn = document.querySelector('.btn-login');
@@ -190,26 +190,34 @@
 
             const data = await res.json();
 
+            // 1. TRATAMENTO DE SUCESSO
             if (res.ok) {
-                // Login permitido
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('usuario', JSON.stringify(data.usuario));
                 window.location.href = '/dashboard-modern.html';
+                return; // Encerra aqui se deu certo
             } 
-            else if (res.status === 402) {
-                // AQUI ESTÁ A TRAVA FINANCEIRA
-                erroDiv.innerHTML = `💳 <strong>Pagamento Pendente:</strong><br>O acesso será liberado automaticamente após a confirmação do pagamento do seu plano.`;
+            
+            // 2. 🛡️ BLOQUEIO DE TRIAL EXPIRADO (ERRO 402)
+            if (res.status === 402) {
+                erroDiv.innerHTML = `
+                    <div style="background: #fef2f2; border: 1px solid #fee2e2; padding: 12px; border-radius: 8px; margin-top: 10px;">
+                        <strong style="color: #991b1b; display: block; margin-bottom: 4px;">💳 Acesso Bloqueado</strong>
+                        <span style="color: #b91c1c; font-size: 12px;">${data.detalhe || 'Seu período de teste expirou.'}</span>
+                    </div>
+                `;
                 btn.innerText = 'Entrar no Sistema';
                 btn.disabled = false;
+                return; // ✋ MUITO IMPORTANTE: Para o código aqui e impede a entrada!
             } 
-            else {
-                // Outros erros (senha errada, usuário inexistente)
-                erroDiv.innerText = data.erro || 'E-mail ou senha incorretos';
-                btn.innerText = 'Entrar no Sistema';
-                btn.disabled = false;
-            }
+
+            // 3. OUTROS ERROS (SENHA ERRADA, ETC)
+            erroDiv.innerText = data.erro || 'E-mail ou senha incorretos';
+            btn.innerText = 'Entrar no Sistema';
+            btn.disabled = false;
 
         } catch (err) {
+            console.error("Erro na requisição:", err);
             erroDiv.innerText = 'Erro de conexão com o servidor';
             btn.innerText = 'Entrar no Sistema';
             btn.disabled = false;

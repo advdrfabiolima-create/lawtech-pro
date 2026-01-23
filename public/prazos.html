@@ -294,62 +294,67 @@
 
         // 2. Motor de Prazos
 async function carregarPrazosModernos() {
-    // Agora o mapa cobre todas as frentes: Vencidos, Semana e Futuros
     const map = [
-        { url: '/api/todos-prazos-ativos', container: 'lista-futuros', classe: 'futuro' }
+        // 🚀 AJUSTE: Trocamos a rota de 'dashboard/prazos-semana' pela rota geral de ativos
+        { url: '/api/prazos?status=aberto', container: 'lista-futuros', classe: 'futuro' }
     ];
     
     todosPrazos = [];
     mostrarLoader();
 
-    try {
-        const res = await fetch('/api/todos-prazos-ativos', { 
-            headers: { Authorization: `Bearer ${token}` } 
-        });
-        const prazos = await res.json();
-        
-        // Limpa os containers antes de distribuir
-        document.getElementById('lista-vencidos').innerHTML = '';
-        document.getElementById('lista-semana').innerHTML = '';
-        document.getElementById('lista-futuros').innerHTML = '';
+    for (const item of map) {
+        try {
+            const res = await fetch(item.url, { headers: { Authorization: `Bearer ${token}` } });
+            const prazos = await res.json();
+            const container = document.getElementById(item.container);
+            container.innerHTML = '';
+            
+            if (prazos.length === 0) {
+                container.innerHTML = `<p style="color:var(--muted); font-size:12px; padding:10px;">Nenhum prazo encontrado.</p>`;
+                continue;
+            }
 
-        if (!prazos || prazos.length === 0) {
-            document.getElementById('lista-futuros').innerHTML = `<p style="color:var(--muted); font-size:12px; padding:10px;">Nenhum prazo encontrado.</p>`;
-        } else {
             prazos.forEach(p => {
-                todosPrazos.push(p);
+                todosPrazos.push({ ...p, status: item.classe });
                 
-                // Cálculo de dias para distribuição nos containers corretos
+                // 1. Cálculo de dias para definir estilo da TAG e a CLASSE do card
                 const hoje = new Date();
                 hoje.setHours(0,0,0,0);
                 const vencimento = new Date(p.data_limite);
                 vencimento.setHours(0,0,0,0);
                 const diff = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
 
-                let idContainer = 'lista-futuros';
-                let classeCard = 'futuro';
+                // 2. Lógica de Cores das TAGS e do CARD
+                let estiloTag = 'background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;'; // Verde
+                let classeCard = 'futuro'; // Borda verde no seu CSS
 
                 if (diff < 0) {
-                    idContainer = 'lista-vencidos';
-                    classeCard = 'vencido';
-                } else if (diff <= 7) {
-                    idContainer = 'lista-semana';
-                    classeCard = 'semana';
+                    // Vermelho para Vencidos
+                    estiloTag = 'background: #fef2f2; color: #ef4444; border: 1px solid #fecaca;';
+                    classeCard = 'vencido'; // Borda vermelha no seu CSS
+                } else if (diff === 0 || diff === 1) {
+                    // Amarelo para Hoje/Amanhã
+                    estiloTag = 'background: #fffbeb; color: #d97706; border: 1px solid #fde68a;';
+                    classeCard = 'semana'; // Borda amarela no seu CSS
                 }
 
-                const container = document.getElementById(idContainer);
                 const contagemDias = calcularDiferencaDiasFormatado(p.data_limite);
                 const urgencia = calcularUrgencia(p.data_limite);
 
-                // Renderização do Card (Preservando sua estrutura impecável)
                 container.innerHTML += `
-                <div class="prazo ${classeCard}" onclick="exibirObservacaoAtualizada(${p.id})" style="cursor:pointer;">
+                <div class="prazo ${classeCard}" 
+                     onclick="exibirObservacaoAtualizada(${p.id})" 
+                     style="cursor:pointer;">
+                    
                     <div style="flex: 1;">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                             <strong style="font-size: 15px; color: var(--sidebar);">${p.tipo || 'Prazo'}</strong>
-                            <span class="badge" style="font-size: 10px; font-weight: 800;">${contagemDias}</span>
+                            <span class="badge" style="${estiloTag} font-size: 10px; font-weight: 800;">
+                                ${contagemDias}
+                            </span>
                             ${urgencia ? `<span class="badge ${urgencia.classe}">${urgencia.label}</span>` : ''}
                         </div>
+                        
                         <div style="display: flex; flex-direction: column; gap: 6px;">
                             <div style="display: flex; align-items: center; gap: 6px;">
                                 <i data-lucide="user" style="width: 14px; color: var(--muted);"></i>
@@ -363,18 +368,31 @@ async function carregarPrazosModernos() {
                                 </span>
                             </div>
                         </div>
+                        <small style="display: block; margin-top: 8px; color:var(--muted);">
+                            📅 Vencimento: ${new Date(p.data_limite).toLocaleDateString('pt-BR')}
+                        </small>
                     </div>
+
                     <div class="actions-prazo" onclick="event.stopPropagation()">
-                        <button onclick="concluirPrazo(${p.id})" class="btn-action success"><i data-lucide="check-circle"></i></button>
-                        <button onclick="editarPrazo(${p.id})" class="btn-action edit"><i data-lucide="edit-3"></i></button>
-                        <button onclick="excluirPrazo(${p.id})" class="btn-action danger"><i data-lucide="trash-2"></i></button>
+                        <button onclick="concluirPrazo(${p.id})" class="btn-action success" title="Concluir">
+                            <i data-lucide="check-circle"></i>
+                        </button>
+                        <button onclick="editarPrazo(${p.id})" class="btn-action edit" title="Editar">
+                            <i data-lucide="edit-3"></i>
+                        </button>
+                        <button onclick="excluirPrazo(${p.id})" class="btn-action danger" title="Excluir">
+                            <i data-lucide="trash-2"></i>
+                        </button>
                     </div>
                 </div>`;
             });
+
+            // Recria ícones do Lucide
+            setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 100);
+
+        } catch (err) { 
+            console.error("Erro ao carregar prazos:", err); 
         }
-        if (window.lucide) lucide.createIcons();
-    } catch (err) { 
-        console.error("Erro ao carregar:", err); 
     }
     esconderLoader();
 }
@@ -446,6 +464,7 @@ async function carregarPrazosModernos() {
         const data = await res.json();
 
         if (res.ok) {
+            setTimeout(carregarPrazosModernos, 500);
             fecharModalPrazo();
             mostrarAba('todos'); 
             await carregarPrazosModernos();
@@ -618,7 +637,7 @@ function exibirObservacaoAtualizada(id) {
             const res = await fetch('/api/processos', { headers: { Authorization: `Bearer ${token}` } });
             const processos = await res.json();
             select.innerHTML = '<option value="">Selecione o Processo</option>';
-            processos.forEach(p => { select.innerHTML += `<option value="${p.id}">${p.processo_numero || 'Não vinculado'}</option>`; });
+            processos.forEach(p => { select.innerHTML += `<option value="${p.id}">${p.numero}</option>`; });
         }
 
         function aplicarFiltros() {

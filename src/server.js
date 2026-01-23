@@ -77,12 +77,12 @@ app.post('/api/processos', authMiddleware, async (req, res) => {
     }
 });
 
-// 🔍 ROTA DE LISTAGEM ATUALIZADA NO SERVER.JS
+// 🔍 ROTA DE LISTAGEM TOTALMENTE CORRIGIDA
 app.get('/api/processos', authMiddleware, async (req, res) => {
     try {
         const resultado = await pool.query(
-            // 🚀 O SEGREDO: 'numero AS processo_numero' para o seletor do modal funcionar
-            "SELECT id, numero AS processo_numero, cliente, uf, instancia, status FROM processos WHERE escritorio_id = (SELECT escritorio_id FROM usuarios WHERE id = $1) ORDER BY id DESC",
+            // 🚀 ADICIONADO: 'parte_contraria' para preencher o "vs. Parte" na tabela
+            "SELECT id, numero, numero AS processo_numero, cliente, parte_contraria, uf, instancia, status FROM processos WHERE escritorio_id = (SELECT escritorio_id FROM usuarios WHERE id = $1) ORDER BY id DESC",
             [req.user.id]
         );
         res.json(resultado.rows);
@@ -111,6 +111,11 @@ app.use('/api/crm', crmRoutes);
 const publicPath = path.join(__dirname, '..', 'public'); 
 app.use(express.static(publicPath));
 
+// Rota de verificação rápida de Trial/Perfil
+app.get('/api/auth/me', authMiddleware, (req, res) => {
+    res.json({ ok: true, usuario: req.user });
+});
+
 /* ========================= PÁGINAS (FRONTEND) ========================= */
 app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(publicPath, 'login.html')));
@@ -131,6 +136,11 @@ app.get('/crm-page', (req, res) => res.sendFile(path.join(publicPath, 'crm.html'
 app.get('/recuperar-senha', (req, res) => res.sendFile(path.join(publicPath, 'recuperar-senha.html')));
 app.get('/termos', (req, res) => res.sendFile(path.join(publicPath, 'termos.html')));
 app.get('/privacidade', (req, res) => res.sendFile(path.join(publicPath, 'privacidade.html')));
+app.get('/pagamento-pendente', (req, res) => {
+    const filePath = path.resolve(__dirname, '..', 'public', 'pagamento-pendente.html');
+    console.log("Tentando carregar arquivo em:", filePath); // Isso vai nos dizer no terminal onde ele está procurando
+    res.sendFile(filePath);
+});
 
 /* ========================= CONFIGURAÇÕES DO SISTEMA (CORRIGIDAS) ========================= */
 

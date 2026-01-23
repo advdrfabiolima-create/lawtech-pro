@@ -6,67 +6,93 @@
     <title>Ficha Cadastral — LawTech Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
-        .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .logo { text-align: center; margin-bottom: 20px; }
-        .logo img { max-width: 150px; }
-        h2 { text-align: center; font-size: 1.2rem; margin-bottom: 10px; color: var(--primary); }
-        p { text-align: center; font-size: 0.9rem; color: #64748b; margin-bottom: 25px; }
-        .form-group { margin-bottom: 15px; }
-        label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; display: block; margin-bottom: 5px; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 14px; }
-        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1); }
-        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; --muted: #64748b; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .logo { text-align: center; margin-bottom: 25px; }
+        .logo img { max-width: 180px; }
+        h2 { text-align: center; font-size: 1.4rem; margin-bottom: 8px; color: var(--primary); font-weight: 700; }
+        p.intro { text-align: center; font-size: 0.95rem; color: var(--muted); margin-bottom: 30px; line-height: 1.5; }
+        .form-group { margin-bottom: 20px; }
+        label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px; }
+        input, select { width: 100%; padding: 12px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; box-sizing: border-box; transition: all 0.2s; }
+        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .row { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 15px; }
+        .row .form-group { margin-bottom: 0; }
+        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 15px; transition: background 0.2s; }
         button:hover { background: #1d4ed8; }
-        .row { display: flex; gap: 15px; }
-        .row .form-group { flex: 1; }
+        .required { color: #ef4444; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo"><img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro"></div>
+        <div class="logo">
+            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+        </div>
         <h2>Ficha de Início de Processo</h2>
-        <p>Olá! Para darmos andamento ao seu caso, por favor preencha os dados oficiais abaixo.</p>
+        <p class="intro">Olá! Para darmos andamento ao seu caso, por favor preencha os dados oficiais abaixo.</p>
         
         <form id="formFicha">
             <div class="form-group">
-                <label>Nome Completo / Razão Social</label>
+                <label>Nome Completo / Razão Social <span class="required">*</span></label>
                 <input type="text" id="nome" required>
             </div>
 
             <div class="row">
                 <div class="form-group">
-                    <label>Tipo</label>
-                    <select id="tipoPessoa" onchange="alternarTipoPessoa(this.value)">
+                    <label>Tipo <span class="required">*</span></label>
+                    <select id="tipoPessoa" onchange="alternarTipoPessoa(this.value)" required>
                         <option value="PF">Pessoa Física</option>
                         <option value="PJ">Pessoa Jurídica</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label id="labelDoc">CPF</label>
+                    <label id="labelDoc">CPF <span class="required">*</span></label>
                     <input type="text" id="documento" placeholder="000.000.000-00" required>
                 </div>
             </div>
 
             <div class="form-group">
-                <label>E-mail</label>
+                <label>E-mail <span class="required">*</span></label>
                 <input type="email" id="email" required>
             </div>
 
             <div class="form-group" id="grupoNascimento">
-                <label>Data de Nascimento</label>
+                <label>Data de Nascimento <span class="required">*</span></label>
                 <input type="date" id="nascimento" required>
             </div>
 
-            <div class="form-group">
-                <label>CEP</label>
-                <input type="text" id="cep" onblur="buscarEndereco(this.value)" placeholder="00000-000" required>
+            <!-- Campos separados: CEP, Cidade, UF -->
+            <div class="row">
+                <div class="form-group">
+                    <label>CEP <span class="required">*</span></label>
+                    <input type="text" id="cep" onblur="buscarEndereco(this.value)" placeholder="00000-000" required maxlength="9">
+                </div>
+                <div class="form-group">
+                    <label>Cidade <span class="required">*</span></label>
+                    <input type="text" id="cidade" placeholder="Ex: Feira de Santana" required>
+                </div>
+                <div class="form-group">
+                    <label>UF <span class="required">*</span></label>
+                    <select id="uf" required>
+                        <option value="">Selecione</option>
+                        <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option>
+                        <option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option>
+                        <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
+                        <option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option>
+                        <option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option>
+                        <option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option>
+                        <option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option>
+                        <option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option>
+                        <option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
+                    </select>
+                </div>
             </div>
 
+            <!-- Endereço completo -->
             <div class="form-group">
-                <label>Endereço Completo</label>
-                <input type="text" id="endereco" placeholder="Rua, número, bairro..." required>
+                <label>Endereço Completo <span class="required">*</span></label>
+                <input type="text" id="endereco" placeholder="Rua, número, bairro, complemento..." required>
             </div>
 
             <button type="submit">Enviar Dados para o Dr. Fábio</button>
@@ -75,9 +101,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/imask"></script>
     <script>
-        // Configuração das Máscaras
-        let maskDoc = IMask(document.getElementById('documento'), { mask: '000.000.000-00' });
+        // Máscaras
         IMask(document.getElementById('cep'), { mask: '00000-000' });
+
+        let maskDoc = IMask(document.getElementById('documento'), {
+            mask: '000.000.000-00'
+        });
 
         function alternarTipoPessoa(tipo) {
             const labelDoc = document.getElementById('labelDoc');
@@ -85,70 +114,80 @@
             const inputNasc = document.getElementById('nascimento');
             const inputDoc = document.getElementById('documento');
 
-            maskDoc.destroy(); // Remove a máscara atual
+            maskDoc.destroy();
 
             if (tipo === 'PF') {
-                labelDoc.innerText = "CPF";
+                labelDoc.innerText = "CPF *";
                 inputDoc.placeholder = "000.000.000-00";
                 maskDoc = IMask(inputDoc, { mask: '000.000.000-00' });
                 grupoNasc.style.display = "block";
                 inputNasc.required = true;
             } else {
-                labelDoc.innerText = "CNPJ";
+                labelDoc.innerText = "CNPJ *";
                 inputDoc.placeholder = "00.000.000/0000-00";
                 maskDoc = IMask(inputDoc, { mask: '00.000.000/0000-00' });
                 grupoNasc.style.display = "none";
                 inputNasc.required = false;
-                inputNasc.value = ""; // Limpa o valor se mudar para PJ
+                inputNasc.value = "";
             }
         }
 
         async function buscarEndereco(cep) {
             const v = cep.replace(/\D/g, '');
-            if(v.length === 8) {
+            if (v.length !== 8) return;
+
+            try {
                 const res = await fetch(`https://viacep.com.br/ws/${v}/json/`);
                 const data = await res.json();
-                if(!data.erro) {
-                    document.getElementById('endereco').value = `${data.logradouro}, ${data.bairro}, ${data.localidade}/${data.uf}`;
+                if (!data.erro) {
+                    document.getElementById('endereco').value = `${data.logradouro}, ${data.bairro}`;
+                    document.getElementById('cidade').value = data.localidade;
+                    document.getElementById('uf').value = data.uf;
                 }
+            } catch (err) {
+                console.warn("Erro ao buscar CEP:", err);
             }
         }
 
-document.getElementById('formFicha').onsubmit = async (e) => {
-    e.preventDefault();
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const leadId = urlParams.get('leadId') || 1; // Força o ID 1 para o seu teste
+        document.getElementById('formFicha').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const leadId = urlParams.get('leadId') || 1; // fallback para teste
 
-    const dados = {
-        leadId: leadId,
-        nome: document.getElementById('nome').value,
-        tipoPessoa: document.getElementById('tipoPessoa').value,
-        documento: document.getElementById('documento').value,
-        email: document.getElementById('email').value,
-        nascimento: document.getElementById('nascimento').value || null,
-        cep: document.getElementById('cep').value,
-        endereco: document.getElementById('endereco').value
-    };
+            const dados = {
+                leadId: leadId,
+                nome: document.getElementById('nome').value.trim(),
+                tipoPessoa: document.getElementById('tipoPessoa').value,
+                documento: document.getElementById('documento').value,
+                email: document.getElementById('email').value.trim(),
+                nascimento: document.getElementById('nascimento').value || null,
+                cep: document.getElementById('cep').value,
+                cidade: document.getElementById('cidade').value.trim(),
+                uf: document.getElementById('uf').value,
+                endereco: document.getElementById('endereco').value.trim()
+            };
 
-    try {
-        // 🚀 AJUSTE DA URL PARA O TESTE
-        const res = await fetch('/api/crm/public/onboarding', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dados)
-        });
+            try {
+                const res = await fetch('/api/crm/public/onboarding', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
 
-        if (res.ok) {
-            alert("✅ Dados enviados! Verifique a aba de clientes.");
-            location.reload(); 
-        } else {
-            alert("Erro no servidor. Verifique se a rota /api/crm/public/onboarding existe.");
-        }
-    } catch (err) {
-        alert("Falha de conexão. O servidor está ligado?");
-    }
-};
+                if (res.ok) {
+                    alert("✅ Dados enviados com sucesso! Entraremos em contato em breve.");
+                    // Opcional: limpar form ou redirecionar
+                    // location.reload();
+                } else {
+                    const err = await res.json();
+                    alert("Erro ao enviar: " + (err.erro || "Tente novamente."));
+                }
+            } catch (err) {
+                alert("Falha de conexão com o servidor. Verifique sua internet.");
+                console.error(err);
+            }
+        };
     </script>
 </body>
 </html>
