@@ -140,174 +140,253 @@
     </aside>
 
     <div class="main">
-        <header class="header">
-            <div>
-                <h2 style="font-size: 18px; font-weight: 600;">📡 Captura de Publicações DJEN</h2>
-                <p style="color:var(--muted); font-size: 12px; font-weight: 500;">Monitoramento: Dr. Fábio Lima da Silva (OAB/BA 51.288)</p>
+<header class="header" style="height: auto; padding: 20px 32px;">
+    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h2 style="font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+                <i data-lucide="satellite" style="width: 20px; color: var(--primary);"></i> 📡 Captura de Publicações DJEN
+            </h2>
+            <div style="font-size: 12px; color: var(--muted); margin-top: 4px; font-weight: 500;">
+                Monitoramento: <span id="monitoramentoNome" style="color: var(--text-main); font-weight: 700;">Carregando...</span> 
+                (<span id="monitoramentoOab" style="color: var(--primary); font-weight: 700;">...</span>)
             </div>
-            <div style="display:flex; gap: 12px;">
-                <button class="btn-converter" id="btnSincronizar" onclick="sincronizarEscavadorManual()" style="background: #0f172a;">
-                    <i class="lucide lucide-refresh-cw" id="iconSync"></i> Sincronizar DJEN
-                </button>
-            <button onclick="logout()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-weight:600; font-size:14px;">Sair</button>
-        </header>
+        </div>
+        
+        <div style="display:flex; gap: 20px; align-items: center;">
+            <button class="btn-converter" id="btnSincronizar" onclick="sincronizarEscavadorManual()" style="background: #0f172a; padding: 10px 18px; border-radius: 8px; color: white; display: flex; align-items: center; gap: 8px; font-size: 13px;">
+                <i data-lucide="refresh-cw" id="iconSync" style="width: 15px;"></i> Sincronizar DJEN
+            </button>
 
-        <main class="content">
-            <div id="lista-publicacoes">
-                <p style="color:var(--muted); text-align:center; padding:50px;">Sincronizando com o Tribunal... 🔄</p>
+            <div style="position: relative; display: flex; align-items: center; gap: 12px; border-left: 1px solid var(--border); padding-left: 20px;">
+                <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
+                <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
+                    --
+                </div>
+                <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
+                    <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
+                    <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
+                </div>
             </div>
-        </main>
+        </div>
     </div>
+</header> <main class="content">
+        <div id="lista-publicacoes">
+            </div>
+    </main>
 
-    <script>
-        const token = localStorage.getItem('token');
-        if (!token) window.location.href = '/login.html';
+   <script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login.html';
 
-        async function carregarInfoRodape() {
+    // 🚀 FUNÇÃO NOVA: Busca o Advogado Responsável e OAB para o Monitoramento
+    async function carregarDadosMonitoramento() {
+        try {
+            const res = await fetch('/api/config/meu-escritorio', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            
+            if (data.ok && data.dados) {
+                // Atualiza o cabeçalho com os dados do Dr. Geraldo (OAB/BA 9.458)
+                const nomeHeader = document.getElementById('monitoramentoNome');
+                const oabHeader = document.getElementById('monitoramentoOab');
+                
+                if (nomeHeader) nomeHeader.innerText = data.dados.advogado_responsavel || 'Advogado';
+                if (oabHeader) oabHeader.innerText = `OAB nº ${data.dados.oab}`;
+            }
+        } catch (err) {
+            console.error("Erro ao carregar dados do monitoramento:", err);
+        }
+    }
+
+async function carregarInfoRodape() {
     try {
-        // Ajustado para bater com as rotas do seu server.js
         const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
         const dataUser = await resUser.json();
-        if (dataUser.ok) document.getElementById('userEmail').innerText = dataUser.usuario.email;
+        
+        if (dataUser.ok) {
+            // Sidebar
+            document.getElementById('userEmail').innerText = dataUser.usuario.email;
 
-        // O seu server.js registrou app.use(prazosRoutes), então a rota é direta:
+            // --- LÓGICA DO CABEÇALHO PADRONIZADA ---
+            const nomeCompleto = dataUser.usuario.nome || 'Advogado';
+            
+            // 1. Apenas o primeiro nome
+            const primeiroNome = nomeCompleto.trim().split(' ')[0];
+            document.getElementById('userNameHeader').innerText = primeiroNome;
+
+            // 2. Iniciais (Primeiro e Último nome)
+            const partes = nomeCompleto.trim().split(' ').filter(n => n);
+            let iniciais = partes[0][0];
+            if (partes.length > 1) {
+                iniciais += partes[partes.length - 1][0];
+            }
+            
+            const circulo = document.getElementById('userCircle');
+            if (circulo) circulo.innerText = iniciais.toUpperCase();
+        }
+
         const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
         const dataPlan = await resPlan.json();
         document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
+        
     } catch (err) { 
-        console.error("Erro rodapé:", err); 
+        console.error("Erro ao carregar cabeçalho:", err); 
     }
 }
-
-window.onload = async () => {
-    await carregarInfoRodape(); // Carrega o rodapé primeiro
-    await carregarPublicacoes(); // Depois tenta as publicações
-};
-
-async function carregarPublicacoes() {
-    const container = document.getElementById('lista-publicacoes');
-    try {
-        // 🚀 Chama a rota correta que envia JSON
-        const res = await fetch('/api/publicacoes-pendentes', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+    // 🚀 WINDOW.ONLOAD ATUALIZADO
+    window.onload = async () => {
+        await carregarInfoRodape();
+        await carregarDadosMonitoramento(); // 👈 Chama a nova função aqui
+        await carregarPublicacoes();
         
-        if (!res.ok) throw new Error('Falha na requisição');
-        
-        const dados = await res.json();
+        // Inicializa ícones Lucide se houver algum no cabeçalho estático
+        if (window.lucide) lucide.createIcons();
+    };
 
-        // Se a lista vier vazia, mostra a mensagem de "Tudo em dia"
-        if (!dados || dados.length === 0) {
-            container.innerHTML = `
-                <div style="text-align:center; padding:60px; background:white; border-radius:12px; border:1px solid var(--border);">
-                    <i class="lucide lucide-coffee" style="font-size:40px; color:var(--muted); margin-bottom:15px;"></i>
-                    <p style="color:var(--muted); font-weight:500;">Nenhuma publicação nova encontrada. Tudo em dia!</p>
-                </div>`;
-            return;
-        }
-
-        // 🚀 Mapeia os dados usando os nomes exatos do seu banco Neon
-        container.innerHTML = dados.map(pub => `
-            <div class="card-pub">
-                <div class="pub-header">
-                    <span class="processo-tag">${pub.numero_processo}</span>
-                    <span class="data-tag">📅 Publicado em: ${new Date(pub.data_publicacao).toLocaleDateString('pt-BR')}</span>
-                </div>
-                <div class="texto-corpo">${pub.conteudo}</div>
-                <button class="btn-converter" onclick="gerarPrazo(${pub.id}, '${pub.numero_processo}')">
-                    <i class="lucide lucide-zap" style="width:14px;"></i> Gerar Prazo Útil
-                </button>
-            </div>
-        `).join('');
-
-    } catch (err) {
-        console.error("Erro ao carregar:", err);
-        container.innerHTML = `<p style="text-align:center; color:red; padding:20px;">Erro ao sincronizar dados. Tente atualizar a página.</p>`;
-    }
-}
-
-// 🚀 NOVA FUNÇÃO PARA SINCRONIZAR COM ESCAVADOR
-        async function sincronizarEscavadorManual() {
-            const btn = document.getElementById('btnSincronizar');
-            const icon = document.getElementById('iconSync');
-            btn.disabled = true;
-            icon.classList.add('lucide-spin');
+    async function carregarPublicacoes() {
+        const container = document.getElementById('lista-publicacoes');
+        try {
+            const res = await fetch('/api/publicacoes-pendentes', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
             
-            try {
-                // Chama a rota que você tem no publicacoes.routes.js
-                const res = await fetch('/api/publicacoes/fetch-all', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    alert("✅ Varredura no DJEN concluída com sucesso!");
-                    await carregarPublicacoes();
-                } else {
-                    alert("Falha na sincronização. Verifique sua API Key no servidor.");
-                }
-            } catch (err) { alert("Erro de conexão."); } finally {
-                btn.disabled = false;
-                icon.classList.remove('lucide-spin');
+            if (!res.ok) throw new Error('Falha na requisição');
+            const dados = await res.json();
+
+            if (!dados || dados.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:60px; background:white; border-radius:12px; border:1px solid var(--border);">
+                        <i data-lucide="coffee" style="width:40px; height:40px; color:var(--muted); margin: 0 auto 15px auto;"></i>
+                        <p style="color:var(--muted); font-weight:500;">Nenhuma publicação nova encontrada. Tudo em dia!</p>
+                    </div>`;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = dados.map(pub => `
+                <div class="card-pub">
+                    <div class="pub-header">
+                        <span class="processo-tag">${pub.numero_processo}</span>
+                        <span class="data-tag">📅 Publicado em: ${new Date(pub.data_publicacao).toLocaleDateString('pt-BR')}</span>
+                    </div>
+                    <div class="texto-corpo">${pub.conteudo}</div>
+                    <button class="btn-converter" onclick="gerarPrazo(${pub.id}, '${pub.numero_processo}')">
+                        <i data-lucide="zap" style="width:14px;"></i> Gerar Prazo Útil
+                    </button>
+                </div>
+            `).join('');
+
+            if (window.lucide) lucide.createIcons();
+
+        } catch (err) {
+            console.error("Erro ao carregar:", err);
+            container.innerHTML = `<p style="text-align:center; color:red; padding:20px;">Erro ao sincronizar dados. Tente atualizar a página.</p>`;
+        }
+    }
+
+    async function sincronizarEscavadorManual() {
+    // 🚀 ADICIONE A PERGUNTA AQUI
+    if (!confirm("Deseja iniciar a varredura no DJEN agora? Isso consumirá créditos da sua API.")) return;
+
+    const btn = document.getElementById('btnSincronizar');
+    const icon = document.getElementById('iconSync');
+        if (!btn || !icon) return;
+
+        btn.disabled = true;
+        icon.classList.add('lucide-spin');
+        
+        try {
+            const res = await fetch('/api/publicacoes/fetch-all', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                alert("✅ Varredura no DJEN concluída com sucesso!");
+                await carregarPublicacoes();
+            } else {
+                alert("Falha na sincronização. Verifique sua API Key no servidor.");
+            }
+        } catch (err) { 
+            alert("Erro de conexão."); 
+        } finally {
+            btn.disabled = false;
+            icon.classList.remove('lucide-spin');
+        }
+    }
+
+    function adicionarDiasUteis(dataInicial, dias) {
+        let data = new Date(dataInicial);
+        let diasAdicionados = 0;
+        while (diasAdicionados < dias) {
+            data.setDate(data.getDate() + 1);
+            if (data.getDay() !== 0 && data.getDay() !== 6) {
+                diasAdicionados++;
             }
         }
+        return data;
+    }
 
-        // Lógica de Identificação de Prazos
-        function adicionarDiasUteis(dataInicial, dias) {
-    let data = new Date(dataInicial);
-    let diasAdicionados = 0;
-    while (diasAdicionados < dias) {
-        data.setDate(data.getDate() + 1);
-        // 0 = Domingo, 6 = Sábado
-        if (data.getDay() !== 0 && data.getDay() !== 6) {
-            diasAdicionados++;
+    async function gerarPrazo(idPub, processo) {
+        // Encontra o card correto via evento
+        const btnElement = event.currentTarget;
+        const card = btnElement.closest('.card-pub');
+        const texto = card.querySelector('.texto-corpo').innerText.toLowerCase();
+        
+        let diasSugeridos = 15;
+        if (texto.includes("5 dias")) diasSugeridos = 5;
+        if (texto.includes("10 dias")) diasSugeridos = 10;
+
+        const tipo = prompt("Qual o tipo do prazo?", "Manifestação sobre Publicação");
+        if (!tipo) return;
+
+        const diasInput = prompt(`Quantos dias ÚTEIS para o prazo?`, diasSugeridos);
+        const dias = parseInt(diasInput);
+        if (isNaN(dias)) return;
+
+        const dataVencimentoObjeto = adicionarDiasUteis(new Date(), dias);
+        const dataFormatadaISO = dataVencimentoObjeto.toISOString().split('T')[0];
+
+        try {
+            const res = await fetch('/api/converter-publicacao', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ 
+                    id_publicacao: idPub, 
+                    tipo: tipo, 
+                    dias: dias,
+                    dataCalculada: dataFormatadaISO
+                })
+            });
+
+            if (res.ok) {
+                alert(`⚡ Sucesso! Prazo de ${dias} dias úteis gerado para: ${dataVencimentoObjeto.toLocaleDateString('pt-BR')}`);
+                carregarPublicacoes();
+            }
+        } catch (err) {
+            console.error("Erro ao converter:", err);
         }
     }
-    return data;
+
+    function toggleUserMenu() {
+    const m = document.getElementById('userDropdown');
+    if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
 }
 
-async function gerarPrazo(idPub, processo) {
-    const card = event.target.closest('.card-pub');
-    const texto = card.querySelector('.texto-corpo').innerText.toLowerCase();
-    
-    // Sugestão inteligente baseada no texto
-    let diasSugeridos = 15;
-    if (texto.includes("5 dias")) diasSugeridos = 5;
-    if (texto.includes("10 dias")) diasSugeridos = 10;
-
-    const tipo = prompt("Qual o tipo do prazo?", "Manifestação sobre Publicação");
-    if (!tipo) return;
-
-    const diasInput = prompt(`Quantos dias ÚTEIS para o prazo?`, diasSugeridos);
-    const dias = parseInt(diasInput);
-    if (isNaN(dias)) return;
-
-    // Calculamos a data real pulando fins de semana
-    const dataVencimentoObjeto = adicionarDiasUteis(new Date(), dias);
-    const dataFormatadaISO = dataVencimentoObjeto.toISOString().split('T')[0];
-
-    try {
-        const res = await fetch('/api/converter-publicacao', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            // Enviamos os dados para a rota que você já tem no prazos.routes.js
-            body: JSON.stringify({ 
-                id_publicacao: idPub, 
-                tipo: tipo, 
-                dias: dias,
-                dataCalculada: dataFormatadaISO // Opcional: garantir que o back use esta data
-            })
-        });
-
-        if (res.ok) {
-            alert(`⚡ Sucesso! Prazo de ${dias} dias úteis gerado para: ${dataVencimentoObjeto.toLocaleDateString('pt-BR')}`);
-            carregarPublicacoes();
-        }
-    } catch (err) {
-        console.error("Erro ao converter:", err);
+window.addEventListener('click', (e) => {
+    if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
+        const m = document.getElementById('userDropdown');
+        if(m) m.style.display = 'none';
     }
-}
-    </script>
+});
+
+        // Função para sair do sistema
+        function logout() {
+        localStorage.removeItem('token'); // Remove o acesso
+        window.location.href = '/login.html'; // Redireciona para o login
+    }
+</script>
 </body>
 </html>

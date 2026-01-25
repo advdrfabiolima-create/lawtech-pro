@@ -62,24 +62,140 @@
         .modal-content { background:#fff; width:100%; max-width:480px; padding:32px; border-radius:16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
 
         .btn-crm-gold-nav {
-    background: #fbbf24 !important; /* Cor Gold */
-    color: #000 !important;
-    font-weight: 800 !important;
-    margin-top: 15px !important;
-    display: flex !important;
+            background: #fbbf24 !important;
+            color: #000 !important;
+            font-weight: 800 !important;
+            margin-top: 15px !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            padding: 12px !important;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+        .btn-crm-gold-nav:hover { 
+            background: #facc15 !important; 
+            transform: scale(1.02); 
+        }
+        .btn-crm-gold-nav i { margin-right: 10px; }
+
+        /* Estilização Premium para os Selects e Labels */
+        .modal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .field-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .label-premium {
+            font-size: 11px;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .select-premium {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background-color: #f8fafc;
+            color: #1e293b;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+        .select-premium:focus {
+            border-color: #2563eb;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            background-color: #fff;
+        }
+        .btn-primary-premium {
+    flex: 2;
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
     align-items: center;
     justify-content: center;
-    padding: 12px !important;
-    border-radius: 8px;
-    text-decoration: none;
+    gap: 8px;
+    transition: all 0.2s;
+}
+.btn-primary-premium:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+.btn-primary-premium:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+}
+
+.btn-cancel-premium {
+    flex: 1;
+    background: #f1f5f9;
+    color: #64748b;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 600;
     font-size: 14px;
-    transition: 0.3s;
+    cursor: pointer;
+    transition: background 0.2s;
 }
-.btn-crm-gold-nav:hover { 
-    background: #facc15 !important; 
-    transform: scale(1.02); 
+.btn-cancel-premium:hover {
+    background: #e2e8f0;
+    color: #475569;
 }
-.btn-crm-gold-nav i { margin-right: 10px; }
+.aba-btn {
+    background: #f1f5f9;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.aba-btn:hover {
+    background: #e2e8f0;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+.aba-btn.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 6px 16px rgba(37,99,235,0.25);
+    transform: translateY(-1px);
+}
+
+.aba-btn i {
+    opacity: 0.9;
+}
     </style>
 </head>
 <body>
@@ -102,8 +218,8 @@
             <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
             <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
             <a href="/crm-page" class="btn-crm-gold-nav">
-            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
-        </a>
+                <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+            </a>
         </nav>
         <div class="sidebar-footer">
             <div><span style="color:#64748b">Usuário:</span> <span id="footerEmail" style="color:#fff">...</span></div>
@@ -116,9 +232,20 @@
             <div style="display: flex; align-items: center; gap: 15px;">
                 <h2 style="font-size: 18px; font-weight: 700;">📂 Gestão de Processos</h2>
             </div>
-            <div style="display:flex; gap:15px; align-items:center;">
+            
+            <div style="display:flex; gap:20px; align-items:center;">
                 <button class="btn-primary" onclick="abrirModalProcesso()">+ Novo Processo</button>
-                <button onclick="logout()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-weight:600; font-size:14px;">Sair</button>
+                
+                <div style="position: relative; display: flex; align-items: center; gap: 12px;">
+                    <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
+                    <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
+                        --
+                    </div>
+                    <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
+                        <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
+                        <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -139,25 +266,47 @@
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button id="btnTabAtivo" class="btn-filter active" onclick="mudarAba('ativo')">📂 Processos Ativos</button>
-                <button id="btnTabArquivado" class="btn-filter" onclick="mudarAba('arquivado')">📥 Arquivados</button>
-                <button id="btnTabExcluido" class="btn-filter" onclick="mudarAba('excluido')" style="color: var(--danger);">🗑️ Lixeira (Auditoria)</button>
-            </div>
+            <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+    <button id="btnTabAtivo" 
+            class="aba-btn ${abaAtual === 'ativo' ? 'active' : ''}" 
+            onclick="mudarAba('ativo')">
+        <i class="lucide lucide-folder-open" style="width:18px; height:18px; margin-right:6px;"></i>
+        Processos Ativos
+    </button>
+    
+    <button id="btnTabArquivado" 
+            class="aba-btn ${abaAtual === 'arquivado' ? 'active' : ''}" 
+            onclick="mudarAba('arquivado')">
+        <i class="lucide lucide-archive" style="width:18px; height:18px; margin-right:6px;"></i>
+        Arquivados
+    </button>
+    
+    <button id="btnTabExcluido" 
+            class="aba-btn ${abaAtual === 'excluido' ? 'active' : ''}" 
+            onclick="mudarAba('excluido')"
+            style="color: var(--danger);">
+        <i class="lucide lucide-trash-2" style="width:18px; height:18px; margin-right:6px;"></i>
+        Lixeira (Auditoria)
+    </button>
+</div>
 
-            <div class="card">
-                <table>
-<thead>
-    <tr>
-        <th>Nº Processo (CNJ)</th>
-        <th>Cliente</th>
-        <th>Estado/Tribunal</th>
-        <th style="text-align: center;">Status</th>
-        <th id="colunaAcaoTitulo" style="text-align: right;">Ações</th>
-    </tr>
-</thead>
+            <div class="card" style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 1200px;">
+                    <thead>
+                        <tr style="background: #f1f5f9; color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">
+                            <th style="width: 22%; padding: 16px 12px; text-align: left;">Nº Processo (CNJ)</th>
+                            <th style="width: 18%; padding: 16px 12px; text-align: left;">Cliente</th>
+                            <th style="width: 14%; padding: 16px 12px; text-align: left;">Parte Contrária</th>
+                            <th style="width: 12%; padding: 16px 12px; text-align: left;">Esfera</th>
+                            <th style="width: 12%; padding: 16px 12px; text-align: left;">Tribunal</th>
+                            <th style="width: 10%; padding: 16px 12px; text-align: center;">Instância / Grau</th>
+                            <th style="width: 8%; padding: 16px 12px; text-align: center;">UF</th>
+                            <th style="width: 10%; padding: 16px 12px; text-align: center;">Status</th>
+                            <th style="width: 10%; padding: 16px 12px; text-align: right;">Ações</th>
+                        </tr>
+                    </thead>
                     <tbody id="listaProcessos">
-                        <tr><td colspan="4" style="text-align: center; color: var(--muted); padding: 40px;">Carregando sua base de processos...</td></tr>
+                        <tr><td colspan="9" style="text-align:center; padding:50px; color:var(--muted);">Carregando sua base de processos...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -182,33 +331,92 @@
                         <option value="">Carregando clientes...</option>
                     </select>
                 </div>
-                <div style="display:flex; gap:16px; margin-bottom:30px;">
-                    <div style="flex:1;">
-                        <label style="display:block; font-size:11px; font-weight:700; color: var(--muted); margin-bottom:6px; text-transform:uppercase;">Estado</label>
-                        <select id="procEstado" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:8px;" required>
+
+                <!-- Grid corrigido: um field-group por select, para alinhar corretamente -->
+                <div class="modal-grid">
+                    <div class="field-group">
+                        <label class="label-premium">Esfera</label>
+                        <select id="procEsfera" class="select-premium" onchange="organizarTribunaisPorEsfera()" required>
                             <option value="">Selecione...</option>
-                            <option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option>
+                            <option value="estadual">Justiça Estadual</option>
+                            <option value="federal">Justiça Federal</option>
+                            <option value="trabalho">Justiça do Trabalho</option>
+                            <option value="eleitoral">Justiça Eleitoral</option>
+                            <option value="superior">Tribunais Superiores / Conselhos</option>
                         </select>
                     </div>
-                    <div style="flex:1;">
-                        <label style="display:block; font-size:11px; font-weight:700; color: var(--muted); margin-bottom:6px; text-transform:uppercase;">Instância</label>
-                        <select id="procInstancia" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:8px;" required>
-                            <option value="1">1ª Instância</option><option value="2">2ª Instância</option><option value="STJ">STJ/STF</option>
+
+                    <div class="field-group">
+                        <label class="label-premium">Tribunal</label>
+                        <select id="procTribunal" class="select-premium" required>
+                            <option value="">Aguardando Esfera...</option>
                         </select>
                     </div>
                 </div>
-                <div style="display:flex; gap:12px;">
-                    <button type="submit" class="btn-primary" style="flex:1.5;">Salvar Processo</button>
-                    <button type="button" onclick="fecharModalProcesso()" style="flex:1; background:#f1f5f9; border:none; border-radius:8px; cursor:pointer; font-weight: 700; color: var(--muted); font-size: 13px;">Cancelar</button>
+
+                <div class="modal-grid">
+                    <div class="field-group">
+                        <label class="label-premium">Instância / Grau</label>
+                        <select id="procInstancia" class="select-premium">
+                            <option value="1">1º Grau</option>
+                            <option value="2">2º Grau</option>            
+                            <option value="STJ">STJ</option>
+                            <option value="STF">STF</option>
+                        </select>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="label-premium">Estado (UF)</label>
+                        <select id="procEstado" class="select-premium">
+                            <option value="">Selecione...</option>
+                            <option value="AC">Acre</option>
+                            <option value="AL">Alagoas</option>
+                            <option value="AP">Amapá</option>
+                            <option value="AM">Amazonas</option>
+                            <option value="BA">Bahia</option>
+                            <option value="CE">Ceará</option>
+                            <option value="DF">Distrito Federal</option>
+                            <option value="ES">Espírito Santo</option>
+                            <option value="GO">Goiás</option>
+                            <option value="MA">Maranhão</option>
+                            <option value="MT">Mato Grosso</option>
+                            <option value="MS">Mato Grosso do Sul</option>
+                            <option value="MG">Minas Gerais</option>
+                            <option value="PA">Pará</option>
+                            <option value="PB">Paraíba</option>
+                            <option value="PR">Paraná</option>
+                            <option value="PE">Pernambuco</option>
+                            <option value="PI">Piauí</option>
+                            <option value="RJ">Rio de Janeiro</option>
+                            <option value="RN">Rio Grande do Norte</option>
+                            <option value="RS">Rio Grande do Sul</option>
+                            <option value="RO">Rondônia</option>
+                            <option value="RR">Roraima</option>
+                            <option value="SC">Santa Catarina</option>
+                            <option value="SP">São Paulo</option>
+                            <option value="SE">Sergipe</option>
+                            <option value="TO">Tocantins</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; display: flex; gap: 12px;">
+                    <button type="submit" class="btn-primary-premium">
+                        <i class="lucide lucide-save"></i> Salvar Processo
+                    </button>
+                    <button type="button" onclick="fecharModalProcesso()" class="btn-cancel-premium">
+                        Cancelar
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
- <script>
+  <script>
     const token = localStorage.getItem('token');
     if (!token) window.location.href = '/login.html';
-    let todosProcessos = [];
+    
+    let todosProcessos = []; // 📂 Guardará a lista global para os filtros funcionar
     let abaAtual = 'ativo';
 
     const regioesMap = {
@@ -221,128 +429,317 @@
 
     async function inicializar() {
         try {
+            // 1. Busca dados do usuário
             const resUser = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
             const dataUser = await resUser.json();
-            if (dataUser.ok) document.getElementById('footerEmail').innerText = dataUser.usuario.email;
 
+            if (dataUser.ok) {
+                document.getElementById('footerEmail').innerText = dataUser.usuario.email;
+
+                const nomeCompleto = dataUser.usuario.nome || 'Advogado';
+                const primeiroNome = nomeCompleto.split(' ')[0];
+                document.getElementById('userNameHeader').innerText = primeiroNome;
+
+                const partes = nomeCompleto.trim().split(' ').filter(n => n);
+                let iniciais = partes[0][0];
+                if (partes.length > 1) {
+                    iniciais += partes[partes.length - 1][0];
+                }
+                document.getElementById('userCircle').innerText = iniciais.toUpperCase();
+            }
+
+            // 2. Busca plano
             const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
             const dataPlan = await resPlan.json();
             document.getElementById('footerPlano').innerText = dataPlan.plano || '---';
 
+            // 3. Carrega processos
             await carregarProcessos();
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error("Erro na inicialização:", err);
+        }
     }
 
     async function carregarProcessos() {
         try {
-            const res = await fetch('/api/processos', { headers: { 'Authorization': `Bearer ${token}` } });
-            todosProcessos = await res.json();
-            renderizarTabela(todosProcessos);
-        } catch (err) { console.error(err); }
+            const response = await fetch('/api/processos', {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+            });
+
+            if (response.ok) {
+                todosProcessos = await response.json();
+                console.log('JSON RAW recebido:', JSON.stringify(todosProcessos[0], null, 2));
+                console.log("Esfera e tribunal do primeiro:", {
+                    esfera: todosProcessos[0]?.esfera,
+                    tribunal: todosProcessos[0]?.tribunal
+                });
+                renderizarTabela(todosProcessos);
+            } else {
+                console.error('Erro na resposta:', response.status);
+            }
+        } catch (err) {
+            console.error("Erro ao carregar lista:", err);
+        }
     }
 
     function renderizarTabela(lista) {
         const tabela = document.getElementById('listaProcessos');
-        const tituloAcao = document.getElementById('colunaAcaoTitulo');
-        
-        if (tituloAcao) {
-            tituloAcao.innerText = abaAtual === 'excluido' ? 'Excluído por' : 'Ações';
-        }
-
-        const listaFiltrada = lista.filter(p => (p.status || 'ativo') === abaAtual);
+        const listaFiltrada = lista.filter(p => (p.status || 'ativo').toLowerCase() === abaAtual);
 
         if (listaFiltrada.length === 0) {
-            tabela.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:50px; color:var(--muted); font-size: 14px;">Nenhum processo ${abaAtual} encontrado.</td></tr>`;
+            tabela.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:50px; color:var(--muted);">Nenhum processo encontrado.</td></tr>`;
             return;
         }
-
+console.log('Data crua do banco (primeiro processo excluído):', todosProcessos.find(p => p.status?.toLowerCase() === 'excluido')?.data_exclusao);
+console.log('Data convertida no front:', new Date(todosProcessos.find(p => p.status?.toLowerCase() === 'excluido')?.data_exclusao).toLocaleString('pt-BR'));
         tabela.innerHTML = listaFiltrada.map(p => `
-            <tr>
-                <td style="font-weight: 600; color: var(--primary);">
-                    ${p.numero}
-                    <div style="font-size: 11px; color: var(--muted); font-weight: 400; margin-top: 2px;">
-                        vs. ${p.parte_contraria || 'Não informada'}
-                    </div>
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 16px 12px;">
+                    <div style="font-weight: 700; color: #2563eb; font-size: 14px;">${p.numero || 'N/A'}</div>
+                    <div style="font-size: 12px; color: #64748b;">vs. ${p.parte_contraria || 'Não informada'}</div>
                 </td>
-                <td><strong>${p.cliente || 'Sem Cliente'}</strong></td>
-                <td><span style="color: var(--muted); font-size: 12px; font-weight: 700;">${p.uf || '--'}</span> / ${p.instancia || '1'}ª Inst.</td>
-                <td style="text-align: center;">
-                    <span class="status-pill" style="${(p.status || 'ativo') === 'arquivado' ? 'background:#f1f5f9; color:#64748b; border-color:#e2e8f0;' : (p.status === 'excluido' ? 'background:#fef2f2; color:#ef4444; border-color:#fecaca;' : '')}">
-                        ${(p.status || 'ativo').toUpperCase()}
+                <td style="padding: 16px 12px; font-weight: 600;">${p.cliente || '---'}</td>
+                <td style="padding: 16px 12px;">${p.parte_contraria || '---'}</td>
+                <td style="padding: 16px 12px;">
+                    <span style="background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+                        ${formatarEsfera(p.esfera) || 'N/A'}
                     </span>
                 </td>
-                <td style="text-align: right;">
-                    ${abaAtual === 'excluido' ? 
-                        `<div style="line-height:1.2; text-align:right;">
-                            <span style="font-size:11px; font-weight:700; color:var(--danger); display:block;">${p.acao_por || 'Sistema'}</span>
-                            <small style="font-size:10px; color:var(--muted);">${p.acao_data ? new Date(p.acao_data).toLocaleDateString('pt-BR') : ''}</small>
-                        </div>` :
-                        `<div style="display: flex; gap: 15px; justify-content: flex-end; align-items: center;">
-                            ${(p.status || 'ativo') === 'ativo' ? `
-                                <button onclick="arquivarProcesso(${p.id})" style="background:none; border:none; color:#f59e0b; cursor:pointer;" title="Arquivar">
-                                    <i data-lucide="archive" style="width:18px; height:18px;"></i>
-                                </button>
-                            ` : ''}
-                            <button onclick="excluirProcesso(${p.id})" style="background:none; border:none; color:#ef4444; cursor:pointer;" title="Excluir">
-                                <i data-lucide="trash-2" style="width:18px; height:18px;"></i>
-                            </button>
-                        </div>`
-                    }
+                <td style="padding: 16px 12px; font-weight: 500;">${formatarTribunal(p.tribunal) || '—'}</td>
+                <td style="padding: 16px 12px; text-align: center; font-weight: 600;">${p.instancia || '1'}º Grau</td>
+                <td style="padding: 16px 12px; text-align: center; font-weight: 700; color: #2563eb;">${p.uf || '--'}</td>
+                <td style="padding: 16px 12px; text-align: center;">
+                    <span style="background: ${abaAtual === 'excluido' ? '#fee2e2' : '#ecfdf5'}; color: ${abaAtual === 'excluido' ? '#ef4444' : '#10b981'}; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;">
+                        ${(p.status || 'ATIVO').toUpperCase()}
+                    </span>
                 </td>
+                <td style="padding: 16px 12px; text-align: right;">
+    <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
+        ${abaAtual === 'ativo' ? `
+            <button onclick="arquivarProcesso(${p.id})" title="Arquivar" style="background:none;border:none;cursor:pointer;color:#f59e0b;"><i data-lucide="archive" style="width:18px;"></i></button>
+            <button onclick="excluirProcesso(${p.id})" title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;"><i data-lucide="trash-2" style="width:18px;"></i></button>
+        ` : abaAtual === 'arquivado' ? `
+            <button onclick="desarquivarProcesso(${p.id})" title="Desarquivar" style="background:none;border:none;cursor:pointer;color:#10b981;"><i data-lucide="refresh-cw" style="width:18px;"></i></button>
+            <button onclick="excluirProcesso(${p.id})" title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;"><i data-lucide="trash-2" style="width:18px;"></i></button>
+        ` : `
+            <div style="text-align: right; line-height: 1.3; min-width: 160px;">
+                <div style="font-size: 9px; color: #94a3b8; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Auditado</div>
+                
+                <!-- Quem excluiu -->
+                <div style="font-size: 11px; color: #ef4444; font-weight: 600; margin-bottom: 2px;">
+                    ${p.excluido_por 
+                        ? (p.excluido_por.includes('@') ? p.excluido_por.split('@')[0] : p.excluido_por) 
+                        : 'Sistema'}
+                </div>
+                                
+            <!-- Data + hora corrigida 100% para -03:00 Bahia -->
+<div style="font-size: 10px; color: #64748b; font-weight: 500;">
+    ${p.data_exclusao 
+        ? (() => {
+            let data = new Date(p.data_exclusao);
+            // Se tiver 'Z' ou for UTC, ajusta manualmente para -03:00
+            if (p.data_exclusao.includes('Z') || data.getTimezoneOffset() === 0) {
+                data.setHours(data.getHours() - 3);  // Desloca -3h do UTC
+            }
+            return data.toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+        })()
+        : 'Data não registrada'}
+</div>
+            </div>
+        `}
+    </div>
+</td>
             </tr>
         `).join('');
-
-        if (typeof lucide !== 'undefined') lucide.createIcons();
+        lucide.createIcons();
     }
 
     function mudarAba(aba) {
-        abaAtual = aba;
-        const btnTodos = document.querySelector('#region-filter .btn-filter');
-        if (btnTodos) filtrarRegiao('TODOS', btnTodos);
+    abaAtual = aba;
+    ['btnTabAtivo', 'btnTabArquivado', 'btnTabExcluido'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.classList.toggle('active', id === `btnTab${aba.charAt(0).toUpperCase() + aba.slice(1)}`);
+    });
+    renderizarTabela(todosProcessos);
+    
+    // Força recriação dos ícones Lucide após mudar aba
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
 
-        ['btnTabAtivo', 'btnTabArquivado', 'btnTabExcluido'].forEach(id => {
-            document.getElementById(id).classList.remove('active');
+    // SALVAMENTO DO PROCESSO COM LOGS PARA DEBUG
+document.getElementById('formProcesso').onsubmit = async (e) => {
+    e.preventDefault();
+
+    const btnSalvar = e.target.querySelector('button[type="submit"]');
+    const textoOriginal = btnSalvar.innerHTML;
+    btnSalvar.disabled = true;
+    btnSalvar.innerHTML = "Verificando...";
+
+    const esferaValue = document.getElementById('procEsfera').value.trim();
+    const tribunalValue = document.getElementById('procTribunal').value.trim();
+
+    console.log('Valor atual de esfera antes de enviar:', esferaValue);
+    console.log('Valor atual de tribunal antes de enviar:', tribunalValue);
+
+    const selectCliente = document.getElementById('procClienteId');
+    const numeroProcesso = document.getElementById('procNumero').value.trim();
+
+    const dados = {
+        numero: numeroProcesso,
+        cliente_id: selectCliente.value,
+        cliente: selectCliente.options[selectCliente.selectedIndex].text.trim(),
+        uf: document.getElementById('procEstado').value.trim(),
+        instancia: document.getElementById('procInstancia').value.trim(),
+        parte_contraria: document.getElementById('procParteContraria').value.trim(),
+        esfera: esferaValue,
+        tribunal: tribunalValue
+    };
+
+    console.log("Enviando para o backend:", dados);
+
+    // Validação básica
+    if (!dados.numero) {
+        alert("O número do processo é obrigatório!");
+        btnSalvar.disabled = false;
+        btnSalvar.innerHTML = textoOriginal;
+        return;
+    }
+    if (!dados.esfera) {
+        alert("Selecione a Esfera antes de salvar!");
+        btnSalvar.disabled = false;
+        btnSalvar.innerHTML = textoOriginal;
+        return;
+    }
+    if (!dados.tribunal) {
+        alert("Selecione o Tribunal antes de salvar!");
+        btnSalvar.disabled = false;
+        btnSalvar.innerHTML = textoOriginal;
+        return;
+    }
+
+    try {
+        // Passo 1: Verifica se já existe processo com esse número
+        btnSalvar.innerHTML = "Verificando duplicidade...";
+        const checkRes = await fetch(`/api/processos/existe/${encodeURIComponent(numeroProcesso)}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
         });
-        
-        if (aba === 'ativo') document.getElementById('btnTabAtivo').classList.add('active');
-        if (aba === 'arquivado') document.getElementById('btnTabArquivado').classList.add('active');
-        if (aba === 'excluido') document.getElementById('btnTabExcluido').classList.add('active');
-        
-        renderizarTabela(todosProcessos);
-    }
 
-    // 📂 Funções de Ação (Arquivar/Excluir)
-    async function arquivarProcesso(id) {
-        if (!confirm("Deseja mover este processo para os Arquivados?")) return;
-        try {
-            const res = await fetch(`/api/processos/${id}/arquivar`, { 
-                method: 'PATCH', 
-                headers: { 'Authorization': `Bearer ${token}` } 
-            });
-            const data = await res.json();
-            if (data.ok) {
-                alert("Processo arquivado com sucesso!");
-                await carregarProcessos(); 
+        if (!checkRes.ok) {
+            throw new Error('Erro ao verificar duplicidade');
+        }
+
+        const checkData = await checkRes.json();
+
+        // Passo 2: Se existir, pergunta ao usuário
+        if (checkData.existe) {
+            const confirmar = confirm(
+                `Esse processo (${numeroProcesso}) já está cadastrado no sistema.\n\n` +
+                `Deseja cadastrar novamente (duplicado)?\n` +
+                `(Isso criará uma nova entrada com o mesmo número)`
+            );
+
+            if (!confirmar) {
+                btnSalvar.disabled = false;
+                btnSalvar.innerHTML = textoOriginal;
+                return; // Cancela o cadastro
             }
-        } catch (err) { alert("Erro na comunicação com o servidor."); }
+        }
+
+        // Passo 3: Prossegue com o salvamento
+        btnSalvar.innerHTML = "Salvando...";
+
+        const response = await fetch('/api/processos', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify(dados)
+        });
+
+        if (response.ok) {
+            alert("✅ Processo cadastrado com sucesso!");
+            fecharModalProcesso();
+            e.target.reset();
+            await carregarProcessos();
+        } else {
+            const erroData = await response.json();
+            alert("❌ Erro ao salvar: " + (erroData.erro || "Falha desconhecida"));
+        }
+    } catch (err) {
+        console.error("Erro completo:", err);
+        alert("❌ Erro de conexão ou servidor.");
+    } finally {
+        btnSalvar.disabled = false;
+        btnSalvar.innerHTML = textoOriginal;
+    }
+};
+
+    function organizarTribunaisPorEsfera() {
+    const esfera = document.getElementById('procEsfera').value;
+    console.log('Esfera selecionada:', esfera);
+
+    const tribunalSelect = document.getElementById('procTribunal');
+    let html = '<option value="">Selecione o Tribunal...</option>';
+
+    if (esfera === 'estadual') {
+        ['TJAC','TJAL','TJAP','TJAM','TJBA','TJCE','TJDFT','TJES','TJGO','TJMA','TJMT','TJMS','TJMG','TJPA','TJPB','TJPR','TJPE','TJPI','TJRJ','TJRN','TJRS','TJRO','TJRR','TJSC','TJSP','TJSE','TJTO'].forEach(tj => html += `<option value="${tj}">${tj}</option>`);
+    } 
+    else if (esfera === 'federal') {
+        ['TRF1','TRF2','TRF3','TRF4','TRF5','TRF6'].forEach(trf => html += `<option value="${trf}">${trf}</option>`);
+    } 
+    else if (esfera === 'trabalho') {
+        for(let i=1; i<=24; i++) html += `<option value="TRT${i}">TRT${i}</option>`;
+    } 
+    else if (esfera === 'eleitoral') {
+        // Aqui adicionamos o TRE como opção principal
+        html += `<option value="TRE">TRE (Tribunal Regional Eleitoral)</option>`;
+        // Se quiser deixar mais opções no futuro, pode adicionar TREs específicos por estado
+        // Exemplo: html += `<option value="TRE-BA">TRE-BA</option>`;
+    } 
+    else if (esfera === 'superior') {
+        ['STJ','STF','TST','TSE','STM','CNJ'].forEach(sup => html += `<option value="${sup}">${sup}</option>`);
     }
 
-    async function excluirProcesso(id) {
-        if (!confirm("Deseja enviar este processo para a Lixeira de Auditoria?")) return;
+    tribunalSelect.innerHTML = html;
+    console.log('Tribunal select atualizado com', tribunalSelect.options.length, 'opções');
+}
+
+    async function carregarClientesNoSelect() {
         try {
-            const res = await fetch(`/api/processos/${id}/excluir`, { 
-                method: 'PATCH', 
-                headers: { 'Authorization': `Bearer ${token}` } 
-            });
-            const data = await res.json();
-            if (data.ok) {
-                alert("Processo enviado para a Lixeira.");
-                await carregarProcessos();
-            }
-        } catch (err) { alert("Erro na comunicação com o servidor."); }
+            const res = await fetch('/api/clientes', { headers: { 'Authorization': `Bearer ${token}` } });
+            const clientes = await res.json();
+            const select = document.getElementById('procClienteId');
+            select.innerHTML = '<option value="">Selecione o Cliente...</option>' + 
+                clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+        } catch (err) { console.error("Erro ao carregar clientes"); }
     }
 
-    // 🔍 Funções de Filtro
+    function abrirModalProcesso() { 
+        document.getElementById('modalProcesso').style.display = 'flex'; 
+        carregarClientesNoSelect(); 
+        // Resetar selects
+        document.getElementById('procEsfera').value = '';
+        document.getElementById('procTribunal').innerHTML = '<option value="">Aguardando Esfera...</option>';
+    }
+
+    function fecharModalProcesso() { 
+        document.getElementById('modalProcesso').style.display = 'none'; 
+        document.getElementById('formProcesso').reset(); 
+    }
+    
+    function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
+    window.onload = inicializar;
+
+    // Filtros de Região
     function filtrarRegiao(regiao, elemento) {
         document.querySelectorAll('#region-filter .btn-filter').forEach(btn => btn.classList.remove('active'));
         elemento.classList.add('active');
@@ -373,75 +770,7 @@
         renderizarTabela(todosProcessos.filter(p => p.uf === uf));
     }
 
-    // 🚀 Funções do Modal (CORRIGIDAS)
-    function abrirModalProcesso() {
-        limparModalProcesso(); // Garante que abra vazio
-        document.getElementById('modalProcesso').style.display = 'flex';
-        carregarClientesNoSelect();
-    }
-
-    function limparModalProcesso() {
-        // IDs ajustados para bater com o formulário
-        if(document.getElementById('procNumero')) document.getElementById('procNumero').value = '';
-        if(document.getElementById('procParteContraria')) document.getElementById('procParteContraria').value = '';
-        if(document.getElementById('procClienteId')) document.getElementById('procClienteId').selectedIndex = 0;
-        if(document.getElementById('procEstado')) document.getElementById('procEstado').selectedIndex = 0;
-        if(document.getElementById('procInstancia')) document.getElementById('procInstancia').selectedIndex = 0;
-    }
-
-    function fecharModalProcesso() { 
-        limparModalProcesso(); 
-        document.getElementById('modalProcesso').style.display = 'none'; 
-    }
-
-    async function carregarClientesNoSelect() {
-        try {
-            const res = await fetch('/api/clientes', { headers: { 'Authorization': `Bearer ${token}` } });
-            const clientes = await res.json();
-            const select = document.getElementById('procClienteId');
-            select.innerHTML = '<option value="">Selecione o Cliente...</option>' + 
-                clientes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
-        } catch (err) { console.error("Erro ao carregar clientes"); }
-    }
-
-    // 💾 Salvamento do Formulário
-    document.getElementById('formProcesso').onsubmit = async (e) => {
-        e.preventDefault();
-        const btnSalvar = e.target.querySelector('button[type="submit"]');
-        btnSalvar.disabled = true;
-        btnSalvar.innerText = "Salvando...";
-
-        const dados = {
-            numero: document.getElementById('procNumero').value,
-            cliente: document.getElementById('procClienteId').value,
-            uf: document.getElementById('procEstado').value,
-            instancia: document.getElementById('procInstancia').value,
-            parte_contraria: document.getElementById('procParteContraria').value
-        };
-
-        try {
-            const res = await fetch('/api/processos', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(dados)
-            });
-
-            if (res.ok) { 
-                alert("Processo salvo com sucesso!");
-                fecharModalProcesso(); // Isso já limpa os campos
-                await carregarProcessos(); 
-            } else {
-                const errData = await res.json();
-                alert("Erro: " + (errData.erro || "Falha ao salvar"));
-            }
-        } catch (err) {
-            alert("Erro de conexão.");
-        } finally {
-            btnSalvar.disabled = false;
-            btnSalvar.innerText = "Salvar Processo";
-        }
-    };
-
+    // Máscara CNJ
     function mascaraCNJ(i) {
         let v = i.value.replace(/\D/g, "");
         if (v.length > 7) v = v.replace(/^(\d{7})(\d)/, "$1-$2");
@@ -452,10 +781,109 @@
         i.value = v;
     }
 
-    setInterval(() => { if (window.lucide) lucide.createIcons(); }, 1000);
+    // Arquivar
+    async function arquivarProcesso(id) {
+        if (!confirm("Deseja mover este processo para os Arquivados?")) return;
+        try {
+            const res = await fetch(`/api/processos/${id}/arquivar`, { 
+                method: 'PATCH', 
+                headers: { 'Authorization': `Bearer ${token}` } 
+            });
+            if (res.ok) {
+                alert("Processo arquivado!");
+                await carregarProcessos(); 
+            } else {
+                alert("Erro ao arquivar.");
+            }
+        } catch (err) { alert("Erro ao arquivar."); }
+    }
 
-    function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
-    window.onload = inicializar;
+    async function desarquivarProcesso(id) {
+        if (!confirm("Deseja retornar este processo para a lista de Ativos?")) return;
+        try {
+            const res = await fetch(`/api/processos/${id}/desarquivar`, { 
+                method: 'PATCH', 
+                headers: { 'Authorization': `Bearer ${token}` } 
+            });
+            if (res.ok) {
+                alert("✅ Processo reativado com sucesso!");
+                await carregarProcessos(); 
+            } else {
+                alert("Erro ao reativar processo.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Erro na comunicação com o servidor.");
+        }
+    }
+
+    async function excluirProcesso(id) {
+        if (!confirm("Deseja enviar para a Lixeira de Auditoria?")) return;
+        try {
+            const res = await fetch(`/api/processos/${id}/excluir`, { 
+                method: 'PATCH', 
+                headers: { 'Authorization': `Bearer ${token}` } 
+            });
+            if (res.ok) {
+                alert("Processo excluído!");
+                await carregarProcessos();
+            }
+        } catch (err) { alert("Erro ao excluir."); }
+    }
+
+    function toggleUserMenu() {
+        const m = document.getElementById('userDropdown');
+        m.style.display = m.style.display === 'none' ? 'block' : 'none';
+    }
+
+    window.onclick = (e) => {
+        if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
+            const m = document.getElementById('userDropdown');
+            if(m) m.style.display = 'none';
+        }
+    };
+
+    function formatarEsfera(valor) {
+        if (!valor || valor === 'null' || valor === 'desconhecida') return 'Desconhecida';
+        const mapa = {
+            estadual: 'Justiça Estadual',
+            federal: 'Justiça Federal',
+            trabalho: 'Justiça do Trabalho',
+            eleitoral: 'Justiça Eleitoral',
+            superior: 'Tribunais Superiores'
+        };
+        return mapa[valor.toLowerCase()] || valor.charAt(0).toUpperCase() + valor.slice(1);
+    }
+
+    function formatarTribunal(valor) {
+        if (!valor || valor === 'null' || valor === 'desconhecido') return 'Desconhecido';
+        if (valor.startsWith('TRF')) return `TRF-${valor.slice(3)}`;
+        if (valor.startsWith('TJ')) return `TJ-${valor.slice(2)}`;
+        return valor;
+    }
+    // Inicializa ícones Lucide na carga inicial
+if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+}
+
+// E chama toda vez que mudar aba (para ícones dinâmicos)
+function mudarAba(aba) {
+    abaAtual = aba;
+    ['btnTabAtivo', 'btnTabArquivado', 'btnTabExcluido'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.classList.toggle('active', id === `btnTab${aba.charAt(0).toUpperCase() + aba.slice(1)}`);
+        }
+    });
+    renderizarTabela(todosProcessos);
+    
+    // Força ícones em todas as abas e na carga
+setTimeout(() => {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}, 500);  // Delay para garantir que DOM carregou
+}
 </script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const path = require('path'); // ADICIONADA: Esta linha resolve o erro ReferenceError
+const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('./config/db');
@@ -11,18 +11,18 @@ const authMiddleware = require('./middlewares/authMiddleware');
 const roleMiddleware = require('./middlewares/roleMiddleware');
 
 // --- IMPORTAÇÃO DE ROTAS ---
-const authRoutes = require('./routes/auth.routes');             
-const prazosRoutes = require('./routes/prazos.routes');         
-const planosRoutes = require('./routes/planos.routes');         
+const authRoutes = require('./routes/auth.routes');
+const prazosRoutes = require('./routes/prazos.routes');
+const planosRoutes = require('./routes/planos.routes');
 const financeiroRoutes = require('./routes/financeiro.routes');
 const audienciasRoutes = require('./routes/audiencias.routes');
-const processosRoutes = require('./routes/processos.routes');
+const processosRoutes = require('./routes/processos.routes');  // ← Todas as rotas de processos aqui!
 const calculosRoutes = require('./routes/calculos.routes');
 const pagamentosRoutes = require('./routes/pagamentos.routes');
 const clientesRoutes = require('./routes/clientes.routes');
 const configRoutes = require('./routes/config.routes');
 const publicacoesRoutes = require('./routes/publicacoes.routes');
-const iaRoutes = require('./routes/ia.routes'); 
+const iaRoutes = require('./routes/ia.routes');
 const crmRoutes = require('./routes/crm.routes');
 
 // --- AUTOMAÇÃO ---
@@ -32,91 +32,29 @@ const app = express();
 
 // --- CONFIGURAÇÕES GLOBAIS ---
 app.use(express.json());
+app.use(cors());  // Se precisar de CORS (opcional, adicione se front estiver em domínio diferente)
 
-/* ========================= GESTÃO DINÂMICA DE PROCESSOS (MOVIDO PARA CÁ) ========================= */
-
-// 📂 ROTA PARA ARQUIVAR
-app.patch('/api/processos/:id/arquivar', authMiddleware, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await pool.query(
-            "UPDATE processos SET status = 'arquivado', acao_por = $1, acao_data = NOW() WHERE id = $2 AND escritorio_id = (SELECT escritorio_id FROM usuarios WHERE id = $3)",
-            [req.user.email, id, req.user.id]
-        );
-        res.json({ ok: true }); 
-    } catch (err) { res.status(500).json({ erro: err.message }); }
-});
-
-// 🗑️ ROTA PARA EXCLUIR (LIXEIRA)
-app.patch('/api/processos/:id/excluir', authMiddleware, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await pool.query(
-            "UPDATE processos SET status = 'excluido', acao_por = $1, acao_data = NOW() WHERE id = $2 AND escritorio_id = (SELECT escritorio_id FROM usuarios WHERE id = $3)",
-            [req.user.email, id, req.user.id]
-        );
-        res.json({ ok: true });
-    } catch (err) { res.status(500).json({ erro: err.message }); }
-});
-
-// ➕ ROTA PARA CRIAR NOVO PROCESSO COM PARTE CONTRÁRIA
-app.post('/api/processos', authMiddleware, async (req, res) => {
-    try {
-        const { numero, cliente, uf, instancia, parte_contraria } = req.body;
-        const escritorioId = req.user.escritorio_id;
-
-        const query = `
-            INSERT INTO processos (numero, cliente, uf, instancia, escritorio_id, status, parte_contraria)
-            VALUES ($1, $2, $3, $4, $5, 'ativo', $6) RETURNING *
-        `;
-        
-        const result = await pool.query(query, [numero, cliente, uf, instancia, escritorioId, parte_contraria]);
-        res.json({ ok: true, processo: result.rows[0] });
-    } catch (err) {
-        res.status(500).json({ erro: err.message });
-    }
-});
-
-// 🔍 ROTA DE LISTAGEM TOTALMENTE CORRIGIDA
-app.get('/api/processos', authMiddleware, async (req, res) => {
-    try {
-        const resultado = await pool.query(
-            // 🚀 ADICIONADO: 'parte_contraria' para preencher o "vs. Parte" na tabela
-            "SELECT id, numero, numero AS processo_numero, cliente, parte_contraria, uf, instancia, status FROM processos WHERE escritorio_id = (SELECT escritorio_id FROM usuarios WHERE id = $1) ORDER BY id DESC",
-            [req.user.id]
-        );
-        res.json(resultado.rows);
-    } catch (err) {
-        res.status(500).json({ erro: "Erro ao carregar processos." });
-    }
-});
-
-/* ========================= APIs (ROTAS DE DADOS) ========================= */
+// --- APIs (ROTAS DE DADOS) ---
+// Todas as rotas de processos (GET, POST, PATCH) agora vêm de processos.routes.js
 app.use('/api/auth', authRoutes);
-app.use('/api', iaRoutes); 
+app.use('/api', iaRoutes);
 app.use('/api', crmRoutes);
 app.use('/api', prazosRoutes);
-app.use('/api', processosRoutes);
+app.use('/api', processosRoutes);         // ← Aqui entra a rota POST /api/processos correta!
 app.use('/api', calculosRoutes);
 app.use('/api', audienciasRoutes);
-app.use('/api', planosRoutes);        
+app.use('/api', planosRoutes);
 app.use('/api', financeiroRoutes);
 app.use('/api', clientesRoutes);
 app.use('/api', configRoutes);
 app.use('/api/pagamentos', pagamentosRoutes);
 app.use('/api', publicacoesRoutes);
-app.use('/api/crm', crmRoutes);
 
-// Servir arquivos estáticos (Ajustado para a pasta public)
-const publicPath = path.join(__dirname, '..', 'public'); 
+// Servir arquivos estáticos (pasta public)
+const publicPath = path.join(__dirname, '..', 'public');
 app.use(express.static(publicPath));
 
-// Rota de verificação rápida de Trial/Perfil
-app.get('/api/auth/me', authMiddleware, (req, res) => {
-    res.json({ ok: true, usuario: req.user });
-});
-
-/* ========================= PÁGINAS (FRONTEND) ========================= */
+// --- PÁGINAS (FRONTEND) ---
 app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(publicPath, 'login.html')));
 app.get('/register', (req, res) => res.sendFile(path.join(publicPath, 'register.html')));
@@ -138,32 +76,28 @@ app.get('/termos', (req, res) => res.sendFile(path.join(publicPath, 'termos.html
 app.get('/privacidade', (req, res) => res.sendFile(path.join(publicPath, 'privacidade.html')));
 app.get('/pagamento-pendente', (req, res) => {
     const filePath = path.resolve(__dirname, '..', 'public', 'pagamento-pendente.html');
-    console.log("Tentando carregar arquivo em:", filePath); // Isso vai nos dizer no terminal onde ele está procurando
+    console.log("Tentando carregar arquivo em:", filePath);
     res.sendFile(filePath);
 });
 
-/* ========================= CONFIGURAÇÕES DO SISTEMA (CORRIGIDAS) ========================= */
-
-// BUSCA DADOS (GET) - Ajustada para o seu config.html
+// --- CONFIGURAÇÕES DO SISTEMA ---
 app.get('/api/config/meu-escritorio', authMiddleware, async (req, res) => {
     try {
         const result = await pool.query(
             'SELECT e.* FROM escritorios e JOIN usuarios u ON u.escritorio_id = e.id WHERE u.id = $1',
             [req.user.id]
         );
-        // Enviando no formato que o seu config.html espera
         res.json({ ok: true, dados: result.rows[0] || {} });
-    } catch (err) { 
-        res.status(500).json({ ok: false, erro: err.message }); 
+    } catch (err) {
+        res.status(500).json({ ok: false, erro: err.message });
     }
 });
 
-// SALVA DADOS (PUT) - Incluindo Advogado Responsável
 app.put('/api/config/escritorio', authMiddleware, async (req, res) => {
-    const { 
-        nome, advogado_responsavel, oab, documento, dataNascimento, email, 
-        endereco, cidade, estado, cep, banco_codigo, 
-        agencia, conta, conta_digito, pix_chave, renda_mensal 
+    const {
+        nome, advogado_responsavel, oab, documento, dataNascimento, email,
+        endereco, cidade, estado, cep, banco_codigo,
+        agencia, conta, conta_digito, pix_chave, renda_mensal
     } = req.body;
 
     try {
@@ -174,9 +108,9 @@ app.put('/api/config/escritorio', authMiddleware, async (req, res) => {
                 agencia=$12, conta=$13, conta_digito=$14, pix_chave=$15, renda_mensal=$16
              WHERE id = (SELECT escritorio_id FROM usuarios WHERE id = $17)`,
             [
-                nome, advogado_responsavel, oab, documento, dataNascimento || null, email, 
-                endereco, cidade, estado, cep, banco_codigo, 
-                agencia, conta, conta_digito, pix_chave, renda_mensal, 
+                nome, advogado_responsavel, oab, documento, dataNascimento || null, email,
+                endereco, cidade, estado, cep, banco_codigo,
+                agencia, conta, conta_digito, pix_chave, renda_mensal,
                 req.user.id
             ]
         );
@@ -187,42 +121,43 @@ app.put('/api/config/escritorio', authMiddleware, async (req, res) => {
     }
 });
 
-/* ========================= FINALIZAÇÃO E INICIALIZAÇÃO ========================= */
+// --- ROTA DE VERIFICAÇÃO RÁPIDA DE USUÁRIO ---
+app.get('/api/auth/me', authMiddleware, (req, res) => {
+    res.json({ ok: true, usuario: req.user });
+});
 
-// Middleware de Erro Global
+// --- Middleware de Erro Global ---
 app.use((err, req, res, next) => {
     console.error('SERVER_ERROR:', err.stack);
     res.status(err.status || 500).json({ ok: false, erro: err.message || 'Erro interno do servidor' });
 });
 
-// Função para Reset de Senha Master e Inicialização do Servidor
+// --- INICIALIZAÇÃO DO SISTEMA ---
 async function iniciarSistema() {
     try {
         console.log("⏳ Conectando ao Neon e validando acesso master...");
         const hash = await bcrypt.hash('Lei@2026', 10);
-        
+
         await pool.query(`
             INSERT INTO usuarios (nome, email, senha, role, escritorio_id)
             VALUES ('Dr. Fábio Lima', 'adv.limaesilva@hotmail.com', $1, 'admin', 1)
             ON CONFLICT (email) 
             DO UPDATE SET senha = $1, role = 'admin', escritorio_id = 1
         `, [hash]);
-        
+
         console.log("✅ [SISTEMA] Acesso Master restaurado: adv.limaesilva@hotmail.com / Lei@2026");
-        
-        // Inicia os agendamentos automáticos do Cron
+
         iniciarAgendamentos();
-        
-        // Define a porta e inicia o servidor uma única vez
+
         const PORT = process.env.PORT || 3000;
         app.listen(PORT, () => {
             console.log(`\n🚀 LawTech Pro Rodando em: http://localhost:${PORT}/login`);
         });
-        
     } catch (err) {
         console.error("❌ [ERRO CRÍTICO] Falha ao iniciar sistema:", err.message);
         console.log("Dica: Verifique se sua DATABASE_URL no .env está correta e se o Neon está ativo.");
     }
 }
-// Chama a inicialização única
+
+// Chama a inicialização
 iniciarSistema();

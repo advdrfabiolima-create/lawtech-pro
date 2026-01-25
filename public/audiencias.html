@@ -150,15 +150,26 @@
     </aside>
 
     <div class="main">
-        <header class="header">
-            <h2 style="font-size: 18px; font-weight: 600;">📅 Agenda de Audiências</h2>
-            <div style="display:flex; gap:20px; align-items:center;">
-                <button class="btn-primary" onclick="abrirModalAudiencia()">
-                    <i class="lucide lucide-plus"></i> Nova Audiência
-                </button>
-                <button onclick="logout()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-weight:600; font-size:14px;">Sair</button>
+<header class="header">
+    <h2 style="font-size: 18px; font-weight: 600;">📅 Agenda de Audiências</h2>
+    
+    <div style="display:flex; gap:20px; align-items:center;">
+        <button class="btn-primary" onclick="abrirModalAudiencia()">
+            <i class="lucide lucide-plus"></i> Nova Audiência
+        </button>
+
+        <div style="position: relative; display: flex; align-items: center; gap: 12px;">
+            <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
+            <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
+                --
             </div>
-        </header>
+            <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
+                <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
+                <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
+            </div>
+        </div>
+    </div>
+</header>
 
         <main class="content">
             <div class="card">
@@ -222,21 +233,51 @@
         const token = localStorage.getItem('token');
         if (!token) window.location.href = '/login.html';
 
-        async function inicializarPagina() {
-            try {
-                // Info do Usuário
-                const resUser = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
-                const dataUser = await resUser.json();
-                if (dataUser.ok) document.getElementById('footerEmail').innerText = dataUser.usuario.email;
+        // 🚀 Variáveis para armazenar os dados do advogado logado
+        let nomeAdvogado = "Advogado Responsável";
+        let oabAdvogado = "";
 
-                // Info do Plano
-                const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
-                const dataPlan = await resPlan.json();
-                document.getElementById('footerPlano').innerText = dataPlan.plano || '---';
+async function inicializarPagina() {
+    try {
+        // 1. Busca Info do Usuário e preenche Cabeçalho
+        const resUser = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+        const dataUser = await resUser.json();
+        
+        if (dataUser.ok) {
+            document.getElementById('footerEmail').innerText = dataUser.usuario.email;
+            
+            // 🚀 CAPTURA DADOS PARA O WHATSAPP
+            nomeAdvogadoLogado = dataUser.usuario.nome || "Equipe Jurídica"; 
+            oabAdvogadoLogado = dataUser.usuario.oab || ""; 
 
-                await carregarAudiencias();
-            } catch (err) { console.error(err); }
+            // --- LÓGICA DO CABEÇALHO PADRONIZADA ---
+            const nomeCompleto = dataUser.usuario.nome || 'Advogado';
+            
+            // Extrai primeiro nome
+            const primeiroNome = nomeCompleto.trim().split(' ')[0];
+            document.getElementById('userNameHeader').innerText = primeiroNome;
+
+            // Extrai iniciais (Primeiro e Último nome)
+            const partes = nomeCompleto.trim().split(' ').filter(n => n);
+            let iniciais = partes[0][0];
+            if (partes.length > 1) {
+                iniciais += partes[partes.length - 1][0];
+            }
+            
+            const circulo = document.getElementById('userCircle');
+            if (circulo) circulo.innerText = iniciais.toUpperCase();
+            // -------------------------------------
         }
+
+        // 2. Info do Plano
+        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+        const dataPlan = await resPlan.json();
+        document.getElementById('footerPlano').innerText = dataPlan.plano || '---';
+
+        // 3. Carrega Audiências
+        await carregarAudiencias();
+    } catch (err) { console.error("Erro na inicialização:", err); }
+}
 
         async function carregarAudiencias() {
             try {
@@ -315,25 +356,32 @@
         };
 
         // Lógica de WhatsApp original mantida
-        function avisarZap(cliente, processo, tipo, data, hora, local, telefone) {
-            if (!telefone || telefone === 'null' || telefone === 'undefined') {
-                alert("Atenção: Este cliente não possui telefone cadastrado!");
-                return;
-            }
-            const foneLimpo = telefone.replace(/\D/g, "");
-            const dataFormatada = new Date(data).toLocaleDateString('pt-BR');
-            const mensagem = `*AVISO DE AUDIÊNCIA*%0A%0A` +
-                             `Olá, *${cliente}*!%0A` +
-                             `Confirmamos o agendamento da sua audiência:%0A%0A` +
-                             `📂 *Processo:* ${processo}%0A` +
-                             `⚖️ *Tipo:* ${tipo}%0A` +
-                             `📅 *Data:* ${dataFormatada}%0A` +
-                             `🕒 *Hora:* ${hora.slice(0,5)}%0A` +
-                             `📍 *Local/Link:* ${local || 'A definir'}%0A%0A` +
-                             `Atenciosamente,%0A` +
-                             `*Dr. Fábio Lima da Silva (OAB/BA 51.288)*`;
-            window.open(`https://wa.me/55${foneLimpo}?text=${mensagem}`, '_blank');
-        }
+function avisarZap(cliente, processo, tipo, data, hora, local, telefone) {
+    if (!telefone || telefone === 'null' || telefone === 'undefined') {
+        alert("Atenção: Este cliente não possui telefone cadastrado!");
+        return;
+    }
+
+    // 🚀 AQUI ESTAVA O ERRO: Precisamos definir a dataFormatada antes de usar
+    const dataFormatada = data ? new Date(data).toLocaleDateString('pt-BR') : 'A definir';
+    const foneLimpo = telefone.replace(/\D/g, "");
+    
+    // Monta a assinatura com os dados que o inicializarPagina capturou
+    const assinatura = `Dr(a). ${nomeAdvogadoLogado}${oabAdvogadoLogado ? ' (OAB/' + oabAdvogadoLogado + ')' : ''}`;
+
+    const mensagem = `*AVISO DE AUDIÊNCIA*%0A%0A` +
+                     `Olá, *${cliente}*!%0A` +
+                     `Confirmamos o agendamento da sua audiência:%0A%0A` +
+                     `📂 *Processo:* ${processo}%0A` +
+                     `⚖️ *Tipo:* ${tipo}%0A` +
+                     `📅 *Data:* ${dataFormatada}%0A` + // Agora a variável existe!
+                     `🕒 *Hora:* ${hora.slice(0,5)}%0A` +
+                     `📍 *Local/Link:* ${local || 'A definir'}%0A%0A` +
+                     `Atenciosamente,%0A` +
+                     `*${assinatura}*`;
+
+    window.open(`https://wa.me/55${foneLimpo}?text=${mensagem}`, '_blank');
+}
 
         function abrirModalAudiencia() {
             document.getElementById('modalAudiencia').style.display = 'flex';
@@ -363,6 +411,18 @@
 
         function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
         window.onload = inicializarPagina;
+
+        function toggleUserMenu() {
+    const m = document.getElementById('userDropdown');
+    if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+
+window.addEventListener('click', (e) => {
+    if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
+        const m = document.getElementById('userDropdown');
+        if(m) m.style.display = 'none';
+    }
+});
     </script>
 </body>
 </html>

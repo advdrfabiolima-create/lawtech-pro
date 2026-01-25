@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const axios = require('axios'); // 🚀 Adicionado para falar com o Escavador
 const authMiddleware = require('../middlewares/authMiddleware');
+const bcrypt = require('bcrypt');
 
 // ============================================================
 // ROTA 1: SALVAR/ATUALIZAR DADOS DO ESCRITÓRIO (PUT)
@@ -101,6 +102,36 @@ router.get('/meu-escritorio', authMiddleware, async (req, res) => {
         }
     } catch (err) {
         res.status(500).json({ ok: false, erro: err.message });
+    }
+});
+
+// ============================================================
+// ROTA PARA ALTERAR SENHA DO USUÁRIO LOGADO (PUT)
+// ============================================================
+router.put('/senha', authMiddleware, async (req, res) => {
+    const { senha } = req.body;
+
+    if (!senha || senha.length < 6) {
+        return res.status(400).json({ erro: 'A senha deve ter pelo menos 6 caracteres' });
+    }
+
+    try {
+        const hashedSenha = await bcrypt.hash(senha, 10);
+
+        // Atualiza a senha do usuário logado (usando req.user.id do middleware de auth)
+        const result = await pool.query(
+        'UPDATE usuarios SET senha = $1 WHERE id = $2 RETURNING id',
+        [hashedSenha, req.user.id]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ erro: 'Usuário não encontrado' });
+        }
+
+        res.json({ ok: true, mensagem: 'Senha alterada com sucesso' });
+    } catch (err) {
+        console.error('Erro ao alterar senha:', err.message);
+        res.status(500).json({ erro: 'Erro interno ao alterar senha' });
     }
 });
 

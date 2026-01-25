@@ -298,21 +298,23 @@
                     <span id="notif-count" style="display:none; position:absolute; top:2px; right:2px; background:var(--danger); color:white; font-size:9px; font-weight:800; padding:2px 4px; border-radius:10px; border:2px solid white;">0</span>
                 </div>
 
-                <div style="position:relative;">
-                    <div class="user-profile" onclick="toggleUserMenu()">
-                        <span id="userNameHeader" style="font-size:13px; font-weight:600; color:var(--text-main);"></span>
-                        <div id="userAvatar" class="user-avatar"></div>
-                    </div>
-                    
-                    <div id="userDropdown" class="dropdown-menu">
-                        <a href="/config-page"><i class="lucide lucide-user" style="width:16px;"></i> Meus Dados</a>
-                        <a href="/planos-page"><i class="lucide lucide-award" style="width:16px;"></i> Meu Plano</a>
-                        <div style="border-top:1px solid var(--border); margin:4px 0;"></div>
-                        <a href="javascript:void(0)" onclick="logout()" style="color:var(--danger);">
-                            <i class="lucide lucide-log-out" style="width:16px;"></i> Sair
-                        </a>
-                    </div>
-                </div>
+                <div class="user-profile" style="position:relative;">
+    <div class="user-profile-nav" onclick="toggleUserMenu()" style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+        <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--text-main);">Advogado</span>
+        <div id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 2px solid var(--white); box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-transform: uppercase; font-size: 13px;">
+            --
+        </div>
+    </div>
+    
+    <div id="userDropdown" class="dropdown-menu">
+        <a href="/config-page"><i class="lucide lucide-user" style="width:16px;"></i> Meus Dados</a>
+        <a href="/planos-page"><i class="lucide lucide-award" style="width:16px;"></i> Meu Plano</a>
+        <div style="border-top:1px solid var(--border); margin:4px 0;"></div>
+        <a href="javascript:void(0)" onclick="logout()" style="color:var(--danger);">
+            <i class="lucide lucide-log-out" style="width:16px;"></i> Sair
+        </a>
+    </div>
+</div>
             </div>
         </header>
 
@@ -525,174 +527,178 @@
         }
 
         // Inicializa dashboard (mantido seu código original, apenas organizado)
-        async function inicializarDashboard() {
-            try {
-                const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
-                const dataUser = await resUser.json();
-                
-                let idEscritorio = null;
+async function inicializarDashboard() {
+    try {
+        const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        const dataUser = await resUser.json();
+        
+        let idEscritorio = null;
 
-                if (dataUser.ok) {
-                    const user = dataUser.usuario;
-                    
-                    if (user.dias_restantes <= 2 && user.dias_restantes > 0) {
-                        const alertaDiv = document.getElementById('alerta-pagamento');
-                        if (alertaDiv) {
-                            alertaDiv.style.display = 'flex';
-                            alertaDiv.style.background = '#fffbeb'; 
-                            alertaDiv.style.borderColor = '#f59e0b';
-                            alertaDiv.style.color = '#92400e';
-                            
-                            document.getElementById('alerta-titulo').innerText = "⚠️ SEU PERÍODO DE TESTE ESTÁ ACABANDO";
-                            document.getElementById('alerta-msg').innerText = `Faltam apenas ${user.dias_restantes} ${user.dias_restantes === 1 ? 'dia' : 'dias'} para o bloqueio do sistema.`;
-                            
-                            document.getElementById('alerta-icone').className = 'lucide lucide-alert-triangle';
-                            if (typeof lucide !== 'undefined') lucide.createIcons();
+        if (dataUser.ok) {
+            const user = dataUser.usuario;
+            
+            // --- INÍCIO DA CORREÇÃO: LÓGICA DO CABEÇALHO PADRONIZADA ---
+            const nomeCompleto = user.nome || 'Advogado';
+            
+            // 1. Define apenas o Primeiro Nome no span
+            const primeiroNome = nomeCompleto.trim().split(' ')[0];
+            document.getElementById('userNameHeader').innerText = primeiroNome;
 
-                            alertaDiv.dataset.prioridade = "trial"; 
-                        }
-                    }
+            // 2. Define as Iniciais no Círculo (Primeira do Primeiro e do Último nome)
+            const partes = nomeCompleto.trim().split(' ').filter(n => n);
+            let iniciais = partes[0][0]; // Primeira letra do primeiro nome
+            if (partes.length > 1) {
+                iniciais += partes[partes.length - 1][0]; // Primeira letra do último nome
+            }
+            
+            const circulo = document.getElementById('userAvatar') || document.getElementById('userCircle');
+            if (circulo) {
+                circulo.innerText = iniciais.toUpperCase();
+            }
+            // --- FIM DA CORREÇÃO ---
 
-                    idEscritorio = user.escritorio_id;
-                    
-                    const nomeCompleto = user.nome || 'Advogado';
-                    const primeiroNome = nomeCompleto.trim().split(' ')[0];
-                    
-                    document.getElementById('userNameHeader').innerText = primeiroNome;
-                    document.getElementById('userEmail').innerText = user.email;
-                    
-                    const inicial = primeiroNome.charAt(0).toUpperCase();
-                    document.getElementById('userAvatar').innerText = inicial || 'AD';
-
-                    if (user.perfilCompleto === false) {
-                        document.getElementById('modalWelcome').style.display = 'flex';
-                    }
-                }
-
-                const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
-                const dataPlan = await resPlan.json();
-
+            // Alerta de Trial/Teste
+            if (user.dias_restantes <= 2 && user.dias_restantes > 0) {
                 const alertaDiv = document.getElementById('alerta-pagamento');
-                const alertaTitulo = document.getElementById('alerta-titulo');
-                const alertaMsg = document.getElementById('alerta-msg');
-                const alertaIcone = document.getElementById('alerta-icone');
-
-                if (dataPlan.dias_restantes !== null && alertaDiv.dataset.prioridade !== "trial") {
-                    const dias = dataPlan.dias_restantes;
-                    const diasParaBloqueio = dataPlan.dias_para_bloqueio;
-
-                    if (dataPlan.em_tolerancia) {
-                        alertaDiv.style.display = 'flex';
-                        alertaDiv.style.background = '#fef2f2';
-                        alertaDiv.style.borderColor = '#ef4444';
-                        alertaDiv.style.color = '#991b1b';
-                        alertaTitulo.innerText = "🚨 ASSINATURA VENCIDA";
-                        alertaMsg.innerText = `Seu prazo de tolerância acaba em ${diasParaBloqueio} dias. O acesso será bloqueado após isso.`;
-                        alertaIcone.className = 'lucide lucide-alert-octagon';
-                    } 
-                    else if (dias >= 0 && dias <= 7) {
-                        alertaDiv.style.display = 'flex';
-                        alertaDiv.style.background = '#fffbeb';
-                        alertaDiv.style.borderColor = '#f59e0b';
-                        alertaDiv.style.color = '#92400e';
-                        alertaTitulo.innerText = "⚠️ RENOVAÇÃO PRÓXIMA";
-                        alertaMsg.innerText = `Sua assinatura vence em ${dias} dias. Evite interrupções no serviço.`;
-                        alertaIcone.className = 'lucide lucide-alert-triangle';
-                    } else {
-                        alertaDiv.style.display = 'none';
-                    }
+                if (alertaDiv) {
+                    alertaDiv.style.display = 'flex';
+                    alertaDiv.style.background = '#fffbeb'; 
+                    alertaDiv.style.borderColor = '#f59e0b';
+                    alertaDiv.style.color = '#92400e';
+                    
+                    document.getElementById('alerta-titulo').innerText = "⚠️ SEU PERÍODO DE TESTE ESTÁ ACABANDO";
+                    document.getElementById('alerta-msg').innerText = `Faltam apenas ${user.dias_restantes} ${user.dias_restantes === 1 ? 'dia' : 'dias'} para o bloqueio do sistema.`;
+                    
+                    document.getElementById('alerta-icone').className = 'lucide lucide-alert-triangle';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                    alertaDiv.dataset.prioridade = "trial"; 
                 }
+            }
 
-                if (dataPlan.dias_para_bloqueio !== null && dataPlan.dias_para_bloqueio < 0) {
-                    window.location.href = '/planos-page';
-                    return;
-                }
+            idEscritorio = user.escritorio_id;
+            document.getElementById('userEmail').innerText = user.email;
 
-                const planName = dataPlan.plano || 'Individual';
-                const cicloFaturamento = dataPlan.ciclo === 'anual' ? 'Anual' : 'Mensal';
-
-                document.getElementById('planNameFooter').innerText = planName;
-                if(document.getElementById('planoAtual')) {
-                    document.getElementById('planoAtual').innerText = `${planName} - ${cicloFaturamento}`;
-                }
-
-                const badgeContainer = document.getElementById('premiumWelcome');
-                if (badgeContainer && planName.toLowerCase() === 'premium') {
-                    badgeContainer.style.display = 'inline-flex';
-                    badgeContainer.innerHTML = `
-                        <i class="lucide lucide-scale" style="color: #451a03; width: 18px; margin-right: 12px;"></i>
-                        <div style="display: flex; flex-direction: column; align-items: flex-start;">
-                            <span style="color: #451a03; font-weight: 900; font-size: 11px; text-transform: uppercase;">PLANO PREMIUM</span>
-                            <span style="color: #78350f; font-weight: 700; font-size: 8px; text-transform: uppercase;">Acesso Total LawTech Pro</span>
-                        </div>`;
-                    badgeContainer.style.background = 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)';
-                    badgeContainer.style.borderRadius = '6px';
-                }
-
-                if (planName.toLowerCase() === 'premium') {
-                    const linkCard = document.getElementById('premiumLinkCard');
-                    if (linkCard && idEscritorio) {
-                        linkCard.style.display = 'block';
-                        document.getElementById('linkCaptura').value = `${window.location.origin}/p.html?id=${idEscritorio}`;
-                    }
-                }
-
-                const usados = dataPlan.prazos_usados || 0;
-                const limite = dataPlan.limite || dataPlan.limite_prazos; 
-                let percent = (limite === null || planName.toLowerCase().includes('premium')) ? 100 : (limite > 0 ? Math.min((usados / limite) * 100, 100) : 0);
-
-                const textoConsumoElemento = document.getElementById('textoConsumoNumerico');
-                if (textoConsumoElemento) {
-                    textoConsumoElemento.innerText = limite === null ? `${usados} prazos (Ilimitado)` : `${usados} de ${limite} prazos usados`;
-                }
-                document.getElementById('progressBar').style.width = percent + '%';
-                document.getElementById('percentualTexto').innerText = limite === null ? '∞' : Math.round(percent) + '%';
-
-                if (document.getElementById('count-total-prazos')) {
-                    document.getElementById('count-total-prazos').innerText = usados;
-                }
-
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-
-            } catch (err) { 
-                console.error("Erro ao carregar Dashboard:", err); 
+            if (user.perfilCompleto === false) {
+                const modalW = document.getElementById('modalWelcome');
+                if (modalW) modalW.style.display = 'flex';
             }
         }
+
+        // Busca informações do Plano e Consumo
+        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+        const dataPlan = await resPlan.json();
+
+        const alertaDiv = document.getElementById('alerta-pagamento');
+        const alertaTitulo = document.getElementById('alerta-titulo');
+        const alertaMsg = document.getElementById('alerta-msg');
+        const alertaIcone = document.getElementById('alerta-icone');
+
+        if (dataPlan.dias_restantes !== null && alertaDiv && alertaDiv.dataset.prioridade !== "trial") {
+            const dias = dataPlan.dias_restantes;
+            const diasParaBloqueio = dataPlan.dias_para_bloqueio;
+
+            if (dataPlan.em_tolerancia) {
+                alertaDiv.style.display = 'flex';
+                alertaDiv.style.background = '#fef2f2';
+                alertaDiv.style.borderColor = '#ef4444';
+                alertaDiv.style.color = '#991b1b';
+                alertaTitulo.innerText = "🚨 ASSINATURA VENCIDA";
+                alertaMsg.innerText = `Seu prazo de tolerância acaba em ${diasParaBloqueio} dias. O acesso será bloqueado após isso.`;
+                alertaIcone.className = 'lucide lucide-alert-octagon';
+            } 
+            else if (dias >= 0 && dias <= 7) {
+                alertaDiv.style.display = 'flex';
+                alertaDiv.style.background = '#fffbeb';
+                alertaDiv.style.borderColor = '#f59e0b';
+                alertaDiv.style.color = '#92400e';
+                alertaTitulo.innerText = "⚠️ RENOVAÇÃO PRÓXIMA";
+                alertaMsg.innerText = `Sua assinatura vence em ${dias} dias. Evite interrupções no serviço.`;
+                alertaIcone.className = 'lucide lucide-alert-triangle';
+            } else {
+                alertaDiv.style.display = 'none';
+            }
+        }
+
+        if (dataPlan.dias_para_bloqueio !== null && dataPlan.dias_para_bloqueio < 0) {
+            window.location.href = '/planos-page';
+            return;
+        }
+
+        // Renderização das informações do Plano
+        const planName = dataPlan.plano || 'Individual';
+        const cicloFaturamento = dataPlan.ciclo === 'anual' ? 'Anual' : 'Mensal';
+
+        const footPlan = document.getElementById('planNameFooter');
+        if (footPlan) footPlan.innerText = planName;
+        
+        const platual = document.getElementById('planoAtual');
+        if(platual) platual.innerText = `${planName} - ${cicloFaturamento}`;
+
+        const badgeContainer = document.getElementById('premiumWelcome');
+        if (badgeContainer && planName.toLowerCase() === 'premium') {
+            badgeContainer.style.display = 'inline-flex';
+            badgeContainer.style.background = 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)';
+            badgeContainer.style.borderRadius = '6px';
+        }
+
+        // Link de Prospecção (Apenas Premium)
+        if (planName.toLowerCase() === 'premium') {
+            const linkCard = document.getElementById('premiumLinkCard');
+            if (linkCard && idEscritorio) {
+                linkCard.style.display = 'block';
+                const linkInput = document.getElementById('linkCaptura');
+                if (linkInput) linkInput.value = `${window.location.origin}/p.html?id=${idEscritorio}`;
+            }
+        }
+
+        // Atualização da barra de progresso e totais
+        const usados = dataPlan.prazos_usados || 0;
+        const limite = dataPlan.limite || dataPlan.limite_prazos; 
+        let percent = (limite === null || planName.toLowerCase().includes('premium')) ? 100 : (limite > 0 ? Math.min((usados / limite) * 100, 100) : 0);
+
+        const textoConsumoElemento = document.getElementById('textoConsumoNumerico');
+        if (textoConsumoElemento) {
+            textoConsumoElemento.innerText = limite === null ? `${usados} prazos (Ilimitado)` : `${usados} de ${limite} prazos usados`;
+        }
+        
+        const pBar = document.getElementById('progressBar');
+        if (pBar) pBar.style.width = percent + '%';
+        
+        const pText = document.getElementById('percentualTexto');
+        if (pText) pText.innerText = limite === null ? '∞' : Math.round(percent) + '%';
+
+        const cTotal = document.getElementById('count-total-prazos');
+        if (cTotal) cTotal.innerText = usados;
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+    } catch (err) { 
+        console.error("Erro ao carregar Dashboard:", err); 
+    }
+}
 
         // CRM Metrics - CORRIGIDO E ATUALIZADO
 let totalLeadsAtual = 0;
 
 async function checarNovosLeads() {
     try {
-        const res = await fetch('/api/crm/metricas', { 
+        const res = await fetch('/api/metricas', { 
             headers: { Authorization: `Bearer ${token}` } 
         });
         
         if (!res.ok) {
-            console.warn('Erro na API CRM (status):', res.status);
+            console.warn('Erro na API /api/metricas:', res.status);
             return;
         }
 
         const stats = await res.json();
-        console.log('📊 Métricas CRM recebidas:', stats); // Debug principal
+        console.log('Métricas CRM recebidas no dashboard:', stats);
 
-        // Atualização segura e tolerante (usa IDs exatos do seu HTML)
-        const updates = [
-            { id: 'crm-leads-count',   value: stats.leads    || 0, label: 'Novos Leads' },
-            { id: 'crm-reuniao-count', value: stats.reuniao  || 0, label: 'Em Triagem' },
-            { id: 'crm-proposta-count',value: stats.proposta || 0, label: 'Propostas' },
-            { id: 'crm-ganho-count',   value: stats.ganho    || 0, label: 'Ganhos' }
-        ];
-
-        updates.forEach(update => {
-            const el = document.getElementById(update.id);
-            if (el) {
-                el.innerText = update.value;
-                console.log(`${update.label} atualizado para: ${update.value}`);
-            } else {
-                console.warn(`Elemento não encontrado: #${update.id}`);
-            }
-        });
+        // IDs exatos do seu HTML
+        document.getElementById('crm-leads-count').innerText   = stats.leads    || '0';
+        document.getElementById('crm-reuniao-count').innerText = stats.reuniao  || '0';
+        document.getElementById('crm-proposta-count').innerText = stats.proposta || '0';
+        document.getElementById('crm-ganho-count').innerText   = stats.ganho    || '0';
 
         // Notificação de novo lead
         if (totalLeadsAtual !== 0 && (stats.leads || 0) > totalLeadsAtual) {
@@ -724,11 +730,16 @@ async function checarNovosLeads() {
             menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
         }
 
+        // 🚀 CORREÇÃO DO ERRO DE "NULL" E DO MENU
         window.addEventListener('click', function(e) {
-            if (!document.querySelector('.user-profile').contains(e.target)) {
-                document.getElementById('userDropdown').style.display = 'none';
-            }
-        });   
+        const menu = document.getElementById('userDropdown');
+        const container = document.querySelector('.user-profile');
+    
+        // Se o menu existe e o clique foi fora da área do perfil, fecha o menu
+        if (menu && container && !container.contains(e.target)) {
+        menu.style.display = 'none';
+        }
+    });   
 
         async function carregarPrazos() {
             const containerGeral = document.getElementById('lista-prazos');

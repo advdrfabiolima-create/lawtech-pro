@@ -5,9 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LawTech Pro — Configurações</title>
     <link rel="icon" type="image/png" href="favicon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
     
+    <!-- Cole aqui o bloco de fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://unpkg.com/lucide@0.451.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
@@ -139,11 +143,47 @@
     transform: scale(1.02); 
 }
 .btn-crm-gold-nav i { margin-right: 10px; }
+
+.finance-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn-secondary {
+  background: #e2e8f0;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.btn-secondary:hover {
+  background: #cbd5f5;
+}
+
+.btn-primary {
+  background: #2563eb;
+  font-weight: 700;
+}
+
+.divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 8px 0;
+}
+
+.status-badge.warning {
+  font-size: 11px;
+  color: #92400e;
+  background: #fef3c7;
+  padding: 8px;
+  border-radius: 6px;
+  text-align: center;
+}
     </style>
 </head>
 <body>
-
-    <aside class="sidebar">
+        <aside class="sidebar">
         <div class="sidebar-header">
             <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
         </div>
@@ -179,23 +219,22 @@
 
     <div class="main">
         <header class="header">
-    <h2 style="font-size: 18px; font-weight: 600;">⚙️ Configurações</h2>
-    
-    <div style="position: relative; display: flex; align-items: center; gap: 15px;">
-        <span id="userNameHeader" style="font-size: 14px; font-weight: 500; color: var(--muted);">Advogado</span>
-        <div onclick="toggleUserMenu()" style="width: 40px; height: 40px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; border: 2px solid #e2e8f0;">
-            FL </div>
-        
-        <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 200px; z-index: 1000;">
-            <a href="/config-page" style="display: block; padding: 12px 16px; color: var(--text-main); text-decoration: none; font-size: 14px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
-            <a href="#" onclick="logout()" style="display: block; padding: 12px 16px; color: #ef4444; text-decoration: none; font-size: 14px;">🚪 Sair</a>
-        </div>
-    </div>
-</header>
-
-        <div class="content">
+            <h2 style="font-size: 18px; font-weight: 600;">⚙️ Configurações</h2>
+            <div style="position: relative; display: flex; align-items: center; gap: 15px;">
+                <span id="userNameHeader" style="font-size: 14px; font-weight: 500; color: var(--muted);">Advogado</span>
+                <div onclick="toggleUserMenu()" id="userCircle" style="width: 40px; height: 40px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; border: 2px solid #e2e8f0;">
+                    --
+                </div>
+                <div id="userDropdown" style="display: none; position: absolute; top: 55px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 200px; z-index: 1001;">
+                    <a href="/config-page" style="display: block; padding: 12px 16px; color: var(--text-main); text-decoration: none; font-size: 14px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
+                    <a href="#" onclick="logout()" style="display: block; padding: 12px 16px; color: var(--danger); text-decoration: none; font-size: 14px;">🚪 Sair</a>
+                </div>
+            </div>
+        </header>
+<div class="content">
+    <!-- Acesso Pessoal -->
     <div class="card">
-        <div class="card-title"><i class="lucide lucide-user"></i> Acesso Pessoal</div>
+        <div class="card-title"><i data-lucide="user"></i> Acesso Pessoal</div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
             <div class="form-group">
                 <label>Seu Nome Completo</label>
@@ -203,314 +242,331 @@
             </div>
             <div class="form-group">
                 <label>E-mail de Login</label>
-                <input type="email" id="perfilEmail" readonly>
+                <input type="email" id="perfilEmail" readonly title="O e-mail não pode ser alterado por segurança.">
             </div>
         </div>
-        <button class="btn-save" style="margin-top:15px; width: auto; padding: 10px 30px;" onclick="salvarPerfil()">Atualizar Nome</button>
+        <button class="btn-save" style="margin-top:15px; width: auto; padding: 10px 30px;" onclick="salvarPerfil()">
+            Atualizar Nome
+        </button>
     </div>
 
-   <div class="card">
-    <div class="card-title"><i class="lucide lucide-building-2"></i> Dados do Escritório e Faturamento</div>
-    
-    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-        <div class="form-group">
-            <label>Advogado Responsável <span style="color:red">*</span></label>
-            <input type="text" id="confAdvogadoResponsavel">
-        </div>
-        <div class="form-group">
-            <label>OAB Principal <span style="color:red">*</span></label>
-            <input type="text" id="confOab" oninput="aplicarMascaraOAB(this)">
-        </div>
-        <div class="form-group">
-            <label>Renda Mensal (R$) <span style="color:red">*</span></label>
-            <input type="text" id="confRendaMensal" oninput="mascaraMoeda(this)">
-        </div>
-    </div>
-
-    <div style="display: grid; grid-template-columns: 2fr 1.2fr 0.8fr; gap: 15px; margin-bottom: 15px;">
-        <div class="form-group">
-            <label>Nome / Razão Social <span style="color:red">*</span></label>
-            <input type="text" id="confEscritorio">
-        </div>
-        <div class="form-group">
-            <label>Documento <span style="color:red">*</span></label>
-            <input type="text" id="confDocumento" oninput="aplicarMascaraDoc(this)">
-        </div>
-        <div class="form-group" id="groupDataNascimento">
-            <label>Nascimento <span style="color:red">*</span></label>
-            <input type="date" id="confDataNascimento">
-        </div>
-    </div>
-
-    <div class="form-group" style="margin-bottom: 15px;">
-        <label>Tipo de Documento <span style="color:red">*</span></label>
-        <div class="radio-group" style="display: flex; gap: 20px;">
-            <label><input type="radio" name="tipoDoc" value="CPF" checked onclick="ajustarMascaraDoc()"> CPF</label>
-            <label><input type="radio" name="tipoDoc" value="CNPJ" onclick="ajustarMascaraDoc()"> CNPJ</label>
-        </div>
-    </div>
-
-    <div style="display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 15px; margin-bottom: 15px;">
-        <div class="form-group">
-            <label>CEP <span style="color:red">*</span></label>
-            <input type="text" id="confCep" oninput="mascaraCEP(this)" onblur="buscarCep()">
-        </div>
-        <div class="form-group">
-            <label>Cidade <span style="color:red">*</span></label>
-            <input type="text" id="confCidade">
-        </div>
-        <div class="form-group">
-            <label>UF <span style="color:red">*</span></label>
-            <input type="text" id="confEstado" maxlength="2">
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label>Endereço Completo <span style="color:red">*</span></label>
-        <input type="text" id="confEndereco">
-    </div>
-
-    <div style="display: flex; gap: 15px; margin-top: 25px;">
-        <button class="btn-save" onclick="salvarDadosJuridicos()">Salvar Dados Escritório</button>
-        <button class="btn-pdf" onclick="gerarRelatorioPDF()">Comprovante Premium</button>
-    </div>
-</div>
-
+    <!-- Dados do Escritório e Faturamento -->
     <div class="card">
-        <div class="card-title"><i class="lucide lucide-banknote"></i> Faturamento Asaas</div>
-        <div style="display: grid; grid-template-columns: 2fr 1fr 1.5fr 0.5fr; gap: 12px; margin-bottom: 15px;">
-            <div class="form-group"><label>Banco <span style="color:red">*</span></label><select id="confBanco"></select></div>
-            <div class="form-group"><label>Agência <span style="color:red">*</span></label><input type="text" id="confAgencia"></div>
-            <div class="form-group"><label>Conta <span style="color:red">*</span></label><input type="text" id="confConta"></div>
-            <div class="form-group"><label>Dígito <span style="color:red">*</span></label><input type="text" id="confContaDigito"></div>
-        </div>
-        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 15px; align-items: end;">
+        <div class="card-title"><i data-lucide="building-2"></i> Dados do Escritório e Faturamento</div>
+        
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
             <div class="form-group">
-                <label>Chave PIX de Repasse</label>
-                <input type="text" id="confPixChave" placeholder="E-mail, CPF ou Aleatória">
+                <label>Advogado Responsável <span style="color:red">*</span></label>
+                <input type="text" id="confAdvogadoResponsavel">
             </div>
-            <button class="btn-save" style="background:#16a34a;" onclick="ativarFinanceiro()">🚀 Ativar Faturamento</button>
+            <div class="form-group">
+                <label>OAB Principal <span style="color:red">*</span></label>
+                <input type="text" id="confOab" oninput="aplicarMascaraOAB(this)" placeholder="000.000/UF">
+            </div>
+            <div class="form-group">
+                <label>Renda Mensal (R$) <span style="color:red">*</span></label>
+                <input type="text" id="confRendaMensal" oninput="mascaraMoeda(this)" placeholder="R$ 0,00">
+            </div>
         </div>
-        <span class="status-badge" id="statusFinanceiroBadge">Status: Verifique seus dados antes de ativar.</span>
+
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label>Tipo de Pessoa <span style="color:red">*</span></label>
+            <div class="radio-group">
+                <label class="radio-option">
+                    <input type="radio" name="tipoDoc" value="CPF" checked onclick="ajustarMascaraDoc()"> Pessoa Física (CPF)
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="tipoDoc" value="CNPJ" onclick="ajustarMascaraDoc()"> Pessoa Jurídica (CNPJ)
+                </label>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1.2fr 0.8fr; gap: 15px; margin-bottom: 15px;">
+            <div class="form-group">
+                <label>Nome / Razão Social <span style="color:red">*</span></label>
+                <input type="text" id="confEscritorio">
+            </div>
+            <div class="form-group">
+                <label>Documento (CPF/CNPJ) <span style="color:red">*</span></label>
+                <input type="text" id="confDocumento" oninput="aplicarMascaraDoc(this)">
+            </div>
+            <div class="form-group" id="groupDataNascimento">
+                <label>Nascimento <span style="color:red">*</span></label>
+                <input type="date" id="confDataNascimento">
+            </div>
+        </div>
+       
+        <div style="display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 15px; margin-bottom: 15px;">
+            <div class="form-group">
+                <label>CEP <span style="color:red">*</span></label>
+                <input type="text" id="confCep" oninput="mascaraCEP(this)" onblur="buscarCep()" placeholder="00.000-000">
+            </div>
+            <div class="form-group">
+                <label>Cidade <span style="color:red">*</span></label>
+                <input type="text" id="confCidade">
+            </div>
+            <div class="form-group">
+                <label>UF <span style="color:red">*</span></label>
+                <input type="text" id="confEstado" maxlength="2" placeholder="Ex: BA">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Endereço Completo <span style="color:red">*</span></label>
+            <input type="text" id="confEndereco" placeholder="Rua, Número, Bairro">
+        </div>
+
+        <div style="margin-top: 20px; padding: 12px; border-left: 4px solid #2563eb; background: #f1f5f9; border-radius: 6px;">
+            <span style="font-size: 12px; color: #475569; font-weight: 600; text-transform: uppercase;">
+                ✅ Checklist: Salve todos os dados acima antes de ativar o financeiro.
+            </span>
+        </div>
+
+        <div style="display: flex; gap: 15px; margin-top: 25px;">
+            <button class="btn-save" onclick="salvarDadosJuridicos()">Salvar Dados do Escritório</button>
+        </div>
     </div>
 
+    <!-- Configuração de Repasse (Asaas) -->
+    <div class="card" style="border-top: 4px solid var(--success);">
+        <div class="card-title">
+            <i data-lucide="banknote"></i> Configuração de Repasse (Asaas)
+        </div>
+
+        <!-- Dados Bancários -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1.5fr 0.5fr; gap: 12px; margin-bottom: 15px;">
+            <div class="form-group">
+                <label>Banco <span style="color:red">*</span></label>
+                <select id="confBanco">
+                    <option value="">Carregando bancos...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Agência <span style="color:red">*</span></label>
+                <input type="text" id="confAgencia" placeholder="0000">
+            </div>
+            <div class="form-group">
+                <label>Conta <span style="color:red">*</span></label>
+                <input type="text" id="confConta" placeholder="00000">
+            </div>
+            <div class="form-group">
+                <label>Dígito <span style="color:red">*</span></label>
+                <input type="text" id="confContaDigito" placeholder="0">
+            </div>
+        </div>
+
+        <!-- PIX -->
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label>Chave PIX para Recebimento</label>
+            <input type="text" id="confPixChave" placeholder="E-mail, CPF ou Chave Aleatória">
+        </div>
+
+        <!-- Ações -->
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+            <button class="btn-save" onclick="salvarDadosJuridicos()">
+                💾 Salvar Dados Bancários
+            </button>
+
+            <button class="btn-save" style="background: #10b981;" onclick="ativarFinanceiro()">
+                🚀 Ativar Faturamento
+            </button>
+
+            <span class="status-badge" style="background: #fef3c7; color: #92400e; padding: 8px 12px; border-radius: 6px; font-size: 13px;">
+                ⚠️ A conta bancária deve ser vinculada ao CPF/CNPJ informado para liberar a emissão de boletos.
+            </span>
+        </div>
+    </div>
+
+    <!-- Gestão de Equipe -->
     <div class="card">
-        <div class="card-title"><i class="lucide lucide-users"></i> Gestão de Equipe</div>
+        <div class="card-title">
+            <i data-lucide="users"></i> Gestão de Equipe
+        </div>
+
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 15px;">
-            <div class="form-group"><label>Nome</label><input type="text" id="eqNome" autocomplete="off"></div>
-            <div class="form-group"><label>E-mail</label><input type="email" id="eqEmail" autocomplete="off"></div>
-            <div class="form-group"><label>Senha</label><input type="password" id="eqSenha" autocomplete="new-password"></div>
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" id="eqNome" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" id="eqEmail" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>Senha</label>
+                <input type="password" id="eqSenha" autocomplete="new-password">
+            </div>
             <div class="form-group">
                 <label>Permissão</label>
                 <select id="eqRole">
                     <option value="operador">Operador</option>
                     <option value="visualizador">Leitura</option>
-                    <option value="admin">Admin</option>
+                    <option value="admin">Administrador</option>
                 </select>
             </div>
         </div>
-        <button class="btn-save" style="background:var(--primary); width: auto; padding: 10px 30px;" onclick="salvarMembro()">Adicionar à Equipe</button>
-        <div id="listaEquipe" style="margin-top: 15px; border-top: 1px solid var(--border);"></div> 
+
+        <button class="btn-save" style="width: auto; padding: 10px 30px;" onclick="salvarMembro()">
+            Adicionar à Equipe
+        </button>
+
+        <div id="listaEquipe" style="margin-top: 20px; border-top: 1px solid var(--border);"></div>
     </div>
 
+    <!-- Alterar Minha Senha -->
     <div class="card">
-        <div class="card-title"><i class="lucide lucide-lock"></i> Alterar Minha Senha</div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <div class="form-group"><label>Nova Senha</label><input type="password" id="novaSenha"></div>
-            <div class="form-group"><label>Confirmar</label><input type="password" id="confirmaSenha"></div>
+        <div class="card-title">
+            <i data-lucide="lock"></i> Alterar Minha Senha
         </div>
-        <button class="btn-save" style="background:#64748b; margin-top:15px; width: auto; padding: 10px 30px;" onclick="alterarSenha()">Alterar Senha</button>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="form-group">
+                <label>Nova Senha</label>
+                <input type="password" id="novaSenha">
+            </div>
+            <div class="form-group">
+                <label>Confirmar Nova Senha</label>
+                <input type="password" id="confirmaSenha">
+            </div>
+        </div>
+
+        <button class="btn-save" style="background: var(--muted); margin-top: 15px; width: auto; padding: 10px 30px;" onclick="alterarSenha()">
+            Atualizar Senha
+        </button>
     </div>
 </div>
 
-    <script>
-        const token = localStorage.getItem('token');
+<script>
+    const token = localStorage.getItem('token');
+    let dadosSalvos = false;
     if (!token) window.location.href = '/login.html';
 
-    // ... (suas funções de máscara permanecem as mesmas) ...
-
-async function carregarInfoRodape() {
-    try {
-        // 1. GARANTE O NOME E AS INICIAIS (Primeira prioridade)
-        const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
-        const dataUser = await resUser.json();
-        
-        if (dataUser.ok && dataUser.usuario) {
-            const nomeReal = dataUser.usuario.nome || 'Advogado';
-            
-            // Atualiza os textos
-            document.getElementById('userNameHeader').innerText = nomeReal;
-            document.getElementById('userEmailFooter').innerText = dataUser.usuario.email;
-            if(document.getElementById('perfilEmail')) document.getElementById('perfilEmail').value = dataUser.usuario.email;
-            if(document.getElementById('perfilNome')) document.getElementById('perfilNome').value = nomeReal;
-
-            // FIXA AS INICIAIS "FL" (Isso para o pisca-pisca da letra A)
-            const iniciais = nomeReal.split(' ').filter(n => n).map(n => n[0]).join('').toUpperCase().slice(0, 2);
-            const circuloPerfil = document.querySelector('[onclick="toggleUserMenu()"]');
-            if (circuloPerfil) circuloPerfil.innerText = iniciais || 'AD';
-        }
-
-        // 2. CARREGA O PLANO
-        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
-        const dataPlan = await resPlan.json();
-        if(document.getElementById('planNameFooter')) document.getElementById('planNameFooter').innerText = dataPlan.plano || 'Individual';
-
-        // 3. BUSCA DADOS DO ESCRITÓRIO (Com proteção contra erros)
-        const resEsc = await fetch('/api/config/meu-escritorio', { 
-    headers: { Authorization: `Bearer ${token}` } 
-});
-        const dataEsc = await resEsc.json();
-        
-        if(dataEsc.ok && dataEsc.dados) {
-            const d = dataEsc.dados;
-            
-            // Lista de IDs que DEVEM existir no seu HTML
-            const campos = {
-                'confAdvogadoResponsavel': d.advogado_responsavel,
-                'confEscritorio': d.nome,
-                'confOab': d.oab,
-                'confEmailFaturamento': d.email,
-                'confDocumento': d.documento,
-                'confCep': d.cep,
-                'confCidade': d.cidade,
-                'confEstado': d.estado,
-                'confEndereco': d.endereco
-            };
-
-            // Preenchimento Seguro: Só preenche se o campo existir na página
-            for (const [id, valor] of Object.entries(campos)) {
-                const elemento = document.getElementById(id);
-                if (elemento) {
-                    elemento.value = valor || '';
-                }
-            }
-        }
-    } catch (err) { 
-        console.warn("Aviso: Alguns campos não foram encontrados na tela, mas o perfil foi carregado."); 
+    // 1. MÁSCARAS E UTILITÁRIOS
+    function mascaraCEP(i) {
+        let v = i.value.replace(/\D/g, ''); 
+        if (v.length > 5) i.value = v.slice(0, 2) + '.' + v.slice(2, 5) + '-' + v.slice(5, 8);
+        else if (v.length > 2) i.value = v.slice(0, 2) + '.' + v.slice(2);
     }
-}
 
-        // --- RESTANTE DAS SUAS FUNÇÕES ORIGINAIS ---
-        function mascaraCEP(i) {
-            let v = i.value.replace(/\D/g, ''); 
-            if (v.length > 5) i.value = v.slice(0, 2) + '.' + v.slice(2, 5) + '-' + v.slice(5, 8);
-            else if (v.length > 2) i.value = v.slice(0, 2) + '.' + v.slice(2);
-        }
+    async function buscarCep() {
+        const inputCep = document.getElementById('confCep');
+        if (!inputCep) return;
+        const cepRaw = inputCep.value.replace(/\D/g, '');
+        if (cepRaw.length !== 8) return;
+        try {
+            const res = await fetch(`https://viacep.com.br/ws/${cepRaw}/json/`);
+            const data = await res.json();
+            if (!data.erro) {
+                if(document.getElementById('confEndereco')) document.getElementById('confEndereco').value = `${data.logradouro}, ${data.bairro}`;
+                if(document.getElementById('confCidade')) document.getElementById('confCidade').value = data.localidade;
+                if(document.getElementById('confEstado')) document.getElementById('confEstado').value = data.uf;
+            }
+        } catch (err) { console.error("Erro Viacep:", err); }
+    }
 
-        async function buscarCep() {
-            const inputCep = document.getElementById('confCep');
-            const cepRaw = inputCep.value.replace(/\D/g, '');
-            if (cepRaw.length !== 8) return;
-            try {
-                const res = await fetch(`https://viacep.com.br/ws/${cepRaw}/json/`);
-                const data = await res.json();
-                if (!data.erro) {
-                    document.getElementById('confEndereco').value = `${data.logradouro}, ${data.bairro}`;
-                    document.getElementById('confCidade').value = data.localidade;
-                    document.getElementById('confEstado').value = data.uf;
-                }
-            } catch (err) { console.error("Erro Viacep:", err); }
-        }
+    function mascaraMoeda(i) {
+        let v = i.value.replace(/\D/g,'');
+        v = (v/100).toFixed(2) + '';
+        v = v.replace(".", ",");
+        v = v.replace(/(\d)(\d{3})(\d{3}),/g, "$1.$2.$3,");
+        v = v.replace(/(\d)(\d{3}),/g, "$1.$2,");
+        i.value = 'R$ ' + v;
+    }
 
-        function mascaraMoeda(i) {
-            let v = i.value.replace(/\D/g,'');
-            v = (v/100).toFixed(2) + '';
-            v = v.replace(".", ",");
-            v = v.replace(/(\d)(\d{3})(\d{3}),/g, "$1.$2.$3,");
-            v = v.replace(/(\d)(\d{3}),/g, "$1.$2,");
-            i.value = 'R$ ' + v;
-        }
-
-        function ajustarMascaraDoc() {
+    function ajustarMascaraDoc() {
         const inputDoc = document.getElementById('confDocumento');
         const groupData = document.getElementById('groupDataNascimento');
         const radioCpf = document.querySelector('input[name="tipoDoc"]:checked');
-
-        // Se o campo de documento não existir na tela, a função para aqui sem dar erro
         if (!inputDoc) return;
-
+        
         inputDoc.value = '';
-    
-        // Se o radio button existir, pegamos o valor dele. Se não, assumimos CPF como padrão.
         const tipo = radioCpf ? radioCpf.value : 'CPF';
-
         if (tipo === 'CPF') {
-        inputDoc.placeholder = '000.000.000-00';
-        if (groupData) groupData.style.display = 'block';
+            inputDoc.placeholder = '000.000.000-00';
+            if (groupData) groupData.style.display = 'block';
         } else {
-        inputDoc.placeholder = '00.000.000/0000-00';
-        if (groupData) groupData.style.display = 'none';
+            inputDoc.placeholder = '00.000.000/0000-00';
+            if (groupData) groupData.style.display = 'none';
         }
-        }
+    }
 
-        function aplicarMascaraDoc(i) {
+    function aplicarMascaraDoc(i) {
         if (!i) return;
         const radioCpf = document.querySelector('input[name="tipoDoc"]:checked');
         const tipo = radioCpf ? radioCpf.value : 'CPF';
-    
         let v = i.value.replace(/\D/g, '');
         if (tipo === 'CPF') {
-        i.value = v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4").slice(0, 14);
+            i.value = v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4").slice(0, 14);
         } else {
-        i.value = v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5").slice(0, 18);
+            i.value = v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5").slice(0, 18);
         }
-        }
+    }
 
-        function aplicarMascaraOAB(i) {
-            let v = i.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            if (v.length > 6) i.value = v.slice(0, 3) + '.' + v.slice(3, 6) + '/' + v.slice(6, 8);
-            else if (v.length > 3) i.value = v.slice(0, 3) + '.' + v.slice(3);
-            else i.value = v;
-        }
+    function aplicarMascaraOAB(i) {
+        let v = i.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (v.length > 6) i.value = v.slice(0, 3) + '.' + v.slice(3, 6) + '/' + v.slice(6, 8);
+        else if (v.length > 3) i.value = v.slice(0, 3) + '.' + v.slice(3);
+        else i.value = v;
+    }
 
-        async function carregarBancos() {
-            try {
-                const res = await fetch('https://brasilapi.com.br/api/banks/v1');
-                const bancos = await res.json();
-                const select = document.getElementById('confBanco');
-                select.innerHTML = '<option value="">Selecione o Banco</option>';
-                bancos.sort((a,b) => a.fullName > b.fullName ? 1 : -1).forEach(b => {
-                    if(b.code) select.innerHTML += `<option value="${b.code}">${b.code} - ${b.fullName}</option>`;
-                });
-            } catch (e) { document.getElementById('confBanco').innerHTML = '<option value="">Erro ao carregar bancos</option>'; }
-        }
+    // 2. CARREGAMENTO DE DADOS
+    async function carregarBancos() {
+        try {
+            const res = await fetch('https://brasilapi.com.br/api/banks/v1');
+            const bancos = await res.json();
+            const select = document.getElementById('confBanco');
+            if (!select) return;
+            select.innerHTML = '<option value="">Selecione o Banco</option>';
+            bancos.sort((a,b) => (a.fullName || "") > (b.fullName || "") ? 1 : -1).forEach(b => {
+                if(b.code) select.innerHTML += `<option value="${b.code}">${b.code} - ${b.fullName || b.name}</option>`;
+            });
+        } catch (e) { console.error("Erro bancos:", e); }
+    }
 
-  async function carregarInfoRodape() {
+async function carregarInfoRodape() {
     try {
-        // 1. DADOS DE ACESSO (NOME E INICIAIS)
         const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
         const dataUser = await resUser.json();
         
         if (dataUser.ok) {
             const nomeReal = dataUser.usuario.nome || 'Advogado';
-            document.getElementById('userNameHeader').innerText = nomeReal;
-            document.getElementById('userEmailFooter').innerText = dataUser.usuario.email;
-            document.getElementById('perfilEmail').value = dataUser.usuario.email;
-            document.getElementById('perfilNome').value = dataUser.usuario.nome || '';
+            
+            // --- LÓGICA PADRONIZADA DO CABEÇALHO (Apenas primeiro nome) ---
+            const primeiroNome = nomeReal.trim().split(' ')[0];
+            document.getElementById('userNameHeader').innerText = primeiroNome;
 
-            // RESOLVE O PROBLEMA DA LETRA "A": Gera as iniciais corretamente
-            const iniciais = nomeReal.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-            const circuloPerfil = document.querySelector('[onclick="toggleUserMenu()"]');
-            if (circuloPerfil) circuloPerfil.innerText = iniciais;
+            // Iniciais (Primeiro e Último nome)
+            const partes = nomeReal.trim().split(' ').filter(n => n);
+            let iniciais = partes[0][0];
+            if (partes.length > 1) iniciais += partes[partes.length - 1][0];
+            
+            const circulo = document.getElementById('userCircle');
+            if (circulo) circulo.innerText = iniciais.toUpperCase();
+            // -------------------------------------------------------------
+
+            // Mantém preenchimento do formulário e rodapé
+            document.getElementById('userEmailFooter').innerText = dataUser.usuario.email;
+            if(document.getElementById('perfilEmail')) document.getElementById('perfilEmail').value = dataUser.usuario.email;
+            if(document.getElementById('perfilNome')) document.getElementById('perfilNome').value = nomeReal;
         }
 
-        // 2. DADOS DO PLANO
+        // Carregamento do Plano
         const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
         const dataPlan = await resPlan.json();
-        document.getElementById('planNameFooter').innerText = dataPlan.plano || 'Individual';
+        if(document.getElementById('planNameFooter')) {
+            document.getElementById('planNameFooter').innerText = dataPlan.plano || 'Individual';
+        }
 
-        // 3. DADOS DO ESCRITÓRIO (PREENCHIMENTO AUTOMÁTICO)
+        // Carregamento dos dados do Escritório (Não alterado)
         const resEsc = await fetch('/api/config/meu-escritorio', { headers: { Authorization: `Bearer ${token}` } });
         const dataEsc = await resEsc.json();
         
         if(dataEsc.ok && dataEsc.dados) {
             const d = dataEsc.dados;
-            // Mapeamento seguro de campos para evitar que o script "pisque" e pare
-            const camposParaPreencher = {
+            const campos = {
                 'confAdvogadoResponsavel': d.advogado_responsavel,
                 'confEscritorio': d.nome,
                 'confOab': d.oab,
-                'confEmailFaturamento': d.email,
                 'confDocumento': d.documento,
                 'confDataNascimento': d.data_nascimento ? d.data_nascimento.split('T')[0] : '',
                 'confCep': d.cep,
@@ -524,213 +580,258 @@ async function carregarInfoRodape() {
                 'confBanco': d.banco_codigo
             };
 
-            // Preenche apenas o que existir, sem dar erro
-            Object.keys(camposParaPreencher).forEach(id => {
+            Object.keys(campos).forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.value = camposParaPreencher[id] || '';
+                if (el) el.value = campos[id] || '';
             });
 
-            // Formata a Renda se ela existir
             if(d.renda_mensal && document.getElementById('confRendaMensal')) {
                 document.getElementById('confRendaMensal').value = 'R$ ' + parseFloat(d.renda_mensal).toLocaleString('pt-BR', {minimumFractionDigits: 2});
             }
         }
     } catch (err) { 
-        console.error("Aviso: Alguns dados ainda não foram preenchidos no perfil."); 
+        console.warn("Aviso: Falha ao carregar alguns dados do perfil."); 
     }
 }
 
-        async function salvarPerfil() {
-            const nome = document.getElementById('perfilNome').value;
-            const res = await fetch('/api/config/perfil', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ nome })
-            });
-            if (res.ok) { alert("✅ Perfil atualizado!"); carregarInfoRodape(); }
-            else { alert("❌ Erro ao atualizar perfil."); }
-        }
+    // 3. AÇÕES DE SALVAMENTO
+    async function salvarPerfil() {
+        const nome = document.getElementById('perfilNome').value;
+        const res = await fetch('/api/config/perfil', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ nome })
+        });
+        if (res.ok) { alert("✅ Nome atualizado!"); carregarInfoRodape(); }
+        else alert("❌ Erro ao atualizar.");
+    }
 
-        async function salvarDadosJuridicos() {
-            const rendaCrua = document.getElementById('confRendaMensal').value;
-            const rendaTratada = rendaCrua.replace(/[R$\s.]/g, '').replace(',', '.');
+    async function salvarDadosJuridicos() {
+        try {
+            const rendaE = document.getElementById('confRendaMensal');
+            const rendaTratada = rendaE ? rendaE.value.replace(/[R$\s.]/g, '').replace(',', '.') : 0;
+
             const dados = {
-                advogado_responsavel: document.getElementById('confAdvogadoResponsavel').value,
-                nome: document.getElementById('confEscritorio').value,
-                oab: document.getElementById('confOab').value,
-                documento: document.getElementById('confDocumento').value,
-                dataNascimento: document.getElementById('confDataNascimento').value,
-                email: document.getElementById('confEmailFaturamento').value,
-                endereco: document.getElementById('confEndereco').value,
-                cidade: document.getElementById('confCidade').value,
-                estado: document.getElementById('confEstado').value.toUpperCase(),
-                cep: document.getElementById('confCep').value.replace(/\D/g, ''),
-                banco_codigo: document.getElementById('confBanco').value,
-                agencia: document.getElementById('confAgencia').value,
-                conta: document.getElementById('confConta').value,
-                conta_digito: document.getElementById('confContaDigito').value,
-                pix_chave: document.getElementById('confPixChave').value,
+                advogado_responsavel: document.getElementById('confAdvogadoResponsavel')?.value || '',
+                nome: document.getElementById('confEscritorio')?.value || '',
+                oab: document.getElementById('confOab')?.value || '',
+                documento: document.getElementById('confDocumento')?.value || '',
+                dataNascimento: document.getElementById('confDataNascimento')?.value || null,
+                email: document.getElementById('perfilEmail')?.value || '',
+                endereco: document.getElementById('confEndereco')?.value || '',
+                cidade: document.getElementById('confCidade')?.value || '',
+                estado: document.getElementById('confEstado')?.value?.toUpperCase() || '',
+                cep: document.getElementById('confCep')?.value?.replace(/\D/g, '') || '',
+                banco_codigo: document.getElementById('confBanco')?.value || '',
+                agencia: document.getElementById('confAgencia')?.value || '',
+                conta: document.getElementById('confConta')?.value || '',
+                conta_digito: document.getElementById('confContaDigito')?.value || '',
+                pix_chave: document.getElementById('confPixChave')?.value || '',
                 renda_mensal: parseFloat(rendaTratada) || 0
             };
+
             const res = await fetch('/api/config/escritorio', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(dados)
             });
-            if (res.ok) alert("✅ Dados do escritório salvos!");
-            else alert("❌ Erro ao salvar dados.");
-        }
 
-        async function ativarFinanceiro() {
-            if (!confirm("Confirmar ativação da conta de faturamento com os dados acima?")) return;
+            if (res.ok) alert("✅ Dados salvos com sucesso!");
+            else alert("❌ Erro ao salvar dados.");
+        } catch (e) { console.error(e); alert("Erro ao processar salvamento."); }
+    }
+
+    async function salvarDadosBancarios() {
+    const dados = {
+        banco_codigo: document.getElementById('confBanco').value,
+        agencia: document.getElementById('confAgencia').value,
+        conta: document.getElementById('confConta').value,
+        conta_digito: document.getElementById('confContaDigito').value,
+        pix_chave: document.getElementById('confPixChave').value
+    };
+
+    const res = await fetch('/api/config/escritorio', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(dados)
+    });
+
+    if (res.ok) {
+        dadosSalvos = true;
+        document.querySelector('.btn-primary').disabled = false;
+    } else {
+        const d = await res.json();
+        alert('❌ ' + (d.erro || 'Erro ao salvar'));
+    }
+}
+
+    async function ativarFinanceiro() {
+        if (!confirm("Confirmar ativação da conta Asaas com os dados acima?")) return;
+        try {
             const res = await fetch('/api/financeiro/configurar-subconta', {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (res.ok) alert("✅ Faturamento Profissional Ativado!");
-            else alert("❌ Erro na ativação. Verifique campos obrigatórios.");
-        }
-
-        async function alterarSenha() {
-            const s1 = document.getElementById('novaSenha').value;
-            const s2 = document.getElementById('confirmaSenha').value;
-            if (!s1 || s1 !== s2) return alert("Senhas não conferem!");
-            const res = await fetch('/api/config/senha', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ senha: s1 })
-            });
-            if (res.ok) { alert("✅ Senha alterada!"); }
-            else { alert("❌ Erro ao alterar senha."); }
-        }
-
-        // Função para carregar a equipe
-    async function carregarEquipe() {
-    const tokenEquipe = localStorage.getItem('token');
-    const res = await fetch('/api/auth/equipe', { 
-        headers: { 'Authorization': `Bearer ${tokenEquipe}` } 
-    });
-    const membros = await res.json();
-    const listaDiv = document.getElementById('listaEquipe'); // Alinhado com seu layout atual
-    listaDiv.innerHTML = '';
-
-    membros.forEach(m => {
-        listaDiv.innerHTML += `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #f1f5f9;">
-                <div>
-                    <div style="font-weight:600; font-size:14px; color: var(--text-main);">${m.nome}</div>
-                    <div style="font-size:12px; color:var(--muted);">${m.email}</div>
-                </div>
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <span style="background:#e0e7ff; color:#4338ca; padding:4px 8px; border-radius:6px; font-size:10px; font-weight:700; text-transform: uppercase;">
-                        ${m.role}
-                    </span>
-                    <button onclick="excluirMembro(${m.id})" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:5px; display: flex; align-items: center;">
-                        <i class="lucide lucide-trash-2" style="width:18px;"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-    });
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-}
-
-async function excluirMembro(id) {
-    if(!confirm('Deseja remover este acesso imediatamente? O funcionário será deslogado e não poderá mais entrar.')) return;
-
-    const tokenExclusao = localStorage.getItem('token');
-    const res = await fetch(`/api/auth/equipe/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${tokenExclusao}` }
-    });
-
-    if(res.ok) {
-        alert('Acesso revogado com sucesso.');
-        carregarEquipe(); // Atualiza a lista na hora
-    }
-}
-
-async function salvarMembro() {
-    // 1. Forçamos a leitura do token direto do armazenamento do Chrome
-    const tokenSeguro = localStorage.getItem('token');
-    
-    // TESTE DE DIAGNÓSTICO: Isso vai imprimir no seu console se o token existe ou não
-    console.log("DEBUG - Token encontrado:", tokenSeguro ? "SIM (Preenchido)" : "NÃO (Vazio)");
-
-    if (!tokenSeguro) {
-        alert("❌ Erro local: Seu login expirou. Por favor, saia do sistema e entre novamente.");
-        return;
+            const data = await res.json();
+            if (res.ok) alert("✅ Faturamento Ativado!");
+            else alert("❌ Erro: " + (data.erro || "Verifique os campos obrigatórios."));
+        } catch (e) { alert("Erro de conexão."); }
     }
 
-    const nome = document.getElementById('eqNome').value;
-    const email = document.getElementById('eqEmail').value;
-    const senha = document.getElementById('eqSenha').value;
-    const role = document.getElementById('eqRole').value;
-
-    if (!nome || !email || !senha) {
-        alert("⚠️ Por favor, preencha Nome, E-mail e Senha.");
-        return;
-    }
-
+    // 4. EQUIPE
+async function carregarEquipe() {
     try {
-        const res = await fetch('/api/auth/convidar-funcionario', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': `Bearer ${tokenSeguro}` // Usando a variável local segura
-            },
-            body: JSON.stringify({ nome, email, senha, role })
+        const res = await fetch('/api/auth/equipe', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("Falha ao carregar equipe");
+
+        const membros = await res.json();
+        const lista = document.getElementById('listaEquipe');
+        if (!lista) return;
+
+        lista.innerHTML = '';  // limpa antes
+
+        if (membros.length === 0) {
+            lista.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 20px;">Nenhum membro na equipe ainda.</p>';
+            return;
+        }
+
+        membros.forEach(m => {
+            lista.innerHTML += `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #f1f5f9;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px;">${m.nome || 'Sem nome'}</div>
+                        <div style="font-size: 12px; color: var(--muted);">${m.email || '—'}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="background: #e0e7ff; color: #4338ca; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700;">
+                            ${ (m.role || 'operador').toUpperCase() }
+                        </span>
+                        <button onclick="excluirMembro(${m.id})" 
+                                style="background: none; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center;">
+                            <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
         });
 
-        if (res.ok) {
-            alert('✅ Funcionário adicionado com sucesso!');
-            document.getElementById('eqNome').value = '';
-            document.getElementById('eqEmail').value = '';
-            document.getElementById('eqSenha').value = '';
-            carregarEquipe(); 
+        // Chama o Lucide **depois** de inserir todo o HTML novo
+        if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+            lucide.createIcons();
+            console.log("Ícones Lucide atualizados com sucesso na lista de equipe");
         } else {
-            const erroData = await res.json();
-            // Se o erro for 403, o servidor vai dizer o motivo real aqui
-            alert('❌ Erro do Servidor: ' + (erroData.erro || 'Acesso negado (403)'));
+            console.warn("Biblioteca Lucide não encontrada ou createIcons indisponível");
         }
-    } catch (err) {
-        alert('❌ Erro crítico de conexão.');
+
+    } catch (e) {
+        console.error("Erro ao carregar equipe:", e);
+        const lista = document.getElementById('listaEquipe');
+        if (lista) {
+            lista.innerHTML = '<p style="color: #ef4444; text-align: center; padding: 20px;">Erro ao carregar a equipe. Tente recarregar a página.</p>';
+        }
     }
 }
 
     async function excluirMembro(id) {
-        if(!confirm('Deseja remover este acesso imediatamente? O funcionário será deslogado e não poderá mais entrar.')) return;
-
+        if (!confirm("Remover integrante imediatamente?")) return;
         const res = await fetch(`/api/auth/equipe/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
+        if (res.ok) { alert("Acesso revogado."); carregarEquipe(); }
+    }
 
-        if(res.ok) {
+    async function salvarMembro() {
+        const nome = document.getElementById('eqNome').value;
+        const email = document.getElementById('eqEmail').value;
+        const senha = document.getElementById('eqSenha').value;
+        const role = document.getElementById('eqRole').value;
+
+        if (!nome || !email || !senha) return alert("Preencha todos os campos da equipe.");
+
+        const res = await fetch('/api/auth/convidar-funcionario', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ nome, email, senha, role })
+        });
+
+        if (res.ok) {
+            alert('✅ Funcionário adicionado!');
+            document.getElementById('eqNome').value = '';
+            document.getElementById('eqEmail').value = '';
+            document.getElementById('eqSenha').value = '';
             carregarEquipe();
+        } else {
+            const d = await res.json();
+            alert('❌ Erro: ' + (d.erro || 'Acesso negado.'));
         }
     }
 
-        function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
+async function alterarSenha() {
+    const s1 = document.getElementById('novaSenha').value.trim();
+    const s2 = document.getElementById('confirmaSenha').value.trim();
 
-        window.onload = () => {
-            carregarBancos();
-            carregarInfoRodape();
-            ajustarMascaraDoc();
-            carregarEquipe();
-        };
+    if (!s1) return alert("Digite a nova senha!");
+    if (s1 !== s2) return alert("As senhas não conferem!");
+    if (s1.length < 6) return alert("A senha deve ter pelo menos 6 caracteres!");
 
-        function toggleUserMenu() {
-        const menu = document.getElementById('userDropdown');
-        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-        }
+    try {
+        const res = await fetch('/api/senha', {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify({ senha: s1 })
+        });
 
-        // Fecha o menu se clicar fora dele
-        window.onclick = function(event) {
-        if (!event.target.matches('[onclick="toggleUserMenu()"]') && !event.target.closest('#userDropdown')) {
-        document.getElementById('userDropdown').style.display = 'none';
+        const data = await res.json();
+
+        if (res.ok) {
+            alert("✅ Senha alterada com sucesso!");
+            document.getElementById('novaSenha').value = '';
+            document.getElementById('confirmaSenha').value = '';
+        } else {
+            alert("❌ " + (data.erro || `Erro ${res.status}: ${res.statusText}`));
+            console.log("Detalhes do erro:", data);
         }
+    } catch (err) {
+        console.error("Erro na requisição de senha:", err);
+        alert("Falha na conexão. Verifique se o servidor está rodando.");
+    }
+}
+
+    function toggleUserMenu() {
+        const m = document.getElementById('userDropdown');
+        if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
+
+    window.onload = () => {
+    carregarBancos();
+    carregarInfoRodape();
+    ajustarMascaraDoc();
+    carregarEquipe();
+
+    // 🔒 Bloqueia ativação até salvar dados bancários
+    const elemento = document.getElementById('ID_DO_ELEMENTO');  // substitua pelo ID real
+if (elemento) {
+    elemento.disabled = true;  // ou false, dependendo do que o código faz
+}
+};
+
+    window.onclick = (e) => {
+        if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
+            const m = document.getElementById('userDropdown');
+            if(m) m.style.display = 'none';
         }
+    };
     </script>
 </body>
 </html>

@@ -98,8 +98,35 @@ async function planoFinanceiroAtual(req, res) {
     res.status(500).json({ erro: 'Erro ao buscar plano financeiro' });
   }
 }
+async function calcularSaldoReal(req, res) {
+  try {
+    const escritorioId = req.user.escritorio_id;
 
+    const query = `
+      SELECT 
+        SUM(CASE WHEN tipo = 'receita' AND status = 'pago' THEN valor ELSE 0 END) as receitas_reais,
+        SUM(CASE WHEN tipo = 'despesa' AND status = 'pago' THEN valor ELSE 0 END) as despesas_pagas
+      FROM lancamentos
+      WHERE escritorio_id = $1
+    `;
+
+    const result = await pool.query(query, [escritorioId]);
+    const { receitas_reais, despesas_pagas } = result.rows[0];
+
+    const saldo_liquido = (receitas_reais || 0) - (despesas_pagas || 0);
+
+    res.json({ 
+      receitasReais: receitas_reais || 0,
+      despesasPagas: despesas_pagas || 0,
+      saldoLiquido: saldo_liquido
+    });
+  } catch (err) {
+    console.error('Erro ao calcular saldo real:', err);
+    res.status(500).json({ erro: 'Erro ao calcular saldo' });
+  }
+}
 module.exports = {
   planoFinanceiroAtual,
-  configurarSubconta
+  configurarSubconta,
+  calcularSaldoReal
 };

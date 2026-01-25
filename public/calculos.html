@@ -176,14 +176,28 @@
     </aside>
 
     <main class="main">
-        <header class="header no-print">
-            <h2 style="font-size: 18px; font-weight: 700;">⚖️ Juriscalc Pericial Pro</h2>
-            <div class="btn-group">
-                <button class="btn-ghost" onclick="window.print()"><i class="lucide lucide-printer"></i> Gerar PDF</button>
-                <button class="btn-primary" onclick="processarCalculo()"><i class="lucide lucide-calculator"></i> Processar Cálculo</button>
-                <button class="btn-primary" style="background:var(--success);" onclick="salvarNoBanco()"><i class="lucide lucide-save"></i> Salvar Histórico</button>
+<header class="header no-print">
+    <h2 style="font-size: 18px; font-weight: 700;">⚖️ Juriscalc Pericial Pro</h2>
+    
+    <div style="display:flex; gap:20px; align-items:center;">
+        <div class="btn-group">
+            <button class="btn-ghost" onclick="window.print()"><i class="lucide lucide-printer"></i> Gerar PDF</button>
+            <button class="btn-primary" onclick="processarCalculo()"><i class="lucide lucide-calculator"></i> Processar Cálculo</button>
+            <button class="btn-primary" style="background:var(--success);" onclick="salvarNoBanco()"><i class="lucide lucide-save"></i> Salvar Histórico</button>
+        </div>
+
+        <div style="position: relative; display: flex; align-items: center; gap: 12px; border-left: 1px solid var(--border); padding-left: 20px;">
+            <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
+            <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
+                --
             </div>
-        </header>
+            <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
+                <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
+                <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
+            </div>
+        </div>
+    </div>
+</header>
 
         <div class="content">
             <div class="section-card no-print">
@@ -339,17 +353,48 @@
         } catch (error) { console.error("Erro API BCB", error); }
     }
 
-    async function carregarInfoRodape() {
-        try {
-            const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
-            const dataUser = await resUser.json();
-            if (dataUser.ok) document.getElementById('userEmail').innerText = dataUser.usuario.email;
+async function carregarInfoRodape() {
+    try {
+        const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        const dataUser = await resUser.json();
+        
+        if (dataUser.ok) {
+            // Atualiza o e-mail na sidebar
+            const emailEl = document.getElementById('userEmail');
+            if(emailEl) emailEl.innerText = dataUser.usuario.email;
 
-            const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
-            const dataPlan = await resPlan.json();
-            document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
-        } catch (err) { console.error(err); }
+            // --- LÓGICA DO CABEÇALHO PADRONIZADA ---
+            const nomeCompleto = dataUser.usuario.nome || 'Advogado';
+            
+            // 1. Define apenas o Primeiro Nome no texto
+            const primeiroNome = nomeCompleto.trim().split(' ')[0];
+            const nameEl = document.getElementById('userNameHeader');
+            if(nameEl) nameEl.innerText = primeiroNome;
+
+            // 2. Define as Iniciais no Círculo (Primeiro e Último nome)
+            const partes = nomeCompleto.trim().split(' ').filter(n => n);
+            let iniciais = partes[0][0]; // Pega a letra do primeiro nome
+            
+            if (partes.length > 1) {
+                iniciais += partes[partes.length - 1][0]; // Pega a letra do último nome
+            }
+            
+            const circulo = document.getElementById('userCircle');
+            if (circulo) {
+                circulo.innerText = iniciais.toUpperCase();
+            }
+        }
+
+        // Busca informação do Plano
+        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+        const dataPlan = await resPlan.json();
+        const planEl = document.getElementById('planNameFooter');
+        if(planEl) planEl.innerText = dataPlan.plano || '---';
+        
+    } catch (err) { 
+        console.error("Erro na sincronização visual:", err); 
     }
+}
 
     function toggleCitacao() {
         const select = document.getElementById('jurosIncidencia');
@@ -677,6 +722,18 @@ function verMemoria(memoriaBase64) {
         await carregarHistorico(); 
         if (typeof lucide !== 'undefined') lucide.createIcons(); 
     };
+
+    function toggleUserMenu() {
+    const m = document.getElementById('userDropdown');
+    if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+
+window.addEventListener('click', (e) => {
+    if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
+        const m = document.getElementById('userDropdown');
+        if(m) m.style.display = 'none';
+    }
+});
 </script>
 </body>
 </html>

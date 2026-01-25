@@ -95,6 +95,7 @@
         70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
         100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
     }
+    
 </style>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/imask"></script>
@@ -140,12 +141,22 @@
     </aside>
 
     <div class="main">
-        <header class="header">
-            <h2 style="font-size: 18px; font-weight: 700;">👥 Gestão de Clientes</h2>
-            <div style="display:flex; gap:20px; align-items:center;">
-                <button onclick="logout()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-weight:600; font-size:14px;">Sair</button>
+<header class="header">
+    <h2 style="font-size: 18px; font-weight: 700;">👥 Gestão de Clientes</h2>
+    
+    <div style="display:flex; gap:20px; align-items:center;">
+        <div style="position: relative; display: flex; align-items: center; gap: 12px;">
+            <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
+            <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
+                --
             </div>
-        </header>
+            <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
+                <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
+                <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
+            </div>
+        </div>
+    </div>
+</header>
 
         <main class="content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
@@ -272,17 +283,67 @@
     let maskDoc; 
 
     // 1. CARREGA USUÁRIO E PLANO NO RODAPÉ
-    async function carregarInfoRodape() {
-        try {
-            const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
-            const dataUser = await resUser.json();
-            if (dataUser.ok) document.getElementById('userEmail').innerText = dataUser.usuario.email;
+async function carregarInfoRodape() {
+    try {
+        const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        const dataUser = await resUser.json();
+        
+        if (dataUser.ok) {
+            // Atualiza sidebar
+            document.getElementById('userEmail').innerText = dataUser.usuario.email;
 
-            const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
-            const dataPlan = await resPlan.json();
-            document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
-        } catch (err) { console.error("Erro ao carregar rodapé:", err); }
+            // --- LÓGICA DO CABEÇALHO PADRONIZADA ---
+            const nomeCompleto = dataUser.usuario.nome || 'Advogado';
+            
+            // 1. Apenas o primeiro nome
+            const primeiroNome = nomeCompleto.trim().split(' ')[0];
+            document.getElementById('userNameHeader').innerText = primeiroNome;
+
+            // 2. Iniciais (Primeiro e Último nome)
+            const partes = nomeCompleto.trim().split(' ').filter(n => n);
+            let iniciais = partes[0][0];
+            if (partes.length > 1) {
+                iniciais += partes[partes.length - 1][0];
+            }
+            
+            const circulo = document.getElementById('userCircle');
+            if (circulo) circulo.innerText = iniciais.toUpperCase();
+        }
+
+        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+        const dataPlan = await resPlan.json();
+        document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
+        
+    } catch (err) { 
+        console.error("Erro ao carregar cabeçalho:", err); 
     }
+}
+
+// Garanta que essas funções existam para o dropdown funcionar
+function toggleUserMenu() {
+    const m = document.getElementById('userDropdown');
+    if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+
+window.onclick = (e) => {
+    if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
+        const m = document.getElementById('userDropdown');
+        if(m) m.style.display = 'none';
+    }
+};
+
+// 🚀 Adicione estas funções extras ao final do script para o menu funcionar:
+function toggleUserMenu() {
+    const m = document.getElementById('userDropdown');
+    if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+
+window.onclick = (e) => {
+    if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
+        const m = document.getElementById('userDropdown');
+        if(m) m.style.display = 'none';
+    }
+};
 
     // 2. CARREGA E MONITORA LISTA DE CLIENTES
     async function carregarClientes() {
@@ -442,9 +503,16 @@
     modal.style.display = 'flex';
 
     try {
+        // 🚀 URL CORRIGIDA: Removido o "/processos" para bater com seu server.js
         const res = await fetch(`/api/por-cliente/${clienteId}`, { 
-        headers: { 'Authorization': `Bearer ${token}` } 
+            method: 'GET',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            } 
         });
+
+        if (!res.ok) throw new Error("Erro na resposta do servidor");
         const processos = await res.json();
 
         if (processos.length === 0) {
@@ -452,33 +520,31 @@
             return;
         }
 
+        // Renderiza os cards dos processos com Esfera e Tribunal
         container.innerHTML = processos.map(p => `
-    <div style="padding:16px; border:1px solid var(--border); border-radius:12px; background: white; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom:10px;">
-        <div style="flex: 1;">
-            <strong style="display:block; color:var(--primary); font-family:monospace; font-size:15px; margin-bottom:4px;">${p.numero}</strong>
-            
-            <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
-                <span style="color:var(--danger); font-size:11px; font-weight:800;">VS</span>
-                <span style="font-size:13px; font-weight:600; color:var(--text-main);">${p.parte_contraria || 'Parte não informada'}</span>
-            </div>
+            <div style="padding:16px; border:1px solid var(--border); border-radius:12px; background: white; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom:10px;">
+                <div style="flex: 1;">
+                    <strong style="display:block; color:var(--primary); font-family:monospace; font-size:14px; margin-bottom:4px;">${p.numero}</strong>
+                    
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                        <span style="color:var(--danger); font-size:10px; font-weight:800;">VS</span>
+                        <span style="font-size:13px; font-weight:600; color:var(--text-main);">${p.parte_contraria || 'Parte não informada'}</span>
+                    </div>
 
-            <div style="display:flex; gap:8px; align-items:center;">
-                <span style="background: #f1f5f9; color: #475569; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; text-transform:uppercase;">
-                    ${p.uf || '--'}
-                </span>
-                <small style="color:var(--muted); font-size:12px;">Instância: ${p.instancia || 'Definir'}</small>
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap: wrap;">
+                        <span style="background: #e0f2fe; color: #0369a1; font-size:9px; font-weight:800; padding:2px 6px; border-radius:4px; text-transform:uppercase;">
+                            ${p.esfera || 'N/A'}
+                        </span>
+                        <span style="color:var(--muted); font-size:11px; font-weight:600;">${p.tribunal || '---'}</span>
+                        <small style="color:var(--muted); font-size:11px;">${p.instancia || '1'}º Grau - ${p.uf || '--'}</small>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div style="text-align:right; margin-left: 15px;">
-            <span class="badge" style="background:#ecfdf5; color:#10b981; border: 1px solid #bbf7d0; font-size:9px; padding:3px 8px;">
-                ATIVO
-            </span>
-        </div>
-    </div>
-`).join('');
+        `).join('');
 
     } catch (err) {
-        container.innerHTML = '<p style="color:var(--danger);">Erro ao carregar processos.</p>';
+        console.error("Erro detalhado:", err);
+        container.innerHTML = '<p style="color:var(--danger); text-align:center; padding:20px; font-weight:600;">❌ Falha ao carregar processos. Verifique sua conexão.</p>';
     }
 }
 
