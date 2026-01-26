@@ -134,6 +134,35 @@ router.put('/senha', authMiddleware, async (req, res) => {
         res.status(500).json({ erro: 'Erro interno ao alterar senha' });
     }
 });
+// ============================================================
+// ROTA PARA ATUALIZAR NOME DO USUÁRIO (PUT)
+// Adicione esta rota APÓS a rota PUT /senha e ANTES da rota PUT /config/escavador-key
+// ============================================================
+router.put('/config/perfil', authMiddleware, async (req, res) => {
+    const { nome } = req.body;
+
+    if (!nome || nome.trim() === '') {
+        return res.status(400).json({ erro: 'Nome não pode estar vazio' });
+    }
+
+    try {
+        const result = await pool.query(
+            'UPDATE usuarios SET nome = $1 WHERE id = $2 RETURNING id, nome',
+            [nome.trim(), req.user.id]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ erro: 'Usuário não encontrado' });
+        }
+
+        console.log(`✅ Nome atualizado: ${nome} (ID: ${req.user.id})`);
+        res.json({ ok: true, mensagem: 'Nome atualizado com sucesso', nome: result.rows[0].nome });
+    } catch (err) {
+        console.error('❌ Erro ao atualizar nome:', err.message);
+        res.status(500).json({ erro: 'Erro ao atualizar nome' });
+    }
+});
+
 // ADICIONE ESTA ROTA NO FINAL DO ARQUIVO src/routes/config.routes.js
 // (antes do module.exports = router;)
 

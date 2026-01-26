@@ -6,137 +6,493 @@
   <title>Planos — LawTech Pro</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --primary: #2563eb;
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+      --primary-light: #60a5fa;
       --secondary: #0f172a;
       --success: #10b981;
       --warning: #f59e0b;
+      --gold: #fbbf24;
       --muted: #64748b;
       --white: #ffffff;
       --bg: #f8fafc;
       --border: #e2e8f0;
-      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 12px 24px rgba(0,0,0,0.12);
+      --shadow-xl: 0 25px 50px -12px rgba(0,0,0,0.25);
     }
 
-    body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--secondary); }
-    header { background: var(--secondary); padding: 40px 20px; text-align: center; border-bottom: 4px solid var(--primary); }
-    header img { max-width: 180px; height: auto; }
-    main { max-width: 1200px; margin: -40px auto 60px; padding: 0 20px; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-    /* Estilo do Interruptor (Switch) */
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background: var(--bg); 
+      color: var(--secondary);
+      line-height: 1.6;
+    }
+    
+    header { 
+      background: linear-gradient(165deg, var(--secondary) 0%, #1e293b 100%);
+      padding: 48px 24px; 
+      text-align: center; 
+      border-bottom: 4px solid var(--primary);
+      box-shadow: var(--shadow-md);
+    }
+    
+    header img { 
+      max-width: 200px; 
+      height: auto;
+      transition: transform 0.3s;
+    }
+    
+    header img:hover {
+      transform: scale(1.05);
+    }
+    
+    main { 
+      max-width: 1280px; 
+      margin: -50px auto 80px; 
+      padding: 0 24px; 
+    }
+
+    /* ============================================
+       TOGGLE SWITCH - MODERNIZADO
+    ============================================ */
     .toggle-container {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 15px;
-      margin-bottom: 30px;
+      gap: 18px;
+      margin-bottom: 36px;
     }
 
     .switch {
       position: relative;
       display: inline-block;
-      width: 50px;
-      height: 26px;
+      width: 56px;
+      height: 30px;
     }
 
-    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch input { 
+      opacity: 0; 
+      width: 0; 
+      height: 0; 
+    }
 
     .slider {
       position: absolute;
       cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
+      top: 0; 
+      left: 0; 
+      right: 0; 
+      bottom: 0;
       background-color: #cbd5e1;
-      transition: .4s;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       border-radius: 34px;
     }
 
     .slider:before {
       position: absolute;
       content: "";
-      height: 18px; width: 18px;
-      left: 4px; bottom: 4px;
+      height: 22px; 
+      width: 22px;
+      left: 4px; 
+      bottom: 4px;
       background-color: white;
-      transition: .4s;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
-    input:checked + .slider { background-color: var(--primary); }
-    input:checked + .slider:before { transform: translateX(24px); }
+    input:checked + .slider { 
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    }
+    
+    input:checked + .slider:before { 
+      transform: translateX(26px); 
+    }
 
-    .toggle-label { font-size: 14px; font-weight: 600; color: var(--muted); transition: 0.3s; }
-    .toggle-label.active { color: var(--primary); }
+    .toggle-label { 
+      font-size: 15px; 
+      font-weight: 600; 
+      color: var(--muted); 
+      transition: 0.3s; 
+    }
+    
+    .toggle-label.active { 
+      color: var(--primary);
+      font-weight: 700;
+    }
 
-    .header-text { text-align: center; margin-bottom: 20px; background: var(--white); padding: 30px; border-radius: 16px; box-shadow: var(--shadow); }
-    .header-text h2 { margin: 0; font-size: 28px; font-weight: 700; }
-    .subtitle { color: var(--muted); margin-top: 10px; }
+    /* ============================================
+       HEADER TEXT - PREMIUM
+    ============================================ */
+    .header-text { 
+      text-align: center; 
+      margin-bottom: 28px; 
+      background: var(--white); 
+      padding: 40px; 
+      border-radius: 20px; 
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+    }
+    
+    .header-text h2 { 
+      margin: 0; 
+      font-size: 36px; 
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: var(--secondary);
+    }
+    
+    .subtitle { 
+      color: var(--muted); 
+      margin-top: 12px;
+      font-size: 17px;
+    }
 
-    .planos-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
-    .plano-card { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 32px; text-align: center; position: relative; display: flex; flex-direction: column; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); }
-    .plano-card:hover { transform: translateY(-10px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); border-color: var(--primary); }
-    .plano-card h3 { font-size: 20px; margin-bottom: 8px; color: var(--secondary); }
+    /* ============================================
+       CARDS DE PLANOS - PREMIUM
+    ============================================ */
+    .planos-container { 
+      display: grid; 
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px; 
+    }
+    
+    .plano-card { 
+      background: var(--white); 
+      border: 2px solid var(--border); 
+      border-radius: 20px; 
+      padding: 32px 28px; 
+      text-align: center; 
+      position: relative; 
+      display: flex; 
+      flex-direction: column; 
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .plano-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      opacity: 0;
+      transition: opacity 0.4s;
+      border-radius: 20px 20px 0 0;
+    }
+    
+    .plano-card:hover {
+      transform: translateY(-12px);
+      box-shadow: var(--shadow-xl);
+      border-color: var(--primary);
+    }
+    
+    .plano-card:hover::before {
+      opacity: 1;
+    }
+    
+    .plano-card h3 { 
+      font-size: 22px; 
+      margin-bottom: 10px; 
+      color: var(--secondary);
+      font-weight: 700;
+    }
     
     .preco {
-    font-size: 28px; /* Reduzido de 32px para garantir alinhamento */
-    font-weight: 700;
-    margin: 15px 0;
-    color: var(--primary);
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    gap: 4px;
-    white-space: nowrap; /* Impede a quebra de linha */
-}
-    .descricao { color: var(--muted); font-size: 14px; min-height: 40px; margin-bottom: 24px; line-height: 1.5; }
-    .plano-card ul { list-style: none; padding: 0; text-align: left; margin-bottom: 30px; flex-grow: 1; }
-    .plano-card ul li { margin-bottom: 12px; padding-left: 28px; font-size: 14px; position: relative; color: #475569; }
-    .plano-card ul li::before { content: ""; position: absolute; left: 0; top: 2px; width: 18px; height: 18px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E"); background-size: contain; background-repeat: no-repeat; }
+      font-size: 28px;
+      font-weight: 800;
+      margin: 16px 0;
+      color: var(--primary);
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 3px;
+      white-space: nowrap;
+      letter-spacing: -0.5px;
+    }
+    
+    .descricao { 
+      color: var(--muted); 
+      font-size: 13px; 
+      min-height: 40px; 
+      margin-bottom: 24px; 
+      line-height: 1.5;
+    }
+    
+    .plano-card ul { 
+      list-style: none; 
+      padding: 0; 
+      text-align: left; 
+      margin-bottom: 28px; 
+      flex-grow: 1; 
+    }
+    
+    .plano-card ul li { 
+      margin-bottom: 12px; 
+      padding-left: 28px; 
+      font-size: 13px; 
+      position: relative; 
+      color: #475569;
+      font-weight: 500;
+    }
+    
+    .plano-card ul li::before { 
+      content: ""; 
+      position: absolute; 
+      left: 0; 
+      top: 2px; 
+      width: 18px; 
+      height: 18px; 
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E"); 
+      background-size: contain; 
+      background-repeat: no-repeat; 
+    }
 
-    .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-    .btn.primary { background: var(--primary); color: var(--white); }
-    .btn.primary:hover { background: #1d4ed8; }
-    .btn.premium-btn { background: linear-gradient(135deg, #059669, #10b981); color: var(--white); }
-    .btn.secondary { background: #f1f5f9; color: #475569; }
+    /* ============================================
+       BOTÕES - MODERNIZADOS
+    ============================================ */
+    .btn { 
+      width: 100%; 
+      padding: 16px; 
+      border-radius: 12px; 
+      border: none; 
+      font-size: 15px; 
+      font-weight: 700; 
+      cursor: pointer; 
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .btn.primary { 
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: var(--white);
+      box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+    }
+    
+    .btn.primary:hover { 
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(59,130,246,0.4);
+    }
+    
+    .btn.premium-btn { 
+      background: linear-gradient(135deg, var(--gold) 0%, #f59e0b 100%);
+      color: #000;
+      box-shadow: 0 4px 12px rgba(251,191,36,0.4);
+    }
+    
+    .btn.premium-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(251,191,36,0.5);
+    }
+    
+    .btn.secondary { 
+      background: #f1f5f9; 
+      color: #475569;
+    }
+    
+    .btn.secondary:hover {
+      background: #e2e8f0;
+    }
 
-    .plano-card.destaque { border: 2px solid var(--primary); background: linear-gradient(to bottom, #ffffff, #f0f7ff); }
-    .badge-destaque { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--primary); color: var(--white); padding: 6px 16px; border-radius: 50px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-    .plano-card.premium { border: 2px solid #ca8a04; }
-    .badge-premium { position: absolute; top: -14px; right: 20px; background: linear-gradient(135deg, #facc15, #ca8a04); color: var(--white); padding: 6px 16px; border-radius: 50px; font-size: 11px; font-weight: 700; box-shadow: 0 4px 12px rgba(202, 138, 4, 0.3); }
+    /* ============================================
+       CARDS ESPECIAIS
+    ============================================ */
+    .plano-card.destaque { 
+      border: 2px solid var(--primary); 
+      background: linear-gradient(to bottom, #ffffff, #eff6ff);
+      transform: scale(1.02);
+    }
+    
+    .badge-destaque { 
+      position: absolute; 
+      top: -16px; 
+      left: 50%; 
+      transform: translateX(-50%); 
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: var(--white); 
+      padding: 8px 20px; 
+      border-radius: 50px; 
+      font-size: 11px; 
+      font-weight: 700; 
+      text-transform: uppercase; 
+      letter-spacing: 1px;
+      box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+    }
+    
+    .plano-card.premium { 
+      border: 2px solid var(--gold);
+    }
+    
+    .badge-premium { 
+      position: absolute; 
+      top: -16px; 
+      right: 24px; 
+      background: linear-gradient(135deg, var(--gold) 0%, #f59e0b 100%);
+      color: #000;
+      padding: 8px 20px; 
+      border-radius: 50px; 
+      font-size: 11px; 
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(251,191,36,0.4);
+    }
 
-    .btn.disabled { background: #e2e8f0 !important; color: #94a3b8 !important; cursor: default; transform: none !important; }
-    footer { text-align: center; margin: 40px 0; }
-    footer a { color: var(--primary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+    .btn.disabled { 
+      background: #e2e8f0 !important; 
+      color: #94a3b8 !important; 
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    
+    footer { 
+      text-align: center; 
+      margin: 60px 0 40px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+    }
+    
+    footer a { 
+      color: var(--primary); 
+      text-decoration: none; 
+      font-weight: 600; 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 10px;
+      transition: all 0.3s;
+      font-size: 15px;
+    }
+    
+    footer a:hover {
+      color: var(--primary-dark);
+      transform: translateX(-4px);
+    }
 
-    /* 🏆 DESTAQUE PREMIUM GOLD */
-.plano-card.premium-destaque {
-    background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%) !important;
-    border: 2px solid #fcd34d !important;
-    box-shadow: 0 20px 25px -5px rgba(251, 191, 36, 0.3) !important;
-    transform: scale(1.05);
-    z-index: 10;
-}
+    /* ============================================
+       DESTAQUE PREMIUM GOLD
+    ============================================ */
+    .plano-card.premium-destaque {
+      background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%) !important;
+      border: 2px solid #fcd34d !important;
+      box-shadow: 0 20px 40px rgba(251, 191, 36, 0.25) !important;
+      transform: scale(1.05);
+      z-index: 10;
+    }
 
-.plano-card.premium-destaque h3, 
-.plano-card.premium-destaque .preco,
-.plano-card.premium-destaque .preco .val {
-    color: #92400e !important; /* Marrom escuro para contrastar com o dourado */
-}
+    .plano-card.premium-destaque h3, 
+    .plano-card.premium-destaque .preco,
+    .plano-card.premium-destaque .preco .val {
+      color: #92400e !important;
+    }
 
-.plano-card.premium-destaque .btn.premium-btn {
-    background: #92400e !important;
-    color: #ffffff !important;
-    border: none;
-}
+    .plano-card.premium-destaque .btn.premium-btn {
+      background: linear-gradient(135deg, #92400e 0%, #78350f 100%) !important;
+      color: #ffffff !important;
+      border: none;
+    }
 
-.plano-card.premium-destaque ul li {
-    color: #92400e !important;
-}
+    .plano-card.premium-destaque ul li {
+      color: #92400e !important;
+    }
+
+    /* ============================================
+       MODAL - PREMIUM
+    ============================================ */
+    #modalPlano {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.8);
+      z-index: 9999;
+      backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: #fff;
+      max-width: 440px;
+      margin: 10% auto;
+      padding: 48px;
+      border-radius: 24px;
+      text-align: center;
+      box-shadow: var(--shadow-xl);
+      border: 1px solid var(--border);
+    }
+
+    .modal-icon {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      box-shadow: 0 4px 12px rgba(59,130,246,0.2);
+    }
+
+    .modal-content h3 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--secondary);
+    }
+
+    .modal-content p {
+      color: var(--muted);
+      margin: 20px 0;
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    @media (max-width: 1200px) {
+      .planos-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+      }
+    }
 
     @media (max-width: 768px) {
-      main { margin-top: 20px; }
-      .planos-container { grid-template-columns: 1fr; }
+      main { 
+        margin-top: 20px; 
+      }
+      
+      .planos-container { 
+        grid-template-columns: 1fr; 
+      }
+      
+      .plano-card.destaque,
+      .plano-card.premium-destaque {
+        transform: scale(1);
+      }
+      
+      header img {
+        max-width: 160px;
+      }
+      
+      .header-text h2 {
+        font-size: 28px;
+      }
     }
   </style>
 </head>
@@ -161,14 +517,14 @@
         <input type="checkbox" id="billing-toggle" onchange="alternarPrecos()">
         <span class="slider"></span>
       </label>
-      <span id="text-anual" class="toggle-label">Anual <small style="color:var(--success)">(Economize 17%)</small></span>
+      <span id="text-anual" class="toggle-label">Anual <small style="color:var(--success); font-weight:700;">(Economize 17%)</small></span>
     </div>
 
     <div class="planos-container">
 
       <div class="plano-card">
         <h3>Básico</h3>
-        <p class="preco">R$ <span class="val" data-mensal="49,90" data-anual="499,00">49,90</span><small class="periodo" style="font-size: 14px; color: var(--muted)">/mês</small></p>
+        <p class="preco">R$ <span class="val" data-mensal="99,00" data-anual="999,00">99,00</span><small class="periodo" style="font-size: 15px; color: var(--muted); font-weight: 600;">/mês</small></p>
         <p class="descricao">Ideal para quem está iniciando a digitalização do escritório.</p>
         <ul>
           <li>Até 10 prazos ativos</li>
@@ -181,7 +537,7 @@
       <div class="plano-card destaque">
         <span class="badge-destaque">⭐ Mais escolhido</span>
         <h3>Intermediário</h3>
-        <p class="preco">R$ <span class="val" data-mensal="149,90" data-anual="1.499,00">149,90</span><small class="periodo" style="font-size: 14px; color: var(--muted)">/mês</small></p>
+        <p class="preco">R$ <span class="val" data-mensal="149,90" data-anual="1.499,00">149,90</span><small class="periodo" style="font-size: 15px; color: var(--muted); font-weight: 600;">/mês</small></p>
         <p class="descricao">A escolha perfeita para advogados autônomos de alta demanda.</p>
         <ul>
           <li>Até 100 prazos ativos</li>
@@ -194,7 +550,7 @@
 
       <div class="plano-card">
         <h3>Avançado</h3>
-        <p class="preco">R$ <span class="val" data-mensal="199,90" data-anual="1.999,00">199,90</span><small class="periodo" style="font-size: 14px; color: var(--muted)">/mês</small></p>
+        <p class="preco">R$ <span class="val" data-mensal="199,90" data-anual="1.999,00">199,90</span><small class="periodo" style="font-size: 15px; color: var(--muted); font-weight: 600;">/mês</small></p>
         <p class="descricao">Para sociedades de advogados em expansão acelerada.</p>
         <ul>
           <li>Até 500 prazos ativos</li>
@@ -208,7 +564,7 @@
       <div class="plano-card premium premium-destaque">
         <span class="badge-premium">👑 Full Access</span>
         <h3>Premium</h3>
-        <p class="preco">R$ <span class="val" data-mensal="299,90" data-anual="2.999,00">299,90</span><small class="periodo" style="font-size: 14px; color: var(--muted)">/mês</small></p>
+        <p class="preco">R$ <span class="val" data-mensal="299,90" data-anual="2.999,00">299,90</span><small class="periodo" style="font-size: 15px; color: #92400e; font-weight: 600;">/mês</small></p>
         <p class="descricao">Controle total, automação e suporte prioritário.</p>
         <ul>
           <li>Prazos e processos ilimitados</li>
@@ -229,14 +585,14 @@
     </a>
   </footer>
 
-  <div id="modalPlano" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.8); z-index:9999; backdrop-filter: blur(4px);">
-    <div style="background:#fff; max-width:400px; margin:10% auto; padding:40px; border-radius:24px; text-align:center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
-      <div style="background: #eff6ff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+  <div id="modalPlano">
+    <div class="modal-content">
+      <div class="modal-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
       </div>
-      <h3 id="tituloPlano" style="margin: 0; font-size: 22px;">Confirmar plano</h3>
-      <p id="descricaoPlano" style="color:#64748b; margin:20px 0; line-height: 1.6;">Você está prestes a elevar o nível do seu escritório.</p>
-      <div style="display:flex; flex-direction: column; gap:12px;">
+      <h3 id="tituloPlano">Confirmar plano</h3>
+      <p id="descricaoPlano">Você está prestes a elevar o nível do seu escritório.</p>
+      <div class="modal-buttons">
         <button class="btn primary" id="btnConfirmar" onclick="confirmarUpgrade()">Sim, Confirmar Upgrade</button>
         <button class="btn secondary" onclick="fecharModalPlano()">Ainda não, voltar</button>
       </div>
@@ -267,6 +623,9 @@ function alternarPrecos() {
         labelMensal.classList.add('active');
         labelAnual.classList.remove('active');
     }
+    
+    // Atualiza os botões ao virar a chave
+    atualizarEstadoDosBotoes();
 }
 
 const BOTOES_MAP = {
@@ -291,7 +650,7 @@ function abrirModalConfirmacao(nomePlano) {
     };
     document.getElementById('tituloPlano').innerText = `Plano ${nomePlano} (${ciclo})`;
     document.getElementById('descricaoPlano').innerHTML = `<strong>Excelente escolha!</strong><br>${BENEFICIOS[nomePlano]}`;
-    document.getElementById('modalPlano').style.display = 'block';
+    document.getElementById('modalPlano').style.display = 'flex';
 }
 
 function fecharModalPlano() {
@@ -330,10 +689,10 @@ async function confirmarUpgrade() {
     }
 }
 
-// 1. Variável global para guardar o estado vindo do banco
+// Variável global para guardar o estado vindo do banco
 let meuPlanoAtual = { id: 0, ciclo: 'mensal' };
 
-// 2. Função Unificada para Atualizar os Botões
+// Função Unificada para Atualizar os Botões
 function atualizarEstadoDosBotoes() {
     const isAnual = document.getElementById('billing-toggle').checked;
     const cicloSelecionado = isAnual ? 'anual' : 'mensal';
@@ -359,30 +718,7 @@ function atualizarEstadoDosBotoes() {
     });
 }
 
-// 3. Atualize sua função alternarPrecos para incluir a chamada
-function alternarPrecos() {
-    const isAnual = document.getElementById('billing-toggle').checked;
-    const valores = document.querySelectorAll('.val');
-    const periodos = document.querySelectorAll('.periodo');
-    const labelMensal = document.getElementById('text-mensal');
-    const labelAnual = document.getElementById('text-anual');
-
-    valores.forEach(span => {
-        span.innerText = isAnual ? span.getAttribute('data-anual') : span.getAttribute('data-mensal');
-    });
-
-    periodos.forEach(small => {
-        small.innerText = isAnual ? '/ano' : '/mês';
-    });
-
-    labelAnual.classList.toggle('active', isAnual);
-    labelMensal.classList.toggle('active', !isAnual);
-
-    // 🚀 A MÁGICA ESTÁ AQUI: Atualiza os botões ao virar a chave
-    atualizarEstadoDosBotoes();
-}
-
-// 4. Carregamento Inicial
+// Carregamento Inicial
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -394,10 +730,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (response.ok) {
             const dados = await response.json();
-            // 🚀 Sincroniza a variável global com o banco
+            // Sincroniza a variável global com o banco
             meuPlanoAtual = { id: parseInt(dados.id), ciclo: dados.ciclo || 'mensal' };
             
-            // 🚀 Se no banco estiver 'anual', vira a chave visualmente
+            // Se no banco estiver 'anual', vira a chave visualmente
             if (meuPlanoAtual.ciclo === 'anual') {
                 document.getElementById('billing-toggle').checked = true;
             }

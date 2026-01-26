@@ -512,17 +512,58 @@
     </div>
 </div>
 
-    <div class="section" style="border: 1px solid var(--border); padding: 20px; border-radius: var(--radius); margin-top: 20px;">
-    <h3 style="font-size: 16px; color: var(--text-main); margin-bottom: 10px;">💳 Assinatura e Pagamento</h3>
-    <p style="font-size: 13px; color: var(--muted); margin-bottom: 15px;">
-        Seu período de teste vence em <strong id="dataExpiracaoTrial">...</strong>. 
-        Após esta data, a mensalidade será processada no cartão final ****.
-    </p>
-    
-    <button onclick="solicitarCancelamento()" style="background: none; border: 1px solid var(--danger); color: var(--danger); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600;">
-        Cancelar agendamento de cobrança
-    </button>
-</div>
+    <!-- SEÇÃO ASSINATURA E PAGAMENTO - MODERNIZADA -->
+    <div style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid var(--border); padding: 32px; border-radius: 16px; margin-top: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        
+        <!-- Cabeçalho com ícone -->
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+            <div style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(59,130,246,0.2);">
+                <i data-lucide="credit-card" style="color: var(--primary); width: 24px; height: 24px;"></i>
+            </div>
+            <div>
+                <h3 style="font-size: 18px; font-weight: 700; color: var(--text-main); margin: 0;">Assinatura e Pagamento</h3>
+                <p style="font-size: 12px; color: var(--muted); margin: 0;">Gerencie sua assinatura e período de teste</p>
+            </div>
+        </div>
+
+        <!-- Card de Trial -->
+        <div style="background: #fffbeb; border: 2px solid #fde68a; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+            <div style="display: flex; align-items: flex-start; gap: 12px;">
+                <div style="background: #fbbf24; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i data-lucide="clock" style="color: #000; width: 18px; height: 18px;"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-size: 11px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">PERÍODO DE TESTE GRATUITO</div>
+                    <p style="font-size: 14px; color: #78350f; line-height: 1.6; margin: 0;">
+                        Seu teste vence em <strong style="font-weight: 800; color: #92400e;" id="dataExpiracaoTrial">...</strong><br>
+                        <span style="font-size: 12px;">Após esta data, a mensalidade será processada automaticamente no cartão cadastrado.</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informações de segurança -->
+        <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 10px; align-items: flex-start;">
+                <i class="lucide lucide-shield-check" style="color: #10b981; width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px;"></i>
+                <div>
+                    <div style="font-size: 12px; font-weight: 700; color: #065f46; margin-bottom: 4px;">Seus dados estão protegidos</div>
+                    <div style="font-size: 12px; color: #166534; line-height: 1.5;">Você pode cancelar a qualquer momento antes do vencimento do teste e não será cobrado.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botão de Cancelamento -->
+        <button onclick="solicitarCancelamento()" style="width: 100%; background: #fef2f2; border: 2px solid #fecaca; color: #991b1b; padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="lucide lucide-x-circle" style="width: 18px; height: 18px;"></i>
+            Cancelar Renovação Automática
+        </button>
+        
+        <p style="font-size: 11px; color: var(--muted); text-align: center; margin-top: 12px; margin-bottom: 0;">
+            Ao cancelar, você manterá acesso completo até o final do período de teste
+        </p>
+    </div>
+    <!-- FIM SEÇÃO ASSINATURA E PAGAMENTO -->
 </div>
 
 <script>
@@ -914,18 +955,77 @@ async function alterarSenha() {
 
     function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
 
-    window.onload = () => {
+    // 🕒 FUNÇÃO PARA CALCULAR E EXIBIR DIAS RESTANTES DO TRIAL
+async function carregarDataTrial() {
+    try {
+        const res = await fetch('/api/config/meu-escritorio', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const data = await res.json();
+        
+        if (data.ok && data.dados) {
+            const elemento = document.getElementById('dataExpiracaoTrial');
+            const cardTrial = elemento.closest('.card, div[style*="background"]');
+            
+            // 🎯 USUÁRIO PAGO (SEM TRIAL)
+            if (data.dados.plano_financeiro_status === 'pago') {
+                elemento.innerText = 'ACESSO COMPLETO';
+                elemento.style.color = '#065f46';
+                elemento.style.fontWeight = '900';
+                
+                // Muda o card para verde
+                if (cardTrial) {
+                    cardTrial.style.background = '#d1fae5';
+                    cardTrial.style.borderColor = '#86efac';
+                }
+                return;
+            }
+            
+            // 🕒 USUÁRIO EM TRIAL
+            if (data.dados.trial_expira_em) {
+                const dataExpiracao = new Date(data.dados.trial_expira_em);
+                const hoje = new Date();
+                
+                // Calcular diferença em dias
+                const diffTime = dataExpiracao - hoje;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays > 0) {
+                    elemento.innerText = `${diffDays} dia${diffDays > 1 ? 's' : ''}`;
+                    elemento.style.color = '#92400e';
+                } else if (diffDays === 0) {
+                    elemento.innerText = 'HOJE';
+                    elemento.style.color = '#dc2626';
+                    elemento.style.fontWeight = '900';
+                } else {
+                    elemento.innerText = 'EXPIRADO';
+                    elemento.style.color = '#dc2626';
+                }
+            } else {
+                // Trial não definido
+                elemento.innerText = 'não configurado';
+                elemento.style.color = '#92400e';
+            }
+        }
+    } catch (err) {
+        console.error('Erro ao carregar data do trial:', err);
+        document.getElementById('dataExpiracaoTrial').innerText = 'erro ao carregar';
+    }
+}
+
+window.onload = () => {
     carregarBancos();
     carregarInfoRodape();
     ajustarMascaraDoc();
     carregarEquipe();
     carregarChaveEscavador();
+    carregarDataTrial(); // 🆕 NOVA LINHA
 
-    // 🔒 Bloqueia ativação até salvar dados bancários
-    const elemento = document.getElementById('ID_DO_ELEMENTO');  // substitua pelo ID real
-if (elemento) {
-    elemento.disabled = true;  // ou false, dependendo do que o código faz
-}
+    const elemento = document.getElementById('ID_DO_ELEMENTO');
+    if (elemento) {
+        elemento.disabled = true;
+    }
 };
 
     window.onclick = (e) => {
@@ -1086,6 +1186,18 @@ async function testarChaveEscavador() {
         btn.innerText = '🔍 Testar Conexão';
     }
 }
+
+// 🚀 INICIALIZAR ÍCONES LUCIDE
+if (window.lucide) {
+    lucide.createIcons();
+}
+
+// Garantir que os ícones sejam renderizados após o carregamento
+window.addEventListener('DOMContentLoaded', () => {
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+});
     </script>
 </body>
 </html>

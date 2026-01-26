@@ -9,9 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-light: #3b82f6;
-            --primary-dark: #1e40af;
+            --primary: #1e3a8a;
+            --primary-light: #2563eb;
+            --primary-dark: #1e293b;
             --accent: #f59e0b;
             --dark: #0f172a;
             --gray-50: #f8fafc;
@@ -25,7 +25,7 @@
             --gray-900: #0f172a;
             --white: #ffffff;
             --success: #10b981;
-            --radius: 12px;
+            --radius: 8px;
         }
 
         * {
@@ -48,22 +48,22 @@
             padding: 0 24px;
         }
 
+        /* HEADER / NAVEGAÇÃO */
         nav {
             position: fixed;
             top: 0;
             width: 100%;
-            background: rgba(255,255,255,0.98);
+            background: rgba(15, 23, 42, 0.95);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--gray-200);
             z-index: 1000;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         nav .container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 24px;
+            padding: 18px 24px;
         }
 
         .logo {
@@ -72,142 +72,329 @@
         }
 
         .logo img {
-            height: 40px;
+            height: 42px;
             width: auto;
         }
 
         .nav-links {
             display: flex;
-            gap: 32px;
+            gap: 40px;
             align-items: center;
         }
 
         .nav-links a {
-            color: var(--gray-700);
+            color: rgba(255, 255, 255, 0.9);
             text-decoration: none;
             font-weight: 500;
             font-size: 15px;
-            transition: color 0.2s;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.3s;
         }
 
         .nav-links a:hover {
-            color: var(--primary);
+            color: var(--white);
         }
 
-        .btn-login {
-            color: var(--gray-700);
-            background: transparent;
-            padding: 10px 16px;
-            font-size: 14px;
-        }       
+        .nav-links a:hover::after {
+            width: 100%;
+        }
 
-        .btn-login:hover {
-            color: var(--primary);
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
         }
 
         .btn {
-            padding: 12px 24px;
-            border-radius: var(--radius);
+            padding: 13px 32px;
+            border-radius: 10px;
             font-weight: 600;
             text-decoration: none;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: inline-block;
             font-size: 15px;
             cursor: pointer;
             border: none;
         }
 
+        .btn-login {
+            color: var(--white);
+            background: transparent;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .btn-login:hover {
+            border-color: rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.05);
+        }
+
         .btn-primary {
-            background: var(--primary) !important;
-            color: #ffffff !important;
-            box-shadow: 0 4px 14px 0 rgba(59,130,246,0.3);
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: var(--white);
+            box-shadow: 0 4px 20px rgba(59,130,246,0.4);
         }
 
         .btn-primary:hover {
-            background: var(--primary-dark);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px 0 rgba(59,130,246,0.4);
+            box-shadow: 0 8px 30px rgba(59,130,246,0.5);
         }
 
         .btn-outline {
-            border: 2px solid var(--primary);
-            color: var(--primary);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: var(--white);
             background: transparent;
         }
 
         .btn-outline:hover {
-            background: var(--primary);
-            color: var(--white);
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.5);
         }
 
         .btn-lg {
-            padding: 16px 32px;
+            padding: 16px 40px;
             font-size: 16px;
+            border-radius: 12px;
         }
 
-        /* HERO SECTION ATUALIZADO */
+        /* HERO SECTION - DESIGN PREMIUM MODERNO */
         .hero {
-            padding: 140px 0 100px;
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            padding: 180px 0 120px;
+            background: linear-gradient(165deg, #0f172a 0%, #1e293b 50%, #334155 100%);
             position: relative;
             overflow: hidden;
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
         }
 
+        /* Gradientes e efeitos de luz */
         .hero::before {
             content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -40%;
+            left: -15%;
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse 10s ease-in-out infinite reverse;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) translate(0, 0); opacity: 0.8; }
+            50% { transform: scale(1.1) translate(20px, -20px); opacity: 1; }
+        }
+
+        /* Grid de pontos decorativo */
+        .hero-grid {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(37,99,235,0.2) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(245,158,11,0.1) 0%, transparent 50%);
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.5;
         }
 
         .hero .container {
             position: relative;
-            z-index: 1;
+            z-index: 2;
+        }
+
+        .hero-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
         }
 
         .hero-content {
-            max-width: 720px;
-            margin: 0 auto;
-            text-align: center;
+            max-width: 600px;
         }
 
         .hero-badge {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             padding: 8px 20px;
-            background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(59,130,246,0.15);
+            border: 1px solid rgba(59,130,246,0.3);
             border-radius: 999px;
-            color: #e0f2fe;
+            color: #60a5fa;
             font-size: 13px;
             font-weight: 600;
             letter-spacing: 0.5px;
-            margin-bottom: 24px;
+            margin-bottom: 32px;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-badge::before {
+            content: '⚡';
+            font-size: 16px;
         }
 
         .hero h1 {
-            font-size: 56px;
-            font-weight: 800;
+            font-size: 60px;
+            font-weight: 900;
             line-height: 1.1;
             color: var(--white);
-            margin-bottom: 24px;
-            letter-spacing: -1.5px;
+            margin-bottom: 28px;
+            letter-spacing: -2px;
         }
 
         .hero h1 .highlight {
-            color: #fbbf24;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .hero p {
             font-size: 20px;
-            color: #e0f2fe;
+            color: rgba(255,255,255,0.75);
             margin-bottom: 40px;
             line-height: 1.7;
             font-weight: 400;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        /* Imagem Hero - Modernizada */
+        .hero-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .hero-visual {
+            position: relative;
+            width: 100%;
+            max-width: 550px;
+        }
+
+        /* Card flutuante principal */
+        .floating-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            animation: floatCard 6s ease-in-out infinite;
+        }
+
+        @keyframes floatCard {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(1deg); }
+        }
+
+        /* Mini cards decorativos */
+        .mini-card {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: floatMini 4s ease-in-out infinite;
+        }
+
+        .mini-card-1 {
+            top: 10%;
+            right: -10%;
+            animation-delay: 0.5s;
+        }
+
+        .mini-card-2 {
+            bottom: 15%;
+            left: -8%;
+            animation-delay: 1s;
+        }
+
+        @keyframes floatMini {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* Elementos decorativos */
+        .hero-decoration {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: rotate 20s linear infinite;
+        }
+
+        .decoration-1 {
+            top: 10%;
+            left: 5%;
+            width: 100px;
+            height: 100px;
+            border: 2px solid rgba(59,130,246,0.3);
+        }
+
+        .decoration-2 {
+            bottom: 20%;
+            right: 10%;
+            width: 80px;
+            height: 80px;
+            border: 2px solid rgba(96,165,250,0.3);
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .hero h1 {
+            font-size: 52px;
+            font-weight: 800;
+            line-height: 1.2;
+            color: var(--white);
+            margin-bottom: 24px;
+            letter-spacing: -1px;
+        }
+
+        .hero h1 .highlight {
+            color: var(--accent);
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 40px;
+            line-height: 1.7;
         }
 
         .hero-cta {
@@ -217,325 +404,76 @@
             flex-wrap: wrap;
         }
 
-        .hero-visual {
-            margin-top: 60px;
-            position: relative;
+        /* STATS SECTION */
+        .stats {
+            padding: 80px 0;
+            background: var(--white);
         }
 
-        /* HERO CARD COM BORDAS ARREDONDADAS */
-        .hero-card {
-            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-            border-radius: 24px;
-            padding: 80px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 40px 80px -20px rgba(0,0,0,0.5);
-        }
-
-        .hero-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(59,130,246,0.3) 0%, transparent 70%);
-            border-radius: 50%;
-        }
-
-        .hero-card::after {
-            content: '';
-            position: absolute;
-            bottom: -30%;
-            left: -10%;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(245,158,11,0.2) 0%, transparent 70%);
-            border-radius: 50%;
-        }
-
-        .card-content {
+        .stats-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 80px;
-            align-items: center;
-            position: relative;
-            z-index: 2;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 48px;
+            text-align: center;
         }
 
-        .card-text h2 {
-            font-size: 44px;
+        .stat-item {
+            padding: 24px;
+        }
+
+        .stat-number {
+            font-size: 56px;
             font-weight: 800;
-            color: #ffffff;
-            margin-bottom: 16px;
-            line-height: 1.2;
-        }
-
-        .card-text p {
-            font-size: 18px;
-            color: #e0f2fe;
-            line-height: 1.6;
-            margin-bottom: 32px;
-        }
-
-        .card-buttons {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .btn-light {
-            background: #ffffff;
-            color: #2563eb;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.2);
-            padding: 14px 28px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 15px;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-        }
-
-        .btn-light:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-        }
-
-        .btn-card-outline {
-            background: transparent;
-            color: #ffffff;
-            border: 2px solid rgba(255,255,255,0.3);
-            padding: 14px 28px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 15px;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-        }
-
-        .btn-card-outline:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.5);
-        }
-
-        .card-visual {
-            position: relative;
-            height: 400px;
-        }
-
-        /* Dashboard Isométrico */
-        .dashboard-iso {
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%) perspective(1000px) rotateY(-15deg) rotateX(5deg);
-            width: 280px;
-            height: 320px;
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 
-                0 20px 60px rgba(0,0,0,0.3),
-                0 0 0 1px rgba(255,255,255,0.1);
-            padding: 20px;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(-50%) perspective(1000px) rotateY(-15deg) rotateX(5deg) translateZ(0); }
-            50% { transform: translateY(-50%) perspective(1000px) rotateY(-15deg) rotateX(5deg) translateZ(20px); }
-        }
-
-        .dashboard-header {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 16px;
-        }
-
-        .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #e2e8f0;
-        }
-
-        .dashboard-chart {
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-            border-radius: 12px;
-            height: 140px;
+            color: var(--primary);
+            line-height: 1;
             margin-bottom: 12px;
-            position: relative;
-            overflow: hidden;
         }
 
-        .chart-bar {
-            position: absolute;
-            bottom: 0;
-            width: 12%;
-            background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
-            border-radius: 4px 4px 0 0;
-            animation: grow 2s ease-out infinite;
+        .stat-number span {
+            font-size: 36px;
+            margin-left: 4px;
         }
 
-        .chart-bar:nth-child(1) { left: 8%; height: 60%; animation-delay: 0s; }
-        .chart-bar:nth-child(2) { left: 24%; height: 85%; animation-delay: 0.2s; }
-        .chart-bar:nth-child(3) { left: 40%; height: 45%; animation-delay: 0.4s; }
-        .chart-bar:nth-child(4) { left: 56%; height: 95%; animation-delay: 0.6s; background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%); }
-        .chart-bar:nth-child(5) { left: 72%; height: 70%; animation-delay: 0.8s; }
-
-        @keyframes grow {
-            0%, 100% { transform: scaleY(1); }
-            50% { transform: scaleY(1.05); }
+        .stat-label {
+            font-size: 16px;
+            color: var(--gray-600);
+            font-weight: 500;
         }
 
-        .dashboard-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
-        .stat-card {
-            background: #f8fafc;
-            border-radius: 8px;
-            padding: 12px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .stat-value {
-            font-size: 11px;
-            font-weight: 700;
-            color: #2563eb;
-            margin-bottom: 4px;
-        }
-
-        .stat-bar {
-            height: 4px;
-            background: #e2e8f0;
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .stat-fill {
-            height: 100%;
-            background: #2563eb;
-            border-radius: 2px;
-            animation: fill 3s ease-in-out infinite;
-        }
-
-        @keyframes fill {
-            0%, 100% { width: 70%; }
-            50% { width: 85%; }
-        }
-
-        /* Martelo 3D */
-        .gavel {
-            position: absolute;
-            right: -20px;
-            top: 50%;
-            transform: translateY(-50%);
-            animation: tap 3s ease-in-out infinite;
-        }
-
-        @keyframes tap {
-            0%, 100% { transform: translateY(-50%) rotate(-5deg); }
-            50% { transform: translateY(-50%) rotate(-15deg); }
-        }
-
-        .gavel-handle {
-            width: 140px;
-            height: 28px;
-            background: linear-gradient(135deg, #92400e 0%, #78350f 100%);
-            border-radius: 14px;
-            position: relative;
-            transform: rotate(-45deg);
-            box-shadow: 0 8px 20px rgba(120,53,15,0.4);
-        }
-
-        .gavel-handle::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            height: 12px;
-            background: linear-gradient(90deg, #a16207 0%, #92400e 100%);
-            border-radius: 6px;
-        }
-
-        .gavel-head {
-            position: absolute;
-            top: -18px;
-            right: -8px;
-            width: 70px;
-            height: 50px;
-            background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(120,53,15,0.5);
-        }
-
-        .gavel-head::before {
-            content: '';
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            right: 8px;
-            bottom: 8px;
-            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-            border-radius: 4px;
-        }
-
-        /* Partículas decorativas */
-        .particle {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            background: rgba(255,255,255,0.4);
-            border-radius: 50%;
-            animation: particle-float 4s ease-in-out infinite;
-        }
-
-        .particle:nth-child(1) { top: 15%; right: 25%; animation-delay: 0s; }
-        .particle:nth-child(2) { top: 75%; right: 35%; animation-delay: 1s; }
-        .particle:nth-child(3) { top: 40%; right: 15%; animation-delay: 2s; }
-
-        @keyframes particle-float {
-            0%, 100% { transform: translateY(0) scale(1); opacity: 0.4; }
-            50% { transform: translateY(-20px) scale(1.2); opacity: 0.8; }
-        }
-
-        /* FIM HERO SECTION */
-
+        /* SECTION STYLES */
         .section {
             padding: 100px 0;
         }
 
+        .section-alt {
+            background: var(--gray-50);
+        }
+
         .section-header {
             text-align: center;
-            max-width: 720px;
-            margin: 0 auto 60px;
+            max-width: 800px;
+            margin: 0 auto 64px;
         }
 
         .section-badge {
             display: inline-block;
-            padding: 6px 16px;
-            background: var(--gray-100);
+            padding: 8px 20px;
+            background: rgba(30,58,138,0.1);
             border-radius: 999px;
             color: var(--primary);
             font-size: 13px;
             font-weight: 700;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
-            letter-spacing: 1px;
             margin-bottom: 16px;
         }
 
-        .section h2 {
+        .section-header h2 {
             font-size: 42px;
             font-weight: 800;
             color: var(--gray-900);
             margin-bottom: 20px;
-            letter-spacing: -1px;
+            line-height: 1.2;
         }
 
         .section-header p {
@@ -544,61 +482,22 @@
             line-height: 1.7;
         }
 
-        .value-prop {
-            background: var(--gray-50);
-        }
-
-        .value-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 32px;
-            margin-top: 60px;
-        }
-
-        .value-item {
-            text-align: center;
-        }
-
-        .value-icon {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 28px;
-            color: var(--white);
-            box-shadow: 0 10px 25px -5px rgba(59,130,246,0.3);
-        }
-
-        .value-item h3 {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: var(--gray-900);
-        }
-
-        .value-item p {
-            color: var(--gray-600);
-            font-size: 15px;
-            line-height: 1.6;
-        }
-
+        /* FEATURES GRID */
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 28px;
         }
 
         .feature-card {
             background: var(--white);
+            padding: 48px 40px;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid var(--gray-200);
-            border-radius: var(--radius);
-            padding: 32px;
-            transition: all 0.3s ease;
             position: relative;
+            overflow: hidden;
         }
 
         .feature-card::before {
@@ -607,54 +506,114 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 3px;
+            height: 4px;
             background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
-            border-radius: var(--radius) var(--radius) 0 0;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            transform: scaleX(0);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .feature-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(30,58,138,0.12);
             border-color: var(--primary-light);
         }
 
         .feature-card:hover::before {
-            opacity: 1;
+            transform: scaleX(1);
         }
 
         .feature-icon {
-            font-size: 32px;
-            margin-bottom: 20px;
+            width: 72px;
+            height: 72px;
+            background: var(--primary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 28px;
+            position: relative;
+            box-shadow: 0 8px 16px rgba(30,58,138,0.15);
+        }
+
+        .feature-icon svg {
+            width: 36px;
+            height: 36px;
+            color: var(--white);
         }
 
         .feature-card h3 {
-            font-size: 18px;
+            font-size: 22px;
             font-weight: 700;
-            margin-bottom: 12px;
             color: var(--gray-900);
+            margin-bottom: 14px;
+            letter-spacing: -0.3px;
         }
 
         .feature-card p {
             color: var(--gray-600);
-            font-size: 14px;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        /* BENEFITS SECTION */
+        .benefits-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .benefit-item {
+            display: flex;
+            gap: 16px;
+            padding: 24px;
+            background: var(--white);
+            border-radius: var(--radius);
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .benefit-number {
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            color: var(--white);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .benefit-content h4 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 8px;
+        }
+
+        .benefit-content p {
+            color: var(--gray-600);
+            font-size: 15px;
             line-height: 1.6;
         }
 
-        .billing-toggle {
+        /* PRICING */
+        .pricing-toggle {
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 16px;
-            margin: 40px 0;
+            margin-bottom: 48px;
         }
 
         .toggle-label {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 600;
             color: var(--gray-600);
-            transition: color 0.3s ease;
+            cursor: pointer;
+            transition: color 0.3s;
         }
 
         .toggle-label.active {
@@ -663,169 +622,159 @@
 
         .toggle-switch {
             position: relative;
-            width: 52px;
-            height: 28px;
-            cursor: pointer;
+            width: 60px;
+            height: 32px;
         }
 
         .toggle-switch input {
-            display: none;
+            opacity: 0;
+            width: 0;
+            height: 0;
         }
 
         .toggle-slider {
             position: absolute;
-            inset: 0;
-            background: var(--gray-300);
-            border-radius: 999px;
-            transition: background 0.3s ease;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gray-300);
+            border-radius: 34px;
+            transition: .4s;
         }
 
-        .toggle-slider::before {
-            content: '';
+        .toggle-slider:before {
             position: absolute;
-            height: 20px;
-            width: 20px;
+            content: "";
+            height: 24px;
+            width: 24px;
             left: 4px;
-            top: 4px;
-            background: var(--white);
+            bottom: 4px;
+            background-color: white;
             border-radius: 50%;
-            transition: transform 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: .4s;
         }
 
-        .toggle-switch input:checked + .toggle-slider {
-            background: var(--primary);
+        input:checked + .toggle-slider {
+            background-color: var(--primary);
         }
 
-        .toggle-switch input:checked + .toggle-slider::before {
-            transform: translateX(24px);
+        input:checked + .toggle-slider:before {
+            transform: translateX(28px);
         }
 
-        .pricing {
-            background: var(--white);
-        }
-
-        .plans-grid {
+        .pricing-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 24px;
-            margin-top: 60px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .plan-card {
             background: var(--white);
             border: 2px solid var(--gray-200);
-            border-radius: 16px;
-            padding: 36px 28px;
-            transition: all 0.3s ease;
+            border-radius: 12px;
+            padding: 40px 32px;
             position: relative;
-            display: flex;
-            flex-direction: column;
+            transition: all 0.3s;
         }
 
         .plan-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.2);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.12);
         }
 
         .plan-card.featured {
             border-color: var(--primary);
-            box-shadow: 0 10px 30px -5px rgba(59,130,246,0.3);
-        }
-
-        .plan-card.premium {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border-color: #f59e0b;
+            box-shadow: 0 8px 24px rgba(30,58,138,0.15);
         }
 
         .plan-badge {
-            display: inline-block;
-            padding: 4px 12px;
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: var(--white);
+            padding: 6px 20px;
             border-radius: 999px;
-            font-size: 11px;
-            font-weight: 800;
+            font-size: 12px;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 16px;
-            align-self: flex-start;
-        }
-
-        .plan-badge.best {
-            background: #dbeafe;
-            color: var(--primary-dark);
         }
 
         .plan-badge.premium-badge {
-            background: #78350f;
-            color: #fef3c7;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
         }
 
         .plan-card h3 {
             font-size: 24px;
-            font-weight: 800;
-            margin-bottom: 12px;
+            font-weight: 700;
             color: var(--gray-900);
+            margin-bottom: 16px;
         }
 
         .plan-price {
-            margin: 20px 0;
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 32px;
         }
 
         .plan-price .currency {
             font-size: 20px;
-            font-weight: 700;
-            color: var(--gray-700);
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-right: 4px;
         }
 
         .plan-price .amount {
             font-size: 48px;
-            font-weight: 900;
+            font-weight: 800;
             color: var(--primary);
             line-height: 1;
         }
 
-        .plan-card.premium .amount {
-            color: #92400e;
-        }
-
         .plan-price .period {
-            font-size: 14px;
+            font-size: 16px;
             color: var(--gray-600);
+            margin-left: 8px;
         }
 
         .plan-features {
             list-style: none;
-            margin: 24px 0;
-            flex-grow: 1;
+            margin-bottom: 32px;
         }
 
         .plan-features li {
-            padding: 10px 0;
-            font-size: 14px;
+            padding: 12px 0;
             color: var(--gray-700);
             display: flex;
-            align-items: flex-start;
-            gap: 8px;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
         }
 
-        .plan-features li::before {
-            content: '✓';
+        .plan-features li:before {
+            content: "✓";
             color: var(--success);
             font-weight: 700;
-            flex-shrink: 0;
+            font-size: 18px;
         }
 
         .plan-cta {
             width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 10px;
+            padding: 14px 24px;
             background: var(--primary);
             color: var(--white);
-            font-weight: 700;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
             font-size: 15px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
         }
 
         .plan-cta:hover {
@@ -833,141 +782,82 @@
             transform: translateY(-2px);
         }
 
-        .plan-card.premium .plan-cta {
-            background: #78350f;
+        .plan-card.featured .plan-cta {
+            background: var(--accent);
         }
 
-        .plan-card.premium .plan-cta:hover {
-            background: #451a03;
+        .plan-card.featured .plan-cta:hover {
+            background: #d97706;
         }
 
-        .features-section {
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-            color: var(--white);
+        /* TESTIMONIALS */
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 32px;
         }
 
-        .features-section .section-badge {
-            background: rgba(255,255,255,0.15);
-            color: var(--white);
-        }
-
-        .features-section h2 {
-            color: var(--white);
-        }
-
-        .features-section .section-header p {
-            color: rgba(255,255,255,0.9);
-        }
-
-        .features-section .feature-card {
+        .testimonial-card {
             background: var(--white);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-left: 4px solid var(--primary);
+        }
+
+        .testimonial-text {
+            font-size: 16px;
+            color: var(--gray-700);
+            line-height: 1.7;
+            margin-bottom: 24px;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .author-info h4 {
+            font-size: 16px;
+            font-weight: 700;
             color: var(--gray-900);
         }
 
-        .differentials {
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-            color: var(--white);
+        .author-info p {
+            font-size: 14px;
+            color: var(--gray-600);
         }
 
-        .differentials .section-badge {
-            background: rgba(255,255,255,0.15);
-            color: var(--white);
-        }
-
-        .differentials h2 {
-            color: var(--white);
-        }
-
-        .differentials .section-header p {
-            color: rgba(255,255,255,0.9);
-        }
-
-        .diff-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 32px;
-            margin-top: 60px;
-        }
-
-        .diff-item {
-            display: flex;
-            gap: 20px;
-            padding: 32px;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border-radius: var(--radius);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .diff-number {
-            width: 48px;
-            height: 48px;
-            background: var(--accent);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: 800;
-            flex-shrink: 0;
-        }
-
-        .diff-content h3 {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .diff-content p {
-            font-size: 15px;
-            line-height: 1.6;
-            opacity: 0.9;
-        }
-
+        /* CTA SECTION */
         .cta-section {
-            padding: 120px 0;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cta-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(59,130,246,0.15) 0%, transparent 70%);
-        }
-
-        .cta-content {
-            max-width: 720px;
-            margin: 0 auto;
+            padding: 100px 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
             text-align: center;
-            position: relative;
-            z-index: 1;
         }
 
-        .cta-section h2 {
+        .cta-content h2 {
             font-size: 42px;
             font-weight: 800;
             color: var(--white);
-            margin-bottom: 24px;
-            letter-spacing: -1px;
+            margin-bottom: 20px;
         }
 
-        .cta-section p {
+        .cta-content p {
             font-size: 20px;
-            color: #cbd5e1;
+            color: rgba(255,255,255,0.9);
             margin-bottom: 40px;
-            line-height: 1.7;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
+        /* FOOTER */
         footer {
-            background: var(--dark);
+            background: var(--gray-900);
             color: var(--gray-400);
-            padding: 60px 0 30px;
+            padding: 64px 0 32px;
         }
 
         .footer-content {
@@ -978,45 +868,44 @@
         }
 
         .footer-brand {
-            max-width: 320px;
+            max-width: 350px;
         }
 
         .footer-logo {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
         .footer-logo img {
-            height: 32px;
+            height: 40px;
             width: auto;
-            opacity: 0.7;
         }
 
         .footer-brand p {
             font-size: 14px;
-            line-height: 1.6;
+            line-height: 1.7;
             color: var(--gray-400);
         }
 
         .footer-links h4 {
             color: var(--white);
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 700;
-            margin-bottom: 16px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            margin-bottom: 20px;
         }
 
         .footer-links ul {
             list-style: none;
         }
 
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
         .footer-links a {
             color: var(--gray-400);
             text-decoration: none;
             font-size: 14px;
-            display: block;
-            margin-bottom: 10px;
-            transition: color 0.2s;
+            transition: color 0.3s;
         }
 
         .footer-links a:hover {
@@ -1024,43 +913,115 @@
         }
 
         .footer-bottom {
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding-top: 30px;
+            padding-top: 32px;
+            border-top: 1px solid var(--gray-800);
             text-align: center;
+        }
+
+        .footer-bottom p {
             font-size: 14px;
+            color: var(--gray-500);
         }
 
-        @media (max-width: 1024px) {
-            .hero h1 { font-size: 42px; }
-            .section h2 { font-size: 36px; }
-            .value-grid, .features-grid { grid-template-columns: repeat(2, 1fr); }
-            .plans-grid { grid-template-columns: repeat(2, 1fr); }
-            .diff-grid { grid-template-columns: 1fr; }
-            .footer-content { grid-template-columns: 1fr 1fr; }
-            .card-text h2 { font-size: 36px; }
+        .footer-social {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 24px;
         }
 
+        .social-link {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--gray-800);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            border: 1px solid var(--gray-700);
+        }
+
+        .social-link:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .social-link svg {
+            width: 20px;
+            height: 20px;
+            color: var(--gray-400);
+        }
+
+        .social-link:hover svg {
+            color: var(--white);
+        }
+
+        /* RESPONSIVO */
         @media (max-width: 768px) {
-            .nav-links { display: none; }
-            .hero h1 { font-size: 32px; }
-            .hero p { font-size: 16px; }
-            .section h2 { font-size: 28px; }
-            .value-grid, .features-grid, .plans-grid { grid-template-columns: 1fr; }
-            .hero-cta { flex-direction: column; }
-            .footer-content { grid-template-columns: 1fr; }
-            .hero-card { padding: 40px 30px; }
-            .card-content { grid-template-columns: 1fr; gap: 40px; }
-            .card-text h2 { font-size: 28px; }
-            .card-visual { height: 300px; }
-            .dashboard-iso {
-                width: 240px;
-                height: 280px;
-                left: 50%;
-                transform: translateX(-50%) translateY(-50%) perspective(1000px) rotateY(0deg);
+            .nav-links {
+                display: none;
             }
-            .gavel {
-                right: 10px;
-                transform: translateY(-50%) scale(0.8);
+
+            .hero {
+                padding: 140px 0 80px;
+                min-height: auto;
+            }
+
+            .hero-wrapper {
+                grid-template-columns: 1fr;
+                gap: 50px;
+            }
+
+            .hero-image {
+                order: -1;
+            }
+
+            .hero h1 {
+                font-size: 40px;
+                letter-spacing: -1px;
+            }
+
+            .hero p {
+                font-size: 18px;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+            }
+
+            .hero-cta .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .mini-card {
+                display: none;
+            }
+
+            .hero-decoration {
+                display: none;
+            }
+
+            .section-header h2 {
+                font-size: 32px;
+            }
+
+            .features-grid,
+            .benefits-list,
+            .pricing-grid,
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+
+            .stat-number {
+                font-size: 42px;
             }
         }
     </style>
@@ -1072,183 +1033,295 @@
                 <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
             </div>
             <div class="nav-links">
-                <a href="#funcionalidades">Funcionalidades</a>
+                <a href="#funcionalidades">Soluções</a>
+                <a href="#recursos">Recursos</a>
                 <a href="#planos">Planos</a>
-                <a href="#diferenciais">Diferenciais</a>
+                <a href="#depoimentos">Clientes</a>
                 <a href="#contato">Contato</a>
-                <a href="/login.html" class="btn btn-login">Entrar</a>
-                <a href="#planos" class="btn btn-primary">Começar Agora</a>
+            </div>
+            <div class="nav-buttons">
+                <a href="login.html" class="btn btn-login">Login</a>
+                <a href="#planos" class="btn btn-primary">Teste Grátis</a>
             </div>
         </div>
     </nav>
 
     <section class="hero">
+        <div class="hero-grid"></div>
         <div class="container">
-            <div class="hero-content">
-                <span class="hero-badge">SISTEMA DE GESTÃO JURÍDICA</span>
-                <h1>Gestão completa para <span class="highlight">escritórios de advocacia</span> que exigem excelência</h1>
-                <p>Centralize processos, prazos, clientes e finanças em uma plataforma profissional desenvolvida exclusivamente para a realidade do advogado brasileiro.</p>
-                <div class="hero-cta">
-                    <a href="#planos" class="btn btn-primary btn-lg">Ver Planos e Preços</a>
-                    <a href="#planos" class="btn btn-outline btn-lg">Iniciar Teste Gratuito</a>
+            <div class="hero-wrapper">
+                <div class="hero-content">
+                    <div class="hero-badge">Sistema líder em gestão jurídica</div>
+                    <h1>Simplifique a Gestão do seu <span class="highlight">Escritório</span></h1>
+                    <p>Mais organização, menos burocracia. Potencialize seus resultados com nossa plataforma completa de gestão jurídica.</p>
+                    <div class="hero-cta">
+                        <a href="#planos" class="btn btn-primary btn-lg">Teste Grátis por 7 Dias</a>
+                        <a href="#funcionalidades" class="btn btn-outline btn-lg">Ver Demonstração</a>
+                    </div>
                 </div>
-            </div>
-            <div class="hero-visual">
-                <div class="hero-card">
-                    <div class="card-content">
-                        <div class="card-text">
-                            <h2>Simplifique a Gestão do seu Escritório</h2>
-                            <p>Centralize processos, prazos e finanças com total segurança. Tudo integrado em uma plataforma.</p>
-                            <div class="card-buttons">
-                                <a href="#planos" class="btn-light">Ver Planos</a>
-                                <a href="#diferenciais" class="btn-card-outline">Diferenciais</a>
-                            </div>
+                <div class="hero-image">
+                    <div class="hero-visual">
+                        <!-- Card Principal -->
+                        <div class="floating-card">
+                            <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                                <!-- Dashboard com gráficos -->
+                                <rect x="20" y="20" width="360" height="260" fill="#f8fafc" rx="12"/>
+                                
+                                <!-- Header do card -->
+                                <rect x="40" y="40" width="120" height="12" fill="#cbd5e1" rx="6"/>
+                                <circle cx="350" cy="46" r="6" fill="#10b981"/>
+                                
+                                <!-- Gráfico de Pizza -->
+                                <g transform="translate(100, 130)">
+                                    <circle cx="0" cy="0" r="45" fill="#e2e8f0"/>
+                                    <path d="M0,-45 A45,45 0 0,1 38.97,-22.5 L0,0 Z" fill="#3b82f6"/>
+                                    <path d="M38.97,-22.5 A45,45 0 0,1 0,45 L0,0 Z" fill="#10b981"/>
+                                    <path d="M0,45 A45,45 0 0,1 0,-45 L0,0 Z" fill="#f59e0b"/>
+                                </g>
+                                
+                                <!-- Gráfico de Barras -->
+                                <g transform="translate(220, 100)">
+                                    <rect x="0" y="40" width="30" height="60" fill="#3b82f6" rx="4"/>
+                                    <rect x="40" y="25" width="30" height="75" fill="#10b981" rx="4"/>
+                                    <rect x="80" y="35" width="30" height="65" fill="#f59e0b" rx="4"/>
+                                    <rect x="120" y="15" width="30" height="85" fill="#8b5cf6" rx="4"/>
+                                    
+                                    <!-- Linha base -->
+                                    <line x1="0" y1="100" x2="150" y2="100" stroke="#cbd5e1" stroke-width="2"/>
+                                </g>
+                                
+                                <!-- Estatísticas -->
+                                <g transform="translate(40, 220)">
+                                    <rect x="0" y="0" width="100" height="40" fill="#eff6ff" rx="8"/>
+                                    <text x="50" y="16" font-size="10" fill="#3b82f6" text-anchor="middle" font-weight="bold">+24%</text>
+                                    <text x="50" y="30" font-size="8" fill="#64748b" text-anchor="middle">Processos</text>
+                                </g>
+                                
+                                <g transform="translate(150, 220)">
+                                    <rect x="0" y="0" width="100" height="40" fill="#f0fdf4" rx="8"/>
+                                    <text x="50" y="16" font-size="10" fill="#10b981" text-anchor="middle" font-weight="bold">98%</text>
+                                    <text x="50" y="30" font-size="8" fill="#64748b" text-anchor="middle">Satisfação</text>
+                                </g>
+                                
+                                <g transform="translate(260, 220)">
+                                    <rect x="0" y="0" width="100" height="40" fill="#fffbeb" rx="8"/>
+                                    <text x="50" y="16" font-size="10" fill="#f59e0b" text-anchor="middle" font-weight="bold">5.2k</text>
+                                    <text x="50" y="30" font-size="8" fill="#64748b" text-anchor="middle">Clientes</text>
+                                </g>
+                            </svg>
                         </div>
-
-                        <div class="card-visual">
-                            <!-- Dashboard Isométrico -->
-                            <div class="dashboard-iso">
-                                <div class="dashboard-header">
-                                    <div class="dot"></div>
-                                    <div class="dot"></div>
-                                    <div class="dot"></div>
-                                </div>
-                                <div class="dashboard-chart">
-                                    <div class="chart-bar"></div>
-                                    <div class="chart-bar"></div>
-                                    <div class="chart-bar"></div>
-                                    <div class="chart-bar"></div>
-                                    <div class="chart-bar"></div>
-                                </div>
-                                <div class="dashboard-stats">
-                                    <div class="stat-card">
-                                        <div class="stat-value">145 Processos</div>
-                                        <div class="stat-bar"><div class="stat-fill"></div></div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-value">23 Prazos</div>
-                                        <div class="stat-bar"><div class="stat-fill"></div></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Martelo 3D -->
-                            <div class="gavel">
-                                <div class="gavel-handle">
-                                    <div class="gavel-head"></div>
-                                </div>
-                            </div>
-
-                            <!-- Partículas -->
-                            <div class="particle"></div>
-                            <div class="particle"></div>
-                            <div class="particle"></div>
+                        
+                        <!-- Mini Card 1 - Notificação -->
+                        <div class="mini-card mini-card-1" style="width: 200px;">
+                            <svg viewBox="0 0 180 80" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="25" cy="40" r="18" fill="#10b981"/>
+                                <path d="M18 40 L23 45 L32 35" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                                <rect x="55" y="30" width="100" height="6" fill="#cbd5e1" rx="3"/>
+                                <rect x="55" y="42" width="70" height="5" fill="#e2e8f0" rx="2.5"/>
+                            </svg>
                         </div>
+                        
+                        <!-- Mini Card 2 - Documento -->
+                        <div class="mini-card mini-card-2" style="width: 180px;">
+                            <svg viewBox="0 0 160 70" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="10" y="10" width="45" height="50" fill="#3b82f6" rx="4"/>
+                                <rect x="15" y="15" width="35" height="3" fill="white" rx="1.5"/>
+                                <rect x="15" y="23" width="25" height="2" fill="rgba(255,255,255,0.7)" rx="1"/>
+                                <rect x="15" y="29" width="30" height="2" fill="rgba(255,255,255,0.7)" rx="1"/>
+                                <rect x="70" y="20" width="70" height="5" fill="#cbd5e1" rx="2.5"/>
+                                <rect x="70" y="32" width="60" height="4" fill="#e2e8f0" rx="2"/>
+                                <rect x="70" y="42" width="65" height="4" fill="#e2e8f0" rx="2"/>
+                            </svg>
+                        </div>
+                        
+                        <!-- Decorações -->
+                        <div class="hero-decoration decoration-1"></div>
+                        <div class="hero-decoration decoration-2"></div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="section value-prop">
+    <section class="stats">
         <div class="container">
-            <div class="section-header">
-                <span class="section-badge">Por que LawTech Pro</span>
-                <h2>Controle absoluto da sua operação jurídica</h2>
-                <p>Transforme a gestão do seu escritório com tecnologia desenvolvida especificamente para as necessidades do mercado jurídico brasileiro.</p>
-            </div>
-            <div class="value-grid">
-                <div class="value-item">
-                    <div class="value-icon">⚡</div>
-                    <h3>Produtividade Maximizada</h3>
-                    <p>Automatize tarefas repetitivas e concentre-se no que realmente importa: seus clientes e casos.</p>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">5k<span>+</span></div>
+                    <div class="stat-label">Clientes satisfeitos</div>
                 </div>
-                <div class="value-item">
-                    <div class="value-icon">🔒</div>
-                    <h3>Segurança Garantida</h3>
-                    <p>Proteção de dados com criptografia avançada e conformidade total com a LGPD.</p>
+                <div class="stat-item">
+                    <div class="stat-number">150k<span>+</span></div>
+                    <div class="stat-label">Processos gerenciados</div>
                 </div>
-                <div class="value-item">
-                    <div class="value-icon">📊</div>
-                    <h3>Decisões Estratégicas</h3>
-                    <p>Relatórios completos e dashboards em tempo real para gestão inteligente do escritório.</p>
+                <div class="stat-item">
+                    <div class="stat-number">98<span>%</span></div>
+                    <div class="stat-label">Taxa de satisfação</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Suporte disponível</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="section features-section" id="funcionalidades">
+    <section class="section" id="funcionalidades">
         <div class="container">
             <div class="section-header">
-                <span class="section-badge">Funcionalidades</span>
-                <h2>Tudo que seu escritório precisa em um só lugar</h2>
-                <p>Cada módulo foi desenvolvido para resolver desafios reais da rotina jurídica.</p>
+                <span class="section-badge">Nossas Soluções</span>
+                <h2>Você determina como gerenciar seus processos</h2>
+                <p>Centralize toda a gestão do seu escritório em uma única plataforma, com tecnologia de ponta e segurança jurídica.</p>
             </div>
             <div class="features-grid">
                 <div class="feature-card">
-                    <div class="feature-icon">⏰</div>
-                    <h3>Gestão de Prazos</h3>
-                    <p>Alertas inteligentes, notificações automáticas e controle total de vencimentos processuais com níveis de urgência customizáveis.</p>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                            <polyline points="13 2 13 9 20 9"></polyline>
+                        </svg>
+                    </div>
+                    <h3>Gestão de Processos</h3>
+                    <p>Controle completo de processos com organização inteligente, vinculação automática de documentos e histórico detalhado de todas as movimentações.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">📋</div>
-                    <h3>Controle de Processos</h3>
-                    <p>Organização completa do acervo processual com filtros avançados, histórico de movimentações e acompanhamento estratégico.</p>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
+                    <h3>Controle de Prazos</h3>
+                    <p>Sistema inteligente de alertas e notificações para nunca mais perder prazos importantes. Calendário jurídico integrado e sincronização automática.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">👥</div>
-                    <h3>Cadastro de Clientes</h3>
-                    <p>Gestão profissional de relacionamento com histórico completo de atendimentos, documentos e interações.</p>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <h3>Gestão de Clientes</h3>
+                    <p>CRM jurídico completo com histórico de atendimentos, documentos organizados e comunicação centralizada com seus clientes.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">💰</div>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                    </div>
                     <h3>Financeiro Jurídico</h3>
-                    <p>Controle de honorários, repasses, receitas e despesas com relatórios financeiros detalhados e indicadores de desempenho.</p>
+                    <p>Controle financeiro completo com emissão de faturas, gestão de honorários, despesas processuais e relatórios gerenciais.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">📅</div>
-                    <h3>Agenda Inteligente</h3>
-                    <p>Calendário jurídico integrado aos processos com sincronização automática de audiências e compromissos.</p>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="3" y1="9" x2="21" y2="9"></line>
+                            <line x1="9" y1="21" x2="9" y2="9"></line>
+                        </svg>
+                    </div>
+                    <h3>Relatórios e Dashboards</h3>
+                    <p>Visualize o desempenho do seu escritório com relatórios personalizados, gráficos intuitivos e indicadores de produtividade.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">📈</div>
-                    <h3>Relatórios Estratégicos</h3>
-                    <p>Análises completas de performance, produtividade e resultados para decisões baseadas em dados concretos.</p>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                        </svg>
+                    </div>
+                    <h3>Automação Inteligente</h3>
+                    <p>Automatize tarefas repetitivas com fluxos de trabalho personalizados, templates de documentos e integrações com ferramentas essenciais.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="section pricing" id="planos">
+    <section class="section section-alt" id="recursos">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Recursos</span>
+                <h2>Automação inteligente para uma gestão jurídica sem complicações</h2>
+                <p>Elimine frustrações com tarefas repetitivas e foque no que realmente importa: seus clientes e casos.</p>
+            </div>
+            <div class="benefits-list">
+                <div class="benefit-item">
+                    <div class="benefit-number">01</div>
+                    <div class="benefit-content">
+                        <h4>Elimine tarefas repetitivas</h4>
+                        <p>Automatize o cadastro de processos, geração de documentos e envio de comunicações, economizando horas diárias da sua equipe.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-number">02</div>
+                    <div class="benefit-content">
+                        <h4>A segurança mais completa</h4>
+                        <p>Proteção de dados com criptografia de ponta a ponta, backup automático em nuvem e conformidade total com a LGPD.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-number">03</div>
+                    <div class="benefit-content">
+                        <h4>Proteja seu escritório</h4>
+                        <p>Sistema de alertas inteligente que monitora prazos críticos e envia notificações em múltiplos canais para garantir zero perda de prazo.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-number">04</div>
+                    <div class="benefit-content">
+                        <h4>Não perca tempo</h4>
+                        <p>Acompanhe todas as movimentações processuais automaticamente com atualização em tempo real e integração com os principais tribunais.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-number">05</div>
+                    <div class="benefit-content">
+                        <h4>Prazos apertados nunca mais</h4>
+                        <p>Calendário jurídico inteligente que considera feriados, suspensões e particularidades de cada tribunal automaticamente.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-number">06</div>
+                    <div class="benefit-content">
+                        <h4>Gestão essencial incluída</h4>
+                        <p>Todos os planos incluem acesso ao sistema completo de gestão, sem custos adicionais ou surpresas na fatura.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="planos">
         <div class="container">
             <div class="section-header">
                 <span class="section-badge">Planos</span>
                 <h2>Escolha o plano ideal para seu escritório</h2>
-                <p>Todos os planos incluem <strong>7 dias de teste gratuito</strong>. Cancele quando quiser.</p>
-                <div style="display: inline-block; margin-top: 12px; padding: 8px 16px; background: #dcfce7; border: 1px solid #86efac; border-radius: 8px; color: #166534; font-size: 13px; font-weight: 600;">
-                    ✓ Teste grátis por 7 dias • Sem compromisso
-                </div>
+                <p>Teste gratuitamente por 7 dias, sem compromisso e sem cartão de crédito. Cancele quando quiser.</p>
             </div>
-            
-            <div class="billing-toggle">
-                <span class="toggle-label" id="label-mensal">Mensal</span>
+
+            <div class="pricing-toggle">
+                <label id="label-mensal" class="toggle-label">Mensal</label>
                 <label class="toggle-switch">
                     <input type="checkbox" id="billingToggle" onchange="toggleBilling()">
                     <span class="toggle-slider"></span>
                 </label>
-                <span class="toggle-label" id="label-anual">Anual 
-                    <span style="color: var(--success); font-weight: 700; margin-left: 4px;">Economize 17%</span>
-                </span>
+                <label id="label-anual" class="toggle-label">Anual <span style="color: var(--success); margin-left: 4px;">(economize 17%)</span></label>
             </div>
-            <div class="plans-grid">
+
+            <div class="pricing-grid">
                 <div class="plan-card">
                     <h3>Básico</h3>
                     <div class="plan-price">
                         <span class="currency">R$</span>
-                        <span class="amount" data-mensal="49" data-anual="499">49</span>
+                        <span class="amount" data-mensal="99" data-anual="999">99</span>
                         <span class="period">/mês</span>
                     </div>
                     <ul class="plan-features">
+                        <li>Até 3 usuários</li>
                         <li>Gestão de Clientes</li>
                         <li>Gestão de Processos</li>
                         <li>Gestão de Prazos</li>
@@ -1259,7 +1332,7 @@
                 </div>
 
                 <div class="plan-card featured">
-                    <span class="plan-badge best">Mais vendido</span>
+                    <span class="plan-badge">Mais vendido</span>
                     <h3>Intermediário</h3>
                     <div class="plan-price">
                         <span class="currency">R$</span>
@@ -1268,6 +1341,7 @@
                     </div>
                     <ul class="plan-features">
                         <li>Tudo do plano Básico</li>
+                        <li>Usuários ilimitados</li>
                         <li>Financeiro Jurídico</li>
                         <li>Relatórios avançados</li>
                         <li>Suporte prioritário</li>
@@ -1315,40 +1389,38 @@
         </div>
     </section>
 
-    <section class="section differentials" id="diferenciais">
+    <section class="section section-alt" id="depoimentos">
         <div class="container">
             <div class="section-header">
-                <span class="section-badge">Diferenciais</span>
-                <h2>Por que escritórios confiam no LawTech Pro</h2>
-                <p>Tecnologia pensada para a realidade do advogado brasileiro, com recursos que fazem diferença no dia a dia.</p>
+                <span class="section-badge">Depoimentos</span>
+                <h2>Advogados e escritórios de todo o Brasil confiam em nossas soluções</h2>
             </div>
-            <div class="diff-grid">
-                <div class="diff-item">
-                    <div class="diff-number">01</div>
-                    <div class="diff-content">
-                        <h3>Automação Inteligente</h3>
-                        <p>Reduza trabalho manual com automações jurídicas que economizam horas da sua equipe diariamente.</p>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <p class="testimonial-text">"O LawTech Pro revolucionou a forma como gerenciamos nossos processos. A automação de prazos nos trouxe muito mais segurança e tranquilidade no dia a dia."</p>
+                    <div class="testimonial-author">
+                        <div class="author-info">
+                            <h4>Dr. Carlos Silva</h4>
+                            <p>Advogado Trabalhista - São Paulo</p>
+                        </div>
                     </div>
                 </div>
-                <div class="diff-item">
-                    <div class="diff-number">02</div>
-                    <div class="diff-content">
-                        <h3>Segurança Jurídica</h3>
-                        <p>Infraestrutura robusta com backup automático, criptografia de ponta e conformidade total com normas regulatórias.</p>
+                <div class="testimonial-card">
+                    <p class="testimonial-text">"Excelente plataforma! O suporte é excepcional e sempre nos atende com rapidez. Os relatórios gerenciais nos ajudaram muito na tomada de decisões estratégicas."</p>
+                    <div class="testimonial-author">
+                        <div class="author-info">
+                            <h4>Dra. Ana Rodrigues</h4>
+                            <p>Sócia - Rodrigues Advocacia</p>
+                        </div>
                     </div>
                 </div>
-                <div class="diff-item">
-                    <div class="diff-number">03</div>
-                    <div class="diff-content">
-                        <h3>Desenvolvido para Advogados</h3>
-                        <p>Sistema criado por especialistas em gestão jurídica que entendem profundamente as necessidades do setor.</p>
-                    </div>
-                </div>
-                <div class="diff-item">
-                    <div class="diff-number">04</div>
-                    <div class="diff-content">
-                        <h3>Suporte Especializado</h3>
-                        <p>Equipe dedicada com conhecimento jurídico para atender suas necessidades com agilidade e precisão.</p>
+                <div class="testimonial-card">
+                    <p class="testimonial-text">"A organização que o sistema trouxe para nosso escritório é impressionante. Aumentamos nossa produtividade em 40% e reduzimos significativamente os custos operacionais."</p>
+                    <div class="testimonial-author">
+                        <div class="author-info">
+                            <h4>Dr. Roberto Martins</h4>
+                            <p>Advogado Cível - Rio de Janeiro</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1359,10 +1431,10 @@
         <div class="container">
             <div class="cta-content">
                 <h2>Revolucione a gestão do seu escritório</h2>
-                <p>Junte-se aos escritórios que escolheram tecnologia, controle e eficiência. Inicie seu teste gratuito hoje mesmo.</p>
+                <p>Junte-se aos escritórios que escolheram tecnologia, controle e eficiência. Inicie seu teste gratuito hoje mesmo, sem cartão de crédito.</p>
                 <div class="hero-cta">
-                    <a href="#planos" class="btn btn-primary btn-lg">Ver Planos e Começar</a>
-                    <a href="#planos" class="btn btn-outline btn-lg">Testar por 7 Dias Grátis</a>
+                    <a href="#planos" class="btn btn-primary btn-lg">Testar por 7 Dias Grátis</a>
+                    <a href="#planos" class="btn btn-outline btn-lg" style="border-color: white; color: white;">Ver Planos</a>
                 </div>
             </div>
         </div>
@@ -1380,9 +1452,9 @@
                 <div class="footer-links">
                     <h4>Produto</h4>
                     <ul>
-                        <li><a href="#funcionalidades">Funcionalidades</a></li>
+                        <li><a href="#funcionalidades">Soluções</a></li>
+                        <li><a href="#recursos">Recursos</a></li>
                         <li><a href="#planos">Planos</a></li>
-                        <li><a href="#diferenciais">Diferenciais</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">
@@ -1391,6 +1463,7 @@
                         <li><a href="#">Sobre Nós</a></li>
                         <li><a href="#">Blog</a></li>
                         <li><a href="#contato">Contato</a></li>
+                        <li><a href="#">Suporte</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">
@@ -1403,6 +1476,33 @@
                 </div>
             </div>
             <div class="footer-bottom">
+                <div class="footer-social">
+                    <a href="https://instagram.com/lawtechpro" class="social-link" target="_blank" rel="noopener" aria-label="Instagram">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        </svg>
+                    </a>
+                    <a href="https://facebook.com/lawtechpro" class="social-link" target="_blank" rel="noopener" aria-label="Facebook">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                    </a>
+                    <a href="https://linkedin.com/company/lawtechpro" class="social-link" target="_blank" rel="noopener" aria-label="LinkedIn">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                        </svg>
+                    </a>
+                    <a href="https://twitter.com/lawtechpro" class="social-link" target="_blank" rel="noopener" aria-label="Twitter/X">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                    </a>
+                    <a href="https://youtube.com/@lawtechpro" class="social-link" target="_blank" rel="noopener" aria-label="YouTube">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                    </a>
+                </div>
                 <p>© 2026 LawTech Pro Systems. Todos os direitos reservados.</p>
             </div>
         </div>
@@ -1452,16 +1552,6 @@
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             });
-        });
-
-        // Rastreamento de cliques no login
-        document.addEventListener('DOMContentLoaded', () => {
-            const loginBtn = document.querySelector('.btn-login');
-            if (loginBtn) {
-                loginBtn.addEventListener('click', () => {
-                    console.log('Usuário clicando para fazer login');
-                });
-            }
         });
     </script>
 </body>

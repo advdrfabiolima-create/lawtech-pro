@@ -22,6 +22,24 @@ const iniciarAgendamentos = () => {
         }
     });
 
+    // --- TAREFA 3: VERIFICAR EXPIRAÇÃO DO TRIAL ---
+cron.schedule('0 0 * * *', async () => {  // Todo dia à meia-noite
+    try {
+        console.log('🔒 Verificando trials expirados...');
+        
+        await pool.query(`
+            UPDATE escritorios 
+            SET plano_financeiro_status = 'trial_expirado'
+            WHERE trial_expira_em < CURRENT_DATE 
+            AND plano_financeiro_status = 'ativo'
+        `);
+        
+        console.log('✅ Verificação de trials concluída.');
+    } catch (error) {
+        console.error('❌ Erro ao verificar trials:', error.message);
+    }
+});
+
     // --- TAREFA 2: VARREDURA AUTOMÁTICA NO ESCAVADOR (Monitoramentos) ---
     // Agendado para as 07:00 e 19:00 (Início e fim do expediente)
     cron.schedule('0 7,19 * * *', async () => {
