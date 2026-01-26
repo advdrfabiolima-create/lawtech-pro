@@ -2,19 +2,27 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
-const { analisarPrazoComGemini } = require('../controllers/iaController');
+const { analisarPrazoComClaude } = require('../controllers/iaController');
+const Anthropic = require('@anthropic-ai/sdk');
 
+/**
+ * ============================================================
+ * ROTA PRINCIPAL: ASSISTENTE JURÍDICO (CHAT IA)
+ * Usa: Claude Haiku 4.5 (Anthropic)
+ * Restrição: Apenas plano Premium
+ * ============================================================
+ */
 router.post('/ia/perguntar', authMiddleware, async (req, res) => {
   try {
     const { pergunta } = req.body;
     const escritorioId = req.user.escritorio_id;
 
-    // 1. Validação básica da pergunta
+    // 1️⃣ Validação básica
     if (!pergunta || !pergunta.trim()) {
       return res.status(400).json({ erro: 'Pergunta não informada.' });
     }
 
-    // 2. 🔒 Verificação de Plano (Mantida a regra de negócio do LawTech Pro)
+    // 2️⃣ 🔒 Verificação de Plano Premium
     const planoResult = await pool.query(`
       SELECT p.nome FROM escritorios e
       JOIN planos p ON p.id = e.plano_id
@@ -25,52 +33,65 @@ router.post('/ia/perguntar', authMiddleware, async (req, res) => {
       return res.status(403).json({ erro: 'Recurso exclusivo do plano Premium' });
     }
 
-    // 3. 🚀 Configuração da Chamada DeepSeek
-    // Certifique-se de que a variável IA_API_KEY esteja no seu .env e no Render
-    const API_KEY = process.env.IA_API_KEY; 
-    const API_URL = "https://api.deepseek.com/chat/completions"; 
-
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat", 
-        messages: [
-          { 
-            role: "system", 
-            content: "Atue como um advogado sênior brasileiro especializado em Direito Civil, Processual e Trabalhista. Responda de forma técnica, clara e fundamentada em português jurídico formal." 
-          },
-          { role: "user", content: pergunta }
-        ],
-        stream: false,
-        temperature: 0.5
-      })
+    // 3️⃣ 🚀 Configuração da Claude API
+    const anthropic = new Anthropic({
+      apiKey: process.env.CLAUDE_API_KEY,
     });
 
-    // 4. Tratamento da Resposta da API
-    const data = await response.json();
+    // 4️⃣ Prompt otimizado para contexto jurídico brasileiro
+    const systemPrompt = `Você é um advogado sênior brasileiro com expertise em:
+- Direito Civil e Processual Civil
+- Direito do Trabalho e Processual do Trabalho  
+- Direito Penal e Processual Penal
+- Análise de jurisprudência STF, STJ e Tribunais
 
-    if (data.error) {
-      console.error("ERRO API DEEPSEEK:", data.error);
-      throw new Error(data.error.message || "Erro na comunicação com a IA.");
-    }
+Responda sempre:
+✓ De forma técnica e fundamentada
+✓ Citando artigos de lei quando aplicável
+✓ Em português jurídico formal
+✓ Com objetividade e clareza
+✓ Referenciando jurisprudência relevante quando pertinente`;
 
-    // Extração do texto da resposta
-    const respostaIA = data.choices[0].message.content;
+    const message = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 2048,
+      temperature: 0.4,
+      system: systemPrompt,
+      messages: [
+        {
+          role: 'user',
+          content: pergunta
+        }
+      ]
+    });
 
-    return res.json({ resposta: respostaIA }); 
+    // 5️⃣ Extração da resposta
+    const respostaIA = message.content[0].text;
+
+    return res.json({ resposta: respostaIA });
 
   } catch (err) {
-    console.error('ERRO NO ASSISTENTE JURÍDICO:', err.message);
+    console.error('❌ ERRO NO ASSISTENTE JURÍDICO (CLAUDE):', err.message);
 
-    // Tratamento de erro de saldo ou cota (comum em APIs pagas)
-    if (err.message.toLowerCase().includes('insufficient_balance') || err.message.includes('402')) {
-      return res.status(402).json({ 
-        erro: 'Saldo insuficiente na conta da IA.', 
-        detalhe: 'Verifique os créditos no painel da DeepSeek.' 
+    // Tratamento de erros específicos da Anthropic
+    if (err.status === 401) {
+      return res.status(401).json({ 
+        erro: 'Chave API da Claude inválida.',
+        detalhe: 'Configure a chave correta no arquivo .env (CLAUDE_API_KEY)'
+      });
+    }
+
+    if (err.status === 429) {
+      return res.status(429).json({ 
+        erro: 'Muitas requisições. Aguarde um momento.',
+        detalhe: 'Limite de taxa da API atingido.'
+      });
+    }
+
+    if (err.status === 400) {
+      return res.status(400).json({ 
+        erro: 'Requisição inválida.',
+        detalhe: err.message
       });
     }
 
@@ -80,8 +101,13 @@ router.post('/ia/perguntar', authMiddleware, async (req, res) => {
     });
   }
 });
-// --- NOVA ROTA (GEMINI / DASHBOARD) ---
-// Esta rota chama a função de análise técnica via Gemini
-router.post('/analisar-prazo', authMiddleware, analisarPrazoComGemini);
+
+/**
+ * ============================================================
+ * ROTA SECUNDÁRIA: ANÁLISE DE PRAZO ESPECÍFICO (DASHBOARD)
+ * Usa: Claude Haiku para análise técnica rápida
+ * ============================================================
+ */
+router.post('/analisar-prazo', authMiddleware, analisarPrazoComClaude);
 
 module.exports = router;

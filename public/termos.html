@@ -1,43 +1,1045 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Termos de Uso — LawTech Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; line-height: 1.6; color: #1e293b; max-width: 800px; margin: 40px auto; padding: 20px; background: #f8fafc; }
-        .card { background: white; padding: 40px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        h1 { color: #0f172a; font-size: 24px; margin-bottom: 30px; border-bottom: 2px solid #2563eb; padding-bottom: 10px; }
-        h2 { font-size: 18px; margin-top: 25px; color: #2563eb; }
-        p, li { font-size: 14px; color: #475569; }
-        .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #94a3b8; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --accent: #d4af37;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --bg-light: #f8fafc;
+            --white: #ffffff;
+            --success: #059669;
+            --warning: #f59e0b;
+            --info: #0ea5e9;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.7;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--white);
+            padding: 40px 24px;
+            text-align: center;
+            border-bottom: 4px solid var(--accent);
+        }
+
+        .header-logo {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .header-logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: #94a3b8;
+            font-size: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+
+        .intro-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--primary);
+        }
+
+        .intro-card h2 {
+            font-size: 24px;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+
+        .intro-card p {
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.8;
+        }
+
+        .last-update {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 32px;
+            font-size: 14px;
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .visual-section {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .visual-section.highlight {
+            border-left: 4px solid var(--primary-light);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .section-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 24px;
+        }
+
+        .icon-blue {
+            background: #dbeafe;
+            color: var(--primary-light);
+        }
+
+        .icon-yellow {
+            background: #fef3c7;
+            color: var(--warning);
+        }
+
+        .icon-green {
+            background: #d1fae5;
+            color: var(--success);
+        }
+
+        .icon-purple {
+            background: #e9d5ff;
+            color: #9333ea;
+        }
+
+        .section-title {
+            flex: 1;
+        }
+
+        .section-title h3 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .section-title .subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .content-text {
+            font-size: 15px;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .info-box {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+
+        .info-box-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .info-box-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--info);
+        }
+
+        .info-box-title {
+            font-weight: 600;
+            color: #0c4a6e;
+            font-size: 15px;
+        }
+
+        .info-box-content {
+            font-size: 14px;
+            color: #0369a1;
+            line-height: 1.7;
+        }
+
+        .warning-box {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+
+        .warning-box-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .warning-box-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--warning);
+        }
+
+        .warning-box-title {
+            font-weight: 600;
+            color: #78350f;
+            font-size: 15px;
+        }
+
+        .warning-box-content {
+            font-size: 14px;
+            color: #92400e;
+            line-height: 1.7;
+        }
+
+        .visual-list {
+            display: grid;
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .list-item {
+            display: flex;
+            gap: 16px;
+            padding: 20px;
+            background: var(--bg-light);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .list-item:hover {
+            border-color: var(--primary-light);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        }
+
+        .list-number {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: var(--white);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .list-content h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .list-content p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 24px 0;
+        }
+
+        .card {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.2s;
+        }
+
+        .card:hover {
+            border-color: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-icon {
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+
+        .card h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+        }
+
+        .card p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .contact-section {
+            background: linear-gradient(135deg, var(--primary) 0%, #1e293b 100%);
+            color: var(--white);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .contact-section h3 {
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .contact-section p {
+            color: #cbd5e1;
+            margin-bottom: 24px;
+            font-size: 15px;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 24px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+        }
+
+        .contact-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--accent);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px 24px;
+            color: var(--text-muted);
+            font-size: 14px;
+            border-top: 1px solid var(--border);
+            margin-top: 60px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 12px 24px;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            transition: all 0.2s;
+            margin-bottom: 40px;
+        }
+
+        .back-link:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .container {
+                padding: 40px 20px;
+            }
+
+            .visual-section {
+                padding: 24px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .grid-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-info {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Termos de Aceite e Condições de Uso</h1>
-        <p>Este contrato regula o licenciamento de uso do software <strong>LawTech Pro</strong> entre o CLIENTE e a LawTech Pro Sistemas[cite: 6].</p>
-
-        <h2>1. Definições dos Serviços</h2>
-        <p>O LawTech Pro oferece ferramentas para gestão jurídica, incluindo[cite: 19]:</p>
-        <ul>
-            <li>Agenda para controle de tarefas, eventos, prazos e audiências[cite: 19, 73].</li>
-            <li>Monitoramento e captura de andamentos processuais nos sites oficiais de tribunais[cite: 20, 121].</li>
-            <li>Captura de publicações e intimações eletrônicas nos Diários Oficiais (DJEN/DJE)[cite: 131, 134].</li>
-            <li>Cálculos periciais judiciais atualizados via SELIC e IA Jurídica Premium.</li>
-        </ul>
-
-        <h2>2. Planos e Vigência</h2>
-        <p>A contratação é realizada mediante adesão a um PLANO (Básico, Intermediário, Avançado ou Premium), com recorrência mensal ou anual[cite: 69, 237].</p>
-        <ul>
-            <li>O serviço é pré-pago: a confirmação do pagamento libera o acesso[cite: 392].</li>
-            <li>O atraso superior a 10 dias acarretará na suspensão automática dos serviços[cite: 309, 449].</li>
-        </ul>
-
-        <h2>3. Responsabilidades</h2>
-        <p>O LawTech Pro é uma ferramenta de meio. A responsabilidade técnica e legal pelos prazos processuais e atos praticados permanece exclusivamente com o advogado patrono[cite: 325, 331].</p>
-
-        <div class="footer">Última atualização: 12 de Janeiro de 2026.</div>
+    <header class="header">
+    <div class="header-logo">
+        <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro" style="height: 50px; width: auto;">
     </div>
+    <h1>Termos de Uso</h1>
+    <p>Leia atentamente os termos que regem o uso da nossa plataforma</p>
+</header>
+
+    <div class="container">
+        <a href="login.html" class="back-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Voltar ao Login
+        </a>
+
+        <div class="last-update">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            Última atualização: 25 de janeiro de 2026
+        </div>
+
+        <div class="intro-card">
+            <h2>📋 Bem-vindo aos Termos de Uso do LawTech Pro</h2>
+            <p>
+                Este documento estabelece as regras, direitos e responsabilidades para o uso da plataforma LawTech Pro. 
+                Ao acessar ou utilizar nossos serviços, você concorda em cumprir estes termos integralmente. 
+                Recomendamos a leitura atenta antes de prosseguir com o cadastro ou utilização do sistema.
+            </p>
+        </div>
+
+        <!-- SEÇÃO 1: DEFINIÇÕES -->
+        <div class="visual-section highlight">
+            <div class="section-header">
+                <div class="section-icon icon-blue">📖</div>
+                <div class="section-title">
+                    <h3>1. Definições e Interpretação</h3>
+                    <span class="subtitle">Conceitos fundamentais para compreensão destes termos</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Para fins deste documento, aplicam-se as seguintes definições:
+            </p>
+            <div class="grid-cards">
+                <div class="card">
+                    <div class="card-icon">🏢</div>
+                    <h4>Plataforma</h4>
+                    <p>Sistema LawTech Pro, incluindo aplicações web, mobile e todas as funcionalidades disponibilizadas.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">👤</div>
+                    <h4>Usuário</h4>
+                    <p>Pessoa física ou jurídica que acessa e utiliza os serviços da plataforma mediante cadastro válido.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">💼</div>
+                    <h4>Escritório</h4>
+                    <p>Pessoa jurídica contratante dos serviços, responsável pela gestão da conta e dos usuários vinculados.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📊</div>
+                    <h4>Serviços</h4>
+                    <p>Conjunto de funcionalidades oferecidas: gestão de processos, prazos, controle financeiro e relatórios.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 2: ACEITAÇÃO -->
+        <div class="visual-section">
+            <div class="section-header">
+                <div class="section-icon icon-green">✓</div>
+                <div class="section-title">
+                    <h3>2. Aceitação dos Termos</h3>
+                    <span class="subtitle">Como e quando você concorda com estes termos</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Ao utilizar a plataforma LawTech Pro, você declara expressamente que:
+            </p>
+            <div class="visual-list">
+                <div class="list-item">
+                    <div class="list-number">1</div>
+                    <div class="list-content">
+                        <h4>Leu e compreendeu integralmente</h4>
+                        <p>Você leu, compreendeu e concorda com todos os termos e condições aqui estabelecidos.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">2</div>
+                    <div class="list-content">
+                        <h4>Capacidade legal</h4>
+                        <p>Possui capacidade legal para contratar e firmar este acordo vinculante.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">3</div>
+                    <div class="list-content">
+                        <h4>Representação legal</h4>
+                        <p>Se representante de pessoa jurídica, possui poderes legais para vincular a entidade a este contrato.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="warning-box">
+                <div class="warning-box-header">
+                    <svg class="warning-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span class="warning-box-title">Importante</span>
+                </div>
+                <div class="warning-box-content">
+                    Caso não concorde com qualquer disposição destes termos, você não deve utilizar a plataforma. O uso continuado implica aceitação integral das condições estabelecidas.
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 3: SERVIÇOS -->
+        <div class="visual-section highlight">
+            <div class="section-header">
+                <div class="section-icon icon-purple">⚙️</div>
+                <div class="section-title">
+                    <h3>3. Descrição dos Serviços</h3>
+                    <span class="subtitle">O que a plataforma oferece</span>
+                </div>
+            </div>
+            <p class="content-text">
+                O LawTech Pro é uma plataforma SaaS especializada em gestão jurídica que oferece:
+            </p>
+            <div class="grid-cards">
+                <div class="card">
+                    <div class="card-icon">⚖️</div>
+                    <h4>Gestão de Processos</h4>
+                    <p>Cadastro, acompanhamento e controle completo de processos judiciais e administrativos.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📅</div>
+                    <h4>Controle de Prazos</h4>
+                    <p>Sistema automatizado de alertas e lembretes de prazos processuais e compromissos.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">💰</div>
+                    <h4>Gestão Financeira</h4>
+                    <p>Controle de honorários, despesas, faturamento e fluxo de caixa integrado.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📈</div>
+                    <h4>Relatórios e Analytics</h4>
+                    <p>Dashboards e relatórios gerenciais para análise de desempenho e tomada de decisões.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">👥</div>
+                    <h4>Gestão de Equipe</h4>
+                    <p>Controle de permissões, alocação de tarefas e gestão colaborativa de atividades.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🔒</div>
+                    <h4>Segurança e Backup</h4>
+                    <p>Criptografia de dados, backup automático e conformidade com LGPD.</p>
+                </div>
+            </div>
+            <div class="info-box">
+                <div class="info-box-header">
+                    <svg class="info-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span class="info-box-title">Evolução dos Serviços</span>
+                </div>
+                <div class="info-box-content">
+                    Reservamo-nos o direito de adicionar, modificar ou descontinuar funcionalidades mediante comunicação prévia aos usuários. Melhorias e atualizações serão implementadas continuamente para aprimorar a experiência de uso.
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 4: CADASTRO E CONTA -->
+        <div class="visual-section">
+            <div class="section-header">
+                <div class="section-icon icon-blue">🔐</div>
+                <div class="section-title">
+                    <h3>4. Cadastro e Segurança da Conta</h3>
+                    <span class="subtitle">Suas responsabilidades com credenciais de acesso</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Para utilizar a plataforma, é necessário criar uma conta fornecendo informações verdadeiras, precisas e atualizadas.
+            </p>
+            <div class="visual-list">
+                <div class="list-item">
+                    <div class="list-number">1</div>
+                    <div class="list-content">
+                        <h4>Informações Verdadeiras</h4>
+                        <p>Você se compromete a fornecer dados cadastrais corretos e mantê-los atualizados durante todo o período de uso.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">2</div>
+                    <div class="list-content">
+                        <h4>Confidencialidade</h4>
+                        <p>É responsabilidade exclusiva do usuário manter a confidencialidade de suas credenciais de acesso (login e senha).</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">3</div>
+                    <div class="list-content">
+                        <h4>Uso Pessoal e Intransferível</h4>
+                        <p>A conta é de uso pessoal e intransferível. O compartilhamento de credenciais é expressamente proibido.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">4</div>
+                    <div class="list-content">
+                        <h4>Notificação de Acesso Não Autorizado</h4>
+                        <p>Caso identifique acesso não autorizado, você deve notificar imediatamente nossa equipe de suporte.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="warning-box">
+                <div class="warning-box-header">
+                    <svg class="warning-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span class="warning-box-title">Responsabilidade por Atividades</span>
+                </div>
+                <div class="warning-box-content">
+                    Você é inteiramente responsável por todas as atividades realizadas sob sua conta, incluindo ações de terceiros que obtiverem acesso mediante suas credenciais.
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 5: USO ACEITÁVEL -->
+        <div class="visual-section highlight">
+            <div class="section-header">
+                <div class="section-icon icon-yellow">⚠️</div>
+                <div class="section-title">
+                    <h3>5. Política de Uso Aceitável</h3>
+                    <span class="subtitle">Condutas permitidas e proibidas</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Ao utilizar o LawTech Pro, você concorda em NÃO:
+            </p>
+            <div class="visual-list">
+                <div class="list-item">
+                    <div class="list-number">✗</div>
+                    <div class="list-content">
+                        <h4>Violar Leis</h4>
+                        <p>Utilizar a plataforma para atividades ilegais ou que violem direitos de terceiros.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">✗</div>
+                    <div class="list-content">
+                        <h4>Engenharia Reversa</h4>
+                        <p>Tentar acessar código-fonte, realizar engenharia reversa ou copiar funcionalidades da plataforma.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">✗</div>
+                    <div class="list-content">
+                        <h4>Sobrecarregar Sistemas</h4>
+                        <p>Realizar ataques, sobrecarregar servidores ou interferir no funcionamento normal da plataforma.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">✗</div>
+                    <div class="list-content">
+                        <h4>Compartilhar Acesso</h4>
+                        <p>Compartilhar, revender ou sublicenciar seu acesso a terceiros não autorizados.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">✗</div>
+                    <div class="list-content">
+                        <h4>Inserir Conteúdo Malicioso</h4>
+                        <p>Enviar vírus, malware ou qualquer código prejudicial à plataforma ou outros usuários.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 6: PROPRIEDADE INTELECTUAL -->
+        <div class="visual-section">
+            <div class="section-header">
+                <div class="section-icon icon-purple">©️</div>
+                <div class="section-title">
+                    <h3>6. Propriedade Intelectual</h3>
+                    <span class="subtitle">Direitos sobre a plataforma e conteúdos</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Todos os direitos de propriedade intelectual relacionados à plataforma LawTech Pro, incluindo mas não se limitando a software, 
+                design, logotipos, marcas, textos e funcionalidades, são de propriedade exclusiva da LawTech Pro Systems ou de seus licenciadores.
+            </p>
+            <div class="info-box">
+                <div class="info-box-header">
+                    <svg class="info-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span class="info-box-title">Seus Dados Permanecem Seus</span>
+                </div>
+                <div class="info-box-content">
+                    Você mantém todos os direitos sobre os dados e informações que insere na plataforma. Concedemos apenas licença limitada 
+                    para processamento desses dados conforme necessário para prestação dos serviços contratados.
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 7: PRIVACIDADE -->
+        <div class="visual-section highlight">
+            <div class="section-header">
+                <div class="section-icon icon-green">🔒</div>
+                <div class="section-title">
+                    <h3>7. Privacidade e Proteção de Dados</h3>
+                    <span class="subtitle">Como tratamos suas informações</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Levamos a segurança e privacidade dos seus dados muito a sério. Consulte nossa 
+                <a href="privacidade.html" style="color: var(--primary); font-weight: 600;">Política de Privacidade</a> 
+                para entender como coletamos, usamos e protegemos suas informações.
+            </p>
+            <div class="grid-cards">
+                <div class="card">
+                    <div class="card-icon">🛡️</div>
+                    <h4>Conformidade LGPD</h4>
+                    <p>Estamos em total conformidade com a Lei Geral de Proteção de Dados (LGPD).</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🔐</div>
+                    <h4>Criptografia</h4>
+                    <p>Utilizamos criptografia de ponta a ponta para proteger dados sensíveis.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📊</div>
+                    <h4>Transparência</h4>
+                    <p>Você tem direito de acessar, corrigir e solicitar exclusão dos seus dados.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 8: PAGAMENTO -->
+        <div class="visual-section">
+            <div class="section-header">
+                <div class="section-icon icon-yellow">💳</div>
+                <div class="section-title">
+                    <h3>8. Pagamento e Planos</h3>
+                    <span class="subtitle">Condições comerciais e cobrança</span>
+                </div>
+            </div>
+            <p class="content-text">
+                O acesso aos serviços da plataforma está sujeito ao pagamento das taxas aplicáveis ao plano contratado.
+            </p>
+            <div class="visual-list">
+                <div class="list-item">
+                    <div class="list-number">1</div>
+                    <div class="list-content">
+                        <h4>Período de Trial</h4>
+                        <p>Novos usuários podem ter acesso a um período de teste gratuito, conforme disponibilidade promocional.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">2</div>
+                    <div class="list-content">
+                        <h4>Cobrança Recorrente</h4>
+                        <p>Os planos são cobrados de forma recorrente (mensal ou anual), conforme plano escolhido.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">3</div>
+                    <div class="list-content">
+                        <h4>Cancelamento</h4>
+                        <p>Você pode cancelar sua assinatura a qualquer momento. O acesso permanece ativo até o fim do período pago.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">4</div>
+                    <div class="list-content">
+                        <h4>Inadimplência</h4>
+                        <p>O não pagamento pode resultar na suspensão ou cancelamento do acesso aos serviços.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="warning-box">
+                <div class="warning-box-header">
+                    <svg class="warning-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span class="warning-box-title">Reembolsos</span>
+                </div>
+                <div class="warning-box-content">
+                    Reembolsos são analisados caso a caso e estão sujeitos à nossa política de cancelamento. Entre em contato com nosso suporte para mais informações.
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 9: LIMITAÇÕES -->
+        <div class="visual-section highlight">
+            <div class="section-header">
+                <div class="section-icon icon-blue">⚖️</div>
+                <div class="section-title">
+                    <h3>9. Limitação de Responsabilidade</h3>
+                    <span class="subtitle">Isenções e exclusões de garantia</span>
+                </div>
+            </div>
+            <p class="content-text">
+                A plataforma é fornecida "como está" e "conforme disponível". Não garantimos operação ininterrupta ou livre de erros.
+            </p>
+            <div class="visual-list">
+                <div class="list-item">
+                    <div class="list-number">!</div>
+                    <div class="list-content">
+                        <h4>Disponibilidade</h4>
+                        <p>Não nos responsabilizamos por interrupções causadas por manutenção, falhas técnicas ou eventos de força maior.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">!</div>
+                    <div class="list-content">
+                        <h4>Uso dos Dados</h4>
+                        <p>O usuário é responsável pela veracidade e licitude das informações inseridas na plataforma.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">!</div>
+                    <div class="list-content">
+                        <h4>Decisões Profissionais</h4>
+                        <p>A plataforma é uma ferramenta de apoio. Decisões jurídicas e estratégicas são de responsabilidade exclusiva do usuário.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="info-box">
+                <div class="info-box-header">
+                    <svg class="info-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span class="info-box-title">Nosso Compromisso</span>
+                </div>
+                <div class="info-box-content">
+                    Apesar das limitações acima, nos comprometemos a manter os mais altos padrões de qualidade, segurança e 
+                    suporte técnico para garantir a melhor experiência possível aos nossos usuários.
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 10: MODIFICAÇÕES -->
+        <div class="visual-section">
+            <div class="section-header">
+                <div class="section-icon icon-purple">🔄</div>
+                <div class="section-title">
+                    <h3>10. Alterações nos Termos</h3>
+                    <span class="subtitle">Como atualizamos este documento</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Reservamo-nos o direito de modificar estes Termos de Uso a qualquer momento. Alterações significativas serão 
+                comunicadas por e-mail ou notificação dentro da plataforma.
+            </p>
+            <div class="info-box">
+                <div class="info-box-header">
+                    <svg class="info-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span class="info-box-title">Sua Aceitação</span>
+                </div>
+                <div class="info-box-content">
+                    O uso continuado da plataforma após a publicação de alterações constitui aceitação dos novos termos. 
+                    Caso não concorde com as mudanças, você deve descontinuar o uso dos serviços.
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 11: RESCISÃO -->
+        <div class="visual-section highlight">
+            <div class="section-header">
+                <div class="section-icon icon-yellow">⛔</div>
+                <div class="section-title">
+                    <h3>11. Rescisão e Suspensão</h3>
+                    <span class="subtitle">Condições de encerramento da conta</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Podemos suspender ou encerrar seu acesso à plataforma nas seguintes situações:
+            </p>
+            <div class="visual-list">
+                <div class="list-item">
+                    <div class="list-number">1</div>
+                    <div class="list-content">
+                        <h4>Violação dos Termos</h4>
+                        <p>Se você violar qualquer disposição destes Termos de Uso ou da Política de Uso Aceitável.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">2</div>
+                    <div class="list-content">
+                        <h4>Inadimplência Prolongada</h4>
+                        <p>Em caso de não pagamento das taxas devidas por período superior a 30 dias.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">3</div>
+                    <div class="list-content">
+                        <h4>Atividade Fraudulenta</h4>
+                        <p>Se detectarmos atividades suspeitas, fraudulentas ou que comprometam a segurança da plataforma.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">4</div>
+                    <div class="list-content">
+                        <h4>Requisição Legal</h4>
+                        <p>Por determinação judicial ou de autoridade competente.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="warning-box">
+                <div class="warning-box-header">
+                    <svg class="warning-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span class="warning-box-title">Backup dos Seus Dados</span>
+                </div>
+                <div class="warning-box-content">
+                    Em caso de rescisão, você terá até 30 dias para exportar seus dados da plataforma. Após esse período, 
+                    os dados poderão ser permanentemente excluídos conforme nossa política de retenção.
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 12: LEI APLICÁVEL -->
+        <div class="visual-section">
+            <div class="section-header">
+                <div class="section-icon icon-blue">🏛️</div>
+                <div class="section-title">
+                    <h3>12. Lei Aplicável e Foro</h3>
+                    <span class="subtitle">Jurisdição e resolução de conflitos</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Estes Termos de Uso são regidos pelas leis da República Federativa do Brasil. 
+                Quaisquer disputas decorrentes destes termos serão submetidas ao foro da comarca de São Paulo/SP, 
+                com exclusão de qualquer outro, por mais privilegiado que seja.
+            </p>
+        </div>
+
+        <!-- CONTATO -->
+        <div class="contact-section">
+            <h3>Dúvidas sobre os Termos de Uso?</h3>
+            <p>Nossa equipe está à disposição para esclarecer qualquer questão relacionada a estes termos.</p>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    contato@lawtechpro.com.br
+                </div>
+                <div class="contact-item">
+                    <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                    </svg>
+                    0800 123 4567
+                </div>
+                <div class="contact-item">
+                    <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    www.lawtechpro.com.br
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2026 LawTech Pro Systems. Todos os direitos reservados.</p>
+        <p style="margin-top: 8px;">
+            <a href="login.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">Voltar ao Login</a> | 
+            <a href="privacidade.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">Política de Privacidade</a>
+        </p>
+    </footer>
 </body>
 </html>

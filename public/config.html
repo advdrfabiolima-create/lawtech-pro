@@ -432,8 +432,97 @@
 
         <button class="btn-save" style="background: var(--muted); margin-top: 15px; width: auto; padding: 10px 30px;" onclick="alterarSenha()">
             Atualizar Senha
-        </button>
+        </button>        
     </div>
+   
+<!-- Integrações com APIs Externas -->
+<div class="card" style="border-top: 4px solid #8b5cf6;">
+    <div class="card-title">
+        <i data-lucide="plug"></i> Integrações com APIs Externas
+    </div>
+
+    <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+        <strong style="color: #0c4a6e; font-size: 14px; display: block; margin-bottom: 8px;">
+            💡 Como funciona?
+        </strong>
+        <p style="font-size: 13px; color: #0369a1; line-height: 1.6; margin: 0;">
+            <strong>Sem chave API:</strong> Você adiciona publicações manualmente copiando do DJEN oficial.<br>
+            <strong>Com chave API:</strong> O sistema busca automaticamente as publicações para você (monitoramento 24/7).
+        </p>
+    </div>
+
+    <!-- Escavador API -->
+    <div style="margin-bottom: 32px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <img src="https://www.escavador.com/assets/images/logo-escavador.png" 
+                 alt="Escavador" 
+                 style="height: 24px; object-fit: contain;"
+                 onerror="this.style.display='none'">
+            <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main);">
+                Escavador - Monitoramento DJEN
+            </h4>
+            <span id="badgeEscavador" style="font-size: 10px; padding: 4px 8px; border-radius: 4px; font-weight: 700; background: #fee2e2; color: #991b1b;">
+                DESATIVADO
+            </span>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+            <label>Chave API do Escavador (Opcional)</label>
+            <input type="password" 
+                   id="escavadorApiKey" 
+                   class="form-input" 
+                   placeholder="Deixe vazio para usar inserção manual"
+                   style="font-family: monospace;">
+            <small style="font-size: 11px; color: var(--muted); display: block; margin-top: 6px;">
+                ⚠️ Esta chave será usada com <strong>SUA conta do Escavador</strong>. Você gerencia seus próprios créditos.
+            </small>
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+            <button class="btn-save" style="flex: 1;" onclick="salvarChaveEscavador()">
+                💾 Salvar Chave
+            </button>
+            <button class="btn-save" 
+                    style="flex: 1; background: #10b981;" 
+                    onclick="testarChaveEscavador()"
+                    id="btnTestarEscavador">
+                🔍 Testar Conexão
+            </button>
+        </div>
+
+        <div id="resultadoTesteEscavador" style="margin-top: 16px; display: none;"></div>
+    </div>
+
+    <!-- Informações Adicionais -->
+    <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 16px;">
+        <div style="display: flex; align-items: start; gap: 12px;">
+            <span style="font-size: 20px;">📚</span>
+            <div>
+                <strong style="color: #78350f; font-size: 13px; display: block; margin-bottom: 6px;">
+                    Como obter minha chave API do Escavador?
+                </strong>
+                <ol style="font-size: 12px; color: #92400e; line-height: 1.7; margin: 0; padding-left: 20px;">
+                    <li>Acesse <a href="https://www.escavador.com" target="_blank" style="color: #2563eb; font-weight: 600;">www.escavador.com</a></li>
+                    <li>Faça login na sua conta</li>
+                    <li>Vá em "Configurações" → "API"</li>
+                    <li>Gere uma nova chave e cole aqui</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div class="section" style="border: 1px solid var(--border); padding: 20px; border-radius: var(--radius); margin-top: 20px;">
+    <h3 style="font-size: 16px; color: var(--text-main); margin-bottom: 10px;">💳 Assinatura e Pagamento</h3>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 15px;">
+        Seu período de teste vence em <strong id="dataExpiracaoTrial">...</strong>. 
+        Após esta data, a mensalidade será processada no cartão final ****.
+    </p>
+    
+    <button onclick="solicitarCancelamento()" style="background: none; border: 1px solid var(--danger); color: var(--danger); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600;">
+        Cancelar agendamento de cobrança
+    </button>
+</div>
 </div>
 
 <script>
@@ -525,39 +614,50 @@
 
 async function carregarInfoRodape() {
     try {
+        // 1. Busca dados do Usuário (Identidade e Trial)
         const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
         const dataUser = await resUser.json();
         
         if (dataUser.ok) {
-            const nomeReal = dataUser.usuario.nome || 'Advogado';
+            const user = dataUser.usuario;
+            const nomeReal = user.nome || 'Advogado';
             
-            // --- LÓGICA PADRONIZADA DO CABEÇALHO (Apenas primeiro nome) ---
+            // --- LÓGICA PADRONIZADA DO CABEÇALHO ---
             const primeiroNome = nomeReal.trim().split(' ')[0];
             document.getElementById('userNameHeader').innerText = primeiroNome;
 
-            // Iniciais (Primeiro e Último nome)
+            // Iniciais (Círculo)
             const partes = nomeReal.trim().split(' ').filter(n => n);
             let iniciais = partes[0][0];
             if (partes.length > 1) iniciais += partes[partes.length - 1][0];
             
             const circulo = document.getElementById('userCircle');
             if (circulo) circulo.innerText = iniciais.toUpperCase();
-            // -------------------------------------------------------------
 
-            // Mantém preenchimento do formulário e rodapé
-            document.getElementById('userEmailFooter').innerText = dataUser.usuario.email;
-            if(document.getElementById('perfilEmail')) document.getElementById('perfilEmail').value = dataUser.usuario.email;
+            // Preenchimento de E-mail e Nome no formulário
+            document.getElementById('userEmailFooter').innerText = user.email;
+            if(document.getElementById('perfilEmail')) document.getElementById('perfilEmail').value = user.email;
             if(document.getElementById('perfilNome')) document.getElementById('perfilNome').value = nomeReal;
+
+            // --- LÓGICA DO CÁLCULO DE VENCIMENTO DO TRIAL (7 DIAS) ---
+            if (user.data_criacao) {
+                const dataCriacao = new Date(user.data_criacao);
+                dataCriacao.setDate(dataCriacao.getDate() + 7); // Soma os 7 dias
+                
+                const dataFormatada = dataCriacao.toLocaleDateString('pt-BR');
+                const elementoData = document.getElementById('dataExpiracaoTrial');
+                if (elementoData) elementoData.innerText = dataFormatada;
+            }
         }
 
-        // Carregamento do Plano
+        // 2. Carregamento do Plano e Consumo
         const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
         const dataPlan = await resPlan.json();
         if(document.getElementById('planNameFooter')) {
             document.getElementById('planNameFooter').innerText = dataPlan.plano || 'Individual';
         }
 
-        // Carregamento dos dados do Escritório (Não alterado)
+        // 3. Carregamento dos dados do Escritório e Dados Bancários
         const resEsc = await fetch('/api/config/meu-escritorio', { headers: { Authorization: `Bearer ${token}` } });
         const dataEsc = await resEsc.json();
         
@@ -590,7 +690,8 @@ async function carregarInfoRodape() {
             }
         }
     } catch (err) { 
-        console.warn("Aviso: Falha ao carregar alguns dados do perfil."); 
+        console.warn("Aviso: Falha ao carregar alguns dados do perfil ou trial."); 
+        console.error(err);
     }
 }
 
@@ -818,6 +919,7 @@ async function alterarSenha() {
     carregarInfoRodape();
     ajustarMascaraDoc();
     carregarEquipe();
+    carregarChaveEscavador();
 
     // 🔒 Bloqueia ativação até salvar dados bancários
     const elemento = document.getElementById('ID_DO_ELEMENTO');  // substitua pelo ID real
@@ -832,6 +934,158 @@ if (elemento) {
             if(m) m.style.display = 'none';
         }
     };
+
+async function solicitarCancelamento() { // 🚀 Nome deve ser igual ao do 'onclick'
+    if (!confirm("Doutor, deseja realmente cancelar a renovação automática? Seu acesso será mantido apenas até o fim dos 7 dias gratuitos.")) return;
+
+    try {
+        const res = await fetch('/api/planos/cancelar-agendamento', {
+            method: 'POST',
+            headers: { 
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await res.json();
+        if (data.ok) {
+            alert(data.msg);
+            window.location.reload();
+        } else {
+            alert("Erro: " + (data.error || "Tente novamente mais tarde."));
+        }
+    } catch (err) {
+        alert("Erro de conexão com o servidor.");
+    }
+}
+
+// ===== FUNÇÕES DE INTEGRAÇÃO COM ESCAVADOR =====
+
+async function carregarChaveEscavador() {
+    try {
+        const res = await fetch('/api/config/meu-escritorio', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        if (data.ok && data.dados && data.dados.escavador_api_key) {
+            const input = document.getElementById('escavadorApiKey');
+            if (input) {
+                input.value = data.dados.escavador_api_key;
+                // Atualiza badge
+                const badge = document.getElementById('badgeEscavador');
+                if (badge) {
+                    badge.innerText = 'ATIVADO';
+                    badge.style.background = '#d1fae5';
+                    badge.style.color = '#065f46';
+                }
+            }
+        }
+    } catch (err) {
+        console.error("Erro ao carregar chave Escavador:", err);
+    }
+}
+
+async function salvarChaveEscavador() {
+    const chave = document.getElementById('escavadorApiKey').value.trim();
+    
+    try {
+        const res = await fetch('/api/config/escavador-key', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ escavador_api_key: chave })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            alert('✅ Chave API salva com sucesso!');
+            
+            // Atualiza badge
+            const badge = document.getElementById('badgeEscavador');
+            if (badge) {
+                if (chave) {
+                    badge.innerText = 'ATIVADO';
+                    badge.style.background = '#d1fae5';
+                    badge.style.color = '#065f46';
+                } else {
+                    badge.innerText = 'DESATIVADO';
+                    badge.style.background = '#fee2e2';
+                    badge.style.color = '#991b1b';
+                }
+            }
+        } else {
+            alert('❌ Erro ao salvar: ' + (data.erro || 'Tente novamente'));
+        }
+    } catch (err) {
+        console.error('Erro:', err);
+        alert('❌ Erro de conexão');
+    }
+}
+
+async function testarChaveEscavador() {
+    const chave = document.getElementById('escavadorApiKey').value.trim();
+    const btn = document.getElementById('btnTestarEscavador');
+    const resultado = document.getElementById('resultadoTesteEscavador');
+    
+    if (!chave) {
+        alert('⚠️ Digite uma chave API primeiro');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = '🔄 Testando...';
+    resultado.style.display = 'none';
+
+    try {
+        const res = await fetch('https://api.escavador.com/api/v1/usuario', {
+            headers: {
+                'Authorization': `Bearer ${chave}`
+            }
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.id) {
+            resultado.innerHTML = `
+                <div style="background: #d1fae5; border: 1px solid #86efac; border-radius: 8px; padding: 16px;">
+                    <strong style="color: #065f46; display: block; margin-bottom: 8px;">✅ Conexão estabelecida com sucesso!</strong>
+                    <div style="font-size: 13px; color: #047857;">
+                        <strong>Conta:</strong> ${data.nome || 'Sem nome'}<br>
+                        <strong>E-mail:</strong> ${data.email || '—'}<br>
+                        <strong>Plano:</strong> ${data.dados_assinatura?.plano?.nome || 'Gratuito'}
+                    </div>
+                </div>
+            `;
+        } else {
+            resultado.innerHTML = `
+                <div style="background: #fee2e2; border: 1px solid #fca5a5; border-radius: 8px; padding: 16px;">
+                    <strong style="color: #991b1b; display: block; margin-bottom: 8px;">❌ Chave inválida ou sem permissão</strong>
+                    <p style="font-size: 12px; color: #b91c1c; margin: 0;">
+                        Verifique se a chave foi copiada corretamente e se possui as permissões necessárias.
+                    </p>
+                </div>
+            `;
+        }
+
+        resultado.style.display = 'block';
+
+    } catch (err) {
+        console.error('Erro ao testar:', err);
+        resultado.innerHTML = `
+            <div style="background: #fee2e2; border: 1px solid #fca5a5; border-radius: 8px; padding: 16px;">
+                <strong style="color: #991b1b;">❌ Erro de conexão</strong>
+            </div>
+        `;
+        resultado.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.innerText = '🔍 Testar Conexão';
+    }
+}
     </script>
 </body>
 </html>

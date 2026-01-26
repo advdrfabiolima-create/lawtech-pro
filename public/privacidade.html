@@ -1,32 +1,1241 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Política de Privacidade — LawTech Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; line-height: 1.6; color: #1e293b; max-width: 800px; margin: 40px auto; padding: 20px; background: #f8fafc; }
-        .card { background: white; padding: 40px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        h1 { color: #0f172a; font-size: 24px; margin-bottom: 30px; border-bottom: 2px solid #10b981; padding-bottom: 10px; }
-        h2 { font-size: 18px; margin-top: 25px; color: #10b981; }
-        p, li { font-size: 14px; color: #475569; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --accent: #d4af37;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --bg-light: #f8fafc;
+            --white: #ffffff;
+            --success: #059669;
+            --warning: #f59e0b;
+            --info: #0ea5e9;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.7;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--white);
+            padding: 40px 24px;
+            text-align: center;
+            border-bottom: 4px solid var(--accent);
+        }
+
+        .header-logo {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .header-logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: #94a3b8;
+            font-size: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+
+        .intro-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--success);
+        }
+
+        .intro-card h2 {
+            font-size: 24px;
+            color: var(--success);
+            margin-bottom: 16px;
+        }
+
+        .intro-card p {
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.8;
+        }
+
+        .last-update {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 32px;
+            font-size: 14px;
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .visual-section {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .visual-section.highlight {
+            border-left: 4px solid var(--primary-light);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .section-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 24px;
+        }
+
+        .icon-blue {
+            background: #dbeafe;
+            color: var(--primary-light);
+        }
+
+        .icon-yellow {
+            background: #fef3c7;
+            color: var(--warning);
+        }
+
+        .icon-green {
+            background: #d1fae5;
+            color: var(--success);
+        }
+
+        .icon-purple {
+            background: #e9d5ff;
+            color: #9333ea;
+        }
+
+        .icon-red {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .section-title {
+            flex: 1;
+        }
+
+        .section-title h3 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .section-title .subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .content-text {
+            font-size: 15px;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .info-box {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+
+        .info-box-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .info-box-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--info);
+        }
+
+        .info-box-title {
+            font-weight: 600;
+            color: #0c4a6e;
+            font-size: 15px;
+        }
+
+        .info-box-content {
+            font-size: 14px;
+            color: #0369a1;
+            line-height: 1.7;
+        }
+
+        .warning-box {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+
+        .warning-box-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .warning-box-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--warning);
+        }
+
+        .warning-box-title {
+            font-weight: 600;
+            color: #78350f;
+            font-size: 15px;
+        }
+
+        .warning-box-content {
+            font-size: 14px;
+            color: #92400e;
+            line-height: 1.7;
+        }
+
+        .success-box {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+
+        .success-box-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .success-box-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--success);
+        }
+
+        .success-box-title {
+            font-weight: 600;
+            color: #14532d;
+            font-size: 15px;
+        }
+
+        .success-box-content {
+            font-size: 14px;
+            color: #166534;
+            line-height: 1.7;
+        }
+
+        .visual-list {
+            display: grid;
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .list-item {
+            display: flex;
+            gap: 16px;
+            padding: 20px;
+            background: var(--bg-light);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .list-item:hover {
+            border-color: var(--primary-light);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        }
+
+        .list-number {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: var(--white);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .list-content h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .list-content p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 24px 0;
+        }
+
+        .card {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.2s;
+        }
+
+        .card:hover {
+            border-color: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-icon {
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+
+        .card h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+        }
+
+        .card p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .lgpd-badge {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: var(--white);
+            padding: 32px;
+            border-radius: 16px;
+            text-align: center;
+            margin: 40px 0;
+            box-shadow: 0 8px 24px rgba(5, 150, 105, 0.2);
+        }
+
+        .lgpd-badge-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .lgpd-badge h3 {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .lgpd-badge p {
+            color: #d1fae5;
+            font-size: 15px;
+        }
+
+        .rights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .right-card {
+            background: var(--white);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .right-card:hover {
+            border-color: var(--success);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.15);
+        }
+
+        .right-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .right-icon {
+            width: 36px;
+            height: 36px;
+            background: #d1fae5;
+            color: var(--success);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .right-card h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .right-card p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .contact-section {
+            background: linear-gradient(135deg, var(--primary) 0%, #1e293b 100%);
+            color: var(--white);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .contact-section h3 {
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .contact-section p {
+            color: #cbd5e1;
+            margin-bottom: 24px;
+            font-size: 15px;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 24px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+        }
+
+        .contact-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--accent);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px 24px;
+            color: var(--text-muted);
+            font-size: 14px;
+            border-top: 1px solid var(--border);
+            margin-top: 60px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 12px 24px;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            transition: all 0.2s;
+            margin-bottom: 40px;
+        }
+
+        .back-link:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .container {
+                padding: 40px 20px;
+            }
+
+            .visual-section {
+                padding: 24px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .grid-cards, .rights-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-info {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Política de Privacidade e Proteção de Dados</h1>
-        
-        <h2>1. Coleta de Dados</h2>
-        <p>Coletamos dados necessários para o cadastro (nome, OAB, e-mail) e dados operacionais inseridos pelo usuário (processos e clientes)[cite: 53, 634].</p>
+    <header class="header">
+    <div class="header-logo">
+        <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro" style="height: 50px; width: auto;">
+        </div>
+        <h1>Política de Privacidade</h1>
+        <p>Transparência e segurança no tratamento dos seus dados pessoais</p>
+    </header>
 
-        <h2>2. LawTech Pro como Operadora</h2>
-        <p>Em relação aos dados de terceiros inseridos no sistema, a LawTech Pro atua na qualidade de <strong>OPERADORA</strong>, nos termos da Lei 13.709/2018 (LGPD).</p>
+    <div class="container">
+        <a href="login.html" class="back-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Voltar ao Login
+        </a>
 
-        <h2>3. Armazenamento Seguro</h2>
-        <p>Os dados são armazenados em infraestrutura de nuvem de alta segurança (Google Cloud ou AWS), com acesso restrito e criptografado[cite: 669].</p>
+        <div class="last-update">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            Última atualização: 25 de janeiro de 2026
+        </div>
 
-        <h2>4. Foro Elegido</h2>
-        <p>Para dirimir quaisquer controvérsias, fica eleito o foro da Comarca de Feira de Santana, Bahia[cite: 778].</p>
+        <div class="intro-card">
+            <h2>🔒 Seu direito à privacidade é nossa prioridade</h2>
+            <p>
+                Esta Política de Privacidade descreve como a LawTech Pro coleta, usa, armazena e protege seus dados pessoais. 
+                Estamos comprometidos com a transparência e em total conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018). 
+                Leia atentamente para entender como tratamos suas informações.
+            </p>
+        </div>
+
+        <!-- BADGE LGPD -->
+        <div class="lgpd-badge">
+            <div class="lgpd-badge-icon">🛡️</div>
+            <h3>100% Conformidade com a LGPD</h3>
+            <p>Tratamos seus dados com responsabilidade, segurança e respeito aos seus direitos fundamentais de privacidade</p>
+        </div>
+
+        <!-- SEÇÃO 1: CONTROLADOR -->
+        <div class="visual-section highlight">
+            <div class="section-header">
+                <div class="section-icon icon-blue">🏢</div>
+                <div class="section-title">
+                    <h3>1. Controlador de Dados</h3>
+                    <span class="subtitle">Quem é responsável pelos seus dados</span>
+                </div>
+            </div>
+            <p class="content-text">
+                A <strong>LawTech Pro Systems</strong> é a controladora dos dados pessoais coletados e tratados por meio da plataforma LawTech Pro.
+            </p>
+            <div class="info-box">
+                <div class="info-box-header">
+                    <svg class="info-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span class="info-box-title">Encarregado de Dados (DPO)</span>
+                </div>
+                <div class="info-box-content">
+                    Para exercer seus direitos ou esclarecer dúvidas sobre privacidade, entre em contato com nosso Encarregado de Proteção de Dados: <strong>dpo@lawtechpro.com.br</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 2: DADOS COLETADOS -->
+        <div class="visual-section">
+            <div class="section-header">
+                <div class="section-icon icon-purple">📊</div>
+                <div class="section-title">
+                    <h3>2. Dados Pessoais Coletados</h3>
+                    <span class="subtitle">Quais informações coletamos e por quê</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Coletamos apenas os dados estritamente necessários para a prestação dos nossos serviços:
+            </p>
+            <div class="grid-cards">
+                <div class="card">
+                    <div class="card-icon">👤</div>
+                    <h4>Dados de Cadastro</h4>
+                    <p>Nome completo, CPF, e-mail, telefone, cargo/função e dados do escritório (CNPJ, razão social, endereço).</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🔐</div>
+                    <h4>Dados de Acesso</h4>
+                    <p>Credenciais de login, endereço IP, data e hora de acesso, tipo de navegador e dispositivo.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">💼</div>
+                    <h4>Dados Profissionais</h4>
+                    <p>Informações sobre processos, clientes, prazos, documentos e atividades jurídicas gerenciadas na plataforma.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">💳</div>
+                    <h4>Dados de Pagamento</h4>
+                    <p>Informações de cobrança e pagamento (processadas por gateways seguros e certificados PCI-DSS).</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📞</div>
+                    <h4>Dados de Comunicação</h4>
+                    <p>Histórico de conversas com suporte, feedbacks, solicitações e respostas a pesquisas de satisfação.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📈</div>
+                    <h4>Dados de Uso</h4>
+                    <p>Estatísticas de navegação, funcionalidades utilizadas, tempo de sessão e padrões de uso da plataforma.</p>
+                </div>
+            </div>
+            <div class="warning-box">
+                <div class="warning-box-header">
+                    <svg class="warning-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span class="warning-box-title">Dados Sensíveis</span>
+                </div>
+                <div class="warning-box-content">
+                    Não coletamos dados sensíveis (origem racial, convicções religiosas, opinião política, filiação sindical, dados genéticos, biométricos ou sobre saúde) salvo quando estritamente necessário para a prestação do serviço e mediante seu consentimento expresso.
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 3: FINALIDADE -->
+        <div class="visual-section highlight">
+            <div class="section-header">
+                <div class="section-icon icon-green">🎯</div>
+                <div class="section-title">
+                    <h3>3. Finalidade do Tratamento de Dados</h3>
+                    <span class="subtitle">Como e por que usamos suas informações</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Utilizamos seus dados pessoais exclusivamente para as seguintes finalidades legítimas:
+            </p>
+            <div class="visual-list">
+                <div class="list-item">
+                    <div class="list-number">1</div>
+                    <div class="list-content">
+                        <h4>Prestação dos Serviços</h4>
+                        <p>Fornecer, operar e manter as funcionalidades da plataforma LawTech Pro (gestão de processos, prazos, finanças, etc.).</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">2</div>
+                    <div class="list-content">
+                        <h4>Autenticação e Segurança</h4>
+                        <p>Verificar identidade, prevenir fraudes, detectar atividades suspeitas e proteger a integridade da plataforma.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">3</div>
+                    <div class="list-content">
+                        <h4>Comunicação</h4>
+                        <p>Enviar notificações sobre prazos, atualizações do sistema, comunicados importantes e suporte técnico.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">4</div>
+                    <div class="list-content">
+                        <h4>Cobrança e Faturamento</h4>
+                        <p>Processar pagamentos, emitir notas fiscais e gerenciar a relação contratual.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">5</div>
+                    <div class="list-content">
+                        <h4>Melhoria da Plataforma</h4>
+                        <p>Analisar uso, identificar problemas, desenvolver novas funcionalidades e aprimorar a experiência do usuário.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">6</div>
+                    <div class="list-content">
+                        <h4>Cumprimento Legal</h4>
+                        <p>Atender obrigações legais, regulatórias e responder a ordens judiciais ou de autoridades competentes.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 4: BASE LEGAL -->
+        <div class="visual-section">
+            <div class="section-header">
+                <div class="section-icon icon-blue">⚖️</div>
+                <div class="section-title">
+                    <h3>4. Base Legal para o Tratamento</h3>
+                    <span class="subtitle">Fundamento jurídico conforme LGPD</span>
+                </div>
+            </div>
+            <p class="content-text">
+                O tratamento dos seus dados pessoais está fundamentado nas seguintes bases legais previstas na LGPD:
+            </p>
+            <div class="grid-cards">
+                <div class="card">
+                    <div class="card-icon">📝</div>
+                    <h4>Execução de Contrato</h4>
+                    <p>Necessário para executar o contrato de prestação de serviços firmado com você.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">✅</div>
+                    <h4>Consentimento</h4>
+                    <p>Quando você nos fornece autorização expressa para determinadas finalidades específicas.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">⚖️</div>
+                    <h4>Obrigação Legal</h4>
+                    <p>Para cumprimento de obrigações fiscais, trabalhistas e regulatórias.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🎯</div>
+                    <h4>Legítimo Interesse</h4>
+                    <p>Para proteção do crédito, prevenção à fraude e segurança da plataforma.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 5: COMPARTILHAMENTO -->
+        <div class="visual-section highlight">
+            <div class="section-header">
+                <div class="section-icon icon-yellow">🔗</div>
+                <div class="section-title">
+                    <h3>5. Compartilhamento de Dados</h3>
+                    <span class="subtitle">Com quem seus dados podem ser compartilhados</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Seus dados pessoais podem ser compartilhados apenas nas seguintes situações:
+            </p>
+            <div class="visual-list">
+                <div class="list-item">
+                    <div class="list-number">1</div>
+                    <div class="list-content">
+                        <h4>Prestadores de Serviço</h4>
+                        <p>Com empresas contratadas que nos auxiliam na prestação dos serviços (hospedagem, processamento de pagamentos, envio de e-mails), sempre mediante rigorosos contratos de confidencialidade.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">2</div>
+                    <div class="list-content">
+                        <h4>Autoridades Legais</h4>
+                        <p>Quando necessário para cumprir ordem judicial, requisição de autoridade competente ou obrigação legal.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">3</div>
+                    <div class="list-content">
+                        <h4>Proteção de Direitos</h4>
+                        <p>Para proteger nossos direitos, propriedade e segurança, bem como de nossos usuários e do público em geral.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">4</div>
+                    <div class="list-content">
+                        <h4>Transferência Empresarial</h4>
+                        <p>Em caso de fusão, aquisição ou venda de ativos, seus dados poderão ser transferidos ao adquirente mediante as mesmas garantias de proteção.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="success-box">
+                <div class="success-box-header">
+                    <svg class="success-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <span class="success-box-title">Garantia Importante</span>
+                </div>
+                <div class="success-box-content">
+                    <strong>Nunca vendemos seus dados pessoais a terceiros.</strong> Não compartilhamos suas informações para fins publicitários ou de marketing de terceiros.
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 6: SEGURANÇA -->
+        <div class="visual-section">
+            <div class="section-header">
+                <div class="section-icon icon-green">🔐</div>
+                <div class="section-title">
+                    <h3>6. Segurança da Informação</h3>
+                    <span class="subtitle">Como protegemos seus dados</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Implementamos rigorosas medidas técnicas e organizacionais para proteger seus dados contra acesso não autorizado, perda, destruição ou alteração:
+            </p>
+            <div class="grid-cards">
+                <div class="card">
+                    <div class="card-icon">🔒</div>
+                    <h4>Criptografia SSL/TLS</h4>
+                    <p>Todos os dados em trânsito são protegidos com criptografia de nível bancário (256-bit).</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🗄️</div>
+                    <h4>Armazenamento Seguro</h4>
+                    <p>Dados armazenados em servidores com criptografia, firewalls e sistemas de detecção de intrusão.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">👥</div>
+                    <h4>Controle de Acesso</h4>
+                    <p>Acesso restrito apenas a funcionários autorizados mediante autenticação multifator.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">💾</div>
+                    <h4>Backup Automático</h4>
+                    <p>Backups diários criptografados e armazenados em múltiplas localizações geográficas.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🔍</div>
+                    <h4>Monitoramento 24/7</h4>
+                    <p>Sistemas de monitoramento contínuo para detectar e responder a ameaças em tempo real.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📋</div>
+                    <h4>Auditorias Regulares</h4>
+                    <p>Testes de segurança e auditorias periódicas para garantir conformidade e proteção contínua.</p>
+                </div>
+            </div>
+            <div class="info-box">
+                <div class="info-box-header">
+                    <svg class="info-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span class="info-box-title">Responsabilidade Compartilhada</span>
+                </div>
+                <div class="info-box-content">
+                    Embora utilizemos as melhores práticas de segurança, você também tem responsabilidade: mantenha suas credenciais confidenciais, use senhas fortes e não compartilhe seu acesso com terceiros.
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 7: RETENÇÃO -->
+        <div class="visual-section highlight">
+            <div class="section-header">
+                <div class="section-icon icon-purple">⏱️</div>
+                <div class="section-title">
+                    <h3>7. Retenção de Dados</h3>
+                    <span class="subtitle">Por quanto tempo mantemos suas informações</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Mantemos seus dados pessoais apenas pelo tempo necessário para cumprir as finalidades descritas nesta política:
+            </p>
+            <div class="visual-list">
+                <div class="list-item">
+                    <div class="list-number">📅</div>
+                    <div class="list-content">
+                        <h4>Durante a Vigência do Contrato</h4>
+                        <p>Enquanto sua conta estiver ativa e você utilizar nossos serviços.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">📊</div>
+                    <div class="list-content">
+                        <h4>Dados Fiscais e Contábeis</h4>
+                        <p>Pelo prazo legal exigido (mínimo de 5 anos conforme legislação tributária brasileira).</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">⚖️</div>
+                    <div class="list-content">
+                        <h4>Dados para Defesa de Direitos</h4>
+                        <p>Pelo prazo prescricional aplicável para eventual defesa em processos judiciais ou administrativos.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">🗑️</div>
+                    <div class="list-content">
+                        <h4>Após o Término</h4>
+                        <p>Dados não sujeitos a retenção legal são anonimizados ou excluídos em até 90 dias após o cancelamento da conta.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 8: SEUS DIREITOS -->
+        <div class="visual-section">
+            <div class="section-header">
+                <div class="section-icon icon-green">✊</div>
+                <div class="section-title">
+                    <h3>8. Seus Direitos como Titular de Dados</h3>
+                    <span class="subtitle">O que a LGPD garante para você</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Conforme a Lei Geral de Proteção de Dados, você possui os seguintes direitos em relação aos seus dados pessoais:
+            </p>
+            <div class="rights-grid">
+                <div class="right-card">
+                    <div class="right-card-header">
+                        <div class="right-icon">📋</div>
+                        <h4>Confirmação e Acesso</h4>
+                    </div>
+                    <p>Confirmar a existência de tratamento e acessar seus dados pessoais que possuímos.</p>
+                </div>
+                <div class="right-card">
+                    <div class="right-card-header">
+                        <div class="right-icon">✏️</div>
+                        <h4>Correção</h4>
+                    </div>
+                    <p>Solicitar a correção de dados incompletos, inexatos ou desatualizados.</p>
+                </div>
+                <div class="right-card">
+                    <div class="right-card-header">
+                        <div class="right-icon">🔒</div>
+                        <h4>Anonimização ou Bloqueio</h4>
+                    </div>
+                    <p>Requerer a anonimização ou bloqueio de dados desnecessários ou excessivos.</p>
+                </div>
+                <div class="right-card">
+                    <div class="right-card-header">
+                        <div class="right-icon">🗑️</div>
+                        <h4>Eliminação</h4>
+                    </div>
+                    <p>Solicitar a exclusão de dados tratados com base no seu consentimento.</p>
+                </div>
+                <div class="right-card">
+                    <div class="right-card-header">
+                        <div class="right-icon">📊</div>
+                        <h4>Portabilidade</h4>
+                    </div>
+                    <p>Solicitar a portabilidade dos seus dados a outro fornecedor de serviços.</p>
+                </div>
+                <div class="right-card">
+                    <div class="right-card-header">
+                        <div class="right-icon">ℹ️</div>
+                        <h4>Informação</h4>
+                    </div>
+                    <p>Obter informações sobre as entidades com as quais compartilhamos seus dados.</p>
+                </div>
+                <div class="right-card">
+                    <div class="right-card-header">
+                        <div class="right-icon">🚫</div>
+                        <h4>Revogação do Consentimento</h4>
+                    </div>
+                    <p>Revogar o consentimento previamente fornecido a qualquer momento.</p>
+                </div>
+                <div class="right-card">
+                    <div class="right-card-header">
+                        <div class="right-icon">⚖️</div>
+                        <h4>Oposição</h4>
+                    </div>
+                    <p>Opor-se a tratamentos realizados com base em legítimo interesse.</p>
+                </div>
+            </div>
+            <div class="info-box">
+                <div class="info-box-header">
+                    <svg class="info-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span class="info-box-title">Como Exercer Seus Direitos</span>
+                </div>
+                <div class="info-box-content">
+                    Para exercer qualquer um desses direitos, entre em contato com nosso Encarregado de Dados pelo e-mail <strong>dpo@lawtechpro.com.br</strong>. Responderemos sua solicitação em até 15 dias úteis.
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 9: COOKIES -->
+        <div class="visual-section highlight">
+            <div class="section-header">
+                <div class="section-icon icon-yellow">🍪</div>
+                <div class="section-title">
+                    <h3>9. Cookies e Tecnologias Similares</h3>
+                    <span class="subtitle">Como usamos cookies na plataforma</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Utilizamos cookies e tecnologias similares para melhorar sua experiência, personalizar conteúdo e analisar o uso da plataforma:
+            </p>
+            <div class="grid-cards">
+                <div class="card">
+                    <div class="card-icon">🔧</div>
+                    <h4>Cookies Essenciais</h4>
+                    <p>Necessários para o funcionamento básico da plataforma (login, segurança, navegação).</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">⚙️</div>
+                    <h4>Cookies de Funcionalidade</h4>
+                    <p>Permitem lembrar suas preferências e configurações personalizadas.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📊</div>
+                    <h4>Cookies Analíticos</h4>
+                    <p>Ajudam a entender como você usa a plataforma para melhorarmos continuamente.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🎯</div>
+                    <h4>Cookies de Performance</h4>
+                    <p>Medem o desempenho da plataforma e identificam áreas para otimização.</p>
+                </div>
+            </div>
+            <div class="warning-box">
+                <div class="warning-box-header">
+                    <svg class="warning-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span class="warning-box-title">Gerenciamento de Cookies</span>
+                </div>
+                <div class="warning-box-content">
+                    Você pode gerenciar ou desabilitar cookies através das configurações do seu navegador. Note que a desabilitação de cookies essenciais pode afetar o funcionamento da plataforma.
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 10: TRANSFERÊNCIA INTERNACIONAL -->
+        <div class="visual-section">
+            <div class="section-header">
+                <div class="section-icon icon-blue">🌍</div>
+                <div class="section-title">
+                    <h3>10. Transferência Internacional de Dados</h3>
+                    <span class="subtitle">Dados armazenados fora do Brasil</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Alguns de nossos prestadores de serviços podem estar localizados fora do Brasil. Quando houver transferência internacional de dados, garantimos que:
+            </p>
+            <div class="visual-list">
+                <div class="list-item">
+                    <div class="list-number">✓</div>
+                    <div class="list-content">
+                        <h4>Conformidade Legal</h4>
+                        <p>A transferência está em conformidade com a LGPD e legislações internacionais de proteção de dados.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">✓</div>
+                    <div class="list-content">
+                        <h4>Nível Adequado de Proteção</h4>
+                        <p>O país de destino oferece grau de proteção compatível com a legislação brasileira.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">✓</div>
+                    <div class="list-content">
+                        <h4>Cláusulas Contratuais</h4>
+                        <p>Contratos com cláusulas específicas de proteção de dados e responsabilidades.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 11: MENORES -->
+        <div class="visual-section highlight">
+            <div class="section-header">
+                <div class="section-icon icon-red">👶</div>
+                <div class="section-title">
+                    <h3>11. Dados de Menores de Idade</h3>
+                    <span class="subtitle">Proteção especial para crianças e adolescentes</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Nossa plataforma é destinada exclusivamente a profissionais e escritórios de advocacia. Não coletamos intencionalmente dados de menores de 18 anos.
+            </p>
+            <div class="warning-box">
+                <div class="warning-box-header">
+                    <svg class="warning-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span class="warning-box-title">Identificação de Dados de Menores</span>
+                </div>
+                <div class="warning-box-content">
+                    Caso identifiquemos que coletamos inadvertidamente dados de menores, procederemos à exclusão imediata dessas informações.
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 12: INCIDENTES -->
+        <div class="visual-section">
+            <div class="section-header">
+                <div class="section-icon icon-red">🚨</div>
+                <div class="section-title">
+                    <h3>12. Incidentes de Segurança</h3>
+                    <span class="subtitle">Como agimos em caso de vazamento de dados</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Em caso de incidente de segurança que possa acarretar risco ou dano relevante aos titulares de dados:
+            </p>
+            <div class="visual-list">
+                <div class="list-item">
+                    <div class="list-number">1</div>
+                    <div class="list-content">
+                        <h4>Comunicação Imediata</h4>
+                        <p>Notificaremos você de forma clara sobre o ocorrido, incluindo natureza dos dados afetados e medidas tomadas.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">2</div>
+                    <div class="list-content">
+                        <h4>Notificação à ANPD</h4>
+                        <p>Comunicaremos a Autoridade Nacional de Proteção de Dados conforme exigido pela LGPD.</p>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="list-number">3</div>
+                    <div class="list-content">
+                        <h4>Medidas Corretivas</h4>
+                        <p>Implementaremos ações imediatas para conter o incidente e prevenir novas ocorrências.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 13: ALTERAÇÕES -->
+        <div class="visual-section highlight">
+            <div class="section-header">
+                <div class="section-icon icon-purple">🔄</div>
+                <div class="section-title">
+                    <h3>13. Alterações nesta Política</h3>
+                    <span class="subtitle">Como atualizamos este documento</span>
+                </div>
+            </div>
+            <p class="content-text">
+                Podemos atualizar esta Política de Privacidade periodicamente para refletir mudanças em nossas práticas ou legislação aplicável.
+            </p>
+            <div class="info-box">
+                <div class="info-box-header">
+                    <svg class="info-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span class="info-box-title">Comunicação de Alterações</span>
+                </div>
+                <div class="info-box-content">
+                    Alterações significativas serão comunicadas por e-mail ou notificação dentro da plataforma. Recomendamos que você revise esta política periodicamente para se manter informado.
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTATO DPO -->
+        <div class="contact-section">
+            <h3>Entre em Contato com Nosso Encarregado de Dados</h3>
+            <p>Dúvidas sobre privacidade? Quer exercer seus direitos? Estamos à disposição.</p>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    dpo@lawtechpro.com.br
+                </div>
+                <div class="contact-item">
+                    <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                    </svg>
+                    0800 123 4567
+                </div>
+                <div class="contact-item">
+                    <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    www.lawtechpro.com.br
+                </div>
+            </div>
+        </div>
     </div>
+
+    <footer class="footer">
+        <p>© 2026 LawTech Pro Systems. Todos os direitos reservados.</p>
+        <p style="margin-top: 8px;">
+            <a href="login.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">Voltar ao Login</a> | 
+            <a href="termos.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">Termos de Uso</a>
+        </p>
+    </footer>
 </body>
 </html>

@@ -134,5 +134,38 @@ router.put('/senha', authMiddleware, async (req, res) => {
         res.status(500).json({ erro: 'Erro interno ao alterar senha' });
     }
 });
+// ADICIONE ESTA ROTA NO FINAL DO ARQUIVO src/routes/config.routes.js
+// (antes do module.exports = router;)
 
+/**
+ * 🔌 SALVAR CHAVE API DO ESCAVADOR (CLIENTE PRÓPRIO)
+ */
+router.put('/config/escavador-key', authMiddleware, async (req, res) => {
+    try {
+        const { escavador_api_key } = req.body;
+        const escritorioId = req.user.escritorio_id;
+
+        // Permite salvar vazio (para desativar) ou com valor
+        const chave = escavador_api_key && escavador_api_key.trim() !== '' 
+            ? escavador_api_key.trim() 
+            : null;
+
+        await pool.query(
+            'UPDATE escritorios SET escavador_api_key = $1 WHERE id = $2',
+            [chave, escritorioId]
+        );
+
+        console.log(`✅ Chave API do Escavador ${chave ? 'salva' : 'removida'} para escritório ${escritorioId}`);
+
+        res.json({ 
+            ok: true, 
+            mensagem: chave 
+                ? 'Chave API salva! Agora você pode usar sincronização automática.' 
+                : 'Chave API removida. Use inserção manual de publicações.'
+        });
+    } catch (err) {
+        console.error('❌ Erro ao salvar chave API do Escavador:', err.message);
+        res.status(500).json({ erro: 'Erro ao salvar chave API' });
+    }
+});
 module.exports = router;

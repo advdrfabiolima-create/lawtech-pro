@@ -2,278 +2,348 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8" />
-    <title>LawTech Pro — Publicações DJEN</title>
+    <title>LawTech Pro – Publicações DJEN</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
-
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root { 
-            --bg: #f8fafc;
-            --sidebar: #0f172a; 
-            --sidebar-hover: rgba(255, 255, 255, 0.1);
-            --text-menu: #cbd5e1;
-            --primary: #2563eb; 
-            --white: #ffffff;
-            --border: #e2e8f0;
-            --muted: #64748b;
-            --text-main: #1e293b;
-            --radius: 12px;
+            --bg: #f8fafc; --sidebar: #0f172a; --sidebar-hover: rgba(255, 255, 255, 0.1);
+            --text-menu: #cbd5e1; --primary: #2563eb; --white: #ffffff; --border: #e2e8f0;
+            --muted: #64748b; --text-main: #1e293b; --radius: 12px; --claude-accent: #ca8a4c;
         }
-
-        /* Reset e Base conforme Dashboard Modern */
         * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
         body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; }
 
-        /* Sidebar Fixa (250px) */
         .sidebar { 
             width: 250px; background: var(--sidebar); color: #fff; padding: 24px 20px; 
             display: flex; flex-direction: column; height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; 
         }
         .sidebar-header { text-align: center; margin-bottom: 32px; }
         .sidebar-header img { width: 100%; max-width: 160px; height: auto; }
-
         .menu { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
         .menu a { 
-            display: flex; align-items: center; padding: 12px; 
-            color: var(--text-menu); text-decoration: none; 
-            border-radius: 8px; font-size: 14px; transition: 0.2s;
+            display: flex; align-items: center; padding: 12px; color: var(--text-menu); 
+            text-decoration: none; border-radius: 8px; font-size: 14px; transition: 0.2s;
         }
         .menu a i { margin-right: 12px; font-size: 18px; }
         .menu a:hover, .menu a.active { background: var(--sidebar-hover); color: #fff; }
         .menu a.active { background: var(--primary); font-weight: 500; }
         .sidebar-footer { padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #94a3b8; margin-top: auto; }
 
-        /* Área Principal */
         .main { margin-left: 250px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
-        
-        /* Cabeçalho (72px) */
         .header {
-            background: var(--white); height: 72px; padding: 0 32px;
-            display: flex; align-items: center; justify-content: space-between;
-            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900;
+            background: var(--white); height: auto; padding: 20px 32px; display: flex; 
+            align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); 
+            position: sticky; top: 0; z-index: 900;
         }
         .content { padding: 32px; }
 
-        /* Cards de Publicação */
         .card-pub { 
             background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); 
             padding: 24px; margin-bottom: 20px; transition: 0.3s ease; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
         .card-pub:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        
         .pub-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .processo-tag { background: #eff6ff; color: var(--primary); padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; }
+        .processo-tag { background: #eff6ff; color: var(--primary); padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 13px; }
         .data-tag { color: var(--muted); font-size: 12px; font-weight: 600; }
-        
         .texto-corpo { 
             font-size: 14px; line-height: 1.7; color: #334155; margin-bottom: 20px; 
-            display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; 
-            -webkit-box-orient: vertical; overflow: hidden; 
+            display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; 
         }
-        .card-pub:hover .texto-corpo { -webkit-line-clamp: unset; line-clamp: unset; } /* Expande ao passar o mouse */
+        .card-pub:hover .texto-corpo { -webkit-line-clamp: unset; line-clamp: unset; }
 
-        .btn-converter { 
+        .btn { 
             background: var(--primary); color: white; border: none; padding: 10px 20px; 
             border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;
             display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;
         }
-        .btn-converter:hover { background: #1d4ed8; }
+        .btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .btn:disabled { background: var(--muted); cursor: not-allowed; opacity: 0.6; }
+        .btn-success { background: #059669; }
+        .btn-success:hover { background: #047857; }
+        .btn-ia { 
+            background: linear-gradient(135deg, var(--claude-accent) 0%, #d4a574 100%); 
+            box-shadow: 0 2px 8px rgba(202, 138, 76, 0.3);
+        }
+        .btn-ia:hover { background: linear-gradient(135deg, #b87a3c 0%, var(--claude-accent) 100%); }
+
+        /* MODAL */
+        .modal { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content { 
+            background: white; border-radius: 16px; padding: 32px; max-width: 700px; 
+            width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-header h3 { font-size: 20px; font-weight: 700; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--muted); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
+        .form-input, .form-textarea { 
+            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; 
+            font-size: 14px; font-family: inherit; transition: 0.2s;
+        }
+        .form-input:focus, .form-textarea:focus { 
+            outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); 
+        }
+        .form-textarea { min-height: 150px; resize: vertical; }
+
+        .info-box {
+            background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; 
+            padding: 16px; margin-bottom: 24px; font-size: 13px; color: #1e40af;
+        }
+        .info-box strong { display: block; margin-bottom: 8px; font-size: 14px; }
+
+        .btn-group { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+
+        /* ANÁLISE IA CARD */
+        .analise-ia-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fef9e9 100%);
+            border: 2px solid var(--claude-accent);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 16px;
+            display: none;
+        }
+        .analise-ia-box.ativa { display: block; animation: slideDown 0.3s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .analise-ia-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            color: #92400e;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .analise-ia-content {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-main);
+        }
+        .analise-ia-content h1, .analise-ia-content h2, .analise-ia-content h3 {
+            margin-top: 12px;
+            margin-bottom: 8px;
+        }
+        .analise-ia-content ul, .analise-ia-content ol { margin-left: 20px; }
+        .analise-ia-content strong { color: var(--text-main); }
+        .analise-loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--muted);
+        }
+        .dot-flashing {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: var(--claude-accent);
+            animation: dotFlashing 1s infinite alternate;
+            margin: 0 2px;
+        }
+        @keyframes dotFlashing { from { opacity: 1; } to { opacity: 0.3; } }
 
         .btn-crm-gold-nav {
-    background: #fbbf24 !important; /* Cor Gold */
-    color: #000 !important;
-    font-weight: 800 !important;
-    margin-top: 15px !important;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    padding: 12px !important;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 14px;
-    transition: 0.3s;
-}
-.btn-crm-gold-nav:hover { 
-    background: #facc15 !important; 
-    transform: scale(1.02); 
-}
-.btn-crm-gold-nav i { margin-right: 10px; }
+            background: #fbbf24 !important; color: #000 !important; font-weight: 800 !important;
+            margin-top: 15px !important; display: flex !important; align-items: center;
+            justify-content: center; padding: 12px !important; border-radius: 8px;
+            text-decoration: none; font-size: 14px; transition: 0.3s;
+        }
+        .btn-crm-gold-nav:hover { background: #facc15 !important; transform: scale(1.02); }
+        .btn-crm-gold-nav i { margin-right: 10px; }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
-        </div>
-        <nav class="menu">
-            <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
-            <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
-            <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
-            <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
-            <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
-            <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
-            <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
-            <a href="/publicacoes-page" class="active"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
-            <a href="/ia-page" style="display: flex; align-items: center; gap: 10px;">
-                <i class="lucide lucide-sparkles" style="color: #fbbf24;"></i> IA Jurídica 
-                <span style="font-size: 9px; background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; margin-left: auto;">PREMIUM</span>
-            </a>
-            <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
-            <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
-            <a href="/crm-page" class="btn-crm-gold-nav">
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+    </div>
+    <nav class="menu">
+        <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+        <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+        <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
+        <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+        <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+        <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+        <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+        <a href="/publicacoes-page" class="active"><i class="lucide lucide-newspaper"></i> Publicações DJEN</a>
+        <a href="/ia-page" style="display: flex; align-items: center; gap: 10px;">
+            <i class="lucide lucide-sparkles" style="color: #fbbf24;"></i> IA Jurídica 
+            <span style="font-size: 9px; background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; margin-left: auto;">PREMIUM</span>
+        </a>
+        <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+        <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
+        <a href="/crm-page" class="btn-crm-gold-nav">
             <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
-            </a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div style="margin-bottom: 6px;">
-                <span style="color:#64748b">Usuário:</span> <span id="userEmail" style="color:#fff">...</span>
-            </div>
-            <div>
-                <span style="color:#64748b">Plano:</span> <span id="planNameFooter" style="color:#fff">...</span>
-            </div>
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <div style="margin-bottom: 6px;">
+            <span style="color:#64748b">Usuário:</span> <span id="userEmail" style="color:#fff">...</span>
         </div>
-    </aside>
-
-    <div class="main">
-<header class="header" style="height: auto; padding: 20px 32px;">
-    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <h2 style="font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
-                <i data-lucide="satellite" style="width: 20px; color: var(--primary);"></i> 📡 Captura de Publicações DJEN
-            </h2>
-            <div style="font-size: 12px; color: var(--muted); margin-top: 4px; font-weight: 500;">
-                Monitoramento: <span id="monitoramentoNome" style="color: var(--text-main); font-weight: 700;">Carregando...</span> 
-                (<span id="monitoramentoOab" style="color: var(--primary); font-weight: 700;">...</span>)
-            </div>
+            <span style="color:#64748b">Plano:</span> <span id="planNameFooter" style="color:#fff">...</span>
+        </div>
+    </div>
+</aside>
+
+<div class="main">
+    <header class="header">
+        <div>
+            <h2 style="font-size: 18px; font-weight: 600;">📰 Publicações DJEN</h2>
+            <p style="color: var(--muted); font-size: 12px; font-weight: 500;">Radar automático via API Escavador</p>
         </div>
         
-        <div style="display:flex; gap: 20px; align-items: center;">
-            <button class="btn-converter" id="btnSincronizar" onclick="sincronizarEscavadorManual()" style="background: #0f172a; padding: 10px 18px; border-radius: 8px; color: white; display: flex; align-items: center; gap: 8px; font-size: 13px;">
-                <i data-lucide="refresh-cw" id="iconSync" style="width: 15px;"></i> Sincronizar DJEN
+        <div style="display:flex; gap:20px; align-items:center;">
+            <button id="btnSincronizar" class="btn" onclick="sincronizarEscavadorManual()">
+                <i id="iconSync" data-lucide="refresh-cw" style="width:16px;"></i> Sincronizar DJEN
+            </button>
+            <button class="btn btn-success" onclick="abrirModalManual()">
+                <i data-lucide="plus" style="width:16px;"></i> Adicionar Manual
             </button>
 
-            <div style="position: relative; display: flex; align-items: center; gap: 12px; border-left: 1px solid var(--border); padding-left: 20px;">
+            <div style="position: relative; display: flex; align-items: center; gap: 12px;">
                 <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
                 <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
                     --
                 </div>
                 <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
                     <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
-                    <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
+                    <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: #dc2626; text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
                 </div>
             </div>
         </div>
-    </div>
-</header> <main class="content">
-        <div id="lista-publicacoes">
-            </div>
-    </main>
+    </header>
 
-   <script>
+    <div class="content">
+        <div class="info-box">
+            <strong>ℹ️ Como funciona:</strong>
+            Configure sua chave API do Escavador em "Configurações" para sincronização automática, 
+            ou adicione publicações manualmente clicando no botão verde acima.
+        </div>
+        <div id="publicacoes-container"></div>
+    </div>
+</div>
+
+<!-- MODAL ADICIONAR MANUAL -->
+<div id="modalManual" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>➕ Adicionar Publicação Manual</h3>
+            <button class="modal-close" onclick="fecharModalManual()">×</button>
+        </div>
+        <form onsubmit="salvarPublicacaoManual(event)">
+            <div class="form-group">
+                <label>Número do Processo *</label>
+                <input type="text" id="manualProcesso" class="form-input" placeholder="0000000-00.0000.0.00.0000" required>
+            </div>
+            <div class="form-group">
+                <label>Conteúdo da Publicação *</label>
+                <textarea id="manualConteudo" class="form-textarea" placeholder="Cole aqui o texto completo da publicação..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Data da Publicação *</label>
+                <input type="date" id="manualData" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label>Tribunal</label>
+                <input type="text" id="manualTribunal" class="form-input" value="DJEN" placeholder="Ex: DJEN, DJE, DJBA">
+            </div>
+            <div style="display:flex; gap:12px; justify-content: flex-end;">
+                <button type="button" class="btn" style="background:var(--muted);" onclick="fecharModalManual()">Cancelar</button>
+                <button type="submit" class="btn btn-success">Salvar Publicação</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
     const token = localStorage.getItem('token');
     if (!token) window.location.href = '/login.html';
 
-    // 🚀 FUNÇÃO NOVA: Busca o Advogado Responsável e OAB para o Monitoramento
-    async function carregarDadosMonitoramento() {
-        try {
-            const res = await fetch('/api/config/meu-escritorio', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            
-            if (data.ok && data.dados) {
-                // Atualiza o cabeçalho com os dados do Dr. Geraldo (OAB/BA 9.458)
-                const nomeHeader = document.getElementById('monitoramentoNome');
-                const oabHeader = document.getElementById('monitoramentoOab');
-                
-                if (nomeHeader) nomeHeader.innerText = data.dados.advogado_responsavel || 'Advogado';
-                if (oabHeader) oabHeader.innerText = `OAB nº ${data.dados.oab}`;
-            }
-        } catch (err) {
-            console.error("Erro ao carregar dados do monitoramento:", err);
-        }
-    }
+    let planoAtual = '';
 
-async function carregarInfoRodape() {
-    try {
-        const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
-        const dataUser = await resUser.json();
-        
-        if (dataUser.ok) {
-            // Sidebar
-            document.getElementById('userEmail').innerText = dataUser.usuario.email;
-
-            // --- LÓGICA DO CABEÇALHO PADRONIZADA ---
-            const nomeCompleto = dataUser.usuario.nome || 'Advogado';
-            
-            // 1. Apenas o primeiro nome
-            const primeiroNome = nomeCompleto.trim().split(' ')[0];
-            document.getElementById('userNameHeader').innerText = primeiroNome;
-
-            // 2. Iniciais (Primeiro e Último nome)
-            const partes = nomeCompleto.trim().split(' ').filter(n => n);
-            let iniciais = partes[0][0];
-            if (partes.length > 1) {
-                iniciais += partes[partes.length - 1][0];
-            }
-            
-            const circulo = document.getElementById('userCircle');
-            if (circulo) circulo.innerText = iniciais.toUpperCase();
-        }
-
-        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
-        const dataPlan = await resPlan.json();
-        document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
-        
-    } catch (err) { 
-        console.error("Erro ao carregar cabeçalho:", err); 
-    }
-}
-    // 🚀 WINDOW.ONLOAD ATUALIZADO
     window.onload = async () => {
+        document.getElementById('manualData').valueAsDate = new Date();
         await carregarInfoRodape();
-        await carregarDadosMonitoramento(); // 👈 Chama a nova função aqui
         await carregarPublicacoes();
-        
-        // Inicializa ícones Lucide se houver algum no cabeçalho estático
         if (window.lucide) lucide.createIcons();
     };
 
+    async function carregarInfoRodape() {
+        try {
+            const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+            const dataUser = await resUser.json();
+            
+            if (dataUser.ok) {
+                document.getElementById('userEmail').innerText = dataUser.usuario.email;
+                const nomeCompleto = dataUser.usuario.nome || 'Advogado';
+                const primeiroNome = nomeCompleto.trim().split(' ')[0];
+                document.getElementById('userNameHeader').innerText = primeiroNome;
+                const partes = nomeCompleto.trim().split(' ').filter(n => n);
+                let iniciais = partes[0][0];
+                if (partes.length > 1) iniciais += partes[partes.length - 1][0];
+                document.getElementById('userCircle').innerText = iniciais.toUpperCase();
+            }
+
+            const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+            const dataPlan = await resPlan.json();
+            planoAtual = (dataPlan.plano || '').toLowerCase();
+            document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
+        } catch (err) {
+            console.error("Erro ao carregar rodapé:", err);
+        }
+    }
+
     async function carregarPublicacoes() {
-        const container = document.getElementById('lista-publicacoes');
+        const container = document.getElementById('publicacoes-container');
+        container.innerHTML = '<p style="text-align:center;padding:40px;color:var(--muted);">Carregando publicações...</p>';
+
         try {
             const res = await fetch('/api/publicacoes-pendentes', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
-            if (!res.ok) throw new Error('Falha na requisição');
             const dados = await res.json();
 
             if (!dados || dados.length === 0) {
                 container.innerHTML = `
-                    <div style="text-align:center; padding:60px; background:white; border-radius:12px; border:1px solid var(--border);">
-                        <i data-lucide="coffee" style="width:40px; height:40px; color:var(--muted); margin: 0 auto 15px auto;"></i>
-                        <p style="color:var(--muted); font-weight:500;">Nenhuma publicação nova encontrada. Tudo em dia!</p>
-                    </div>`;
+                    <div style="text-align:center; padding:60px;">
+                        <i data-lucide="inbox" style="width:64px; height:64px; color:var(--muted); margin-bottom:16px;"></i>
+                        <p style="color:var(--muted); font-size:16px; font-weight:500;">Nenhuma publicação pendente</p>
+                        <p style="color:var(--muted); font-size:13px; margin-top:8px;">Clique em "Sincronizar DJEN" ou "Adicionar Manual"</p>
+                    </div>
+                `;
                 if (window.lucide) lucide.createIcons();
                 return;
             }
 
             container.innerHTML = dados.map(pub => `
-                <div class="card-pub">
+                <div class="card-pub" id="card-${pub.id}">
                     <div class="pub-header">
                         <span class="processo-tag">${pub.numero_processo}</span>
-                        <span class="data-tag">📅 Publicado em: ${new Date(pub.data_publicacao).toLocaleDateString('pt-BR')}</span>
+                        <span class="data-tag">📅 ${new Date(pub.data_publicacao).toLocaleDateString('pt-BR')}</span>
                     </div>
                     <div class="texto-corpo">${pub.conteudo}</div>
-                    <button class="btn-converter" onclick="gerarPrazo(${pub.id}, '${pub.numero_processo}')">
-                        <i data-lucide="zap" style="width:14px;"></i> Gerar Prazo Útil
-                    </button>
+                    <div class="btn-group">
+                        <button class="btn" onclick="gerarPrazo(${pub.id}, '${pub.numero_processo}')">
+                            <i data-lucide="zap" style="width:14px;"></i> Gerar Prazo Útil
+                        </button>
+                        <button class="btn btn-ia" onclick="analisarComIA(${pub.id}, '${pub.numero_processo}', this)">
+                            <i data-lucide="sparkles" style="width:14px;"></i> Analisar com IA Claude
+                        </button>
+                    </div>
+                    <div id="analise-${pub.id}" class="analise-ia-box"></div>
                 </div>
             `).join('');
 
@@ -281,16 +351,159 @@ async function carregarInfoRodape() {
 
         } catch (err) {
             console.error("Erro ao carregar:", err);
-            container.innerHTML = `<p style="text-align:center; color:red; padding:20px;">Erro ao sincronizar dados. Tente atualizar a página.</p>`;
+            container.innerHTML = `<p style="text-align:center; color:red; padding:20px;">❌ Erro ao carregar. Tente atualizar.</p>`;
+        }
+    }
+
+    // 🚀 NOVA FUNÇÃO: ANALISAR COM IA
+    async function analisarComIA(idPub, numeroProcesso, btnElement) {
+        const card = btnElement.closest('.card-pub');
+        const conteudo = card.querySelector('.texto-corpo').innerText;
+        const analiseBox = document.getElementById(`analise-${idPub}`);
+
+        // Verificar se já tem análise aberta
+        if (analiseBox.classList.contains('ativa')) {
+            analiseBox.classList.remove('ativa');
+            btnElement.innerHTML = '<i data-lucide="sparkles" style="width:14px;"></i> Analisar com IA Claude';
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        // Verificar plano Premium
+        if (planoAtual !== 'premium') {
+            alert('🔒 A análise com IA Claude é exclusiva do plano Premium.\n\nFaça upgrade em "Gestão de Planos".');
+            return;
+        }
+
+        // Desabilitar botão e mostrar loading
+        btnElement.disabled = true;
+        btnElement.innerHTML = '<i data-lucide="loader" class="lucide-spin" style="width:14px;"></i> Analisando...';
+        if (window.lucide) lucide.createIcons();
+
+        analiseBox.innerHTML = `
+            <div class="analise-loading">
+                <div class="dot-flashing"></div>
+                <div class="dot-flashing"></div>
+                <div class="dot-flashing"></div>
+                <p style="margin-top: 12px; font-size: 13px; color: var(--muted);">Claude está analisando a publicação...</p>
+            </div>
+        `;
+        analiseBox.classList.add('ativa');
+
+        try {
+            const pergunta = `Analise esta publicação do DJEN do processo ${numeroProcesso}:
+
+${conteudo}
+
+Por favor, forneça uma análise técnica incluindo:
+1. Natureza do ato (intimação, citação, sentença, etc.)
+2. Prazos aplicáveis (se houver)
+3. Providências necessárias
+4. Fundamentos legais relevantes
+5. Alertas críticos ou urgências
+
+Responda de forma objetiva e técnica.`;
+
+            const res = await fetch('/api/ia/perguntar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ pergunta })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                const analiseHTML = marked.parse(data.resposta);
+                analiseBox.innerHTML = `
+                    <div class="analise-ia-header">
+                        <i data-lucide="sparkles" style="width:18px; height:18px;"></i>
+                        Análise Técnica - Claude Haiku
+                    </div>
+                    <div class="analise-ia-content">
+                        ${analiseHTML}
+                    </div>
+                `;
+                btnElement.innerHTML = '<i data-lucide="x" style="width:14px;"></i> Fechar Análise';
+            } else if (res.status === 403) {
+                analiseBox.innerHTML = `
+                    <div style="text-align:center; padding:20px;">
+                        <strong>🔒 Recurso Premium</strong><br>
+                        <p style="color:var(--muted); margin-top:8px;">A análise com IA está disponível apenas no plano Premium.</p>
+                    </div>
+                `;
+            } else {
+                throw new Error(data.erro || 'Erro ao analisar');
+            }
+
+            if (window.lucide) lucide.createIcons();
+
+        } catch (err) {
+            console.error("Erro na análise IA:", err);
+            analiseBox.innerHTML = `
+                <div style="text-align:center; padding:20px; color:#dc2626;">
+                    <strong>❌ Erro na análise</strong><br>
+                    <p style="font-size:12px; margin-top:8px;">${err.message}</p>
+                </div>
+            `;
+        } finally {
+            btnElement.disabled = false;
+        }
+    }
+
+    // MODAL
+    function abrirModalManual() {
+        document.getElementById('modalManual').classList.add('active');
+    }
+
+    function fecharModalManual() {
+        document.getElementById('modalManual').classList.remove('active');
+        document.querySelector('#modalManual form').reset();
+        document.getElementById('manualData').valueAsDate = new Date();
+    }
+
+    async function salvarPublicacaoManual(event) {
+        event.preventDefault();
+        
+        const dados = {
+            numero_processo: document.getElementById('manualProcesso').value,
+            conteudo: document.getElementById('manualConteudo').value,
+            data_publicacao: document.getElementById('manualData').value,
+            tribunal: document.getElementById('manualTribunal').value
+        };
+
+        try {
+            const res = await fetch('/api/publicacoes/manual', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dados)
+            });
+
+            const resultado = await res.json();
+
+            if (res.ok) {
+                alert('✅ Publicação adicionada com sucesso!');
+                fecharModalManual();
+                await carregarPublicacoes();
+            } else {
+                alert('❌ ' + (resultado.erro || 'Erro ao adicionar'));
+            }
+        } catch (err) {
+            console.error(err);
+            alert('❌ Erro de conexão');
         }
     }
 
     async function sincronizarEscavadorManual() {
-    // 🚀 ADICIONE A PERGUNTA AQUI
-    if (!confirm("Deseja iniciar a varredura no DJEN agora? Isso consumirá créditos da sua API.")) return;
+        if (!confirm("Deseja buscar publicações via API? (Requer configuração de chave API)")) return;
 
-    const btn = document.getElementById('btnSincronizar');
-    const icon = document.getElementById('iconSync');
+        const btn = document.getElementById('btnSincronizar');
+        const icon = document.getElementById('iconSync');
         if (!btn || !icon) return;
 
         btn.disabled = true;
@@ -300,14 +513,20 @@ async function carregarInfoRodape() {
             const res = await fetch('/api/publicacoes/fetch-all', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (res.ok) {
-                alert("✅ Varredura no DJEN concluída com sucesso!");
-                await carregarPublicacoes();
+            const data = await res.json();
+            
+            if (data.ok) {
+                if (data.plano_gratuito) {
+                    alert("ℹ️ " + data.mensagem);
+                } else {
+                    alert(`✅ Sincronização concluída! ${data.novas || 0} novas publicações`);
+                    await carregarPublicacoes();
+                }
             } else {
-                alert("Falha na sincronização. Verifique sua API Key no servidor.");
+                alert("⚠️ " + (data.mensagem || 'Nenhuma publicação encontrada'));
             }
         } catch (err) { 
-            alert("Erro de conexão."); 
+            alert("❌ Erro de conexão"); 
         } finally {
             btn.disabled = false;
             icon.classList.remove('lucide-spin');
@@ -319,15 +538,12 @@ async function carregarInfoRodape() {
         let diasAdicionados = 0;
         while (diasAdicionados < dias) {
             data.setDate(data.getDate() + 1);
-            if (data.getDay() !== 0 && data.getDay() !== 6) {
-                diasAdicionados++;
-            }
+            if (data.getDay() !== 0 && data.getDay() !== 6) diasAdicionados++;
         }
         return data;
     }
 
     async function gerarPrazo(idPub, processo) {
-        // Encontra o card correto via evento
         const btnElement = event.currentTarget;
         const card = btnElement.closest('.card-pub');
         const texto = card.querySelector('.texto-corpo').innerText.toLowerCase();
@@ -362,30 +578,33 @@ async function carregarInfoRodape() {
             });
 
             if (res.ok) {
-                alert(`⚡ Sucesso! Prazo de ${dias} dias úteis gerado para: ${dataVencimentoObjeto.toLocaleDateString('pt-BR')}`);
+                alert(`✅ Prazo criado! Vencimento: ${dataVencimentoObjeto.toLocaleDateString('pt-BR')}`);
                 carregarPublicacoes();
+            } else {
+                const erro = await res.json();
+                alert('❌ ' + (erro.erro || 'Erro ao criar prazo'));
             }
         } catch (err) {
             console.error("Erro ao converter:", err);
+            alert('❌ Erro de conexão');
         }
     }
 
     function toggleUserMenu() {
-    const m = document.getElementById('userDropdown');
-    if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
-}
-
-window.addEventListener('click', (e) => {
-    if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
         const m = document.getElementById('userDropdown');
-        if(m) m.style.display = 'none';
+        if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
     }
-});
 
-        // Função para sair do sistema
-        function logout() {
-        localStorage.removeItem('token'); // Remove o acesso
-        window.location.href = '/login.html'; // Redireciona para o login
+    window.addEventListener('click', (e) => {
+        if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
+            const m = document.getElementById('userDropdown');
+            if(m) m.style.display = 'none';
+        }
+    });
+
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = '/login.html';
     }
 </script>
 </body>

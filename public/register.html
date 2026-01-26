@@ -3,204 +3,626 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LawTech Pro — Criar Conta Profissional</title>
+    <title>LawTech Pro – Criar Conta Profissional</title>
     <link rel="icon" type="image/png" href="favicon.png">
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
 
     <style>
         :root {
-            --bg: #f8fafc;
+            --bg: #f1f5f9;
             --primary: #2563eb;
-            --primary-dark: #1d4ed8;
+            --primary-dark: #1e40af;
+            --primary-light: #3b82f6;
             --secondary: #0f172a;
             --text-main: #1e293b;
             --muted: #64748b;
             --white: #ffffff;
             --border: #e2e8f0;
-            --radius: 12px;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --radius: 16px;
+            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body { 
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            color: var(--text-main); 
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .auth-sidebar {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(12px);
+            padding: 40px 32px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .sidebar-header {
+            text-align: center;
+        }
+
+        .sidebar-header img {
+            width: 160px;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--secondary);
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .sidebar-header p {
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .plan-badge {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .plan-badge-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .plan-badge-name {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--secondary);
+            margin-bottom: 4px;
+        }
+
+        .plan-badge-period {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .benefits-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .benefits-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 14px;
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        .benefits-list li::before {
+            content: '✓';
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: var(--success);
+            color: white;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 12px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
 
         .auth-card {
             background: var(--white);
-            width: 100%;
-            max-width: 550px; /* Aumentado para acomodar mais campos */
-            padding: 40px;
+            padding: 48px;
             border-radius: var(--radius);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
-        .auth-header { text-align: center; margin-bottom: 32px; }
-        .auth-header img { width: 180px; margin-bottom: 16px; }
-        .auth-header h2 { font-size: 20px; font-weight: 700; color: var(--secondary); }
-        .auth-header p { color: var(--muted); font-size: 14px; margin-top: 8px; }
+        .auth-card::-webkit-scrollbar {
+            width: 8px;
+        }
 
-        /* Grid para campos lado a lado */
-        .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
-        .form-group { flex: 1; margin-bottom: 15px; }
-        .form-group.small { flex: 0 0 120px; }
+        .auth-card::-webkit-scrollbar-track {
+            background: var(--bg);
+            border-radius: 4px;
+        }
 
-        .form-group label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; }
-        .form-group input {
-            width: 100%;
-            padding: 11px 14px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
+        .auth-card::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        .form-header {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .form-header h2 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-header p {
+            color: var(--muted);
             font-size: 14px;
-            transition: 0.2s;
-            outline: none;
         }
-        .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+            font-size: 18px;
+        }
+
+        .form-section {
+            margin-bottom: 32px;
+        }
+
+        .form-row { 
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px; 
+            margin-bottom: 16px;
+        }
+
+        .form-row.triple {
+            grid-template-columns: 120px 1fr 80px;
+        }
+
+        .form-group { 
+            margin-bottom: 16px;
+        }
+
+        .form-group label { 
+            display: block; 
+            font-size: 12px; 
+            font-weight: 700; 
+            color: var(--muted); 
+            margin-bottom: 8px; 
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            outline: none;
+            background: var(--white);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus { 
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-group input:hover,
+        .form-group select:hover {
+            border-color: var(--primary-light);
+        }
+
+        .payment-section {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid var(--warning);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 32px;
+        }
+
+        .payment-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .payment-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--warning);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .payment-title {
+            flex: 1;
+        }
+
+        .payment-title h4 {
+            font-size: 16px;
+            font-weight: 800;
+            color: #78350f;
+            margin-bottom: 4px;
+        }
+
+        .payment-title p {
+            font-size: 13px;
+            color: #92400e;
+        }
+
+        .payment-disclaimer {
+            background: rgba(255,255,255,0.6);
+            border-left: 3px solid var(--warning);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #78350f;
+            line-height: 1.5;
+            margin-top: 20px;
+        }
 
         .btn-register {
             width: 100%;
-            padding: 14px;
-            background: var(--primary);
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
             color: white;
             border: none;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 14px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 16px;
             cursor: pointer;
-            transition: 0.3s;
-            margin-top: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px 0 rgba(37,99,235,0.3);
+            position: relative;
+            overflow: hidden;
         }
-        .btn-register:hover { background: var(--primary-dark); transform: translateY(-1px); }
 
-        .auth-footer { text-align: center; margin-top: 24px; font-size: 13px; color: var(--muted); }
-        .auth-footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+        .btn-register::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-register:hover::before {
+            left: 100%;
+        }
+
+        .btn-register:hover { 
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(37,99,235,0.4);
+        }
+
+        .btn-register:active {
+            transform: translateY(0);
+        }
+
+        .btn-register:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auth-footer { 
+            text-align: center; 
+            margin-top: 28px; 
+            padding-top: 28px;
+            border-top: 2px solid var(--border);
+            font-size: 14px; 
+            color: var(--muted);
+        }
+
+        .auth-footer a { 
+            color: var(--primary); 
+            text-decoration: none; 
+            font-weight: 700;
+            transition: color 0.2s;
+        }
+
+        .auth-footer a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
 
         .error-message {
             background: #fef2f2;
-            color: #ef4444;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 13px;
-            margin-bottom: 20px;
+            color: #dc2626;
+            padding: 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 24px;
             display: none;
-            border: 1px solid #fee2e2;
+            border: 2px solid #fecaca;
+            font-weight: 600;
+        }
+
+        .success-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ecfdf5;
+            color: #065f46;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid #86efac;
+        }
+
+        @media (max-width: 1024px) {
+            .auth-container {
+                grid-template-columns: 1fr;
+                max-width: 600px;
+            }
+
+            .auth-sidebar {
+                order: 2;
+            }
+
+            .auth-card {
+                order: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+            }
+
+            .auth-card {
+                padding: 32px 24px;
+            }
+
+            .form-row,
+            .form-row.triple {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar-header img {
+                width: 140px;
+            }
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/imask"></script>
 </head>
 <body>
 
-    <div class="auth-card">
-        <div class="auth-header">
-            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
-            <h2>Finalize seu Cadastro Profissional</h2>
-            <p id="planoTexto">Crie sua conta e ative sua gestão jurídica.</p>
-        </div>
-
-        <div id="errorBox" class="error-message"></div>
-
-        <form id="formRegister">
-            <div class="form-group">
-                <label>Nome Completo / Escritório</label>
-                <input type="text" id="nome" placeholder="Dr(a). Nome Sobrenome" required>
+    <div class="auth-container">
+        <aside class="auth-sidebar">
+            <div class="sidebar-header">
+                <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+                <h1>Bem-vindo ao LawTech Pro</h1>
+                <p>Complete seu cadastro e comece a transformar a gestão do seu escritório</p>
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                <label>Tipo de Pessoa</label>
-                    <select id="tipoPessoa" onchange="ajustarCamposDocumento(this.value)" style="width: 100%; padding: 11px; border: 1px solid var(--border); border-radius: 8px; outline: none;">
-                    <option value="fisica">Pessoa Física (CPF)</option>
-                    <option value="juridica">Pessoa Jurídica (CNPJ)</option>
-                </select>
-            </div>
-        <div class="form-group">
-                <label id="labelDocumento">CPF (Para Faturamento)</label>
-                <input type="text" id="documento" placeholder="000.000.000-00" required>
-            </div>
-        </div>
-
-            <div class="form-group" id="groupNascimento">
-                <label>Data de Nascimento</label>
-                <input type="date" id="dataNascimento">
-        </div>
-
-            <div class="form-group">
-                <label>E-mail Profissional</label>
-                <input type="email" id="email" placeholder="nome@exemplo.com" required>
+            <div class="plan-badge">
+                <div class="plan-badge-title">Plano Selecionado</div>
+                <div class="plan-badge-name" id="planoNome">Básico</div>
+                <div class="plan-badge-period" id="planoPeriodo">Cobrança mensal</div>
             </div>
 
-            <div class="form-row">
-                <div class="form-group small">
-                <label>CEP</label>
-                <input type="text" id="cep" placeholder="00000-000" onblur="buscarEndereco(this.value)">
-            </div>
-            <div class="form-group">
-                <label>Logradouro e Número</label>
-                <input type="text" id="endereco" placeholder="Rua, Número, Bairro">
-            </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                <label>Cidade</label>
-                <input type="text" id="cidade" placeholder="Ex: Feira de Santana">
-            </div>
-            <div class="form-group small" style="flex: 0 0 80px;">
-                <label>UF</label>
-                <input type="text" id="estado" placeholder="BA" maxlength="2">
-            </div>
-        </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Senha de Acesso</label>
-                    <input type="password" id="senha" placeholder="Mínimo 6 caracteres" required>
+            <div>
+                <div class="section-title">
+                    <i class="lucide lucide-check-circle"></i>
+                    O que você terá
                 </div>
-                <div class="form-group">
-                    <label>Confirmar Senha</label>
-                    <input type="password" id="confirmarSenha" placeholder="Repita a senha" required>
-                </div>
+                <ul class="benefits-list">
+                    <li>7 dias de teste gratuito</li>
+                    <li>Acesso completo ao sistema</li>
+                    <li>Suporte especializado</li>
+                    <li>Cancelamento a qualquer momento</li>
+                    <li>Segurança e privacidade total</li>
+                </ul>
             </div>
 
-            <div style="margin: 25px 0; padding: 20px; background: #f1f5f9; border-radius: 12px; border: 1px dashed #cbd5e1;">
-    <h4 style="font-size: 13px; color: var(--secondary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-        <i class="lucide-credit-card" style="font-size: 16px; color: var(--primary);"></i> 
-        Ativar Período de Teste (7 Dias Grátis)
-    </h4>
-    
-    <div class="form-group">
-        <label>Número do Cartão</label>
-        <input type="text" id="card_numero" placeholder="0000 0000 0000 0000">
-    </div>
+            <div class="success-badge">
+                <i class="lucide lucide-shield-check" style="font-size: 14px;"></i>
+                Ambiente 100% seguro
+            </div>
+        </aside>
 
-    <div class="form-row">
-        <div class="form-group">
-            <label>Validade</label>
-            <input type="text" id="card_validade" placeholder="MM/AA">
-        </div>
-        <div class="form-group small">
-            <label>CVC</label>
-            <input type="text" id="card_cvc" placeholder="123">
-        </div>
-    </div>
-    <p style="font-size: 11px; color: var(--muted); line-height: 1.4;">
-        * Seu cartão não será cobrado hoje. A primeira mensalidade será processada automaticamente após 7 dias, caso não cancele.
-    </p>
-</div>
+        <main class="auth-card">
+            <div class="form-header">
+                <h2>Complete seus dados</h2>
+                <p>Preencha as informações abaixo para criar sua conta profissional</p>
+            </div>
 
-            <button type="submit" class="btn-register" id="btnSubmit">Criar Conta e Continuar</button>
-        </form>
+            <div id="errorBox" class="error-message"></div>
 
-        <div class="auth-footer">
-            Já possui uma conta? <a href="/login">Acesse aqui</a>
-        </div>
+            <form id="formRegister">
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="lucide lucide-user"></i>
+                        Dados Pessoais
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nome Completo / Escritório</label>
+                        <input type="text" id="nome" placeholder="Dr(a). Nome Sobrenome" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tipo de Pessoa</label>
+                            <select id="tipoPessoa" onchange="ajustarCamposDocumento(this.value)">
+                                <option value="fisica">Pessoa Física (CPF)</option>
+                                <option value="juridica">Pessoa Jurídica (CNPJ)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label id="labelDocumento">CPF (Para Faturamento)</label>
+                            <input type="text" id="documento" placeholder="000.000.000-00" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="groupNascimento">
+                        <label>Data de Nascimento</label>
+                        <input type="date" id="dataNascimento">
+                    </div>
+
+                    <div class="form-group">
+                        <label>E-mail Profissional</label>
+                        <input type="email" id="email" placeholder="nome@exemplo.com" required>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="lucide lucide-map-pin"></i>
+                        Endereço
+                    </div>
+
+                    <div class="form-row triple">
+                        <div class="form-group">
+                            <label>CEP</label>
+                            <input type="text" id="cep" placeholder="00000-000" onblur="buscarEndereco(this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label>Logradouro e Número</label>
+                            <input type="text" id="endereco" placeholder="Rua, Número, Bairro">
+                        </div>
+                        <div class="form-group">
+                            <label>UF</label>
+                            <input type="text" id="estado" placeholder="BA" maxlength="2">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cidade</label>
+                        <input type="text" id="cidade" placeholder="Ex: Feira de Santana">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="lucide lucide-lock"></i>
+                        Segurança
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Senha de Acesso</label>
+                            <input type="password" id="senha" placeholder="Mínimo 6 caracteres" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirmar Senha</label>
+                            <input type="password" id="confirmarSenha" placeholder="Repita a senha" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="payment-section">
+                    <div class="payment-header">
+                        <div class="payment-icon">
+                            <i class="lucide lucide-credit-card"></i>
+                        </div>
+                        <div class="payment-title">
+                            <h4>Período de Teste Gratuito</h4>
+                            <p>Cadastre seu cartão para ativar 7 dias grátis</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Número do Cartão</label>
+                        <input type="text" id="card_numero" placeholder="0000 0000 0000 0000">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Validade</label>
+                            <input type="text" id="card_validade" placeholder="MM/AA">
+                        </div>
+                        <div class="form-group">
+                            <label>CVC</label>
+                            <input type="text" id="card_cvc" placeholder="123">
+                        </div>
+                    </div>
+
+                    <div class="payment-disclaimer">
+                        <strong>💳 Garantia de segurança:</strong> Seu cartão não será cobrado hoje. A primeira mensalidade será processada automaticamente após 7 dias, caso não cancele.
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-register" id="btnSubmit">
+                    Criar Conta e Iniciar Teste Gratuito
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                Já possui uma conta? <a href="/login">Acesse aqui</a>
+            </div>
+        </main>
     </div>
 
     <script>
-        // Aplicar Máscaras (Similar ao config.html)
-        IMask(document.getElementById('documento'), {
-            mask: [ { mask: '000.000.000-00' }, { mask: '00.000.000/0000-00' } ]
-        });
+        // Máscaras
+        const documentoMask = IMask(document.getElementById('documento'), { mask: '000.000.000-00' });
         IMask(document.getElementById('cep'), { mask: '00000-000' });
         IMask(document.getElementById('card_numero'), { mask: '0000 0000 0000 0000' });
         IMask(document.getElementById('card_validade'), { mask: '00/00' });
@@ -210,50 +632,46 @@
         const errorBox = document.getElementById('errorBox');
         const btnSubmit = document.getElementById('btnSubmit');
 
-window.onload = () => {
-    const params = new URLSearchParams(window.location.search);
-    const plano = params.get('plano');
-    const cobranca = params.get('cobranca');
+        window.onload = () => {
+            const params = new URLSearchParams(window.location.search);
+            const plano = params.get('plano');
+            const cobranca = params.get('cobranca');
 
-    // Mapeamento com IDs e Valores para o fluxo de pagamento
-    const planosMap = {
-        basico:   { id: 1, nome: 'Básico', mensal: "49.90", anual: "499.00" },
-        intermediario: { id: 2, nome: 'Intermediário', mensal: "149.90", anual: "1499.00" },
-        avancado: { id: 3, nome: 'Avançado', mensal: "199.90", anual: "1999.00" },
-        premium:  { id: 4, nome: 'Premium', mensal: "299.90", anual: "2999.00" }
-    };
+            const planosMap = {
+                basico: { id: 1, nome: 'Básico', mensal: "49.90", anual: "499.00" },
+                intermediario: { id: 2, nome: 'Intermediário', mensal: "149.90", anual: "1499.00" },
+                avancado: { id: 3, nome: 'Avançado', mensal: "199.90", anual: "1999.00" },
+                premium: { id: 4, nome: 'Premium', mensal: "299.90", anual: "2999.00" }
+            };
 
-    if (plano && planosMap[plano]) {
-        const info = planosMap[plano];
-        const valorFinal = (cobranca === 'anual') ? info.anual : info.mensal;
+            if (plano && planosMap[plano]) {
+                const info = planosMap[plano];
+                const valorFinal = (cobranca === 'anual') ? info.anual : info.mensal;
 
-        // Atualiza o texto na tela para o cliente
-        document.getElementById('planoTexto').innerHTML =
-            `Assinando plano: <strong style="color:#2563eb">${info.nome}</strong> (${cobranca || 'mensal'})`;
+                document.getElementById('planoNome').textContent = info.nome;
+                document.getElementById('planoPeriodo').textContent = `Cobrança ${cobranca || 'mensal'}`;
 
-        // SALVAMENTO OBRIGATÓRIO PARA O DIRECIONAMENTO DE PAGAMENTO
-        localStorage.setItem('plano_escolhido_id', info.id);
-        localStorage.setItem('plano_escolhido_nome', info.nome);
-        localStorage.setItem('plano_escolhido_valor', valorFinal); // Linha crucial para a API
-        localStorage.setItem('plano_escolhido_cobranca', cobranca || 'mensal');
-    }
-};
+                localStorage.setItem('plano_escolhido_id', info.id);
+                localStorage.setItem('plano_escolhido_nome', info.nome);
+                localStorage.setItem('plano_escolhido_valor', valorFinal);
+                localStorage.setItem('plano_escolhido_cobranca', cobranca || 'mensal');
+            }
+        };
 
         async function buscarEndereco(cep) {
-    const v = cep.replace(/\D/g, '');
-    if(v.length === 8) {
-        try {
-            const res = await fetch(`https://viacep.com.br/ws/${v}/json/`);
-            const data = await res.json();
-            if(!data.erro) {
-                // Preenche os campos separados para o Asaas
-                document.getElementById('endereco').value = `${data.logradouro}, ${data.bairro}`;
-                document.getElementById('cidade').value = data.localidade;
-                document.getElementById('estado').value = data.uf;
+            const v = cep.replace(/\D/g, '');
+            if(v.length === 8) {
+                try {
+                    const res = await fetch(`https://viacep.com.br/ws/${v}/json/`);
+                    const data = await res.json();
+                    if(!data.erro) {
+                        document.getElementById('endereco').value = `${data.logradouro}, ${data.bairro}`;
+                        document.getElementById('cidade').value = data.localidade;
+                        document.getElementById('estado').value = data.uf;
+                    }
+                } catch (err) { console.error("Erro ao buscar CEP"); }
             }
-        } catch (err) { console.error("Erro ao buscar CEP"); }
-    }
-}
+        }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -276,17 +694,16 @@ window.onload = () => {
                     dataNascimento: document.getElementById('dataNascimento').value,
                     cep: document.getElementById('cep').value,
                     endereco: document.getElementById('endereco').value,
-                    cidade: document.getElementById('cidade').value, // NOVO
-                    estado: document.getElementById('estado').value, // NOVO
+                    cidade: document.getElementById('cidade').value,
+                    estado: document.getElementById('estado').value,
                     planoId: localStorage.getItem('plano_escolhido_id') || 1,
                     pagamento: {
-                    numero: document.getElementById('card_numero').value,
-                    validade: document.getElementById('card_validade').value,
-                    cvc: document.getElementById('card_cvc').value
-                }
-            };
+                        numero: document.getElementById('card_numero').value,
+                        validade: document.getElementById('card_validade').value,
+                        cvc: document.getElementById('card_cvc').value
+                    }
+                };
 
-                // 1. Registro
                 const response = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -296,7 +713,6 @@ window.onload = () => {
                 const data = await response.json();
 
                 if (response.ok) {
-                    // 2. Login Automático
                     const loginRes = await fetch('/api/auth/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -306,56 +722,51 @@ window.onload = () => {
                     const loginData = await loginRes.json();
                     localStorage.setItem('token', loginData.token);
 
-// 3. Pagamento OBRIGATÓRIO para todos os planos (ID 1, 2, 3 e 4)
-const pId = localStorage.getItem('plano_escolhido_id');
-const pValor = localStorage.getItem('plano_escolhido_valor');
+                    const pId = localStorage.getItem('plano_escolhido_id');
+                    const pValor = localStorage.getItem('plano_escolhido_valor');
 
-// Se houver um plano selecionado, o sistema DEVE gerar um link de pagamento
-if (pId && pValor) {
-    try {
-        const payRes = await fetch('/api/pagamentos/assinar-plano', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${loginData.token}` 
-            },
-            body: JSON.stringify({
-                planoId: pId,
-                nomePlano: localStorage.getItem('plano_escolhido_nome'),
-                valor: pValor,
-                cpfUsuario: payload.documento
-            })
-        });
+                    if (pId && pValor) {
+                        try {
+                            const payRes = await fetch('/api/pagamentos/assinar-plano', {
+                                method: 'POST',
+                                headers: { 
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${loginData.token}` 
+                                },
+                                body: JSON.stringify({
+                                    planoId: pId,
+                                    nomePlano: localStorage.getItem('plano_escolhido_nome'),
+                                    valor: pValor,
+                                    cpfUsuario: payload.documento
+                                })
+                            });
 
-        const payData = await payRes.json();
-        
-        if (payRes.ok && payData.url) {
-            // Limpa o plano para evitar loops, mas SÓ redireciona para o pagamento
-            localStorage.removeItem('plano_escolhido_id');
-            localStorage.removeItem('plano_escolhido_valor');
-            window.location.href = payData.url;
-            return; // Bloqueio total: o usuário não passa daqui sem o link
-        } else {
-            // Se falhar a geração do link, o sistema TRAVA e avisa o usuário
-            showError("Falha ao processar faturamento. Por favor, tente novamente ou contate o suporte.");
-            return;
-        }
-    } catch (payErr) {
-        console.error("Erro na API de pagamentos:", payErr);
-        showError("Sistema de pagamentos indisponível no momento.");
-        return;
-    }
-}
+                            const payData = await payRes.json();
+                            
+                            if (payRes.ok && payData.url) {
+                                localStorage.removeItem('plano_escolhido_id');
+                                localStorage.removeItem('plano_escolhido_valor');
+                                window.location.href = payData.url;
+                                return;
+                            } else {
+                                showError("Falha ao processar faturamento. Por favor, tente novamente ou contate o suporte.");
+                                return;
+                            }
+                        } catch (payErr) {
+                            console.error("Erro na API de pagamentos:", payErr);
+                            showError("Sistema de pagamentos indisponível no momento.");
+                            return;
+                        }
+                    }
 
-// O redirecionamento abaixo só acontece se NÃO houver plano nenhum (cadastro simples)
-window.location.href = '/dashboard';
+                    window.location.href = '/dashboard';
                 } else {
                     showError(data.erro || "Falha ao criar conta.");
                 }
             } catch (err) {
                 showError("Erro de conexão.");
             } finally {
-                btnSubmit.innerText = "Criar Conta e Continuar";
+                btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
                 btnSubmit.disabled = false;
             }
         });
@@ -363,40 +774,27 @@ window.location.href = '/dashboard';
         function showError(msg) {
             errorBox.innerText = msg;
             errorBox.style.display = 'block';
+            errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         function ajustarCamposDocumento(tipo) {
-    const label = document.getElementById('labelDocumento');
-    const input = document.getElementById('documento');
-    const groupNascimento = document.getElementById('groupNascimento');
+            const label = document.getElementById('labelDocumento');
+            const input = document.getElementById('documento');
+            const groupNascimento = document.getElementById('groupNascimento');
 
-    if (tipo === 'fisica') {
-        label.innerText = 'CPF (Para Faturamento)';
-        input.placeholder = '000.000.000-00';
-        groupNascimento.style.display = 'block';
-        // Reinicia a máscara para CPF
-        documentoMask.updateOptions({ mask: '000.000.000-00' });
-    } else {
-        label.innerText = 'CNPJ (Para Faturamento)';
-        input.placeholder = '00.000.000/0000-00';
-        groupNascimento.style.display = 'none';
-        document.getElementById('dataNascimento').value = ''; // Limpa para não enviar lixo
-        // Reinicia a máscara para CNPJ
-        documentoMask.updateOptions({ mask: '00.000.000/0000-00' });
-    }
-}
-
-// 2. Ajuste na definição da máscara (Substitua a linha do IMask antigo do documento por esta)
-const documentoMask = IMask(document.getElementById('documento'), { mask: '000.000.000-00' });
-
-// 3. No seu 'payload', adicione o novo campo
-const payload = {
-    // ... campos anteriores ...
-    documento: document.getElementById('documento').value,
-    dataNascimento: document.getElementById('dataNascimento').value, // Novo campo para o Asaas
-    tipoPessoa: document.getElementById('tipoPessoa').value,
-    // ... restante do payload ...
-};
+            if (tipo === 'fisica') {
+                label.innerText = 'CPF (Para Faturamento)';
+                input.placeholder = '000.000.000-00';
+                groupNascimento.style.display = 'block';
+                documentoMask.updateOptions({ mask: '000.000.000-00' });
+            } else {
+                label.innerText = 'CNPJ (Para Faturamento)';
+                input.placeholder = '00.000.000/0000-00';
+                groupNascimento.style.display = 'none';
+                document.getElementById('dataNascimento').value = '';
+                documentoMask.updateOptions({ mask: '00.000.000/0000-00' });
+            }
+        }
     </script>
 </body>
 </html>

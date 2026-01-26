@@ -16,7 +16,7 @@ async function listarPlanos(req, res) {
 }
 
 /* =========================
-   PLANO ATUAL (CORRIGIDO)
+   PLANO ATUAL
 ========================= */
 async function meuPlano(req, res) {
   try {
@@ -25,7 +25,7 @@ async function meuPlano(req, res) {
         p.id, 
         p.nome, 
         p.limite_prazos,
-        e.ciclo -- 🚀 AGORA BUSCAMOS O CICLO REAL AQUI
+        e.ciclo 
       FROM usuarios u
       JOIN escritorios e ON e.id = u.escritorio_id
       JOIN planos p ON p.id = e.plano_id
@@ -43,11 +43,8 @@ async function meuPlano(req, res) {
    UPGRADE DE PLANO
 ========================= */
 async function upgradePlano(req, res) {
-  // 🚀 AGORA RECEBEMOS O CICLO TAMBÉM
   const { planoId, ciclo } = req.body; 
   const escritorioId = req.user.escritorio_id;
-
-  // Define o intervalo de tempo baseado no ciclo
   const intervalo = (ciclo === 'anual') ? '1 year' : '1 month';
 
   try {
@@ -67,11 +64,10 @@ async function upgradePlano(req, res) {
 }
 
 /* =========================
-   PLANO + CONSUMO (LEITURA REAL)
+   PLANO + CONSUMO
 ========================= */
 async function planoEConsumo(req, res) {
   try {
-    // 🚀 BUSCAMOS O CICLO REAL DO BANCO AGORA
     const resultPlano = await pool.query(`
       SELECT 
         p.nome AS plano,
@@ -97,7 +93,7 @@ async function planoEConsumo(req, res) {
       plano: dadosBase.plano,
       limite_prazos: dadosBase.limite_prazos,
       prazos_usados: prazosUsados,
-      ciclo: dadosBase.ciclo || 'mensal', // LÊ DO BANCO, NÃO É MAIS FIXO
+      ciclo: dadosBase.ciclo || 'mensal',
       data_vencimento: dadosBase.data_vencimento
     });
 
@@ -107,4 +103,36 @@ async function planoEConsumo(req, res) {
   }
 }
 
-module.exports = { listarPlanos, meuPlano, upgradePlano, planoEConsumo };
+/* =========================
+   CANCELAR AGENDAMENTO (NOVO)
+========================= */
+async function cancelarAgendamento(req, res) {
+    try {
+        // Usamos req.user.id pois seu middleware de auth injeta em 'user'
+        const usuarioId = req.user.id; 
+
+        // 🚀 CORREÇÃO: Usando 'pool.query' em vez de 'db.query'
+        const resultado = await pool.query(
+            "UPDATE usuarios SET status_assinatura = 'cancelamento_pendente', renovacao_automatica = false WHERE id = $1",
+            [usuarioId]
+        );
+
+        if (resultado.rowCount > 0) {
+            return res.status(200).json({ ok: true, msg: "Cobrança futura cancelada com sucesso. Você ainda tem acesso até o fim do teste." });
+        } else {
+            return res.status(404).json({ error: "Usuário não encontrado." });
+        }
+    } catch (error) {
+        console.error("Erro ao cancelar agendamento:", error);
+        return res.status(500).json({ error: "Erro interno no servidor." });
+    }
+}
+
+// 🚀 EXPORTAÇÃO UNIFICADA (Para evitar o erro de 'planoController is not defined')
+module.exports = { 
+    listarPlanos, 
+    meuPlano, 
+    upgradePlano, 
+    planoEConsumo, 
+    cancelarAgendamento 
+};

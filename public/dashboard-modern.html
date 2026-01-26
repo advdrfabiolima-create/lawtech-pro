@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8" />
     <title>LawTech Pro — Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
         :root { 
@@ -319,149 +322,126 @@
         </header>
 
         <main class="content">
-            <!-- Alerta de pagamento/trial -->
-            <div id="alerta-pagamento" style="display:none; margin-bottom:32px; padding:16px; border-radius:var(--radius); align-items:center; gap:15px; border-left:6px solid;">
-                <i id="alerta-icone" class="lucide" style="width:24px; height:24px;"></i>
-                <div style="flex-grow:1;">
-                    <h4 id="alerta-titulo" style="margin:0; font-size:14px; font-weight:700;"></h4>
-                    <p id="alerta-msg" style="margin:5px 0 0; font-size:13px; opacity:0.9;"></p>
-                </div>
-                <button onclick="window.location.href='/planos-page'" class="btn-primary" style="padding:8px 16px; font-size:12px; white-space:nowrap;">
-                    Regularizar Agora
-                </button>
+    <div class="cards">
+        <div class="card" onclick="window.location.href='/prazos-page'" style="cursor:pointer; border-left:5px solid var(--danger);">
+            <small>Prazos Vencidos</small>
+            <h2 id="count-vencidos">0</h2>
+        </div>
+        <div class="card" onclick="window.location.href='/audiencias-page'" style="cursor:pointer; border-left:5px solid var(--primary);">
+            <small>Audiências</small>
+            <h2 id="totalAudiencias">0</h2>
+        </div>
+        <div class="card" style="border-left:5px solid var(--warning);">
+            <small>Prazos da Semana</small>
+            <h2 id="count-semana">0</h2>
+        </div>
+        <div class="card" onclick="window.location.href='/prazos-page'" style="cursor:pointer; border-left:5px solid var(--success);">
+            <small>Total de Prazos</small>
+            <h2 id="count-total-prazos">0</h2>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+        <div class="card" onclick="window.location.href='/calculos-page'" style="cursor:pointer; border-left:5px solid #8b5cf6;">
+            <p style="color:#64748b; font-size:11px; font-weight:700; text-transform:uppercase;">Ferramentas</p>
+            <h3 style="font-size:20px; margin:5px 0;">Cálculos</h3>
+            <p style="font-size:11px; color:#8b5cf6;">Atualização e Correção →</p>
+        </div>
+        <div class="card card-premium gold-glow" onclick="window.location.href='/ia-page'" style="cursor:pointer;">
+            <p style="color:#b45309; font-size:11px; font-weight:700; text-transform:uppercase;">Recurso Premium ✨</p>
+            <h3 style="font-size:20px; margin:5px 0;">Assistente IA</h3>
+            <p style="font-size:11px; color:#b45309; font-weight:600;">Consultar jurisprudência e teses →</p>
+        </div>
+    </div>
+
+    <div class="card" id="guia-crm" onclick="window.location.href='/crm-page'" style="cursor:pointer; margin-bottom:24px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+            <h3 style="font-size:16px; font-weight:700; color:var(--sidebar);">Gestão de Prospecção</h3>
+            <span style="background:var(--gold); color:#000; font-size:10px; font-weight:800; padding:4px 10px; border-radius:6px;">CRM</span>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:15px;">
+            <div style="background:#f8fafc; padding:15px; border-radius:12px; border-bottom:3px solid #94a3b8;">
+                <small style="color:var(--muted); font-weight:700; font-size:10px;">NOVOS LEADS</small>
+                <span id="crm-leads-count" style="font-size:24px; font-weight:800;">0</span>
             </div>
-
-            <!-- Cards principais (prazos) -->
-            <div class="cards">
-                <div class="card" style="border-left:5px solid var(--danger);">
-                    <small>Prazos Vencidos</small>
-                    <h2 id="count-vencidos">0</h2>
-                </div>
-
-                <div class="card" style="border-left:5px solid var(--primary);">
-                    <small>Audiências</small>
-                    <h2 id="totalAudiencias">0</h2>
-                </div>
-
-                <div class="card" style="border-left:5px solid var(--warning);">
-                    <small>Prazos da Semana</small>
-                    <h2 id="count-semana">0</h2>
-                </div>
-
-                <div class="card" style="border-left:5px solid var(--success);">
-                    <small>Total de Prazos</small>
-                    <h2 id="count-total-prazos">0</h2>
-                </div>
+            <div style="background:#f8fafc; padding:15px; border-radius:12px; border-bottom:3px solid #f59e0b;">
+                <small style="color:var(--muted); font-weight:700; font-size:10px;">EM TRIAGEM</small>
+                <span id="crm-reuniao-count" style="font-size:24px; font-weight:800;">0</span>
             </div>
-
-            <!-- Ferramentas Premium -->
-            <div class="cards">
-                <div class="card" onclick="window.location.href='/calculos-page'" style="cursor:pointer; border-left:5px solid #8b5cf6;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <p style="color:#64748b; font-size:11px; font-weight:700; text-transform:uppercase;">Ferramentas</p>
-                            <h3 style="font-size:20px; margin:5px 0;">Cálculos</h3>
-                        </div>
-                        <i class="lucide lucide-calculator" style="color:#8b5cf6; opacity:0.2;"></i>
-                    </div>
-                    <p style="font-size:11px; color:#8b5cf6; margin-top:10px;">Atualização e Correção →</p>
-                </div>
-
-                <div class="card card-premium gold-glow" onclick="window.location.href='/ia-page'" style="cursor:pointer;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <p style="color:#b45309; font-size:11px; font-weight:700; text-transform:uppercase;">Recurso Premium ✨</p>
-                            <h3 style="font-size:20px; margin:5px 0;">Assistente IA</h3>
-                        </div>
-                        <i class="lucide lucide-sparkles" style="color:var(--gold); opacity:0.5;"></i>
-                    </div>
-                    <p style="font-size:11px; color:#b45309; margin-top:10px; font-weight:600;">Consultar jurisprudência e teses →</p>
-                </div>
+            <div style="background:#f8fafc; padding:15px; border-radius:12px; border-bottom:3px solid var(--primary);">
+                <small style="color:var(--muted); font-weight:700; font-size:10px;">PROPOSTAS</small>
+                <span id="crm-proposta-count" style="font-size:24px; font-weight:800;">0</span>
             </div>
-
-            <!-- Link de Captação Premium -->
-            <div id="premiumLinkCard" class="card card-premium gold-glow" style="display:none; margin-bottom:32px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <small style="color:#b45309;">Seu Formulário de Captação está On-line ✨</small>
-                        <h3 style="font-size:16px; margin:5px 0;">Link Exclusivo para Clientes</h3>
-                        <div style="display:flex; gap:10px; margin-top:10px;">
-                            <input type="text" id="linkCaptura" readonly 
-                                   style="background:#fffbeb; border:1px dashed var(--gold); padding:8px; border-radius:6px; font-size:12px; width:300px; color:#856404;"/>
-                            <button onclick="copiarLink()" class="btn-primary" style="padding:8px 15px; font-size:12px; background:var(--gold); color:#856404;">
-                                <i class="lucide lucide-copy"></i> Copiar
-                            </button>
-                        </div>
-                    </div>
-                    <i class="lucide lucide-megaphone" style="color:var(--gold); opacity:0.5; width:40px; height:40px;"></i>
-                </div>
+            <div style="background:#f0fdf4; padding:15px; border-radius:12px; border-bottom:3px solid #10b981;">
+                <small style="color:#166534; font-weight:700; font-size:10px;">GANHOS</small>
+                <span id="crm-ganho-count" style="font-size:24px; font-weight:800; color:#166534;">0</span>
             </div>
+        </div>
+    </div>
 
-            <!-- Gestão de Prospecção (CRM) - Sincronizado -->
-            <div class="card" style="margin-bottom:32px; border:1px solid var(--border); border-radius:var(--radius); background:var(--white); padding:24px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h3 style="font-size:16px; font-weight:700; color:var(--sidebar); display:flex; align-items:center; gap:8px;">
-                        <i class="lucide lucide-bar-chart-3" style="width:20px; color:var(--primary);"></i>
-                        Gestão de Prospecção (CRM)
-                    </h3>
-                    <button onclick="window.location.href='/crm-page'" style="font-size:12px; color:var(--primary); background:none; border:none; cursor:pointer; font-weight:600; text-decoration:underline;">
-                        Acessar Pipeline Completo
-                    </button>
-                </div>
-                
-                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:15px;">
-                    <div style="background:#f8fafc; padding:15px; border-radius:12px; border-bottom:3px solid #94a3b8;">
-                        <small style="color:var(--muted); font-weight:700; text-transform:uppercase; font-size:10px; display:block; margin-bottom:5px;">Novos Leads</small>
-                        <span id="crm-leads-count" style="font-size:24px; font-weight:800; color:var(--sidebar);">0</span>
-                    </div>
-                    <div style="background:#f8fafc; padding:15px; border-radius:12px; border-bottom:3px solid #f59e0b;">
-                        <small style="color:var(--muted); font-weight:700; text-transform:uppercase; font-size:10px; display:block; margin-bottom:5px;">Em Triagem</small>
-                        <span id="crm-reuniao-count" style="font-size:24px; font-weight:800; color:var(--sidebar);">0</span>
-                    </div>
-                    <div style="background:#f8fafc; padding:15px; border-radius:12px; border-bottom:3px solid var(--primary);">
-                        <small style="color:var(--muted); font-weight:700; text-transform:uppercase; font-size:10px; display:block; margin-bottom:5px;">Propostas</small>
-                        <span id="crm-proposta-count" style="font-size:24px; font-weight:800; color:var(--sidebar);">0</span>
-                    </div>
-                    <div style="background:#f0fdf4; padding:15px; border-radius:12px; border-bottom:3px solid #10b981;">
-                        <small style="color:#166534; font-weight:700; text-transform:uppercase; font-size:10px; display:block; margin-bottom:5px;">Ganhos</small>
-                        <span id="crm-ganho-count" style="font-size:24px; font-weight:800; color:#166534;">0</span>
-                    </div>
-                </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+        <div id="premiumLinkCard" class="card card-premium" style="border-bottom: 4px solid var(--gold);">
+            <small style="color:#b45309; font-weight:700;">SEU FORMULÁRIO DE CAPTAÇÃO ESTÁ ON-LINE ✨</small>
+            <h3 style="font-size:16px; margin:5px 0;">Link Exclusivo para Clientes</h3>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <input type="text" id="linkCaptura" readonly style="flex:1; background:#fffbeb; border:1px dashed var(--gold); padding:8px; border-radius:6px; font-size:11px;"/>
+                <button onclick="copiarLink()" class="btn-primary" style="background:var(--gold); color:#000; padding:8px 15px; font-size:12px; border:none;">Copiar</button>
             </div>
+        </div>
 
-            <!-- Prazos Próximos -->
-            <div class="section">
-                <h3>📅 Prazos Próximos</h3>
-                <div id="lista-prazos"></div>
-            </div>
+<div class="card" style="border-bottom: 4px solid var(--success);">
+    <h3 style="color:#10b981; font-size:18px; font-weight:700;">O que você quer pesquisar agora?</h3>
+    <p style="font-size:11px; color:var(--muted); margin-bottom:10px;">Busque por jurisprudência, doutrina, modelos e legislação.</p>
+    
+    <div style="display:flex; gap:5px; background:#f1f5f9; padding:8px; border-radius:12px; align-items: center;">
+    <select id="tipoPesquisa" style="border:none; background:transparent; font-size:13px; font-weight:600; color:var(--text-main); outline:none; cursor:pointer; padding: 0 10px;">            
+        <option value="jusbrasil">Jusbrasil</option>
+        <option value="tjba">Jurisprudência TJBA</option>
+        <option value="stj">Jurisprudência STJ</option>
+        <option value="tst">Jurisprudência TST</option>
+        <option value="google">Google Jurídico</option>
+    </select>
+    
+    <div style="width: 1px; height: 20px; background: #cbd5e1; margin: 0 5px;"></div>
 
-            <!-- Status da Assinatura -->
-            <div class="section plan-status-card">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div>
-                        <h3 style="margin-bottom:5px; font-size:16px;">💎 Status da Assinatura</h3>
-                        <p style="margin:0; font-size:14px; color:var(--muted);">Plano atual: <span id="planoAtual" style="color:var(--primary); font-weight:700;">...</span></p>
-                    </div>
-                    <div id="premiumWelcome" class="premium-badge" style="display:none;">
-                        <i class="lucide lucide-crown" style="width:18px; height:18px;"></i>
-                        <span>Membro Elite Premium</span>
-                    </div>
-                </div>
-                <div style="margin-top:25px;">
-                    <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600; margin-bottom:8px;">
-                        <span style="color:var(--muted);">CONSUMO DO LIMITE</span>
-                        <span id="percentualTexto" style="color:var(--primary);">0%</span>
-                    </div>
-                    <div class="progress"><div id="progressBar" style="width:0%"></div></div>
-                    <p style="font-size:11px; color:var(--muted); margin-top:5px;">
-                        Você utilizou <span id="textoConsumoNumerico" style="font-weight:700; color:var(--text-main);">...</span>.
-                    </p>
-                </div>
-                <button id="btnUpgrade" class="btn-primary" onclick="window.location.href='/planos-page'" style="margin-top:20px; width:100%; display:none;">
-                    🚀 Elevar meu Escritório
-                </button>
+    <input type="text" id="termoPesquisa" placeholder="Digite os termos da busca..." 
+           style="flex:1; border:none; background:transparent; outline:none; font-size:13px; padding: 5px;"
+           onkeypress="if(event.key === 'Enter') executarBusca()">
+    
+    <button onclick="executarBusca()" style="background:var(--success); color:white; border:none; width: 45px; height: 38px; border-radius:8px; cursor:pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+    <i data-lucide="search" style="color: white !important;"></i>
+</button>
+</div>
+</div>
+    </div>
+
+    <div class="section" id="guia-prazos">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 style="font-size:16px; font-weight:700;"><i class="lucide lucide-calendar-days" style="color:var(--primary);"></i> Prazos Próximos</h3>
+            <a href="/prazos-page" style="font-size:12px; color:var(--primary); font-weight:600;">Ver Agenda Completa</a>
+        </div>
+        <div id="lista-prazos"></div>
+    </div>
+
+    <div class="section plan-status-card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+                <h3 style="font-size:16px;">💎 Status da Assinatura</h3>
+                <p style="font-size:14px; color:var(--muted);">Plano atual: <span id="planoAtual" style="color:var(--primary); font-weight:700;">...</span></p>
             </div>
-        </main>
+            <div id="premiumWelcome" class="premium-badge" style="display:none; background:var(--gold); color:#000;">
+                <i class="lucide lucide-crown" style="width:18px;"></i> Membro Elite Premium
+            </div>
+        </div>
+        <div style="margin-top:20px;">
+            <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600;">
+                <span>CONSUMO DO LIMITE</span>
+                <span id="percentualTexto" style="color:var(--primary);">0%</span>
+            </div>
+            <div class="progress"><div id="progressBar" style="width:0%"></div></div>
+        </div>
+    </div>
+</main>
     </div>
 
     <script>
@@ -675,6 +655,7 @@ async function inicializarDashboard() {
     } catch (err) { 
         console.error("Erro ao carregar Dashboard:", err); 
     }
+    if (window.lucide) lucide.createIcons();
 }
 
         // CRM Metrics - CORRIGIDO E ATUALIZADO
@@ -720,6 +701,45 @@ async function checarNovosLeads() {
             navigator.clipboard.writeText(el.value);
             alert("✅ Link de atendimento copiado!");
         }
+
+function executarBusca() {
+    const termo = document.getElementById('termoPesquisa').value.trim();
+    const tipo = document.getElementById('tipoPesquisa').value;
+
+    if (!termo) {
+        alert("Doutor, por favor, digite o termo da busca.");
+        return;
+    }
+
+    let url = "";
+    const termoEncoded = encodeURIComponent(termo);
+
+    switch (tipo) {
+        case "tjba":
+            // 🚀 URL Corrigida para o Portal de Jurisprudência da Bahia
+            url = `https://jurisprudencia.tjba.jus.br/busca?q=${termoEncoded}`;
+            break;
+        case "jusbrasil":
+            url = `https://www.jusbrasil.com.br/busca?q=${termoEncoded}`;
+            break;
+        case "stj":
+            url = `https://scon.stj.jus.br/SCON/pesquisar.jsp?livre=${termoEncoded}`;
+            break;
+        case "tst":
+            url = `https://jurisprudencia.tst.jus.br/?termo=${termoEncoded}`;
+            break;
+        case "google":
+            url = `https://www.google.com/search?q=${termoEncoded}+site:jus.br+OR+site:gov.br`;
+            break;
+        default:
+            url = `https://www.google.com/search?q=${termoEncoded}`;
+    }
+
+    window.open(url, '_blank');
+    
+    // Garante que a lupa continue visível após a interação
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
 
         function limparBolinha() {
             document.getElementById('dotNotificacao').style.display = 'none';
@@ -831,17 +851,68 @@ async function checarNovosLeads() {
 
         // Inicialização e atualizações periódicas
         window.addEventListener('DOMContentLoaded', () => {
-            checarNovosLeads(); // CRM imediato
-            setInterval(checarNovosLeads, 30000); // Atualiza a cada 30s
-            fetch('/api/audiencias', { headers: { Authorization: `Bearer ${token}` } })
-                .then(res => res.json())
-                .then(dados => { 
-                    if (document.getElementById('totalAudiencias')) 
-                        document.getElementById('totalAudiencias').innerText = dados.length; 
-                });
+    checarNovosLeads(); 
+    setInterval(checarNovosLeads, 30000); 
+    
+    fetch('/api/audiencias', { headers: { Authorization: `Bearer ${token}` } })
+        .then(res => res.json())
+        .then(dados => { 
+            if (document.getElementById('totalAudiencias')) 
+                document.getElementById('totalAudiencias').innerText = dados.length; 
         });
-    </script>
 
+    // 🚀 COMANDO DE OURO: Renderiza a lupa especificamente
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+});
+    </script>
+<script>
+function iniciarTour() {
+    const driver = window.driver.js.driver;
+    const driverObj = driver({
+        showProgress: true,
+        nextBtnText: 'Próximo —>',
+        prevBtnText: '<— Voltar',
+        doneBtnText: 'Entendi!',
+        steps: [
+            { 
+                element: '.sidebar', 
+                popover: { title: 'Menu Lateral', description: 'Aqui você acessa todas as ferramentas do seu escritório.', side: "right", align: 'start' } 
+            },
+            { 
+                element: '#tipoPesquisa', 
+                popover: { title: 'Pesquisa Jurídica', description: 'Escolha o tribunal e pesquise jurisprudência sem sair do Dashboard.', side: "bottom", align: 'start' } 
+            },
+            { 
+                element: '#guia-crm', 
+                popover: { title: 'Gestão de Prospecção', description: 'Acompanhe seus leads e novos contratos de forma organizada.', side: "top", align: 'center' } 
+            },
+            { 
+                element: '#guia-prazos', 
+                popover: { title: '🚨 Alerta de Prazos', description: 'Este é o coração da sua segurança. O sistema monitora e avisa sobre prazos fatais aqui.', side: "top", align: 'center' } 
+            }
+        ]
+    });
+
+    driverObj.drive();
+}
+
+// Inicia o tour 2 segundos após a página carregar
+window.addEventListener('load', () => {
+    // 🔍 Checa se a marca 'tour_concluido' já existe na memória
+    const tourJaVisto = localStorage.getItem('tour_concluido');
+
+    if (!tourJaVisto) {
+        // Se NÃO viu, espera 2 segundos e inicia
+        setTimeout(() => {
+            iniciarTour();
+            // ✅ Marca na memória que ele já viu, para não repetir no próximo login
+            localStorage.setItem('tour_concluido', 'true');
+        }, 2000);
+    }
+});
+</script>
     <audio id="notificacaoSom" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
 </body>
 </html>

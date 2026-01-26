@@ -1,230 +1,582 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>LawTech Pro — Login</title>
-    <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+    <title>LawTech Pro — Acesso ao Sistema</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
-    
     <style>
-        :root {
-            --primary: #2563eb;
-            --dark: #0f172a;
-            --text-main: #1e293b;
-            --muted: #64748b;
-            --white: #ffffff;
-            --radius: 12px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
-        body { background: var(--white); height: 100vh; display: flex; overflow: hidden; }
+        :root {
+            --primary: #1e3a8a;
+            --primary-dark: #1e293b;
+            --accent: #d4af37;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --bg-light: #f8fafc;
+            --white: #ffffff;
+            --error: #dc2626;
+            --success: #059669;
+        }
 
-        .marketing-side {
-            flex: 1.2;
-            background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%);
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-light);
+            min-height: 100vh;
+            display: flex;
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* BRANDING SIDE */
+        .branding-side {
+            flex: 1;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            padding: 60px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .branding-side::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(45deg, transparent 48%, rgba(212, 175, 55, 0.03) 49%, rgba(212, 175, 55, 0.03) 51%, transparent 52%),
+                linear-gradient(-45deg, transparent 48%, rgba(212, 175, 55, 0.03) 49%, rgba(212, 175, 55, 0.03) 51%, transparent 52%);
+            background-size: 60px 60px;
+            opacity: 0.3;
+        }
+
+        .brand-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 60px;
+        }
+
+        .logo-img {
+            max-width: 380px;
+            height: auto;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+        }
+
+        .brand-title {
             color: var(--white);
+            font-size: 42px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-title .highlight {
+            color: #3b82f6;
+        }
+
+        .brand-subtitle {
+            color: #cbd5e1;
+            font-size: 18px;
+            line-height: 1.7;
+            max-width: 520px;
+            margin: 0 auto 40px;
+        }
+
+        .brand-features {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            color: #e2e8f0;
+            font-size: 15px;
+        }
+
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(212, 175, 55, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .feature-icon svg {
+            width: 14px;
+            height: 14px;
+            stroke: var(--accent);
+            stroke-width: 2.5;
+            fill: none;
+        }
+
+        .brand-footer {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+            color: #64748b;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        /* LOGIN SIDE */
+        .login-side {
+            flex: 1;
+            padding: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--white);
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .login-header {
+            margin-bottom: 40px;
+        }
+
+        .login-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .login-header p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
             position: relative;
         }
 
-        input.input-error {
-            border-color: #ef4444 !important;
-            background-color: #fef2f2;
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
         }
 
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-4px); }
-          75% { transform: translateX(4px); }
+        .input-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
         }
 
-        .shake { animation: shake 0.2s ease-in-out 0s 2; }
-
-        .marketing-content { position: relative; z-index: 1; text-align: center; max-width: 500px; }
-        .marketing-content h1 { font-size: 42px; font-weight: 800; line-height: 1.1; margin-bottom: 24px; }
-        .marketing-content p { font-size: 18px; color: #cbd5e1; margin-bottom: 40px; line-height: 1.6; }
-        .logo-main { width: 220px; margin-bottom: 50px; }
-
-        .login-side { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; background-color: #f8fafc; }
-
-        .login-card {
-            width: 100%; max-width: 400px; background: var(--white);
-            padding: 40px; border-radius: var(--radius);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+        .form-input {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: var(--white);
+            color: var(--text-dark);
         }
 
-        .login-header { text-align: center; margin-bottom: 32px; }
-        .login-header h2 { font-size: 24px; font-weight: 700; color: var(--dark); }
-
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
-        
-        .input-wrapper { position: relative; display: flex; align-items: center; }
-        .input-wrapper i { position: absolute; left: 16px; color: var(--muted); font-size: 18px; }
-        
-        input {
-            width: 100%; padding: 14px 16px 14px 48px;
-            border: 1px solid #e2e8f0; border-radius: 8px;
-            font-size: 15px; outline: none; transition: 0.2s;
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
         }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
 
-        .btn-login {
-            width: 100%; padding: 14px; background: var(--primary);
-            color: var(--white); border: none; border-radius: 8px;
-            font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s;
+        .form-input::placeholder {
+            color: #94a3b8;
         }
-        .btn-login:hover { background: #1d4ed8; transform: translateY(-1px); }
 
-        @media (max-width: 992px) { .marketing-side { display: none; } }
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            font-size: 14px;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .checkbox-wrapper label {
+            color: var(--text-dark);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .forgot-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .forgot-link:hover {
+            color: var(--primary-dark);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(30, 58, 138, 0.25);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 32px 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .divider span {
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .signup-prompt {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .signup-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .signup-link:hover {
+            color: var(--primary-dark);
+        }
+
+        .security-notice {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-top: 32px;
+            padding: 16px;
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            border-radius: 8px;
+        }
+
+        .security-icon {
+            flex-shrink: 0;
+            color: var(--success);
+            margin-top: 2px;
+        }
+
+        .security-icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .security-text {
+            font-size: 13px;
+            color: #166534;
+            line-height: 1.5;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .branding-side {
+                display: none;
+            }
+
+            .login-side {
+                flex: 1;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .login-side {
+                padding: 32px 24px;
+            }
+
+            .login-header h1 {
+                font-size: 28px;
+            }
+
+            .brand-title {
+                font-size: 36px;
+            }
+
+            .form-options {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="container">
+        <!-- BRANDING SIDE -->
+        <aside class="branding-side">
+            <div class="brand-content">
+                <div class="logo">
+                    <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro" class="logo-img">
+                </div>
 
-    <section class="marketing-side">
-        <div class="marketing-content">
-            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro" class="logo-main">
-            <h1>Sua advocacia em um novo patamar.</h1>
-            <p>Gestão de prazos, processos e finanças com a inteligência que o seu escritório merece.</p>
-        </div>
-    </section>
+                <h2 class="brand-title">Sua advocacia em um <span class="highlight">novo patamar</span></h2>
+                <p class="brand-subtitle">Gestão de prazos, processos e finanças com a inteligência que o seu escritório merece.</p>
 
-    <main class="login-side">
-        <div class="login-card">
-            <div class="login-header">
-                <h2>Bem-vindo</h2>
-                <p style="color: var(--muted); font-size: 14px;">Acesse sua conta para continuar</p>
-            </div>
-
-            <div class="form-group">
-                <label>E-mail</label>
-                <div class="input-wrapper">
-                    <i class="lucide lucide-mail"></i>
-                    <input type="email" id="email" placeholder="nome@exemplo.com">
+                <div class="brand-features">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <span>Gestão completa de processos e prazos processuais</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <span>Controle financeiro integrado e relatórios avançados</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <span>Segurança de dados com criptografia de nível empresarial</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>Senha</label>
-                <div class="input-wrapper">
-                    <i class="lucide lucide-lock"></i>
-                    <input type="password" id="senha" placeholder="••••••••">
+            <div class="brand-footer">
+                © 2026 LawTech Pro Systems. Todos os direitos reservados.
+            </div>
+        </aside>
+
+        <!-- LOGIN SIDE -->
+        <main class="login-side">
+            <div class="login-container">
+                <div class="login-header">
+                    <h1>Bem-vindo de volta</h1>
+                    <p>Acesse sua conta para continuar</p>
                 </div>
-            </div>
 
-            <button class="btn-login" onclick="login()">Entrar no Sistema</button>
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label class="form-label" for="email">E-mail profissional</label>
+                        <div class="input-wrapper">
+                            <div class="input-icon">
+                                <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                            </div>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                class="form-input" 
+                                placeholder="seu.email@escritorio.com.br"
+                                required
+                                autocomplete="email"
+                            >
+                        </div>
+                    </div>
 
-            <div style="text-align: center; margin: 20px 0;">
-                <a href="/recuperar-senha" style="color: var(--primary); text-decoration: none; font-size: 13px; font-weight: 700; text-transform: uppercase;">Esqueceu sua senha?</a>
-            </div>
+                    <div class="form-group">
+                        <label class="form-label" for="password">Senha</label>
+                        <div class="input-wrapper">
+                            <div class="input-icon">
+                                <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                            </div>
+                            <input 
+                                type="password" 
+                                id="senha" 
+                                class="form-input" 
+                                placeholder="••••••••"
+                                required
+                                autocomplete="current-password"
+                            >
+                        </div>
+                    </div>
 
-            <div id="erro" style="color: #ef4444; font-size: 13px; font-weight: 600; margin-bottom: 10px; min-height: 40px; text-align: center;"></div>
+                    <div class="form-options">
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="remember" name="remember">
+                            <label for="remember">Manter conectado</label>
+                        </div>
+                        <a href="/recuperar-senha" class="forgot-link">Esqueceu a senha?</a>
+                    </div>
 
-            <div class="footer-legal" style="text-align: center; border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px;">
-                <p style="font-size: 11px; color: var(--muted); line-height: 1.4;">
+                    <button type="submit" class="btn-primary">Entrar no sistema</button>
+                </form>
+
+                <div class="divider">
+                    <span>Novo por aqui?</span>
+                </div>
+
+                <p class="signup-prompt">
+                    <a href="index.html" class="signup-link">Solicitar acesso ao LawTech Pro →</a>
+                </p>
+
+                <div class="security-notice">
+                    <div class="security-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    </div>
+                    <p class="security-text">
+                        <strong>Seus dados estão protegidos.</strong> Utilizamos criptografia de nível bancário e conformidade com a LGPD para garantir a segurança das informações do seu escritório.
+                    </p>
+                </div>
+
+                <div style="text-align: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b;">
                     Ao entrar você concorda com os 
                     <a href="/termos" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 600;">Termos de Uso</a> e a 
-                    <a href="/privacidade" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 600;">Política de Privacidade</a> da LawTech Pro.
-                </p>
+                    <a href="/privacidade" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 600;">Política de Privacidade</a>.
+                </div>
             </div>
-            <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #94a3b8;">
-                © copyright 2026 - LawTech Pro Systems
-            </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
-<script src="https://unpkg.com/lucide@latest"></script>
-<script>
-    lucide.createIcons();
-
-    function validarCampo(input) {
-        if (input.value.trim() === "") {
-            input.classList.add('input-error');
-            input.classList.add('shake');
-            setTimeout(() => input.classList.remove('shake'), 200);
-        } else {
-            input.classList.remove('input-error');
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const emailInput = document.getElementById('email');
-        const senhaInput = document.getElementById('senha');
-
-        emailInput.addEventListener('blur', () => validarCampo(emailInput));
-        senhaInput.addEventListener('blur', () => validarCampo(senhaInput));
-
-        emailInput.addEventListener('input', () => emailInput.classList.remove('input-error'));
-        senhaInput.addEventListener('input', () => senhaInput.classList.remove('input-error'));
-    });
-
-async function login() {
-        const email = document.getElementById('email').value;
-        const senha = document.getElementById('senha').value;
-        const btn = document.querySelector('.btn-login');
-        const erroDiv = document.getElementById('erro');
-
-        erroDiv.innerText = '';
-
-        if (!email || !senha) {
-            erroDiv.innerText = 'Preencha todos os campos';
-            return;
-        }
-
-        try {
-            btn.innerText = 'Autenticando...';
-            btn.disabled = true;
-
-            const res = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, senha })
-            });
-
-            const data = await res.json();
-
-            // 1. TRATAMENTO DE SUCESSO
-            if (res.ok) {
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('usuario', JSON.stringify(data.usuario));
-                window.location.href = '/dashboard-modern.html';
-                return; // Encerra aqui se deu certo
-            } 
+    <script>
+        async function handleLogin(event) {
+            event.preventDefault();
             
-            // 2. 🛡️ BLOQUEIO DE TRIAL EXPIRADO (ERRO 402)
-            if (res.status === 402) {
-                erroDiv.innerHTML = `
-                    <div style="background: #fef2f2; border: 1px solid #fee2e2; padding: 12px; border-radius: 8px; margin-top: 10px;">
-                        <strong style="color: #991b1b; display: block; margin-bottom: 4px;">💳 Acesso Bloqueado</strong>
-                        <span style="color: #b91c1c; font-size: 12px;">${data.detalhe || 'Seu período de teste expirou.'}</span>
-                    </div>
-                `;
-                btn.innerText = 'Entrar no Sistema';
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('senha').value;
+            const btn = event.target.querySelector('.btn-primary');
+
+            if (!email || !password) {
+                alert('Preencha todos os campos');
+                return;
+            }
+
+            try {
+                btn.innerText = 'Autenticando...';
+                btn.disabled = true;
+
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha: password })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('usuario', JSON.stringify(data.usuario));
+                    window.location.href = '/dashboard-modern.html';
+                    return;
+                } 
+                
+                if (res.status === 402) {
+                    alert(`🔒 Acesso Bloqueado: ${data.detalhe || 'Seu período de teste expirou.'}`);
+                    btn.innerText = 'Entrar no sistema';
+                    btn.disabled = false;
+                    return;
+                } 
+
+                alert(data.erro || 'E-mail ou senha incorretos');
+                btn.innerText = 'Entrar no sistema';
                 btn.disabled = false;
-                return; // ✋ MUITO IMPORTANTE: Para o código aqui e impede a entrada!
-            } 
 
-            // 3. OUTROS ERROS (SENHA ERRADA, ETC)
-            erroDiv.innerText = data.erro || 'E-mail ou senha incorretos';
-            btn.innerText = 'Entrar no Sistema';
-            btn.disabled = false;
-
-        } catch (err) {
-            console.error("Erro na requisição:", err);
-            erroDiv.innerText = 'Erro de conexão com o servidor';
-            btn.innerText = 'Entrar no Sistema';
-            btn.disabled = false;
+            } catch (err) {
+                console.error("Erro na requisição:", err);
+                alert('Erro de conexão com o servidor');
+                btn.innerText = 'Entrar no sistema';
+                btn.disabled = false;
+            }
         }
-    }
-
-    document.addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
-</script>
+    </script>
 </body>
 </html>
