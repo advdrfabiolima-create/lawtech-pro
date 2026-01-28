@@ -183,7 +183,7 @@ router.get('/publicacoes/fetch-all',
 
                 try {
                     const result = await pool.query(
-                        `INSERT INTO publicacoes_djen 
+                        `INSERT INTO publicacoes 
                          (numero_processo, conteudo, data_publicacao, tribunal, escritorio_id, status) 
                          VALUES ($1, $2, $3, $4, $5, 'pendente') 
                          ON CONFLICT (numero_processo, data_publicacao, escritorio_id) DO NOTHING
@@ -257,7 +257,7 @@ router.get('/publicacoes-pendentes', authMiddleware, async (req, res) => {
                 data_publicacao, 
                 tribunal, 
                 status
-            FROM publicacoes_djen 
+            FROM publicacoes 
             WHERE escritorio_id = $1 
             AND status = 'pendente' 
             ORDER BY data_publicacao DESC
@@ -287,7 +287,7 @@ router.post('/converter-publicacao', authMiddleware, async (req, res) => {
 
     try {
         const pubRes = await pool.query(
-            'SELECT * FROM publicacoes_djen WHERE id = $1 AND escritorio_id = $2',
+            'SELECT * FROM publicacoes WHERE id = $1 AND escritorio_id = $2',
             [id_publicacao, escritorioId]
         );
 
@@ -333,7 +333,7 @@ router.post('/converter-publicacao', authMiddleware, async (req, res) => {
         );
 
         await pool.query(
-            "UPDATE publicacoes_djen SET status = 'convertida' WHERE id = $1",
+            "UPDATE publicacoes SET status = 'convertida' WHERE id = $1",
             [id_publicacao]
         );
 
@@ -367,7 +367,7 @@ router.post('/publicacoes/manual', authMiddleware, async (req, res) => {
         }
 
         const result = await pool.query(
-            `INSERT INTO publicacoes_djen 
+            `INSERT INTO publicacoes 
              (numero_processo, conteudo, data_publicacao, tribunal, escritorio_id, status) 
              VALUES ($1, $2, $3, $4, $5, 'pendente')
              RETURNING *`,

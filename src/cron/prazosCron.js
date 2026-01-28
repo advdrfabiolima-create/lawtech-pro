@@ -75,25 +75,29 @@ cron.schedule('0 0 * * *', async () => {  // Todo dia à meia-noite
 
             const itens = cardsRes.data.items || [];
 
-            for (const item of itens) {
-                // Regex para extrair processo CNJ do texto
-                const regexProcesso = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/;
-                const match = item.conteudo.match(regexProcesso);
-                const numeroProcesso = match ? match[0] : "Verificar no texto";
+    // Substitua o loop for atual por este para maior segurança
+    for (const item of itens) {
+    const regexProcesso = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/;
+    const match = item.conteudo.match(regexProcesso);
+    const numeroProcesso = match ? match[0] : "Verificar no texto";
 
-                // SALVA NA TABELA 'publicacoes_djen'
-                await pool.query(`
-                    INSERT INTO publicacoes_djen (numero_processo, conteudo, data_publicacao, tribunal, escritorio_id, status)
-                    VALUES ($1, $2, $3, $4, $5, 'pendente')
-                    ON CONFLICT (numero_processo, data_publicacao) DO NOTHING
-                `, [
-                    numeroProcesso, 
-                    item.conteudo, 
-                    item.data_publicacao, 
-                    item.diario ? item.diario.sigla : 'DJEN', 
-                    esc.id
-                ]);
-            }
+    // Usamos a View que criamos para garantir compatibilidade
+    const query = `
+        INSERT INTO publicacoes (numero_processo, conteudo, data_publicacao, tribunal, escritorio_id, status)
+        VALUES ($1, $2, $3, $4, $5, 'pendente')
+        ON CONFLICT DO NOTHING
+    `;
+    
+    const values = [
+        numeroProcesso, 
+        item.conteudo, 
+        item.data_publicacao || new Date(), // Evita erro se a data vier nula
+        item.diario ? item.diario.sigla : 'DJEN', 
+        esc.id
+    ];
+
+    await pool.query(query, values);
+}
 
             console.log(`✅ Cron Escavador finalizado: ${itens.length} cards processados.`);
 
