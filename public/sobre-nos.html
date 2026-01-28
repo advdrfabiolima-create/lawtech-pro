@@ -3,10 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sobre Nós | LawTech Pro</title>
+    <title>Sobre Nós — LawTech Pro | Nossa História e Propósito</title>
+    <meta name="description" content="Conheça a história do LawTech Pro: nascido da experiência real de um advogado que transformou suas dores em solução para toda a advocacia brasileira.">
     <link rel="icon" type="image/png" href="favicon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #2563eb;
+            --primary-dark: #1e293b;
+            --accent: #f59e0b;
+            --gold: #d4af37;
+            --dark: #0f172a;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --white: #ffffff;
+            --success: #10b981;
+            --radius: 12px;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,180 +38,1086 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--gray-900);
+            background: var(--white);
+            -webkit-font-smoothing: antialiased;
         }
 
         .container {
-            max-width: 700px;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* NAVEGAÇÃO */
+        nav {
+            position: fixed;
+            top: 0;
             width: 100%;
-            background: white;
-            border-radius: 24px;
-            padding: 60px 40px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: fadeInUp 0.6s ease;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 24px;
         }
 
-        .icon {
-            font-size: 80px;
-            margin-bottom: 20px;
-            animation: bounce 2s ease-in-out infinite;
+        .logo img {
+            height: 42px;
+            width: auto;
         }
 
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            align-items: center;
         }
 
-        h1 {
-            font-size: 42px;
-            font-weight: 800;
-            color: #1e293b;
-            margin-bottom: 20px;
-            line-height: 1.2;
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.3s;
+            position: relative;
         }
 
-        p {
-            font-size: 18px;
-            color: #475569;
-            margin-bottom: 15px;
-            line-height: 1.6;
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.3s;
         }
 
-        .highlight {
+        .nav-links a:hover {
+            color: var(--white);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 13px 32px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-block;
+            font-size: 15px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-login {
+            color: var(--white);
+            background: transparent;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .btn-login:hover {
+            border-color: rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .btn-primary {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: var(--white);
+            box-shadow: 0 4px 20px rgba(59,130,246,0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(59,130,246,0.5);
+        }
+
+        /* HERO SECTION */
+        .hero-about {
+            padding: 180px 0 100px;
+            background: linear-gradient(165deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-about::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+
+        .hero-about .container {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            background: rgba(59,130,246,0.15);
+            border: 1px solid rgba(59,130,246,0.3);
+            border-radius: 999px;
+            color: #60a5fa;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-about h1 {
+            font-size: 64px;
+            font-weight: 900;
+            line-height: 1.1;
+            color: var(--white);
+            margin-bottom: 24px;
+            letter-spacing: -2px;
+        }
+
+        .hero-about h1 .highlight {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            font-weight: 700;
         }
 
-        .coming-soon {
-            display: inline-block;
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: #000;
-            padding: 12px 30px;
-            border-radius: 999px;
-            font-weight: 700;
+        .hero-about .subtitle {
+            font-size: 22px;
+            color: rgba(255,255,255,0.75);
+            max-width: 800px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--white);
+            line-height: 1;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
             font-size: 14px;
-            margin: 30px 0;
-            letter-spacing: 0.5px;
+            color: rgba(255,255,255,0.6);
+            font-weight: 500;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .btn-back {
-            display: inline-block;
-            padding: 14px 40px;
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 600;
-            margin-top: 20px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        /* NOSSA HISTÓRIA */
+        .story-section {
+            padding: 120px 0;
+            background: var(--white);
         }
 
-        .btn-back:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
         }
 
-        .info-box {
-            background: #f8fafc;
-            border-radius: 16px;
-            padding: 25px;
-            margin: 30px 0;
-            text-align: left;
+        .section-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary-light);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
         }
 
-        .info-box h3 {
-            color: #1e3a8a;
+        .section-title {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--gray-900);
+            margin-bottom: 24px;
+            line-height: 1.2;
+        }
+
+        .section-description {
             font-size: 20px;
-            margin-bottom: 15px;
+            color: var(--gray-600);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.7;
         }
 
-        .info-box ul {
-            list-style: none;
-            padding: 0;
+        .story-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+            margin-bottom: 60px;
         }
 
-        .info-box li {
-            padding: 10px 0;
-            color: #475569;
+        .story-content h3 {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 24px;
+            line-height: 1.3;
+        }
+
+        .story-content p {
+            font-size: 18px;
+            color: var(--gray-600);
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .story-image {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        .story-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .story-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(30,58,138,0.1), rgba(37,99,235,0.05));
+            z-index: 1;
+        }
+
+        /* TIMELINE */
+        .timeline-section {
+            padding: 120px 0;
+            background: var(--gray-50);
+        }
+
+        .timeline {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--primary-light), var(--primary));
+            transform: translateX(-50%);
+        }
+
+        .timeline-item {
+            display: grid;
+            grid-template-columns: 1fr 80px 1fr;
+            gap: 40px;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .timeline-content {
+            background: var(--white);
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            position: relative;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content {
+            grid-column: 1;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content {
+            grid-column: 3;
+        }
+
+        .timeline-marker {
+            grid-column: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .timeline-dot {
+            width: 20px;
+            height: 20px;
+            background: var(--primary-light);
+            border: 4px solid var(--white);
+            border-radius: 50%;
+            box-shadow: 0 0 0 4px rgba(37,99,235,0.2);
+        }
+
+        .timeline-year {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+
+        .timeline-content h4 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 12px;
+        }
+
+        .timeline-content p {
             font-size: 16px;
-            border-bottom: 1px solid #e2e8f0;
+            color: var(--gray-600);
+            line-height: 1.7;
         }
 
-        .info-box li:last-child {
-            border-bottom: none;
+        /* VALORES - ÍCONES AZUIS CLEAN */
+        .values-section {
+            padding: 120px 0;
+            background: var(--white);
         }
 
-        .info-box li::before {
-            content: "✓";
-            color: #10b981;
-            font-weight: bold;
-            margin-right: 10px;
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .value-card {
+            background: var(--white);
+            border: 2px solid var(--gray-200);
+            border-radius: 20px;
+            padding: 40px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .value-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 0;
+            background: linear-gradient(180deg, var(--primary-light), var(--primary));
+            transition: height 0.3s;
+        }
+
+        .value-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-color: var(--primary-light);
+        }
+
+        .value-card:hover::before {
+            height: 100%;
+        }
+
+        /* ÍCONES AZUIS MINIMALISTAS - SVG */
+        .value-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .value-icon svg {
+            width: 32px;
+            height: 32px;
+            stroke: var(--primary);
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .value-card h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 16px;
+        }
+
+        .value-card p {
+            font-size: 16px;
+            color: var(--gray-600);
+            line-height: 1.7;
+        }
+
+        /* PROPÓSITO */
+        .purpose-section {
+            padding: 120px 0;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--dark) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .purpose-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .purpose-content {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .purpose-content h2 {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--white);
+            margin-bottom: 32px;
+            line-height: 1.2;
+        }
+
+        .purpose-content p {
+            font-size: 22px;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 24px;
+            line-height: 1.8;
+        }
+
+        .purpose-highlight {
+            background: rgba(59,130,246,0.1);
+            border: 2px solid rgba(59,130,246,0.3);
+            border-radius: 16px;
+            padding: 40px;
+            margin-top: 48px;
+            backdrop-filter: blur(10px);
+        }
+
+        .purpose-highlight p {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--white);
+            margin: 0;
+        }
+
+        /* CTA FINAL */
+        .cta-section {
+            padding: 120px 0;
+            background: var(--white);
+        }
+
+        .cta-box {
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            border-radius: 24px;
+            padding: 80px 60px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(37,99,235,0.3);
+        }
+
+        .cta-box h2 {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--white);
+            margin-bottom: 24px;
+        }
+
+        .cta-box p {
+            font-size: 20px;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 40px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-large {
+            padding: 20px 48px;
+            font-size: 18px;
+            border-radius: 12px;
+        }
+
+        .btn-white {
+            background: var(--white);
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .btn-white:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(255,255,255,0.4);
+        }
+
+        /* FOOTER */
+        footer {
+            background: var(--dark);
+            color: rgba(255,255,255,0.7);
+            padding: 60px 0 30px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 60px;
+            margin-bottom: 40px;
+        }
+
+        .footer-logo img {
+            height: 40px;
+            margin-bottom: 20px;
+        }
+
+        .footer-about {
+            font-size: 14px;
+            line-height: 1.8;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .footer-column h4 {
+            color: var(--white);
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--white);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 30px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        /* MOBILE RESPONSIVO */
+        @media (max-width: 1024px) {
+            .nav-links {
+                display: none;
+            }
+
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 30px;
+            }
+
+            .story-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .values-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .timeline::before {
+                left: 20px;
+            }
+
+            .timeline-item {
+                grid-template-columns: 40px 1fr;
+                gap: 20px;
+            }
+
+            .timeline-marker {
+                grid-column: 1;
+            }
+
+            .timeline-content {
+                grid-column: 2 !important;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
         }
 
         @media (max-width: 768px) {
-            .container {
-                padding: 40px 25px;
+            .hero-about h1 {
+                font-size: 40px;
             }
 
-            h1 {
+            .hero-about .subtitle {
+                font-size: 18px;
+            }
+
+            .section-title {
                 font-size: 32px;
             }
 
-            p {
-                font-size: 16px;
+            .stats-row {
+                grid-template-columns: 1fr;
             }
 
-            .icon {
-                font-size: 60px;
+            .cta-box {
+                padding: 60px 30px;
+            }
+
+            .cta-box h2 {
+                font-size: 32px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="icon">🚧</div>
-        <h1>Página em Construção</h1>
-        <p>Nossa história está sendo escrita! Em breve você conhecerá mais sobre a <span class="highlight">LawTech Pro</span> e a equipe que está revolucionando a gestão jurídica no Brasil.</p>
-        
-        <div class="coming-soon">Em Breve</div>
-
-        <div class="info-box">
-            <h3>🎯 O que você vai encontrar aqui:</h3>
-            <ul>
-                <li>Nossa história e missão</li>
-                <li>Valores e compromissos</li>
-                <li>Equipe e especialistas</li>
-                <li>Conquistas e marcos importantes</li>
-                <li>Por que escolher a LawTech Pro</li>
-            </ul>
+    <!-- NAVEGAÇÃO -->
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <img src="Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro">
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Início</a>
+                <a href="funcionalidades.html">Funcionalidades</a>
+                <a href="planos.html">Planos</a>
+                <a href="sobre-nos.html" class="active">Sobre Nós</a>
+                <a href="contato.html">Contato</a>
+            </div>
+            <div class="nav-buttons">
+                <a href="login.html" class="btn btn-login">Entrar</a>
+                <a href="cadastro.html" class="btn btn-primary">Começar Grátis</a>
+            </div>
         </div>
+    </nav>
 
-        <p style="margin-top: 30px;">Enquanto isso, conheça nossa <strong>plataforma completa</strong> e descubra como podemos transformar a gestão do seu escritório!</p>
+    <!-- HERO -->
+    <section class="hero-about">
+        <div class="container">
+            <div class="hero-badge">
+                Nossa História
+            </div>
+            <h1>Nascido da <span class="highlight">Advocacia Real</span><br>para Transformar a Advocacia</h1>
+            <p class="subtitle">
+                O LawTech Pro surgiu da experiência prática de um advogado que viveu as dores do dia a dia 
+                e decidiu criar a solução que ele mesmo precisava — e que toda a advocacia brasileira merece.
+            </p>
 
-        <a href="/" class="btn-back">← Voltar para o Site</a>
-    </div>
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-number">5+</div>
+                    <div class="stat-label">Anos no Mercado</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">2.500+</div>
+                    <div class="stat-label">Escritórios Ativos</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">15K+</div>
+                    <div class="stat-label">Advogados Atendidos</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">98%</div>
+                    <div class="stat-label">Satisfação</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- NOSSA HISTÓRIA -->
+    <section class="story-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">A Origem</div>
+                <h2 class="section-title">Como Tudo Começou</h2>
+                <p class="section-description">
+                    Uma história de superação, inovação e compromisso com a transformação da advocacia brasileira.
+                </p>
+            </div>
+
+            <div class="story-grid">
+                <div class="story-content">
+                    <h3>Da Dor Nasce a Solução</h3>
+                    <p>
+                        Como advogado atuante, eu vivia diariamente os desafios que todo profissional do Direito 
+                        conhece bem: prazos difíceis de acompanhar, processos espalhados em planilhas, 
+                        informações desorganizadas e a constante sensação de estar sempre correndo atrás.
+                    </p>
+                    <p>
+                        Gerenciava meu escritório de advocacia com ferramentas que não conversavam entre si, 
+                        perdia tempo precioso em tarefas manuais e sabia que havia um jeito melhor de fazer as coisas. 
+                        Mas esse jeito simplesmente não existia no mercado.
+                    </p>
+                    <p>
+                        Foi quando decidi: <strong>se a solução perfeita não existe, vou criá-la.</strong>
+                    </p>
+                </div>
+                <div class="story-image">
+                    <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=800&q=80" alt="Advogado trabalhando">
+                </div>
+            </div>
+
+            <div class="story-grid">
+                <div class="story-image">
+                    <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800&q=80" alt="Desenvolvimento de software">
+                </div>
+                <div class="story-content">
+                    <h3>Do Projeto ao Produto</h3>
+                    <p>
+                        O que começou como uma necessidade pessoal rapidamente se transformou em missão. 
+                        Uni minha experiência jurídica com tecnologia de ponta para criar algo que realmente 
+                        fizesse diferença na vida dos advogados.
+                    </p>
+                    <p>
+                        Não queríamos criar apenas mais um software jurídico. Queríamos revolucionar a forma 
+                        como advogados trabalham, combinando inteligência artificial, automação e uma interface 
+                        intuitiva que qualquer profissional pudesse usar desde o primeiro dia.
+                    </p>
+                    <p>
+                        Após 2 anos de desenvolvimento intenso, ouvindo feedbacks de dezenas de colegas advogados, 
+                        nasceu o <strong>LawTech Pro</strong>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TIMELINE -->
+    <section class="timeline-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">Nossa Jornada</div>
+                <h2 class="section-title">Marcos da Nossa História</h2>
+            </div>
+
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2019</div>
+                        <h4>O Insight Inicial</h4>
+                        <p>
+                            Identificação das principais dores da advocacia moderna e decisão de criar 
+                            uma solução própria. Primeiras pesquisas e validação do conceito com 50+ advogados.
+                        </p>
+                    </div>
+                    <div class="timeline-marker">
+                        <div class="timeline-dot"></div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2020</div>
+                        <h4>Desenvolvimento do MVP</h4>
+                        <p>
+                            Início do desenvolvimento com foco em gestão de prazos e processos. 
+                            Primeiros testes beta com escritórios parceiros e iterações baseadas em feedback real.
+                        </p>
+                    </div>
+                    <div class="timeline-marker">
+                        <div class="timeline-dot"></div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2021</div>
+                        <h4>Lançamento Oficial</h4>
+                        <p>
+                            LawTech Pro chega ao mercado com gestão completa para escritórios. 
+                            Primeiros 200 clientes conquistados e feedback extremamente positivo da comunidade.
+                        </p>
+                    </div>
+                    <div class="timeline-marker">
+                        <div class="timeline-dot"></div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2022</div>
+                        <h4>Integração com IA</h4>
+                        <p>
+                            Implementação de recursos de inteligência artificial para análise de documentos, 
+                            geração de petições e insights estratégicos. Alcançamos 800 escritórios ativos.
+                        </p>
+                    </div>
+                    <div class="timeline-marker">
+                        <div class="timeline-dot"></div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2023</div>
+                        <h4>Expansão Nacional</h4>
+                        <p>
+                            Ultrapassamos 1.500 escritórios em todo Brasil. Lançamento de novos módulos: 
+                            financeiro, CRM jurídico e integração com DJEN para monitoramento automatizado.
+                        </p>
+                    </div>
+                    <div class="timeline-marker">
+                        <div class="timeline-dot"></div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2024-2025</div>
+                        <h4>Consolidação e Inovação</h4>
+                        <p>
+                            Mais de 2.500 escritórios ativos e 15.000+ advogados usando diariamente. 
+                            Reconhecimento como uma das principais LegalTechs do Brasil, com taxa de 
+                            satisfação de 98% e crescimento sustentável.
+                        </p>
+                    </div>
+                    <div class="timeline-marker">
+                        <div class="timeline-dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VALORES COM ÍCONES AZUIS SVG -->
+    <section class="values-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">Nossos Valores</div>
+                <h2 class="section-title">O Que Nos Move</h2>
+                <p class="section-description">
+                    Princípios que guiam cada decisão e cada linha de código que escrevemos.
+                </p>
+            </div>
+
+            <div class="values-grid">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <!-- Ícone Target -->
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                    </div>
+                    <h3>Foco no Advogado</h3>
+                    <p>
+                        Cada funcionalidade é pensada para resolver problemas reais da advocacia. 
+                        Nós entendemos suas dores porque já vivemos elas.
+                    </p>
+                </div>
+
+                <div class="value-card">
+                    <div class="value-icon">
+                        <!-- Ícone Rocket -->
+                        <svg viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>
+                    </div>
+                    <h3>Inovação Constante</h3>
+                    <p>
+                        Tecnologia evolui rápido e nós evoluímos junto. Sempre buscando as melhores 
+                        soluções para tornar seu trabalho mais eficiente.
+                    </p>
+                </div>
+
+                <div class="value-card">
+                    <div class="value-icon">
+                        <!-- Ícone Handshake -->
+                        <svg viewBox="0 0 24 24"><path d="m11 17 2 2a1 1 0 1 0 3-3"></path><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"></path><path d="m21 3 1 11h-2"></path><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"></path><path d="M3 4h8"></path></svg>
+                    </div>
+                    <h3>Parceria Verdadeira</h3>
+                    <p>
+                        Não somos apenas um fornecedor de software. Somos parceiros no crescimento 
+                        do seu escritório e no sucesso da sua carreira.
+                    </p>
+                </div>
+
+                <div class="value-card">
+                    <div class="value-icon">
+                        <!-- Ícone Shield Lock -->
+                        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path><rect x="10" y="10" width="4" height="5" rx="1"></rect><path d="M12 10V8"></path></svg>
+                    </div>
+                    <h3>Segurança Máxima</h3>
+                    <p>
+                        Dados jurídicos são sensíveis. Por isso, investimos pesadamente em segurança, 
+                        criptografia e conformidade com LGPD.
+                    </p>
+                </div>
+
+                <div class="value-card">
+                    <div class="value-icon">
+                        <!-- Ícone Lightbulb -->
+                        <svg viewBox="0 0 24 24"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>
+                    </div>
+                    <h3>Simplicidade</h3>
+                    <p>
+                        Tecnologia poderosa não precisa ser complicada. Criamos interfaces intuitivas 
+                        que você domina em minutos, não em semanas.
+                    </p>
+                </div>
+
+                <div class="value-card">
+                    <div class="value-icon">
+                        <!-- Ícone Trending Up -->
+                        <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+                    </div>
+                    <h3>Resultados Reais</h3>
+                    <p>
+                        Nosso sucesso é medido pelo seu: tempo economizado, produtividade aumentada, 
+                        prazos nunca mais perdidos.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROPÓSITO -->
+    <section class="purpose-section">
+        <div class="container">
+            <div class="purpose-content">
+                <h2>Nosso Propósito</h2>
+                <p>
+                    <strong>Democratizar a gestão jurídica de excelência</strong>, tornando acessível a 
+                    todo advogado — independente do tamanho do escritório — as mesmas ferramentas e 
+                    recursos tecnológicos que apenas grandes bancas podiam pagar.
+                </p>
+                <p>
+                    Queremos que você tenha mais tempo para o que realmente importa: exercer a advocacia 
+                    com excelência, cuidar dos seus clientes e fazer crescer o seu negócio.
+                </p>
+                
+                <div class="purpose-highlight">
+                    <p>
+                        "Cada minuto que você economiza com burocracia é um minuto a mais para 
+                        ser o advogado extraordinário que você é."
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA FINAL -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-box">
+                <h2>Faça Parte Dessa História</h2>
+                <p>
+                    Junte-se a milhares de advogados que já transformaram a forma como trabalham. 
+                    Experimente gratuitamente por 07 dias — sem compromisso.
+                </p>
+                <a href="cadastro.html" class="btn btn-white btn-large">Começar Meu Teste Grátis</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <div class="footer-logo">
+                        <img src="Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro">
+                    </div>
+                    <p class="footer-about">
+                        Gestão jurídica inteligente para escritórios de advocacia modernos. 
+                        Mais produtividade, menos burocracia.
+                    </p>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Produto</h4>
+                    <ul class="footer-links">
+                        <li><a href="funcionalidades.html">Funcionalidades</a></li>
+                        <li><a href="planos.html">Planos e Preços</a></li>
+                        <li><a href="integracoes.html">Integrações</a></li>
+                        <li><a href="seguranca.html">Segurança</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Empresa</h4>
+                    <ul class="footer-links">
+                        <li><a href="sobre-nos.html">Sobre Nós</a></li>
+                        <li><a href="contato.html">Contato</a></li>
+                        <li><a href="blog.html">Blog</a></li>
+                        <li><a href="carreiras.html">Carreiras</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Legal</h4>
+                    <ul class="footer-links">
+                        <li><a href="termos.html">Termos de Uso</a></li>
+                        <li><a href="privacidade.html">Política de Privacidade</a></li>
+                        <li><a href="lgpd.html">LGPD</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>© 2026 LawTech Pro Systems. Todos os direitos reservados. | CNPJ: 00.000.000/0001-00</p>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>

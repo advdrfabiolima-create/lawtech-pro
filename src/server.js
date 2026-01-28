@@ -24,7 +24,7 @@ const configRoutes = require('./routes/config.routes');
 const publicacoesRoutes = require('./routes/publicacoes.routes');
 const iaRoutes = require('./routes/ia.routes');
 const crmRoutes = require('./routes/crm.routes');
-const usuariosRoutes = require('./routes/usuarios.routes'); // 🆕 ADICIONADO
+const usuariosRoutes = require('./routes/usuarios.routes');
 
 // --- AUTOMAÇÃO ---
 const { iniciarAgendamentos } = require('./cron/prazosCron');
@@ -35,6 +35,12 @@ const app = express();
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
 app.use(cors());
+
+// ✅ SERVIR ARQUIVOS ESTÁTICOS PRIMEIRO (IMPORTANTE!)
+// Deve vir ANTES das rotas de API para evitar conflitos
+const publicPath = path.join(__dirname, '..', 'public');
+app.use(express.static(publicPath));
+console.log('📁 [SERVER] Servindo arquivos estáticos de:', publicPath);
 
 // --- APIs (ROTAS DE DADOS) ---
 app.use('/api/auth', authRoutes);
@@ -48,13 +54,9 @@ app.use('/api', planosRoutes);
 app.use('/api', financeiroRoutes);
 app.use('/api', clientesRoutes);
 app.use('/api', configRoutes);
-app.use('/api', usuariosRoutes); // 🆕 ADICIONADO
+app.use('/api', usuariosRoutes);
 app.use('/api/pagamentos', pagamentosRoutes);
 app.use('/api', publicacoesRoutes);
-
-// Servir arquivos estáticos (pasta public)
-const publicPath = path.join(__dirname, '..', 'public');
-app.use(express.static(publicPath));
 
 // --- PÁGINAS (FRONTEND) ---
 app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')));
@@ -81,6 +83,11 @@ app.get('/pagamento-pendente', (req, res) => {
     console.log("Tentando carregar arquivo em:", filePath);
     res.sendFile(filePath);
 });
+
+// ✅ ADICIONAR ROTAS PARA BLOG E SOBRE NÓS
+app.get('/blog', (req, res) => res.sendFile(path.join(publicPath, 'blog.html')));
+app.get('/sobre-nos', (req, res) => res.sendFile(path.join(publicPath, 'sobre-nos.html')));
+app.get('/lgpd', (req, res) => res.sendFile(path.join(publicPath, 'lgpd.html')));
 
 // --- CONFIGURAÇÕES DO SISTEMA ---
 app.get('/api/config/meu-escritorio', authMiddleware, async (req, res) => {
@@ -134,12 +141,11 @@ app.use((err, req, res, next) => {
     res.status(err.status || 500).json({ ok: false, erro: err.message || 'Erro interno do servidor' });
 });
 
-// --- INICIALIZAÇÃO DO SISTEMA (VERSÃO PROTEGIDA) ---
+// --- INICIALIZAÇÃO DO SISTEMA ---
 async function iniciarSistema() {
     try {
         console.log("⏳ Conectando ao Neon e validando acesso master...");
         
-        // Esta senha só será usada no primeiríssimo acesso ou se o senhor deletar o usuário
         const hash = await bcrypt.hash('Lei@2026', 10);
 
         await pool.query(`
@@ -155,7 +161,10 @@ async function iniciarSistema() {
 
         const PORT = process.env.PORT || 3000;
         app.listen(PORT, () => {
-            console.log(`\n🚀 LawTech Pro Rodando em: http://localhost:${PORT}/login`);
+            console.log(`\n🚀 LawTech Pro Rodando em: http://localhost:${PORT}`);
+            console.log(`📄 Login: http://localhost:${PORT}/login`);
+            console.log(`📝 Blog: http://localhost:${PORT}/blog`);
+            console.log(`ℹ️  Sobre: http://localhost:${PORT}/sobre-nos\n`);
         });
     } catch (err) {
         console.error("❌ [ERRO CRÍTICO] Falha ao iniciar sistema:", err.message);
