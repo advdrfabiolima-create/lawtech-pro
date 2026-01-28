@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>LawTech Systems - Monitor</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+        th { background-color: #2c3e50; color: white; }
+        .erro { color: #e74c3c; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🛡️ LawTech Systems - Diagnóstico de Assinantes</h2>
+        <div id="loading">Carregando dados técnicos...</div>
+        <table id="tabelaLogs" style="display:none;">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Escritório</th>
+                    <th>Serviço</th>
+                    <th>Erro</th>
+                    <th>Mensagem</th>
+                </tr>
+            </thead>
+            <tbody id="corpoTabela"></tbody>
+        </table>
+    </div>
+
+    <script>
+        async function carregarLogs() {
+            try {
+                const response = await fetch('/systems/monitoramento');
+                const data = await response.json();
+                
+                if (data.ok) {
+                    const corpo = document.getElementById('corpoTabela');
+                    data.logs.forEach(log => {
+                        const row = `<tr>
+                            <td>${new Date(log.criado_em).toLocaleString()}</td>
+                            <td>${log.advogado_responsavel}</td>
+                            <td>${log.servico}</td>
+                            <td class="erro">${log.tipo_erro}</td>
+                            <td>${log.mensagem_erro}</td>
+                        </tr>`;
+                        corpo.innerHTML += row;
+                    });
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('tabelaLogs').style.display = 'table';
+                }
+            } catch (err) {
+                document.getElementById('loading').innerHTML = "❌ Erro ao acessar o LawTech Systems. Verifique se você está logado.";
+            }
+        }
+        carregarLogs();
+    </script>
+</body>
+</html>

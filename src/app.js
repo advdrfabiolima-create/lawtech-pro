@@ -6,9 +6,12 @@ const path = require('path');
 const authRoutes = require('./routes/auth.routes');
 const planosRoutes = require('./routes/planos.routes'); // ✅ ADICIONADO
 
+const adminRoutes = require('./routes/admin.routes.js');
+
 const app = express();
 
 app.use(express.json());
+app.use('/systems', adminRoutes);
 
 // rota inicial
 app.get('/', (req, res) => {
