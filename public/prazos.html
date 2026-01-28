@@ -493,17 +493,30 @@ async function carregarPrazosModernos() {
 
         const data = await res.json();
 
+
+        // ✅ Verificar PRIMEIRO se é erro 402 (Limite de plano)
+        if (res.status === 402) {
+            fecharModalPrazo();
+            const mensagem = data.message || `Você atingiu o limite de ${data.max || 10} prazos mensais do seu plano ${data.current_plan || 'atual'}.`;
+            exibirAvisoUpgrade(mensagem);
+            return;
+        }
+        
+        // Sucesso
         if (res.ok) {
             setTimeout(carregarPrazosModernos, 500);
             fecharModalPrazo();
             mostrarAba('todos'); 
             await carregarPrazosModernos();
             mostrarToast("Prazo salvo com sucesso!", "sucesso");
-        } else if (res.status === 403 && data.codigo === 'LIMITE_PLANO_ATINGIDO') {
+        } 
+        // Outros erros
+        else if (res.status === 403 && data.codigo === 'LIMITE_PLANO_ATINGIDO') {
             // Aqui chamamos sua função de aviso que já está no arquivo
             fecharModalPrazo();
             exibirAvisoUpgrade(data.erro); 
-        } else {
+        } 
+        else {
             mostrarToast(data.erro || "Erro ao salvar prazo", "erro");
         }
     } catch (err) {

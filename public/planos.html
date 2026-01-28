@@ -35,9 +35,10 @@
 
     body { 
       font-family: 'Inter', sans-serif; 
-      background: var(--bg); 
+      background: linear-gradient(135deg, #f0f4f8 0%, #e8eef4 100%);
       color: var(--secondary);
       line-height: 1.6;
+      min-height: 100vh;
     }
     
     header { 
@@ -139,7 +140,7 @@
     .header-text { 
       text-align: center; 
       margin-bottom: 28px; 
-      background: var(--white); 
+      background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
       padding: 40px; 
       border-radius: 20px; 
       box-shadow: var(--shadow-md);
@@ -170,7 +171,7 @@
     }
     
     .plano-card { 
-      background: var(--white); 
+      background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
       border: 2px solid var(--border); 
       border-radius: 20px; 
       padding: 32px 28px; 
@@ -246,7 +247,7 @@
       padding-left: 28px; 
       font-size: 13px; 
       position: relative; 
-      color: #475569;
+      color: #1e293b;
       font-weight: 500;
     }
     
@@ -358,25 +359,40 @@
     }
     
     footer { 
+      background: linear-gradient(165deg, var(--secondary) 0%, #1e293b 100%);
       text-align: center; 
-      margin: 60px 0 40px;
-      padding-top: 40px;
-      border-top: 1px solid var(--border);
+      margin-top: 80px;
+      padding: 48px 24px;
+      border-top: 4px solid var(--primary);
+      box-shadow: var(--shadow-lg);
     }
     
     footer a { 
-      color: var(--primary); 
-      text-decoration: none; 
-      font-weight: 600; 
-      display: inline-flex; 
-      align-items: center; 
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       gap: 10px;
-      transition: all 0.3s;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      text-decoration: none; 
+      font-weight: 700; 
       font-size: 15px;
+      padding: 16px 32px;
+      border-radius: 12px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(59,130,246,0.3);
     }
     
     footer a:hover {
-      color: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(59,130,246,0.5);
+    }
+    
+    footer a svg {
+      transition: transform 0.3s;
+    }
+    
+    footer a:hover svg {
       transform: translateX(-4px);
     }
 
@@ -524,12 +540,16 @@
 
       <div class="plano-card">
         <h3>Básico</h3>
-        <p class="preco">R$ <span class="val" data-mensal="99,00" data-anual="999,00">99,00</span><small class="periodo" style="font-size: 15px; color: var(--muted); font-weight: 600;">/mês</small></p>
+        <p class="preco">R$ <span class="val" data-mensal="99,90" data-anual="999,00">99,90</span><small class="periodo" style="font-size: 15px; color: var(--muted); font-weight: 600;">/mês</small></p>
         <p class="descricao">Ideal para quem está iniciando a digitalização do escritório.</p>
         <ul>
-          <li>Até 10 prazos ativos</li>
-          <li>Cadastro manual de prazos</li>
-          <li>Alertas simples via sistema</li>
+          <li>Até 3 usuários</li>
+          <li>Até 50 Processos</li>
+          <li>Gestão de Clientes</li>
+          <li>Gestão de Processos</li>
+          <li>Gestão de Prazos - 10 mensais</li>
+          <li>Audiências</li>
+          <li>Suporte por email</li>
         </ul>
         <button id="btn-plano-Basico" class="btn secondary" onclick="abrirModalConfirmacao('Básico')">Selecionar Básico</button>
       </div>
@@ -540,10 +560,13 @@
         <p class="preco">R$ <span class="val" data-mensal="149,90" data-anual="1.499,00">149,90</span><small class="periodo" style="font-size: 15px; color: var(--muted); font-weight: 600;">/mês</small></p>
         <p class="descricao">A escolha perfeita para advogados autônomos de alta demanda.</p>
         <ul>
-          <li>Até 100 prazos ativos</li>
-          <li>Histórico de prazos concluídos</li>
-          <li>Alertas por e-mail em tempo real</li>
-          <li>Busca e filtros avançados</li>
+          <li>Tudo do plano Básico</li>
+          <li>Até 15 usuários</li>
+          <li>Até 100 prazos mensais</li>
+          <li>Financeiro Jurídico</li>
+          <li>Relatórios avançados</li>
+          <li>Suporte prioritário</li>
+          <li>Integrações básicas</li>
         </ul>
         <button id="btn-plano-Intermediario" class="btn primary" onclick="abrirModalConfirmacao('Intermediário')">Selecionar plano</button>
       </div>
@@ -553,10 +576,12 @@
         <p class="preco">R$ <span class="val" data-mensal="199,90" data-anual="1.999,00">199,90</span><small class="periodo" style="font-size: 15px; color: var(--muted); font-weight: 600;">/mês</small></p>
         <p class="descricao">Para sociedades de advogados em expansão acelerada.</p>
         <ul>
-          <li>Até 500 prazos ativos</li>
-          <li>Alertas inteligentes (Push)</li>
-          <li>Relatórios de produtividade</li>
-          <li>Histórico completo ilimitado</li>
+          <li>Tudo do Intermediário</li>
+          <li>Usuários ilimitados</li>
+          <li>Até 500 prazos mensais</li>
+          <li>Cálculos Jurídicos</li>
+          <li>Automações avançadas</li>
+          <li>API completa</li>
         </ul>
         <button id="btn-plano-Avancado" class="btn primary" onclick="abrirModalConfirmacao('Avançado')">Selecionar plano</button>
       </div>
@@ -567,10 +592,13 @@
         <p class="preco">R$ <span class="val" data-mensal="299,90" data-anual="2.999,00">299,90</span><small class="periodo" style="font-size: 15px; color: #92400e; font-weight: 600;">/mês</small></p>
         <p class="descricao">Controle total, automação e suporte prioritário.</p>
         <ul>
-          <li>Prazos e processos ilimitados</li>
-          <li>Equipe multiusuário</li>
-          <li>Alertas inteligentes via WhatsApp</li>
-          <li>Integração com Diário Oficial</li>
+          <li>Tudo do Avançado</li>
+          <li>Usuários completamente ilimitados</li>
+          <li>Prazos Ilimitados</li>
+          <li>CRM Jurídico completo</li>
+          <li>IA Jurídica integrada</li>
+          <li>Integração DJEN completa</li>
+          <li>Alertas via WhatsApp</li>
         </ul>
         <button id="btn-plano-Premium" class="btn premium-btn" onclick="abrirModalConfirmacao('Premium')">Ativar Premium</button>
       </div>
@@ -580,7 +608,10 @@
 
   <footer>
     <a href="/dashboard-modern">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
       Voltar ao Dashboard Principal
     </a>
   </footer>
@@ -659,11 +690,30 @@ function fecharModalPlano() {
 
 async function confirmarUpgrade() {
     if (!planoSelecionado) return;
+    
+    const btnConfirmar = document.getElementById('btnConfirmar');
+    const textoOriginal = btnConfirmar.innerText;
+    btnConfirmar.innerText = '⏳ Processando...';
+    btnConfirmar.disabled = true;
+    
     const token = localStorage.getItem('token');
+    
+    if (!token) {
+        alert('❌ Você precisa estar logado para fazer upgrade!');
+        window.location.href = '/login.html';
+        return;
+    }
+    
     const isAnual = document.getElementById('billing-toggle').checked;
     
     const nomesParaId = { 'Básico': 1, 'Intermediário': 2, 'Avançado': 3, 'Premium': 4 };
     const novoPlanoId = nomesParaId[planoSelecionado];
+
+    console.log('🎯 Iniciando upgrade:', {
+        plano: planoSelecionado,
+        id: novoPlanoId,
+        ciclo: isAnual ? 'anual' : 'mensal'
+    });
 
     try {
         const response = await fetch('/api/planos/upgrade', { 
@@ -680,12 +730,26 @@ async function confirmarUpgrade() {
             })
         });
 
+        console.log('📡 Resposta do servidor:', response.status);
+
         if (response.ok) {
+            const data = await response.json();
+            console.log('✅ Upgrade realizado:', data);
             alert("✅ Plano atualizado com sucesso!");
-            window.location.href = window.location.pathname + '?t=' + Date.now();
+            fecharModalPlano();
+            window.location.href = '/dashboard-modern';
+        } else {
+            const errorData = await response.json();
+            console.error('❌ Erro do servidor:', errorData);
+            alert("❌ Erro ao atualizar plano: " + (errorData.erro || errorData.error || 'Erro desconhecido'));
+            btnConfirmar.innerText = textoOriginal;
+            btnConfirmar.disabled = false;
         }
     } catch (error) {
-        console.error("Erro no upgrade:", error);
+        console.error("❌ Erro na requisição:", error);
+        alert("❌ Erro de conexão ao processar upgrade. Tente novamente.");
+        btnConfirmar.innerText = textoOriginal;
+        btnConfirmar.disabled = false;
     }
 }
 
@@ -697,16 +761,28 @@ function atualizarEstadoDosBotoes() {
     const isAnual = document.getElementById('billing-toggle').checked;
     const cicloSelecionado = isAnual ? 'anual' : 'mensal';
 
+    console.log('🔄 atualizarEstadoDosBotoes() chamada');
+    console.log('   Toggle Anual?', isAnual);
+    console.log('   Ciclo Selecionado:', cicloSelecionado);
+    console.log('   Plano Atual:', meuPlanoAtual);
+
     Object.keys(BOTOES_MAP).forEach(id => {
         const btn = document.getElementById(BOTOES_MAP[id]);
         if (btn) {
+            const idNum = parseInt(id);
+            const isPlanoAtual = (idNum === meuPlanoAtual.id && cicloSelecionado === meuPlanoAtual.ciclo);
+            
+            console.log(`   Botão ${id}: atual=${meuPlanoAtual.id}, cicloAtual=${meuPlanoAtual.ciclo}, match=${isPlanoAtual}`);
+            
             // Regra: Só bloqueia se o ID do plano E o Ciclo forem iguais ao que está no banco
-            if (parseInt(id) === meuPlanoAtual.id && cicloSelecionado === meuPlanoAtual.ciclo) {
+            if (isPlanoAtual) {
+                console.log(`   ✅ Botão ${id} DESABILITADO (é o plano atual)`);
                 btn.innerText = "Plano Ativo";
                 btn.disabled = true;
                 btn.classList.add('disabled');
                 btn.closest('.plano-card').style.borderColor = "var(--success)";
             } else {
+                console.log(`   ⚪ Botão ${id} ATIVO`);
                 // Libera para troca
                 btn.innerText = (id == 4) ? "Ativar Premium" : (id == 1 ? "Selecionar Básico" : "Selecionar plano");
                 btn.disabled = false;
@@ -721,27 +797,49 @@ function atualizarEstadoDosBotoes() {
 // Carregamento Inicial
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+        console.log('❌ Token não encontrado');
+        return;
+    }
+
+    console.log('🔑 Token encontrado, carregando plano...');
 
     try {
         const response = await fetch('/api/planos/meu-plano', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
+        console.log('📡 Status da resposta:', response.status);
+
         if (response.ok) {
             const dados = await response.json();
+            console.log('✅ Dados recebidos do servidor:', dados);
+            
             // Sincroniza a variável global com o banco
-            meuPlanoAtual = { id: parseInt(dados.id), ciclo: dados.ciclo || 'mensal' };
+            meuPlanoAtual = { 
+                id: parseInt(dados.id), 
+                ciclo: dados.ciclo || 'mensal' 
+            };
+            
+            console.log('💾 meuPlanoAtual definido como:', meuPlanoAtual);
             
             // Se no banco estiver 'anual', vira a chave visualmente
             if (meuPlanoAtual.ciclo === 'anual') {
+                console.log('🔄 Virando toggle para Anual');
                 document.getElementById('billing-toggle').checked = true;
             }
             
             // Atualiza os textos e os botões conforme a posição da chave
+            console.log('🔄 Chamando alternarPrecos()...');
             alternarPrecos(); 
+            
+            console.log('✅ Carregamento inicial completo!');
+        } else {
+            console.error('❌ Erro ao carregar plano:', response.status);
         }
-    } catch (err) { console.error('Erro na carga inicial:', err); }
+    } catch (err) { 
+        console.error('❌ Erro na carga inicial:', err); 
+    }
 });
 </script>
 

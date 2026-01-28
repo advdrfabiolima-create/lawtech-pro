@@ -499,6 +499,44 @@ Responda de forma objetiva e técnica.`;
         }
     }
 
+
+    // ✅ FUNÇÃO PARA EXIBIR AVISO DE UPGRADE
+    function exibirAvisoUpgrade(mensagem) {
+        const modal = document.getElementById('modalUpgrade') || criarModalUpgrade();
+        const mensagemElement = document.getElementById('mensagemUpgrade');
+        if (mensagemElement) {
+            mensagemElement.textContent = mensagem;
+        }
+        modal.style.display = 'flex';
+    }
+
+    function criarModalUpgrade() {
+        const modal = document.createElement('div');
+        modal.id = 'modalUpgrade';
+        modal.className = 'modal';
+        modal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center;';
+        
+        modal.innerHTML = `
+            <div style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                <i class="lucide-alert-circle" style="font-size: 48px; color: #f59e0b; margin-bottom: 16px;"></i>
+                <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 16px; color: #1e293b;">Recurso Bloqueado</h3>
+                <p id="mensagemUpgrade" style="font-size: 15px; color: #64748b; line-height: 1.6; margin-bottom: 24px;">
+                    A sincronização automática do DJEN está disponível apenas no plano Premium.
+                </p>
+                <button onclick="document.getElementById('modalUpgrade').style.display='none'" style="background: #2563eb; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                    Entendi
+                </button>
+                <a href="/planos.html" style="display: block; margin-top: 16px; color: #2563eb; font-size: 14px; text-decoration: none; font-weight: 600;">
+                    Ver Planos →
+                </a>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        return modal;
+    }
+
+    // ✅ FUNÇÃO DE SINCRONIZAÇÃO CORRIGIDA
     async function sincronizarEscavadorManual() {
         if (!confirm("Deseja buscar publicações via API? (Requer configuração de chave API)")) return;
 
@@ -513,7 +551,15 @@ Responda de forma objetiva e técnica.`;
             const res = await fetch('/api/publicacoes/fetch-all', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            
             const data = await res.json();
+
+            // ✅ Interceptar erro 402 (Plano não permite)
+            if (res.status === 402) {
+                const mensagem = data.message || 'A sincronização automática do DJEN está disponível apenas no plano Premium. Faça upgrade para acessar.';
+                exibirAvisoUpgrade(mensagem);
+                return;
+            }
             
             if (data.ok) {
                 if (data.plano_gratuito) {
@@ -526,13 +572,13 @@ Responda de forma objetiva e técnica.`;
                 alert("⚠️ " + (data.mensagem || 'Nenhuma publicação encontrada'));
             }
         } catch (err) { 
+            console.error('Erro:', err);
             alert("❌ Erro de conexão"); 
         } finally {
             btn.disabled = false;
             icon.classList.remove('lucide-spin');
         }
     }
-
     function adicionarDiasUteis(dataInicial, dias) {
         let data = new Date(dataInicial);
         let diasAdicionados = 0;

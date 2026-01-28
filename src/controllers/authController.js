@@ -56,9 +56,9 @@ const register = async (req, res) => {
 
         const senhaHash = await bcrypt.hash(senha, 10);
         const result = await pool.query(
-            `INSERT INTO usuarios (nome, email, senha, role, escritorio_id)
-             VALUES ($1, $2, $3, 'admin', $4)
-             RETURNING id, nome, email, role, escritorio_id`,
+            `INSERT INTO usuarios (nome, email, senha, role, escritorio_id, tour_desativado)
+             VALUES ($1, $2, $3, 'admin', $4, FALSE)
+             RETURNING id, nome, email, role, escritorio_id, tour_desativado`,
             [nome, email, senhaHash, escritorioId]
         );
 
@@ -99,39 +99,39 @@ const login = async (req, res) => {
         console.log("ESCRITÓRIO ID DO USUÁRIO:", usuario.escritorio_id);
         console.log("----------------------------");
 
-// --- 🛡️ BLOCO DE VERIFICAÇÃO DE TRIAL (VERSÃO INFALÍVEL) ---
-        const escCheck = await pool.query(
-            `SELECT id, plano_id, plano_financeiro_status, criado_em,
-             EXTRACT(DAY FROM (NOW() - criado_em)) as dias_passados
-             FROM escritorios WHERE id = $1`,
-            [usuario.escritorio_id]
-        );
+// --- 🛡️ BLOCO DE VERIFICAÇÃO DE TRIAL (VERSÃO BLINDADA MASTER) ---
+const escCheck = await pool.query(
+    `SELECT id, plano_id, plano_financeiro_status, criado_em,
+     EXTRACT(DAY FROM (NOW() - criado_em)) as dias_passados
+     FROM escritorios WHERE id = $1`,
+    [usuario.escritorio_id]
+);
 
-        if (escCheck.rowCount > 0) {
-            let escritorio = escCheck.rows[0];
-            const statusAtivo = ['ativo', 'active'].includes(escritorio.plano_financeiro_status);
-            
-            // Log para você ver no terminal quantos dias o sistema está contando
-            console.log(`DIAS DESDE A CRIAÇÃO: ${escritorio.dias_passados}`);
+if (escCheck.rowCount > 0) {
+    let escritorio = escCheck.rows[0];
+    
+    // VERIFICAÇÃO DE IMUNIDADE: Se for o Dr. Fábio, ignoramos o bloqueio abaixo
+    const ehMaster = usuario.email === 'adv.limaesilva@hotmail.com';
 
-            // Se passaram 7 dias ou mais (>= 7), bloqueia
-            if (escritorio.plano_id > 1 && statusAtivo && escritorio.dias_passados >= 7) {
-                console.log("!!! TRIAL VENCIDO - APLICANDO BLOQUEIO !!!");
-                await pool.query(
-                    "UPDATE escritorios SET plano_financeiro_status = 'pendente' WHERE id = $1",
-                    [escritorio.id]
-                );
-                escritorio.plano_financeiro_status = 'pendente';
-            }
-
-            // Barra o login se estiver pendente
-            if (escritorio.plano_id > 1 && escritorio.plano_financeiro_status === 'pendente') {
-                return res.status(402).json({ 
-                    erro: 'Período de teste expirado', 
-                    detalhe: 'Seu trial de 7 dias chegou ao fim. Realize o pagamento para liberar o acesso total.' 
-                });
-            }
+    if (!ehMaster) {
+        const statusAtivo = ['ativo', 'active'].includes(escritorio.plano_financeiro_status);
+        
+        if (escritorio.plano_id > 1 && statusAtivo && escritorio.dias_passados >= 7) {
+            await pool.query(
+                "UPDATE escritorios SET plano_financeiro_status = 'pendente' WHERE id = $1",
+                [escritorio.id]
+            );
+            escritorio.plano_financeiro_status = 'pendente';
         }
+
+        if (escritorio.plano_id > 1 && escritorio.plano_financeiro_status === 'pendente') {
+            return res.status(402).json({ 
+                erro: 'Período de teste expirado', 
+                detalhe: 'Seu trial de 7 dias chegou ao fim. Realize o pagamento para liberar o acesso total.' 
+            });
+        }
+    }
+}
         // -----------------------------------------
 
         const token = jwt.sign(
@@ -140,11 +140,16 @@ const login = async (req, res) => {
             { expiresIn: '1d' }
         );
 
-        res.json({ 
+res.json({ 
           token,
           usuario: {
-            id: usuario.id, nome: usuario.nome, email: usuario.email,
-            role: usuario.role, escritorio_id: usuario.escritorio_id
+            id: usuario.id, 
+            nome: usuario.nome, 
+            email: usuario.email,
+            role: usuario.role, 
+            escritorio_id: usuario.escritorio_id,
+            // 🚀 ADICIONADO: Envia a preferência do tour para o Dashboard
+            tour_desativado: usuario.tour_desativado 
           }
         });
 

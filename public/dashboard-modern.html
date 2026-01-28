@@ -71,6 +71,53 @@
             padding: 10px 16px; border-radius: 8px; width: 320px; font-size: 13px;
         }
 
+        /* Cronômetro de Trial */
+        #trial-timer {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border: 2px solid #fbbf24;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            color: #92400e;
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+            animation: trial-pulse 2s infinite;
+        }
+
+        @keyframes trial-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3); }
+            50% { transform: scale(1.02); box-shadow: 0 6px 16px rgba(251, 191, 36, 0.5); }
+        }
+
+        #trial-timer i {
+            color: #fbbf24;
+            width: 18px;
+            height: 18px;
+            animation: timer-icon-spin 2s ease-in-out infinite;
+        }
+
+        @keyframes timer-icon-spin {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+
+        #trial-timer .time-display {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        #trial-timer .trial-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         /* Conteúdo e Cards */
         .content { padding: 32px; }
         .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 32px; }
@@ -255,6 +302,14 @@
     color: #94a3b8;
     margin-top: 20px;
 }
+
+/* CSS do Interruptor Mini para caber no Menu */
+.switch-mini { position: relative; display: inline-block; width: 30px; height: 16px; }
+.switch-mini input { opacity: 0; width: 0; height: 0; }
+.slider-mini { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+.slider-mini:before { position: absolute; content: ""; height: 10px; width: 10px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider-mini { background-color: #22c55e; }
+input:checked + .slider-mini:before { transform: translateX(14px); }
     </style>
 </head>
 <body>
@@ -277,12 +332,12 @@
                 <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">PREMIUM</span>
             </a>
             <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
-            <a href="/config-page" onclick="limparBolinha()">
+            <a href="/config-page" id="guia-config" onclick="limparBolinha()">
                 <i class="lucide lucide-settings"></i> Configurações
                 <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
             </a>
             <a href="/crm-page" class="btn-crm-gold-nav">
-                <i data-lucide="trending-up"></i> CRM PROSPECÇÃO
+                <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
             </a>
         </nav>
         <div class="sidebar-footer">
@@ -294,6 +349,13 @@
     <div class="main">
         <header class="header">
             <input type="text" placeholder="Buscar processo ou prazo..." id="inputBuscaDash"/>
+            
+            <!-- Cronômetro de Trial -->
+            <div id="trial-timer">
+                <i class="lucide lucide-clock"></i>
+                <span class="trial-label">Teste Grátis:</span>
+                <span class="time-display" id="trial-countdown">7d 00h 00m</span>
+            </div>
             
             <div style="display:flex; gap:20px; align-items:center;">
                 <div id="notif-container" style="position:relative; cursor:pointer; padding:8px; border-radius:8px; transition:0.2s;">
@@ -310,13 +372,23 @@
     </div>
     
     <div id="userDropdown" class="dropdown-menu">
-        <a href="/config-page"><i class="lucide lucide-user" style="width:16px;"></i> Meus Dados</a>
-        <a href="/planos-page"><i class="lucide lucide-award" style="width:16px;"></i> Meu Plano</a>
-        <div style="border-top:1px solid var(--border); margin:4px 0;"></div>
-        <a href="javascript:void(0)" onclick="logout()" style="color:var(--danger);">
-            <i class="lucide lucide-log-out" style="width:16px;"></i> Sair
+    <a href="/config-page"><i class="lucide lucide-user" style="width:16px;"></i> Meus Dados</a>
+    <a href="/planos-page"><i class="lucide lucide-award" style="width:16px;"></i> Meu Plano</a>
+    
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; transition: background 0.2s;">
+        <a href="javascript:void(0)" onclick="resetarTour()" style="padding: 0; margin: 0; flex-grow: 1; display: flex; align-items: center; border:none; background:none;">
+            <i class="lucide lucide-help-circle" style="width:16px; margin-right: 8px;"></i> Ver Tour
         </a>
+        <label class="switch-mini" title="Ativar/Desativar Auto-start">
+            <input type="checkbox" id="switchTourNav" onchange="alternarAutoStart(this.checked)">
+            <span class="slider-mini round"></span>
+        </label>
     </div>
+
+    <div style="border-top:1px solid var(--border); margin:4px 0;"></div>
+    <a href="javascript:void(0)" onclick="logout()" style="color:var(--danger);">
+        <i class="lucide lucide-log-out" style="width:16px;"></i> Sair
+    </a>
 </div>
             </div>
         </header>
@@ -514,8 +586,21 @@ async function inicializarDashboard() {
         
         let idEscritorio = null;
 
-        if (dataUser.ok) {
+if (dataUser.ok) {
             const user = dataUser.usuario;
+            
+            // --- 🛡️ INÍCIO DA LÓGICA DE PERSISTÊNCIA DO TOUR ---
+            // Se o banco diz que está desativado, impedimos o tour de subir
+            if (user.tour_desativado) {
+            localStorage.setItem('tour_concluido', 'true'); // Trava a memória local
+            } else {
+            localStorage.removeItem('tour_concluido'); // Libera para o tour aparecer
+            }
+
+            // Sincroniza o Switch do seu Menu Dropdown imediatamente
+            const sw = document.getElementById('switchTourNav');
+            if (sw) sw.checked = !user.tour_desativado;
+            // --- FIM DA LÓGICA DO TOUR ---
             
             // --- INÍCIO DA CORREÇÃO: LÓGICA DO CABEÇALHO PADRONIZADA ---
             const nomeCompleto = user.nome || 'Advogado';
@@ -557,6 +642,16 @@ async function inicializarDashboard() {
 
             idEscritorio = user.escritorio_id;
             document.getElementById('userEmail').innerText = user.email;
+
+            console.log('👤 Dados do usuário carregados:', user);
+            console.log('📅 Data de criação:', user.data_criacao);
+
+            // 🕐 Iniciar cronômetro de trial se aplicável
+            if (user.data_criacao) {
+                iniciarCronometroTrial(user.data_criacao);
+            } else {
+                console.warn('⚠️ Campo data_criacao não encontrado no usuário!');
+            }
 
             if (user.perfilCompleto === false) {
                 const modalW = document.getElementById('modalWelcome');
@@ -844,9 +939,92 @@ function executarBusca() {
             }
         }
 
+        // 🕐 CRONÔMETRO DE TRIAL
+        let trialInterval = null;
+
+        function iniciarCronometroTrial(dataCriacao) {
+            console.log('🕐 Iniciando cronômetro de trial com data:', dataCriacao);
+            
+            const trialTimer = document.getElementById('trial-timer');
+            const trialCountdown = document.getElementById('trial-countdown');
+            
+            if (!trialTimer || !trialCountdown) {
+                console.error('❌ Elementos do cronômetro não encontrados!');
+                return;
+            }
+            
+            if (!dataCriacao) {
+                console.warn('⚠️ data_criacao não fornecida, cronômetro não será exibido');
+                return;
+            }
+
+            // Calcular data de expiração (data_criacao + 7 dias)
+            const dataInicio = new Date(dataCriacao);
+            const dataExpiracao = new Date(dataInicio);
+            dataExpiracao.setDate(dataExpiracao.getDate() + 7);
+            
+            console.log('📅 Data de expiração calculada:', dataExpiracao);
+            
+            function atualizarCronometro() {
+                const agora = new Date();
+                const diferenca = dataExpiracao - agora;
+                
+                console.log('⏱️ Diferença em ms:', diferenca);
+                
+                // Se o trial expirou, ocultar o cronômetro
+                if (diferenca <= 0) {
+                    console.log('❌ Trial expirado, ocultando cronômetro');
+                    trialTimer.style.display = 'none';
+                    if (trialInterval) {
+                        clearInterval(trialInterval);
+                    }
+                    return;
+                }
+                
+                // Calcular dias, horas e minutos restantes
+                const dias = Math.floor(diferenca / (1000 * 60 * 60 * 24));
+                const horas = Math.floor((diferenca % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutos = Math.floor((diferenca % (1000 * 60 * 60)) / (1000 * 60));
+                
+                // Formatar exibição
+                const diasFormatado = dias > 0 ? `${dias}d ` : '';
+                const horasFormatado = horas.toString().padStart(2, '0') + 'h ';
+                const minutosFormatado = minutos.toString().padStart(2, '0') + 'm';
+                
+                const textoFinal = diasFormatado + horasFormatado + minutosFormatado;
+                console.log('🕐 Exibindo:', textoFinal);
+                
+                trialCountdown.textContent = textoFinal;
+                
+                // Exibir o cronômetro
+                trialTimer.style.display = 'flex';
+                
+                // Mudar cor para vermelho quando faltam menos de 24 horas
+                if (dias === 0 && horas < 24) {
+                    console.log('🔴 Menos de 24h! Mudando para vermelho');
+                    trialTimer.style.background = 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)';
+                    trialTimer.style.borderColor = '#ef4444';
+                    trialTimer.style.color = '#991b1b';
+                    trialTimer.querySelector('i').style.color = '#ef4444';
+                }
+            }
+            
+            // Atualizar imediatamente
+            atualizarCronometro();
+            
+            // Atualizar a cada minuto
+            trialInterval = setInterval(atualizarCronometro, 60000);
+        }
+
         function logout() { 
             localStorage.clear(); 
             window.location.href = '/login.html'; 
+        }
+
+        // 🎓 Resetar Tour Guiado
+        function resetarTour() {
+            localStorage.removeItem('tour_concluido');
+            iniciarTour();
         }
 
         // Inicialização e atualizações periódicas
@@ -870,16 +1048,22 @@ function executarBusca() {
 <script>
 function iniciarTour() {
     const driver = window.driver.js.driver;
+
     const driverObj = driver({
         showProgress: true,
-        nextBtnText: 'Próximo —>',
-        prevBtnText: '<— Voltar',
-        doneBtnText: 'Entendi!',
+        nextBtnText: 'Próximo',
+        prevBtnText: 'Anterior',
+        doneBtnText: 'Entendi',
         steps: [
             { 
-                element: '.sidebar', 
-                popover: { title: 'Menu Lateral', description: 'Aqui você acessa todas as ferramentas do seu escritório.', side: "right", align: 'start' } 
-            },
+                element: '#guia-config', // Agora o ID aponta para o seu link com a bolinha
+                popover: { 
+                    title: '⚙️ Configurações Iniciais', 
+                    description: 'Antes de começar, preencha os dados do seu escritório aqui. É fundamental para ativar as funções de API e para que você tome conhecimento das regras de uso e cancelamento do plano.', 
+                    side: "right", 
+                    align: 'start' 
+                } 
+            },            
             { 
                 element: '#tipoPesquisa', 
                 popover: { title: 'Pesquisa Jurídica', description: 'Escolha o tribunal e pesquise jurisprudência sem sair do Dashboard.', side: "bottom", align: 'start' } 
@@ -898,20 +1082,56 @@ function iniciarTour() {
     driverObj.drive();
 }
 
-// Inicia o tour 2 segundos após a página carregar
-window.addEventListener('load', () => {
-    // 🔍 Checa se a marca 'tour_concluido' já existe na memória
-    const tourJaVisto = localStorage.getItem('tour_concluido');
+// Inicia o tour 2 segundos após a página carregar (Versão com Trava de Banco)
+window.addEventListener('load', async () => {
+    // 1. Buscamos a informação que veio do perfil do usuário
+    // O objeto 'usuario' deve estar disponível se a função inicializarDashboard já rodou
+    const tourJaConcluidoLocal = localStorage.getItem('tour_concluido') === 'true';
 
-    if (!tourJaVisto) {
-        // Se NÃO viu, espera 2 segundos e inicia
+    // 2. Só iniciamos se NÃO estiver concluído no LocalStorage 
+    // E se a função inicializarDashboard não tiver marcado como concluído via Banco
+    if (!tourJaConcluidoLocal) {
         setTimeout(() => {
-            iniciarTour();
-            // ✅ Marca na memória que ele já viu, para não repetir no próximo login
-            localStorage.setItem('tour_concluido', 'true');
+            // Re-checa o localStorage um segundo antes de abrir
+            // (Pois o inicializarDashboard pode ter gravado 'true' lá enquanto esperávamos)
+            if (localStorage.getItem('tour_concluido') !== 'true') {
+                iniciarTour();
+            }
         }, 2000);
     }
 });
+
+async function alternarAutoStart(ligado) {
+    const desativar = !ligado;
+    
+    // 1. Salva no banco de dados para ser permanente
+    await fetch('/api/auth/atualizar-tour', {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ desativar })
+    });
+
+    // 2. Mantém o localStorage como redundância
+    if (desativar) {
+        localStorage.setItem('tour_concluido', 'true');
+    } else {
+        localStorage.removeItem('tour_concluido');
+    }
+}
+
+// Garante que o switch comece na posição correta ao abrir o menu
+function atualizarEstadoSwitch() {
+    const tourDesativado = localStorage.getItem('tour_concluido') === 'true';
+    const sw = document.getElementById('switchTourNav');
+    if (sw) sw.checked = !tourDesativado;
+}
+
+// Chame essa função quando o usuário abrir o dropdown
+// Ou simplesmente no carregamento da página:
+window.addEventListener('load', atualizarEstadoSwitch);
 </script>
     <audio id="notificacaoSom" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
 </body>

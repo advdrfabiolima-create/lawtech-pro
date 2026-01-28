@@ -13,7 +13,6 @@ const authMiddleware = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'segredo_temporario');
 
-    // 🛡️ BUSCA USUÁRIO E O TEMPO DE TRIAL (ATUALIZADO)
     const result = await pool.query(
       `SELECT u.id, u.nome, u.email, u.role, u.escritorio_id, 
               e.plano_financeiro_status, e.plano_id, e.trial_expira_em,
@@ -34,12 +33,13 @@ const authMiddleware = async (req, res, next) => {
 
     const usuario = result.rows[0];
     const diasRestantes = parseInt(usuario.dias_restantes);
+    
+    // 🛡️ REGRA DE IMUNIDADE MASTER: Dr. Fábio nunca é bloqueado
+    const ehMaster = usuario.email === 'adv.limaesilva@hotmail.com';
 
-    console.log(`--- TRIAL: ${usuario.email} | ${diasRestantes} dias restantes ---`);
-
-    // 🚨 REGRA DE BLOQUEIO (Trial expirado)
-    if (diasRestantes <= 0 && usuario.plano_financeiro_status !== 'pago') {
-      console.log("!!! [BLOQUEIO ATIVADO] Trial Expirado !!!");
+    // 🚨 REGRA DE BLOQUEIO (Apenas para clientes comuns)
+    if (!ehMaster && diasRestantes <= 0 && usuario.plano_financeiro_status !== 'pago') {
+      console.log(`!!! [BLOQUEIO ATIVADO] Trial Expirado para: ${usuario.email} !!!`);
       return res.status(402).json({ error: 'Trial expirado' });
     }
 
@@ -52,7 +52,8 @@ const authMiddleware = async (req, res, next) => {
         escritorio_id: usuario.escritorio_id,
         plano_financeiro_status: usuario.plano_financeiro_status,
         plano_id: usuario.plano_id,
-        dias_restantes: diasRestantes
+        dias_restantes: diasRestantes,
+        eh_master: ehMaster
     };
 
     next();

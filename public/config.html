@@ -902,6 +902,13 @@ async function carregarEquipe() {
             body: JSON.stringify({ nome, email, senha, role })
         });
 
+        const data = await res.json();
+        // ✅ Interceptar erro 402 (Limite de usuários)
+        if (res.status === 402) {
+            const msg = data.message || `Você atingiu o limite de ${data.max || 3} usuários do plano ${data.current_plan || 'Básico'}.`;
+            exibirAvisoUpgrade(msg);
+            return;
+        }
         if (res.ok) {
             alert('✅ Funcionário adicionado!');
             document.getElementById('eqNome').value = '';
@@ -957,61 +964,9 @@ async function alterarSenha() {
 
     // 🕒 FUNÇÃO PARA CALCULAR E EXIBIR DIAS RESTANTES DO TRIAL
 async function carregarDataTrial() {
-    try {
-        const res = await fetch('/api/config/meu-escritorio', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        const data = await res.json();
-        
-        if (data.ok && data.dados) {
-            const elemento = document.getElementById('dataExpiracaoTrial');
-            const cardTrial = elemento.closest('.card, div[style*="background"]');
-            
-            // 🎯 USUÁRIO PAGO (SEM TRIAL)
-            if (data.dados.plano_financeiro_status === 'pago') {
-                elemento.innerText = 'ACESSO COMPLETO';
-                elemento.style.color = '#065f46';
-                elemento.style.fontWeight = '900';
-                
-                // Muda o card para verde
-                if (cardTrial) {
-                    cardTrial.style.background = '#d1fae5';
-                    cardTrial.style.borderColor = '#86efac';
-                }
-                return;
-            }
-            
-            // 🕒 USUÁRIO EM TRIAL
-            if (data.dados.trial_expira_em) {
-                const dataExpiracao = new Date(data.dados.trial_expira_em);
-                const hoje = new Date();
-                
-                // Calcular diferença em dias
-                const diffTime = dataExpiracao - hoje;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                
-                if (diffDays > 0) {
-                    elemento.innerText = `${diffDays} dia${diffDays > 1 ? 's' : ''}`;
-                    elemento.style.color = '#92400e';
-                } else if (diffDays === 0) {
-                    elemento.innerText = 'HOJE';
-                    elemento.style.color = '#dc2626';
-                    elemento.style.fontWeight = '900';
-                } else {
-                    elemento.innerText = 'EXPIRADO';
-                    elemento.style.color = '#dc2626';
-                }
-            } else {
-                // Trial não definido
-                elemento.innerText = 'não configurado';
-                elemento.style.color = '#92400e';
-            }
-        }
-    } catch (err) {
-        console.error('Erro ao carregar data do trial:', err);
-        document.getElementById('dataExpiracaoTrial').innerText = 'erro ao carregar';
-    }
+    // Esta função foi simplificada - a data já é configurada pela carregarInfoRodape()
+    // que calcula corretamente a partir de data_criacao do usuário
+    console.log('✅ Verificação de trial - data já configurada por carregarInfoRodape()');
 }
 
 window.onload = () => {
@@ -1198,6 +1153,35 @@ window.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
     }
 });
+
+    // ✅ Função de modal de upgrade (para limites de usuários)
+    function exibirAvisoUpgrade(mensagem) {
+        const overlay = document.createElement('div');
+        overlay.id = "overlay-upgrade";
+        overlay.style = "position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:20000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(5px);";
+        overlay.innerHTML = `
+        <div style="background:#fff; padding:40px; border-radius:20px; text-align:center; max-width:400px;">
+            <div style="font-size:50px;">🚀</div>
+            <h3 style="margin-top:15px; color:#0f172a;">Limite de Usuários</h3>
+            <p style="color:#64748b; margin:15px 0 25px 0; line-height:1.6;">${mensagem}</p>
+            <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:12px; padding:15px; margin-bottom:25px; text-align:left;">
+                <p style="margin:0; font-size:13px; color:#92400e; line-height:1.6;">
+                    <strong>🎯 Plano Intermediário inclui:</strong><br>
+                    • Até 15 usuários simultâneos<br>
+                    • Todos os recursos do Básico<br>
+                    • Financeiro Jurídico completo<br>
+                    • Suporte prioritário
+                </p>
+            </div>
+            <button onclick="window.location.href='/planos-page'" style="background:linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color:#000; border:none; padding:14px 28px; border-radius:10px; font-weight:800; cursor:pointer; width:100%; margin-bottom:10px;">
+                Ver Planos e Preços
+            </button>
+            <button onclick="document.getElementById('overlay-upgrade').remove()" style="background:none; border:none; color:#64748b; cursor:pointer; font-weight:600; padding:8px;">
+                Depois
+            </button>
+        </div>`;
+        document.body.appendChild(overlay);
+    }
     </script>
 </body>
 </html>

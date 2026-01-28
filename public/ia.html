@@ -137,7 +137,7 @@
             background: var(--primary); color: white; border: none;
             width: 40px; height: 40px; border-radius: 50%;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: 0.2s;
+            transition: 0.2s; font-size: 18px; padding: 0;
         }
         .btn-send:disabled { background: var(--muted); cursor: not-allowed; }
         .btn-send:hover:not(:disabled) { transform: scale(1.1); background: #1d4ed8; }
@@ -216,6 +216,68 @@
         }
         .ai-message strong {
             color: var(--text-main);
+            font-weight: 600;
+        }
+
+        /* ✅ UPLOAD DE PDF/DOCX */
+        .btn-attach {
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            border-radius: 50%;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            font-size: 20px;
+        }
+        .btn-attach:hover { 
+            background: #1d4ed8;
+            transform: scale(1.05);
+        }
+        .btn-attach:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .file-preview {
+            display: none; margin-top: 12px; padding: 12px;
+            background: #fffbeb; border: 1px solid #fde68a;
+            border-radius: 8px; align-items: center; gap: 12px;
+        }
+        .file-preview.active { display: flex; }
+        .file-info { flex: 1; display: flex; align-items: center; gap: 10px; }
+        .file-icon {
+            width: 40px; height: 40px; background: #fbbf24;
+            border-radius: 8px; display: flex; align-items: center;
+            justify-content: center; color: white; font-weight: 700; font-size: 11px;
+        }
+        .file-details { flex: 1; }
+        .file-name { font-weight: 600; font-size: 13px; color: #92400e; }
+        .file-size { font-size: 11px; color: #a16207; }
+        .btn-remove-file {
+            background: #dc2626; color: white; border: none;
+            padding: 6px 12px; border-radius: 6px; cursor: pointer;
+            font-size: 12px; font-weight: 600; transition: 0.2s;
+        }
+        .btn-remove-file:hover { background: #b91c1c; }
+
+        /* ⚠️ AVISO DE LIMITAÇÕES - VERSÃO COMPACTA */
+        .limits-warning {
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            font-size: 11px;
+            color: #92400e;
+            text-align: center;
+            line-height: 1.4;
+        }
+        .limits-warning strong {
+            color: #78350f;
             font-weight: 600;
         }
     </style>
@@ -305,16 +367,53 @@
             <div id="status-ia" class="status-badge">
                 <div class="dot-flashing"></div> Claude está analisando...
             </div>
+
+            <!-- ⚠️ AVISO DE LIMITAÇÕES - COMPACTO -->
+            <div class="limits-warning">
+                <strong>⚠️ Limite:</strong> Apenas PDF • Máx 10 MB • Até 100 páginas
+            </div>
+
+            <!-- ✅ PREVIEW DO ARQUIVO -->
+            <div id="file-preview" class="file-preview">
+                <div class="file-info">
+                    <div class="file-icon" id="file-icon-type">PDF</div>
+                    <div class="file-details">
+                        <div class="file-name" id="file-name">documento.pdf</div>
+                        <div class="file-size" id="file-size">1.2 MB</div>
+                    </div>
+                </div>
+                <button class="btn-remove-file" onclick="removerArquivo()">
+                    <i class="lucide lucide-x" style="width: 14px; height: 14px;"></i> Remover
+                </button>
+            </div>
+
             <div class="input-box">
+                <!-- ✅ INPUT DE ARQUIVO (OCULTO) -->
+                <input 
+                    type="file" 
+                    id="file-input" 
+                    accept=".pdf" 
+                    style="display: none;" 
+                    onchange="handleFileSelect(event)"
+                >
+                
+                <!-- ✅ BOTÃO DE ANEXAR (VISÍVEL E DESTACADO) -->
+                <button 
+                    class="btn-attach" 
+                    onclick="document.getElementById('file-input').click()" 
+                    title="Anexar PDF (Máx: 10 MB, 100 páginas)">
+                    📎
+                </button>
+
                 <input 
                     type="text" 
                     id="pergunta" 
-                    placeholder="Ex: Qual o prazo para apelação cível? Ou: Analise o art. 489 do CPC..." 
+                    placeholder="Ex: Analise este contrato... Ou: Qual o prazo para apelação?" 
                     onkeypress="if(event.key === 'Enter') enviarPergunta()"
                     autocomplete="off"
                 >
                 <button id="btn-enviar" class="btn-send" onclick="enviarPergunta()">
-                    <i class="lucide lucide-send" style="width: 18px; height: 18px;"></i>
+                    ➤
                 </button>
             </div>
             <div style="text-align: center; margin-top: 12px; font-size: 11px; color: var(--muted);">
@@ -328,9 +427,73 @@
     const token = localStorage.getItem('token');
     if (!token) window.location.href = '/login.html';
 
+    // ✅ VARIÁVEL PARA ARMAZENAR ARQUIVO
+    let arquivoAnexado = null;
     let planoAtual = null;
 
-    // 🚀 Carregar informações do usuário e plano
+    // ✅ FUNÇÃO PARA SELECIONAR ARQUIVO (PDF OU DOCX)
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        
+        if (!file) return;
+
+        console.log('📁 Arquivo selecionado:', {
+            nome: file.name,
+            tipo: file.type,
+            tamanho: (file.size / 1024 / 1024).toFixed(2) + ' MB'
+        });
+
+        // Validar tipo
+        const tiposPermitidos = ['application/pdf'];
+        if (!tiposPermitidos.includes(file.type)) {
+            alert('❌ Apenas arquivos PDF são aceitos!');
+            event.target.value = '';
+            return;
+        }
+
+        // Validar tamanho (máximo 10MB)
+        const maxSize = 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert('❌ O arquivo é muito grande! Máximo: 10MB');
+            event.target.value = '';
+            return;
+        }
+
+        // Converter para Base64
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64 = e.target.result.split(',')[1];
+            
+            arquivoAnexado = {
+                nome: file.name,
+                tamanho: (file.size / 1024 / 1024).toFixed(2),
+                base64: base64
+            };
+
+            // Mostrar preview
+            document.getElementById('file-name').textContent = file.name;
+            document.getElementById('file-size').textContent = arquivoAnexado.tamanho + ' MB';
+            document.getElementById('file-icon-type').textContent = 'PDF';
+            document.getElementById('file-preview').classList.add('active');
+
+            console.log('✅ Arquivo carregado:', {
+                nome: file.name,
+                tamanho: arquivoAnexado.tamanho + ' MB',
+                base64Length: base64.length
+            });
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    // ✅ FUNÇÃO PARA REMOVER ARQUIVO
+    function removerArquivo() {
+        arquivoAnexado = null;
+        document.getElementById('file-input').value = '';
+        document.getElementById('file-preview').classList.remove('active');
+        console.log('🗑️ Arquivo removido');
+    }
+
     async function carregarInfoRodape() {
         try {
             // 1. Dados do usuário
@@ -384,28 +547,63 @@
         if (!pergunta) return;
 
         // Adiciona mensagem do usuário
-        chat.innerHTML += `<div class="message user-message">${escapeHtml(pergunta)}</div>`;
+        let userMessageHTML = '';
+        if (arquivoAnexado) {
+            userMessageHTML = `
+                <div class="message user-message">
+                    <div style="margin-bottom: 8px; padding: 8px; background: rgba(255,255,255,0.2); border-radius: 6px;">
+                        📄 <strong>${arquivoAnexado.nome}</strong> (${arquivoAnexado.tamanho} MB)
+                    </div>
+                    ${escapeHtml(pergunta)}
+                </div>
+            `;
+        } else {
+            userMessageHTML = `<div class="message user-message">${escapeHtml(pergunta)}</div>`;
+        }
+        chat.innerHTML += userMessageHTML;
         input.value = '';
         statusIa.style.display = 'flex';
         btnEnviar.disabled = true;
         chat.scrollTop = chat.scrollHeight;
 
         try {
+            // ✅ CRIAR PAYLOAD COM OU SEM ARQUIVO
+            const payload = { pergunta };
+            
+            if (arquivoAnexado) {
+                payload.pdf = {
+                    nome: arquivoAnexado.nome,
+                    base64: arquivoAnexado.base64
+                };
+                console.log('📤 Enviando com PDF:', {
+                    nome: arquivoAnexado.nome,
+                    tamanho: arquivoAnexado.tamanho + ' MB',
+                    base64Length: arquivoAnexado.base64.length
+                });
+            }
+
+            console.log('📤 Enviando requisição para a IA...');
+
             const res = await fetch('/api/ia/perguntar', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ pergunta })
+                body: JSON.stringify(payload)
             });
 
+            console.log('📥 Resposta HTTP:', res.status);
+
             const data = await res.json();
+            console.log('📥 Dados retornados:', data);
+
             let respostaHTML = '';
 
             if (res.ok) {
                 // Converte Markdown para HTML
                 respostaHTML = marked.parse(data.resposta);
+                console.log('✅ Resposta da IA recebida com sucesso');
             } 
             else if (res.status === 403) {
                 respostaHTML = `
@@ -427,19 +625,53 @@
                     Aguarde alguns segundos e tente novamente. Limite de taxa da API atingido.
                 `;
             }
+            else if (res.status === 400) {
+                // Tratamento especial para erro de páginas
+                if (data.detalhe && data.detalhe.includes('100 PDF pages')) {
+                    respostaHTML = `
+                        <div style="text-align:center; padding:20px;">
+                            <i class="lucide lucide-file-x" style="width: 48px; height: 48px; color: #dc2626; margin-bottom: 12px;"></i>
+                            <h3 style="margin-bottom: 8px;">📄 PDF com muitas páginas</h3>
+                            <p style="color: var(--muted); margin-bottom: 16px;">
+                                O PDF enviado excede o limite de <strong>100 páginas</strong> da API Claude.<br>
+                                Por favor, envie um documento menor ou divida o PDF em partes.
+                            </p>
+                            <p style="font-size: 12px; color: var(--muted);">
+                                💡 <strong>Dica:</strong> Você pode extrair apenas as páginas relevantes do processo.
+                            </p>
+                        </div>
+                    `;
+                } else {
+                    respostaHTML = `
+                        <strong>❌ Erro 400 - Requisição Inválida</strong><br>
+                        ${escapeHtml(data.erro || 'Erro ao processar sua solicitação')}<br>
+                        ${data.detalhe ? `<small style="color: var(--muted);">${escapeHtml(data.detalhe)}</small>` : ''}
+                    `;
+                }
+                console.error('❌ Erro 400:', data);
+            }
             else {
                 respostaHTML = `<strong>❌ Erro:</strong> ${escapeHtml(data.erro || 'Falha na resposta da IA')}`;
                 if (data.detalhe) {
                     respostaHTML += `<br><small style="color: var(--muted);">${escapeHtml(data.detalhe)}</small>`;
                 }
+                console.error('❌ Erro:', data);
             }
 
             chat.innerHTML += `<div class="message ai-message">${respostaHTML}</div>`;
+            
+            // ✅ Remover arquivo após envio (sucesso ou erro)
+            if (arquivoAnexado) {
+                removerArquivo();
+            }
         } catch (err) {
+            console.error('❌ Erro na requisição:', err);
             chat.innerHTML += `
                 <div class="message ai-message">
                     <strong>❌ Erro de conexão</strong><br>
                     Não foi possível comunicar com o servidor. Verifique sua internet e tente novamente.
+                    <br><br>
+                    <small style="color: var(--muted);">Detalhes técnicos: ${escapeHtml(err.message)}</small>
                 </div>
             `;
         } finally {

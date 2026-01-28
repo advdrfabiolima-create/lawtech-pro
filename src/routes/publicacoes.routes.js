@@ -3,16 +3,22 @@ const router = express.Router();
 const pool = require('../config/db');
 const axios = require('axios');
 const authMiddleware = require('../middlewares/authMiddleware');
+const planMiddleware = require('../middlewares/planMiddleware');
 
 /**
- * 📡 ROTA DE SINCRONIZAÇÃO - VERSÃO MULTI-TENANT
- * Usa APENAS a chave API do cliente (nunca a do .env)
+ * ============================================================
+ * 📡 ROTA DE SINCRONIZAÇÃO - VERSÃO CORRIGIDA (27/01/2026)
+ * ✅ Formato OAB correto: "BA-51288" (sem zeros, UF primeiro)
+ * ============================================================
  */
-router.get('/publicacoes/fetch-all', authMiddleware, async (req, res) => {
+router.get('/publicacoes/fetch-all', 
+    authMiddleware, 
+    planMiddleware.checkFeature('sincronizacao_djen'),
+    async (req, res) => {
     try {
         const escritorioId = req.user.escritorio_id;
 
-        console.log("\n🔍 [SYNC] Iniciando sincronização do DJEN...");
+        console.log("\n📄 [SYNC] Iniciando sincronização do DJEN...");
 
         // 1. BUSCA DADOS DO ESCRITÓRIO E CHAVE API
         const escRes = await pool.query(
@@ -27,12 +33,22 @@ router.get('/publicacoes/fetch-all', authMiddleware, async (req, res) => {
         const { oab, uf, advogado_responsavel, escavador_api_key } = escRes.rows[0];
         let monitoramento_id = escRes.rows[0].monitoramento_id;
 
-        console.log(`📋 Escritório: ${advogado_responsavel}`);
-        console.log(`📋 OAB: ${oab}/${uf || 'BA'}`);
-        console.log(`🔑 Chave API configurada? ${escavador_api_key ? 'SIM' : 'NÃO'}`);
-        console.log(`🔑 Valor da chave: ${escavador_api_key ? '[OCULTA]' : 'VAZIA'}`);
+        // ✅ FORMATAR OAB CORRETAMENTE
+        // Remove pontos, traços e barra
+        const oabNumeros = oab ? oab.replace(/\D/g, '') : '';
+        // Remove zeros à esquerda
+        const oabSemZeros = oabNumeros.replace(/^0+/, '');
+        const ufFinal = uf || 'BA';
+        
+        // ✅ FORMATO CORRETO: "BA-51288" (UF primeiro, sem zeros)
+        const oabFormatada = `${ufFinal}-${oabSemZeros}`;
 
-        // 🔑 VERIFICA SE TEM CHAVE API PRÓPRIA (OBRIGATÓRIA)
+        console.log(`📋 Escritório: ${advogado_responsavel}`);
+        console.log(`📋 OAB original: ${oab}`);
+        console.log(`📋 OAB formatada: ${oabFormatada}`);
+        console.log(`🔑 Chave API configurada? ${escavador_api_key ? 'SIM' : 'NÃO'}`);
+
+        // 🔒 VERIFICA SE TEM CHAVE API PRÓPRIA
         if (!escavador_api_key || escavador_api_key.trim() === '') {
             console.log("⚠️ Sem chave API configurada para este escritório");
             return res.json({
@@ -42,7 +58,6 @@ router.get('/publicacoes/fetch-all', authMiddleware, async (req, res) => {
             });
         }
 
-        // 🔥 USA EXCLUSIVAMENTE A CHAVE DO CLIENTE
         const authHeader = { 
             'Authorization': `Bearer ${escavador_api_key.trim()}`,
             'X-Requested-With': 'XMLHttpRequest',
@@ -58,29 +73,44 @@ router.get('/publicacoes/fetch-all', authMiddleware, async (req, res) => {
             try {
                 const listRes = await axios.get(
                     'https://api.escavador.com/api/v1/monitoramentos',
-                    { headers: authHeader }
+                    { headers: authHeader, timeout: 15000 }
                 );
 
                 console.log(`📊 Total de monitoramentos na conta: ${listRes.data.items?.length || 0}`);
 
-                const monitoramentoExistente = listRes.data.items?.find(m => 
-                    m.termo && m.termo.includes(oab)
-                );
+                // ✅ BUSCAR POR OAB FORMATADA CORRETA
+                const monitoramentoExistente = listRes.data.items?.find(m => {
+                    if (!m.termo) return false;
+                    
+                    // Tentar match com diferentes formatos
+                    const termo = m.termo.toUpperCase();
+                    return termo.includes(oabFormatada) || 
+                           termo.includes(oabSemZeros) ||
+                           termo.includes(oab);
+                });
 
                 if (monitoramentoExistente) {
                     monitoramento_id = monitoramentoExistente.id;
                     console.log(`✅ Monitoramento encontrado! ID: ${monitoramento_id}`);
+                    console.log(`   Termo: ${monitoramentoExistente.termo}`);
                     
                     await pool.query(
                         "UPDATE escritorios SET monitoramento_id = $1 WHERE id = $2", 
                         [monitoramento_id, escritorioId]
                     );
                 } else {
+                    console.log(`❌ Nenhum monitoramento encontrado para: ${oabFormatada}`);
+                    console.log(`   Monitoramentos disponíveis:`);
+                    listRes.data.items?.forEach((m, i) => {
+                        console.log(`   ${i+1}. ${m.termo} (ID: ${m.id})`);
+                    });
+                    
                     return res.json({
                         ok: true,
                         novas: 0,
-                        mensagem: "⚠️ Nenhum monitoramento ativo encontrado para sua OAB. Crie um monitoramento no site do Escavador ou use 'Adicionar Manual'.",
-                        sem_monitoramento: true
+                        mensagem: `⚠️ Nenhum monitoramento ativo encontrado para sua OAB (${oabFormatada}).\n\nCrie um monitoramento no site do Escavador para esta OAB ou use 'Adicionar Manual'.`,
+                        sem_monitoramento: true,
+                        oab_formatada: oabFormatada
                     });
                 }
 
@@ -109,7 +139,8 @@ router.get('/publicacoes/fetch-all', authMiddleware, async (req, res) => {
                 `https://api.escavador.com/api/v1/monitoramentos/${monitoramento_id}/aparicoes`,
                 { 
                     headers: authHeader,
-                    params: { limite: 100 }
+                    params: { limite: 100 },
+                    timeout: 20000
                 }
             );
             
@@ -128,35 +159,48 @@ router.get('/publicacoes/fetch-all', authMiddleware, async (req, res) => {
             let totalNovas = 0;
             let totalDuplicadas = 0;
 
+            console.log('\n🔄 Processando publicações...');
+            
             for (const item of itens) {
-                const conteudoPub = item.conteudo || item.resumo || item.texto;
+                console.log('\n📦 Processando item ID:', item.id);
                 
-                if (!conteudoPub || conteudoPub.length < 10) continue;
-
-                const regexProcesso = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/;
-                const match = conteudoPub.match(regexProcesso);
-                const numeroProcesso = match ? match[0] : 'SEM_NUMERO';
-                const dataPub = item.data_publicacao || item.data || new Date().toISOString().split('T')[0];
+                // ✅ API V1: Dados estão em estrutura diferente
+                const conteudoPub = item.movimentacao?.conteudo || item.conteudo || item.resumo || item.texto;
+                const numeroProcesso = item.numero_processo || 'SEM_NUMERO';
+                const dataPub = item.data_diario?.date?.split(' ')[0] || 
+                               item.data_processo?.date?.split(' ')[0] || 
+                               item.data_publicacao || 
+                               new Date().toISOString().split('T')[0];
+                
+                console.log('   📋 Número processo:', numeroProcesso);
+                console.log('   📅 Data:', dataPub);
+                console.log('   📝 Tamanho conteúdo:', conteudoPub?.length || 0);
+                
+                if (!conteudoPub || conteudoPub.length < 10) {
+                    console.log('   ⏭️ IGNORADO: Conteúdo vazio ou muito curto');
+                    continue;
+                }
 
                 try {
                     const result = await pool.query(
                         `INSERT INTO publicacoes_djen 
                          (numero_processo, conteudo, data_publicacao, tribunal, escritorio_id, status) 
                          VALUES ($1, $2, $3, $4, $5, 'pendente') 
-                         ON CONFLICT (numero_processo, data_publicacao) DO NOTHING
+                         ON CONFLICT (numero_processo, data_publicacao, escritorio_id) DO NOTHING
                          RETURNING id`,
-                        [numeroProcesso, conteudoPub, dataPub, item.diario?.sigla || 'DJEN', escritorioId]
+                        [numeroProcesso, conteudoPub, dataPub, item.sigla_diario || 'DJEN', escritorioId]
                     );
 
                     if (result.rowCount > 0) {
                         totalNovas++;
-                        console.log(`📌 NOVA: ${numeroProcesso}`);
+                        console.log(`   ✅ INSERIDO: ${numeroProcesso} (ID: ${result.rows[0].id})`);
                     } else {
                         totalDuplicadas++;
+                        console.log(`   ⏭️ DUPLICADO: ${numeroProcesso}`);
                     }
 
                 } catch (errInsert) {
-                    console.error(`❌ Erro ao inserir ${numeroProcesso}:`, errInsert.message);
+                    console.error(`   ❌ Erro ao inserir ${numeroProcesso}:`, errInsert.message);
                 }
             }
 
@@ -197,7 +241,9 @@ router.get('/publicacoes/fetch-all', authMiddleware, async (req, res) => {
 });
 
 /**
+ * ============================================================
  * 📋 BUSCAR PUBLICAÇÕES PENDENTES
+ * ============================================================
  */
 router.get('/publicacoes-pendentes', authMiddleware, async (req, res) => {
     try {
@@ -230,7 +276,9 @@ router.get('/publicacoes-pendentes', authMiddleware, async (req, res) => {
 });
 
 /**
+ * ============================================================
  * ⚡ CONVERTER PUBLICAÇÃO EM PRAZO
+ * ============================================================
  */
 router.post('/converter-publicacao', authMiddleware, async (req, res) => {
     const { id_publicacao, tipo, dias, dataCalculada } = req.body;
@@ -271,8 +319,8 @@ router.post('/converter-publicacao', authMiddleware, async (req, res) => {
 
         const prazoRes = await pool.query(
             `INSERT INTO prazos 
-             (tipo, processo_id, descricao, data_limite, status, escritorio_id, usuario_id) 
-             VALUES ($1, $2, $3, $4, 'aberto', $5, $6)
+             (tipo, processo_id, descricao, data_limite, status, escritorio_id, usuario_id, deletado, created_at) 
+             VALUES ($1, $2, $3, $4, 'aberto', $5, $6, false, NOW())
              RETURNING *`,
             [
                 tipo,
@@ -305,7 +353,9 @@ router.post('/converter-publicacao', authMiddleware, async (req, res) => {
 });
 
 /**
+ * ============================================================
  * 🧪 INSERIR PUBLICAÇÃO MANUAL
+ * ============================================================
  */
 router.post('/publicacoes/manual', authMiddleware, async (req, res) => {
     try {

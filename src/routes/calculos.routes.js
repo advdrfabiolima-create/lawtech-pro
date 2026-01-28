@@ -1,13 +1,29 @@
 const express = require('express');
 const router = express.Router();
-// 🚀 ADICIONADO: excluirCalculo dentro das chaves
 const { salvarCalculo, listarHistorico, excluirCalculo } = require('../controllers/calculosController');
 const authMiddleware = require('../middlewares/authMiddleware');
+const planMiddleware = require('../middlewares/planMiddleware');
 
-router.post('/calculos/salvar', authMiddleware, salvarCalculo);
-router.get('/calculos/historico', authMiddleware, listarHistorico);
+// ============================================================
+// 🔒 CÁLCULOS JURÍDICOS - AVANÇADO E PREMIUM APENAS
+// ============================================================
 
-// 🚀 CORRIGIDO: Removido o prefixo "calculosController." que causava o erro
-router.delete('/calculos/excluir/:id', authMiddleware, excluirCalculo);
+router.post('/calculos/salvar', 
+    authMiddleware, 
+    planMiddleware.checkFeature('calculos'),
+    salvarCalculo
+);
+
+router.get('/calculos/historico', 
+    authMiddleware, 
+    planMiddleware.checkFeature('calculos'),
+    listarHistorico
+);
+
+router.delete('/calculos/excluir/:id', 
+    authMiddleware, 
+    planMiddleware.checkFeature('calculos'),
+    excluirCalculo
+);
 
 module.exports = router;

@@ -16,7 +16,7 @@ const prazosRoutes = require('./routes/prazos.routes');
 const planosRoutes = require('./routes/planos.routes');
 const financeiroRoutes = require('./routes/financeiro.routes');
 const audienciasRoutes = require('./routes/audiencias.routes');
-const processosRoutes = require('./routes/processos.routes');  // ← Todas as rotas de processos aqui!
+const processosRoutes = require('./routes/processos.routes');
 const calculosRoutes = require('./routes/calculos.routes');
 const pagamentosRoutes = require('./routes/pagamentos.routes');
 const clientesRoutes = require('./routes/clientes.routes');
@@ -24,6 +24,7 @@ const configRoutes = require('./routes/config.routes');
 const publicacoesRoutes = require('./routes/publicacoes.routes');
 const iaRoutes = require('./routes/ia.routes');
 const crmRoutes = require('./routes/crm.routes');
+const usuariosRoutes = require('./routes/usuarios.routes'); // 🆕 ADICIONADO
 
 // --- AUTOMAÇÃO ---
 const { iniciarAgendamentos } = require('./cron/prazosCron');
@@ -31,22 +32,23 @@ const { iniciarAgendamentos } = require('./cron/prazosCron');
 const app = express();
 
 // --- CONFIGURAÇÕES GLOBAIS ---
-app.use(express.json());
-app.use(cors());  // Se precisar de CORS (opcional, adicione se front estiver em domínio diferente)
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ limit: '20mb', extended: true }));
+app.use(cors());
 
 // --- APIs (ROTAS DE DADOS) ---
-// Todas as rotas de processos (GET, POST, PATCH) agora vêm de processos.routes.js
 app.use('/api/auth', authRoutes);
 app.use('/api', iaRoutes);
 app.use('/api', crmRoutes);
 app.use('/api', prazosRoutes);
-app.use('/api', processosRoutes);         // ← Aqui entra a rota POST /api/processos correta!
+app.use('/api', processosRoutes);
 app.use('/api', calculosRoutes);
 app.use('/api', audienciasRoutes);
 app.use('/api', planosRoutes);
 app.use('/api', financeiroRoutes);
 app.use('/api', clientesRoutes);
 app.use('/api', configRoutes);
+app.use('/api', usuariosRoutes); // 🆕 ADICIONADO
 app.use('/api/pagamentos', pagamentosRoutes);
 app.use('/api', publicacoesRoutes);
 
@@ -132,20 +134,22 @@ app.use((err, req, res, next) => {
     res.status(err.status || 500).json({ ok: false, erro: err.message || 'Erro interno do servidor' });
 });
 
-// --- INICIALIZAÇÃO DO SISTEMA ---
+// --- INICIALIZAÇÃO DO SISTEMA (VERSÃO PROTEGIDA) ---
 async function iniciarSistema() {
     try {
         console.log("⏳ Conectando ao Neon e validando acesso master...");
+        
+        // Esta senha só será usada no primeiríssimo acesso ou se o senhor deletar o usuário
         const hash = await bcrypt.hash('Lei@2026', 10);
 
         await pool.query(`
             INSERT INTO usuarios (nome, email, senha, role, escritorio_id)
             VALUES ('Dr. Fábio Lima', 'adv.limaesilva@hotmail.com', $1, 'admin', 1)
             ON CONFLICT (email) 
-            DO UPDATE SET senha = $1, role = 'admin', escritorio_id = 1
+            DO NOTHING
         `, [hash]);
 
-        console.log("✅ [SISTEMA] Acesso Master restaurado: adv.limaesilva@hotmail.com / Lei@2026");
+        console.log("✅ [SISTEMA] Verificação de Acesso Master concluída.");
 
         iniciarAgendamentos();
 

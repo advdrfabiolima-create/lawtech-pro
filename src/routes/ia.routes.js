@@ -2,48 +2,96 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
+const planMiddleware = require('../middlewares/planMiddleware');
 const { analisarPrazoComClaude } = require('../controllers/iaController');
 const Anthropic = require('@anthropic-ai/sdk');
 
 /**
  * ============================================================
- * ROTA PRINCIPAL: ASSISTENTE JURÍDICO (CHAT IA)
+ * 🔐 ROTA PRINCIPAL: ASSISTENTE JURÍDICO (CHAT IA)
  * Usa: Claude Haiku 4.5 (Anthropic)
  * Restrição: Apenas plano Premium
+ * ✅ NOVO: Suporte a análise de PDF
  * ============================================================
  */
-router.post('/ia/perguntar', authMiddleware, async (req, res) => {
-  try {
-    const { pergunta } = req.body;
-    const escritorioId = req.user.escritorio_id;
+router.post('/ia/perguntar', 
+    authMiddleware, 
+    planMiddleware.checkFeature('ia_juridica'),  // ✅ Apenas Premium
+    async (req, res) => {
+        try {
+            const { pergunta, pdf } = req.body;
 
-    // 1️⃣ Validação básica
-    if (!pergunta || !pergunta.trim()) {
-      return res.status(400).json({ erro: 'Pergunta não informada.' });
-    }
+            console.log('📊 [IA JURÍDICA] Nova pergunta:', {
+                temPDF: !!pdf,
+                tamanhoPergunta: pergunta?.length,
+                pdfNome: pdf?.nome,
+                pdfBase64Length: pdf?.base64?.length
+            });
 
-    // 2️⃣ 🔒 Verificação de Plano Premium
-    const planoResult = await pool.query(`
-      SELECT p.nome FROM escritorios e
-      JOIN planos p ON p.id = e.plano_id
-      WHERE e.id = $1
-    `, [escritorioId]);
+            // Validação básica
+            if (!pergunta || !pergunta.trim()) {
+                console.error('❌ [IA JURÍDICA] Erro: Pergunta não informada');
+                return res.status(400).json({ 
+                    erro: 'Pergunta não informada.',
+                    detalhe: 'O campo "pergunta" é obrigatório'
+                });
+            }
 
-    if (planoResult.rowCount === 0 || planoResult.rows[0].nome.toLowerCase() !== 'premium') {
-      return res.status(403).json({ erro: 'Recurso exclusivo do plano Premium' });
-    }
+            // ✅ VALIDAÇÃO DO PDF (se presente)
+            if (pdf) {
+                if (!pdf.base64) {
+                    console.error('❌ [IA JURÍDICA] Erro: PDF sem base64');
+                    return res.status(400).json({ 
+                        erro: 'PDF inválido',
+                        detalhe: 'O arquivo PDF não possui dados base64'
+                    });
+                }
 
-    // 3️⃣ 🚀 Configuração da Claude API
-    const anthropic = new Anthropic({
-      apiKey: process.env.CLAUDE_API_KEY,
-    });
+                if (!pdf.nome) {
+                    console.error('❌ [IA JURÍDICA] Erro: PDF sem nome');
+                    return res.status(400).json({ 
+                        erro: 'PDF inválido',
+                        detalhe: 'O arquivo PDF não possui nome'
+                    });
+                }
 
-    // 4️⃣ Prompt otimizado para contexto jurídico brasileiro
-    const systemPrompt = `Você é um advogado sênior brasileiro com expertise em:
+                // Validar tamanho do base64 (aprox. 13MB após conversão)
+                const estimatedSizeMB = (pdf.base64.length * 3/4) / (1024 * 1024);
+                if (estimatedSizeMB > 15) {
+                    console.error('❌ [IA JURÍDICA] Erro: PDF muito grande:', estimatedSizeMB.toFixed(2), 'MB');
+                    return res.status(400).json({ 
+                        erro: 'PDF muito grande',
+                        detalhe: `O arquivo tem aproximadamente ${estimatedSizeMB.toFixed(2)}MB. Máximo: 15MB`
+                    });
+                }
+
+                console.log('✅ [IA JURÍDICA] PDF validado:', {
+                    nome: pdf.nome,
+                    tamanhoEstimado: estimatedSizeMB.toFixed(2) + ' MB'
+                });
+            }
+
+            // Configuração da Claude API
+            const anthropic = new Anthropic({
+                apiKey: process.env.CLAUDE_API_KEY,
+            });
+
+            // Validar se a chave API existe
+            if (!process.env.CLAUDE_API_KEY) {
+                console.error('❌ [IA JURÍDICA] CLAUDE_API_KEY não configurada no .env');
+                return res.status(500).json({ 
+                    erro: 'Configuração inválida',
+                    detalhe: 'CLAUDE_API_KEY não está configurada no servidor'
+                });
+            }
+
+            // Prompt otimizado para contexto jurídico brasileiro
+            const systemPrompt = `Você é um advogado sênior brasileiro com expertise em:
 - Direito Civil e Processual Civil
 - Direito do Trabalho e Processual do Trabalho  
 - Direito Penal e Processual Penal
 - Análise de jurisprudência STF, STJ e Tribunais
+- Análise de contratos, petições e documentos jurídicos
 
 Responda sempre:
 ✓ De forma técnica e fundamentada
@@ -52,62 +100,295 @@ Responda sempre:
 ✓ Com objetividade e clareza
 ✓ Referenciando jurisprudência relevante quando pertinente`;
 
-    const message = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 2048,
-      temperature: 0.4,
-      system: systemPrompt,
-      messages: [
-        {
-          role: 'user',
-          content: pergunta
+            // ✅ CONSTRUIR MENSAGEM COM OU SEM PDF
+            const messages = [];
+
+            if (pdf && pdf.base64) {
+                // ✅ TEM PDF: Enviar como document
+                console.log('📄 [IA JURÍDICA] Processando PDF:', pdf.nome);
+                
+                try {
+                    messages.push({
+                        role: 'user',
+                        content: [
+                            {
+                                type: 'document',
+                                source: {
+                                    type: 'base64',
+                                    media_type: 'application/pdf',
+                                    data: pdf.base64
+                                }
+                            },
+                            {
+                                type: 'text',
+                                text: `Documento anexado: ${pdf.nome}\n\nPergunta: ${pergunta}`
+                            }
+                        ]
+                    });
+                } catch (pdfError) {
+                    console.error('❌ [IA JURÍDICA] Erro ao processar PDF:', pdfError);
+                    return res.status(400).json({ 
+                        erro: 'Erro ao processar PDF',
+                        detalhe: 'O arquivo PDF pode estar corrompido ou em formato inválido'
+                    });
+                }
+            } else {
+                // ✅ SEM PDF: Apenas texto
+                messages.push({
+                    role: 'user',
+                    content: pergunta
+                });
+            }
+
+            console.log('🚀 [IA JURÍDICA] Enviando para Claude API...', {
+                model: 'claude-haiku-4-5-20251001',
+                maxTokens: pdf ? 4096 : 2048,
+                temPDF: !!pdf
+            });
+
+            // ✅ FAZER CHAMADA À API CLAUDE
+            const message = await anthropic.messages.create({
+                model: 'claude-haiku-4-5-20251001',
+                max_tokens: pdf ? 4096 : 2048,  // Mais tokens se tiver PDF
+                temperature: 0.4,
+                system: systemPrompt,
+                messages: messages
+            });
+
+            // Extração da resposta
+            const respostaIA = message.content[0].text;
+
+            console.log('✅ [IA JURÍDICA] Resposta gerada:', {
+                tamanhoResposta: respostaIA.length,
+                temPDF: !!pdf,
+                stopReason: message.stop_reason
+            });
+
+            return res.json({ resposta: respostaIA });
+
+        } catch (err) {
+            console.error('❌ ERRO NO ASSISTENTE JURÍDICO (CLAUDE):', {
+                message: err.message,
+                status: err.status,
+                type: err.type,
+                stack: err.stack
+            });
+
+            // Tratamento de erros específicos da Anthropic
+            if (err.status === 401) {
+                return res.status(401).json({ 
+                    erro: 'Chave API da Claude inválida.',
+                    detalhe: 'Configure a chave correta no arquivo .env (CLAUDE_API_KEY)'
+                });
+            }
+
+            if (err.status === 429) {
+                return res.status(429).json({ 
+                    erro: 'Muitas requisições. Aguarde um momento.',
+                    detalhe: 'Limite de taxa da API atingido.'
+                });
+            }
+
+            if (err.status === 400) {
+                return res.status(400).json({ 
+                    erro: 'Requisição inválida.',
+                    detalhe: err.message || 'Verifique o formato dos dados enviados'
+                });
+            }
+
+            if (err.message?.includes('overloaded')) {
+                return res.status(503).json({ 
+                    erro: 'Serviço temporariamente indisponível',
+                    detalhe: 'A API da Claude está sobrecarregada. Tente novamente em alguns segundos.'
+                });
+            }
+
+            return res.status(500).json({ 
+                erro: 'O assistente jurídico está temporariamente offline.',
+                detalhe: err.message 
+            });
         }
-      ]
-    });
-
-    // 5️⃣ Extração da resposta
-    const respostaIA = message.content[0].text;
-
-    return res.json({ resposta: respostaIA });
-
-  } catch (err) {
-    console.error('❌ ERRO NO ASSISTENTE JURÍDICO (CLAUDE):', err.message);
-
-    // Tratamento de erros específicos da Anthropic
-    if (err.status === 401) {
-      return res.status(401).json({ 
-        erro: 'Chave API da Claude inválida.',
-        detalhe: 'Configure a chave correta no arquivo .env (CLAUDE_API_KEY)'
-      });
     }
-
-    if (err.status === 429) {
-      return res.status(429).json({ 
-        erro: 'Muitas requisições. Aguarde um momento.',
-        detalhe: 'Limite de taxa da API atingido.'
-      });
-    }
-
-    if (err.status === 400) {
-      return res.status(400).json({ 
-        erro: 'Requisição inválida.',
-        detalhe: err.message
-      });
-    }
-
-    return res.status(500).json({ 
-      erro: 'O assistente jurídico está temporariamente offline.',
-      detalhe: err.message 
-    });
-  }
-});
+);
 
 /**
  * ============================================================
  * ROTA SECUNDÁRIA: ANÁLISE DE PRAZO ESPECÍFICO (DASHBOARD)
  * Usa: Claude Haiku para análise técnica rápida
+ * Restrição: Apenas plano Premium
  * ============================================================
  */
-router.post('/analisar-prazo', authMiddleware, analisarPrazoComClaude);
+router.post('/analisar-prazo', 
+    authMiddleware, 
+    planMiddleware.checkFeature('ia_juridica'),  // ✅ Apenas Premium
+    analisarPrazoComClaude
+);
+
+/**
+ * ============================================================
+ * 🔐 TODAS AS ROTAS DO CRM - APENAS PLANO PREMIUM
+ * ============================================================
+ */
+
+router.post('/crm/leads', 
+    authMiddleware, 
+    planMiddleware.checkFeature('crm'),  // 🔐 Apenas Premium
+    async (req, res) => {
+        try {
+            const { nome, email, telefone, origem, observacoes } = req.body;
+            const escritorioId = req.user.escritorio_id;
+
+            // Validação
+            if (!nome || !email) {
+                return res.status(400).json({ erro: 'Nome e email são obrigatórios' });
+            }
+
+            // Inserir lead
+            const query = `
+                INSERT INTO crm_leads (nome, email, telefone, origem, observacoes, escritorio_id, status, criado_em)
+                VALUES ($1, $2, $3, $4, $5, $6, 'novo', NOW())
+                RETURNING *
+            `;
+            
+            const result = await pool.query(query, [
+                nome, 
+                email, 
+                telefone || null, 
+                origem || 'site', 
+                observacoes || null, 
+                escritorioId
+            ]);
+
+            res.status(201).json(result.rows[0]);
+
+        } catch (err) {
+            console.error('❌ ERRO AO ADICIONAR LEAD:', err.message);
+            res.status(500).json({ erro: 'Erro ao adicionar lead: ' + err.message });
+        }
+    }
+);
+
+router.get('/crm/leads', 
+    authMiddleware, 
+    planMiddleware.checkFeature('crm'),  // 🔐 Apenas Premium
+    async (req, res) => {
+        try {
+            const escritorioId = req.user.escritorio_id;
+            
+            const query = `
+                SELECT * FROM crm_leads 
+                WHERE escritorio_id = $1 
+                ORDER BY criado_em DESC
+            `;
+            
+            const result = await pool.query(query, [escritorioId]);
+            res.json(result.rows);
+
+        } catch (err) {
+            console.error('❌ ERRO AO BUSCAR LEADS:', err.message);
+            res.status(500).json({ erro: 'Erro ao buscar leads' });
+        }
+    }
+);
+
+router.put('/crm/leads/:id', 
+    authMiddleware, 
+    planMiddleware.checkFeature('crm'),  // 🔐 Apenas Premium
+    async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { nome, email, telefone, origem, observacoes, status } = req.body;
+            const escritorioId = req.user.escritorio_id;
+
+            const query = `
+                UPDATE crm_leads 
+                SET nome = $1, email = $2, telefone = $3, origem = $4, 
+                    observacoes = $5, status = $6, atualizado_em = NOW()
+                WHERE id = $7 AND escritorio_id = $8
+                RETURNING *
+            `;
+            
+            const result = await pool.query(query, [
+                nome, email, telefone, origem, observacoes, status, id, escritorioId
+            ]);
+
+            if (result.rows.length === 0) {
+                return res.status(404).json({ erro: 'Lead não encontrado' });
+            }
+
+            res.json(result.rows[0]);
+
+        } catch (err) {
+            console.error('❌ ERRO AO ATUALIZAR LEAD:', err.message);
+            res.status(500).json({ erro: 'Erro ao atualizar lead' });
+        }
+    }
+);
+
+router.delete('/crm/leads/:id', 
+    authMiddleware, 
+    planMiddleware.checkFeature('crm'),  // 🔐 Apenas Premium
+    async (req, res) => {
+        try {
+            const { id } = req.params;
+            const escritorioId = req.user.escritorio_id;
+
+            const result = await pool.query(
+                'DELETE FROM crm_leads WHERE id = $1 AND escritorio_id = $2 RETURNING *',
+                [id, escritorioId]
+            );
+
+            if (result.rows.length === 0) {
+                return res.status(404).json({ erro: 'Lead não encontrado' });
+            }
+
+            res.json({ mensagem: 'Lead excluído com sucesso' });
+
+        } catch (err) {
+            console.error('❌ ERRO AO EXCLUIR LEAD:', err.message);
+            res.status(500).json({ erro: 'Erro ao excluir lead' });
+        }
+    }
+);
+
+router.get('/crm/pipeline', 
+    authMiddleware, 
+    planMiddleware.checkFeature('crm'),  // 🔐 Apenas Premium
+    async (req, res) => {
+        try {
+            const escritorioId = req.user.escritorio_id;
+            
+            const query = `
+                SELECT 
+                    status,
+                    COUNT(*) as quantidade,
+                    COALESCE(SUM(valor_estimado), 0) as valor_total
+                FROM crm_leads
+                WHERE escritorio_id = $1
+                GROUP BY status
+            `;
+            
+            const result = await pool.query(query, [escritorioId]);
+            res.json(result.rows);
+
+        } catch (err) {
+            console.error('❌ ERRO AO BUSCAR PIPELINE:', err.message);
+            res.status(500).json({ erro: 'Erro ao buscar pipeline' });
+        }
+    }
+);
+
+router.post('/crm/automacao', 
+    authMiddleware, 
+    planMiddleware.checkFeature('crm'),  // 🔐 Apenas Premium
+    async (req, res) => {
+        try {
+            // Implementar automações de CRM
+            res.json({ message: 'Automação CRM - Premium' });
+        } catch (err) {
+            res.status(500).json({ erro: err.message });
+        }
+    }
+);
 
 module.exports = router;

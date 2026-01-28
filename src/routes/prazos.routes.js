@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middlewares/authMiddleware');
+const planMiddleware = require('../middlewares/planMiddleware');  // ← IMPORTADO
 const controller = require('../controllers/prazosController');
 
 /**
@@ -52,7 +53,13 @@ router.delete('/prazos/concluidos/limpar', authMiddleware, controller.limparPraz
 router.put('/prazos/:id/concluir', authMiddleware, controller.concluirPrazo);
 
 // Operações Básicas (CRUD)
-router.post('/prazos', authMiddleware, controller.criarPrazo);
+// 🔒 TRAVA: Limite de prazos por mês aplicado aqui
+router.post('/prazos', 
+    authMiddleware, 
+    planMiddleware.checkLimit('prazos'),  // ← TRAVA ADICIONADA
+    controller.criarPrazo
+);
+
 router.put('/prazos/:id', authMiddleware, controller.atualizarPrazo);
 router.delete('/prazos/:id', authMiddleware, controller.excluirPrazo);
 

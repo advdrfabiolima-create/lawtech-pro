@@ -370,41 +370,100 @@
             }
         }
 
-        async function salvarNovoLead(e) {
-            e.preventDefault();
+async function salvarNovoLead(e) {
+    e.preventDefault();
 
-            const nome = document.getElementById('novoNome').value.trim();
-            const telefone = document.getElementById('novoTelefone').value.trim();
-            const area_interesse = document.getElementById('novoInteresse').value;
+    const nome = document.getElementById('novoNome').value.trim();
+    const telefone = document.getElementById('novoTelefone').value.trim();
+    const area_interesse = document.getElementById('novoInteresse').value;
 
-            if (!nome) {
-                alert("O nome do lead é obrigatório.");
-                return;
-            }
+    if (!nome) {
+        alert("O nome do lead é obrigatório.");
+        return;
+    }
 
-            try {
-                const res = await fetch('/api/leads', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ nome, telefone, area_interesse })
-                });
+    try {
+        const res = await fetch('/api/crm/leads', {  // ✅ Rota corrigida
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ nome, telefone, origem: 'manual', observacoes: area_interesse })
+        });
 
-                if (res.ok) {
-                    alert("Lead criado com sucesso!");
-                    fecharModalCadastro();
-                    carregarLeads();
-                } else {
-                    const err = await res.json();
-                    alert("Erro ao criar lead: " + (err.erro || "Tente novamente"));
-                }
-            } catch (error) {
-                console.error("Erro ao criar lead:", error);
-                alert("Erro de conexão. Verifique sua internet ou o servidor.");
-            }
+        // 🔒 TRATAMENTO DE UPGRADE NECESSÁRIO
+        if (res.status === 402) {
+            const erro = await res.json();
+            fecharModalCadastro();
+            mostrarModalUpgrade(erro.message || 'CRM disponível apenas no plano Premium');
+            return;
         }
+
+        if (res.ok) {
+            alert("Lead criado com sucesso!");
+            fecharModalCadastro();
+            carregarLeads();
+        } else {
+            const err = await res.json();
+            alert("Erro ao criar lead: " + (err.erro || err.error || "Tente novamente"));
+        }
+    } catch (error) {
+        console.error("Erro ao criar lead:", error);
+        alert("Erro de conexão. Verifique sua internet ou o servidor.");
+    }
+}
+
+// 🎨 FUNÇÃO PARA MOSTRAR MODAL DE UPGRADE
+function mostrarModalUpgrade(mensagem) {
+    const overlay = document.createElement('div');
+    overlay.id = "overlay-upgrade-crm";
+    overlay.style = "position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(8px); animation:fadeIn 0.3s;";
+    
+    overlay.innerHTML = `
+    <style>
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        @keyframes slideUp { from { transform:translateY(30px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+    </style>
+    <div style="background:linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); padding:50px 40px; border-radius:24px; text-align:center; max-width:480px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); animation:slideUp 0.4s; border:2px solid #fbbf24;">
+        
+        <div style="width:80px; height:80px; background:linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 25px; box-shadow:0 10px 25px -5px rgba(251,191,36,0.4);">
+            <span style="font-size:40px;">👑</span>
+        </div>
+        
+        <h3 style="margin:0 0 15px 0; color:#0f172a; font-size:24px; font-weight:800;">Recurso Premium</h3>
+        
+        <p style="color:#64748b; margin:0 0 30px 0; font-size:16px; line-height:1.6;">${mensagem}</p>
+        
+        <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:12px; padding:20px; margin-bottom:30px; text-align:left;">
+            <p style="margin:0; font-size:14px; color:#92400e; line-height:1.6;">
+                <strong style="display:block; margin-bottom:8px; font-size:15px;">🚀 O Plano Premium inclui:</strong>
+                • CRM completo com pipeline Kanban<br>
+                • IA Jurídica powered by Claude<br>
+                • Usuários e prazos ilimitados<br>
+                • Suporte prioritário 24/7
+            </p>
+        </div>
+        
+        <div style="display:flex; gap:12px; justify-content:center;">
+            <button onclick="window.location.href='/planos-page'" 
+                    style="background:linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color:#000; border:none; padding:16px 32px; border-radius:12px; font-weight:800; font-size:15px; cursor:pointer; box-shadow:0 4px 14px rgba(251,191,36,0.4); transition:0.3s; flex:1;"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(251,191,36,0.5)';"
+                    onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 14px rgba(251,191,36,0.4)';">
+                🎯 Ver Planos e Preços
+            </button>
+            
+            <button onclick="document.getElementById('overlay-upgrade-crm').remove()" 
+                    style="background:transparent; color:#64748b; border:2px solid #e2e8f0; padding:16px 24px; border-radius:12px; font-weight:700; cursor:pointer; transition:0.3s;"
+                    onmouseover="this.style.borderColor='#cbd5e1'; this.style.background='#f8fafc';"
+                    onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='transparent';">
+                Depois
+            </button>
+        </div>
+    </div>`;
+    
+    document.body.appendChild(overlay);
+}
 
         function abrirModalCadastro() { document.getElementById('modalNovoLead').style.display = 'flex'; }
         function fecharModalCadastro() { 

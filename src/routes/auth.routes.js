@@ -3,6 +3,7 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const authMiddleware = require('../middlewares/authMiddleware');
 // 🔑 A LINHA ABAIXO FOI ADICIONADA PARA RESOLVER O ERRO "POOL IS NOT DEFINED"
+const planMiddleware = require('../middlewares/planMiddleware');
 const pool = require('../config/db'); 
 
 // 🔓 LOGIN (público)
@@ -13,12 +14,41 @@ router.post('/register', authController.register);
 
 router.post('/alterar-senha', authMiddleware, authController.alterarSenha);
 
-router.get('/me', authMiddleware, (req, res) => {
-    res.json({ ok: true, usuario: req.user });
+router.get('/me', authMiddleware, async (req, res) => {
+    try {
+        // 🚀 ADICIONADO: tour_desativado na consulta SQL
+        const result = await pool.query(
+            'SELECT id, nome, email, role, escritorio_id, data_criacao, tour_desativado FROM usuarios WHERE id = $1',
+            [req.user.id]
+        );
+        
+        if (result.rowCount === 0) {
+            return res.status(404).json({ ok: false, erro: 'Usuário não encontrado' });
+        }
+        
+        const usuario = result.rows[0];
+        
+        res.json({ 
+            ok: true, 
+            usuario: {
+                id: usuario.id,
+                nome: usuario.nome,
+                email: usuario.email,
+                role: usuario.role,
+                escritorio_id: usuario.escritorio_id,
+                data_criacao: usuario.data_criacao,
+                // 🔑 AGORA O DASHBOARD RECEBERÁ ESTA INFORMAÇÃO:
+                tour_desativado: usuario.tour_desativado 
+            }
+        });
+    } catch (error) {
+        console.error('Erro em /api/auth/me:', error);
+        res.status(500).json({ ok: false, erro: 'Erro ao buscar dados do usuário' });
+    }
 });
 
 // 👥 ROTA DE CONVITE (EQUIPE)
-router.post('/convidar-funcionario', authMiddleware, async (req, res) => {
+router.post('/convidar-funcionario', authMiddleware, planMiddleware.checkLimit('usuarios'), async (req, res) => {
     try {
         // Log para o terminal
         console.log("Tentativa de cadastro por:", req.user.email, "Cargo:", req.user.role);
@@ -83,6 +113,16 @@ router.delete('/equipe/:id', authMiddleware, async (req, res) => {
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/atualizar-tour', authMiddleware, async (req, res) => {
+    try {
+        const { desativar } = req.body;
+        await pool.query('UPDATE usuarios SET tour_desativado = $1 WHERE id = $2', [desativar, req.user.id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao salvar preferência de tour' });
     }
 });
 

@@ -1,0 +1,126 @@
+{
+  "basico": {
+    "nome": "Básico",
+    "slug": "basico",
+    "prazos": {
+      "max": 10,
+      "ilimitado": false,
+      "periodo": "mensal"
+    },
+    "usuarios": {
+      "max": 3,
+      "ilimitado": false
+    },
+    "processos": {
+      "max": 50,
+      "ilimitado": false
+    },
+    "funcionalidades": {
+      "crm": false,
+      "ia_juridica": false,
+      "calculos": false,
+      "financeiro_avancado": false,
+      "sincronizacao_djen": false,
+      "prazos_basico": true,
+      "processos_basico": true,
+      "clientes_basico": true,
+      "audiencias_basico": true
+    }
+  },
+  "intermediario": {
+    "nome": "Intermediário",
+    "slug": "intermediario",
+    "prazos": {
+      "max": 100,
+      "ilimitado": false,
+      "periodo": "mensal"
+    },
+    "usuarios": {
+      "max": 15,
+      "ilimitado": false
+    },
+    "processos": {
+      "max": -1,
+      "ilimitado": true
+    },
+    "funcionalidades": {
+      "crm": false,
+      "ia_juridica": false,
+      "calculos": false,
+      "sincronizacao_djen": false,
+      "financeiro_avancado": true,
+      "prazos_basico": true,
+      "processos_basico": true,
+      "clientes_basico": true,
+      "audiencias_basico": true,
+      "relatorios_avancados": true,
+      "integrações_basicas": true
+    }
+  },
+  "avancado": {
+    "nome": "Avançado",
+    "slug": "avancado",
+    "prazos": {
+      "max": 500,
+      "ilimitado": false,
+      "periodo": "mensal"
+    },
+    "usuarios": {
+      "max": -1,
+      "ilimitado": true
+    },
+    "processos": {
+      "max": -1,
+      "ilimitado": true
+    },
+    "funcionalidades": {
+      "crm": false,
+      "ia_juridica": false,
+      "sincronizacao_djen": false,
+      "calculos": true,
+      "financeiro_avancado": true,
+      "prazos_basico": true,
+      "processos_basico": true,
+      "clientes_basico": true,
+      "audiencias_basico": true,
+      "relatorios_avancados": true,
+      "integrações_basicas": true,
+      "api_completa": true,
+      "automacoes_avancadas": true
+    }
+  },
+  "premium": {
+    "nome": "Premium",
+    "slug": "premium",
+    "prazos": {
+      "max": -1,
+      "ilimitado": true
+    },
+    "usuarios": {
+      "max": -1,
+      "ilimitado": true
+    },
+    "processos": {
+      "max": -1,
+      "ilimitado": true
+    },
+    "funcionalidades": {
+      "crm": true,
+      "ia_juridica": true,
+      "calculos": true,
+      "financeiro_avancado": true,
+      "prazos_basico": true,
+      "processos_basico": true,
+      "clientes_basico": true,
+      "audiencias_basico": true,
+      "relatorios_avancados": true,
+      "integrações_basicas": true,
+      "api_completa": true,
+      "automacoes_avancadas": true,
+      "alertas_whatsapp": true,
+      "integracao_djen": true,
+      "suporte_24_7": true,
+      "sincronizacao_djen": true
+    }
+  }
+}
