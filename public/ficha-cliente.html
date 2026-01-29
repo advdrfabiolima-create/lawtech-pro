@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ficha Cadastral — LawTech Pro</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -169,6 +170,11 @@
             margin-bottom: 8px;
         }
 
+        .required {
+            color: var(--error);
+            font-weight: bold;
+        }
+
         input, select {
             width: 100%;
             padding: 14px 16px;
@@ -200,155 +206,86 @@
 
         .row {
             display: grid;
-            grid-template-columns: 1fr 2fr 1fr;
+            grid-template-columns: 1fr 2fr;
             gap: 16px;
             margin-bottom: 24px;
+        }
+
+        .row.three-cols {
+            grid-template-columns: 1fr 2fr 1fr;
         }
 
         .row .form-group {
             margin-bottom: 0;
         }
 
-        /* Estilo especial para select */
         select {
             cursor: pointer;
             appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
-            background-position: right 12px center;
+            background-position: right 16px center;
             padding-right: 40px;
         }
 
-        .required {
-            color: var(--error);
-            margin-left: 2px;
-        }
-
-        button {
+        button[type="submit"] {
             width: 100%;
-            padding: 16px 24px;
+            padding: 16px;
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
             color: white;
             border: none;
             border-radius: var(--radius-sm);
+            font-size: 16px;
             font-weight: 700;
-            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             cursor: pointer;
-            margin-top: 32px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+            box-shadow: 0 4px 16px rgba(30, 64, 175, 0.3);
             position: relative;
             overflow: hidden;
         }
 
-        button::before {
+        button[type="submit"]::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
         }
 
-        button:hover {
+        button[type="submit"]:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(30, 64, 175, 0.4);
+            box-shadow: 0 8px 24px rgba(30, 64, 175, 0.4);
         }
 
-        button:hover::before {
-            left: 100%;
+        button[type="submit"]:hover::before {
+            width: 300px;
+            height: 300px;
         }
 
-        button:active {
+        button[type="submit"]:active {
             transform: translateY(0);
         }
 
-        /* Badge de tipo de pessoa */
-        #tipoPessoa {
-            font-weight: 600;
-        }
-
-        /* Animação nos inputs ao focar */
-        .form-group {
-            animation: slideInLeft 0.5s ease-out backwards;
-        }
-
-        .form-group:nth-child(1) { animation-delay: 0.1s; }
-        .form-group:nth-child(2) { animation-delay: 0.2s; }
-        .form-group:nth-child(3) { animation-delay: 0.3s; }
-        .form-group:nth-child(4) { animation-delay: 0.4s; }
-        .form-group:nth-child(5) { animation-delay: 0.5s; }
-
-        @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        /* Responsivo */
-        @media (max-width: 640px) {
-            body {
-                padding: 12px;
-            }
-
-            .container {
-                padding: 32px 24px;
-            }
-
-            h2 {
-                font-size: 1.6rem;
-            }
-
-            .row {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .row .form-group {
-                margin-bottom: 0;
-            }
-        }
-
-        /* Efeito de loading no botão */
-        button.loading {
+        button[type="submit"].loading {
+            opacity: 0.8;
+            cursor: wait;
             pointer-events: none;
-            opacity: 0.7;
         }
 
-        button.loading::after {
-            content: '';
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border: 2px solid white;
-            border-top-color: transparent;
-            border-radius: 50%;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            animation: spin 0.6s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: translateY(-50%) rotate(360deg); }
-        }
-
-        /* Estado de sucesso */
         .success-message {
-            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-            border: 2px solid #10b981;
-            padding: 20px;
-            border-radius: var(--radius-md);
-            text-align: center;
-            margin-top: 24px;
             display: none;
+            text-align: center;
+            padding: 32px;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-radius: var(--radius-md);
+            border: 2px solid #6ee7b7;
             animation: slideDown 0.5s ease-out;
         }
 
@@ -377,16 +314,56 @@
             color: #047857;
             font-size: 0.95rem;
         }
+
+        .error-message {
+            display: none;
+            background: #fee2e2;
+            border: 2px solid #fecaca;
+            color: #991b1b;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 24px;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .row, .row.three-cols {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="logo">
-            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+            <img src="/Logo LawTech Pro_transparente.png" alt="LawTech Pro" onerror="this.style.display='none'">
         </div>
         <h2>Ficha de Início de Processo</h2>
         <p class="intro">Olá! Para darmos andamento ao seu caso, por favor preencha os dados oficiais abaixo com atenção.</p>
         
+        <!-- Mensagem de erro -->
+        <div class="error-message" id="errorMessage"></div>
+
         <form id="formFicha">
             <div class="form-group">
                 <label>Nome Completo / Razão Social <span class="required">*</span></label>
@@ -418,7 +395,7 @@
             </div>
 
             <!-- Campos separados: CEP, Cidade, UF -->
-            <div class="row">
+            <div class="row three-cols">
                 <div class="form-group">
                     <label>CEP <span class="required">*</span></label>
                     <input type="text" id="cep" onblur="buscarEndereco(this.value)" placeholder="00000-000" required maxlength="9">
@@ -461,6 +438,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/imask"></script>
     <script>
+        console.log('🎯 Formulário de Ficha iniciado');
+
         // Máscaras
         IMask(document.getElementById('cep'), { mask: '00000-000' });
 
@@ -496,6 +475,8 @@
             const v = cep.replace(/\D/g, '');
             if (v.length !== 8) return;
 
+            console.log('🔍 Buscando CEP:', v);
+
             try {
                 const res = await fetch(`https://viacep.com.br/ws/${v}/json/`);
                 const data = await res.json();
@@ -503,20 +484,44 @@
                     document.getElementById('endereco').value = `${data.logradouro}, ${data.bairro}`;
                     document.getElementById('cidade').value = data.localidade;
                     document.getElementById('uf').value = data.uf;
+                    console.log('✅ CEP encontrado:', data);
+                } else {
+                    console.warn('⚠️ CEP não encontrado');
                 }
             } catch (err) {
-                console.warn("Erro ao buscar CEP:", err);
+                console.error("❌ Erro ao buscar CEP:", err);
             }
+        }
+
+        function mostrarErro(mensagem) {
+            const errorMsg = document.getElementById('errorMessage');
+            errorMsg.textContent = '⚠️ ' + mensagem;
+            errorMsg.classList.add('show');
+            errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            setTimeout(() => {
+                errorMsg.classList.remove('show');
+            }, 5000);
         }
 
         document.getElementById('formFicha').onsubmit = async (e) => {
             e.preventDefault();
             
+            console.log('📤 Iniciando envio do formulário...');
+            
             const urlParams = new URLSearchParams(window.location.search);
-            const leadId = urlParams.get('leadId') || 1; // fallback para teste
+            const leadId = urlParams.get('leadId');
+
+            if (!leadId) {
+                console.error('❌ LeadId não encontrado na URL');
+                mostrarErro('Link inválido. Entre em contato com o escritório.');
+                return;
+            }
+
+            console.log('✅ LeadId capturado:', leadId);
 
             const dados = {
-                leadId: leadId,
+                leadId: parseInt(leadId),
                 nome: document.getElementById('nome').value.trim(),
                 tipoPessoa: document.getElementById('tipoPessoa').value,
                 documento: document.getElementById('documento').value,
@@ -528,37 +533,48 @@
                 endereco: document.getElementById('endereco').value.trim()
             };
 
+            console.log('📋 Dados a enviar:', dados);
+
             const btn = e.target.querySelector('button[type="submit"]');
             btn.classList.add('loading');
             btn.textContent = 'Enviando...';
 
             try {
+                console.log('🚀 Enviando para /api/crm/public/onboarding...');
+                
                 const res = await fetch('/api/crm/public/onboarding', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
                     body: JSON.stringify(dados)
                 });
 
+                console.log('📥 Resposta recebida:', res.status, res.statusText);
+
                 if (res.ok) {
+                    const resposta = await res.json();
+                    console.log('✅ Sucesso:', resposta);
+                    
                     // Mostra mensagem de sucesso
                     document.getElementById('successMessage').classList.add('show');
                     
                     // Esconde o formulário
                     e.target.style.display = 'none';
                     
-                    // Opcional: redirecionar após 3 segundos
-                    // setTimeout(() => location.href = '/obrigado.html', 3000);
                 } else {
                     const err = await res.json();
-                    alert("❌ Erro ao enviar: " + (err.erro || "Tente novamente."));
+                    console.error('❌ Erro na resposta:', err);
+                    mostrarErro(err.mensagem || err.erro || "Erro ao enviar dados. Tente novamente.");
                     btn.classList.remove('loading');
                     btn.textContent = 'Enviar Dados para o Escritório';
                 }
             } catch (err) {
-                alert("❌ Falha de conexão com o servidor. Verifique sua internet.");
-                console.error(err);
+                console.error("❌ Erro na requisição:", err);
+                mostrarErro("Falha de conexão com o servidor. Verifique sua internet.");
                 btn.classList.remove('loading');
-                btn.textContent = 'Enviar Dados para o Dr. Fábio';
+                btn.textContent = 'Enviar Dados para o Escritório';
             }
         };
     </script>
