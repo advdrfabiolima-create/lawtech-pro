@@ -8,6 +8,62 @@ const Anthropic = require('@anthropic-ai/sdk');
 
 /**
  * ============================================================
+ * ROTA PÚBLICA – CAPTAÇÃO DE LEAD (FORMULÁRIO EXTERNO)
+ * Uso: p.html?id=ESCRITORIO_ID
+ * Não requer autenticação
+ * ============================================================
+ */
+router.post('/crm/public/captura-lead', async (req, res) => {
+    try {
+        const {
+            escritorio_id,
+            nome,
+            telefone,
+            assunto,
+            mensagem
+        } = req.body;
+
+        if (!escritorio_id || !nome || !telefone) {
+            return res.status(400).json({
+                erro: 'Dados obrigatórios não informados'
+            });
+        }
+
+        // 🔐 Inserção direta no CRM (lead inicial)
+        await req.app.locals.db.query(`
+            INSERT INTO crm_leads (
+                escritorio_id,
+                nome,
+                telefone,
+                assunto,
+                mensagem,
+                origem,
+                status,
+                criado_em
+            ) VALUES (
+                $1, $2, $3, $4, $5, 'form_publico', 'novo', NOW()
+            )
+        `, [
+            escritorio_id,
+            nome,
+            telefone,
+            assunto || null,
+            mensagem || null
+        ]);
+
+        return res.status(201).json({ ok: true });
+
+    } catch (error) {
+        console.error('❌ Erro na captura de lead público:', error.message);
+        return res.status(500).json({
+            erro: 'Erro ao registrar lead'
+        });
+    }
+});
+
+
+/**
+ * ============================================================
  * 🔐 ROTA PRINCIPAL: ASSISTENTE JURÍDICO (CHAT IA)
  * Usa: Claude Haiku 4.5 (Anthropic)
  * Restrição: Apenas plano Premium
