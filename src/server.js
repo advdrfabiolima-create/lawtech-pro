@@ -26,6 +26,9 @@ const iaRoutes = require('./routes/ia.routes');
 const crmRoutes = require('./routes/crm.routes');
 const usuariosRoutes = require('./routes/usuarios.routes');
 
+// ✅ NOVA ROTA - LAWTECH SYSTEMS (ADMIN)
+const adminRoutes = require('./routes/admin.routes');
+
 // --- AUTOMAÇÃO ---
 const { iniciarAgendamentos } = require('./cron/prazosCron');
 
@@ -58,6 +61,13 @@ app.use('/api', usuariosRoutes);
 app.use('/api/pagamentos', pagamentosRoutes);
 app.use('/api', publicacoesRoutes);
 
+// ✅ ROTA ADMIN - LAWTECH SYSTEMS
+app.use('/systems', adminRoutes);
+
+app.get('/systems/monitor', (req, res) => {
+    res.sendFile(path.join(publicPath, 'admin-monitor.html'));
+});
+
 // --- PÁGINAS (FRONTEND) ---
 app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(publicPath, 'login.html')));
@@ -84,10 +94,15 @@ app.get('/pagamento-pendente', (req, res) => {
     res.sendFile(filePath);
 });
 
-// ✅ ADICIONAR ROTAS PARA BLOG E SOBRE NÓS
+// ✅ ROTAS PARA BLOG, SOBRE NÓS E LGPD
 app.get('/blog', (req, res) => res.sendFile(path.join(publicPath, 'blog.html')));
 app.get('/sobre-nos', (req, res) => res.sendFile(path.join(publicPath, 'sobre-nos.html')));
 app.get('/lgpd', (req, res) => res.sendFile(path.join(publicPath, 'lgpd.html')));
+
+// ✅ ROTA PARA LAWTECH SYSTEMS (ADMIN MONITOR)
+app.get('/systems/monitor', (req, res) => {
+    res.sendFile(path.join(publicPath, 'admin-monitor.html'));
+});
 
 // --- CONFIGURAÇÕES DO SISTEMA ---
 app.get('/api/config/meu-escritorio', authMiddleware, async (req, res) => {
@@ -161,10 +176,22 @@ async function iniciarSistema() {
 
         const PORT = process.env.PORT || 3000;
         app.listen(PORT, () => {
-            console.log(`\n🚀 LawTech Pro Rodando em: http://localhost:${PORT}`);
-            console.log(`📄 Login: http://localhost:${PORT}/login`);
-            console.log(`📝 Blog: http://localhost:${PORT}/blog`);
-            console.log(`ℹ️  Sobre: http://localhost:${PORT}/sobre-nos\n`);
+            console.log(`
+╔════════════════════════════════════════════════════════╗
+║                                                        ║
+║           🚀 LAWTECH PRO - SISTEMA ATIVO              ║
+║                                                        ║
+║  📊 Dashboard: http://localhost:${PORT}/dashboard         ║
+║  📄 Login: http://localhost:${PORT}/login                ║
+║  📝 Blog: http://localhost:${PORT}/blog                  ║
+║  ℹ️  Sobre: http://localhost:${PORT}/sobre-nos           ║
+║                                                        ║
+║  🛡️  ADMIN - LawTech Systems:                         ║
+║  📈 Monitor: http://localhost:${PORT}/systems/monitor    ║
+║  🔌 API: http://localhost:${PORT}/systems/monitoramento  ║
+║                                                        ║
+╚════════════════════════════════════════════════════════╝
+            `);
         });
     } catch (err) {
         console.error("❌ [ERRO CRÍTICO] Falha ao iniciar sistema:", err.message);

@@ -5,52 +5,179 @@
     <title>LawTech Pro — Gestão de Prazos</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        :root { 
-            --bg: #f8fafc;
-            --sidebar: #0f172a; 
-            --sidebar-hover: rgba(255, 255, 255, 0.1);
-            --text-menu: #cbd5e1;
-            --primary: #2563eb; 
-            --white: #ffffff;
-            --border: #e2e8f0;
-            --muted: #64748b;
-            --text-main: #1e293b;
-            --radius: 12px;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
+        :root {
+            /* Light Theme Colors - Professional & Clean */
+            --bg-primary: #f8fafc;
+            --bg-secondary: #111827;
+            --bg-tertiary: #1a2332;
+            --bg-elevated: #ffffff;
+            
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-tertiary: #64748b;
+            
+            --accent-blue: #2563eb;
+            --accent-blue-light: #3b82f6;
+            --accent-blue-glow: rgba(37, 99, 235, 0.3);
+            
+            --accent-green: #10b981;
+            --accent-purple: #8b5cf6;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-gold: #fbbf24;
+            
+            --border-subtle: rgba(0, 0, 0, 0.08);
+            --border-medium: rgba(0, 0, 0, 0.12);
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            
+            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* Compatibility */
+            --bg: var(--bg-primary);
+            --sidebar: var(--bg-secondary);
+            --white: var(--bg-elevated);
+            --border: var(--border-medium);
+            --primary: var(--accent-blue);
+            --success: var(--accent-green);
+            --danger: var(--accent-red);
+            --warning: var(--accent-orange);
+            --muted: var(--text-tertiary);
+            --text-main: var(--text-primary);
+            --text-menu: var(--text-tertiary);
+            --sidebar-hover: var(--bg-tertiary);
+            --radius: var(--radius-md);
         }
 
         /* Reset e Base */
-        * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        * { box-sizing: border-box; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
         body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; height: 100vh; overflow: hidden; }
 
-        /* Sidebar Fixa 250px */
-        .sidebar { 
-            width: 250px; background: var(--sidebar); color: #fff; padding: 24px 20px; 
-            display: flex; flex-direction: column; height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; 
+        /* Sidebar Premium */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-secondary);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-right: 1px solid var(--border-subtle);
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
         }
-        .sidebar-header { text-align: center; margin-bottom: 32px; }
-        .sidebar-header img { width: 100%; max-width: 160px; height: auto; }
 
-        .menu { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
-        .menu a { 
-            display: flex; align-items: center; padding: 12px; 
-            color: var(--text-menu); text-decoration: none; 
-            border-radius: 8px; font-size: 14px; transition: 0.2s;
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-subtle);
         }
-        .menu a i { margin-right: 12px; font-size: 18px; }
-        .menu a:hover, .menu a.active { background: var(--sidebar-hover); color: #fff; }
-        .menu a.active { background: var(--primary); font-weight: 500; }
-        .sidebar-footer { padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #94a3b8; margin-top: auto; }
+
+        .sidebar-header img {
+            width: 100%;
+            max-width: 180px;
+            height: auto;
+            filter: drop-shadow(0 0 20px var(--accent-blue-glow));
+            transition: all var(--transition-base);
+        }
+
+        .sidebar-header img:hover {
+            filter: drop-shadow(0 0 30px var(--accent-blue-glow));
+            transform: scale(1.05);
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .menu a {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: var(--radius-lg);
+            font-size: 14px;
+            font-weight: 600;
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-blue);
+            transform: scaleY(0);
+            transition: transform var(--transition-base);
+        }
+
+        .menu a:hover::before,
+        .menu a.active::before {
+            transform: scaleY(1);
+        }
+
+        .menu a i {
+            margin-right: 12px;
+            font-size: 18px;
+            transition: all var(--transition-base);
+        }
+
+        .menu a:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+            transform: translateX(4px);
+        }
+
+        .menu a.active {
+            background: rgba(37, 99, 235, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(37, 99, 235, 0.4);
+        }
+
+        .menu a.active i {
+            color: #60a5fa;
+        }
+
+        .sidebar-footer {
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 12px;
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-footer > div {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .sidebar-footer span {
+            color: #cbd5e1 !important;
+        }
 
         /* Área Principal */
-        .main { margin-left: 250px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; }
+        .main { margin-left: 280px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; position: relative; z-index: 1; }
         .header { background: var(--white); height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; }
         .content { padding: 32px; }
 
@@ -123,25 +250,33 @@
 .btn-action.edit:hover { background: #eff6ff; border-color: var(--primary); }
 .btn-action.danger { color: var(--danger); }
 .btn-action.danger:hover { background: #fef2f2; border-color: var(--danger); }
-       .btn-crm-gold-nav {
-    background: #fbbf24 !important; /* Cor Gold */
-    color: #000 !important;
-    font-weight: 800 !important;
-    margin-top: 15px !important;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    padding: 12px !important;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 14px;
-    transition: 0.3s;
-}
-.btn-crm-gold-nav:hover { 
-    background: #facc15 !important; 
-    transform: scale(1.02); 
-}
-.btn-crm-gold-nav i { margin-right: 10px; }
+        .btn-crm-gold-nav {
+            background: linear-gradient(135deg, var(--accent-gold) 0%, #facc15 100%) !important;
+            color: #000 !important;
+            font-weight: 800 !important;
+            margin-top: 16px !important;
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--radius-lg);
+            padding: 14px 16px !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all var(--transition-base);
+        }
+
+        .btn-crm-gold-nav i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .btn-crm-gold-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(251, 191, 36, 0.6);
+        }
     </style>
 </head>
 <body>
@@ -170,11 +305,13 @@
         </a>
         </nav>
         <div class="sidebar-footer">
-            <div style="margin-bottom: 6px;">
-                <span style="color:#64748b">Usuário:</span> <span id="userEmail" style="color:#fff">...</span>
+            <div>
+                <span>Usuário:</span>
+                <span id="userEmail">...</span>
             </div>
             <div>
-                <span style="color:#64748b">Plano:</span> <span id="planNameFooter" style="color:#fff">...</span>
+                <span>Plano:</span>
+                <span id="planNameFooter">...</span>
             </div>
         </div>
     </aside>
@@ -277,7 +414,17 @@
         let todosPrazos = [];
 
         // 1. Inicialização e Rodapé
+        // 🚀 INICIALIZAÇÃO COM GARANTIA DUPLA
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('📄 DOM carregado');
+            setTimeout(() => {
+                carregarInfoRodape();
+                carregarPrazosModernos();
+            }, 100);
+        });
+
         window.onload = () => {
+            console.log('🌐 Window carregado');
             carregarInfoRodape();
             carregarPrazosModernos();
             document.getElementById('buscaPrazo').addEventListener('input', aplicarFiltros);
@@ -286,19 +433,25 @@
 
         async function carregarInfoRodape() {
     try {
+        console.log('🔄 Carregando informações do rodapé...');
         const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
         const dataUser = await resUser.json();
         
         if (dataUser.ok) {
             // Atualiza sidebar
-            document.getElementById('userEmail').innerText = dataUser.usuario.email;
+            const emailElement = document.getElementById('userEmail');
+            if (emailElement) {
+                emailElement.innerText = dataUser.usuario.email || 'Não disponível';
+                console.log('✅ Email atualizado:', dataUser.usuario.email);
+            }
 
             // --- LÓGICA DO CABEÇALHO PADRONIZADA ---
             const nomeCompleto = dataUser.usuario.nome || 'Advogado';
             
             // 1. Extrai primeiro nome
             const primeiroNome = nomeCompleto.trim().split(' ')[0];
-            document.getElementById('userNameHeader').innerText = primeiroNome;
+            const nameHeader = document.getElementById('userNameHeader');
+            if (nameHeader) nameHeader.innerText = primeiroNome;
 
             // 2. Extrai iniciais
             const partes = nomeCompleto.trim().split(' ').filter(n => n);
@@ -311,7 +464,12 @@
 
         const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
         const dataPlan = await resPlan.json();
-        document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
+        
+        const planoElement = document.getElementById('planNameFooter');
+        if (planoElement) {
+            planoElement.innerText = dataPlan.plano || 'Free';
+            console.log('✅ Plano atualizado:', dataPlan.plano);
+        }
         
         // Mantém sua trava original do plano
         const btnNovoPrazo = document.getElementById('btnNovoPrazo');
@@ -319,7 +477,7 @@
             if(btnNovoPrazo) btnNovoPrazo.style.display = 'none';
         }
     } catch (err) { 
-        console.error("Erro sincronização cabeçalho:", err); 
+        console.error("❌ Erro ao carregar rodapé:", err); 
     }
 }
         // 2. Motor de Prazos

@@ -1,61 +1,1598 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>LawTech Systems - Monitor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LawTech Systems - Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="icon" type="image/png" href="/favicon_sy.png">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
-        th { background-color: #2c3e50; color: white; }
-        .erro { color: #e74c3c; font-weight: bold; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Colors - Dark Sophisticated Theme */
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-tertiary: #1a2332;
+            --bg-elevated: #1f2937;
+            --bg-glass: rgba(31, 41, 55, 0.7);
+            
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-tertiary: #9ca3af;
+            
+            --accent-green: #10b981;
+            --accent-green-light: #34d399;
+            --accent-green-glow: rgba(16, 185, 129, 0.3);
+            
+            --accent-purple: #8b5cf6;
+            --accent-blue: #3b82f6;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            
+            --border-subtle: rgba(255, 255, 255, 0.05);
+            --border-medium: rgba(255, 255, 255, 0.1);
+            --border-strong: rgba(255, 255, 255, 0.2);
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.3);
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.03;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: patternMove 20s linear infinite;
+        }
+
+        @keyframes patternMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+        }
+
+        .gradient-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.15;
+            z-index: 0;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .gradient-orb-1 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%);
+            top: -300px;
+            right: -300px;
+        }
+
+        .gradient-orb-2 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--accent-purple) 0%, transparent 70%);
+            bottom: -250px;
+            left: -250px;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-30px, 30px) scale(0.9); }
+        }
+
+        /* Container */
+        .main-wrapper {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-img {
+            height: 48px;
+            width: auto;
+            filter: drop-shadow(0 0 20px var(--accent-green-glow));
+            transition: all var(--transition-base);
+        }
+
+        .logo-img:hover {
+            filter: drop-shadow(0 0 30px var(--accent-green-glow));
+            transform: scale(1.05);
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* centraliza o ADMIN DASHBOARD */
+            width: 100%;        
+        }
+
+        .logo-title {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-green-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-subtitle {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-green);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            font-family: 'JetBrains Mono', monospace;
+            text-shadow: 0 0 10px var(--accent-green-glow);
+        }
+
+        .logo-text {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 var(--accent-green);
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+            }
+        }
+
+        .btn-refresh {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-refresh::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, var(--accent-green-glow) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-refresh:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-refresh:hover {
+            border-color: var(--accent-green);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-2px);
+        }
+
+        .btn-refresh svg {
+            transition: transform var(--transition-base);
+        }
+
+        .btn-refresh:hover svg {
+            transform: rotate(180deg);
+        }
+
+        /* Tabs Navigation */
+        .tabs-nav {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .tabs-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 40px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .tab-btn {
+            position: relative;
+            padding: 20px 32px;
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            border-bottom: 3px solid transparent;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-green-light));
+            transform: scaleX(0);
+            transition: transform var(--transition-base);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-green);
+        }
+
+        .tab-btn.active::before {
+            transform: scaleX(1);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--text-secondary);
+            background: var(--bg-tertiary);
+        }
+
+        .tab-icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /* Main Content */
+        .content-wrapper {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Error Alert */
+        .error-alert {
+            display: none;
+            padding: 20px 24px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: var(--radius-lg);
+            margin-bottom: 32px;
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .error-alert.active {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .error-icon {
+            font-size: 24px;
+        }
+
+        .error-content h4 {
+            color: var(--accent-red);
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .error-content p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-xl);
+            padding: 28px;
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-base);
+            animation: slideUp 0.5s ease-out backwards;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.05s; }
+        .stat-card:nth-child(2) { animation-delay: 0.1s; }
+        .stat-card:nth-child(3) { animation-delay: 0.15s; }
+        .stat-card:nth-child(4) { animation-delay: 0.2s; }
+        .stat-card:nth-child(5) { animation-delay: 0.25s; }
+        .stat-card:nth-child(6) { animation-delay: 0.3s; }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-green-light));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform var(--transition-slow);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--border-strong);
+            box-shadow: var(--shadow-xl), var(--shadow-glow);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .stat-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: var(--radius-md);
+            font-size: 24px;
+            transition: all var(--transition-base);
+            color: var(--accent-green);
+        }
+
+        .stat-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .stat-card:hover .stat-icon {
+            background: rgba(16, 185, 129, 0.2);
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .stat-value {
+            font-size: 48px;
+            font-weight: 900;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-tertiary);
+            font-weight: 500;
+        }
+
+        /* Filters */
+        .filters-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            margin-bottom: 32px;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .filter-input,
+        .filter-select {
+            width: 100%;
+            padding: 14px 18px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+            transition: all var(--transition-base);
+            outline: none;
+        }
+
+        .filter-input:focus,
+        .filter-select:focus {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+
+        .filter-select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .filters-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .btn-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-green-light) 100%);
+            border: none;
+            border-radius: var(--radius-lg);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            box-shadow: var(--shadow-lg);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-xl), var(--shadow-glow);
+        }
+
+        .btn-action:active {
+            transform: translateY(-1px);
+        }
+
+        /* Table Card */
+        .table-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 28px 32px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-secondary);
+        }
+
+        .table-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+
+        .table-count {
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent-green);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--bg-secondary);
+        }
+
+        th {
+            padding: 20px 24px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-family: 'JetBrains Mono', monospace;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        td {
+            padding: 20px 24px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-subtle);
+            font-weight: 500;
+        }
+
+        tbody tr {
+            transition: all var(--transition-fast);
+        }
+
+        tbody tr:hover {
+            background: var(--bg-secondary);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .badge-basico {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .badge-intermediario {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-avancado {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .badge-premium {
+            background: rgba(139, 92, 246, 0.1);
+            color: #8b5cf6;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .badge-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .badge-service {
+            background: rgba(148, 163, 184, 0.1);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        /* Escritorio Info */
+        .escritorio-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .escritorio-name {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 15px;
+        }
+
+        .escritorio-oab {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 14, 26, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-content {
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 4px solid var(--border-medium);
+            border-top-color: var(--accent-green);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 24px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+        }
+
+        .empty-icon {
+            font-size: 80px;
+            opacity: 0.2;
+            margin-bottom: 24px;
+            color: var(--accent-green);
+        }
+
+        .empty-icon svg {
+            width: 80px;
+            height: 80px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        .empty-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .empty-text {
+            font-size: 16px;
+            color: var(--text-tertiary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .header-content {
+                position: relative;
+            }
+
+            .content-wrapper {
+                padding: 24px;
+            }
+
+            .tabs-container {
+                padding: 0 24px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 16px;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .header-left {
+                flex-direction: column;
+                align-items: flex-start;
+                width: 100%;
+            }
+
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table-container {
+                overflow-x: scroll;
+            }
+
+            table {
+                min-width: 800px;
+            }
+
+            .tab-btn {
+                padding: 16px 20px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>🛡️ LawTech Systems - Diagnóstico de Assinantes</h2>
-        <div id="loading">Carregando dados técnicos...</div>
-        <table id="tabelaLogs" style="display:none;">
-            <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Escritório</th>
-                    <th>Serviço</th>
-                    <th>Erro</th>
-                    <th>Mensagem</th>
-                </tr>
-            </thead>
-            <tbody id="corpoTabela"></tbody>
-        </table>
+    <!-- Background Effects -->
+    <div class="bg-pattern"></div>
+    <div class="gradient-orb gradient-orb-1"></div>
+    <div class="gradient-orb gradient-orb-2"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">CARREGANDO DADOS...</div>
+        </div>
+    </div>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo-container">
+                        <img src="/Logo LawTech systems.png" alt="LawTech Systems" style="max-width: 180px;" onerror="this.src='/Logo%20LawTech%20systems.png'">
+                        <div class="logo-text">                            
+                            <div class="logo-subtitle">ADMIN DASHBOARD</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="status-indicator">
+                        <div class="status-dot"></div>
+                        <span id="statusText">SISTEMA ONLINE</span>
+                    </div>
+                    <button class="btn-refresh" onclick="atualizarDados()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                        </svg>
+                        <span>ATUALIZAR</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tabs Navigation -->
+        <nav class="tabs-nav">
+            <div class="tabs-container">
+                <button class="tab-btn active" onclick="mostrarAba('escritorios')">
+    <span class="tab-icon">
+        <svg viewBox="0 0 24 24">
+            <path d="M3 21h18M9 8h1m-1 4h1m-1 4h1M15 8h1m-1 4h1m-1 4h1M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/>
+        </svg>
+    </span>
+    <span>Escritórios</span>
+</button>
+                <button class="tab-btn" onclick="mostrarAba('logs')">
+    <span class="tab-icon">
+        <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 8v4m0 4h.01"/>
+        </svg>
+    </span>
+    <span>Logs de Erros</span>
+</button>
+            </div>
+        </nav>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            <!-- TAB: Escritórios -->
+            <div id="secao-escritorios" class="tab-content active">
+                <!-- Error Alert -->
+                <div id="errorAlertEscritorios" class="error-alert">
+                    <div class="error-icon">⚠️</div>
+                    <div class="error-content">
+                        <h4>ERRO AO CARREGAR DADOS</h4>
+                        <p id="errorMessageEscritorios"></p>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div id="stats-escritorios-cards" class="stats-grid"></div>
+
+                <!-- Filters -->
+                <div class="filters-card">
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <label>Buscar Escritório</label>
+                            <input type="text" class="filter-input" id="filtroBuscaEscritorio" placeholder="Nome ou OAB..." oninput="filtrarEscritorios()">
+                        </div>
+                        <div class="filter-group">
+                            <label>Filtrar por Plano</label>
+                            <select class="filter-select" id="filtroPlanoEscritorio" onchange="filtrarEscritorios()">
+                                <option value="">Todos os Planos</option>
+                                <option value="BASICO">Básico</option>
+                                <option value="INTERMEDIARIO">Intermediário</option>
+                                <option value="AVANCADO">Avançado</option>
+                                <option value="PREMIUM">Premium</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="filters-actions">
+                        <button class="btn-action" onclick="exportarCSV()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                            </svg>
+                            <span>EXPORTAR CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <h2 class="table-title">Escritórios Cadastrados</h2>
+                        <span class="table-count" id="count-escritorios">0 REGISTROS</span>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>ESCRITÓRIO</th>
+                                    <th>OAB</th>
+                                    <th>PLANO</th>
+                                    <th>USUÁRIOS</th>
+                                    <th>PROCESSOS</th>
+                                    <th>PRAZOS</th>
+                                    <th>DATA CRIAÇÃO</th>
+                                </tr>
+                            </thead>
+                            <tbody id="body-escritorios">
+                                <tr>
+                                    <td colspan="8">
+                                        <div class="empty-state">
+                                            <div class="empty-icon">🏢</div>
+                                            <div class="empty-title">Carregando escritórios...</div>
+                                            <div class="empty-text">Aguarde enquanto buscamos os dados</div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Logs -->
+            <div id="secao-logs" class="tab-content">
+                <!-- Error Alert -->
+                <div id="errorAlertLogs" class="error-alert">
+                    <div class="error-icon">⚠️</div>
+                    <div class="error-content">
+                        <h4>ERRO AO CARREGAR LOGS</h4>
+                        <p id="errorMessageLogs"></p>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">Total de Logs</div>
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M12 18v-6m-3 3 3 3 3-3"/></svg>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalLogs">0</div>
+                        <div class="stat-label">Registros no sistema</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">Últimas 24h</div>
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="logs24h">0</div>
+                        <div class="stat-label">Erros recentes</div>
+                    </div>
+<div class="stat-card">
+    <div class="stat-header">
+        <div class="stat-title">Escritórios</div>
+        <div class="stat-icon">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 8h1m-1 4h1m-1 4h1M15 8h1m-1 4h1m-1 4h1"/>
+            </svg>
+        </div>
+    </div>
+
+    <div class="stat-value" id="escritoriosLogs">1</div>
+    <div class="stat-label">Com registros</div>
+</div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters-card">
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <label>Serviço</label>
+                            <select class="filter-select" id="filtroServico" onchange="filtrarLogs()">
+                                <option value="">Todos os Serviços</option>
+                                <option value="Autenticação">🔐 Autenticação</option>
+                                <option value="Prazos">📅 Prazos</option>
+                                <option value="API Externa">🌐 API Externa</option>
+                                <option value="Publicações">📰 Publicações</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Tipo de Erro</label>
+                            <select class="filter-select" id="filtroErro" onchange="filtrarLogs()">
+                                <option value="">Todos os Erros</option>
+                                <option value="LOGIN_FAILED">Login Failed</option>
+                                <option value="DATABASE_ERROR">Database Error</option>
+                                <option value="TIMEOUT">Timeout</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Data</label>
+                            <input type="date" class="filter-input" id="filtroData" onchange="filtrarLogs()">
+                        </div>
+                    </div>
+                    <div class="filters-actions">
+                        <button class="btn-action" onclick="exportarCSV()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                            </svg>
+                            <span>EXPORTAR CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <h2 class="table-title">Logs do Sistema</h2>
+                        <span class="table-count" id="count-logs">0 REGISTROS</span>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>DATA/HORA</th>
+                                    <th>ESCRITÓRIO</th>
+                                    <th>SERVIÇO</th>
+                                    <th>TIPO</th>
+                                    <th>MENSAGEM</th>
+                                </tr>
+                            </thead>
+                            <tbody id="body-logs">
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="empty-state">
+                                            <div class="empty-icon">🛡️</div>
+                                            <div class="empty-title">Carregando logs...</div>
+                                            <div class="empty-text">Aguarde enquanto buscamos os dados</div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        async function carregarLogs() {
-            try {
-                const response = await fetch('/systems/monitoramento');
-                const data = await response.json();
-                
-                if (data.ok) {
-                    const corpo = document.getElementById('corpoTabela');
-                    data.logs.forEach(log => {
-                        const row = `<tr>
-                            <td>${new Date(log.criado_em).toLocaleString()}</td>
-                            <td>${log.advogado_responsavel}</td>
-                            <td>${log.servico}</td>
-                            <td class="erro">${log.tipo_erro}</td>
-                            <td>${log.mensagem_erro}</td>
-                        </tr>`;
-                        corpo.innerHTML += row;
-                    });
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('tabelaLogs').style.display = 'table';
-                }
-            } catch (err) {
-                document.getElementById('loading').innerHTML = "❌ Erro ao acessar o LawTech Systems. Verifique se você está logado.";
+        // Variáveis globais
+        let escritoriosData = [];
+        let logsData = [];
+        let token = localStorage.getItem('token');
+
+        // Verificar autenticação
+        if (!token) {
+            alert('Você precisa estar logado para acessar esta página');
+            window.location.href = '/login';
+        }
+
+        // Funções de UI
+        function mostrarLoading() {
+            document.getElementById('loadingOverlay').classList.add('active');
+        }
+
+        function esconderLoading() {
+            document.getElementById('loadingOverlay').classList.remove('active');
+        }
+
+        function mostrarErro(mensagem, secao) {
+            const errorDiv = document.getElementById(`errorAlert${secao}`);
+            const errorMsg = document.getElementById(`errorMessage${secao}`);
+            errorMsg.textContent = mensagem;
+            errorDiv.classList.add('active');
+            setTimeout(() => errorDiv.classList.remove('active'), 5000);
+        }
+
+        // Alternar abas
+        function mostrarAba(aba) {
+            const tabs = document.querySelectorAll('.tab-btn');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+            
+            if (aba === 'escritorios') {
+                tabs[0].classList.add('active');
+                document.getElementById('secao-escritorios').classList.add('active');
+                carregarDadosEscritorios();
+            } else {
+                tabs[1].classList.add('active');
+                document.getElementById('secao-logs').classList.add('active');
+                carregarLogs();
             }
         }
-        carregarLogs();
+
+        // Atualizar dados
+        function atualizarDados() {
+            const abaAtiva = document.getElementById('secao-escritorios').classList.contains('active');
+            if (abaAtiva) {
+                carregarDadosEscritorios();
+            } else {
+                carregarLogs();
+            }
+        }
+
+        // Carregar dados de escritórios
+        async function carregarDadosEscritorios() {
+            try {
+                mostrarLoading();
+
+                // 1. Buscar estatísticas
+                const statsRes = await fetch('/systems/stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (statsRes.status === 401) {
+                    alert('Sessão expirada. Faça login novamente.');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                if (!statsRes.ok) throw new Error('Erro ao buscar estatísticas');
+
+                const statsData = await statsRes.json();
+
+                if (statsData.ok) {
+                    renderizarStatsEscritorios(statsData.stats);
+                }
+
+                // 2. Buscar lista de escritórios
+                const escritRes = await fetch('/systems/escritorios', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!escritRes.ok) throw new Error('Erro ao buscar escritórios');
+
+                const escritData = await escritRes.json();
+
+                if (escritData.ok) {
+                    escritoriosData = escritData.escritorios;
+                    renderizarTabelaEscritorios(escritoriosData);
+                    document.getElementById('count-escritorios').textContent = 
+                        `${escritData.total} REGISTROS`;
+                }
+
+            } catch (err) {
+                console.error('Erro:', err);
+                mostrarErro(err.message, 'Escritorios');
+            } finally {
+                esconderLoading();
+            }
+        }
+
+        function renderizarStatsEscritorios(stats) {
+            const container = document.getElementById('stats-escritorios-cards');
+            container.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Total Escritórios</div>
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24"><path d="M3 21h18M9 8h1m-1 4h1m-1 4h1M15 8h1m-1 4h1m-1 4h1M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>
+                        </div>
+                    </div>
+                    <div class="stat-value">${stats.total_escritorios || 0}</div>
+                    <div class="stat-label">Cadastrados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Básico</div>
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                        </div>
+                    </div>
+                    <div class="stat-value">${stats.plano_basico || 0}</div>
+                    <div class="stat-label">Assinantes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Intermediário</div>
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+                        </div>
+                    </div>
+                    <div class="stat-value">${stats.plano_intermediario || 0}</div>
+                    <div class="stat-label">Assinantes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Avançado</div>
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/></svg>
+                        </div>
+                    </div>
+                    <div class="stat-value">${stats.plano_avancado || 0}</div>
+                    <div class="stat-label">Assinantes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Premium</div>
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/><path d="M3 16h18v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2z"/></svg>
+                        </div>
+                    </div>
+                    <div class="stat-value">${stats.plano_premium || 0}</div>
+                    <div class="stat-label">Assinantes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Total Processos</div>
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8m8 4H8m2-8H8"/></svg>
+                        </div>
+                    </div>
+                    <div class="stat-value">${stats.total_processos || 0}</div>
+                    <div class="stat-label">No sistema</div>
+                </div>
+            `;
+        }
+
+        function renderizarTabelaEscritorios(lista) {
+            const tbody = document.getElementById('body-escritorios');
+            tbody.innerHTML = '';
+            
+            if (lista.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <div class="empty-icon">🏢</div>
+                                <div class="empty-title">Nenhum escritório encontrado</div>
+                                <div class="empty-text">Tente ajustar os filtros</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            lista.forEach(esc => {
+                const plano = (esc.plano_ativo || 'BASICO').toLowerCase();
+                const planoClass = `badge-${plano}`;
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${esc.id}</strong></td>
+                        <td>
+                            <div class="escritorio-info">
+                                <div class="escritorio-name">${esc.nome || esc.advogado_responsavel}</div>
+                                <div class="escritorio-oab">${esc.advogado_responsavel || ''}</div>
+                            </div>
+                        </td>
+                        <td>${esc.oab || '-'}</td>
+                        <td><span class="badge ${planoClass}">${esc.plano_ativo || 'BASICO'}</span></td>
+                        <td>${esc.total_usuarios || 0}</td>
+                        <td>${esc.total_processos || 0}</td>
+                        <td>${esc.total_prazos || 0}</td>
+                        <td>${new Date(esc.data_criacao).toLocaleDateString('pt-BR')}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Carregar logs
+        async function carregarLogs() {
+            try {
+                mostrarLoading();
+
+                const res = await fetch('/systems/monitoramento', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.status === 401) {
+                    alert('Sessão expirada. Faça login novamente.');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                if (!res.ok) throw new Error('Erro ao buscar logs');
+
+                const data = await res.json();
+
+                if (data.ok) {
+                    logsData = data.logs;
+                    renderizarTabelaLogs(logsData);
+                    atualizarStatsLogs(logsData);
+                    document.getElementById('count-logs').textContent = `${data.total} REGISTROS`;
+                }
+
+            } catch (err) {
+                console.error('Erro:', err);
+                mostrarErro(err.message, 'Logs');
+            } finally {
+                esconderLoading();
+            }
+        }
+
+        function renderizarTabelaLogs(lista) {
+            const tbody = document.getElementById('body-logs');
+            tbody.innerHTML = '';
+            
+            if (lista.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <div class="empty-icon">🛡️</div>
+                                <div class="empty-title">Nenhum log encontrado</div>
+                                <div class="empty-text">Tente ajustar os filtros</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            lista.forEach(log => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="font-size:13px">${new Date(log.criado_em).toLocaleString('pt-BR')}</td>
+                        <td>
+                            <div class="escritorio-info">
+                                <div class="escritorio-name">${log.advogado_responsavel}</div>
+                                <div class="escritorio-oab">OAB: ${log.oab}</div>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-service">${log.servico}</span></td>
+                        <td><span class="badge badge-error">${log.tipo_erro}</span></td>
+                        <td style="font-size:13px">${log.mensagem_erro}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function atualizarStatsLogs(logs) {
+            document.getElementById('totalLogs').textContent = logs.length;
+            
+            const agora = new Date();
+            const ontem = new Date(agora.getTime() - 24 * 60 * 60 * 1000);
+            const logs24h = logs.filter(log => new Date(log.criado_em) > ontem);
+            document.getElementById('logs24h').textContent = logs24h.length;
+            
+            const escritorios = [...new Set(logs.map(log => log.advogado_responsavel))];
+            document.getElementById('escritoriosLogs').textContent = escritorios.length;
+        }
+
+        function filtrarLogs() {
+    const servico = document.getElementById('filtroServico').value;
+    const erro = document.getElementById('filtroErro').value;
+    const dataFiltro = document.getElementById('filtroData').value;
+
+    let filtrados = [...logsData];
+
+    if (servico) {
+        filtrados = filtrados.filter(log => log.servico === servico);
+    }
+
+    if (erro) {
+        filtrados = filtrados.filter(log => log.tipo_erro === erro);
+    }
+
+    if (dataFiltro) {
+        filtrados = filtrados.filter(log => {
+            const dataLog = new Date(log.criado_em).toISOString().split('T')[0];
+            return dataLog === dataFiltro;
+        });
+    }
+
+    renderizarTabelaLogs(filtrados);
+    document.getElementById('count-logs').textContent =
+        `${filtrados.length} REGISTROS`;
+}
+
+        // Filtrar escritórios
+        function filtrarEscritorios() {
+            const busca = document.getElementById('filtroBuscaEscritorio').value.toLowerCase();
+            const plano = document.getElementById('filtroPlanoEscritorio').value;
+            
+            const filtrados = escritoriosData.filter(esc => {
+                const nome = (esc.nome || esc.advogado_responsavel || '').toLowerCase();
+                const oab = (esc.oab || '').toLowerCase();
+                const planoEsc = esc.plano_ativo || '';
+                
+                const matchBusca = nome.includes(busca) || oab.includes(busca);
+                const matchPlano = plano === '' || planoEsc === plano;
+                
+                return matchBusca && matchPlano;
+            });
+            
+            renderizarTabelaEscritorios(filtrados);
+            document.getElementById('count-escritorios').textContent = 
+                `${filtrados.length} REGISTROS`;
+        }
+
+        // Exportar CSV
+        function exportarCSV() {
+            const abaEscritorios = document.getElementById('secao-escritorios').classList.contains('active');
+            
+            if (abaEscritorios) {
+                let csv = 'ID,Nome,Advogado,OAB,Plano,Usuários,Processos,Prazos,Data Criação\n';
+                
+                escritoriosData.forEach(esc => {
+                    csv += `${esc.id},`;
+                    csv += `"${esc.nome || ''}",`;
+                    csv += `"${esc.advogado_responsavel || ''}",`;
+                    csv += `"${esc.oab || ''}",`;
+                    csv += `"${esc.plano_ativo || ''}",`;
+                    csv += `${esc.total_usuarios || 0},`;
+                    csv += `${esc.total_processos || 0},`;
+                    csv += `${esc.total_prazos || 0},`;
+                    csv += `"${new Date(esc.data_criacao).toLocaleDateString('pt-BR')}"\n`;
+                });
+                
+                baixarCSV(csv, 'escritorios-lawtech.csv');
+            } else {
+                let csv = 'Data/Hora,Escritório,OAB,UF,Serviço,Tipo Erro,Mensagem\n';
+                
+                logsData.forEach(log => {
+                    csv += `"${new Date(log.criado_em).toLocaleString('pt-BR')}",`;
+                    csv += `"${log.advogado_responsavel}",`;
+                    csv += `"${log.oab}",`;
+                    csv += `"${log.uf}",`;
+                    csv += `"${log.servico}",`;
+                    csv += `"${log.tipo_erro}",`;
+                    csv += `"${log.mensagem_erro}"\n`;
+                });
+                
+                baixarCSV(csv, 'logs-lawtech.csv');
+            }
+        }
+
+        function baixarCSV(conteudo, nomeArquivo) {
+            const blob = new Blob([conteudo], { type: 'text/csv;charset=utf-8;' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', nomeArquivo);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Auto-refresh (2 minutos)
+        setInterval(atualizarDados, 120000);
+
+        // Inicializar
+        carregarDadosEscritorios();
     </script>
 </body>
 </html>
