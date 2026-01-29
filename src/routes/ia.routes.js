@@ -19,44 +19,59 @@ router.post('/crm/public/captura-lead', async (req, res) => {
             escritorio_id,
             nome,
             telefone,
+            email,
             assunto,
             mensagem
         } = req.body;
 
+        console.log('📥 [CAPTURA LEAD] Recebendo dados:', { escritorio_id, nome, telefone, email, assunto });
+
         if (!escritorio_id || !nome || !telefone) {
+            console.error('❌ [CAPTURA LEAD] Dados obrigatórios faltando');
             return res.status(400).json({
                 erro: 'Dados obrigatórios não informados'
             });
         }
 
-        // 🔐 Inserção direta no CRM (lead inicial)
-        await req.app.locals.db.query(`
+        // ✅ CORREÇÃO: Usar pool ao invés de req.app.locals.db
+        const result = await pool.query(`
             INSERT INTO crm_leads (
                 escritorio_id,
                 nome,
                 telefone,
+                email,
                 assunto,
                 mensagem,
                 origem,
                 status,
                 criado_em
             ) VALUES (
-                $1, $2, $3, $4, $5, 'form_publico', 'novo', NOW()
+                $1, $2, $3, $4, $5, $6, 'form_publico', 'novo', NOW()
             )
+            RETURNING id
         `, [
             escritorio_id,
             nome,
             telefone,
+            email || null,
             assunto || null,
             mensagem || null
         ]);
 
-        return res.status(201).json({ ok: true });
+        console.log('✅ [CAPTURA LEAD] Lead cadastrado com sucesso! ID:', result.rows[0].id);
+
+        return res.status(201).json({ 
+            ok: true,
+            leadId: result.rows[0].id,
+            mensagem: 'Lead cadastrado com sucesso!'
+        });
 
     } catch (error) {
-        console.error('❌ Erro na captura de lead público:', error.message);
+        console.error('❌ [CAPTURA LEAD] Erro ao registrar:', error.message);
+        console.error('Stack:', error.stack);
         return res.status(500).json({
-            erro: 'Erro ao registrar lead'
+            erro: 'Erro ao registrar lead',
+            detalhe: error.message
         });
     }
 });
