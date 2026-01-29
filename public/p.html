@@ -107,7 +107,7 @@
             };
 
             try {
-                const res = await fetch('/api/crm/public/captura-lead', {
+                const res = await fetch('https://api.lawtechpro.com.br/api/crm/public/captura-lead', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dados)
