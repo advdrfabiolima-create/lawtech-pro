@@ -543,7 +543,7 @@ input, textarea, select {
                 💾 Salvar Dados Bancários
             </button>
 
-            <button class="btn-save" style="background: #10b981;" onclick="ativarFinanceiro()">
+            <button id="btnAtivarFaturamento" class="btn-save" style="background: #10b981;" onclick="ativarFinanceiro()">
                 🚀 Ativar Faturamento
             </button>
 
@@ -905,6 +905,19 @@ async function carregarInfoRodape() {
                 document.getElementById('confRendaMensal').value = 'R$ ' + parseFloat(d.renda_mensal).toLocaleString('pt-BR', {minimumFractionDigits: 2});
             }
 
+            // ✅ VERIFICAR SE FATURAMENTO JÁ ESTÁ ATIVADO
+            if (d.plano_financeiro_status === 'ativo' || d.asaas_id) {
+                const btnFaturamento = document.getElementById('btnAtivarFaturamento');
+                if (btnFaturamento) {
+                    btnFaturamento.disabled = true;
+                    btnFaturamento.style.background = '#10b981';
+                    btnFaturamento.style.opacity = '0.7';
+                    btnFaturamento.style.cursor = 'not-allowed';
+                    btnFaturamento.innerHTML = '✅ Faturamento Ativado';
+                    btnFaturamento.onclick = null; // Remove o evento de click
+                }
+            }
+
             // ✅ LÓGICA DE CANCELAMENTO ATIVO (Mudar bloco para Vermelho)
             if (d.renovacao_automatica === false) {
                 const container = document.getElementById('containerTrial');
@@ -1057,7 +1070,18 @@ async function carregarInfoRodape() {
         if (data.ok) {
             alert('✅ ' + (data.mensagem || 'Faturamento ativado com sucesso!'));
             
-            // Recarrega a página para atualizar os dados
+            // Atualiza o botão permanentemente
+            const btnFaturamento = document.getElementById('btnAtivarFaturamento');
+            if (btnFaturamento) {
+                btnFaturamento.disabled = true;
+                btnFaturamento.style.background = '#10b981';
+                btnFaturamento.style.opacity = '0.7';
+                btnFaturamento.style.cursor = 'not-allowed';
+                btnFaturamento.innerHTML = '✅ Faturamento Ativado';
+                btnFaturamento.onclick = null;
+            }
+            
+            // Recarrega a página após 1 segundo para atualizar todos os dados
             setTimeout(() => {
                 window.location.reload();
             }, 1000);
@@ -1089,7 +1113,7 @@ async function carregarInfoRodape() {
         
     } finally {
         const btn = document.querySelector('button[onclick*="ativarFinanceiro"]');
-        if (btn) {
+        if (btn && !btn.innerHTML.includes('Ativado')) {
             btn.disabled = false;
             btn.innerText = "🚀 Ativar Faturamento";
         }
