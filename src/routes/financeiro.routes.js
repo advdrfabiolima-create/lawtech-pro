@@ -6,6 +6,7 @@ const planMiddleware = require('../middlewares/planMiddleware');
 const axios = require('axios');
 
 const TOKEN_ASAAS = process.env.ASAAS_API_KEY;
+console.log("DEBUG: O token lido do Render é:", TOKEN_ASAAS ? "EXISTE (OK)" : "VAZIO (ERRO)");
 
 // ============================================================
 // ✅ ROTAS BÁSICAS - DISPONÍVEIS EM TODOS OS PLANOS
