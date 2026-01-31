@@ -41,6 +41,22 @@ router.get('/stats', async (req, res) => {
             )
         `);
 
+        // ✅ 5. CÁLCULO REAL DO MRR (Faturamento Mensal)
+        // Somamos a coluna valor_mensalidade apenas de quem está ativo/em dia
+        const mrrResult = await pool.query(`
+            SELECT SUM(valor_mensalidade) as total 
+            FROM escritorios 
+            WHERE status_pagamento = 'em_dia'
+        `);
+
+        // ✅ 6. CÁLCULO DE CHURN (Cancelamentos do mês atual)
+        const churnResult = await pool.query(`
+            SELECT COUNT(*) as total 
+            FROM escritorios 
+            WHERE status_pagamento = 'cancelado' 
+            AND criado_em >= date_trunc('month', current_date)
+        `);
+
         const stats = planosCount.rows[0];
         const inadimplencia = inadimplenciaCount.rows[0];
         
@@ -53,9 +69,8 @@ router.get('/stats', async (req, res) => {
                 plano_avancado: parseInt(stats.avancado || 0),
                 plano_premium: parseInt(stats.premium || 0),
                 total_processos: parseInt(procCount.rows[0].total || 0),
-                mrr: 0,
-                churn: 0,
-                // Novas estatísticas
+                mrr: parseFloat(mrrResult.rows[0].total || 0), // ✅ Agora dinâmico
+                churn: parseInt(churnResult.rows[0].total || 0), // ✅ Agora dinâmico
                 em_dia: parseInt(inadimplencia.em_dia || 0),
                 pendente: parseInt(inadimplencia.pendente || 0),
                 inadimplente: parseInt(inadimplencia.inadimplente || 0),

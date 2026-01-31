@@ -2563,21 +2563,33 @@ async function atualizarEstatisticasCompletas() {
         const data = await res.json();
         
         if (data.ok && data.stats) {
-            // Atualizar estatísticas existentes
-            document.getElementById('totalEscritorios').textContent = data.stats.total_escritorios || 0;
-            
-            // Atualizar NOVAS estatísticas
-            if (document.getElementById('totalInadimplentes')) {
-                document.getElementById('totalInadimplentes').textContent = 
+            // 1. Atualizar Faturamento (MRR) - ID real: mrrValueOverview
+            if (document.getElementById('mrrValueOverview')) {
+                document.getElementById('mrrValueOverview').textContent = 
+                    data.stats.mrr.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            }
+
+            // 2. Atualizar Inadimplentes - ID real: totalInadimplentesOverview
+            if (document.getElementById('totalInadimplentesOverview')) {
+                document.getElementById('totalInadimplentesOverview').textContent = 
                     (data.stats.pendente || 0) + (data.stats.inadimplente || 0);
             }
             
-            if (document.getElementById('totalNoLimite')) {
-                document.getElementById('totalNoLimite').textContent = data.stats.no_limite || 0;
+            // 3. Atualizar Oportunidades Upgrade - ID real: totalNoLimiteOverview
+            if (document.getElementById('totalNoLimiteOverview')) {
+                document.getElementById('totalNoLimiteOverview').textContent = data.stats.no_limite || 0;
+            }
+
+            // 4. Atualizar Churn - ID real: churnRateOverview
+            if (document.getElementById('churnRateOverview')) {
+                const taxa = data.stats.total_escritorios > 0 
+                    ? ((data.stats.churn / data.stats.total_escritorios) * 100).toFixed(1) 
+                    : 0;
+                document.getElementById('churnRateOverview').textContent = `${taxa}%`;
             }
         }
     } catch (err) {
-        console.error('Erro ao atualizar estatísticas:', err);
+        console.error('❌ Erro ao atualizar estatísticas:', err);
     }
 }
 
