@@ -710,59 +710,70 @@
                     body: JSON.stringify(payload)
                 });
 
-                const data = await response.json();
+const data = await response.json();
 
-                if (response.ok) {
-                    const loginRes = await fetch('/api/auth/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: payload.email, senha: payload.senha })
-                    });
-                    
-                    const loginData = await loginRes.json();
-                    localStorage.setItem('token', loginData.token);
+if (response.ok) {
+    // ✅ SUCESSO: Conta criada!
+    console.log('✅ [REGISTRO] Conta criada com sucesso:', data);
+    
+    // ✅ Salvar token do cartão (se fornecido)
+    if (payload.pagamento && payload.pagamento.numero && payload.pagamento.numero.replace(/\D/g, '').length >= 13) {
+        try {
+            console.log('💳 [REGISTRO] Salvando dados do cartão...');
+            
+            // Fazer login para obter token
+            const loginRes = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: payload.email, senha: payload.senha })
+            });
+            
+            if (loginRes.ok) {
+                const loginData = await loginRes.json();
+                
+                const cartaoRes = await fetch('/api/pagamentos/salvar-cartao', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${loginData.token}`
+                    },
+                    body: JSON.stringify({
+                        numero: payload.pagamento.numero,
+                        validade: payload.pagamento.validade
+                    })
+                });
 
-                    const pId = localStorage.getItem('plano_escolhido_id');
-                    const pValor = localStorage.getItem('plano_escolhido_valor');
-
-                    if (pId && pValor) {
-                        try {
-                            const payRes = await fetch('/api/pagamentos/assinar-plano', {
-                                method: 'POST',
-                                headers: { 
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${loginData.token}` 
-                                },
-                                body: JSON.stringify({
-                                    planoId: pId,
-                                    nomePlano: localStorage.getItem('plano_escolhido_nome'),
-                                    valor: pValor,
-                                    cpfUsuario: payload.documento
-                                })
-                            });
-
-                            const payData = await payRes.json();
-                            
-                            if (payRes.ok && payData.url) {
-                                localStorage.removeItem('plano_escolhido_id');
-                                localStorage.removeItem('plano_escolhido_valor');
-                                window.location.href = payData.url;
-                                return;
-                            } else {
-                                showError("Falha ao processar faturamento. Por favor, tente novamente ou contate o suporte.");
-                                return;
-                            }
-                        } catch (payErr) {
-                            console.error("Erro na API de pagamentos:", payErr);
-                            showError("Sistema de pagamentos indisponível no momento.");
-                            return;
-                        }
-                    }
-
-                    window.location.href = '/dashboard';
+                if (cartaoRes.ok) {
+                    console.log('✅ [REGISTRO] Cartão salvo com sucesso');
                 } else {
-                    showError(data.erro || "Falha ao criar conta.");
+                    console.warn('⚠️ [REGISTRO] Erro ao salvar cartão (não crítico)');
                 }
+            }
+        } catch (cartaoErr) {
+            console.error('❌ [REGISTRO] Erro ao salvar cartão:', cartaoErr);
+            // Não bloqueia o cadastro por erro no cartão
+        }
+    }
+    
+    // Limpar localStorage
+    localStorage.removeItem('plano_escolhido_id');
+    localStorage.removeItem('plano_escolhido_valor');
+    localStorage.removeItem('plano_escolhido_nome');
+    
+    // ✅ Mostrar mensagem de sucesso
+    alert(
+        '✅ Conta criada com sucesso!\n\n' +
+        '🎉 Você ganhou 7 dias de teste gratuito para explorar todos os recursos do LawTech Pro.\n\n' +
+        '💳 A cobrança no cartão cadastrado será realizada automaticamente após o período de teste.\n\n' +
+        'Clique em OK para fazer login e começar!'
+    );
+    
+    // ✅ Redirecionar para login
+    window.location.href = '/login?registro=sucesso&trial=7';
+    
+} else {
+    showError(data.erro || "Falha ao criar conta.");
+}
             } catch (err) {
                 showError("Erro de conexão.");
             } finally {

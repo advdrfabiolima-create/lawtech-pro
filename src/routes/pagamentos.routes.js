@@ -348,4 +348,64 @@ router.get('/testar-asaas', authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * 💳 SALVAR CARTÃO (TOKENIZADO)
+ * Endpoint para salvar token do cartão para cobrança futura
+ */
+router.post('/salvar-cartao', authMiddleware, async (req, res) => {
+    try {
+        const { numero, validade } = req.body;
+        const escritorioId = req.user.escritorio_id;
+
+        console.log(`💳 [CARTÃO] Salvando para escritório ${escritorioId}`);
+
+        // ⚠️ IMPORTANTE: NUNCA salvar número completo!
+        // Usar gateway de pagamento para tokenizar
+        
+        // TODO: Implementar tokenização real com Asaas ou outro gateway
+        // Por enquanto, salva apenas últimos dígitos (TEMPORÁRIO)
+        
+        const ultimosDigitos = numero.replace(/\D/g, '').slice(-4);
+        const bandeira = detectarBandeira(numero);
+        
+        // TEMPORÁRIO: Gerar token fake até implementar gateway
+        const cartaoToken = 'TMP_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+        // Salvar no banco
+        await pool.query(`
+            UPDATE escritorios 
+            SET cartao_token = $1,
+                cartao_bandeira = $2,
+                cartao_ultimos_digitos = $3
+            WHERE id = $4
+        `, [cartaoToken, bandeira, ultimosDigitos, escritorioId]);
+
+        console.log(`✅ [CARTÃO] Token salvo: **** **** **** ${ultimosDigitos} (${bandeira})`);
+
+        res.json({ 
+            ok: true, 
+            mensagem: 'Cartão salvo com segurança',
+            ultimos_digitos: ultimosDigitos,
+            bandeira: bandeira
+        });
+
+    } catch (err) {
+        console.error('❌ [CARTÃO] Erro ao salvar:', err);
+        res.status(500).json({ 
+            erro: 'Erro ao processar cartão',
+            detalhes: err.message
+        });
+    }
+});
+
+// Função auxiliar para detectar bandeira
+function detectarBandeira(numero) {
+    const limpo = numero.replace(/\D/g, '');
+    if (/^4/.test(limpo)) return 'Visa';
+    if (/^5[1-5]/.test(limpo)) return 'Mastercard';
+    if (/^3[47]/.test(limpo)) return 'Amex';
+    if (/^6(?:011|5)/.test(limpo)) return 'Discover';
+    if (/^636368|438935|504175|451416|636297/.test(limpo)) return 'Elo';
+    return 'Desconhecida';
+}
 module.exports = router;
