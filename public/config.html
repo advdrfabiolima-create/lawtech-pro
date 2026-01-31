@@ -1213,8 +1213,7 @@ async function carregarEquipe() {
             document.getElementById('eqSenha').value = '';
             carregarEquipe();
         } else {
-            const d = await res.json();
-            alert('❌ Erro: ' + (d.erro || 'Acesso negado.'));
+            alert('❌ Erro: ' + (data.erro || 'Acesso negado.'));
         }
     }
 
