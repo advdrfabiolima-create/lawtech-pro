@@ -15,7 +15,7 @@
     <style>
         :root {
             /* Light Theme Colors - Professional & Clean */
-            --bg-primary: #f8fafc;
+            --bg-primary: #e2e8f0;
             --bg-secondary: #111827;
             --bg-tertiary: #1a2332;
             --bg-elevated: #ffffff;
@@ -264,11 +264,6 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-        }
-
-        .sidebar-footer > div {
-            display: flex;
-            justify-content: space-between;
         }
 
         .sidebar-footer span {
@@ -737,15 +732,15 @@
 
         .plan-status-card {
             position: relative;
-            background: linear-gradient(135deg, 
-                rgba(251, 191, 36, 0.05) 0%, 
-                rgba(255, 255, 255, 0.95) 50%,
-                rgba(251, 191, 36, 0.05) 100%);
-            border-color: rgba(251, 191, 36, 0.25);
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border: 2px solid #3b82f6;
+            border-bottom: 4px solid #2563eb;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.8);
         }
 
         .plan-status-card:hover {
-            border-color: rgba(251, 191, 36, 0.4);
+            border-color: #2563eb;
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.35), inset 0 1px 0 rgba(255, 255, 255, 1);
         }
 
         /* Buttons */
@@ -1046,6 +1041,218 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* SaaS Professional - Prazos List Style */
+.prazo-item-modern {
+    display: flex;
+    align-items: center;
+    padding: 18px; /* Aumentado de 16px para mais respiro */
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 12px;
+    transition: all var(--transition-base);
+    box-shadow: var(--shadow-sm);
+    border-left: 5px solid transparent;
+    /* ✅ FORÇA CAIXA ALTA EM TODO O CARD */
+    text-transform: uppercase; 
+}
+
+.prazo-item-modern:hover {
+    transform: translateX(4px);
+    border-color: var(--accent-blue);
+    box-shadow: var(--shadow-md);
+}
+
+.prazo-indicator {
+    width: 4px;
+    height: 38px;
+    border-radius: 4px;
+    margin-right: 16px;
+}
+
+.prazo-content { flex: 1; }
+
+.prazo-main-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.prazo-title {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.prazo-meta-info {
+    display: flex;
+    gap: 15px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Tags de Urgência SaaS */
+.tag-urgencia {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap; /* Impede que a tag quebre em duas linhas */
+    display: inline-block;
+}
+
+.tag-vencido { background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
+.tag-hoje { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+.tag-proximo { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }
+
+.btn-concluir-dash {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #16a34a;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-left: 10px;
+}
+
+.btn-concluir-dash:hover { background: #dcfce7; transform: scale(1.1); }
+
+/* Detalhe de borda SaaS para os itens de prazo */
+/* SaaS Professional - Bordas Laterais Dinâmicas */
+.prazo-item-modern {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 12px;
+    transition: all var(--transition-base);
+    box-shadow: var(--shadow-sm);
+    border-left: 5px solid transparent; /* Base para a borda colorida */
+}
+
+/* Cores de Borda e Tags por Urgência */
+.urgencia-hoje { 
+    border-left-color: var(--accent-red) !important; 
+}
+.urgencia-hoje .tag-urgencia { 
+    background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; 
+}
+
+.urgencia-amanha { 
+    border-left-color: var(--accent-orange) !important; 
+}
+.urgencia-amanha .tag-urgencia { 
+    background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; 
+}
+
+.urgencia-futuro { 
+    border-left-color: var(--accent-green) !important; 
+}
+.urgencia-futuro .tag-urgencia { 
+    background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; 
+}
+
+/* Cores das bordas baseadas na urgência */
+.border-vencido { border-left-color: var(--accent-red) !important; }
+.border-hoje { border-left-color: var(--accent-orange) !important; }
+.border-proximo { border-left-color: var(--accent-blue) !important; }
+
+/* Estilo do Contador Regressivo */
+.countdown-timer {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--accent-red);
+    background: rgba(239, 68, 68, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.card-prazos-container {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+    /* Destaque sutil na borda superior para não ficar "vazio" */
+    border-top: 4px solid var(--primary); 
+}
+
+/* Opcional: Um efeito de brilho interno para dar sofisticação */
+.card-prazos-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+/* Padronização LawTech Pro - Caixa Alta Global */
+body {
+    text-transform: uppercase;
+}
+
+/* Garante que os campos de digitação também mostrem caixa alta enquanto o usuário digita */
+input, textarea, select {
+    text-transform: uppercase;
+}
+
+/* Opcional: Se quiser que os números dos processos mantenham o estilo técnico, 
+   mas ainda em caixa alta */
+.numero-processo, .processo-hash {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+}
+
+.footer-info-row {
+    display: flex;
+    justify-content: flex-start; /* Força o início na esquerda */
+    align-items: center;
+    gap: 5px; /* Espaço pequeno entre ":" e o dado */
+    font-size: 12px;
+    width: 100%;
+}
+
+.footer-info-row span:first-child {
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    font-weight: 700;
+    min-width: 65px; /* Alinha os dois pontos verticalmente */
+}
+
+/* Mantém e-mail e plano minúsculos */
+.keep-lowercase {
+    text-transform: lowercase !important;
+    color: #cbd5e1;
+    display: inline-block;
+}
+
+/* AJUSTE DOS CARDS DE PRAZO: Remove o grid que jogava coisas para a direita */
+.prazo-meta-list {
+    display: flex; 
+    flex-direction: column; 
+    gap: 4px; 
+    margin-top: 10px;
+    text-align: left; /* Garante alinhamento à esquerda */
+}
+
+
     </style>
 </head>
 <body>
@@ -1077,9 +1284,15 @@
             </a>
         </nav>
         <div class="sidebar-footer">
-            <div><span>Usuário:</span> <span id="userEmail">...</span></div>
-            <div><span>Plano:</span> <span id="planNameFooter">...</span></div>
-        </div>
+    <div class="footer-info-row">
+        <span>Usuário:</span> 
+        <span id="userEmail" class="keep-lowercase">...</span>
+    </div>
+    <div class="footer-info-row">
+        <span>Plano:</span> 
+        <span id="planNameFooter" class="keep-lowercase">...</span>
+    </div>
+</div>
     </aside>
 
     <div class="main">
@@ -1155,98 +1368,175 @@
             <h3 style="font-size:20px; margin:5px 0;">Cálculos</h3>
             <p style="font-size:11px; color:#8b5cf6;">Atualização e Correção →</p>
         </div>
-        <div class="card card-premium gold-glow" onclick="window.location.href='/ia-page'" style="cursor:pointer;">
-            <p style="color:#b45309; font-size:11px; font-weight:700; text-transform:uppercase;">Recurso Premium ✨</p>
-            <h3 style="font-size:20px; margin:5px 0;">Assistente IA</h3>
-            <p style="font-size:11px; color:#b45309; font-weight:600;">Consultar jurisprudência e teses →</p>
+        <div class="card card-premium gold-glow" onclick="window.location.href='/ia-page'" style="cursor:pointer; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fef3c7 100%); border: 2px solid #f59e0b; box-shadow: 0 10px 40px rgba(245, 158, 11, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.8);">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <div style="background: linear-gradient(135deg, #f59e0b, #fbbf24); padding: 8px; border-radius: 10px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);">
+                    <i data-lucide="sparkles" style="width: 20px; height: 20px; color: #fff;"></i>
+                </div>
+                <span style="background: linear-gradient(90deg, #92400e, #b45309); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Premium ✨</span>
+            </div>
+            <h3 style="font-size: 20px; margin: 8px 0; font-weight: 800; background: linear-gradient(135deg, #78350f, #92400e); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Assistente IA</h3>
+            <p style="font-size: 12px; color: #92400e; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                Elaboração de documentos e petições
+                <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+            </p>
         </div>
     </div>
 
-    <div class="card" id="guia-crm" onclick="window.location.href='/crm-page'" style="cursor:pointer; margin-bottom:24px;">
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
-            <h3 style="font-size:16px; font-weight:700; color:var(--sidebar);">Gestão de Prospecção</h3>
-            <span style="background:var(--gold); color:#000; font-size:10px; font-weight:800; padding:4px 10px; border-radius:6px;">CRM</span>
+    <!-- SEÇÃO CRM - 4 CARDS NO ESTILO DOS CARDS DE PRAZOS -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+        <div class="card" id="guia-crm" onclick="window.location.href='/crm-page'" style="cursor:pointer; border-left:5px solid #3b82f6; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 8px; right: 8px; background: var(--gold); color: #000; font-size: 9px; font-weight: 800; padding: 3px 8px; border-radius: 6px;">CRM</div>
+            <small style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase;">Novos Leads</small>
+            <h2 id="crm-leads-count" style="font-size: 32px; font-weight: 800; color: #3b82f6; margin: 8px 0;">0</h2>
+            <p style="font-size: 11px; color: #64748b; margin-top: 4px;">
+                <i data-lucide="user-plus" style="width: 12px; height: 12px;"></i> Aguardando contato
+            </p>
         </div>
-        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:15px;">
-            <div style="background:#f8fafc; padding:15px; border-radius:12px; border-bottom:3px solid #94a3b8;">
-                <small style="color:var(--muted); font-weight:700; font-size:10px;">NOVOS LEADS</small>
-                <span id="crm-leads-count" style="font-size:24px; font-weight:800;">0</span>
-            </div>
-            <div style="background:#f8fafc; padding:15px; border-radius:12px; border-bottom:3px solid #f59e0b;">
-                <small style="color:var(--muted); font-weight:700; font-size:10px;">EM TRIAGEM</small>
-                <span id="crm-reuniao-count" style="font-size:24px; font-weight:800;">0</span>
-            </div>
-            <div style="background:#f8fafc; padding:15px; border-radius:12px; border-bottom:3px solid var(--primary);">
-                <small style="color:var(--muted); font-weight:700; font-size:10px;">PROPOSTAS</small>
-                <span id="crm-proposta-count" style="font-size:24px; font-weight:800;">0</span>
-            </div>
-            <div style="background:#f0fdf4; padding:15px; border-radius:12px; border-bottom:3px solid #10b981;">
-                <small style="color:#166534; font-weight:700; font-size:10px;">GANHOS</small>
-                <span id="crm-ganho-count" style="font-size:24px; font-weight:800; color:#166534;">0</span>
-            </div>
+
+        <div class="card" onclick="window.location.href='/crm-page'" style="cursor:pointer; border-left:5px solid #d97706;">
+            <small style="color: #92400e; font-size: 11px; font-weight: 700; text-transform: uppercase;">Em Triagem</small>
+            <h2 id="crm-triagem-count" style="font-size: 32px; font-weight: 800; color: #d97706; margin: 8px 0;">0</h2>
+            <p style="font-size: 11px; color: #92400e; margin-top: 4px;">
+                <i data-lucide="filter" style="width: 12px; height: 12px;"></i> Em qualificação
+            </p>
+        </div>
+
+        <div class="card" onclick="window.location.href='/crm-page'" style="cursor:pointer; border-left:5px solid #2563eb;">
+            <small style="color: #1e40af; font-size: 11px; font-weight: 700; text-transform: uppercase;">Propostas Enviadas</small>
+            <h2 id="crm-proposta-count" style="font-size: 32px; font-weight: 800; color: #2563eb; margin: 8px 0;">0</h2>
+            <p style="font-size: 11px; color: #1e40af; margin-top: 4px;">
+                <i data-lucide="file-text" style="width: 12px; height: 12px;"></i> Aguardando resposta
+            </p>
+        </div>
+
+        <div class="card" onclick="window.location.href='/crm-page'" style="cursor:pointer; border-left:5px solid #16a34a;">
+            <small style="color: #166534; font-size: 11px; font-weight: 700; text-transform: uppercase;">Contratos Ganhos</small>
+            <h2 id="crm-ganho-count" style="font-size: 32px; font-weight: 800; color: #16a34a; margin: 8px 0;">0</h2>
+            <p style="font-size: 11px; color: #166534; margin-top: 4px;">
+                <i data-lucide="trophy" style="width: 12px; height: 12px;"></i> Convertidos
+            </p>
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
-        <div id="premiumLinkCard" class="card card-premium" style="border-bottom: 4px solid var(--gold);">
-            <small style="color:#b45309; font-weight:700;">SEU FORMULÁRIO DE CAPTAÇÃO ESTÁ ON-LINE ✨</small>
-            <h3 style="font-size:16px; margin:5px 0;">Link Exclusivo para Clientes</h3>
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <input type="text" id="linkCaptura" readonly style="flex:1; background:#fffbeb; border:1px dashed var(--gold); padding:8px; border-radius:6px; font-size:11px;"/>
-                <button onclick="copiarLink()" class="btn-primary" style="background:var(--gold); color:#000; padding:8px 15px; font-size:12px; border:none;">Copiar</button>
+    <!-- CARD TRIBUNAIS (LARGURA TOTAL) -->
+    <div class="card" onclick="window.location.href='/tribunais-page'" style="cursor:pointer; border-left:5px solid var(--primary); border-bottom: 4px solid var(--primary); margin-bottom:24px;">
+        <small>Consultas Institucionais</small>
+        <h3 style="font-size:18px; margin:10px 0;">Tribunais</h3>
+        <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">
+            Acesso direto a 91 tribunais brasileiros
+        </p>
+
+        <!-- Categorias de Tribunais em 4 colunas -->
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px;">
+            <div style="background:#eff6ff; padding:10px; border-radius:8px; border-left:3px solid #3b82f6;">
+                <div style="font-size:10px; font-weight:700; color:#1e40af; margin-bottom:4px;">SUPERIORES</div>
+                <div style="font-size:18px; font-weight:800; color:#2563eb;">5</div>
+                <div style="font-size:9px; color:#64748b; margin-top:2px;">STF • STJ • TST • TSE • STM</div>
+            </div>
+            <div style="background:#ecfeff; padding:10px; border-radius:8px; border-left:3px solid #06b6d4;">
+                <div style="font-size:10px; font-weight:700; color:#0e7490; margin-bottom:4px;">FEDERAIS</div>
+                <div style="font-size:18px; font-weight:800; color:#0891b2;">6</div>
+                <div style="font-size:9px; color:#64748b; margin-top:2px;">TRF1 ao TRF6</div>
+            </div>
+            <div style="background:#fef3c7; padding:10px; border-radius:8px; border-left:3px solid #f59e0b;">
+                <div style="font-size:10px; font-weight:700; color:#92400e; margin-bottom:4px;">ESTADUAIS</div>
+                <div style="font-size:18px; font-weight:800; color:#d97706;">27</div>
+                <div style="font-size:9px; color:#64748b; margin-top:2px;">TJ de todos os estados</div>
+            </div>
+            <div style="background:#f3e8ff; padding:10px; border-radius:8px; border-left:3px solid #a855f7;">
+                <div style="font-size:10px; font-weight:700; color:#6b21a8; margin-bottom:4px;">ESPECIALIZADOS</div>
+                <div style="font-size:18px; font-weight:800; color:#9333ea;">51</div>
+                <div style="font-size:9px; color:#64748b; margin-top:2px;">TRT • TRE • Outros</div>
             </div>
         </div>
 
-<div class="card" style="border-bottom: 4px solid var(--success);">
-    <h3 style="color:#10b981; font-size:18px; font-weight:700;">O que você quer pesquisar agora?</h3>
-    <p style="font-size:11px; color:var(--muted); margin-bottom:10px;">Busque por jurisprudência, doutrina, modelos e legislação.</p>
-    
-    <div style="display:flex; gap:5px; background:#f1f5f9; padding:8px; border-radius:12px; align-items: center;">
-    <select id="tipoPesquisa" style="border:none; background:transparent; font-size:13px; font-weight:600; color:var(--text-main); outline:none; cursor:pointer; padding: 0 10px;">            
-        <option value="jusbrasil">Jusbrasil</option>
-        <option value="tjba">Jurisprudência TJBA</option>
-        <option value="stj">Jurisprudência STJ</option>
-        <option value="tst">Jurisprudência TST</option>
-        <option value="google">Google Jurídico</option>
-    </select>
-    
-    <div style="width: 1px; height: 20px; background: #cbd5e1; margin: 0 5px;"></div>
+        <!-- Indicador de acesso rápido -->
+        <div style="margin-top:14px; padding:8px 12px; background:#f1f5f9; border-radius:6px; display:flex; align-items:center; gap:8px;">
+            <i data-lucide="zap" style="width:14px; height:14px; color:#3b82f6;"></i>
+            <span style="font-size:11px; color:#64748b; font-weight:600;">Clique para acessar todos os tribunais</span>
+        </div>
+    </div>
 
-    <input type="text" id="termoPesquisa" placeholder="Digite os termos da busca..." 
-           style="flex:1; border:none; background:transparent; outline:none; font-size:13px; padding: 5px;"
-           onkeypress="if(event.key === 'Enter') executarBusca()">
-    
-    <button onclick="executarBusca()" style="background:var(--success); color:white; border:none; width: 45px; height: 38px; border-radius:8px; cursor:pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
-    <i data-lucide="search" style="color: white !important;"></i>
-</button>
-</div>
-</div>
+    <!-- GRID 2 COLUNAS: LINK CAPTAÇÃO + PESQUISA JUSBRASIL -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-bottom:24px;">
+
+    <!-- CARD LINK DE FORMULÁRIO -->
+    <div id="premiumLinkCard" class="card" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px solid #fbbf24; border-bottom: 4px solid #f59e0b; box-shadow: 0 8px 32px rgba(251, 191, 36, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.9);">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+            <div style="background: linear-gradient(135deg, #fbbf24, #f59e0b); padding: 10px; border-radius: 12px; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);">
+                <i data-lucide="link-2" style="width: 22px; height: 22px; color: #fff;"></i>
+            </div>
+            <div>
+                <small style="color: #92400e; font-weight: 800; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; display: block;">Formulário de Captação ✨</small>
+                <h3 style="font-size: 16px; margin: 2px 0; font-weight: 800; background: linear-gradient(135deg, #78350f, #92400e); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Link Exclusivo Online</h3>
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 12px; background: rgba(255, 255, 255, 0.8); padding: 10px; border-radius: 10px; border: 1px solid rgba(251, 191, 36, 0.3);">
+            <input type="text" id="linkCaptura" readonly style="flex: 1; background: #fff; border: 1px dashed #fbbf24; padding: 10px; border-radius: 8px; font-size: 11px; font-weight: 600; color: #92400e; font-family: 'JetBrains Mono', monospace;"/>
+            <button onclick="copiarLink()" class="btn-primary" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #000; padding: 10px 18px; font-size: 12px; border: none; font-weight: 700; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4); transition: all 0.3s;">
+                <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- CARD PESQUISA JUSBRASIL -->
+    <div class="card" style="border-bottom: 4px solid var(--success);">
+        <h3 style="color:#10b981; font-size:18px; font-weight:700;">O que você quer pesquisar agora?</h3>
+        <p style="font-size:11px; color:var(--muted); margin-bottom:10px;">Busque por jurisprudência, doutrina, modelos e legislação.</p>
+        
+        <div style="display:flex; gap:5px; background:#f1f5f9; padding:8px; border-radius:12px; align-items: center;">
+            <select id="tipoPesquisa" style="border:none; background:transparent; font-size:13px; font-weight:600; color:var(--text-main); outline:none; cursor:pointer; padding: 0 10px;">            
+                <option value="jusbrasil">Jusbrasil</option>
+                <option value="tjba">Jurisprudência TJBA</option>
+                <option value="stj">Jurisprudência STJ</option>
+                <option value="tst">Jurisprudência TST</option>
+                <option value="google">Google Jurídico</option>
+            </select>
+            
+            <div style="width: 1px; height: 20px; background: #cbd5e1; margin: 0 5px;"></div>
+
+            <input type="text" id="termoPesquisa" placeholder="Digite os termos da busca..." 
+                style="flex:1; border:none; background:transparent; outline:none; font-size:13px; padding: 5px;"
+                onkeypress="if(event.key === 'Enter') executarBusca()">
+            
+            <button onclick="executarBusca()" style="background:var(--success); color:white; border:none; width: 45px; height: 38px; border-radius:8px; cursor:pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+                <i data-lucide="search" style="color: white !important;"></i>
+            </button>
+        </div>
+    </div>
+
     </div>
 
     <div class="section" id="guia-prazos">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3 style="font-size:16px; font-weight:700;"><i class="lucide lucide-calendar-days" style="color:var(--primary);"></i> Prazos Próximos</h3>
-            <a href="/prazos-page" style="font-size:12px; color:var(--primary); font-weight:600;">Ver Agenda Completa</a>
+            <h3 style="font-size:16px; font-weight:700;"><i class="lucide lucide-calendar-days" style="color:var(--primary);"></i> Lista de Prazos</h3>
+            <a href="/prazos-page" style="font-size:12px; color:var(--primary); font-weight:600;">Ver todos os Prazos</a>
         </div>
         <div id="lista-prazos"></div>
     </div>
 
-    <div class="section plan-status-card">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-            <div>
-                <h3 style="font-size:16px;">💎 Status da Assinatura</h3>
-                <p style="font-size:14px; color:var(--muted);">Plano atual: <span id="planoAtual" style="color:var(--primary); font-weight:700;">...</span></p>
+    <div class="section plan-status-card" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px solid #fbbf24;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="background: linear-gradient(135deg, #fbbf24, #f59e0b); padding: 12px; border-radius: 12px; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);">
+                    <i data-lucide="crown" style="width: 24px; height: 24px; color: #fff;"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 18px; font-weight: 800; background: linear-gradient(135deg, #78350f, #92400e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0;">Status da Assinatura</h3>
+                    <p style="font-size: 13px; color: #92400e; margin: 4px 0 0 0;">Plano atual: <span id="planoAtual" style="color: #d97706; font-weight: 800;">...</span></p>
+                </div>
             </div>
-            <div id="premiumWelcome" class="premium-badge" style="display:none; background:var(--gold); color:#000;">
-                <i class="lucide lucide-crown" style="width:18px;"></i> Membro Elite Premium
+            <div id="premiumWelcome" class="premium-badge" style="display: none; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #000; padding: 8px 14px; border-radius: 8px; font-size: 11px; font-weight: 800; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4); align-items: center; gap: 6px;">
+                <i data-lucide="crown" style="width: 16px; height: 16px;"></i> Membro Elite Premium
             </div>
         </div>
-        <div style="margin-top:20px;">
-            <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600;">
-                <span>CONSUMO DO LIMITE</span>
-                <span id="percentualTexto" style="color:var(--primary);">0%</span>
+        <div style="background: rgba(255, 255, 255, 0.8); padding: 16px; border-radius: 12px; border: 1px solid rgba(251, 191, 36, 0.4);">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 8px; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px;">
+                <span>Consumo do Limite</span>
+                <span id="percentualTexto" style="color: #d97706;">0%</span>
             </div>
-            <div class="progress"><div id="progressBar" style="width:0%"></div></div>
+            <div class="progress"><div id="progressBar" style="width: 0%"></div></div>
         </div>
     </div>
 </main>
@@ -1446,10 +1736,15 @@ if (dataUser.ok) {
         if(platual) platual.innerText = `${planName} - ${cicloFaturamento}`;
 
         const badgeContainer = document.getElementById('premiumWelcome');
-        if (badgeContainer && planName.toLowerCase() === 'premium') {
-            badgeContainer.style.display = 'inline-flex';
-            badgeContainer.style.background = 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)';
-            badgeContainer.style.borderRadius = '6px';
+        // Mostrar selo APENAS para plano Premium
+        if (badgeContainer) {
+            if (planName.toLowerCase() === 'premium') {
+                badgeContainer.style.display = 'flex';
+                badgeContainer.style.background = 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)';
+                badgeContainer.style.borderRadius = '6px';
+            } else {
+                badgeContainer.style.display = 'none'; // Esconder para outros planos
+            }
         }
 
         // Link de Prospecção (Apenas Premium)
@@ -1494,7 +1789,7 @@ let totalLeadsAtual = 0;
 
 async function checarNovosLeads() {
     try {
-        const res = await fetch('/api/metricas', { 
+        const res = await fetch('/api/crm/metricas', { 
             headers: { Authorization: `Bearer ${token}` } 
         });
         
@@ -1508,7 +1803,7 @@ async function checarNovosLeads() {
 
         // IDs exatos do seu HTML
         document.getElementById('crm-leads-count').innerText   = stats.leads    || '0';
-        document.getElementById('crm-reuniao-count').innerText = stats.reuniao  || '0';
+        document.getElementById('crm-triagem-count').innerText = stats.triagem  || stats.reuniao || '0';
         document.getElementById('crm-proposta-count').innerText = stats.proposta || '0';
         document.getElementById('crm-ganho-count').innerText   = stats.ganho    || '0';
 
@@ -1592,79 +1887,93 @@ function executarBusca() {
         }
     });   
 
-        async function carregarPrazos() {
-            const containerGeral = document.getElementById('lista-prazos');
-            if (!containerGeral) return;
+async function carregarPrazos() {
+    const containerGeral = document.getElementById('lista-prazos');
+    if (!containerGeral) return;
 
-            try {
-                fetch('/api/dashboard/prazos-vencidos', { headers: { Authorization: `Bearer ${token}` } })
-                    .then(res => res.json())
-                    .then(dados => {
-                        const elem = document.getElementById('count-vencidos');
-                        if (elem) elem.innerText = dados.length;
-                    });
+    try {
+        const res = await fetch('/api/dashboard/prazos-geral', { headers: { Authorization: `Bearer ${token}` } });
+        const prazos = await res.json();
+        
+        containerGeral.innerHTML = '';
+        const prazosExibicao = prazos.slice(0, 5);
 
-                fetch('/api/dashboard/prazos-semana', { headers: { Authorization: `Bearer ${token}` } })
-                    .then(res => res.json())
-                    .then(dados => {
-                        const elem = document.getElementById('count-semana');
-                        if (elem) elem.innerText = dados.length;
-                    });
-
-                const res = await fetch('/api/dashboard/prazos-geral', { headers: { Authorization: `Bearer ${token}` } });
-                const prazos = await res.json();
-                
-                containerGeral.innerHTML = '';
-                const prazosExibicao = prazos.slice(0, 5);
-
-                if (prazosExibicao.length === 0) {
-                    containerGeral.innerHTML = '<p style="text-align:center; padding:20px; color:#64748b;">Nenhum prazo pendente.</p>';
-                    return;
-                }
-
-                prazosExibicao.forEach(p => {
-                    const textoDias = formatarDiferencaDias(p.data_limite);
-
-                    let tagBgColor = '';
-                    let tagTextColor = '';
-                    let icone = '';
-
-                    if (textoDias.includes('VENCIDO')) {
-                        tagBgColor = '#fef2f2';
-                        tagTextColor = '#ef4444';
-                        icone = '⚠️ ';
-                    } else if (textoDias.includes('HOJE')) {
-                        tagBgColor = '#fff7ed';
-                        tagTextColor = '#ea580c';
-                        icone = '🚨 ';
-                    } else {
-                        tagBgColor = '#f0fdf4';
-                        tagTextColor = '#16a34a';
-                        icone = '';
-                    }
-
-                    const tagHtml = `<span style="background:${tagBgColor}; color:${tagTextColor}; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:900;">${icone}${textoDias}</span>`;
-
-                    containerGeral.innerHTML += `
-                        <div class="prazo-item" style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid #f1f5f9;">
-                            <div>
-                                <strong style="font-size:14px;">${p.tipo} ${tagHtml}</strong>
-                                <div style="font-size:12px; color:var(--primary); font-weight:700;">${p.cliente_nome || 'Cliente não identificado'}</div>
-                            </div>
-                            <div style="display:flex; gap:10px; align-items:center;">
-                                <span style="font-size:12px; font-weight:700;">${new Date(p.data_limite).toLocaleDateString('pt-BR')}</span>
-                                <button onclick="concluirPrazoDash(${p.id})" style="background:#f0fdf4; border:1px solid #bbf7d0; color:#16a34a; padding:6px; border-radius:8px; cursor:pointer;">
-                                    <i class="lucide lucide-check-circle" style="width:16px;"></i>
-                                </button>
-                            </div>
-                        </div>`;
-                });
-
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-            } catch (err) { 
-                console.error("Erro ao carregar prazos:", err); 
-            }
+        if (prazosExibicao.length === 0) {
+            containerGeral.innerHTML = '<p style="text-align:center; padding:20px; color:#64748b;">Tudo em dia! Nenhum prazo pendente.</p>';
+            return;
         }
+
+prazosExibicao.forEach(p => {
+    const textoDias = formatarDiferencaDias(p.data_limite);
+    
+    let urgenciaClass = '';
+    if (textoDias.includes('VENCIDO') || textoDias.includes('HOJE')) {
+        urgenciaClass = 'urgencia-hoje';
+    } else if (textoDias.includes('AMANHÃ')) {
+        urgenciaClass = 'urgencia-amanha';
+    } else {
+        urgenciaClass = 'urgencia-futuro';
+    }
+
+containerGeral.innerHTML += `
+    <div class="prazo-item-modern ${urgenciaClass}">
+        <div class="prazo-content">
+            <div class="prazo-main-info" style="display:flex; justify-content: flex-start; align-items: center; gap: 12px;">
+                <span class="prazo-title" style="font-weight: 800; font-size: 15px;">${p.tipo}</span>
+                <span class="tag-urgencia">${textoDias}</span>
+            </div>
+            
+            <div class="prazo-meta-list">
+                <div style="color: var(--accent-blue); font-weight: 800; font-size: 13px;">
+                    <i class="lucide lucide-user" style="width:14px; vertical-align: middle;"></i> 
+                    ${p.cliente_nome || 'CLIENTE NÃO IDENTIFICADO'}
+                </div>
+
+                <div style="color: var(--text-secondary); font-size: 12px;">
+                    <i class="lucide lucide-users" style="width:14px; vertical-align: middle;"></i> 
+                    <span style="font-weight: 600;">VS:</span> ${p.parte_contraria || 'NÃO INFORMADA'}
+                </div>
+
+                <div style="color: var(--text-tertiary); font-size: 12px;">
+                    <i class="lucide lucide-gavel" style="width:14px; vertical-align: middle;"></i> 
+                    ${p.tribunal || 'TRIBUNAL NÃO DEFINIDO'}
+                </div>
+
+                <div style="color: var(--text-tertiary); font-family: 'JetBrains Mono', monospace; font-size: 12px;">
+                    <i class="lucide lucide-hash" style="width:14px; vertical-align: middle;"></i> 
+                    ${p.numero_processo || 'NÃO INFORMADO'}
+                </div>
+            </div>
+        </div>
+        <button class="btn-concluir-dash" onclick="concluirPrazoDash(${p.id})">
+            <i class="lucide lucide-check-circle-2" style="width:20px;"></i>
+        </button>
+    </div>`;
+});
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        iniciarContagemRegressiva(); // Ativa os relógios
+    } catch (err) { console.error(err); }
+}
+
+function iniciarContagemRegressiva() {
+    setInterval(() => {
+        const timers = document.querySelectorAll('.timer-display');
+        const agora = new Date();
+        const fimDoDia = new Date();
+        fimDoDia.setHours(23, 59, 59, 999);
+
+        const diffMs = fimDoDia - agora;
+        if (diffMs <= 0) return;
+
+        const h = Math.floor(diffMs / 3600000);
+        const m = Math.floor((diffMs % 3600000) / 60000);
+        const s = Math.floor((diffMs % 60000) / 1000);
+
+        const tempoFormatado = `${h}h ${m}m ${s}s`;
+        timers.forEach(t => t.innerText = tempoFormatado);
+    }, 1000);
+}
 
         async function concluirPrazoDash(id) {
             if (!confirm("Deseja marcar como concluído?")) return;

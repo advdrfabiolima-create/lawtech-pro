@@ -197,4 +197,24 @@ router.put('/config/escavador-key', authMiddleware, async (req, res) => {
         res.status(500).json({ erro: 'Erro ao salvar chave API' });
     }
 });
+
+// ROTA PARA REATIVAR ASSINATURA (DESFAZER CANCELAMENTO)
+router.put('/planos/reativar', authMiddleware, async (req, res) => {
+    try {
+        const escritorioId = req.user.escritorio_id;
+        
+        // Volta a renovação para true e limpa a data de agendamento do cancelamento
+        await pool.query(
+            "UPDATE escritorios SET renovacao_automatica = true, data_cancelamento_agendado = NULL WHERE id = $1",
+            [escritorioId]
+        );
+
+        console.log(`✅ [REATIVAÇÃO] Assinatura reativada para o escritório: ${escritorioId}`);
+        
+        res.json({ ok: true, msg: "Sua assinatura foi reativada com sucesso, Doutor! A renovação automática está ativa novamente." });
+    } catch (err) {
+        console.error('❌ Erro ao reativar assinatura:', err.message);
+        res.status(500).json({ error: "Erro ao reativar plano no servidor." });
+    }
+});
 module.exports = router;

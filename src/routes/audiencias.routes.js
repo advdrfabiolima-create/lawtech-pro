@@ -7,7 +7,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
 router.get('/audiencias', authMiddleware, async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT a.*, p.numero as processo_numero, c.nome as cliente, c.telefone -- AGORA BUSCA O TELEFONE
+            SELECT a.*, p.numero as processo_numero, c.nome as cliente, c.telefone, a.ata_audiencia
             FROM audiencias a
             JOIN processos p ON a.processo_id = p.id
             JOIN clientes c ON p.cliente = c.nome -- FAZ O VÍNCULO COM O CLIENTE
@@ -58,4 +58,48 @@ router.delete('/audiencias/:id', authMiddleware, async (req, res) => {
         res.status(500).json({ erro: 'Erro ao excluir audiência no banco de dados' });
     }
 });
+
+router.put('/audiencias/:id/ata', authMiddleware, async (req, res) => {
+    const { id } = req.params;
+    const { ata_audiencia } = req.body;
+    
+    try {
+        await pool.query(
+            `UPDATE audiencias 
+             SET ata_audiencia = $1, updated_at = NOW()
+             WHERE id = $2 AND usuario_id = $3`,
+            [ata_audiencia, id, req.user.id]
+        );
+        res.json({ ok: true, mensagem: 'ATA registrada com sucesso!' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Marcar audiência como realizada
+router.put('/audiencias/:id/realizada', authMiddleware, async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const result = await pool.query(
+            `UPDATE audiencias
+             SET realizada = true
+             WHERE id = $1 AND usuario_id = $2`,
+            [id, req.user.id]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(403).json({
+                erro: 'Audiência não encontrada ou sem permissão'
+            });
+        }
+
+        res.json({ ok: true, mensagem: 'Audiência marcada como realizada' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ erro: 'Erro ao atualizar audiência' });
+    }
+});
+
+
 module.exports = router;

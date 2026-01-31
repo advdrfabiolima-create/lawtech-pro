@@ -173,11 +173,6 @@
             gap: 8px;
         }
 
-        .sidebar-footer > div {
-            display: flex;
-            justify-content: space-between;
-        }
-
         .sidebar-footer span {
             color: #cbd5e1 !important;
         }
@@ -412,6 +407,57 @@
             color: #78350f;
             font-weight: 600;
         }
+
+        /* Padronização LawTech Pro - Caixa Alta Global */
+body {
+    text-transform: uppercase;
+}
+
+/* Garante que os campos de digitação também mostrem caixa alta enquanto o usuário digita */
+input, textarea, select {
+    text-transform: uppercase;
+}
+
+/* Opcional: Se quiser que os números dos processos mantenham o estilo técnico, 
+   mas ainda em caixa alta */
+.numero-processo, .processo-hash {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+}
+
+/* Container do rodapé */
+.sidebar-footer {
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Alinhamento à esquerda (Início) */
+.footer-info-row {
+    display: flex;
+    justify-content: flex-start; /* Alinha no começo da linha */
+    align-items: center;
+    gap: 5px; /* Espaço fixo após os ":" */
+    font-size: 12px;
+}
+
+/* Rótulos em caixa alta */
+.footer-info-row span:first-child {
+    text-transform: uppercase;
+    color: var(--text-tertiary, #64748b);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* ✅ Regra para e-mail e plano em minúsculas */
+.keep-lowercase {
+    text-transform: none !important; /* Cancela o uppercase global */
+    font-variant: normal !important;
+    color: #cbd5e1;
+}
     </style>
 </head>
 <body>
@@ -440,13 +486,16 @@
             </a>
         </nav>
         <div class="sidebar-footer">
-            <div style="margin-bottom: 6px;">
-                <span style="color:#64748b">Usuário:</span> <span id="userEmail" style="color:#fff">...</span>
-            </div>
-            <div>
-                <span style="color:#64748b">Plano:</span> <span id="planNameFooter" style="color:#fff">...</span>
-            </div>
-        </div>
+    <div class="footer-info-row">
+        <span>Usuário:</span> 
+        <span id="userEmail" class="keep-lowercase">...</span>
+    </div>
+    
+    <div class="footer-info-row">
+        <span>Plano:</span> 
+        <span id="planNameFooter" class="keep-lowercase">...</span>
+    </div>
+</div>
     </aside>
 
     <div class="main">

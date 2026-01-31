@@ -12,8 +12,9 @@ router.get('/planos', authMiddleware, planoController.listarPlanos);
 router.get('/planos/meu-plano', authMiddleware, planoController.meuPlano);
 router.post('/planos/upgrade', authMiddleware, planoController.upgradePlano);
 
+
 // Rota de cancelamento (agora devidamente conectada)
-router.post('/cancelar-agendamento', authMiddleware, planoController.cancelarAgendamento);
+router.post('/planos/cancelar-agendamento', authMiddleware, planoController.cancelarAgendamento);
 
 // ============================
 // PLANO & CONSUMO (DASHBOARD)

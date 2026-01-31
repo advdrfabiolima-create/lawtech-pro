@@ -1,0 +1,2329 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>LawTech Pro – Tribunais do Brasil</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: #60a5fa;
+            --secondary: #1e40af;
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-hover: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 40px rgba(59, 130, 246, 0.15);
+            --radius: 16px;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #0f172a;  /* AZUL ESCURO QUASE PRETO */
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo img {
+            height: 45px;
+            width: auto;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.8);  /* TEXTO BRANCO */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .hero {
+            padding: 60px 32px 50px;
+            text-align: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+        
+        .hero p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto 32px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-top: 40px;
+        }
+        
+        .stat-item { text-align: center; }
+        
+        .stat-number {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        
+        .search-container {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 0 32px;
+        }
+        
+        .search-box {
+            position: relative;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 16px 120px 16px 56px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+            box-shadow: var(--shadow);
+        }
+        
+        .search-box:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            color: var(--text-secondary);
+        }
+        
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .search-input::placeholder { color: var(--text-secondary); }
+        
+        .search-btn {
+            position: absolute;
+            right: 8px;
+            background: var(--primary);
+            border: none;
+            padding: 10px 24px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .search-btn:hover { 
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+        
+        .filters {
+            max-width: 1400px;
+            margin: 0 auto 40px;
+            padding: 0 32px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .filter-chip {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 100px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .filter-chip:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .filter-chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 32px 80px;
+        }
+        
+        .section { margin-bottom: 64px; }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .section-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        
+        .section-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+        
+        .section-count {
+            margin-left: auto;
+            background: var(--bg-hover);
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .tribunal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 24px;
+        }
+        
+        .tribunal-card {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .tribunal-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+.card-icon {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.card-icon i {
+    color: #3b82f6;  /* AZUL ÚNICO */
+    width: 28px;
+    height: 28px;
+}
+
+.tribunal-card:hover .card-icon {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+        
+        .card-title { flex: 1; }
+        
+        .card-title h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+        
+        .card-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        .card-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #eff6ff;
+            border-radius: 10px;
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 12px;
+        }
+        
+        .card-link:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateX(4px);
+        }
+        
+        .card-link i { 
+            transition: transform 0.3s;
+            font-size: 16px;
+        }
+        
+        .card-link:hover i { transform: translateX(4px); }
+
+        .sistemas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 12px 0;
+}
+
+.sistema-badge {
+    padding: 4px 10px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #1e40af;
+    white-space: nowrap;
+}
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #dcfce7;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #16a34a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+ footer {
+    background: #0f172a;  /* AZUL ESCURO QUASE PRETO */
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 40px 32px;
+    margin-top: 80px;
+}
+
+.footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.footer-logo img {
+    height: 40px;
+    }
+
+.footer-text {
+    color: rgba(255, 255, 255, 0.7);  /* TEXTO BRANCO */
+    font-size: 14px;
+    text-align: center;
+}
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 32px; }
+            .hero p { font-size: 16px; }
+            .stats { flex-direction: column; gap: 24px; }
+            .section-header { flex-wrap: wrap; }
+            .tribunal-grid { grid-template-columns: 1fr; }
+            .header-actions { gap: 8px; }
+            .btn { padding: 10px 16px; font-size: 13px; }
+            .logo img { height: 35px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-content">
+        <div class="logo">
+            <img src="Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro">
+        </div>
+        <div class="header-actions">
+            <a href="/dashboard" class="btn btn-secondary">
+            <i data-lucide="layout-dashboard"></i>
+            Dashboard
+        </a>
+            <a href="/planos-page" class="btn btn-primary">
+            <i data-lucide="crown"></i>
+            Atualizar Plano
+        </a>
+</div>
+    </div>
+</header>
+
+<section class="hero">
+    <h1>Tribunais do Brasil</h1>
+    <p>Acesso centralizado e inteligente a todos os tribunais brasileiros. Otimize sua pesquisa jurídica com tecnologia de ponta.</p>
+    
+    <div class="stats">
+        <div class="stat-item">
+            <div class="stat-number">91</div>
+            <div class="stat-label">Tribunais</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">100%</div>
+            <div class="stat-label">Cobertura Nacional</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">24/7</div>
+            <div class="stat-label">Disponibilidade</div>
+        </div>
+    </div>
+</section>
+
+<div class="search-container">
+    <div class="search-box">
+        <i data-lucide="search search-icon"></i>
+        <input type="text" class="search-input" placeholder="Buscar por tribunal, sigla ou região...">
+        <button class="search-btn">Buscar</button>
+    </div>
+</div>
+
+<div class="filters">
+    <div class="filter-chip active">Todos</div>
+    <div class="filter-chip">Superiores</div>
+    <div class="filter-chip">Federal</div>
+    <div class="filter-chip">Estadual</div>
+    <div class="filter-chip">Trabalho</div>
+    <div class="filter-chip">Eleitoral</div>
+    <div class="filter-chip">Militar</div>
+</div>
+
+<main class="container">
+
+    <!-- Tribunais Superiores -->
+    <section class="section" data-category="superiores">
+        <div class="section-header">
+            <div class="section-icon"><i data-lucide="landmark"></i></div>
+            <h2 class="section-title">Tribunais Superiores</h2>
+            <span class="section-count">5 tribunais</span>
+        </div>
+        <div class="tribunal-grid">
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="scale"></i></div>
+                    <div class="card-title">
+                        <h3>STF</h3>
+                        <p class="card-subtitle">Supremo Tribunal Federal</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://peticionamento.stf.jus.br/" target="_blank" class="sistema-badge">Peticionamento Eletrônico STF</a>       
+        </div>
+    <a href="https://stf.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="landmark"></i></div>
+                    <div class="card-title">
+                        <h3>STJ</h3>
+                        <p class="card-subtitle">Superior Tribunal de Justiça</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://cpe.web.stj.jus.br/?_gl=1*2wjavt*_ga*MTM5OTk2MTA2Ny4xNzY5NzQ4MjI1*_ga_F31N0L6Z6D*czE3Njk3NDgyMjUkbzEkZzEkdDE3Njk3NDgyODMkajIkbDAkaDA.#/" target="_blank" class="sistema-badge">Peticionamento Eletrônico STJ</a>       
+        </div>
+    <a href="https://stj.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="briefcase"></i></div>
+                    <div class="card-title">
+                        <h3>TST</h3>
+                        <p class="card-subtitle">Tribunal Superior do Trabalho</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.tst.jus.br/tst/login.seam" target="_blank" class="sistema-badge">PJe TST</a>               
+        </div>
+    <a href="https://www.tst.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-circle"></i></div>
+                    <div class="card-title">
+                        <h3>TSE</h3>
+                        <p class="card-subtitle">Tribunal Superior Eleitoral</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TSE</a>               
+        </div>
+    <a href="https://www.tse.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="shield"></i></div>
+                    <div class="card-title">
+                        <h3>STM</h3>
+                        <p class="card-subtitle">Superior Tribunal Militar</p>
+                    </div>
+                </div>
+                 <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="http://eproc1g.stm.jus.br/" target="_blank" class="sistema-badge">e-Proc 1º Grau</a> 
+        <a href="https://eproc2g.stm.jus.br/eproc_2g_prod/" target="_blank" class="sistema-badge">e-Proc STM</a>              
+        </div>
+    <a href="https://www.stm.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+        </div>
+    </section>
+
+    <!-- Justiça Federal -->
+    <section class="section" data-category="federal">
+        <div class="section-header">
+            <div class="section-icon"><i data-lucide="building-2"></i></div>
+            <h2 class="section-title">Justiça Federal</h2>
+            <span class="section-count">6 tribunais</span>
+        </div>
+        <div class="tribunal-grid">
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="map-pin"></i></div>
+                    <div class="card-title">
+                        <h3>TRF 1ª Região</h3>
+                        <p class="card-subtitle">Brasília - DF, AC, AM, BA, GO, MA, MT, PA, PI, RO, RR, TO</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g.trf1.jus.br/pje/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje2g.trf1.jus.br/pje/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+        </div>
+    <a href="https://portal.trf1.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="map-pin"></i></div>
+                    <div class="card-title">
+                        <h3>TRF 2ª Região</h3>
+                        <p class="card-subtitle">Rio de Janeiro - RJ e ES</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://eproc.jfrj.jus.br/eproc/" target="_blank" class="sistema-badge">e-Proc JFRJ</a>
+        <a href="https://eproc.jfes.jus.br/eproc/" target="_blank" class="sistema-badge">e-Proc JFES</a>
+        <a href="https://eproc.trf2.jus.br/" target="_blank" class="sistema-badge">e-Proc TRF2</a>
+    </div>
+    <a href="https://www.trf2.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="map-pin"></i></div>
+                    <div class="card-title">
+                        <h3>TRF 3ª Região</h3>
+                        <p class="card-subtitle">São Paulo - SP e MS</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g.trf3.jus.br/pje/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje2g.trf3.jus.br/pje/" target="_blank" class="sistema-badge">PJe 2º Grau</a>       
+    </div>
+    <a href="https://www.trf3.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="map-pin"></i></div>
+                    <div class="card-title">
+                        <h3>TRF 4ª Região</h3>
+                        <p class="card-subtitle">Porto Alegre - RS, PR, SC</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://eproc.jfrs.jus.br/eprocV2/" target="_blank" class="sistema-badge">e-Proc JFRS</a>
+        <a href="https://eproc.jfsc.jus.br/" target="_blank" class="sistema-badge">e-Proc JFSC</a>
+        <a href="https://eproc.jfpr.jus.br/eprocV2/" target="_blank" class="sistema-badge">e-Proc JFPR</a>
+        <a href="https://eproc.trf4.jus.br/" target="_blank" class="sistema-badge">e-Proc TRF4</a>
+    </div>
+    <a href="https://www.trf4.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="map-pin"></i></div>
+                    <div class="card-title">
+                        <h3>TRF 5ª Região</h3>
+                        <p class="card-subtitle">Recife - PE, AL, CE, PB, RN, SE</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g.trf5.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje2g.trf5.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe Turmas Recursais</a>
+        <a href="https://pjett.trf5.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe 2º Grau e TRU</a>
+    </div>
+    <a href="https://www.trf5.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="map-pin"></i></div>
+                    <div class="card-title">
+                        <h3>TRF 6ª Região</h3>
+                        <p class="card-subtitle">Belo Horizonte - MG</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="http://eproc1g.trf6.jus.br/" target="_blank" class="sistema-badge">e-Proc 1º Grau</a>
+        <a href="http://eproc2g.trf6.jus.br/" target="_blank" class="sistema-badge">e-Proc 2º Grau</a>
+    </div>
+    <a href="https://www.trf6.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+        </div>
+    </section>
+
+    <!-- Justiça Estadual -->
+    <section class="section" data-category="estadual">
+        <div class="section-header">
+            <div class="section-icon"><i data-lucide="map"></i></div>
+            <h2 class="section-title">Justiça Estadual</h2>
+            <span class="section-count">27 tribunais</span>
+        </div>
+        <div class="tribunal-grid">
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="landmark"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJAC</h3>
+            <p class="card-subtitle">Tribunal de Justiça do Acre</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://eproc1g.tjac.jus.br/eproc/" target="_blank" class="sistema-badge">e-Proc 1º Grau</a>
+        <a href="https://eproc2g.tjac.jus.br/eproc/" target="_blank" class="sistema-badge">e-Proc 2º Grau</a>
+    </div>
+    <a href="https://www.tjac.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="landmark"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJAL</h3>
+            <p class="card-subtitle">Tribunal de Justiça de Alagoas</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://www2.tjal.jus.br/esaj/portal.do?servico=740000" target="_blank" class="sistema-badge">Portal SAJ</a>
+           </div>
+    <a href="https://www.tjal.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="landmark"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJAP</h3>
+            <p class="card-subtitle">Tribunal de Justiça de Amapá</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.tjap.jus.br/1g/login.seam" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.tjap.jus.br/2g/login.seam" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+           </div>
+    <a href="https://www.tjap.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>            
+<div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="building-2"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJAM</h3>
+            <p class="card-subtitle">Tribunal de Justiça do Amazonas</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://projudi.tjam.jus.br/projudi/" target="_blank" class="sistema-badge">Projudi</a>
+        <a href="https://consultasaj.tjam.jus.br/esaj/portal.do?servico=740000" target="_blank" class="sistema-badge">SAJ</a>
+        </div>
+    <a href="https://www.tjam.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+<div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="building-2"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJBA</h3>
+            <p class="card-subtitle">Tribunal de Justiça da Bahia</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.tjba.jus.br/pje/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje2g.tjba.jus.br/pje/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+        <a href="https://projudi.tjba.jus.br/projudi/" target="_blank" class="sistema-badge">Projudi</a>
+        <a href="https://eproc1g.tjba.jus.br/eproc/" target="_blank" class="sistema-badge">e-Proc 1º Grau</a>
+        <a href="https://eproc2g.tjba.jus.br/eproc/" target="_blank" class="sistema-badge">e-Proc 2º Grau - em construção</a>
+    </div>
+    <a href="https://www.tjba.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="university"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJCE</h3>
+            <p class="card-subtitle">Tribunal de Justiça do Ceará</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.tjce.jus.br/pje/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.tjce.jus.br/pje2grau/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+        <a href="https://esaj.tjce.jus.br/" target="_blank" class="sistema-badge">e-SAJ</a>
+    </div>
+    <a href="https://www.tjce.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="flag"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJDFT</h3>
+            <p class="card-subtitle">Tribunal de Justiça do Distrito Federal e Territórios</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.tjdft.jus.br/pje/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje2i.tjdft.jus.br/pje/" target="_blank" class="sistema-badge">PJe 2ª Grau</a>
+    </div>
+    <a href="https://www.tjdft.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="building-2"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJES</h3>
+            <p class="card-subtitle">Tribunal de Justiça do Espírito Santo</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://sistemas.tjes.jus.br/pje/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://sistemas.tjes.jus.br/pje-2g/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.tjes.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="home"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJGO</h3>
+            <p class="card-subtitle">Tribunal de Justiça de Goiás</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://projudi.tjgo.jus.br/projudi/" target="_blank" class="sistema-badge">Projudi</a>
+    </div>
+    <a href="https://www.tjgo.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+         <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="building"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJMA</h3>
+            <p class="card-subtitle">Tribunal de Justiça do Maranhão</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.tjma.jus.br/pje/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje2.tjma.jus.br/pje2g/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+        <a href="https://projudi.tjma.jus.br/projudi/" target="_blank" class="sistema-badge">Projudi</a>
+    </div>
+    <a href="https://www.tjma.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="building"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJMT</h3>
+            <p class="card-subtitle">Tribunal de Justiça do Mato Grosso</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.tjmt.jus.br/pje/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje2.tjmt.jus.br/pje2/" target="_blank" class="sistema-badge">PJe 2º Grau</a>      
+    </div>
+    <a href="https://www.tjmt.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+             <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="building"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJMS</h3>
+            <p class="card-subtitle">Tribunal de Justiça do Mato Grosso do Sul</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://esaj.tjms.jus.br/esaj" target="_blank" class="sistema-badge">eSAJ</a>        
+    </div>
+    <a href="https://www.tjms.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="university"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJMG</h3>
+            <p class="card-subtitle">Tribunal de Justiça de Minas Gerais</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.tjmg.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="   " target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.tjmg.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+          <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="landmark"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJPA</h3>
+            <p class="card-subtitle">Tribunal de Justiça do Pará</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.tjpa.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.tjpa.jus.br/pje-2g/login.seam" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.tjpa.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="building"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJPB</h3>
+            <p class="card-subtitle">Tribunal de Justiça da Paraíba</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="http://pje.tjpb.jus.br/pje" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="http://pje.tjpb.jus.br/pje2g" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.tjpb.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="building-2"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJPR</h3>
+            <p class="card-subtitle">Tribunal de Justiça do Paraná</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://projudi.tjpr.jus.br/projudi/" target="_blank" class="sistema-badge">Projudi</a>
+        <a href="https://portal.tjpr.jus.br/consulta-processual" target="_blank" class="sistema-badge">Consulta</a>
+    </div>
+    <a href="https://www.tjpr.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="building"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJPE</h3>
+            <p class="card-subtitle">Tribunal de Justiça de Pernambuco</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://portal.tjpe.jus.br/web/processo-judicial-eletronico/pje-1-grau/acesso-ao-sistema" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://portal.tjpe.jus.br/web/processo-judicial-eletronico/pje-2-grau/acesso-ao-sistema" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.tjpe.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="building"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJPI</h3>
+            <p class="card-subtitle">Tribunal de Justiça de Piauí</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.tjpi.jus.br/1g" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.tjpi.jus.br/2g" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.tjpi.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="building"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJRJ</h3>
+            <p class="card-subtitle">Tribunal de Justiça do Rio de Janeiro</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://eproc1g.tjrj.jus.br/eproc/" target="_blank" class="sistema-badge">e-Proc 1º Grau</a>
+        <a href="https://eproc2g.tjrj.jus.br/eproc/" target="_blank" class="sistema-badge">e-Proc 2º Grau</a>
+        <a href="https://tjrj.pje.jus.br/1g/login.seam" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://tjrj.pje.jus.br/2g/login.seam" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.tjrj.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="building"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJRN</h3>
+            <p class="card-subtitle">Tribunal de Justiça do Rio Grande do Norte</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">        
+        <a href="https://pje1g.tjrn.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje2g.tjrn.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.tjrn.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>            
+<div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="home"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJRS</h3>
+            <p class="card-subtitle">Tribunal de Justiça do Rio Grande do Sul</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://eproc1g.tjrs.jus.br/" target="_blank" class="sistema-badge">e-Proc 1º Grau</a>
+        <a href="https://eproc2g.tjrs.jus.br/" target="_blank" class="sistema-badge">e-Proc 2º Grau</a>
+        <a href="https://ppe.tjrs.jus.br/ppe/signin" target="_blank" class="sistema-badge">PPe</a>
+    </div>
+    <a href="https://www.tjrs.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="building"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJRO</h3>
+            <p class="card-subtitle">Tribunal de Justiça de Rondônia</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pjepg.tjro.jus.br/pje" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pjesg.tjro.jus.br/pje" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.tjro.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="building-2"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJRR</h3>
+            <p class="card-subtitle">Tribunal de Justiça de Roraima</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://projudi.tjrr.jus.br/projudi/" target="_blank" class="sistema-badge">Projudi</a>   
+    </div>
+    <a href="https://www.tjrr.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="landmark"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJSC</h3>
+            <p class="card-subtitle">Tribunal de Justiça de Santa Catarina</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://eproc1g.tjsc.jus.br/eproc/index.php" target="_blank" class="sistema-badge">e-Proc 1º Grau</a>
+        <a href="https://eproc2g.tjsc.jus.br/eproc/index.php" target="_blank" class="sistema-badge">e-Proc 2º Grau</a>
+    </div>
+    <a href="https://www.tjsc.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="landmark"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJSP</h3>
+            <p class="card-subtitle">Tribunal de Justiça de São Paulo</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://esaj.tjsp.jus.br/sajcas/login" target="_blank" class="sistema-badge">SAJ</a>
+        <a href="https://esaj.tjsp.jus.br/esaj/portal.do" target="_blank" class="sistema-badge">e-SAJ</a>
+        <a href="http://eproc1g.tjsp.jus.br/eproc" target="_blank" class="sistema-badge">e-Proc 1º Grau</a>
+        <a href="http://eproc2g.tjsp.jus.br/eproc" target="_blank" class="sistema-badge">e-Proc 2º Grau</a>
+    </div>
+    <a href="https://www.tjsp.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="building"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJSE</h3>
+            <p class="card-subtitle">Tribunal de Justiça de Sergipe</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://www.tjse.jus.br/portaldoadvogado/" target="_blank" class="sistema-badge">Portal do Advogado</a>        
+    </div>
+    <a href="https://www.tjse.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+           <div class="tribunal-card">
+    <div class="card-header">
+        <div class="card-icon">
+            <i data-lucide="landmark"></i>
+        </div>
+        <div class="card-title">
+            <h3>TJTO</h3>
+            <p class="card-subtitle">Tribunal de Justiça do Tocantins</p>
+        </div>
+    </div>
+    <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://eproc1.tjto.jus.br/eprocV2_prod_1grau/" target="_blank" class="sistema-badge">e-Proc 1º Grau</a>
+        <a href="https://eproc2.tjto.jus.br/eprocV2_prod_2grau/" target="_blank" class="sistema-badge">e-Proc 2º Grau</a>
+    </div>
+    <a href="https://www.tjto.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+        </div>
+    </section>
+
+    <!-- Justiça do Trabalho -->
+    <section class="section" data-category="trabalho">
+        <div class="section-header">
+            <div class="section-icon"><i data-lucide="briefcase"></i></div>
+            <h2 class="section-title">Justiça do Trabalho</h2>
+            <span class="section-count">24 tribunais</span>
+        </div>
+        <div class="tribunal-grid">
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 1ª Região</h3>
+                        <p class="card-subtitle">Rio de Janeiro</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt1.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt1.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt1.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 2ª Região</h3>
+                        <p class="card-subtitle">São Paulo</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt2.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt2.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt2.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 3ª Região</h3>
+                        <p class="card-subtitle">Minas Gerais</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt3.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt3.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt3.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 4ª Região</h3>
+                        <p class="card-subtitle">Rio Grande do Sul</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt4.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt4.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt4.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 5ª Região</h3>
+                        <p class="card-subtitle">Bahia</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt5.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt5.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt5.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 6ª Região</h3>
+                        <p class="card-subtitle">Pernambuco</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt6.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt6.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt6.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 7ª Região</h3>
+                        <p class="card-subtitle">Ceará</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt7.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt7.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt7.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 8ª Região</h3>
+                        <p class="card-subtitle">Pará e Amapá</p>
+                    </div>
+                </div>
+               <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt8.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt8.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt8.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 9ª Região</h3>
+                        <p class="card-subtitle">Paraná</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt9.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt9.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt9.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 10ª Região</h3>
+                        <p class="card-subtitle">Distrito Federal e Tocantins</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt10.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt10.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt10.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 11ª Região</h3>
+                        <p class="card-subtitle">Amazonas e Roraima</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt11.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt11.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt11.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 12ª Região</h3>
+                        <p class="card-subtitle">Santa Catarina</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt12.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt12.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt12.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 13ª Região</h3>
+                        <p class="card-subtitle">Paraíba</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt13.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt13.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt13.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 14ª Região</h3>
+                        <p class="card-subtitle">Rondônia e Acre</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt14.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt14.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt14.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 15ª Região</h3>
+                        <p class="card-subtitle">Campinas - SP</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt15.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt15.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt15.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 16ª Região</h3>
+                        <p class="card-subtitle">Maranhão</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt16.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt16.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt16.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 17ª Região</h3>
+                        <p class="card-subtitle">Espírito Santo</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt17.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt17.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt17.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 18ª Região</h3>
+                        <p class="card-subtitle">Goiás</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt18.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt18.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt18.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 19ª Região</h3>
+                        <p class="card-subtitle">Alagoas</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt19.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt19.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt19.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 20ª Região</h3>
+                        <p class="card-subtitle">Sergipe</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt20.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt20.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt20.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 21ª Região</h3>
+                        <p class="card-subtitle">Rio Grande do Norte</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt21.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt21.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt21.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 22ª Região</h3>
+                        <p class="card-subtitle">Piauí</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt22.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt22.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt22.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 23ª Região</h3>
+                        <p class="card-subtitle">Mato Grosso</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt23.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt23.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt23.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="users"></i></div>
+                    <div class="card-title">
+                        <h3>TRT 24ª Região</h3>
+                        <p class="card-subtitle">Mato Grosso do Sul</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.trt24.jus.br/primeirograu/" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje.trt24.jus.br/segundograu/" target="_blank" class="sistema-badge">PJe 2º Grau</a>
+    </div>
+    <a href="https://www.trt24.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+        </div>
+    </section>
+
+    <!-- Justiça Eleitoral -->
+    <section class="section" data-category="eleitoral">
+        <div class="section-header">
+            <div class="section-icon"><i data-lucide="vote"></i></div>
+            <h2 class="section-title">Justiça Eleitoral</h2>
+            <span class="section-count">27 tribunais</span>
+        </div>
+        <div class="tribunal-grid">
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="landmark"></i></div>
+                    <div class="card-title">
+                        <h3>TSE</h3>
+                        <p class="card-subtitle">Tribunal Superior Eleitoral</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe 3º Grau TSE</a>        
+    </div>
+    <a href="https://www.tse.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-AC</h3>
+                        <p class="card-subtitle">Acre</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-ac.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-ac.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/AC 2º Grau</a>
+    </div>
+    <a href="https://www.tre-ac.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-AL</h3>
+                        <p class="card-subtitle">Alagoas</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-al.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-al.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/AL 2º Grau</a>
+    </div>
+    <a href="https://www.tre-al.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-AP</h3>
+                        <p class="card-subtitle">Amapá</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-ap.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-ap.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/AP 2º Grau</a>
+    </div>
+    <a href="https://www.tre-ap.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-AM</h3>
+                        <p class="card-subtitle">Amazonas</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-am.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-am.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/AM 2º Grau</a>
+    </div>
+    <a href="https://www.tre-am.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-BA</h3>
+                        <p class="card-subtitle">Bahia</p>
+                    </div>
+                </div>
+               <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-ba.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-ba.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/BA 2º Grau</a>
+    </div>
+    <a href="https://www.tre-ba.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-CE</h3>
+                        <p class="card-subtitle">Ceará</p>
+                    </div>
+                </div>
+               <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-ce.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-ce.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/CE 2º Grau</a>
+    </div>
+    <a href="https://www.tre-ce.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-DF</h3>
+                        <p class="card-subtitle">Distrito Federal</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-df.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-df.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/DF 2º Grau</a>
+    </div>
+    <a href="https://www.tre-df.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-ES</h3>
+                        <p class="card-subtitle">Espírito Santo</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-es.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-es.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/ES 2º Grau</a>
+    </div>
+    <a href="https://www.tre-es.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-GO</h3>
+                        <p class="card-subtitle">Goiás</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-go.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-go.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/GO 2º Grau</a>
+    </div>
+    <a href="https://www.tre-go.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-MA</h3>
+                        <p class="card-subtitle">Maranhão</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-ma.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-ma.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/MA 2º Grau</a>
+    </div>
+    <a href="https://www.tre-ma.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-MT</h3>
+                        <p class="card-subtitle">Mato Grosso</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-mt.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-mt.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/MT 2º Grau</a>
+    </div>
+    <a href="https://www.tre-mt.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-MS</h3>
+                        <p class="card-subtitle">Mato Grosso do Sul</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-ms.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-ms.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/MS 2º Grau</a>
+    </div>
+    <a href="https://www.tre-ms.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-MG</h3>
+                        <p class="card-subtitle">Minas Gerais</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-mg.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-mg.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/MG 2º Grau</a>
+    </div>
+    <a href="https://www.tre-mg.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-PA</h3>
+                        <p class="card-subtitle">Pará</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-pa.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-pa.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/PA 2º Grau</a>
+    </div>
+    <a href="https://www.tre-pa.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-PB</h3>
+                        <p class="card-subtitle">Paraíba</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-pb.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-pb.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/PB 2º Grau</a>
+    </div>
+    <a href="https://www.tre-pb.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-PR</h3>
+                        <p class="card-subtitle">Paraná</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-pr.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-pr.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/PR 2º Grau</a>
+    </div>
+    <a href="https://www.tre-pr.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-PE</h3>
+                        <p class="card-subtitle">Pernambuco</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-pe.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-pe.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/PE 2º Grau</a>
+    </div>
+    <a href="https://www.tre-pe.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-PI</h3>
+                        <p class="card-subtitle">Piauí</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-pi.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-pi.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/PI 2º Grau</a>
+    </div>
+    <a href="https://www.tre-pi.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-RJ</h3>
+                        <p class="card-subtitle">Rio de Janeiro</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-rj.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-rj.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/RJ 2º Grau</a>
+    </div>
+    <a href="https://www.tre-rj.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-RN</h3>
+                        <p class="card-subtitle">Rio Grande do Norte</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-rn.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-rn.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/RN 2º Grau</a>
+    </div>
+    <a href="https://www.tre-rn.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-RS</h3>
+                        <p class="card-subtitle">Rio Grande do Sul</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-rs.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-rs.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/RS 2º Grau</a>
+    </div>
+    <a href="https://www.tre-rs.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-RO</h3>
+                        <p class="card-subtitle">Rondônia</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-ro.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-ro.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/RO 2º Grau</a>
+    </div>
+    <a href="https://www.tre-ro.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-RR</h3>
+                        <p class="card-subtitle">Roraima</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-rr.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-rr.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/RR 2º Grau</a>
+    </div>
+    <a href="https://www.tre-rr.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-SC</h3>
+                        <p class="card-subtitle">Santa Catarina</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-sc.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-sc.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/SC 2º Grau</a>
+    </div>
+    <a href="https://www.tre-sc.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-SP</h3>
+                        <p class="card-subtitle">São Paulo</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-sp.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-sp.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/SP 2º Grau</a>
+    </div>
+    <a href="https://www.tre-sp.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-SE</h3>
+                        <p class="card-subtitle">Sergipe</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-se.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-se.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/SE 2º Grau</a>
+    </div>
+    <a href="https://www.tre-se.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="check-square"></i></div>
+                    <div class="card-title">
+                        <h3>TRE-TO</h3>
+                        <p class="card-subtitle">Tocantins</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje1g-to.tse.jus.br/pje/login.seam" target="_blank" class="sistema-badge">Zonas Eleitorais 1º Grau</a>
+        <a href="https://pje.tre-to.jus.br/pje/login.seam" target="_blank" class="sistema-badge">PJe TRE/TO 2º Grau</a>
+    </div>
+    <a href="https://www.tre-to.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+        </div>
+    </section>
+
+    <!-- Justiça Militar -->
+    <section class="section" data-category="militar">
+        <div class="section-header">
+            <div class="section-icon"><i data-lucide="shield"></i></div>
+            <h2 class="section-title">Justiça Militar</h2>
+            <span class="section-count">4 tribunais</span>
+        </div>
+        <div class="tribunal-grid">
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="shield-check"></i></div>
+                    <div class="card-title">
+                        <h3>STM</h3>
+                        <p class="card-subtitle">Superior Tribunal Militar</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="http://eproc1g.stm.jus.br/" target="_blank" class="sistema-badge">e-Proc 1º Grau</a>
+        <a href="https://eproc2g.stm.jus.br/eproc_2g_prod/" target="_blank" class="sistema-badge">e-Proc STM</a>        
+    </div>
+    <a href="https://www.stm.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="shield-alert"></i></div>
+                    <div class="card-title">
+                        <h3>TJM-MG</h3>
+                        <p class="card-subtitle">Tribunal de Justiça Militar de Minas Gerais</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://eproc.tjmmg.jus.br/eproc1g/" target="_blank" class="sistema-badge">e-Proc 1º Grau</a>
+        <a href="https://eproc.tjmmg.jus.br/eproc2g/" target="_blank" class="sistema-badge">e-Proc 2º Grau</a>        
+    </div>
+    <a href="https://www.tjmmg.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="shield-alert"></i></div>
+                    <div class="card-title">
+                        <h3>TJM-RS</h3>
+                        <p class="card-subtitle">Tribunal de Justiça Militar do Rio Grande do Sul</p>
+                    </div>
+                </div>
+                <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://eproc1g.tjmrs.jus.br/eproc/" target="_blank" class="sistema-badge">e-Proc 1º Grau</a>
+        <a href="https://eproc2g.tjmrs.jus.br/eproc/" target="_blank" class="sistema-badge">e-Proc 2º Grau</a>        
+    </div>
+    <a href="https://www.tjmrs.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+            <div class="tribunal-card">
+                <div class="card-header">
+                    <div class="card-icon"><i data-lucide="shield-alert"></i></div>
+                    <div class="card-title">
+                        <h3>TJM-SP</h3>
+                        <p class="card-subtitle">Tribunal de Justiça Militar de São Paulo</p>
+                    </div>
+                </div>
+                 <span class="badge"><i data-lucide="circle-check"></i> Online</span>
+    <div class="sistemas">
+        <a href="https://pje.tjmsp.jus.br/pje-web" target="_blank" class="sistema-badge">PJe 1º Grau</a>
+        <a href="https://pje2grau.tjmsp.jus.br/pje-web" target="_blank" class="sistema-badge">PJe 2º Grau</a>        
+    </div>
+    <a href="https://www.tjmsp.jus.br" target="_blank" class="card-link">
+        Acessar Portal <i data-lucide="arrow-right"></i>
+    </a>
+</div>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    <div class="footer-content">
+        <div class="footer-logo">
+            <img src="Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro">
+        </div>
+        <p class="footer-text">Plataforma Jurídica Inteligente © 2026 | Acesso centralizado a todos os tribunais do Brasil</p>
+    </div>
+</footer>
+
+<script>
+// Função para inicializar ícones Lucide com retry
+function initLucideIcons() {
+    if (window.lucide) {
+        try {
+            lucide.createIcons();
+            console.log('✅ Ícones Lucide inicializados com sucesso!');
+        } catch (error) {
+            console.error('❌ Erro ao inicializar Lucide:', error);
+        }
+    } else {
+        console.warn('⚠️ Lucide não carregado ainda, tentando novamente...');
+        setTimeout(initLucideIcons, 100);
+    }
+}
+
+// Inicializar quando DOM estiver pronto
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initLucideIcons);
+} else {
+    initLucideIcons();
+}
+
+// Também inicializar após window.onload
+window.addEventListener('load', initLucideIcons);
+
+const searchInput = document.querySelector('.search-input');
+const cards = document.querySelectorAll('.tribunal-card');
+
+searchInput.addEventListener('input', (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    cards.forEach(card => {
+        const title = card.querySelector('h3').textContent.toLowerCase();
+        const subtitle = card.querySelector('.card-subtitle').textContent.toLowerCase();
+        card.style.display = (title.includes(searchTerm) || subtitle.includes(searchTerm)) ? 'block' : 'none';
+    });
+});
+
+const filterChips = document.querySelectorAll('.filter-chip');
+const sections = document.querySelectorAll('.section');
+
+filterChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+        filterChips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        
+        const filterText = chip.textContent.toLowerCase();
+        
+        if (filterText === 'todos') {
+            sections.forEach(section => section.style.display = 'block');
+        } else {
+            sections.forEach(section => {
+                const category = section.getAttribute('data-category');
+                section.style.display = category === filterText ? 'block' : 'none';
+            });
+        }
+    });
+});
+
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
+cards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    card.style.transition = `all 0.5s ease ${index * 0.03}s`;
+    observer.observe(card);
+});
+</script>
+
+</body>
+</html>

@@ -5,12 +5,9 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('./config/db');
+const recibosRoutes = require('./routes/recibos.routes');
 
-// --- MIDDLEWARES ---
-const authMiddleware = require('./middlewares/authMiddleware');
-const roleMiddleware = require('./middlewares/roleMiddleware');
-
-// --- IMPORTAÇÃO DE ROTAS ---
+// --- 1. IMPORTAÇÃO DE ROTAS ---
 const authRoutes = require('./routes/auth.routes');
 const prazosRoutes = require('./routes/prazos.routes');
 const planosRoutes = require('./routes/planos.routes');
@@ -25,30 +22,37 @@ const publicacoesRoutes = require('./routes/publicacoes.routes');
 const iaRoutes = require('./routes/ia.routes');
 const crmRoutes = require('./routes/crm.routes');
 const usuariosRoutes = require('./routes/usuarios.routes');
+const adminRoutes = require('./routes/admin.routes'); // ✅ Importado corretamente
 
-// ✅ NOVA ROTA - LAWTECH SYSTEMS (ADMIN)
-const adminRoutes = require('./routes/admin.routes');
+// --- 2. MIDDLEWARES DE AUTENTICAÇÃO ---
+const authMiddleware = require('./middlewares/authMiddleware');
+const roleMiddleware = require('./middlewares/roleMiddleware');
 
-// --- AUTOMAÇÃO ---
-const { iniciarAgendamentos } = require('./cron/prazosCron');
-
+// 🚀 3. INICIALIZAÇÃO DO APP (Movido para cima para evitar erros)
 const app = express();
 
-// --- CONFIGURAÇÕES GLOBAIS ---
+// --- 4. MIDDLEWARE DE SEGURANÇA MÁXIMA (MASTER ADMIN) ---
+const masterAdminOnly = (req, res, next) => {
+    if (req.user && req.user.email === 'adv.limaesilva@hotmail.com') {
+        return next();
+    }
+    console.warn(`[SEGURANÇA] Acesso não autorizado ao Monitor por: ${req.user?.email || 'Desconhecido'}`);
+    return res.status(403).json({ error: "Acesso restrito ao proprietário do sistema." });
+};
+
+// --- 5. CONFIGURAÇÕES GLOBAIS ---
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
 app.use(cors());
 
-// ✅ SERVIR ARQUIVOS ESTÁTICOS PRIMEIRO (IMPORTANTE!)
-// Deve vir ANTES das rotas de API para evitar conflitos
+// --- 6. SERVIR ARQUIVOS ESTÁTICOS ---
 const publicPath = path.join(__dirname, '..', 'public');
 app.use(express.static(publicPath));
-console.log('📁 [SERVER] Servindo arquivos estáticos de:', publicPath);
 
-// --- APIs (ROTAS DE DADOS) ---
+// --- 7. APIs (ROTAS DE DADOS) ---
 app.use('/api/auth', authRoutes);
 app.use('/api', iaRoutes);
-app.use('/api', crmRoutes);
+app.use('/api/crm', crmRoutes);
 app.use('/api', prazosRoutes);
 app.use('/api', processosRoutes);
 app.use('/api', calculosRoutes);
@@ -60,15 +64,17 @@ app.use('/api', configRoutes);
 app.use('/api', usuariosRoutes);
 app.use('/api/pagamentos', pagamentosRoutes);
 app.use('/api', publicacoesRoutes);
+app.use('/api', recibosRoutes);
 
-// ✅ ROTA ADMIN - LAWTECH SYSTEMS
-app.use('/systems', adminRoutes);
-
+// ✅ 1. Remova o authMiddleware e o masterAdminOnly apenas desta linha
 app.get('/systems/monitor', (req, res) => {
     res.sendFile(path.join(publicPath, 'admin-monitor.html'));
 });
 
-// --- PÁGINAS (FRONTEND) ---
+// ✅ 2. MANTENHA a proteção total nas rotas que trazem os dados do banco
+app.use('/systems', authMiddleware, masterAdminOnly, adminRoutes);
+
+// --- 9. PÁGINAS FRONTEND ---
 app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(publicPath, 'login.html')));
 app.get('/register', (req, res) => res.sendFile(path.join(publicPath, 'register.html')));
@@ -88,23 +94,17 @@ app.get('/crm-page', (req, res) => res.sendFile(path.join(publicPath, 'crm.html'
 app.get('/recuperar-senha', (req, res) => res.sendFile(path.join(publicPath, 'recuperar-senha.html')));
 app.get('/termos', (req, res) => res.sendFile(path.join(publicPath, 'termos.html')));
 app.get('/privacidade', (req, res) => res.sendFile(path.join(publicPath, 'privacidade.html')));
-app.get('/pagamento-pendente', (req, res) => {
-    const filePath = path.resolve(__dirname, '..', 'public', 'pagamento-pendente.html');
-    console.log("Tentando carregar arquivo em:", filePath);
-    res.sendFile(filePath);
-});
-
-// ✅ ROTAS PARA BLOG, SOBRE NÓS E LGPD
+app.get('/tribunais-page', (req, res) => res.sendFile(path.join(publicPath, 'tribunais.html')));
 app.get('/blog', (req, res) => res.sendFile(path.join(publicPath, 'blog.html')));
 app.get('/sobre-nos', (req, res) => res.sendFile(path.join(publicPath, 'sobre-nos.html')));
 app.get('/lgpd', (req, res) => res.sendFile(path.join(publicPath, 'lgpd.html')));
 
-// ✅ ROTA PARA LAWTECH SYSTEMS (ADMIN MONITOR)
-app.get('/systems/monitor', (req, res) => {
-    res.sendFile(path.join(publicPath, 'admin-monitor.html'));
+app.get('/pagamento-pendente', (req, res) => {
+    const filePath = path.resolve(publicPath, 'pagamento-pendente.html');
+    res.sendFile(filePath);
 });
 
-// --- CONFIGURAÇÕES DO SISTEMA ---
+// --- 10. CONFIGURAÇÕES ESPECÍFICAS ---
 app.get('/api/config/meu-escritorio', authMiddleware, async (req, res) => {
     try {
         const result = await pool.query(
@@ -140,38 +140,34 @@ app.put('/api/config/escritorio', authMiddleware, async (req, res) => {
         );
         res.json({ ok: true });
     } catch (err) {
-        console.error("ERRO SQL NO SALVAMENTO:", err.message);
         res.status(500).json({ erro: err.message });
     }
 });
 
-// --- ROTA DE VERIFICAÇÃO RÁPIDA DE USUÁRIO ---
 app.get('/api/auth/me', authMiddleware, (req, res) => {
     res.json({ ok: true, usuario: req.user });
 });
 
-// --- Middleware de Erro Global ---
+// --- 11. TRATAMENTO DE ERROS GLOBAL ---
 app.use((err, req, res, next) => {
     console.error('SERVER_ERROR:', err.stack);
     res.status(err.status || 500).json({ ok: false, erro: err.message || 'Erro interno do servidor' });
 });
 
-// --- INICIALIZAÇÃO DO SISTEMA ---
+// --- 12. INICIALIZAÇÃO E AUTOMAÇÃO ---
+const { iniciarAgendamentos } = require('./cron/prazosCron');
+
 async function iniciarSistema() {
     try {
         console.log("⏳ Conectando ao Neon e validando acesso master...");
-        
         const hash = await bcrypt.hash('Lei@2026', 10);
-
         await pool.query(`
             INSERT INTO usuarios (nome, email, senha, role, escritorio_id)
             VALUES ('Dr. Fábio Lima', 'adv.limaesilva@hotmail.com', $1, 'admin', 1)
-            ON CONFLICT (email) 
-            DO NOTHING
+            ON CONFLICT (email) DO NOTHING
         `, [hash]);
 
         console.log("✅ [SISTEMA] Verificação de Acesso Master concluída.");
-
         iniciarAgendamentos();
 
         const PORT = process.env.PORT || 3000;
@@ -183,21 +179,16 @@ async function iniciarSistema() {
 ║                                                        ║
 ║  📊 Dashboard: http://localhost:${PORT}/dashboard         ║
 ║  📄 Login: http://localhost:${PORT}/login                ║
-║  📝 Blog: http://localhost:${PORT}/blog                  ║
-║  ℹ️  Sobre: http://localhost:${PORT}/sobre-nos           ║
 ║                                                        ║
 ║  🛡️  ADMIN - LawTech Systems:                         ║
 ║  📈 Monitor: http://localhost:${PORT}/systems/monitor    ║
-║  🔌 API: http://localhost:${PORT}/systems/monitoramento  ║
 ║                                                        ║
 ╚════════════════════════════════════════════════════════╝
             `);
         });
     } catch (err) {
         console.error("❌ [ERRO CRÍTICO] Falha ao iniciar sistema:", err.message);
-        console.log("Dica: Verifique se sua DATABASE_URL no .env está correta e se o Neon está ativo.");
     }
 }
 
-// Chama a inicialização
 iniciarSistema();

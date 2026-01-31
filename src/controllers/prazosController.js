@@ -179,7 +179,15 @@ async function listarPrazosGeral(req, res) {
 async function listarPrazosDashboard(req, res) {
   try {
     const result = await pool.query(
-      `SELECT pr.id, pr.tipo, pr.data_limite, pr.status, proc.numero AS processo_numero, proc.cliente AS cliente_nome
+      `SELECT 
+          pr.id, 
+          pr.tipo, 
+          pr.data_limite, 
+          pr.status, 
+          proc.numero AS numero_processo, 
+          proc.cliente AS cliente_nome,
+          proc.parte_contraria AS parte_contraria,
+          proc.tribunal AS tribunal           -- ✅ Adicionado o tribunal
        FROM prazos pr
        LEFT JOIN processos proc ON proc.id = pr.processo_id
        WHERE pr.escritorio_id = $1 

@@ -168,11 +168,6 @@
             gap: 8px;
         }
 
-        .sidebar-footer > div {
-            display: flex;
-            justify-content: space-between;
-        }
-
         .sidebar-footer span {
             color: #cbd5e1 !important;
         }
@@ -242,6 +237,57 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 24px rgba(251, 191, 36, 0.6);
         }
+
+        /* Padronização LawTech Pro - Caixa Alta Global */
+body {
+    text-transform: uppercase;
+}
+
+/* Garante que os campos de digitação também mostrem caixa alta enquanto o usuário digita */
+input, textarea, select {
+    text-transform: uppercase;
+}
+
+/* Opcional: Se quiser que os números dos processos mantenham o estilo técnico, 
+   mas ainda em caixa alta */
+.numero-processo, .processo-hash {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+}
+
+/* Container do rodapé */
+.sidebar-footer {
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Alinhamento à esquerda (Início) */
+.footer-info-row {
+    display: flex;
+    justify-content: flex-start; /* Alinha no começo da linha */
+    align-items: center;
+    gap: 5px; /* Espaço fixo após os ":" */
+    font-size: 12px;
+}
+
+/* Rótulos em caixa alta */
+.footer-info-row span:first-child {
+    text-transform: uppercase;
+    color: var(--text-tertiary, #64748b);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* ✅ Regra para e-mail e plano em minúsculas */
+.keep-lowercase {
+    text-transform: none !important; /* Cancela o uppercase global */
+    font-variant: normal !important;
+    color: #cbd5e1;
+}
     </style>
 </head>
 <body>
@@ -271,16 +317,17 @@
     </a>   
     </nav>
 
-        <div class="sidebar-footer">
-            <div>
-                <span>Usuário:</span>
-                <span id="footerEmail">...</span>
-            </div>
-            <div>
-                <span>Plano:</span>
-                <span id="footerPlano">...</span>
-            </div>
-        </div>
+<div class="sidebar-footer">
+    <div class="footer-info-row">
+        <span>Usuário:</span> 
+        <span id="footerEmail" class="keep-lowercase">...</span>
+    </div>
+    
+    <div class="footer-info-row">
+        <span>Plano:</span> 
+        <span id="footerPlano" class="keep-lowercase">...</span>
+    </div>
+</div>
     </aside>
 
     <div class="main">
@@ -307,20 +354,59 @@
 
         <main class="content">
             <div class="card">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data/Hora</th>
-                            <th>Processo/Cliente</th>
-                            <th>Tipo</th>
-                            <th>Local/Link</th>
-                            <th style="text-align: center;">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="listaAudiencias">
-                        <tr><td colspan="5" style="text-align:center; padding:40px; color: var(--muted);">Carregando audiências...</td></tr>
-                    </tbody>
-                </table>
+                <!-- Abas de Navegação -->
+                <div style="display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 24px;">
+                    <button onclick="trocarAba('futuras')" id="abaFuturas" style="
+                        flex: 1; padding: 14px 24px; background: var(--primary); color: white;
+                        border: none; font-weight: 700; font-size: 14px; cursor: pointer;
+                        border-bottom: 3px solid var(--primary); transition: all 0.3s;
+                    ">
+                        📅 Audiências Agendadas
+                    </button>
+                    <button onclick="trocarAba('realizadas')" id="abaRealizadas" style="
+                        flex: 1; padding: 14px 24px; background: transparent; color: var(--muted);
+                        border: none; font-weight: 700; font-size: 14px; cursor: pointer;
+                        border-bottom: 3px solid transparent; transition: all 0.3s;
+                    ">
+                        ✅ Audiências Realizadas
+                    </button>
+                </div>
+
+                <!-- Tabela de Audiências Futuras -->
+                <div id="tabelaFuturas">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Processo/Cliente</th>
+                                <th>Tipo</th>
+                                <th>Local/Link</th>
+                                <th style="text-align: center;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaAudiencias">
+                            <tr><td colspan="5" style="text-align:center; padding:40px; color: var(--muted);">Carregando audiências...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Tabela de Audiências Realizadas -->
+                <div id="tabelaRealizadas" style="display: none;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Processo/Cliente</th>
+                                <th>Tipo</th>
+                                <th>Local/Link</th>
+                                <th style="text-align: center;">ATA</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaAudienciasRealizadas">
+                            <tr><td colspan="5" style="text-align:center; padding:40px; color: var(--muted);">Carregando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </main>
     </div>
@@ -358,6 +444,54 @@
                 <div style="display:flex; gap:12px;">
                     <button type="submit" class="btn-primary" style="flex:1; justify-content:center;">Salvar</button>
                     <button type="button" onclick="fecharModalAudiencia()" style="flex:1; background:#f1f5f9; border:none; border-radius:8px; cursor:pointer; font-weight: 600; color: var(--muted);">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal ATA da Audiência -->
+    <div id="modalATA" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--primary);">📝 Registrar ATA da Audiência</h3>
+            
+            <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--primary);">
+                <div style="font-size: 13px; color: var(--muted); margin-bottom: 8px;">
+                    <strong>Processo:</strong> <span id="ataProcesso">---</span>
+                </div>
+                <div style="font-size: 13px; color: var(--muted); margin-bottom: 8px;">
+                    <strong>Cliente:</strong> <span id="ataCliente">---</span>
+                </div>
+                <div style="font-size: 13px; color: var(--muted);">
+                    <strong>Data:</strong> <span id="ataData">---</span>
+                </div>
+            </div>
+
+            <form id="formATA">
+                <input type="hidden" id="ataAudienciaId">
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-main);">
+                        Descreva o que ocorreu na audiência:
+                    </label>
+                    <textarea 
+                        id="ataTexto" 
+                        rows="8" 
+                        placeholder="Ex: Audiência de conciliação realizada. Acordo firmado no valor de R$ 5.000,00. Prazo de pagamento: 30 dias. Homologação pelo juiz realizada."
+                        style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical;"
+                        required
+                    ></textarea>
+                    <div style="font-size: 11px; color: var(--muted); margin-top: 6px;">
+                        💡 Dica: Inclua informações sobre acordos, prazos, decisões e próximos passos.
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px;">
+                    <button type="submit" class="btn-primary" style="flex: 1; justify-content: center;">
+                        <i class="lucide lucide-save"></i> Salvar ATA
+                    </button>
+                    <button type="button" onclick="fecharModalATA()" style="flex: 1; background: #f1f5f9; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--muted);">
+                        Cancelar
+                    </button>
                 </div>
             </form>
         </div>
@@ -431,42 +565,178 @@ async function inicializarPagina() {
             try {
                 const res = await fetch('/api/audiencias', { headers: { 'Authorization': `Bearer ${token}` } });
                 const dados = await res.json();
-                const corpo = document.getElementById('listaAudiencias');
+                
+                const corpoFuturas = document.getElementById('listaAudiencias');
+                const corpoRealizadas = document.getElementById('listaAudienciasRealizadas');
                 
                 if (!dados || dados.length === 0) {
-                    corpo.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--muted);">Nenhuma audiência agendada.</td></tr>';
+                    corpoFuturas.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--muted);">Nenhuma audiência agendada.</td></tr>';
+                    corpoRealizadas.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--muted);">Nenhuma audiência realizada.</td></tr>';
                     return;
                 }
 
-                corpo.innerHTML = dados.map(a => {
-                    // Proteção contra dados nulos
-                    const dataFormatada = a.data_audiencia ? new Date(a.data_audiencia).toLocaleDateString('pt-BR') : '---';
-                    const horaFormatada = a.hora_audiencia ? a.hora_audiencia.slice(0,5) : '--:--';
+                // Separar audiências futuras e passadas
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
 
-                    return `
-                    <tr>
-                        <td>
-                            <strong style="color:var(--primary);">${dataFormatada}</strong><br>
-                            <span style="font-size:12px; font-weight:600; color:var(--muted);">${horaFormatada}</span>
-                        </td>
-                        <td>
-                            <div style="font-weight:700; color:var(--text-main);">${a.processo_numero || 'Sem Número'}</div>
-                            <div style="font-size:12px; color:var(--muted);">${a.cliente || 'Consumidor'}</div>
-                        </td>
-                        <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600;">${a.tipo_audiencia || a.tipo || 'Audiência'}</span></td>
-                        <td style="font-size:12px; color:var(--muted); max-width:200px; overflow:hidden; text-overflow:ellipsis;">${a.local_virtual || a.local || '-'}</td>
-                        <td style="text-align: center;">
-                            <div style="display:flex; flex-direction:column; gap:8px; align-items:center;">
-                                <button class="btn-whatsapp" onclick="avisarZap('${a.cliente}', '${a.processo_numero}', '${a.tipo_audiencia}', '${a.data_audiencia}', '${a.hora_audiencia}', '${a.local_virtual}', '${a.telefone}')">
-                                    <i class="lucide lucide-message-circle"></i> WhatsApp Cliente
-                                </button>
-                                <button onclick="excluirAudiencia(${a.id})" style="color:var(--danger); background:none; border:none; cursor:pointer; font-weight:700; font-size:11px;">
-                                    <i class="lucide lucide-trash-2" style="width:12px; vertical-align:middle;"></i> EXCLUIR
-                                </button>
-                            </div>
-                        </td>
-                    </tr>`;
-                }).join('');
+                const futuras = [];
+                const realizadas = [];
+
+                dados.forEach(a => {
+                    if (a.data_audiencia) {
+                        let dataAud;
+                        if (a.data_audiencia.includes('T')) {
+                            dataAud = new Date(a.data_audiencia);
+                        } else {
+                            dataAud = new Date(a.data_audiencia + 'T00:00:00');
+                        }
+                        dataAud.setHours(0, 0, 0, 0);
+                        
+                        if (a.realizada === true) {
+                            realizadas.push(a);
+                        } else if (dataAud < hoje) {
+                            realizadas.push(a);
+                        } else {
+                            futuras.push(a);
+                        }
+                    }
+                });
+
+                // Renderizar Audiências Futuras
+                if (futuras.length === 0) {
+                    corpoFuturas.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--muted);">Nenhuma audiência agendada.</td></tr>';
+                } else {
+                    corpoFuturas.innerHTML = futuras.map(a => {
+                        const dataFormatada = a.data_audiencia ? new Date(a.data_audiencia).toLocaleDateString('pt-BR') : '---';
+                        const horaFormatada = a.hora_audiencia ? a.hora_audiencia.slice(0,5) : '--:--';
+
+                        // Calcula dias restantes
+                        let alertaBadge = '';
+                        let alertaStyle = '';
+                        
+                        if (a.data_audiencia) {
+                            const hoje = new Date();
+                            hoje.setHours(0, 0, 0, 0);
+                            
+                            let dataAud;
+                            if (a.data_audiencia.includes('T')) {
+                                dataAud = new Date(a.data_audiencia);
+                            } else {
+                                dataAud = new Date(a.data_audiencia + 'T00:00:00');
+                            }
+                            dataAud.setHours(0, 0, 0, 0);
+                            
+                            const diffTime = dataAud - hoje;
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            
+                            let badgeStyle = '';
+                            let badgeText = '';
+                            
+                            if (diffDays === 0) {
+                                badgeStyle = 'background: #fee2e2; color: #dc2626; border: 1px solid #fecaca;';
+                                badgeText = 'HOJE';
+                                alertaStyle = 'background: rgba(239, 68, 68, 0.05); border-left: 3px solid #ef4444;';
+                            } else if (diffDays === 1) {
+                                badgeStyle = 'background: #fffbeb; color: #d97706; border: 1px solid #fde68a;';
+                                badgeText = 'AMANHÃ';
+                                alertaStyle = 'background: rgba(245, 158, 11, 0.05); border-left: 3px solid #f59e0b;';
+                            } else if (diffDays <= 3) {
+                                badgeStyle = 'background: #fffbeb; color: #d97706; border: 1px solid #fde68a;';
+                                badgeText = 'FALTAM ' + diffDays + ' DIAS';
+                            } else if (diffDays <= 7) {
+                                badgeStyle = 'background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0;';
+                                badgeText = 'FALTAM ' + diffDays + ' DIAS';
+                            } else {
+                                badgeStyle = 'background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0;';
+                                badgeText = 'FALTAM ' + diffDays + ' DIAS';
+                            }
+                            
+                            alertaBadge = '<span class="badge" style="' + badgeStyle + ' font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; margin-left: 8px; display: inline-block; margin-top: 4px;">' + badgeText + '</span>';
+                        }
+                        
+
+                        return `
+                        <tr style="${alertaStyle}">
+                            <td>
+                                <strong style="color:var(--primary);">${dataFormatada}</strong><br>
+                                <span style="font-size:12px; font-weight:600; color:var(--muted);">${horaFormatada}</span>
+                                ${alertaBadge}
+                            </td>
+                            <td>
+                                <div style="font-weight:700; color:var(--text-main);">${a.processo_numero || 'Sem Número'}</div>
+                                <div style="font-size:12px; color:var(--muted);">${a.cliente || 'Consumidor'}</div>
+                            </td>
+                            <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600;">${a.tipo_audiencia || a.tipo || 'Audiência'}</span></td>
+                            <td style="font-size:12px; color:var(--muted); max-width:200px; overflow:hidden; text-overflow:ellipsis;">${a.local_virtual || a.local || '-'}</td>
+                            <td style="text-align: center;">
+                                <div style="display:flex; flex-direction:column; gap:8px; align-items:center;">
+                                    <button class="btn-whatsapp" onclick="avisarZap('${a.cliente}', '${a.processo_numero}', '${a.tipo_audiencia}', '${a.data_audiencia}', '${a.hora_audiencia}', '${a.local_virtual}', '${a.telefone}')">
+                                        <i class="lucide lucide-message-circle"></i> WhatsApp Cliente
+                                    </button>
+                                    <button 
+    onclick="marcarComoRealizada(${a.id})"
+    style="background: var(--accent-green); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 11px;"
+>
+    <i class="lucide lucide-check-circle" style="width:12px; vertical-align:middle;"></i>
+    REALIZADA
+</button>
+
+<button 
+    onclick="excluirAudiencia(${a.id})"
+    style="color:var(--danger); background:none; border:none; cursor:pointer; font-weight:700; font-size:11px;"
+>
+    <i class="lucide lucide-trash-2" style="width:12px; vertical-align:middle;"></i>
+    EXCLUIR
+</button>
+                                </div>
+                            </td>
+                        </tr>`;
+                    }).join('');
+                }
+
+                // Renderizar Audiências Realizadas
+                if (realizadas.length === 0) {
+                    corpoRealizadas.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--muted);">Nenhuma audiência realizada.</td></tr>';
+                } else {
+                    corpoRealizadas.innerHTML = realizadas.map(a => {
+                        const dataFormatada = a.data_audiencia ? new Date(a.data_audiencia).toLocaleDateString('pt-BR') : '---';
+                        const horaFormatada = a.hora_audiencia ? a.hora_audiencia.slice(0,5) : '--:--';
+                        
+                        // Verifica se já tem ATA registrada
+                        const temATA = a.ata_audiencia && a.ata_audiencia.trim() !== '';
+                        const ataEscaped = temATA ? a.ata_audiencia.replace(/'/g, "\\'") : '';
+                        
+                        return `
+                        <tr style="background: #f8fafc;">
+                            <td>
+                                <strong style="color:var(--muted);">${dataFormatada}</strong><br>
+                                <span style="font-size:12px; font-weight:600; color:var(--muted);">${horaFormatada}</span>
+                                <span class="badge" style="background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; margin-left: 8px; display: inline-block; margin-top: 4px;">
+                                    REALIZADA
+                                </span>
+                            </td>
+                            <td>
+                                <div style="font-weight:700; color:var(--text-main);">${a.processo_numero || 'Sem Número'}</div>
+                                <div style="font-size:12px; color:var(--muted);">${a.cliente || 'Consumidor'}</div>
+                            </td>
+                            <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600;">${a.tipo_audiencia || a.tipo || 'Audiência'}</span></td>
+                            <td style="font-size:12px; color:var(--muted); max-width:200px; overflow:hidden; text-overflow:ellipsis;">${a.local_virtual || a.local || '-'}</td>
+                            <td style="text-align: center;">
+                                ${temATA ? `
+                                    <button onclick="visualizarATA(${a.id}, '${a.processo_numero}', '${a.cliente}', '${dataFormatada}', '${ataEscaped}')" style="background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700;">
+                                        <i class="lucide lucide-eye" style="width:14px; vertical-align:middle;"></i> Ver ATA
+                                    </button>
+                                ` : `
+                                    <button onclick="abrirModalATA(${a.id}, '${a.processo_numero}', '${a.cliente}', '${dataFormatada}')" style="background: var(--accent-green); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700;">
+                                        <i class="lucide lucide-file-plus" style="width:14px; vertical-align:middle;"></i> Registrar ATA
+                                    </button>
+                                `}
+                            </td>
+                        </tr>`;
+                    }).join('');
+                }
+
+                if (window.lucide) lucide.createIcons();
             } catch (err) { 
                 console.error("Erro ao listar audiências:", err);
                 document.getElementById('listaAudiencias').innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Erro ao carregar dados.</td></tr>';
@@ -557,6 +827,95 @@ function avisarZap(cliente, processo, tipo, data, hora, local, telefone) {
             } catch (err) { console.error(err); }
         }
 
+        
+        // Função para trocar entre abas
+        function trocarAba(aba) {
+            const abaFuturas = document.getElementById('abaFuturas');
+            const abaRealizadas = document.getElementById('abaRealizadas');
+            const tabelaFuturas = document.getElementById('tabelaFuturas');
+            const tabelaRealizadas = document.getElementById('tabelaRealizadas');
+
+            if (aba === 'futuras') {
+                abaFuturas.style.background = 'var(--primary)';
+                abaFuturas.style.color = 'white';
+                abaFuturas.style.borderBottom = '3px solid var(--primary)';
+                
+                abaRealizadas.style.background = 'transparent';
+                abaRealizadas.style.color = 'var(--muted)';
+                abaRealizadas.style.borderBottom = '3px solid transparent';
+                
+                tabelaFuturas.style.display = 'block';
+                tabelaRealizadas.style.display = 'none';
+            } else {
+                abaRealizadas.style.background = 'var(--primary)';
+                abaRealizadas.style.color = 'white';
+                abaRealizadas.style.borderBottom = '3px solid var(--primary)';
+                
+                abaFuturas.style.background = 'transparent';
+                abaFuturas.style.color = 'var(--muted)';
+                abaFuturas.style.borderBottom = '3px solid transparent';
+                
+                tabelaFuturas.style.display = 'none';
+                tabelaRealizadas.style.display = 'block';
+            }
+        }
+
+        // Abrir modal para registrar ATA
+        function abrirModalATA(id, processo, cliente, data) {
+            document.getElementById('ataAudienciaId').value = id;
+            document.getElementById('ataProcesso').innerText = processo;
+            document.getElementById('ataCliente').innerText = cliente;
+            document.getElementById('ataData').innerText = data;
+            document.getElementById('ataTexto').value = '';
+            document.getElementById('modalATA').style.display = 'flex';
+        }
+
+        // Fechar modal ATA
+        function fecharModalATA() {
+            document.getElementById('modalATA').style.display = 'none';
+        }
+
+        // Visualizar ATA existente
+        function visualizarATA(id, processo, cliente, data, ata) {
+            document.getElementById('ataAudienciaId').value = id;
+            document.getElementById('ataProcesso').innerText = processo;
+            document.getElementById('ataCliente').innerText = cliente;
+            document.getElementById('ataData').innerText = data;
+            document.getElementById('ataTexto').value = ata;
+            document.getElementById('modalATA').style.display = 'flex';
+        }
+
+        // Salvar ATA
+        document.getElementById('formATA').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('ataAudienciaId').value;
+            const ata = document.getElementById('ataTexto').value;
+            
+            try {
+                const response = await fetch(`/api/audiencias/${id}/ata`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ ata_audiencia: ata })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('✅ ATA registrada com sucesso!');
+                    fecharModalATA();
+                    await carregarAudiencias();
+                } else {
+                    alert('❌ Erro ao salvar ATA: ' + (result.error || 'Erro desconhecido'));
+                }
+            } catch (err) {
+                console.error('Erro:', err);
+                alert('❌ Erro ao comunicar com servidor');
+            }
+        };
+
         function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
         // 🚀 INICIALIZAÇÃO COM GARANTIA DUPLA
         document.addEventListener('DOMContentLoaded', () => {
@@ -582,6 +941,118 @@ window.addEventListener('click', (e) => {
         if(m) m.style.display = 'none';
     }
 });
+
+// Abrir modal para registrar ATA
+function abrirModalATA(id, processo, cliente, data) {
+    document.getElementById('ataAudienciaId').value = id;
+    document.getElementById('ataProcesso').innerText = processo;
+    document.getElementById('ataCliente').innerText = cliente;
+    document.getElementById('ataData').innerText = data;
+    document.getElementById('ataTexto').value = '';
+    document.getElementById('modalATA').style.display = 'flex';
+}
+
+// Fechar modal ATA
+function fecharModalATA() {
+    document.getElementById('modalATA').style.display = 'none';
+}
+
+// Visualizar ATA existente
+function visualizarATA(id, processo, cliente, data, ata) {
+    document.getElementById('ataAudienciaId').value = id;
+    document.getElementById('ataProcesso').innerText = processo;
+    document.getElementById('ataCliente').innerText = cliente;
+    document.getElementById('ataData').innerText = data;
+    document.getElementById('ataTexto').value = ata;
+    document.getElementById('modalATA').style.display = 'flex';
+}
+
+// Salvar ATA
+document.getElementById('formATA').onsubmit = async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('ataAudienciaId').value;
+    const ata = document.getElementById('ataTexto').value;
+    
+    try {
+        const response = await fetch(`/api/audiencias/${id}/ata`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ ata_audiencia: ata })
+        });
+        
+        if (response.ok) {
+            alert('✅ ATA registrada com sucesso!');
+            fecharModalATA();
+            await carregarAudiencias();
+        } else {
+            alert('❌ Erro ao salvar ATA');
+        }
+    } catch (err) {
+        console.error('Erro:', err);
+        alert('❌ Erro ao comunicar com servidor');
+    }
+};
+
+// Trocar entre abas
+function trocarAba(aba) {
+    const abaFuturas = document.getElementById('abaFuturas');
+    const abaRealizadas = document.getElementById('abaRealizadas');
+    const tabelaFuturas = document.getElementById('tabelaFuturas');
+    const tabelaRealizadas = document.getElementById('tabelaRealizadas');
+
+    if (aba === 'futuras') {
+        // Ativar aba futuras
+        abaFuturas.style.background = 'var(--primary)';
+        abaFuturas.style.color = 'white';
+        abaFuturas.style.borderBottom = '3px solid var(--primary)';
+        
+        abaRealizadas.style.background = 'transparent';
+        abaRealizadas.style.color = 'var(--muted)';
+        abaRealizadas.style.borderBottom = '3px solid transparent';
+        
+        tabelaFuturas.style.display = 'block';
+        tabelaRealizadas.style.display = 'none';
+    } else {
+        // Ativar aba realizadas
+        abaRealizadas.style.background = 'var(--primary)';
+        abaRealizadas.style.color = 'white';
+        abaRealizadas.style.borderBottom = '3px solid var(--primary)';
+        
+        abaFuturas.style.background = 'transparent';
+        abaFuturas.style.color = 'var(--muted)';
+        abaFuturas.style.borderBottom = '3px solid transparent';
+        
+        tabelaFuturas.style.display = 'none';
+        tabelaRealizadas.style.display = 'block';
+    }
+}
+
+async function marcarComoRealizada(id) {
+    if (!confirm('Confirmar que a audiência foi realizada?')) return;
+
+    try {
+        const res = await fetch(`/api/audiencias/${id}/realizada`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (res.ok) {
+            await carregarAudiencias();
+            trocarAba('realizadas');
+        } else {
+            alert('Erro ao marcar audiência como realizada');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Erro de comunicação com servidor');
+    }
+}
+
     </script>
 </body>
 </html>

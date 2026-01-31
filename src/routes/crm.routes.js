@@ -94,10 +94,15 @@ router.get('/leads',
     async (req, res) => {
         try {
             const escritorioId = req.user.escritorio_id;
+            console.log('📋 [GET /leads] Buscando leads do escritório:', escritorioId);
+            
             const query = "SELECT * FROM leads WHERE escritorio_id = $1 ORDER BY data_criacao DESC";
             const resultado = await pool.query(query, [escritorioId]);
+            
+            console.log('✅ [GET /leads] Retornando', resultado.rows.length, 'leads');
             res.json(resultado.rows);
         } catch (err) {
+            console.error('❌ [GET /leads] Erro:', err);
             res.status(500).json({ ok: false, erro: err.message });
         }
     }
@@ -109,17 +114,22 @@ router.get('/metricas',
     async (req, res) => {
         try {
             const id = req.user.escritorio_id;
+            console.log('📊 [GET /metricas] Calculando métricas do escritório:', id);
+            
             const query = `
                 SELECT 
                     COUNT(*) FILTER (WHERE status IN ('Novo', 'Novo Lead')) as leads,
-                    COUNT(*) FILTER (WHERE status = 'Reunião') as reuniao,
+                    COUNT(*) FILTER (WHERE status = 'Reunião' OR status LIKE '%Reuni%') as reuniao,
                     COUNT(*) FILTER (WHERE status = 'Proposta') as proposta,
                     COUNT(*) FILTER (WHERE status = 'Ganho') as ganho
                 FROM leads WHERE escritorio_id = $1
             `;
             const result = await pool.query(query, [id]);
+            
+            console.log('✅ [GET /metricas] Métricas:', result.rows[0]);
             res.json(result.rows[0]);
         } catch (err) {
+            console.error('❌ [GET /metricas] Erro:', err);
             res.status(500).json({ erro: err.message });
         }
     }
@@ -134,31 +144,106 @@ router.patch('/lead/:id/status',
             const { status } = req.body;
             const escritorioId = req.user.escritorio_id;
 
+            console.log('🔄 [PATCH /lead/:id/status] Atualizando status:', { id, status, escritorioId });
+
             await pool.query(
                 'UPDATE leads SET status = $1 WHERE id = $2 AND escritorio_id = $3',
                 [status, id, escritorioId]
             );
+            
+            console.log('✅ [PATCH /lead/:id/status] Status atualizado com sucesso');
             res.json({ ok: true });
         } catch (err) {
+            console.error('❌ [PATCH /lead/:id/status] Erro:', err);
             res.status(500).json({ error: err.message });
         }
     }
 );
 
+// ✅ ROTA CORRIGIDA - CRIAR LEAD MANUAL (SEM EXIGIR EMAIL)
 router.post('/leads', 
     authMiddleware,
     planMiddleware.checkFeature('crm'),
     async (req, res) => {
         try {
-            const { nome, telefone, email, area_interesse } = req.body;
+            const { nome, telefone, area_interesse } = req.body;
             const escritorioId = req.user.escritorio_id;
-            await pool.query(
-                'INSERT INTO leads (escritorio_id, nome, telefone, email, status, origem, assunto) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-                [escritorioId, nome, telefone, email || null, 'Novo', 'Manual', area_interesse]
-            );
-            res.json({ ok: true });
+
+            console.log('📝 [POST /leads] Dados recebidos:', { 
+                nome, 
+                telefone, 
+                area_interesse,
+                escritorioId 
+            });
+
+            // ✅ VALIDAÇÃO: APENAS NOME E TELEFONE
+            if (!nome || nome.trim() === '') {
+                console.log('❌ Validação: nome vazio');
+                return res.status(400).json({ 
+                    ok: false,
+                    error: 'Nome é obrigatório' 
+                });
+            }
+
+            if (!telefone || telefone.trim() === '') {
+                console.log('❌ Validação: telefone vazio');
+                return res.status(400).json({ 
+                    ok: false,
+                    error: 'Telefone é obrigatório' 
+                });
+            }
+
+            // ✅ INSERT - EMAIL NÃO É OBRIGATÓRIO
+            const query = `
+                INSERT INTO leads 
+                (escritorio_id, nome, telefone, status, origem, assunto)
+                VALUES ($1, $2, $3, 'Novo', 'Manual', $4)
+                RETURNING *
+            `;
+
+            const values = [
+                escritorioId,
+                nome.trim(),
+                telefone.trim(),
+                area_interesse && area_interesse.trim() !== '' ? area_interesse.trim() : null
+            ];
+
+            console.log('💾 Executando INSERT com valores:', values);
+            const result = await pool.query(query, values);
+
+            console.log('✅ Lead criado! ID:', result.rows[0].id);
+
+            res.status(201).json({ 
+                ok: true, 
+                lead: result.rows[0],
+                mensagem: 'Lead criado com sucesso!'
+            });
+
         } catch (err) {
-            res.status(500).json({ error: err.message });
+            console.error('❌ ERRO COMPLETO:', err);
+            
+            // Erros específicos do PostgreSQL
+            if (err.code === '23502') {
+                return res.status(400).json({ 
+                    ok: false,
+                    error: 'Campo obrigatório faltando no banco de dados',
+                    detalhe: err.message 
+                });
+            }
+            
+            if (err.code === '23503') {
+                return res.status(400).json({ 
+                    ok: false,
+                    error: 'Escritório não encontrado',
+                    detalhe: err.message 
+                });
+            }
+            
+            res.status(500).json({ 
+                ok: false,
+                error: 'Erro ao criar lead',
+                detalhe: err.message 
+            });
         }
     }
 );
@@ -171,12 +256,18 @@ router.put('/leads/:id/notas',
             const { id } = req.params;
             const { notas } = req.body;
             const escritorioId = req.user.escritorio_id;
+            
+            console.log('📝 [PUT /leads/:id/notas] Salvando notas:', { id, notasLength: notas?.length, escritorioId });
+            
             await pool.query(
                 'UPDATE leads SET mensagem = $1 WHERE id = $2 AND escritorio_id = $3',
                 [notas, id, escritorioId]
             );
+            
+            console.log('✅ [PUT /leads/:id/notas] Notas salvas com sucesso');
             res.json({ ok: true });
         } catch (err) {
+            console.error('❌ [PUT /leads/:id/notas] Erro:', err);
             res.status(500).json({ error: err.message });
         }
     }
@@ -189,9 +280,23 @@ router.delete('/leads/:id',
         try {
             const { id } = req.params;
             const escritorioId = req.user.escritorio_id;
-            await pool.query('DELETE FROM leads WHERE id = $1 AND escritorio_id = $2', [id, escritorioId]);
+            
+            console.log('🗑️ [DELETE /leads/:id] Excluindo lead:', { id, escritorioId });
+            
+            const result = await pool.query(
+                'DELETE FROM leads WHERE id = $1 AND escritorio_id = $2 RETURNING *',
+                [id, escritorioId]
+            );
+            
+            if (result.rowCount === 0) {
+                console.log('⚠️ [DELETE /leads/:id] Lead não encontrado');
+                return res.status(404).json({ error: 'Lead não encontrado' });
+            }
+            
+            console.log('✅ [DELETE /leads/:id] Lead excluído com sucesso');
             res.json({ ok: true });
         } catch (err) {
+            console.error('❌ [DELETE /leads/:id] Erro:', err);
             res.status(500).json({ error: err.message });
         }
     }

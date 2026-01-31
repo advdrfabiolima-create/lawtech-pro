@@ -167,12 +167,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-        }
-
-        .sidebar-footer > div {
-            display: flex;
-            justify-content: space-between;
-        }
+        }        
 
         .sidebar-footer span {
             color: #cbd5e1 !important;
@@ -213,6 +208,57 @@
         /* Botões */
         .btn-primary { background: var(--primary); color: #fff; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.2s; }
         .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 15px -3px rgba(37,99,235,0.3); }
+
+        /* Padronização LawTech Pro - Caixa Alta Global */
+body {
+    text-transform: uppercase;
+}
+
+/* Garante que os campos de digitação também mostrem caixa alta enquanto o usuário digita */
+input, textarea, select {
+    text-transform: uppercase;
+}
+
+/* Opcional: Se quiser que os números dos processos mantenham o estilo técnico, 
+   mas ainda em caixa alta */
+.numero-processo, .processo-hash {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+}
+
+/* Container do rodapé */
+.sidebar-footer {
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Alinhamento à esquerda (Início) */
+.footer-info-row {
+    display: flex;
+    justify-content: flex-start; /* Alinha no começo da linha */
+    align-items: center;
+    gap: 5px; /* Espaço fixo após os ":" */
+    font-size: 12px;
+}
+
+/* Rótulos em caixa alta */
+.footer-info-row span:first-child {
+    text-transform: uppercase;
+    color: var(--text-tertiary, #64748b);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* ✅ Regra para e-mail e plano em minúsculas */
+.keep-lowercase {
+    text-transform: none !important; /* Cancela o uppercase global */
+    font-variant: normal !important;
+    color: #cbd5e1;
+}
     </style>
 </head>
 <body>
@@ -240,13 +286,16 @@
         </nav>
 
         <div class="sidebar-footer">
-            <div style="margin-bottom: 6px;">
-                <span style="color:#64748b">Usuário:</span> <span id="userEmail" style="color:#fff">...</span>
-            </div>
-            <div>
-                <span style="color:#64748b">Plano:</span> <span id="planNameFooter" style="color:#fff">...</span>
-            </div>
-        </div>
+    <div class="footer-info-row">
+        <span>Usuário:</span> 
+        <span id="userEmail" class="keep-lowercase">...</span>
+    </div>
+    
+    <div class="footer-info-row">
+        <span>Plano:</span> 
+        <span id="planNameFooter" class="keep-lowercase">...</span>
+    </div>
+</div>
     </aside>
 
     <div class="main">
@@ -315,35 +364,38 @@
 
     <!-- Modais -->
     <div id="modalNovoLead" class="modal-overlay">
-        <div class="modal-crm-content">
-            <h3 style="margin-bottom: 20px; font-weight: 800; color: var(--sidebar);">Cadastrar Novo Lead</h3>
-            <form id="formNovoLead">
-                <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Nome do Lead</label>
-                <input type="text" id="novoNome" placeholder="Ex: Nome" style="width: 100%; margin-bottom: 15px; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" required>
-                
-                <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;">WhatsApp</label>
-                <input type="text" id="novoTelefone" placeholder="(00) 00000-0000" style="width: 100%; margin-bottom: 15px; padding: 12px; border: 1px solid var(--border); border-radius: 8px;">
-                
-                <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Área de Interesse</label>
-                <select id="novoInteresse" style="width: 100%; margin-bottom: 25px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: white;">
-                    <option value="Trabalhista">Trabalhista</option>
-                    <option value="Cível">Cível</option>
-                    <option value="Consumidor">Consumidor</option>
-                    <option value="Bancário">Bancário</option>
-                    <option value="Previdenciário">Previdenciário</option>
-                    <option value="Família">Família</option>
-                    <option value="Administrativo">Administrativo</option>
-                    <option value="Tributário">Tributário</option>
-                    <option value="Outros assuntos">Outros assuntos</option>                
-                </select>
-                
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="btn-primary" style="flex: 1; justify-content: center;">Criar Lead</button>
-                    <button type="button" onclick="fecharModalCadastro()" style="flex: 1; background: #f1f5f9; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancelar</button>
-                </div>
-            </form>
-        </div>
+    <div class="modal-crm-content">
+        <h3 style="margin-bottom: 20px; font-weight: 800; color: var(--sidebar);">Cadastrar Novo Lead</h3>
+        <form id="formNovoLead">
+            <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Nome do Lead</label>
+            <input type="text" id="novoNome" placeholder="Ex: Nome completo" style="width: 100%; margin-bottom: 15px; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" required>
+            
+            <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;">WhatsApp</label>
+            <input type="text" id="novoTelefone" placeholder="(00) 00000-0000" style="width: 100%; margin-bottom: 15px; padding: 12px; border: 1px solid var(--border); border-radius: 8px;">
+
+            <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;">E-mail do Lead</label>
+            <input type="email" id="novoEmail" placeholder="Ex: email@exemplo.com" style="width: 100%; margin-bottom: 15px; padding: 12px; border: 1px solid var(--border); border-radius: 8px;" required>
+            
+            <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Área de Interesse</label>
+            <select id="novoInteresse" style="width: 100%; margin-bottom: 25px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: white;">
+                <option value="Trabalhista">Trabalhista</option>
+                <option value="Cível">Cível</option>
+                <option value="Consumidor">Consumidor</option>
+                <option value="Bancário">Bancário</option>
+                <option value="Previdenciário">Previdenciário</option>
+                <option value="Família">Família</option>
+                <option value="Administrativo">Administrativo</option>
+                <option value="Tributário">Tributário</option>
+                <option value="Outros assuntos">Outros assuntos</option>                
+            </select>
+            
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-primary" style="flex: 1; justify-content: center;">Criar Lead</button>
+                <button type="button" onclick="fecharModalCadastro()" style="flex: 1; background: #f1f5f9; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancelar</button>
+            </div>
+        </form>
     </div>
+</div>
 
     <div id="modalDetalhes" class="modal-overlay">
         <div class="modal-crm-content">
@@ -459,11 +511,11 @@
 
         async function carregarLeads() {
             try {
-                const resLeads = await fetch('/api/leads', { headers: { Authorization: `Bearer ${token}` } });
+                const resLeads = await fetch('/api/crm/leads', { headers: { Authorization: `Bearer ${token}` } });
                 if (!resLeads.ok) throw new Error('Erro ao carregar leads');
                 const leads = await resLeads.json();
 
-                const resMetricas = await fetch('/api/metricas', { headers: { Authorization: `Bearer ${token}` } });
+                const resMetricas = await fetch('/api/crm/metricas', { headers: { Authorization: `Bearer ${token}` } });
                 if (!resMetricas.ok) throw new Error('Erro ao carregar métricas');
                 const metricas = await resMetricas.json();
                 console.log('Métricas recebidas:', metricas);
@@ -511,40 +563,68 @@
 async function salvarNovoLead(e) {
     e.preventDefault();
 
+    // Captura dos valores dos inputs
     const nome = document.getElementById('novoNome').value.trim();
+    const email = document.getElementById('novoEmail').value.trim(); // ✅ Adicionado campo de e-mail
     const telefone = document.getElementById('novoTelefone').value.trim();
     const area_interesse = document.getElementById('novoInteresse').value;
 
+    // Validações básicas no Frontend
     if (!nome) {
         alert("O nome do lead é obrigatório.");
         return;
     }
 
+    if (!email) {
+        alert("O e-mail do lead é obrigatório."); // ✅ Validação de e-mail adicionada
+        return;
+    }
+
+    if (!telefone) {
+        alert("O telefone do lead é obrigatório.");
+        return;
+    }
+
     try {
-        const res = await fetch('/api/crm/leads', {  // ✅ Rota corrigida
+        const res = await fetch('/api/crm/leads', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ nome, telefone, origem: 'manual', observacoes: area_interesse })
+            body: JSON.stringify({ 
+                nome, 
+                email, // ✅ Enviando o e-mail para o backend
+                telefone, 
+                area_interesse 
+            })
         });
 
         // 🔒 TRATAMENTO DE UPGRADE NECESSÁRIO
         if (res.status === 402) {
             const erro = await res.json();
             fecharModalCadastro();
-            mostrarModalUpgrade(erro.message || 'CRM disponível apenas no plano Premium');
+            if (typeof mostrarModalUpgrade === 'function') {
+                mostrarModalUpgrade(erro.message || 'CRM disponível apenas no plano Premium');
+            } else {
+                alert(erro.message || 'Funcionalidade requer upgrade de plano.');
+            }
             return;
         }
 
         if (res.ok) {
             alert("Lead criado com sucesso!");
+            
+            // Limpar formulário e fechar modal
+            document.getElementById('formNovoLead').reset();
             fecharModalCadastro();
-            carregarLeads();
+            
+            // Recarregar a lista de leads
+            if (typeof carregarLeads === 'function') carregarLeads();
         } else {
             const err = await res.json();
-            alert("Erro ao criar lead: " + (err.erro || err.error || "Tente novamente"));
+            // Exibe a mensagem exata vinda do backend (ex: "Nome e email são obrigatórios")
+            alert("Erro ao criar lead: " + (err.mensagem || err.erro || err.error || "Tente novamente"));
         }
     } catch (error) {
         console.error("Erro ao criar lead:", error);
@@ -630,7 +710,7 @@ async function salvarNotas() {
     }
 
     try {
-        const res = await fetch(`/api/leads/${leadSelecionadoId}/notas`, {  // ← Rota correta: /leads/:id/notas
+        const res = await fetch(`/api/crm/leads/${leadSelecionadoId}/notas`, {  // ← Rota correta: /leads/:id/notas
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -658,7 +738,7 @@ async function excluirLead() {
     if (!confirm("Tem certeza que deseja EXCLUIR este lead permanentemente?")) return;
 
     try {
-        const res = await fetch(`/api/leads/${leadSelecionadoId}`, {
+        const res = await fetch(`/api/crm/leads/${leadSelecionadoId}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -700,7 +780,7 @@ async function excluirLead() {
             const statusFinal = statusParaBanco[targetStatus];
 
             try {
-                const res = await fetch(`/api/lead/${id}/status`, { 
+                const res = await fetch(`/api/crm/lead/${id}/status`, { 
                     method: 'PATCH', 
                     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, 
                     body: JSON.stringify({ status: statusFinal }) 

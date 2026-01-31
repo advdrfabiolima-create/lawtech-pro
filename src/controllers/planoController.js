@@ -133,13 +133,27 @@ async function upgradePlano(req, res) {
 // ============================================================
 async function cancelarAgendamento(req, res) {
   try {
+    const escritorioId = req.user.escritorio_id;
+    const userEmail = req.user.email;
+
+    console.log(`📢 [CANCELAMENTO] Solicitação recebida de: ${userEmail}`);
+
+    // Agora o comando vai funcionar porque a coluna foi criada no passo 1
     await pool.query(
-      'UPDATE escritorios SET data_cancelamento_agendado = NULL WHERE id = $1',
-      [req.user.escritorio_id]
+      `UPDATE escritorios 
+       SET renovacao_automatica = false, 
+           data_cancelamento_agendado = data_vencimento 
+       WHERE id = $1`, 
+      [escritorioId]
     );
-    res.json({ ok: true, mensagem: 'Cancelamento desagendado com sucesso' });
+
+    res.json({ 
+      ok: true, 
+      msg: "Doutor, sua renovação automática foi cancelada com sucesso. O acesso permanecerá ativo até o fim do período atual." 
+    });
   } catch (err) {
-    res.status(500).json({ erro: 'Erro ao cancelar agendamento' });
+    console.error('❌ Erro ao processar cancelamento:', err);
+    res.status(500).json({ error: 'Erro ao processar a solicitação no servidor.' });
   }
 }
 

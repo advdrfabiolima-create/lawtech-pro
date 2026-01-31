@@ -8,6 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="icon" type="image/png" href="/favicon_sy.png">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -659,7 +662,7 @@
 
         .table-title {
             font-size: 20px;
-            font-weight: 800;
+            font-weight: 400;
             color: var(--text-primary);
             letter-spacing: -0.01em;
         }
@@ -926,6 +929,109 @@
                 font-size: 14px;
             }
         }
+
+
+.badge-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badge-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* Botões de ação nas tabelas */
+.btn-action {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--accent-green);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    font-size: 16px;
+}
+
+.btn-action:hover {
+    background: rgba(16, 185, 129, 0.2);
+    transform: scale(1.1);
+}
+
+/* Seções de Abas */
+.secao-tab {
+    display: none;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.secao-tab.active {
+    display: block;
+}
+
+/* Filters Header */
+.filters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Section Title */
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+.title-icon {
+    font-size: 24px;
+}
+
+/* Botão Exportar CSV - Estilo Dark Padrão */
+.btn-export {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 28px;
+    background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-green-light) 100%);
+    border: none;
+    border-radius: var(--radius-lg);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    box-shadow: var(--shadow-lg);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.btn-export:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-xl), var(--shadow-glow);
+}
+
+.btn-export:active {
+    transform: translateY(-1px);
+}
+
+.btn-export svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
     </style>
 </head>
 <body>
@@ -949,7 +1055,10 @@
             <div class="header-content">
                 <div class="header-left">
                     <div class="logo-container">
-                        <img src="/Logo LawTech systems.png" alt="LawTech Systems" style="max-width: 180px;" onerror="this.src='/Logo%20LawTech%20systems.png'">
+                        <img src="/Logo LawTech systems.png" 
+     alt="LawTech Systems" 
+     style="height: 55px; width: auto; object-fit: contain; display: block;" 
+     onerror="this.src='/Logo%20LawTech%20systems.png'">
                         <div class="logo-text">                            
                             <div class="logo-subtitle">ADMIN DASHBOARD</div>
                         </div>
@@ -960,43 +1069,130 @@
                         <div class="status-dot"></div>
                         <span id="statusText">SISTEMA ONLINE</span>
                     </div>
-                    <button class="btn-refresh" onclick="atualizarDados()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-                        </svg>
-                        <span>ATUALIZAR</span>
-                    </button>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+    <button class="btn-refresh" onclick="gerarRelatorioMensal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff4757" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+        <span>RELATÓRIO PDF</span>
+    </button>
+
+    <button class="btn-refresh" onclick="atualizarDados()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+        </svg>
+        <span>ATUALIZAR</span>
+    </button>
+</div>
                 </div>
             </div>
         </header>
 
         <!-- Tabs Navigation -->
         <nav class="tabs-nav">
-            <div class="tabs-container">
-                <button class="tab-btn active" onclick="mostrarAba('escritorios')">
-    <span class="tab-icon">
-        <svg viewBox="0 0 24 24">
-            <path d="M3 21h18M9 8h1m-1 4h1m-1 4h1M15 8h1m-1 4h1m-1 4h1M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/>
-        </svg>
-    </span>
-    <span>Escritórios</span>
-</button>
-                <button class="tab-btn" onclick="mostrarAba('logs')">
-    <span class="tab-icon">
-        <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 8v4m0 4h.01"/>
-        </svg>
-    </span>
-    <span>Logs de Erros</span>
-</button>
-            </div>
+            <div class="tabs-container mb-4">
+    <button class="tab-btn active" onclick="trocarAba('overview', 0)">
+        <i class="bi bi-speedometer2 me-2"></i>OVERVIEW
+    </button>
+    <button class="tab-btn" onclick="trocarAba('escritorios', 1)">
+        <i class="bi bi-building me-2"></i>ESCRITÓRIOS
+    </button>
+    <button class="tab-btn" onclick="trocarAba('inadimplencia', 2)">
+        <i class="bi bi-cash-stack me-2"></i>INADIMPLÊNCIA
+    </button>
+    <button class="tab-btn" onclick="trocarAba('upgrade', 3)">
+        <i class="bi bi-graph-up-arrow me-2"></i>UPGRADES
+    </button>
+    <button class="tab-btn" onclick="trocarAba('logs', 4)">
+        <i class="bi bi-bug me-2"></i>LOGS DE ERRO
+    </button>
+    <button class="tab-btn" onclick="trocarAba('audit', 5)">
+        <i class="bi bi-journal-text me-2"></i>AUDIT LOG
+    </button>
+</div>
         </nav>
-
+        
         <!-- Content Wrapper -->
         <div class="content-wrapper">
             <!-- TAB: Escritórios -->
-            <div id="secao-escritorios" class="tab-content active">
+            <div id="secao-overview" class="tab-content active">
+                <!-- Error Alert -->
+                <div id="errorAlertOverview" class="error-alert">
+                    <div class="error-icon">⚠️</div>
+                    <div class="error-content">
+                        <h4>ERRO AO CARREGAR DADOS</h4>
+                        <p id="errorMessageOverview"></p>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div id="stats-overview-cards" class="stats-grid"></div>
+
+                <div class="stats-grid" style="margin-top: -16px;">
+                    <div class="stat-card" style="border-top: 3px solid var(--accent-orange);">
+                        <div class="stat-header">
+                            <div class="stat-title">Faturamento Mensal (MRR)</div>
+                            <div class="stat-icon" style="color: var(--accent-orange); background: rgba(245, 158, 11, 0.1);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="mrrValueOverview" style="color: var(--accent-orange);">R$ 0,00</div>
+                        <div class="stat-label">Previsão de recebimento</div>
+                    </div>
+
+                    <div class="stat-card" style="border-top: 3px solid var(--accent-red);">
+                        <div class="stat-header">
+                            <div class="stat-title">Taxa de Churn</div>
+                            <div class="stat-icon" style="color: var(--accent-red); background: rgba(239, 68, 68, 0.1);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="churnRateOverview" style="color: var(--accent-red);">0%</div>
+                        <div class="stat-label">Cancelamentos no mês</div>
+                    </div>
+
+                    <div class="stat-card" style="border-top: 3px solid var(--accent-blue);">
+                        <div class="stat-header">
+                            <div class="stat-title">Status das APIs</div>
+                            <div class="stat-icon" style="color: var(--accent-blue); background: rgba(59, 130, 246, 0.1);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="apiStatusOverview" style="font-size: 24px; margin-top: 15px;">ESTÁVEL</div>
+                        <div class="stat-label">Monitoramento 24/7</div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card" style="border-left: 4px solid #ef4444;">
+            <div class="stat-header d-flex justify-content-between">
+                <div class="stat-title text-uppercase small" style="letter-spacing: 1px;">Inadimplentes</div>
+                <i class="bi bi-exclamation-octagon text-danger"></i>
+            </div>
+            <div class="stat-value h2 mt-2" id="totalInadimplentesOverview">0</div>
+            <div class="stat-label small text-muted">Precisam de atenção</div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="stat-card" style="border-left: 4px solid #f39e0b;">
+            <div class="stat-header d-flex justify-content-between">
+                <div class="stat-title text-uppercase small" style="letter-spacing: 1px;">Oportunidade Upgrade</div>
+                <i class="bi bi-arrow-up-circle text-warning"></i>
+            </div>
+            <div class="stat-value h2 mt-2" id="totalNoLimiteOverview">0</div>
+            <div class="stat-label small text-muted">Próximos do limite</div>
+        </div>
+    </div>
+</div>
+            </div>
+
+            <!-- TAB: Escritórios -->
+            <div id="secao-escritorios" class="tab-content">
                 <!-- Error Alert -->
                 <div id="errorAlertEscritorios" class="error-alert">
                     <div class="error-icon">⚠️</div>
@@ -1006,9 +1202,152 @@
                     </div>
                 </div>
 
-                <!-- Stats Grid -->
-                <div id="stats-escritorios-cards" class="stats-grid"></div>
 
+
+
+
+                <div class="card bg-dark text-white border-secondary mb-4 shadow">
+    <div class="card-header border-secondary">
+        <h5 class="mb-0"><i class="bi bi-graph-up-arrow me-2 text-info"></i>Aquisição de Novos Escritórios (Últimos 7 dias)</h5>
+    </div>
+    <div class="card-body">
+        <canvas id="growthChart" style="max-height: 250px;"></canvas>
+    </div>
+</div>
+<div class="d-flex mb-3 mt-4">
+    <div class="ms-auto d-flex align-items-center gap-3">
+        <span style="font-size: 0.65rem; color: #555; letter-spacing: 1.2px; font-weight: 500; text-transform: uppercase;">
+            Filtrar Saúde:
+        </span>
+        <div class="btn-group shadow-sm" id="grupo-filtros-saude" style="border: 1px solid #333; border-radius: 6px; overflow: hidden;">
+            <button onclick="filtrarSaude('todos', this)" class="btn-saude active">TODOS</button>
+            <button onclick="filtrarSaude('critico', this)" class="btn-saude text-danger">⚠️ CRÍTICOS</button>
+            <button onclick="filtrarSaude('alerta', this)" class="btn-saude text-warning">ALERTAS</button>
+            <button onclick="filtrarSaude('saudavel', this)" class="btn-saude text-success">SAUDÁVEIS</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-saude {
+        background: var(--bg-elevated, #1f2937);
+        border: none;
+        border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: var(--text-tertiary, #9ca3af);
+        padding: 12px 24px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-family: 'Outfit', sans-serif;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-saude::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+    }
+    
+    .btn-saude:last-child { border-right: none !important; }
+    
+    .btn-saude:hover { 
+        background: var(--bg-tertiary, #1a2332);
+        color: var(--text-primary, #f9fafb);
+        transform: translateY(-2px);
+    }
+    
+    .btn-saude:hover::before {
+        opacity: 1;
+    }
+    
+    /* Botão Todos */
+    .btn-saude:nth-child(1)::before {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+    }
+    
+    .btn-saude:nth-child(1).active {
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
+        color: #fff !important;
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+        transform: translateY(-3px);
+    }
+    
+    /* Botão Críticos */
+    .btn-saude.text-danger::before {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+    }
+    
+    .btn-saude.text-danger:hover {
+        color: #ef4444 !important;
+        border-color: rgba(239, 68, 68, 0.4);
+    }
+    
+    .btn-saude.text-danger.active {
+        background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+        color: #fff !important;
+        box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+        transform: translateY(-3px);
+    }
+    
+    /* Botão Alertas */
+    .btn-saude.text-warning::before {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(251, 146, 60, 0.15));
+    }
+    
+    .btn-saude.text-warning:hover {
+        color: #f59e0b !important;
+        border-color: rgba(245, 158, 11, 0.4);
+    }
+    
+    .btn-saude.text-warning.active {
+        background: linear-gradient(135deg, #f59e0b, #fb923c) !important;
+        color: #fff !important;
+        box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
+        transform: translateY(-3px);
+    }
+    
+    /* Botão Saudáveis */
+    .btn-saude.text-success::before {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(52, 211, 153, 0.15));
+    }
+    
+    .btn-saude.text-success:hover {
+        color: #10b981 !important;
+        border-color: rgba(16, 185, 129, 0.4);
+    }
+    
+    .btn-saude.text-success.active {
+        background: linear-gradient(135deg, #10b981, #34d399) !important;
+        color: #fff !important;
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+        transform: translateY(-3px);
+    }
+    
+    /* Animação de pulso nos botões ativos */
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+    }
+    
+    .btn-saude.active {
+        font-weight: 700;
+        animation: pulse 2s ease-in-out infinite;
+    }
+    
+    /* Container dos botões */
+    #grupo-filtros-saude {
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+</style>
                 <!-- Filters -->
                 <div class="filters-card">
                     <div class="filters-grid">
@@ -1040,7 +1379,19 @@
                 <!-- Table -->
                 <div class="table-card">
                     <div class="table-header">
-                        <h2 class="table-title">Escritórios Cadastrados</h2>
+                        <h5 style="
+    font-size: 1.1rem; /* Aumentado para maior destaque */
+    font-weight: 500; /* Peso médio para não ficar muito grosso */
+    letter-spacing: 2px; /* Espaçamento elegante entre as letras */
+    text-transform: uppercase; 
+    color: #e0e0e0; /* Cor mais clara para facilitar a leitura no fundo escuro */
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+">
+    <i class="bi bi-building me-2" style="font-size: 1.2rem; color: #00d1b2;"></i>
+    Escritórios Cadastrados
+</h5>
                         <span class="table-count" id="count-escritorios">0 REGISTROS</span>
                     </div>
                     <div class="table-container">
@@ -1072,6 +1423,176 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Seção Inadimplência -->
+<div id="secao-inadimplencia" class="secao-tab">
+    <div class="filters-card">
+        <div class="filters-header">
+            <div class="section-title">
+                <span class="title-icon">💳</span>
+                <span>CONTROLE DE INADIMPLÊNCIA</span>
+            </div>
+            <button class="btn-export" onclick="exportarInadimplencia()">
+                <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                </svg>
+                <span>EXPORTAR CSV</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="table-header">
+            <div class="table-title">ESCRITÓRIOS COM PENDÊNCIAS</div>
+            <div class="table-count" id="count-inadimplentes">0 REGISTROS</div>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>STATUS</th>
+                        <th>ESCRITÓRIO</th>
+                        <th>OAB</th>
+                        <th>PLANO</th>
+                        <th>VENCIMENTO</th>
+                        <th>DIAS ATRASO</th>
+                        <th>VALOR</th>
+                        <th>PROCESSOS</th>
+                        <th>AÇÕES</th>
+                    </tr>
+                </thead>
+                <tbody id="body-inadimplentes">
+                    <tr>
+                        <td colspan="9">
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+                                </div>
+                                <div class="empty-title">Nenhuma inadimplência encontrada</div>
+                                <div class="empty-text">Todos os escritórios estão em dia!</div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Seção Upgrade -->
+<div id="secao-upgrade" class="secao-tab">
+    <div class="filters-card">
+        <div class="filters-header">
+            <div class="section-title">
+                <span class="title-icon">🚀</span>
+                <span>OPORTUNIDADES DE UPGRADE</span>
+            </div>
+            <button class="btn-export" onclick="exportarUpgrade()">
+                <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                </svg>
+                <span>EXPORTAR CSV</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="table-header">
+            <div class="table-title">ESCRITÓRIOS NO LIMITE</div>
+            <div class="table-count" id="count-upgrade">0 REGISTROS</div>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ESCRITÓRIO</th>
+                        <th>OAB</th>
+                        <th>PLANO ATUAL</th>
+                        <th>USUÁRIOS</th>
+                        <th>% USO</th>
+                        <th>PRAZOS</th>
+                        <th>% USO</th>
+                        <th>RECURSO CRÍTICO</th>
+                        <th>AÇÕES</th>
+                    </tr>
+                </thead>
+                <tbody id="body-upgrade">
+                    <tr>
+                        <td colspan="9">
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/></svg>
+                                </div>
+                                <div class="empty-title">Nenhum escritório no limite</div>
+                                <div class="empty-text">Todos estão com uso confortável</div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Seção Audit Log -->
+<div id="secao-audit" class="secao-tab">
+    <div class="filters-card">
+        <div class="filters-header">
+            <div class="section-title">
+                <span class="title-icon">📋</span>
+                <span>LOG DE EVENTOS IMPORTANTES</span>
+            </div>
+            <div class="filters-grid">
+                <select class="filter-input" id="filtroTipoEvento" onchange="filtrarAudit()">
+                    <option value="">Todos os Eventos</option>
+                    <option value="novo_cadastro">Novos Cadastros</option>
+                    <option value="upgrade">Upgrades</option>
+                    <option value="milestone">Milestones</option>
+                    <option value="status_pagamento">Pagamentos</option>
+                </select>
+                <button class="btn-export" onclick="exportarAudit()">
+                    <svg width="16" height="16" viewBox="0 0 24 24">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                    </svg>
+                    <span>EXPORTAR CSV</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="table-header">
+            <div class="table-title">EVENTOS DO SISTEMA</div>
+            <div class="table-count" id="count-audit">0 REGISTROS</div>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>DATA/HORA</th>
+                        <th>TIPO</th>
+                        <th>DESCRIÇÃO</th>
+                        <th>ESCRITÓRIO</th>
+                        <th>USUÁRIO</th>
+                    </tr>
+                </thead>
+                <tbody id="body-audit">
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8m8 4H8m2-8H8"/></svg>
+                                </div>
+                                <div class="empty-title">Nenhum evento registrado</div>
+                                <div class="empty-text">Os eventos serão listados aqui</div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
             <!-- TAB: Logs -->
             <div id="secao-logs" class="tab-content">
@@ -1252,56 +1773,57 @@
         }
 
         // Carregar dados de escritórios
-        async function carregarDadosEscritorios() {
-            try {
-                mostrarLoading();
+async function carregarDadosEscritorios() {
+    try {
+        mostrarLoading();
 
-                // 1. Buscar estatísticas
-                const statsRes = await fetch('/systems/stats', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+        const headersSet = { 
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json' 
+        };
 
-                if (statsRes.status === 401) {
-                    alert('Sessão expirada. Faça login novamente.');
-                    window.location.href = '/login';
-                    return;
-                }
+        // 1. Buscar estatísticas
+        const statsRes = await fetch('/systems/stats', { headers: headersSet });
 
-                if (!statsRes.ok) throw new Error('Erro ao buscar estatísticas');
-
-                const statsData = await statsRes.json();
-
-                if (statsData.ok) {
-                    renderizarStatsEscritorios(statsData.stats);
-                }
-
-                // 2. Buscar lista de escritórios
-                const escritRes = await fetch('/systems/escritorios', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (!escritRes.ok) throw new Error('Erro ao buscar escritórios');
-
-                const escritData = await escritRes.json();
-
-                if (escritData.ok) {
-                    escritoriosData = escritData.escritorios;
-                    renderizarTabelaEscritorios(escritoriosData);
-                    document.getElementById('count-escritorios').textContent = 
-                        `${escritData.total} REGISTROS`;
-                }
-
-            } catch (err) {
-                console.error('Erro:', err);
-                mostrarErro(err.message, 'Escritorios');
-            } finally {
-                esconderLoading();
-            }
+        if (statsRes.status === 401 || statsRes.status === 403) {
+            alert('Acesso negado. Por favor, faça login novamente.');
+            window.location.href = '/login';
+            return;
         }
 
+        if (!statsRes.ok) throw new Error('Erro ao buscar estatísticas');
+        const statsData = await statsRes.json();
+        if (statsData.ok) {
+            renderizarStatsEscritorios(statsData.stats);
+        }
+
+        // 2. Buscar lista de escritórios
+        const escritRes = await fetch('/systems/escritorios', { headers: headersSet });
+        if (!escritRes.ok) throw new Error('Erro ao buscar escritórios');
+
+        const escritData = await escritRes.json();
+        if (escritData.ok) {
+            escritoriosData = escritData.escritorios;
+            renderizarTabelaEscritorios(escritoriosData);
+            document.getElementById('count-escritorios').textContent = `${escritData.total} REGISTROS`;
+        }
+
+        // ✅ 3. Carregar o gráfico de crescimento semanal (Chamada inserida aqui)
+        carregarGraficoCrescimento();
+
+    } catch (err) {
+        console.error('Erro:', err);
+        mostrarErro(err.message, 'Escritorios');
+    } finally {
+        esconderLoading();
+    }
+}
+
         function renderizarStatsEscritorios(stats) {
-            const container = document.getElementById('stats-escritorios-cards');
-            container.innerHTML = `
+            // Popular cards da seção Overview
+            const containerOverview = document.getElementById('stats-overview-cards');
+            if (containerOverview) {
+                containerOverview.innerHTML = `
                 <div class="stat-card">
                     <div class="stat-header">
                         <div class="stat-title">Total Escritórios</div>
@@ -1363,50 +1885,81 @@
                     <div class="stat-label">No sistema</div>
                 </div>
             `;
-        }
-
-        function renderizarTabelaEscritorios(lista) {
-            const tbody = document.getElementById('body-escritorios');
-            tbody.innerHTML = '';
-            
-            if (lista.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8">
-                            <div class="empty-state">
-                                <div class="empty-icon">🏢</div>
-                                <div class="empty-title">Nenhum escritório encontrado</div>
-                                <div class="empty-text">Tente ajustar os filtros</div>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
             }
             
-            lista.forEach(esc => {
-                const plano = (esc.plano_ativo || 'BASICO').toLowerCase();
-                const planoClass = `badge-${plano}`;
-                
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${esc.id}</strong></td>
-                        <td>
-                            <div class="escritorio-info">
-                                <div class="escritorio-name">${esc.nome || esc.advogado_responsavel}</div>
-                                <div class="escritorio-oab">${esc.advogado_responsavel || ''}</div>
-                            </div>
-                        </td>
-                        <td>${esc.oab || '-'}</td>
-                        <td><span class="badge ${planoClass}">${esc.plano_ativo || 'BASICO'}</span></td>
-                        <td>${esc.total_usuarios || 0}</td>
-                        <td>${esc.total_processos || 0}</td>
-                        <td>${esc.total_prazos || 0}</td>
-                        <td>${new Date(esc.data_criacao).toLocaleDateString('pt-BR')}</td>
-                    </tr>
-                `;
-            });
+            // Popular valores do Overview (MRR, Churn, Inadimplentes, No Limite)
+            const mrrElOverview = document.getElementById('mrrValueOverview');
+            if (mrrElOverview) mrrElOverview.innerText = stats.mrr.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            const churnElOverview = document.getElementById('churnRateOverview');
+            if (churnElOverview) {
+                const taxa = stats.total_escritorios > 0 ? ((stats.churn / stats.total_escritorios) * 100).toFixed(1) : 0;
+                churnElOverview.innerText = `${taxa}%`;
+            }
+            
+            const inadimplentesOverview = document.getElementById('totalInadimplentesOverview');
+            if (inadimplentesOverview) {
+                inadimplentesOverview.textContent = (stats.pendente || 0) + (stats.inadimplente || 0);
+            }
+            
+            const noLimiteOverview = document.getElementById('totalNoLimiteOverview');
+            if (noLimiteOverview) {
+                noLimiteOverview.textContent = stats.no_limite || 0;
+            }
+}
+        
+function renderizarTabelaEscritorios(lista) {
+    const tbody = document.getElementById('body-escritorios');
+    tbody.innerHTML = '';
+    
+    if (lista.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center p-5">Nenhum escritório encontrado.</td></tr>`;
+        return;
+    }
+    
+    lista.forEach(esc => {
+        const plano = (esc.plano_ativo || 'INDIVIDUAL').toLowerCase();
+        
+        // 🚦 Lógica de Saúde (Health Score)
+        const totalProcessos = parseInt(esc.total_processos || 0);
+        const totalUsuarios = parseInt(esc.total_usuarios || 0);
+        
+        let statusCor = '#00d1b2'; // Verde (Saudável)
+        let statusTexto = 'ATIVO';
+        let alertaIcone = '';
+
+        if (totalProcessos === 0) {
+            statusCor = '#ff4757'; // Vermelho (Crítico)
+            statusTexto = 'INATIVO';
+            alertaIcone = '<span title="Crítico: 0 Processos" style="cursor:help;">⚠️</span>';
+        } else if (totalUsuarios <= 1) {
+            statusCor = '#ffa502'; // Amarelo (Alerta)
+            statusTexto = 'SOLO';
         }
+
+        tbody.innerHTML += `
+            <tr style="border-left: 4px solid ${statusCor};">
+                <td><small class="text-muted">${esc.id}</small></td>
+                <td>
+                    <div class="escritorio-info">
+                        <div class="escritorio-name" style="text-transform: uppercase; font-weight: 400; letter-spacing: 0.5px; color: #fff;">
+                            ${esc.nome} ${alertaIcone}
+                        </div>
+                        <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase;">
+                            RESPONSÁVEL: ${esc.advogado_responsavel || 'NÃO INFORMADO'}
+                        </div>
+                    </div>
+                </td>
+                <td><code class="text-info" style="font-size: 0.85rem;">${esc.oab || '-'}</code></td>
+                <td><span class="badge badge-${plano}">${esc.plano_ativo || 'INDIVIDUAL'}</span></td>
+                <td class="text-center">${totalUsuarios}</td>
+                <td class="text-center">${totalProcessos}</td>
+                <td class="text-center">${esc.total_prazos || 0}</td>
+                <td><small>${esc.data_criacao ? new Date(esc.data_criacao).toLocaleDateString('pt-BR') : '—'}</small></td>
+            </tr>
+        `;
+    });
+}
 
         // Carregar logs
         async function carregarLogs() {
@@ -1588,6 +2141,599 @@
             document.body.removeChild(link);
         }
 
+        let myChart; // Variável global para o gráfico
+
+async function carregarGraficoCrescimento() {
+    try {
+        const res = await fetch('/systems/crescimento', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+            const ctx = document.getElementById('growthChart').getContext('2d');
+            if (myChart) myChart.destroy(); // Limpa o gráfico anterior se existir
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Novos Escritórios',
+                        data: data.valores,
+                        backgroundColor: '#00d1b2', // Cor verde LawTech
+                        borderRadius: 5,
+                        barThickness: 20
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1, color: '#888' }, grid: { color: '#333' } },
+                        x: { ticks: { color: '#888' }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Erro ao carregar gráfico:', err);
+    }
+}
+
+function filtrarSaude(tipo, botaoClicado) {
+    // Remover classe active de todos os botões
+    document.querySelectorAll('.btn-saude').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Adicionar classe active ao botão clicado
+    if (botaoClicado) {
+        botaoClicado.classList.add('active');
+    }
+    
+    let filtrados = [...escritoriosData]; // Usa os dados originais
+
+    if (tipo === 'critico') {
+        filtrados = escritoriosData.filter(e => parseInt(e.total_processos) === 0);
+    } else if (tipo === 'alerta') {
+        filtrados = escritoriosData.filter(e => parseInt(e.total_processos) > 0 && parseInt(e.total_usuarios) <= 1);
+    } else if (tipo === 'saudavel') {
+        filtrados = escritoriosData.filter(e => parseInt(e.total_processos) > 0 && parseInt(e.total_usuarios) > 1);
+    }
+
+    renderizarTabelaEscritorios(filtrados);
+    document.getElementById('count-escritorios').textContent = `${filtrados.length} EXIBIDOS`;
+}
+
+// ==========================================
+// NOVAS FUNÇÕES: INADIMPLÊNCIA
+// ==========================================
+
+let inadimplentesData = [];
+
+async function carregarInadimplentes() {
+    try {
+        mostrarLoading();
+        const res = await fetch('/systems/inadimplencia', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const data = await res.json();
+
+        if (data.ok) {
+            inadimplentesData = data.inadimplentes || [];
+            renderizarTabelaInadimplentes(inadimplentesData);
+            document.getElementById('count-inadimplentes').textContent = 
+                `${inadimplentesData.length} REGISTROS`;
+        }
+    } catch (err) {
+        console.error('Erro ao carregar inadimplentes:', err);
+        renderizarTabelaInadimplentes([]);
+    } finally {
+        esconderLoading();
+    }
+}
+
+function renderizarTabelaInadimplentes(lista) {
+    const tbody = document.getElementById('body-inadimplentes');
+    tbody.innerHTML = '';
+    
+    if (lista.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9">
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+                        </div>
+                        <div class="empty-title">Nenhuma inadimplência encontrada</div>
+                        <div class="empty-text">Todos os escritórios estão em dia!</div>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    lista.forEach(item => {
+        const statusClass = item.status_pagamento === 'inadimplente' ? 'danger' : 'warning';
+        const statusIcon = item.status_pagamento === 'inadimplente' ? '🔴' : '🟡';
+        const statusTexto = item.status_pagamento === 'inadimplente' ? 'INADIMPLENTE' : 'PENDENTE';
+        
+        tbody.innerHTML += `
+            <tr>
+                <td>
+                    <span class="badge badge-${statusClass}">
+                        ${statusIcon} ${statusTexto}
+                    </span>
+                </td>
+                <td><strong>${item.nome}</strong></td>
+                <td><span class="badge badge-status">${item.oab}</span></td>
+                <td><span class="badge badge-plan">${item.plano_ativo}</span></td>
+                <td>${new Date(item.data_vencimento).toLocaleDateString('pt-BR')}</td>
+                <td><strong style="color: ${item.dias_atraso > 10 ? '#ef4444' : '#f59e0b'}">${item.dias_atraso} dias</strong></td>
+                <td>R$ ${parseFloat(item.valor_mensalidade || 0).toFixed(2)}</td>
+                <td>${item.total_processos}</td>
+                <td>
+                    <button class="btn-action" onclick="contatarEscritorio(${item.id})" title="Entrar em contato">
+                        📧
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function contatarEscritorio(id) {
+    // Busca o escritório na lista de inadimplentes carregada [cite: 107, 117]
+    const escritorio = inadimplentesData.find(e => e.id === id);
+    
+    if (!escritorio) {
+        alert("Dados do escritório não encontrados.");
+        return;
+    }
+
+    // Formatação de data e valor para o padrão brasileiro [cite: 161, 163]
+    const dataVenc = new Date(escritorio.data_vencimento).toLocaleDateString('pt-BR');
+    const valorMsg = parseFloat(escritorio.valor_mensalidade || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    const saudacao = "Olá, Dr(a). " + (escritorio.advogado_responsavel || "Colega");
+    
+    // Mensagem estruturada e profissional 
+    const mensagem = `${saudacao}, aqui é do suporte da LawTech Systems.
+
+Identificamos uma pendência no sistema referente ao escritório ${escritorio.nome.toUpperCase()}.
+
+📌 Detalhes da fatura:
+- Vencimento: ${dataVenc}
+- Valor: ${valorMsg}
+- Atraso: ${escritorio.dias_atraso} dias
+
+Para evitar a suspensão do acesso aos seus ${escritorio.total_processos} processos cadastrados, podemos enviar uma nova via do boleto ou chave PIX?`;
+
+    // Abre o WhatsApp Web com a mensagem pronta [cite: 171]
+    const url = `https://web.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
+    window.open(url, '_blank');
+}
+
+// ==========================================
+// NOVAS FUNÇÕES: UPGRADE
+// ==========================================
+
+let upgradeData = [];
+
+async function carregarUpgrade() {
+    try {
+        mostrarLoading();
+        const res = await fetch('/systems/no-limite', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const data = await res.json();
+
+        if (data.ok) {
+            upgradeData = data.escritorios || [];
+            renderizarTabelaUpgrade(upgradeData);
+            document.getElementById('count-upgrade').textContent = 
+                `${upgradeData.length} REGISTROS`;
+        }
+    } catch (err) {
+        console.error('Erro ao carregar oportunidades de upgrade:', err);
+        renderizarTabelaUpgrade([]);
+    } finally {
+        esconderLoading();
+    }
+}
+
+function renderizarTabelaUpgrade(lista) {
+    const tbody = document.getElementById('body-upgrade');
+    tbody.innerHTML = '';
+    
+    if (lista.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9">
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/></svg>
+                        </div>
+                        <div class="empty-title">Nenhum escritório no limite</div>
+                        <div class="empty-text">Todos estão com uso confortável</div>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    lista.forEach(item => {
+        const percUsuarios = parseFloat(item.percentual_usuarios || 0);
+        const percPrazos = parseFloat(item.percentual_prazos || 0);
+        
+        const corUsuarios = percUsuarios >= 95 ? '#ef4444' : percUsuarios >= 90 ? '#f59e0b' : '#10b981';
+        const corPrazos = percPrazos >= 95 ? '#ef4444' : percPrazos >= 90 ? '#f59e0b' : '#10b981';
+        
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${item.nome}</strong></td>
+                <td><span class="badge badge-status">${item.oab}</span></td>
+                <td><span class="badge badge-plan">${item.plano_ativo}</span></td>
+                <td>${item.total_usuarios} / ${item.limite_usuarios}</td>
+                <td><strong style="color: ${corUsuarios}">${percUsuarios.toFixed(1)}%</strong></td>
+                <td>${item.total_prazos} / ${item.limite_prazos}</td>
+                <td><strong style="color: ${corPrazos}">${percPrazos.toFixed(1)}%</strong></td>
+                <td>
+                    <span class="badge badge-${item.recurso_limite === 'usuarios' ? 'danger' : 'warning'}">
+                        ${item.recurso_limite.toUpperCase()}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn-action" onclick="oferecerUpgrade(${item.id})" title="Oferecer upgrade">
+                        🚀
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function oferecerUpgrade(id) {
+    alert(`Funcionalidade de oferta de upgrade para escritório ID ${id}\nImplementar integração com sistema de vendas`);
+}
+
+// ==========================================
+// NOVAS FUNÇÕES: AUDIT LOG
+// ==========================================
+
+let auditData = [];
+
+async function carregarAudit() {
+    try {
+        mostrarLoading();
+        const res = await fetch('/systems/audit-log', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const data = await res.json();
+
+        if (data.ok) {
+            auditData = data.eventos || [];
+            renderizarTabelaAudit(auditData);
+            document.getElementById('count-audit').textContent = 
+                `${auditData.length} REGISTROS`;
+        }
+    } catch (err) {
+        console.error('Erro ao carregar audit log:', err);
+        renderizarTabelaAudit([]);
+    } finally {
+        esconderLoading();
+    }
+}
+
+function renderizarTabelaAudit(lista) {
+    const tbody = document.getElementById('body-audit');
+    tbody.innerHTML = '';
+    
+    if (lista.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5">
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8m8 4H8m2-8H8"/></svg>
+                        </div>
+                        <div class="empty-title">Nenhum evento registrado</div>
+                        <div class="empty-text">Os eventos serão listados aqui</div>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    lista.forEach(event => {
+        const iconeTipo = {
+            'novo_cadastro': '🎉',
+            'upgrade': '🚀',
+            'milestone': '🏆',
+            'status_pagamento': '💳'
+        }[event.tipo_evento] || '📌';
+        
+        const corTipo = {
+            'novo_cadastro': '#10b981',
+            'upgrade': '#8b5cf6',
+            'milestone': '#f59e0b',
+            'status_pagamento': '#3b82f6'
+        }[event.tipo_evento] || '#6b7280';
+        
+        tbody.innerHTML += `
+            <tr>
+                <td style="font-size:12px">${new Date(event.criado_em).toLocaleString('pt-BR')}</td>
+                <td>
+                    <span class="badge" style="background: ${corTipo}20; color: ${corTipo}; border-color: ${corTipo}50">
+                        ${iconeTipo} ${event.tipo_evento.replace('_', ' ').toUpperCase()}
+                    </span>
+                </td>
+                <td style="font-size:13px">${event.descricao}</td>
+                <td>${event.escritorio}</td>
+                <td>${event.usuario}</td>
+            </tr>
+        `;
+    });
+}
+
+function filtrarAudit() {
+    const tipo = document.getElementById('filtroTipoEvento').value;
+    
+    const filtrados = tipo 
+        ? auditData.filter(e => e.tipo_evento === tipo)
+        : auditData;
+    
+    renderizarTabelaAudit(filtrados);
+    document.getElementById('count-audit').textContent = `${filtrados.length} REGISTROS`;
+}
+
+// ==========================================
+// ATUALIZAR FUNÇÃO trocarAba
+// ==========================================
+
+
+// Função para trocar entre as abas
+function trocarAba(aba, botaoClicado) {
+    // Remover active de todos os botões e seções
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(sec => sec.classList.remove('active'));
+    document.querySelectorAll('.secao-tab').forEach(sec => sec.classList.remove('active'));
+
+    // Se botaoClicado for passado, usar ele; senão, usar mapeamento padrão
+    if (botaoClicado !== undefined) {
+        document.querySelectorAll('.tab-btn')[botaoClicado].classList.add('active');
+    } else {
+        // Mapeamento padrão para compatibilidade
+        const index = {
+            'overview': 0,
+            'escritorios': 1,
+            'inadimplencia': 2,
+            'upgrade': 3,
+            'logs': 4,
+            'audit': 5
+        }[aba];
+        
+        if (index !== undefined) {
+            document.querySelectorAll('.tab-btn')[index].classList.add('active');
+        }
+    }
+    
+    const secao = document.getElementById(`secao-${aba}`);
+    if (secao) {
+        secao.classList.add('active');
+    }
+
+    // Carregar dados da aba
+    if (aba === 'overview') {
+        carregarDadosEscritorios(); // Carrega estatísticas para overview
+    }
+    if (aba === 'escritorios') {
+        carregarGraficoCrescimento();
+        carregarDadosEscritorios(); // Carrega lista de escritórios
+    }
+    if (aba === 'inadimplencia') carregarInadimplentes();
+    if (aba === 'upgrade') carregarUpgrade();
+    if (aba === 'audit') carregarAudit();
+    if (aba === 'logs') carregarLogs();
+}
+
+
+// ==========================================
+// ATUALIZAR atualizarDados PARA INCLUIR NOVAS ESTATÍSTICAS
+// ==========================================
+
+// Adicione ao final da função carregarDadosEscritorios (ou crie uma nova):
+async function atualizarEstatisticasCompletas() {
+    try {
+        const res = await fetch('/systems/stats', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!res.ok) throw new Error('Erro ao carregar estatísticas');
+        const data = await res.json();
+        
+        if (data.ok && data.stats) {
+            // Atualizar estatísticas existentes
+            document.getElementById('totalEscritorios').textContent = data.stats.total_escritorios || 0;
+            
+            // Atualizar NOVAS estatísticas
+            if (document.getElementById('totalInadimplentes')) {
+                document.getElementById('totalInadimplentes').textContent = 
+                    (data.stats.pendente || 0) + (data.stats.inadimplente || 0);
+            }
+            
+            if (document.getElementById('totalNoLimite')) {
+                document.getElementById('totalNoLimite').textContent = data.stats.no_limite || 0;
+            }
+        }
+    } catch (err) {
+        console.error('Erro ao atualizar estatísticas:', err);
+    }
+}
+
+// ==========================================
+// FUNÇÕES DE EXPORTAÇÃO
+// ==========================================
+
+function exportarInadimplencia() {
+    let csv = 'Status,Escritório,OAB,Plano,Vencimento,Dias Atraso,Valor,Processos\n';
+    
+    inadimplentesData.forEach(item => {
+        csv += `"${item.status_pagamento}",`;
+        csv += `"${item.nome}",`;
+        csv += `"${item.oab}",`;
+        csv += `"${item.plano_ativo}",`;
+        csv += `"${new Date(item.data_vencimento).toLocaleDateString('pt-BR')}",`;
+        csv += `${item.dias_atraso},`;
+        csv += `${item.valor_mensalidade || 0},`;
+        csv += `${item.total_processos}\n`;
+    });
+    
+    baixarCSV(csv, 'inadimplencia-lawtech.csv');
+}
+
+function exportarUpgrade() {
+    let csv = 'Escritório,OAB,Plano,Usuários,% Uso Usuários,Prazos,% Uso Prazos,Recurso Crítico\n';
+    
+    upgradeData.forEach(item => {
+        csv += `"${item.nome}",`;
+        csv += `"${item.oab}",`;
+        csv += `"${item.plano_ativo}",`;
+        csv += `"${item.total_usuarios}/${item.limite_usuarios}",`;
+        csv += `${item.percentual_usuarios}%,`;
+        csv += `"${item.total_prazos}/${item.limite_prazos}",`;
+        csv += `${item.percentual_prazos}%,`;
+        csv += `"${item.recurso_limite}"\n`;
+    });
+    
+    baixarCSV(csv, 'oportunidades-upgrade-lawtech.csv');
+}
+
+function exportarAudit() {
+    let csv = 'Data/Hora,Tipo,Descrição,Escritório,Usuário\n';
+    
+    auditData.forEach(event => {
+        csv += `"${new Date(event.criado_em).toLocaleString('pt-BR')}",`;
+        csv += `"${event.tipo_evento}",`;
+        csv += `"${event.descricao}",`;
+        csv += `"${event.escritorio}",`;
+        csv += `"${event.usuario}"\n`;
+    });
+    
+    baixarCSV(csv, 'audit-log-lawtech.csv');
+}
+
+// Função para Oferecer Upgrade (Baseada em Uso de Limites)
+function oferecerUpgrade(id) {
+    const escritorio = upgradeData.find(e => e.id === id);
+    if (!escritorio) return;
+
+    const saudacao = "Olá, Dr(a). " + (escritorio.advogado_responsavel || "Colega");
+    const recurso = escritorio.recurso_limite === 'usuarios' ? 'usuários' : 'prazos';
+    const percentual = recurso === 'usuários' ? escritorio.percentual_usuarios : escritorio.percentual_prazos;
+
+    const mensagem = `${saudacao}, tudo bem? 
+
+Aqui é da LawTech Systems. Notamos que seu escritório está crescendo rápido! 🚀
+
+Identificamos que você já atingiu ${percentual}% do seu limite de ${recurso} no plano ${escritorio.plano_ativo.toUpperCase()}. 
+
+Para garantir que sua operação não pare e você continue aproveitando todas as nossas automações, gostaria de conhecer as condições especiais para o próximo plano?`;
+
+    const url = `https://web.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
+    window.open(url, '_blank');
+}
+
+// Função de Contato Financeiro (Com Detalhes da Fatura)
+function contatarEscritorio(id) {
+    const escritorio = inadimplentesData.find(e => e.id === id);
+    if (!escritorio) return;
+
+    const dataVenc = new Date(escritorio.data_vencimento).toLocaleDateString('pt-BR');
+    const valorMsg = parseFloat(escritorio.valor_mensalidade || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    const mensagem = `Olá, Dr(a). ${escritorio.advogado_responsavel || "Colega"}, tudo bem?
+
+Identificamos uma pendência financeira no sistema LawTech referente ao escritório ${escritorio.nome.toUpperCase()}.
+
+📌 Detalhes:
+- Vencimento: ${dataVenc}
+- Valor: ${valorMsg}
+- Atraso: ${escritorio.dias_atraso} dias
+
+Podemos ajudar com a segunda via do boleto ou chave PIX para manter seu acesso regularizado?`;
+
+    const url = `https://web.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
+    window.open(url, '_blank');
+}
+
+async function gerarRelatorioMensal() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const dataAtual = new Date().toLocaleDateString('pt-BR');
+
+    // Cabeçalho de Elite
+    doc.setFontSize(22);
+    doc.setTextColor(0, 209, 178); // Verde LawTech
+    doc.text("LAWTECH SYSTEMS - RELATÓRIO EXECUTIVO", 20, 20);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Gerado em: ${dataAtual}`, 20, 28);
+    doc.line(20, 32, 190, 32);
+
+    // Seção 1: Resumo Geral
+    doc.setFontSize(14);
+    doc.setTextColor(0);
+    doc.text("1. RESUMO DE OPERAÇÕES", 20, 45);
+    
+    const stats = [
+        ["Total de Escritórios", document.getElementById('totalEscritorios').textContent],
+        ["Total de Processos", document.getElementById('totalProcessos').textContent],
+        ["Inadimplentes Ativos", document.getElementById('totalInadimplentes').textContent],
+        ["Oportunidades de Upgrade", document.getElementById('totalNoLimite').textContent]
+    ];
+
+    doc.autoTable({
+        startY: 50,
+        head: [['Métrica', 'Valor']],
+        body: stats,
+        theme: 'striped',
+        headStyles: { fillStyle: [0, 209, 178] }
+    });
+
+    // Seção 2: Saúde Financeira
+    doc.text("2. STATUS FINANCEIRO", 20, doc.lastAutoTable.finalY + 15);
+    
+    const financeiro = inadimplentesData.map(e => [
+        e.nome.toUpperCase(),
+        new Date(e.data_vencimento).toLocaleDateString('pt-BR'),
+        `R$ ${parseFloat(e.valor_mensalidade).toFixed(2)}`,
+        `${e.dias_atraso} dias`
+    ]);
+
+    doc.autoTable({
+        startY: doc.lastAutoTable.finalY + 20,
+        head: [['Escritório', 'Vencimento', 'Valor', 'Atraso']],
+        body: financeiro.length ? financeiro : [['Tudo em dia', '-', '-', '-']],
+    });
+
+    // Rodapé
+    doc.setFontSize(8);
+    doc.text("Confidencial - LawTech Systems Admin", 20, 285);
+
+    doc.save(`Relatorio_LawTech_${dataAtual.replace(/\//g, '-')}.pdf`);
+}
         // Auto-refresh (2 minutos)
         setInterval(atualizarDados, 120000);
 

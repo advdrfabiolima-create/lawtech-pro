@@ -172,12 +172,7 @@
             flex-direction: column;
             gap: 8px;
         }
-
-        .sidebar-footer > div {
-            display: flex;
-            justify-content: space-between;
-        }
-
+        
         .sidebar-footer span {
             color: #cbd5e1 !important;
         }
@@ -307,6 +302,57 @@
   border-radius: 6px;
   text-align: center;
 }
+
+/* Padronização LawTech Pro - Caixa Alta Global */
+body {
+    text-transform: uppercase;
+}
+
+/* Garante que os campos de digitação também mostrem caixa alta enquanto o usuário digita */
+input, textarea, select {
+    text-transform: uppercase;
+}
+
+/* Opcional: Se quiser que os números dos processos mantenham o estilo técnico, 
+   mas ainda em caixa alta */
+.numero-processo, .processo-hash {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+}
+
+/* Container do rodapé */
+.sidebar-footer {
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Alinhamento à esquerda (Início) */
+.footer-info-row {
+    display: flex;
+    justify-content: flex-start; /* Alinha no começo da linha */
+    align-items: center;
+    gap: 5px; /* Espaço fixo após os ":" */
+    font-size: 12px;
+}
+
+/* Rótulos em caixa alta */
+.footer-info-row span:first-child {
+    text-transform: uppercase;
+    color: var(--text-tertiary, #64748b);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* ✅ Regra para e-mail e plano em minúsculas */
+.keep-lowercase {
+    text-transform: none !important; /* Cancela o uppercase global */
+    font-variant: normal !important;
+    color: #cbd5e1;
+}
     </style>
 </head>
 <body>
@@ -334,14 +380,17 @@
             </a>
         </nav>
 
-        <div class="sidebar-footer">
-            <div style="margin-bottom: 6px;">
-                <span style="color:#64748b">Usuário:</span> <span id="userEmailFooter" style="color:#fff">...</span>
-            </div>
-            <div>
-                <span style="color:#64748b">Plano:</span> <span id="planNameFooter" style="color:#fff">...</span>
-            </div>
-        </div>
+<div class="sidebar-footer">
+    <div class="footer-info-row">
+        <span>Usuário:</span> 
+        <span id="userEmailFooter" class="keep-lowercase">...</span>
+    </div>
+    
+    <div class="footer-info-row">
+        <span>Plano:</span> 
+        <span id="planNameFooter" class="keep-lowercase">...</span>
+    </div>
+</div>
     </aside>
 
     <div class="main">
@@ -639,58 +688,53 @@
     </div>
 </div>
 
-    <!-- SEÇÃO ASSINATURA E PAGAMENTO - MODERNIZADA -->
-    <div style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid var(--border); padding: 32px; border-radius: 16px; margin-top: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-        
-        <!-- Cabeçalho com ícone -->
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
-            <div style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(59,130,246,0.2);">
-                <i data-lucide="credit-card" style="color: var(--primary); width: 24px; height: 24px;"></i>
+ <div style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid var(--border); padding: 32px; border-radius: 16px; margin-top: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+    
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+        <div style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(59,130,246,0.2);">
+            <i data-lucide="credit-card" style="color: var(--primary); width: 24px; height: 24px;"></i>
+        </div>
+        <div>
+            <h3 style="font-size: 18px; font-weight: 700; color: var(--text-main); margin: 0;">Assinatura e Pagamento</h3>
+            <p style="font-size: 12px; color: var(--muted); margin: 0;">Gerencie sua assinatura e período de teste</p>
+        </div>
+    </div>
+
+    <div id="containerTrial" style="background: #fffbeb; border: 2px solid #fde68a; border-radius: 12px; padding: 20px; margin-bottom: 20px; transition: all 0.3s;">
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <div id="iconeTrialBox" style="background: #fbbf24; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i id="iconeTrial" data-lucide="clock" style="color: #000; width: 18px; height: 18px;"></i>
             </div>
+            <div style="flex: 1;">
+                <div id="labelTrial" style="font-size: 11px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">PERÍODO DE TESTE GRATUITO</div>
+                <p id="textoTrial" style="font-size: 14px; color: #78350f; line-height: 1.6; margin: 0;">
+                    Seu teste vence em <strong style="font-weight: 800; color: #92400e;" id="dataExpiracaoTrial">...</strong><br>
+                    <span id="subtextoTrial" style="font-size: 12px;">Após esta data, a mensalidade será processada automaticamente no cartão cadastrado.</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+        <div style="display: flex; gap: 10px; align-items: flex-start;">
+            <i class="lucide lucide-shield-check" style="color: #10b981; width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px;"></i>
             <div>
-                <h3 style="font-size: 18px; font-weight: 700; color: var(--text-main); margin: 0;">Assinatura e Pagamento</h3>
-                <p style="font-size: 12px; color: var(--muted); margin: 0;">Gerencie sua assinatura e período de teste</p>
+                <div style="font-size: 12px; font-weight: 700; color: #065f46; margin-bottom: 4px;">Seus dados estão protegidos</div>
+                <div style="font-size: 12px; color: #166534; line-height: 1.5;">O cancelamento interrompe cobranças futuras imediatamente.</div>
             </div>
         </div>
+    </div>
 
-        <!-- Card de Trial -->
-        <div style="background: #fffbeb; border: 2px solid #fde68a; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-            <div style="display: flex; align-items: flex-start; gap: 12px;">
-                <div style="background: #fbbf24; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <i data-lucide="clock" style="color: #000; width: 18px; height: 18px;"></i>
-                </div>
-                <div style="flex: 1;">
-                    <div style="font-size: 11px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">PERÍODO DE TESTE GRATUITO</div>
-                    <p style="font-size: 14px; color: #78350f; line-height: 1.6; margin: 0;">
-                        Seu teste vence em <strong style="font-weight: 800; color: #92400e;" id="dataExpiracaoTrial">...</strong><br>
-                        <span style="font-size: 12px;">Após esta data, a mensalidade será processada automaticamente no cartão cadastrado.</span>
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Informações de segurança -->
-        <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-            <div style="display: flex; gap: 10px; align-items: flex-start;">
-                <i class="lucide lucide-shield-check" style="color: #10b981; width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px;"></i>
-                <div>
-                    <div style="font-size: 12px; font-weight: 700; color: #065f46; margin-bottom: 4px;">Seus dados estão protegidos</div>
-                    <div style="font-size: 12px; color: #166534; line-height: 1.5;">Você pode cancelar a qualquer momento antes do vencimento do teste e não será cobrado.</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Botão de Cancelamento -->
-        <button onclick="solicitarCancelamento()" style="width: 100%; background: #fef2f2; border: 2px solid #fecaca; color: #991b1b; padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+    <div id="containerAcaoAssinatura">
+        <button id="btnAcaoAssinatura" onclick="solicitarCancelamento()" style="width: 100%; background: #fef2f2; border: 2px solid #fecaca; color: #991b1b; padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
             <i class="lucide lucide-x-circle" style="width: 18px; height: 18px;"></i>
             Cancelar Renovação Automática
         </button>
-        
-        <p style="font-size: 11px; color: var(--muted); text-align: center; margin-top: 12px; margin-bottom: 0;">
-            Ao cancelar, você manterá acesso completo até o final do período de teste
-        </p>
     </div>
-    <!-- FIM SEÇÃO ASSINATURA E PAGAMENTO -->
+    
+    <p id="footerAvisoAssinatura" style="font-size: 11px; color: var(--muted); text-align: center; margin-top: 12px; margin-bottom: 0;">
+        Ao cancelar, você manterá acesso completo até o final do período de teste.
+    </p>
 </div>
 
 <script>
@@ -803,7 +847,10 @@ async function carregarInfoRodape() {
             if (circulo) circulo.innerText = iniciais.toUpperCase();
 
             // Preenchimento de E-mail e Nome no formulário
-            document.getElementById('userEmailFooter').innerText = user.email;
+            // Nota: usei 'userEmailFooter' conforme o padrão de IDs corrigido anteriormente
+            const footerEmail = document.getElementById('userEmailFooter');
+            if (footerEmail) footerEmail.innerText = user.email;
+            
             if(document.getElementById('perfilEmail')) document.getElementById('perfilEmail').value = user.email;
             if(document.getElementById('perfilNome')) document.getElementById('perfilNome').value = nomeReal;
 
@@ -821,8 +868,9 @@ async function carregarInfoRodape() {
         // 2. Carregamento do Plano e Consumo
         const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
         const dataPlan = await resPlan.json();
-        if(document.getElementById('planNameFooter')) {
-            document.getElementById('planNameFooter').innerText = dataPlan.plano || 'Individual';
+        const planFooter = document.getElementById('planNameFooter');
+        if(planFooter) {
+            planFooter.innerText = dataPlan.plano || 'Individual';
         }
 
         // 3. Carregamento dos dados do Escritório e Dados Bancários
@@ -855,6 +903,51 @@ async function carregarInfoRodape() {
 
             if(d.renda_mensal && document.getElementById('confRendaMensal')) {
                 document.getElementById('confRendaMensal').value = 'R$ ' + parseFloat(d.renda_mensal).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            }
+
+            // ✅ LÓGICA DE CANCELAMENTO ATIVO (Mudar bloco para Vermelho)
+            if (d.renovacao_automatica === false) {
+                const container = document.getElementById('containerTrial');
+                const iconeBox = document.getElementById('iconeTrialBox');
+                const label = document.getElementById('labelTrial');
+                const texto = document.getElementById('textoTrial');
+                const btnAcao = document.getElementById('btnAcaoAssinatura');
+                const elementoDataVenc = document.getElementById('dataExpiracaoTrial');
+                const dataVenc = elementoDataVenc ? elementoDataVenc.innerText : "...";
+
+                if (container) {
+                    // 1. Muda Estilo do Card para Vermelho/Rosa suave
+                    container.style.background = "#fef2f2";
+                    container.style.borderColor = "#fecaca";
+                }
+                
+                if (iconeBox) {
+                    iconeBox.style.background = "#ef4444";
+                    iconeBox.innerHTML = '<i data-lucide="x-circle" style="color: #fff; width: 18px; height: 18px;"></i>';
+                }
+                
+                if (label) {
+                    label.innerText = "RENOVAÇÃO CANCELADA";
+                    label.style.color = "#991b1b";
+                }
+
+                if (texto) {
+                    texto.style.color = "#991b1b";
+                    texto.innerHTML = `Você cancelou sua assinatura antes de vencer o período de teste, portanto, <strong>não haverá cobranças em seu cartão.</strong><br>` +
+                                    `<span style="font-size: 12px;">Seu acesso continuará liberado até o dia ${dataVenc}.</span>`;
+                }
+
+                // 2. Transforma o botão de "Cancelar" em "Reativar"
+                if (btnAcao) {
+                    btnAcao.style.background = "#f0fdf4";
+                    btnAcao.style.borderColor = "#bbf7d0";
+                    btnAcao.style.color = "#16a34a";
+                    btnAcao.innerHTML = '<i class="lucide lucide-check-circle" style="width: 18px; height: 18px;"></i> Reativar Assinatura';
+                    btnAcao.setAttribute("onclick", "reativarAssinatura()");
+                }
+
+                // Reinicializa os ícones Lucide para renderizar o novo ícone de erro/check
+                if(window.lucide) lucide.createIcons();
             }
         }
     } catch (err) { 
@@ -1135,6 +1228,30 @@ async function solicitarCancelamento() { // 🚀 Nome deve ser igual ao do 'oncl
             window.location.reload();
         } else {
             alert("Erro: " + (data.error || "Tente novamente mais tarde."));
+        }
+    } catch (err) {
+        alert("Erro de conexão com o servidor.");
+    }
+}
+
+async function reativarAssinatura() {
+    if (!confirm("Deseja reativar a renovação automática e garantir a continuidade do seu acesso?")) return;
+
+    try {
+        const res = await fetch('/api/planos/reativar', {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await res.json();
+        if (data.ok) {
+            alert("✅ Assinatura reativada com sucesso, Doutor!");
+            window.location.reload();
+        } else {
+            alert("Erro ao reativar: " + (data.error || "Tente novamente mais tarde."));
         }
     } catch (err) {
         alert("Erro de conexão com o servidor.");

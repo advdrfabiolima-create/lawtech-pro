@@ -170,11 +170,6 @@
             gap: 8px;
         }
 
-        .sidebar-footer > div {
-            display: flex;
-            justify-content: space-between;
-        }
-
         .sidebar-footer span {
             color: #cbd5e1 !important;
         }
@@ -289,6 +284,57 @@
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(251, 191, 36, 0.6);
 }
+
+/* Padronização LawTech Pro - Caixa Alta Global */
+body {
+    text-transform: uppercase;
+}
+
+/* Garante que os campos de digitação também mostrem caixa alta enquanto o usuário digita */
+input, textarea, select {
+    text-transform: uppercase;
+}
+
+/* Opcional: Se quiser que os números dos processos mantenham o estilo técnico, 
+   mas ainda em caixa alta */
+.numero-processo, .processo-hash {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+}
+
+/* Container do rodapé */
+.sidebar-footer {
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Alinhamento à esquerda (Início) */
+.footer-info-row {
+    display: flex;
+    justify-content: flex-start; /* Alinha no começo da linha */
+    align-items: center;
+    gap: 5px; /* Espaço fixo após os ":" */
+    font-size: 12px;
+}
+
+/* Rótulos em caixa alta */
+.footer-info-row span:first-child {
+    text-transform: uppercase;
+    color: var(--text-tertiary, #64748b);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* ✅ Regra para e-mail e plano em minúsculas */
+.keep-lowercase {
+    text-transform: none !important; /* Cancela o uppercase global */
+    font-variant: normal !important;
+    color: #cbd5e1;
+}
     </style>
 </head>
 </head>
@@ -316,16 +362,17 @@
             <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
             </a>
         </nav>
-        <div class="sidebar-footer">
-            <div>
-                <span>Usuário:</span>
-                <span id="userEmail">...</span>
-            </div>
-            <div>
-                <span>Plano:</span>
-                <span id="planNameFooter">...</span>
-            </div>
-        </div>
+<div class="sidebar-footer">
+    <div class="footer-info-row">
+        <span>Usuário:</span> 
+        <span id="userEmail" class="keep-lowercase">...</span>
+    </div>
+    
+    <div class="footer-info-row">
+        <span>Plano:</span> 
+        <span id="planNameFooter" class="keep-lowercase">...</span>
+    </div>
+</div>
     </aside>
 
     <main class="main">
