@@ -746,6 +746,11 @@ router.post('/financeiro/gerar-boleto-honorarios', authMiddleware, async (req, r
         const escRes = await pool.query('SELECT asaas_api_key FROM escritorios WHERE id = $1', [req.user.escritorio_id]);
         const tokenCliente = escRes.rows[0]?.asaas_api_key;
 
+        if (tokenCliente) {
+        const tokenLimpo = tokenCliente.trim(); 
+        // Use 'tokenLimpo' nas chamadas de axios abaixo
+        }
+
         if (!tokenCliente) {
             return res.status(400).json({ erro: '⚠️ Este escritório não ativou o faturamento próprio nas configurações.' });
         }
@@ -846,6 +851,19 @@ router.post('/webhook/financeiro', async (req, res) => {
         }
     } catch (err) {
         console.error('❌ Erro no processamento do Webhook:', err.message);
+    }
+});
+
+// ROTA TEMPORÁRIA PARA LIMPAR DADOS DO ASAAS
+router.get('/adm/reset-asaas-escritorio', authMiddleware, async (req, res) => {
+    try {
+        await pool.query(
+            'UPDATE escritorios SET asaas_id = NULL, asaas_api_key = NULL, plano_financeiro_status = NULL WHERE id = $1',
+            [req.user.escritorio_id]
+        );
+        res.send("✅ Banco limpo! Agora vá no sistema e clique em 'Ativar Faturamento' novamente.");
+    } catch (err) {
+        res.status(500).send("Erro: " + err.message);
     }
 });
 
