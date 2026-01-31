@@ -1143,6 +1143,26 @@ async function atualizarLancamento() {
             document.getElementById('modalCobranca').style.display = 'flex';
         }
 
+        async function validarClienteParaBoleto(clienteId) {
+    try {
+        const res = await fetch(`/api/clientes/${clienteId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const cliente = await res.json();
+        
+        if (!cliente.documento || cliente.documento.replace(/\D/g, '').length < 11) {
+            alert("⚠️ Este cliente não possui CPF/CNPJ cadastrado.\n\nEdite o cliente e adicione o documento antes de gerar boleto.");
+            return false;
+        }
+        
+        return true;
+    } catch (err) {
+        console.error("Erro ao validar cliente:", err);
+        return true; // Permite continuar em caso de erro na validação
+    }
+}
+
         // --- FUNÇÕES DE RECIBO ---
         
         // Carregar clientes cadastrados para o select do recibo
@@ -1192,6 +1212,69 @@ async function atualizarLancamento() {
                 document.getElementById('reciboClienteDoc').value = '';
             }
         }
+
+        async function validarClienteParaBoleto(clienteId) {
+    try {
+        const res = await fetch(`/api/clientes/${clienteId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const cliente = await res.json();
+        
+        if (!cliente.documento || cliente.documento.replace(/\D/g, '').length < 11) {
+            alert("⚠️ Este cliente não possui CPF/CNPJ cadastrado.\n\nEdite o cliente e adicione o documento antes de gerar boleto.");
+            return false;
+        }
+        
+        return true;
+    } catch (err) {
+        console.error("Erro ao validar cliente:", err);
+        return true; // Permite continuar em caso de erro na validação
+    }
+}
+
+async function carregarClientesSelect() {
+    const select = document.getElementById('selectClienteBoleto');
+    try {
+        const res = await fetch('/api/clientes', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!res.ok) throw new Error('Erro ao carregar clientes');
+        
+        const clientes = await res.json();
+        
+        select.innerHTML = '<option value="">Selecione o cliente pagador</option>';
+        
+        clientes.forEach(c => {
+            const temDocumento = c.documento && c.documento.replace(/\D/g, '').length >= 11;
+            const icone = temDocumento ? '✅' : '⚠️';
+            const aviso = temDocumento ? '' : ' (sem CPF/CNPJ)';
+            
+            const option = document.createElement('option');
+            option.value = c.id;
+            option.textContent = `${icone} ${c.nome}${aviso}`;
+            
+            // ✅ Desabilita opção se não tiver documento
+            if (!temDocumento) {
+                option.disabled = true;
+                option.style.color = '#999';
+            }
+            
+            select.appendChild(option);
+        });
+        
+    } catch (err) {
+        console.error('Erro ao carregar clientes:', err);
+        select.innerHTML = '<option value="">Erro ao carregar clientes</option>';
+    }
+}
+
+function redirecionarParaConfiguracoes() {
+    if (confirm("Para gerar boletos, você precisa ativar o Faturamento Próprio.\n\nDeseja ir para Configurações agora?")) {
+        window.location.href = '/config-page#faturamento';
+    }
+}
         
         function prepararRecibo(lancamentoId) {
             const item = originalData.find(i => i.id === lancamentoId);
@@ -1214,6 +1297,14 @@ async function atualizarLancamento() {
                 lucide.createIcons();
             }
         }
+
+        const DEBUG_MODE = false;
+
+function debugLog(mensagem, dados) {
+    if (DEBUG_MODE) {
+        console.log(`[DEBUG] ${mensagem}`, dados || '');
+    }
+}
 
         function fecharModalRecibo() {
             document.getElementById('modalRecibo').style.display = 'none';
@@ -1441,41 +1532,132 @@ async function atualizarLancamento() {
     }
 }
 
-        async function confirmarBoleto() {
-            if (!lancamentoParaCobrar) return;
-            const btn = document.querySelector('#modalCobranca .btn-mini-boleto');
-            const originalText = btn.innerText;
+async function confirmarBoleto() {
+    if (!lancamentoParaCobrar) {
+        alert("⚠️ Nenhum lançamento selecionado");
+        return;
+    }
+    
+    const btn = document.querySelector('#modalCobranca .btn-mini-boleto');
+    const selectCliente = document.getElementById('selectClienteBoleto');
+    const originalText = btn.innerText;
 
-            try {
-                btn.innerText = "⏳ Gerando...";
-                btn.disabled = true;
-
-                const res = await fetch('/api/financeiro/gerar-boleto-honorarios', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({
-                        lancamentoId: lancamentoParaCobrar.id,
-                        valor: lancamentoParaCobrar.valor,
-                        descricao: lancamentoParaCobrar.desc,
-                        clienteId: document.getElementById('selectClienteBoleto').value
-                    })
-                });
-
-                const data = await res.json();
-                if (res.status === 402) {
-                    const msg = data.message || "A emissão de boletos está disponível apenas nos planos Intermediário, Avançado e Premium.";
-                    exibirAvisoUpgrade(msg);
-                    document.getElementById('modalCobranca').style.display = 'none';
-                    return;
-                }
-                if (res.ok && data.url) {
-                    window.open(data.url, '_blank');
-                    alert("✅ Boleto gerado com sucesso!");
-                    document.getElementById('modalCobranca').style.display = 'none';
-                } else { alert("❌ Erro: " + (data.erro || "Falha na geração.")); }
-            } catch (err) { alert("Erro de conexão."); } 
-            finally { btn.innerText = originalText; btn.disabled = false; }
+    try {
+        // ✅ Validação de cliente
+        const clienteId = selectCliente.value;
+        
+        if (!clienteId) {
+            alert("⚠️ Por favor, selecione um cliente!");
+            selectCliente.focus();
+            return;
         }
+
+        // ✅ Desabilita botão e mostra loading
+        btn.innerText = "⏳ Gerando boleto...";
+        btn.disabled = true;
+        selectCliente.disabled = true;
+
+        console.log("📄 Gerando boleto:", {
+            clienteId,
+            valor: lancamentoParaCobrar.valor,
+            descricao: lancamentoParaCobrar.desc
+        });
+
+        // ✅ Chamada à API
+        const res = await fetch('/api/financeiro/gerar-boleto-honorarios', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify({
+                clienteId: clienteId,
+                valor: parseFloat(lancamentoParaCobrar.valor),
+                descricao: lancamentoParaCobrar.desc || 'Honorários Advocatícios',
+                vencimento: lancamentoParaCobrar.vencimento || null // ✅ Envia data de vencimento
+            })
+        });
+
+        const data = await res.json();
+        
+        // ✅ Tratamento de erro de plano
+        if (res.status === 402) {
+            const msg = data.message || "A emissão de boletos está disponível apenas nos planos Intermediário, Avançado e Premium.";
+            exibirAvisoUpgrade(msg);
+            document.getElementById('modalCobranca').style.display = 'none';
+            return;
+        }
+        
+        // ✅ Tratamento de erro genérico
+        if (!res.ok) {
+            throw new Error(data.erro || `Erro ${res.status}: ${data.message || 'Falha ao gerar boleto'}`);
+        }
+        
+        // ✅ Sucesso - Abre o boleto
+        if (data.ok && (data.boletoUrl || data.url)) {
+            const urlBoleto = data.boletoUrl || data.url;
+            
+            console.log("✅ Boleto gerado:", {
+                invoiceId: data.invoiceId,
+                url: urlBoleto,
+                vencimento: data.vencimento,
+                valor: data.valor
+            });
+
+            // Abre em nova aba
+            const janela = window.open(urlBoleto, '_blank');
+            
+            if (!janela) {
+                alert("⚠️ Pop-up bloqueado! Permita pop-ups para abrir o boleto.\n\nURL copiada para a área de transferência.");
+                // Tenta copiar para clipboard
+                navigator.clipboard.writeText(urlBoleto).catch(() => {
+                    prompt("Copie a URL do boleto:", urlBoleto);
+                });
+            } else {
+                alert("✅ Boleto gerado com sucesso!\n\n" +
+                      `Valor: R$ ${data.valor || lancamentoParaCobrar.valor}\n` +
+                      `Vencimento: ${data.vencimento || 'Conforme configurado'}`);
+            }
+            
+            // Fecha modal e recarrega
+            document.getElementById('modalCobranca').style.display = 'none';
+            
+            // ✅ Recarrega a lista de lançamentos
+            if (typeof carregarLancamentos === 'function') {
+                await carregarLancamentos();
+            }
+            
+        } else {
+            throw new Error("Resposta da API sem URL do boleto");
+        }
+        
+    } catch (err) {
+        console.error("❌ Erro ao gerar boleto:", err);
+        
+        let mensagemErro = "Erro ao gerar boleto";
+        
+        // ✅ Mensagens específicas de erro
+        if (err.message.includes("ative o faturamento")) {
+            mensagemErro = "⚠️ Você precisa ativar o Faturamento Próprio em Configurações antes de gerar boletos.";
+        } else if (err.message.includes("CPF/CNPJ")) {
+            mensagemErro = "⚠️ O cliente selecionado não possui CPF/CNPJ válido.\n\nEdite o cadastro do cliente e adicione o documento.";
+        } else if (err.message.includes("Insufficient balance")) {
+            mensagemErro = "⚠️ Saldo insuficiente na conta Asaas.\n\nConfigure o split de pagamento ou entre em contato com o suporte.";
+        } else if (err.message.includes("conexão") || err.message.includes("network")) {
+            mensagemErro = "⚠️ Erro de conexão. Verifique sua internet e tente novamente.";
+        } else {
+            mensagemErro = `❌ ${err.message}`;
+        }
+        
+        alert(mensagemErro);
+        
+    } finally {
+        // ✅ Restaura estado do botão
+        btn.innerText = originalText;
+        btn.disabled = false;
+        selectCliente.disabled = false;
+    }
+}
 
 async function carregarSaldoReal() {
     try {

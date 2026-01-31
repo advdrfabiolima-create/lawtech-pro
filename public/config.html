@@ -1031,17 +1031,70 @@ async function carregarInfoRodape() {
 }
 
     async function ativarFinanceiro() {
-        if (!confirm("Confirmar ativação da conta Asaas com os dados acima?")) return;
-        try {
-            const res = await fetch('/api/financeiro/configurar-subconta', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            if (res.ok) alert("✅ Faturamento Ativado!");
-            else alert("❌ Erro: " + (data.erro || "Verifique os campos obrigatórios."));
-        } catch (e) { alert("Erro de conexão."); }
+    try {
+        const btn = document.querySelector('button[onclick*="ativarFinanceiro"]'); // Busca pelo botão com onclick
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.innerText = "⏳ Ativando...";
+        }
+
+        // ✅ ROTA CORRETA
+        const res = await fetch('/api/financeiro/ativar-subconta', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token') || token}`
+            }
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data.erro || `Erro ${res.status}`);
+        }
+
+        if (data.ok) {
+            alert('✅ ' + (data.mensagem || 'Faturamento ativado com sucesso!'));
+            
+            // Recarrega a página para atualizar os dados
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            throw new Error(data.erro || 'Falha ao ativar faturamento');
+        }
+
+    } catch (err) {
+        console.error('Erro ao ativar faturamento:', err);
+        
+        let mensagemErro = 'Erro ao ativar faturamento: ';
+        
+        // Mensagens específicas
+        if (err.message.includes('incompleto')) {
+            mensagemErro += 'Preencha todos os dados bancários antes de continuar.';
+        } else if (err.message.includes('CPF')) {
+            mensagemErro += 'CPF/CNPJ inválido. Verifique o documento informado.';
+        } else if (err.message.includes('already exists')) {
+            mensagemErro += 'Este CPF/CNPJ já possui conta no Asaas.';
+        } else if (err.message.includes('Invalid access_token')) {
+            mensagemErro += 'Chave API do Asaas inválida. Verifique a configuração no servidor.';
+        } else if (err.message.includes('ambiente')) {
+            mensagemErro += 'Problema de ambiente (sandbox/produção). Contate o suporte.';
+        } else {
+            mensagemErro += err.message;
+        }
+        
+        alert('❌ ' + mensagemErro);
+        
+    } finally {
+        const btn = document.querySelector('button[onclick*="ativarFinanceiro"]');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = "🚀 Ativar Faturamento";
+        }
     }
+}
 
     // 4. EQUIPE
 async function carregarEquipe() {
