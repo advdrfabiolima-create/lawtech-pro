@@ -1607,46 +1607,54 @@ input, textarea, select {
         // Inicializa dashboard (mantido seu código original, apenas organizado)
 async function inicializarDashboard() {
     try {
+        const token = localStorage.getItem('token');
         const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
         const dataUser = await resUser.json();
         
         let idEscritorio = null;
 
-if (dataUser.ok) {
+        if (dataUser.ok) {
             const user = dataUser.usuario;
             
-            // --- 🛡️ INÍCIO DA LÓGICA DE PERSISTÊNCIA DO TOUR ---
-            // Se o banco diz que está desativado, impedimos o tour de subir
-            if (user.tour_desativado) {
-            localStorage.setItem('tour_concluido', 'true'); // Trava a memória local
-            } else {
-            localStorage.removeItem('tour_concluido'); // Libera para o tour aparecer
-            }
-
-            // Sincroniza o Switch do seu Menu Dropdown imediatamente
+            // --- 🛡️ TRAVA DEFINITIVA DO TOUR ---
             const sw = document.getElementById('switchTourNav');
-            if (sw) sw.checked = !user.tour_desativado;
+            
+            if (user.tour_desativado) {
+                // Se o banco diz que está desativado, forçamos o bloqueio no navegador
+                localStorage.setItem('tour_concluido', 'true');
+                if (sw) sw.checked = false;
+            } else {
+                // Se o banco permite, verificamos se ele já terminou nesta sessão específica
+                const jaTerminouNestaSessao = localStorage.getItem('tour_concluido') === 'true';
+                if (sw) sw.checked = true;
+
+                if (!jaTerminouNestaSessao) {
+                    setTimeout(() => {
+                        // Só inicia se, após 2 segundos, ninguém tiver marcado como concluído
+                        if (localStorage.getItem('tour_concluido') !== 'true') {
+                            iniciarTour();
+                        }
+                    }, 2000);
+                }
+            }
             // --- FIM DA LÓGICA DO TOUR ---
             
-            // --- INÍCIO DA CORREÇÃO: LÓGICA DO CABEÇALHO PADRONIZADA ---
+            // --- CABEÇALHO (Nome e Iniciais) ---
             const nomeCompleto = user.nome || 'Advogado';
-            
-            // 1. Define apenas o Primeiro Nome no span
             const primeiroNome = nomeCompleto.trim().split(' ')[0];
-            document.getElementById('userNameHeader').innerText = primeiroNome;
+            const userNameEl = document.getElementById('userNameHeader');
+            if (userNameEl) userNameEl.innerText = primeiroNome;
 
-            // 2. Define as Iniciais no Círculo (Primeira do Primeiro e do Último nome)
             const partes = nomeCompleto.trim().split(' ').filter(n => n);
-            let iniciais = partes[0][0]; // Primeira letra do primeiro nome
+            let iniciais = partes[0][0]; 
             if (partes.length > 1) {
-                iniciais += partes[partes.length - 1][0]; // Primeira letra do último nome
+                iniciais += partes[partes.length - 1][0]; 
             }
             
             const circulo = document.getElementById('userAvatar') || document.getElementById('userCircle');
             if (circulo) {
                 circulo.innerText = iniciais.toUpperCase();
             }
-            // --- FIM DA CORREÇÃO ---
 
             // Alerta de Trial/Teste
             if (user.dias_restantes <= 2 && user.dias_restantes > 0) {
@@ -1656,28 +1664,18 @@ if (dataUser.ok) {
                     alertaDiv.style.background = '#fffbeb'; 
                     alertaDiv.style.borderColor = '#f59e0b';
                     alertaDiv.style.color = '#92400e';
-                    
                     document.getElementById('alerta-titulo').innerText = "⚠️ SEU PERÍODO DE TESTE ESTÁ ACABANDO";
-                    document.getElementById('alerta-msg').innerText = `Faltam apenas ${user.dias_restantes} ${user.dias_restantes === 1 ? 'dia' : 'dias'} para o bloqueio do sistema.`;
-                    
+                    document.getElementById('alerta-msg').innerText = `Faltam apenas ${user.dias_restantes} ${user.dias_restantes === 1 ? 'dia' : 'dias'}.`;
                     document.getElementById('alerta-icone').className = 'lucide lucide-alert-triangle';
-                    if (typeof lucide !== 'undefined') lucide.createIcons();
                     alertaDiv.dataset.prioridade = "trial"; 
                 }
             }
 
             idEscritorio = user.escritorio_id;
-            document.getElementById('userEmail').innerText = user.email;
+            const uEmail = document.getElementById('userEmail');
+            if (uEmail) uEmail.innerText = user.email;
 
-            console.log('👤 Dados do usuário carregados:', user);
-            console.log('📅 Data de criação:', user.data_criacao);
-
-            // 🕐 Iniciar cronômetro de trial se aplicável
-            if (user.data_criacao) {
-                iniciarCronometroTrial(user.data_criacao);
-            } else {
-                console.warn('⚠️ Campo data_criacao não encontrado no usuário!');
-            }
+            if (user.data_criacao) iniciarCronometroTrial(user.data_criacao);
 
             if (user.perfilCompleto === false) {
                 const modalW = document.getElementById('modalWelcome');
@@ -1685,7 +1683,7 @@ if (dataUser.ok) {
             }
         }
 
-        // Busca informações do Plano e Consumo
+        // --- PLANO E CONSUMO ---
         const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
         const dataPlan = await resPlan.json();
 
@@ -1695,25 +1693,18 @@ if (dataUser.ok) {
         const alertaIcone = document.getElementById('alerta-icone');
 
         if (dataPlan.dias_restantes !== null && alertaDiv && alertaDiv.dataset.prioridade !== "trial") {
-            const dias = dataPlan.dias_restantes;
-            const diasParaBloqueio = dataPlan.dias_para_bloqueio;
-
             if (dataPlan.em_tolerancia) {
                 alertaDiv.style.display = 'flex';
                 alertaDiv.style.background = '#fef2f2';
                 alertaDiv.style.borderColor = '#ef4444';
                 alertaDiv.style.color = '#991b1b';
                 alertaTitulo.innerText = "🚨 ASSINATURA VENCIDA";
-                alertaMsg.innerText = `Seu prazo de tolerância acaba em ${diasParaBloqueio} dias. O acesso será bloqueado após isso.`;
+                alertaMsg.innerText = `Bloqueio em ${dataPlan.dias_para_bloqueio} dias.`;
                 alertaIcone.className = 'lucide lucide-alert-octagon';
-            } 
-            else if (dias >= 0 && dias <= 7) {
+            } else if (dataPlan.dias_restantes <= 7) {
                 alertaDiv.style.display = 'flex';
                 alertaDiv.style.background = '#fffbeb';
-                alertaDiv.style.borderColor = '#f59e0b';
-                alertaDiv.style.color = '#92400e';
                 alertaTitulo.innerText = "⚠️ RENOVAÇÃO PRÓXIMA";
-                alertaMsg.innerText = `Sua assinatura vence em ${dias} dias. Evite interrupções no serviço.`;
                 alertaIcone.className = 'lucide lucide-alert-triangle';
             } else {
                 alertaDiv.style.display = 'none';
@@ -1725,63 +1716,39 @@ if (dataUser.ok) {
             return;
         }
 
-        // Renderização das informações do Plano
+        // --- RENDERIZAÇÃO DE LIMITES ---
         const planName = dataPlan.plano || 'Individual';
-        const cicloFaturamento = dataPlan.ciclo === 'anual' ? 'Anual' : 'Mensal';
-
         const footPlan = document.getElementById('planNameFooter');
         if (footPlan) footPlan.innerText = planName;
         
-        const platual = document.getElementById('planoAtual');
-        if(platual) platual.innerText = `${planName} - ${cicloFaturamento}`;
-
         const badgeContainer = document.getElementById('premiumWelcome');
-        // Mostrar selo APENAS para plano Premium
         if (badgeContainer) {
-            if (planName.toLowerCase() === 'premium') {
-                badgeContainer.style.display = 'flex';
-                badgeContainer.style.background = 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)';
-                badgeContainer.style.borderRadius = '6px';
-            } else {
-                badgeContainer.style.display = 'none'; // Esconder para outros planos
-            }
+            badgeContainer.style.display = planName.toLowerCase() === 'premium' ? 'flex' : 'none';
         }
 
-        // Link de Prospecção (Apenas Premium)
-        if (planName.toLowerCase() === 'premium') {
-            const linkCard = document.getElementById('premiumLinkCard');
-            if (linkCard && idEscritorio) {
-                linkCard.style.display = 'block';
-                const linkInput = document.getElementById('linkCaptura');
-                if (linkInput) linkInput.value = `${window.location.origin}/p.html?id=${idEscritorio}`;
-            }
+        if (planName.toLowerCase() === 'premium' && idEscritorio) {
+            const linkInput = document.getElementById('linkCaptura');
+            if (linkInput) linkInput.value = `${window.location.origin}/p.html?id=${idEscritorio}`;
         }
 
-        // Atualização da barra de progresso e totais
         const usados = dataPlan.prazos_usados || 0;
         const limite = dataPlan.limite || dataPlan.limite_prazos; 
         let percent = (limite === null || planName.toLowerCase().includes('premium')) ? 100 : (limite > 0 ? Math.min((usados / limite) * 100, 100) : 0);
 
-        const textoConsumoElemento = document.getElementById('textoConsumoNumerico');
-        if (textoConsumoElemento) {
-            textoConsumoElemento.innerText = limite === null ? `${usados} prazos (Ilimitado)` : `${usados} de ${limite} prazos usados`;
-        }
+        const textoConsumo = document.getElementById('textoConsumoNumerico');
+        if (textoConsumo) textoConsumo.innerText = limite === null ? `${usados} (Ilimitado)` : `${usados} de ${limite} usados`;
         
         const pBar = document.getElementById('progressBar');
         if (pBar) pBar.style.width = percent + '%';
         
-        const pText = document.getElementById('percentualTexto');
-        if (pText) pText.innerText = limite === null ? '∞' : Math.round(percent) + '%';
-
         const cTotal = document.getElementById('count-total-prazos');
         if (cTotal) cTotal.innerText = usados;
 
         if (typeof lucide !== 'undefined') lucide.createIcons();
 
     } catch (err) { 
-        console.error("Erro ao carregar Dashboard:", err); 
+        console.error("Erro no Dashboard:", err); 
     }
-    if (window.lucide) lucide.createIcons();
 }
 
         // CRM Metrics - CORRIGIDO E ATUALIZADO
@@ -2127,29 +2094,10 @@ function iniciarTour() {
     driverObj.drive();
 }
 
-// Inicia o tour 2 segundos após a página carregar (Versão com Trava de Banco)
-window.addEventListener('load', async () => {
-    // 1. Buscamos a informação que veio do perfil do usuário
-    // O objeto 'usuario' deve estar disponível se a função inicializarDashboard já rodou
-    const tourJaConcluidoLocal = localStorage.getItem('tour_concluido') === 'true';
-
-    // 2. Só iniciamos se NÃO estiver concluído no LocalStorage 
-    // E se a função inicializarDashboard não tiver marcado como concluído via Banco
-    if (!tourJaConcluidoLocal) {
-        setTimeout(() => {
-            // Re-checa o localStorage um segundo antes de abrir
-            // (Pois o inicializarDashboard pode ter gravado 'true' lá enquanto esperávamos)
-            if (localStorage.getItem('tour_concluido') !== 'true') {
-                iniciarTour();
-            }
-        }, 2000);
-    }
-});
-
 async function alternarAutoStart(ligado) {
     const desativar = !ligado;
     
-    // 1. Salva no banco de dados para ser permanente
+    // 1. Salva no banco (Permanente)
     await fetch('/api/auth/atualizar-tour', {
         method: 'POST',
         headers: { 
@@ -2159,12 +2107,15 @@ async function alternarAutoStart(ligado) {
         body: JSON.stringify({ desativar })
     });
 
-    // 2. Mantém o localStorage como redundância
+    // 2. Atualiza o LocalStorage IMEDIATAMENTE
     if (desativar) {
         localStorage.setItem('tour_concluido', 'true');
     } else {
         localStorage.removeItem('tour_concluido');
     }
+
+    // 3. Feedback visual (Opcional)
+    console.log(desativar ? "Tour desativado permanentemente" : "Tour reativado");
 }
 
 // Garante que o switch comece na posição correta ao abrir o menu
@@ -2174,9 +2125,19 @@ function atualizarEstadoSwitch() {
     if (sw) sw.checked = !tourDesativado;
 }
 
-// Chame essa função quando o usuário abrir o dropdown
-// Ou simplesmente no carregamento da página:
-window.addEventListener('load', atualizarEstadoSwitch);
+// Em vez de iniciar o tour direto, esperamos o Dashboard carregar
+window.addEventListener('load', () => {
+    atualizarEstadoSwitch();
+    
+    // Pequeno delay para dar tempo da função inicializarDashboard buscar os dados do banco
+    setTimeout(() => {
+        const travaBanco = localStorage.getItem('tour_concluido') === 'true';
+        if (!travaBanco) {
+            iniciarTour();
+        }
+    }, 3000); // 3 segundos é o tempo de segurança
+});
+
 </script>
     <audio id="notificacaoSom" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
 </body>

@@ -84,6 +84,11 @@ router.post('/public/onboarding', async (req, res) => {
     }
 });
 
+const crmController = require('../controllers/crmController'); // Garanta que o require existe
+
+// Rota que a ficha-cliente.html está tentando chamar
+router.post('/proposta/:id/completar-dados', crmController.completarDadosLead);
+
 // ============================================================
 // 🔒 ROTAS PRIVADAS - APENAS PREMIUM
 // ============================================================

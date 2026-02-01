@@ -855,13 +855,25 @@ async function carregarInfoRodape() {
             if(document.getElementById('perfilNome')) document.getElementById('perfilNome').value = nomeReal;
 
             // --- LÓGICA DO CÁLCULO DE VENCIMENTO DO TRIAL (7 DIAS) ---
-            if (user.data_criacao) {
-                const dataCriacao = new Date(user.data_criacao);
-                dataCriacao.setDate(dataCriacao.getDate() + 7); // Soma os 7 dias
+            // Agora usando dias_restantes que vem do backend
+            if (user.dias_restantes !== undefined && user.dias_restantes !== null) {
+                // Calcula a data de expiração baseada nos dias restantes
+                const hoje = new Date();
+                const dataExpiracao = new Date(hoje);
+                dataExpiracao.setDate(dataExpiracao.getDate() + parseInt(user.dias_restantes));
                 
-                const dataFormatada = dataCriacao.toLocaleDateString('pt-BR');
+                const dataFormatada = dataExpiracao.toLocaleDateString('pt-BR');
                 const elementoData = document.getElementById('dataExpiracaoTrial');
                 if (elementoData) elementoData.innerText = dataFormatada;
+                
+                // Atualiza o texto para mostrar quantos dias faltam
+                const textoTrial = document.getElementById('textoTrial');
+                if (textoTrial && user.dias_restantes !== null) {
+                    const diasRestantes = parseInt(user.dias_restantes);
+                    const textoPlural = diasRestantes === 1 ? 'dia' : 'dias';
+                    textoTrial.innerHTML = `Seu teste vence em <strong style="font-weight: 800; color: #92400e;">${diasRestantes} ${textoPlural}</strong> (<strong style="font-weight: 800; color: #92400e;">${dataFormatada}</strong>)<br>
+                    <span id="subtextoTrial" style="font-size: 12px;">Após esta data, a mensalidade será processada automaticamente no cartão cadastrado.</span>`;
+                }
             }
         }
 
@@ -1123,19 +1135,33 @@ async function carregarInfoRodape() {
     // 4. EQUIPE
 async function carregarEquipe() {
     try {
+        console.log('🔄 Carregando equipe...');
         const res = await fetch('/api/auth/equipe', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!res.ok) throw new Error("Falha ao carregar equipe");
+        
+        console.log('📡 Status da resposta:', res.status);
+        
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error('❌ Erro na resposta:', errorText);
+            throw new Error(`Falha ao carregar equipe: ${res.status} - ${errorText}`);
+        }
 
         const membros = await res.json();
+        console.log('👥 Membros recebidos:', membros);
+        
         const lista = document.getElementById('listaEquipe');
-        if (!lista) return;
+        if (!lista) {
+            console.error('❌ Elemento listaEquipe não encontrado');
+            return;
+        }
 
         lista.innerHTML = '';  // limpa antes
 
-        if (membros.length === 0) {
+        if (!membros || membros.length === 0) {
             lista.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 20px;">Nenhum membro na equipe ainda.</p>';
+            console.log('ℹ️ Nenhum membro encontrado');
             return;
         }
 
@@ -1162,16 +1188,24 @@ async function carregarEquipe() {
         // Chama o Lucide **depois** de inserir todo o HTML novo
         if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
             lucide.createIcons();
-            console.log("Ícones Lucide atualizados com sucesso na lista de equipe");
+            console.log("✅ Ícones Lucide atualizados com sucesso na lista de equipe");
         } else {
-            console.warn("Biblioteca Lucide não encontrada ou createIcons indisponível");
+            console.warn("⚠️ Biblioteca Lucide não encontrada ou createIcons indisponível");
         }
+        
+        console.log('✅ Equipe carregada com sucesso!');
 
     } catch (e) {
-        console.error("Erro ao carregar equipe:", e);
+        console.error("❌ Erro ao carregar equipe:", e);
         const lista = document.getElementById('listaEquipe');
         if (lista) {
-            lista.innerHTML = '<p style="color: #ef4444; text-align: center; padding: 20px;">Erro ao carregar a equipe. Tente recarregar a página.</p>';
+            lista.innerHTML = `
+                <p style="color: #ef4444; text-align: center; padding: 20px;">
+                    Erro ao carregar a equipe. Tente recarregar a página.<br>
+                    <small style="color: #64748b; font-size: 11px; margin-top: 8px; display: block;">
+                        Detalhes: ${e.message}
+                    </small>
+                </p>`;
         }
     }
 }

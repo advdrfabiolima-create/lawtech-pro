@@ -65,33 +65,29 @@ async function obterMetricasFunil(req, res) {
                 stats.proposta += count;
             }
             else if (
-    statusNorm.includes('ganho') ||
-    statusNorm.includes('ganhar') ||          // seu status real
-    statusNorm.includes('ganhho') ||
-    statusNorm.includes('ganhos') ||
-    statusNorm.includes('contrato') ||
-    statusNorm.includes('fechado') ||
-    statusNorm.includes('ganh') ||            // pega qualquer variação com "ganh"
-    statusRaw.includes('Ganho') ||
-    statusRaw.includes('Ganhar') ||
-    statusRaw.includes('GANHO')
-) {
-    stats.ganho += count;
-    console.log(`Mapeado como GANHO: "${statusRaw}" → ${count}`); // debug
-}
+                statusNorm.includes('ganho') ||
+                statusNorm.includes('ganhar') ||
+                statusNorm.includes('ganhho') ||
+                statusNorm.includes('ganhos') ||
+                statusNorm.includes('contrato') ||
+                statusNorm.includes('fechado') ||
+                statusNorm.includes('ganh') ||
+                statusRaw.includes('Ganho') ||
+                statusRaw.includes('Ganhar') ||
+                statusRaw.includes('GANHO')
+            ) {
+                stats.ganho += count;
+                console.log(`Mapeado como GANHO: "${statusRaw}" → ${count}`);
+            }
         });
 
         console.log(`Métricas reais retornadas para escritório ${escritorioId}:`, stats);
-        console.log('Resumo final de métricas enviadas:', stats);
-
         res.json(stats);
     } catch (error) {
         console.error('Erro CRM Metricas:', error.message);
         res.status(500).json({ erro: 'Erro ao carregar métricas do pipeline' });
     }
 }
-
-/* As outras funções permanecem iguais, mas corrigi pequenos detalhes de robustez */
 
 async function listarLeads(req, res) {
     try {
@@ -150,7 +146,6 @@ async function atualizarStatusLead(req, res) {
     const escritorioId = req.user.escritorio_id;
 
     try {
-        // Normaliza para o padrão mais comum no seu banco
         const statusMap = {
             'lead': 'Novo',
             'triagem': 'Reunião',
@@ -175,9 +170,114 @@ async function atualizarStatusLead(req, res) {
     }
 }
 
+/**
+ * ✅ FUNÇÃO CORRIGIDA - COMPLETAR DADOS DO LEAD
+ * Recebe os dados da ficha-cliente.html e atualiza o lead
+ */
+async function completarDadosLead(req, res) {
+    const { leadId, nome, documento, email, nascimento, cep, endereco, cidade, uf, tipoPessoa } = req.body;
+
+    console.log('📝 [completarDadosLead] Dados recebidos:', { leadId, nome, documento, tipoPessoa });
+
+    if (!leadId || !nome || !documento) {
+        console.error('❌ Validação falhou: dados incompletos');
+        return res.status(400).json({ 
+            ok: false, 
+            mensagem: 'Dados obrigatórios não fornecidos (leadId, nome, documento).' 
+        });
+    }
+
+    try {
+        // 1. Busca o escritorio_id do lead
+        const leadResult = await pool.query(
+            'SELECT escritorio_id, telefone FROM leads WHERE id = $1', 
+            [leadId]
+        );
+
+        if (leadResult.rowCount === 0) {
+            console.error('❌ Lead não encontrado:', leadId);
+            return res.status(404).json({ 
+                ok: false, 
+                mensagem: 'Lead não localizado no sistema.' 
+            });
+        }
+
+        const { escritorio_id, telefone } = leadResult.rows[0];
+        console.log('✅ Lead encontrado. Escritório:', escritorio_id);
+
+        // 2. Cria registro na tabela clientes
+        const enderecoCompleto = `${endereco}, ${cidade}/${uf}`;
+        
+        const queryCliente = `
+            INSERT INTO clientes (
+                nome, 
+                documento, 
+                email, 
+                telefone, 
+                data_nascimento, 
+                cep, 
+                endereco, 
+                escritorio_id
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING id
+        `;
+
+        const clienteResult = await pool.query(queryCliente, [
+            nome.trim(),
+            documento,
+            email || null,
+            telefone || null,
+            tipoPessoa === 'PJ' ? null : nascimento,
+            cep,
+            enderecoCompleto,
+            escritorio_id
+        ]);
+
+        const clienteId = clienteResult.rows[0].id;
+        console.log('✅ Cliente criado com ID:', clienteId);
+
+        // 3. Atualiza o lead para status "Ganho"
+        const resumo = `Cliente cadastrado. Doc: ${documento} | Endereço: ${enderecoCompleto}`;
+        
+        await pool.query(
+            `UPDATE leads 
+             SET status = 'Ganho', mensagem = $1 
+             WHERE id = $2`,
+            [resumo, leadId]
+        );
+
+        console.log('✅ Lead atualizado para status Ganho');
+
+        res.status(201).json({ 
+            ok: true, 
+            mensagem: 'Cadastro realizado com sucesso!',
+            clienteId: clienteId
+        });
+
+    } catch (err) {
+        console.error('❌ ERRO CRÍTICO ao completar dados:', err);
+        
+        // Erros específicos do PostgreSQL
+        if (err.code === '23505') { // Violação de constraint UNIQUE
+            return res.status(400).json({ 
+                ok: false, 
+                mensagem: 'Este documento já está cadastrado no sistema.' 
+            });
+        }
+
+        res.status(500).json({ 
+            ok: false, 
+            mensagem: 'Erro interno ao processar cadastro.',
+            erro: err.message 
+        });
+    }
+}
+
 module.exports = { 
     obterMetricasFunil, 
     listarLeads, 
     criarLeadPublico, 
-    atualizarStatusLead 
+    atualizarStatusLead,
+    completarDadosLead  // ✅ Exportando a nova função
 };

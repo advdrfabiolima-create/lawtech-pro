@@ -86,10 +86,10 @@ router.post('/auth/convidar-funcionario', authMiddleware, async (req, res) => {
         // 6. Hash da senha
         const senhaHash = await bcrypt.hash(senha, 10);
 
-        // 7. Criar o novo usuário
+        // 7. Criar o novo usuário (sem criado_em pois a coluna não existe)
         const result = await pool.query(
-            `INSERT INTO usuarios (nome, email, senha, role, escritorio_id, criado_em)
-             VALUES ($1, $2, $3, $4, $5, NOW())
+            `INSERT INTO usuarios (nome, email, senha, role, escritorio_id)
+             VALUES ($1, $2, $3, $4, $5)
              RETURNING id, nome, email, role`,
             [nome.trim(), email.toLowerCase().trim(), senhaHash, role || 'operador', escritorioId]
         );
@@ -114,21 +114,41 @@ router.post('/auth/convidar-funcionario', authMiddleware, async (req, res) => {
  */
 router.get('/auth/equipe', authMiddleware, async (req, res) => {
     try {
+        console.log('🔍 [EQUIPE] Solicitação de listagem de equipe recebida');
+        console.log('📋 [EQUIPE] Usuário:', req.user.email, '| Escritório ID:', req.user.escritorio_id);
+        
         const escritorioId = req.user.escritorio_id;
 
-        const result = await pool.query(
-            `SELECT id, nome, email, role, criado_em 
-             FROM usuarios 
-             WHERE escritorio_id = $1 
-             ORDER BY criado_em DESC`,
-            [escritorioId]
-        );
+        if (!escritorioId) {
+            console.error('❌ [EQUIPE] escritorio_id não encontrado no token');
+            return res.status(400).json({ erro: 'Escritório não identificado' });
+        }
+
+        // Query mais simples e robusta - só seleciona campos essenciais que sempre existem
+        let query = `SELECT id, nome, email, 
+                     COALESCE(role, 'operador') as role
+                     FROM usuarios 
+                     WHERE escritorio_id = $1 
+                     ORDER BY id DESC`;
+        
+        console.log('🔍 [EQUIPE] Executando query:', query);
+        console.log('🔍 [EQUIPE] Parâmetros:', [escritorioId]);
+        
+        const result = await pool.query(query, [escritorioId]);
+
+        console.log(`✅ [EQUIPE] ${result.rows.length} membros encontrados para o escritório ${escritorioId}`);
+        
+        if (result.rows.length > 0) {
+            console.log('📋 [EQUIPE] Primeiro membro:', result.rows[0]);
+        }
 
         // Retorna diretamente o array, conforme esperado pelo frontend
         res.json(result.rows);
 
     } catch (error) {
-        console.error('❌ Erro ao listar equipe:', error.message);
+        console.error('❌ [EQUIPE] Erro ao listar equipe:', error.message);
+        console.error('❌ [EQUIPE] Stack:', error.stack);
+        console.error('❌ [EQUIPE] Detalhes completos:', error);
         res.status(500).json({ erro: 'Erro ao carregar membros da equipe' });
     }
 });

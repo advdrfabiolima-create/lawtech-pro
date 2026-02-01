@@ -24,30 +24,30 @@ router.post('/register', async (req, res) => {
             planoId
         } = req.body;
 
-        console.log('📝 [REGISTRO] Nova solicitação de cadastro:', email);
+        console.log('ðŸ“ [REGISTRO] Nova solicitaÃ§Ã£o de cadastro:', email);
 
-        // ✅ Validações de entrada
+        // âœ… ValidaÃ§Ãµes de entrada
         if (!nome || !email || !senha) {
             return res.status(400).json({ 
-                erro: 'Nome, email e senha são obrigatórios' 
+                erro: 'Nome, email e senha sÃ£o obrigatÃ³rios' 
             });
         }
 
         if (senha.length < 6) {
             return res.status(400).json({ 
-                erro: 'A senha deve ter no mínimo 6 caracteres' 
+                erro: 'A senha deve ter no mÃ­nimo 6 caracteres' 
             });
         }
 
-        // ✅ Validação de email
+        // âœ… ValidaÃ§Ã£o de email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             return res.status(400).json({ 
-                erro: 'Email inválido' 
+                erro: 'Email invÃ¡lido' 
             });
         }
 
-        // ✅ Verifica se email já existe
+        // âœ… Verifica se email jÃ¡ existe
         const emailCheck = await pool.query(
             'SELECT id FROM usuarios WHERE email = $1',
             [email.toLowerCase().trim()]
@@ -55,27 +55,27 @@ router.post('/register', async (req, res) => {
 
         if (emailCheck.rows.length > 0) {
             return res.status(400).json({ 
-                erro: 'Este email já está cadastrado. Faça login ou use outro email.' 
+                erro: 'Este email jÃ¡ estÃ¡ cadastrado. FaÃ§a login ou use outro email.' 
             });
         }
 
-        // ✅ Hash da senha
+        // âœ… Hash da senha
         const hashedPassword = await bcrypt.hash(senha, 10);
 
-        // ✅ Preparar dados do documento
+        // âœ… Preparar dados do documento
         const documentoLimpo = documento ? documento.replace(/\D/g, '') : null;
 
-        // ✅ Calcular data de expiração do trial (7 dias)
+        // âœ… Calcular data de expiraÃ§Ã£o do trial (7 dias)
         const dataExpiracao = new Date();
         dataExpiracao.setDate(dataExpiracao.getDate() + 7);
 
-        // ✅ TRANSAÇÃO: Criar escritório e usuário
+        // âœ… TRANSAÃ‡ÃƒO: Criar escritÃ³rio e usuÃ¡rio
         const client = await pool.connect();
         
         try {
             await client.query('BEGIN');
 
-            // 1️⃣ Criar escritório
+            // 1ï¸âƒ£ Criar escritÃ³rio
             const escritorioResult = await client.query(
                 `INSERT INTO escritorios 
                  (nome, documento, data_nascimento, cep, endereco, cidade, estado, 
@@ -88,9 +88,9 @@ router.post('/register', async (req, res) => {
                     dataNascimento || null,
                     cep || null,
                     endereco || null,
-                    cidade || 'Não informado',
+                    cidade || 'NÃ£o informado',
                     estado || 'BA',
-                    planoId || 1, // Plano Básico por padrão
+                    planoId || 1, // Plano BÃ¡sico por padrÃ£o
                     dataExpiracao,
                     'trial' // Status inicial
                 ]
@@ -98,9 +98,9 @@ router.post('/register', async (req, res) => {
 
             const escritorioId = escritorioResult.rows[0].id;
 
-            console.log(`✅ [REGISTRO] Escritório criado: ID ${escritorioId}`);
+            console.log(`âœ… [REGISTRO] EscritÃ³rio criado: ID ${escritorioId}`);
 
-            // 2️⃣ Criar usuário (administrador do escritório)
+            // 2ï¸âƒ£ Criar usuÃ¡rio (administrador do escritÃ³rio)
             const usuarioResult = await client.query(
                 `INSERT INTO usuarios 
                  (nome, email, senha, role, escritorio_id) 
@@ -110,18 +110,18 @@ router.post('/register', async (req, res) => {
                     nome,
                     email.toLowerCase().trim(),
                     hashedPassword,
-                    'admin', // Primeiro usuário é sempre admin
+                    'admin', // Primeiro usuÃ¡rio Ã© sempre admin
                     escritorioId
                 ]
             );
 
             const usuario = usuarioResult.rows[0];
 
-            console.log(`✅ [REGISTRO] Usuário criado: ${usuario.email} (ID: ${usuario.id})`);
+            console.log(`âœ… [REGISTRO] UsuÃ¡rio criado: ${usuario.email} (ID: ${usuario.id})`);
 
             await client.query('COMMIT');
 
-            // ✅ Gerar token JWT
+            // âœ… Gerar token JWT
             const token = jwt.sign(
                 { 
                     id: usuario.id,
@@ -133,9 +133,9 @@ router.post('/register', async (req, res) => {
                 { expiresIn: '7d' }
             );
 
-            console.log(`🎉 [REGISTRO] Cadastro concluído com sucesso: ${usuario.email}`);
+            console.log(`ðŸŽ‰ [REGISTRO] Cadastro concluÃ­do com sucesso: ${usuario.email}`);
 
-            // ✅ Retorna sucesso
+            // âœ… Retorna sucesso
             res.status(201).json({
                 ok: true,
                 mensagem: 'Cadastro realizado com sucesso!',
@@ -161,19 +161,19 @@ router.post('/register', async (req, res) => {
         }
 
     } catch (err) {
-        console.error('❌ [REGISTRO] Erro ao processar cadastro:', err.message);
+        console.error('âŒ [REGISTRO] Erro ao processar cadastro:', err.message);
         console.error('Stack:', err.stack);
         
-        // Mensagens de erro específicas
+        // Mensagens de erro especÃ­ficas
         if (err.message.includes('unique')) {
             return res.status(400).json({ 
-                erro: 'Email já cadastrado no sistema' 
+                erro: 'Email jÃ¡ cadastrado no sistema' 
             });
         }
         
         if (err.message.includes('escritorios')) {
             return res.status(500).json({ 
-                erro: 'Erro ao criar escritório. Verifique os dados e tente novamente.' 
+                erro: 'Erro ao criar escritÃ³rio. Verifique os dados e tente novamente.' 
             });
         }
 
@@ -192,15 +192,15 @@ router.post('/login', async (req, res) => {
     try {
         const { email, senha } = req.body;
 
-        console.log('🔐 [LOGIN] Tentativa de login:', email);
+        console.log('ðŸ” [LOGIN] Tentativa de login:', email);
 
         if (!email || !senha) {
             return res.status(400).json({ 
-                erro: 'Email e senha são obrigatórios' 
+                erro: 'Email e senha sÃ£o obrigatÃ³rios' 
             });
         }
 
-        // Busca usuário
+        // Busca usuÃ¡rio
         const result = await pool.query(
             `SELECT u.id, u.nome, u.email, u.senha, u.role, u.escritorio_id,
                     e.plano_id, e.trial_expira_em, e.plano_financeiro_status
@@ -239,7 +239,7 @@ router.post('/login', async (req, res) => {
             { expiresIn: '7d' }
         );
 
-        console.log(`✅ [LOGIN] Login bem-sucedido: ${usuario.email}`);
+        console.log(`âœ… [LOGIN] Login bem-sucedido: ${usuario.email}`);
 
         // Calcula dias restantes do trial
         let diasRestantes = null;
@@ -265,7 +265,7 @@ router.post('/login', async (req, res) => {
         });
 
     } catch (err) {
-        console.error('❌ [LOGIN] Erro:', err.message);
+        console.error('âŒ [LOGIN] Erro:', err.message);
         res.status(500).json({ 
             erro: 'Erro ao processar login' 
         });
@@ -279,20 +279,14 @@ router.post('/login', async (req, res) => {
 router.get('/me', async (req, res) => {
     try {
         const authHeader = req.headers.authorization;
-
-        if (!authHeader) {
-            return res.status(401).json({ erro: 'Token não fornecido' });
-        }
+        if (!authHeader) return res.status(401).json({ erro: 'Token não fornecido' });
 
         const [, token] = authHeader.split(' ');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'segredo_temporario');
 
-        const decoded = jwt.verify(
-            token, 
-            process.env.JWT_SECRET || 'segredo_temporario'
-        );
-
+        // ADICIONADO: u.tour_desativado e u.data_criacao no SELECT
         const result = await pool.query(
-            `SELECT u.id, u.nome, u.email, u.role, u.escritorio_id,
+            `SELECT u.id, u.nome, u.email, u.role, u.escritorio_id, u.tour_desativado, u.data_criacao,
                     e.plano_id, e.trial_expira_em, e.plano_financeiro_status
              FROM usuarios u
              JOIN escritorios e ON u.escritorio_id = e.id
@@ -300,11 +294,16 @@ router.get('/me', async (req, res) => {
             [decoded.id]
         );
 
-        if (result.rows.length === 0) {
-            return res.status(401).json({ erro: 'Usuário não encontrado' });
-        }
+        if (result.rows.length === 0) return res.status(401).json({ erro: 'Usuário não encontrado' });
 
         const usuario = result.rows[0];
+
+        let diasRestantes = null;
+        if (usuario.trial_expira_em) {
+            const hoje = new Date();
+            const expiracao = new Date(usuario.trial_expira_em);
+            diasRestantes = Math.ceil((expiracao - hoje) / (1000 * 60 * 60 * 24));
+        }
 
         res.json({
             ok: true,
@@ -314,13 +313,36 @@ router.get('/me', async (req, res) => {
                 email: usuario.email,
                 role: usuario.role,
                 escritorio_id: usuario.escritorio_id,
+                tour_desativado: usuario.tour_desativado, // Agora o frontend recebe isso!
+                data_criacao: usuario.data_criacao,
                 plano_id: usuario.plano_id,
-                plano_financeiro_status: usuario.plano_financeiro_status
+                dias_restantes: diasRestantes
             }
         });
-
     } catch (err) {
         return res.status(401).json({ erro: 'Token inválido' });
+    }
+});
+
+/* ======================================================
+   ROTA PARA ATUALIZAR STATUS DO TOUR
+===================================================== */
+router.post('/atualizar-tour', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        const [, token] = authHeader.split(' ');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'segredo_temporario');
+        
+        const { desativar } = req.body; // true ou false
+
+        await pool.query(
+            'UPDATE usuarios SET tour_desativado = $1 WHERE id = $2',
+            [desativar, decoded.id]
+        );
+
+        res.json({ ok: true, mensagem: 'Preferência de tour atualizada' });
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao salvar preferência' });
     }
 });
 
@@ -333,7 +355,7 @@ router.post('/recuperar-senha', async (req, res) => {
         const { email } = req.body;
 
         if (!email) {
-            return res.status(400).json({ erro: 'Email é obrigatório' });
+            return res.status(400).json({ erro: 'Email Ã© obrigatÃ³rio' });
         }
 
         // Verifica se email existe
@@ -343,27 +365,27 @@ router.post('/recuperar-senha', async (req, res) => {
         );
 
         if (result.rows.length === 0) {
-            // Por segurança, não informa se email existe ou não
+            // Por seguranÃ§a, nÃ£o informa se email existe ou nÃ£o
             return res.json({ 
                 ok: true, 
-                mensagem: 'Se o email existir, você receberá instruções de recuperação.' 
+                mensagem: 'Se o email existir, vocÃª receberÃ¡ instruÃ§Ãµes de recuperaÃ§Ã£o.' 
             });
         }
 
-        // TODO: Implementar envio de email com link de recuperação
+        // TODO: Implementar envio de email com link de recuperaÃ§Ã£o
         // Por enquanto, apenas confirma
-        console.log(`📧 [RECUPERAR SENHA] Solicitação para: ${email}`);
+        console.log(`ðŸ“§ [RECUPERAR SENHA] SolicitaÃ§Ã£o para: ${email}`);
 
         res.json({ 
             ok: true, 
-            mensagem: 'Se o email existir, você receberá instruções de recuperação.',
+            mensagem: 'Se o email existir, vocÃª receberÃ¡ instruÃ§Ãµes de recuperaÃ§Ã£o.',
             // Em desenvolvimento, retorna um aviso
-            aviso: 'Funcionalidade de email ainda não implementada. Contate o suporte.'
+            aviso: 'Funcionalidade de email ainda nÃ£o implementada. Contate o suporte.'
         });
 
     } catch (err) {
-        console.error('❌ [RECUPERAR SENHA] Erro:', err.message);
-        res.status(500).json({ erro: 'Erro ao processar solicitação' });
+        console.error('âŒ [RECUPERAR SENHA] Erro:', err.message);
+        res.status(500).json({ erro: 'Erro ao processar solicitaÃ§Ã£o' });
     }
 });
 
