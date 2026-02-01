@@ -273,4 +273,83 @@ router.get('/por-cliente/:clienteId', authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * ✅ ATUALIZAR DADOS DO PROCESSO
+ * PUT /api/processos/:id
+ */
+router.put('/processos/:id', authMiddleware, async (req, res) => {
+    const { id } = req.params;
+    const { cliente_id, parte_contraria, esfera, tribunal, instancia, uf } = req.body;
+    const escritorioId = req.user.escritorio_id;
+
+    console.log(`📝 Atualizando processo ${id}:`, req.body);
+
+    // Validações
+    if (!cliente_id) {
+        return res.status(400).json({ erro: 'Cliente é obrigatório' });
+    }
+    if (!esfera || !tribunal || !instancia || !uf) {
+        return res.status(400).json({ erro: 'Esfera, Tribunal, Instância e UF são obrigatórios' });
+    }
+
+    try {
+        // Buscar nome do cliente
+        const clienteRes = await pool.query(
+            'SELECT nome FROM clientes WHERE id = $1 AND escritorio_id = $2',
+            [cliente_id, escritorioId]
+        );
+
+        if (clienteRes.rowCount === 0) {
+            return res.status(404).json({ erro: 'Cliente não encontrado' });
+        }
+
+        const clienteNome = clienteRes.rows[0].nome;
+
+        // Atualizar processo
+        const result = await pool.query(
+            `UPDATE processos 
+             SET cliente_id = $1,
+                 cliente = $2,
+                 parte_contraria = $3,
+                 esfera = $4,
+                 tribunal = $5,
+                 instancia = $6,
+                 uf = $7
+             WHERE id = $8 
+             AND escritorio_id = $9
+             RETURNING *`,
+            [
+                cliente_id,
+                clienteNome,
+                parte_contraria || null,
+                esfera,
+                tribunal,
+                instancia,
+                uf,
+                id,
+                escritorioId
+            ]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ erro: 'Processo não encontrado' });
+        }
+
+        console.log(`✅ Processo ${id} atualizado com sucesso`);
+
+        res.json({ 
+            ok: true, 
+            mensagem: 'Processo atualizado com sucesso',
+            processo: result.rows[0]
+        });
+
+    } catch (err) {
+        console.error('❌ Erro ao atualizar processo:', err.message);
+        res.status(500).json({ 
+            erro: 'Erro ao atualizar processo',
+            detalhes: err.message 
+        });
+    }
+});
+
 module.exports = router;

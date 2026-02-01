@@ -420,34 +420,53 @@ input, textarea, select {
         </main>
     </div>
 
-    <div id="modalPrazo" class="modal">
-        <div class="modal-content">
-            <h3 style="margin-bottom: 20px; font-weight: 700;">📅 Gerenciar Prazo</h3>
-            <input type="hidden" id="prazoId">
-            <div style="display:flex; flex-direction:column; gap:12px;">
-                <div>
-                    <label style="font-size: 12px; font-weight: 700; color: var(--muted);">PROCESSO (CNJ)</label>
-                    <select id="processoId" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;"></select>
-                </div>
-                <div>
-                    <label style="font-size: 12px; font-weight: 700; color: var(--muted);">TIPO DO PRAZO</label>
-                    <input id="tipoPrazo" placeholder="Ex: Contestação, Recurso..." style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;">
-                </div>
-                <div>
-                    <label style="font-size: 12px; font-weight: 700; color: var(--muted);">DATA LIMITE (VENCIMENTO)</label>
-                    <input type="date" id="dataPrazo" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;">
-                </div>
-                <div>
-                    <label style="font-size: 12px; font-weight: 700; color: var(--muted);">OBSERVAÇÕES (OPCIONAL)</label>
-                    <textarea id="descricaoPrazo" rows="3" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; resize: none; margin-top: 5px;"></textarea>
-                </div>
+<div id="modalPrazo" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-bottom: 20px; font-weight: 700;">📅 Gerenciar Prazo</h3>
+        <input type="hidden" id="prazoId">
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            
+            <!-- ✅ NOVO: Campo Cliente -->
+            <div>
+                <label style="font-size: 12px; font-weight: 700; color: var(--muted);">
+                    CLIENTE
+                    <span style="font-size: 10px; font-weight: 400; color: var(--text-tertiary);"> (opcional)</span>
+                </label>
+                <select id="clienteId" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;">
+                    <option value="">Selecione um cliente (opcional)</option>
+                </select>
             </div>
-            <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:10px;">
-                <button class="btn-primary" onclick="salvarPrazo()">Salvar Prazo</button>
-                <button class="btn-secondary" onclick="fecharModalPrazo()">Cancelar</button>
+
+            <!-- Campo Processo (existente) -->
+            <div>
+                <label style="font-size: 12px; font-weight: 700; color: var(--muted);">PROCESSO (CNJ)</label>
+                <select id="processoId" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;"></select>
+            </div>
+
+            <!-- Tipo do Prazo (existente) -->
+            <div>
+                <label style="font-size: 12px; font-weight: 700; color: var(--muted);">TIPO DO PRAZO</label>
+                <input id="tipoPrazo" placeholder="Ex: Contestação, Recurso..." style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;">
+            </div>
+
+            <!-- Data Limite (existente) -->
+            <div>
+                <label style="font-size: 12px; font-weight: 700; color: var(--muted);">DATA LIMITE (VENCIMENTO)</label>
+                <input type="date" id="dataPrazo" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;">
+            </div>
+
+            <!-- Observações (existente) -->
+            <div>
+                <label style="font-size: 12px; font-weight: 700; color: var(--muted);">OBSERVAÇÕES (OPCIONAL)</label>
+                <textarea id="descricaoPrazo" rows="3" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; resize: none; margin-top: 5px;"></textarea>
             </div>
         </div>
+        <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:10px;">
+            <button class="btn-primary" onclick="salvarPrazo()">Salvar Prazo</button>
+            <button class="btn-secondary" onclick="fecharModalPrazo()">Cancelar</button>
+        </div>
     </div>
+</div>
 
     <div id="toast"></div>
     <div id="loader" style="position: fixed; inset: 0; background: rgba(255,255,255,.6); display: none; align-items: center; justify-content: center; z-index: 10000;">
@@ -672,60 +691,49 @@ async function carregarPrazosModernos() {
         }
 
         // 3. Funções de Ação
-        async function salvarPrazo() {
-    const id = document.getElementById('prazoId').value;
-    const dados = {
-        processoId: document.getElementById('processoId').value,
-        tipo: document.getElementById('tipoPrazo').value,
-        dataLimite: document.getElementById('dataPrazo').value,
-        descricao: document.getElementById('descricaoPrazo').value
-    };
+ async function salvarPrazo() {
+    const prazoId = document.getElementById('prazoId').value;
+    const processoId = document.getElementById('processoId').value;
+    const clienteId = document.getElementById('clienteId').value || null; // ✅ NOVO
+    const tipo = document.getElementById('tipoPrazo').value.trim();
+    const dataLimite = document.getElementById('dataPrazo').value;
+    const descricao = document.getElementById('descricaoPrazo').value.trim();
 
-    if(!dados.processoId || !dados.tipo || !dados.dataLimite) {
-        return mostrarToast("Preencha os campos obrigatórios!", "erro");
+    if (!processoId || !tipo || !dataLimite) {
+        alert('Preencha todos os campos obrigatórios!');
+        return;
     }
 
-    const metodo = id ? 'PUT' : 'POST';
-    const url = id ? `/api/prazos/${id}` : '/api/prazos';
-    
     try {
+        const url = prazoId ? `/api/prazos/${prazoId}` : '/api/prazos';
+        const method = prazoId ? 'PUT' : 'POST';
+
         const res = await fetch(url, {
-            method: metodo,
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify(dados)
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                processoId,
+                clienteId,  // ✅ NOVO
+                tipo,
+                dataLimite,
+                descricao
+            })
         });
 
-        const data = await res.json();
-
-
-        // ✅ Verificar PRIMEIRO se é erro 402 (Limite de plano)
-        if (res.status === 402) {
-            fecharModalPrazo();
-            const mensagem = data.message || `Você atingiu o limite de ${data.max || 10} prazos mensais do seu plano ${data.current_plan || 'atual'}.`;
-            exibirAvisoUpgrade(mensagem);
+        if (!res.ok) {
+            const data = await res.json();
+            alert(data.erro || 'Erro ao salvar');
             return;
         }
-        
-        // Sucesso
-        if (res.ok) {
-            setTimeout(carregarPrazosModernos, 500);
-            fecharModalPrazo();
-            mostrarAba('todos'); 
-            await carregarPrazosModernos();
-            mostrarToast("Prazo salvo com sucesso!", "sucesso");
-        } 
-        // Outros erros
-        else if (res.status === 403 && data.codigo === 'LIMITE_PLANO_ATINGIDO') {
-            // Aqui chamamos sua função de aviso que já está no arquivo
-            fecharModalPrazo();
-            exibirAvisoUpgrade(data.erro); 
-        } 
-        else {
-            mostrarToast(data.erro || "Erro ao salvar prazo", "erro");
-        }
+
+        alert('✅ Prazo salvo com sucesso!');
+        fecharModalPrazo();
+        carregarPrazosModernos();
     } catch (err) {
-        console.error("Erro na requisição:", err);
-        mostrarToast("Erro de conexão com o servidor", "erro");
+        alert('Erro de conexão');
     }
 }
 
@@ -771,7 +779,7 @@ function mostrarAtivos() {
             }
         }
 
-        async function editarPrazo(id) {
+async function editarPrazo(id) {
     const p = todosPrazos.find(x => x.id === id);
     if (!p) return;
 
@@ -783,10 +791,13 @@ function mostrarAtivos() {
     selectProcesso.style.backgroundColor = "#f1f5f9";
     selectProcesso.style.cursor = "not-allowed";
 
+    // ✅ CARREGAR PROCESSOS E CLIENTES
     await carregarProcessosSelect();
+    await carregarClientesSelect(); // ✅ NOVO
 
     document.getElementById('prazoId').value = p.id;
     document.getElementById('processoId').value = p.processo_id;
+    document.getElementById('clienteId').value = p.cliente_id || ''; // ✅ NOVO
     document.getElementById('tipoPrazo').value = p.tipo;
     
     if (p.data_limite) {
@@ -839,23 +850,26 @@ function mostrarAtivos() {
 
         }
 
-        function abrirModalPrazo() { 
+ function abrirModalPrazo() { 
     // 1. Limpa todos os campos
     document.getElementById('prazoId').value = '';
     document.getElementById('tipoPrazo').value = '';
     document.getElementById('dataPrazo').value = '';
     document.getElementById('descricaoPrazo').value = '';
+    document.getElementById('clienteId').value = ''; // ✅ NOVO
     
     // 2. Garante que o select de processo esteja liberado
     const selectProcesso = document.getElementById('processoId');
     selectProcesso.disabled = false;
-    selectProcesso.style.backgroundColor = "#fff";
-    selectProcesso.style.cursor = "default";
-    selectProcesso.value = '';
-
-    // 3. Abre o modal e carrega a lista de processos
-    document.getElementById('modalPrazo').style.display = 'flex'; 
+    selectProcesso.style.backgroundColor = "";
+    selectProcesso.style.cursor = "";
+    
+    // 3. Carrega processos e clientes
     carregarProcessosSelect();
+    carregarClientesSelect(); // ✅ NOVO
+    
+    // 4. Exibe o modal
+    document.getElementById('modalPrazo').style.display = 'flex'; 
 }
 
 // 🚀 CORREÇÃO: Garante que nada sobre para a próxima abertura
@@ -886,6 +900,30 @@ function exibirObservacaoAtualizada(id) {
             select.innerHTML = '<option value="">Selecione o Processo</option>';
             processos.forEach(p => { select.innerHTML += `<option value="${p.id}">${p.numero}</option>`; });
         }
+
+        async function carregarClientesSelect() {
+    try {
+        const res = await fetch('/api/clientes', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const clientes = await res.json();
+        const select = document.getElementById('clienteId');
+        
+        select.innerHTML = '<option value="">Selecione um cliente (opcional)</option>';
+        
+        clientes.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.nome;
+            select.appendChild(opt);
+        });
+        
+        console.log('✅ Clientes carregados no select');
+    } catch (err) {
+        console.error('Erro ao carregar clientes:', err);
+    }
+}
 
         function aplicarFiltros() {
             const termo = document.getElementById('buscaPrazo').value.toLowerCase();

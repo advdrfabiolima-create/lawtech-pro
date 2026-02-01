@@ -86,95 +86,92 @@ async function verificarLimitePrazos(escritorioId) {
 
 /**
  * ============================================================
- * 1. GESTÃO DE CRIAÇÃO (SISTEMA DE LIMITES DINÂMICOS)
+ * 1. CRIAR PRAZO
  * ✅ CORRIGIDA - 27/01/2026: Adiciona deletado = false ao criar
  * ============================================================
  */
 async function criarPrazo(req, res) {
   try {
-    const { processoId, tipo, descricao, dataLimite } = req.body;
+    const { processoId, clienteId, cliente_id, tipo, descricao, dataLimite } = req.body;
     const usuarioId = req.user.id;
     const escritorioId = req.user.escritorio_id;
+
+    // Aceita clienteId ou cliente_id
+    const clienteFinal = clienteId || cliente_id || null;
 
     if (!processoId || !tipo || !dataLimite) {
       return res.status(400).json({ erro: 'Dados obrigatórios ausentes' });
     }
 
-    // Validação de Bloqueio por Inadimplência
-    const statusResult = await pool.query('SELECT status_pagamento FROM escritorios WHERE id = $1', [escritorioId]);
-    if (statusResult.rows[0]?.status_pagamento === 'bloqueado') {
-      return res.status(403).json({ erro: 'Acesso bloqueado por inadimplência. Regularize seu plano.' });
-    }
-
-    // 🔒 NOVA VALIDAÇÃO: Verificar limite de prazos mensais baseado no planLimits.json
+    // Verificar limite
     const verificacao = await verificarLimitePrazos(escritorioId);
-    
     if (!verificacao.permitido) {
-      return res.status(402).json({
-        codigo: 'LIMITE_PLANO_ATINGIDO',
+      return res.status(403).json({
         erro: verificacao.erro,
-        upgrade_required: true,
-        detalhes: verificacao.detalhes,
-        message: `Você atingiu o limite de prazos mensais do seu plano. Faça upgrade para continuar cadastrando.`
+        detalhes: verificacao.detalhes
       });
     }
 
-    // Calcular status inicial com base na data
-    const dataLimiteDate = new Date(dataLimite);
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    let statusInicial = 'aberto';
-    if (dataLimiteDate < hoje) {
-      statusInicial = 'atrasado';
-    } else if (dataLimiteDate.getTime() === hoje.getTime()) {
-      statusInicial = 'hoje';  // útil para destacar no front
-    }
-
-    // ✅ CORRIGIDO: Adiciona deletado = false e created_at na inserção
-    const insertResult = await pool.query(
-      `INSERT INTO prazos (processo_id, tipo, descricao, data_limite, status, usuario_id, escritorio_id, deletado, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, false, NOW()) RETURNING *`,
-      [processoId, tipo, descricao, dataLimite, statusInicial, usuarioId, escritorioId]
+    const result = await pool.query(
+      `INSERT INTO prazos 
+       (processo_id, cliente_id, tipo, descricao, data_limite, status, escritorio_id, usuario_id, deletado, created_at)
+       VALUES ($1, $2, $3, $4, $5, 'aberto', $6, $7, false, NOW())
+       RETURNING *`,
+      [processoId, clienteFinal, tipo, descricao, dataLimite, escritorioId, usuarioId]
     );
 
-    res.status(201).json({ 
-      mensagem: 'Prazo criado com sucesso', 
-      prazo: insertResult.rows[0],
-      limites: verificacao.detalhes // Informações de uso
+    console.log(`✅ [CRIAR PRAZO] Tipo: ${tipo} - Cliente: ${clienteFinal || 'SEM CLIENTE'}`);
+
+    res.status(201).json({
+      ok: true,
+      prazo: result.rows[0],
+      detalhes: verificacao.detalhes
     });
-  } catch (error) {
-    console.error('Erro ao criar prazo:', error);
-    res.status(500).json({ erro: 'Erro ao cadastrar prazo' });
+
+  } catch (err) {
+    console.error('❌ [CRIAR PRAZO] Erro:', err.message);
+    res.status(500).json({ erro: 'Erro ao criar prazo' });
   }
 }
 
 /**
- * Lista geral - usada na página de prazos (mostra abertos, hoje e atrasados)
- * ✅ CORRIGIDA - 27/01/2026: Filtra deletados
+ * ============================================================
+ * 2. LISTAR PRAZOS GERAL (Página de Prazos)
+ * ✅ CORRIGIDA - 31/01/2026: Adiciona JOIN com clientes
+ * ============================================================
  */
 async function listarPrazosGeral(req, res) {
   try {
     const result = await pool.query(
-      `SELECT pr.*, proc.numero AS processo_numero, proc.cliente AS cliente_nome
+      `SELECT 
+        pr.*,
+        proc.numero AS processo_numero,
+        COALESCE(c.nome, proc.cliente) AS cliente_nome,
+        proc.parte_contraria,
+        proc.tribunal
        FROM prazos pr
        LEFT JOIN processos proc ON proc.id = pr.processo_id
+       LEFT JOIN clientes c ON c.id = pr.cliente_id
        WHERE pr.escritorio_id = $1 
          AND pr.deletado = false
          AND pr.status IN ('aberto', 'hoje', 'atrasado')
        ORDER BY pr.data_limite ASC`,
       [req.user.escritorio_id]
     );
+    
+    console.log(`📋 [LISTAR PRAZOS] Retornando ${result.rowCount} prazos`);
     res.json(result.rows);
   } catch (error) {
-    console.error('Erro ao listar prazos geral:', error);
+    console.error('❌ [LISTAR PRAZOS] Erro:', error);
     res.status(500).json({ erro: 'Erro ao listar geral' });
   }
 }
 
 /**
- * Lista para o dashboard - mostra vencidos + hoje + próximos (prioridade alta)
- * ✅ CORRIGIDA - 27/01/2026: Filtra deletados
+ * ============================================================
+ * 3. LISTAR PRAZOS DASHBOARD
+ * ✅ CORRIGIDA - 31/01/2026: Adiciona JOIN com clientes
+ * ============================================================
  */
 async function listarPrazosDashboard(req, res) {
   try {
@@ -184,12 +181,13 @@ async function listarPrazosDashboard(req, res) {
           pr.tipo, 
           pr.data_limite, 
           pr.status, 
-          proc.numero AS numero_processo, 
-          proc.cliente AS cliente_nome,
+          proc.numero AS numero_processo,
+          COALESCE(c.nome, proc.cliente) AS cliente_nome,
           proc.parte_contraria AS parte_contraria,
-          proc.tribunal AS tribunal           -- ✅ Adicionado o tribunal
+          proc.tribunal AS tribunal
        FROM prazos pr
        LEFT JOIN processos proc ON proc.id = pr.processo_id
+       LEFT JOIN clientes c ON c.id = pr.cliente_id
        WHERE pr.escritorio_id = $1 
          AND pr.deletado = false
          AND pr.status IN ('atrasado', 'hoje', 'aberto')
@@ -203,113 +201,287 @@ async function listarPrazosDashboard(req, res) {
        LIMIT 15`,
       [req.user.escritorio_id]
     );
+    
+    console.log(`📊 [DASHBOARD PRAZOS] Retornando ${result.rowCount} prazos`);
     res.json(result.rows);
   } catch (err) {
-    console.error('Erro ao listar dashboard:', err);
+    console.error('❌ [DASHBOARD PRAZOS] Erro:', err);
     res.status(500).json({ erro: err.message });
   }
 }
 
 /**
- * Lista apenas os atrasados (usado para seção específica de vencidos)
- * ✅ CORRIGIDA - 27/01/2026: Filtra deletados
+ * ============================================================
+ * 4. LISTAR PRAZOS VENCIDOS
+ * ✅ CORRIGIDA - 31/01/2026: Adiciona JOIN com clientes e corrige duplicação
+ * ============================================================
  */
 async function listarPrazosVencidos(req, res) {
   try {
-    const result = await pool.query(`
-      SELECT pr.*, proc.numero AS processo_numero, proc.cliente AS cliente_nome
-      FROM prazos pr
-      LEFT JOIN processos proc ON proc.id = pr.processo_id
-      WHERE pr.escritorio_id = $1
-        AND pr.deletado = false
-        AND pr.status = 'atrasado'
-      ORDER BY pr.data_limite DESC
-    `, [req.user.escritorio_id]);
+    const result = await pool.query(
+      `SELECT 
+        pr.*,
+        proc.numero AS processo_numero,
+        COALESCE(c.nome, proc.cliente) AS cliente_nome,
+        proc.parte_contraria,
+        proc.tribunal
+       FROM prazos pr
+       LEFT JOIN processos proc ON proc.id = pr.processo_id
+       LEFT JOIN clientes c ON c.id = pr.cliente_id
+       WHERE pr.escritorio_id = $1
+         AND pr.deletado = false
+         AND pr.status = 'atrasado'
+       ORDER BY pr.data_limite DESC`,
+      [req.user.escritorio_id]
+    );
 
+    console.log(`🔴 [PRAZOS VENCIDOS] Retornando ${result.rowCount} prazos`);
     res.json(result.rows);
   } catch (err) {
-    console.error('Erro ao listar prazos vencidos:', err.message);
+    console.error('❌ [PRAZOS VENCIDOS] Erro:', err.message);
     res.status(500).json({ erro: 'Erro ao buscar prazos vencidos' });
   }
 }
 
 /**
- * ✅ CORRIGIDA - 27/01/2026: Filtra deletados
+ * ============================================================
+ * 5. LISTAR PRAZOS DA SEMANA
+ * ✅ CORRIGIDA - 31/01/2026: Adiciona JOIN com clientes
+ * ============================================================
  */
 async function listarPrazosSemana(req, res) {
   try {
     const result = await pool.query(
-      `
-      SELECT p.*, pr.numero AS processo_numero, pr.cliente AS cliente_nome
-      FROM prazos p
-      LEFT JOIN processos pr ON pr.id = p.processo_id
-      WHERE p.escritorio_id = $1
-        AND p.deletado = false
-        AND p.status IN ('aberto', 'hoje')
-        AND p.data_limite >= CURRENT_DATE
-        AND p.data_limite <= CURRENT_DATE + INTERVAL '7 days'
-      ORDER BY p.data_limite ASC
-      `,
+      `SELECT 
+        p.*,
+        pr.numero AS processo_numero,
+        COALESCE(c.nome, pr.cliente) AS cliente_nome,
+        pr.parte_contraria,
+        pr.tribunal
+       FROM prazos p
+       LEFT JOIN processos pr ON pr.id = p.processo_id
+       LEFT JOIN clientes c ON c.id = p.cliente_id
+       WHERE p.escritorio_id = $1
+         AND p.deletado = false
+         AND p.status IN ('aberto', 'hoje')
+         AND p.data_limite >= CURRENT_DATE
+         AND p.data_limite <= CURRENT_DATE + INTERVAL '7 days'
+       ORDER BY p.data_limite ASC`,
       [req.user.escritorio_id]
     );
 
+    console.log(`📅 [PRAZOS SEMANA] Retornando ${result.rowCount} prazos`);
     res.json(result.rows);
   } catch (err) {
-    console.error('Erro ao listar prazos da semana:', err.message);
+    console.error('❌ [PRAZOS SEMANA] Erro:', err.message);
     res.status(500).json({ erro: err.message });
   }
 }
 
 /**
- * ✅ CORRIGIDA - 27/01/2026: Filtra deletados
+ * ============================================================
+ * 6. LISTAR PRAZOS FUTUROS
+ * ✅ CORRIGIDA - 31/01/2026: Adiciona JOIN com clientes
+ * ============================================================
  */
 async function listarPrazosFuturos(req, res) {
   try {
     const result = await pool.query(
-      `
-      SELECT p.*, pr.numero AS processo_numero, pr.cliente AS cliente_nome
-      FROM prazos p
-      LEFT JOIN processos pr ON pr.id = p.processo_id
-      WHERE p.escritorio_id = $1
-        AND p.deletado = false
-        AND p.status = 'aberto'
-        AND p.data_limite > CURRENT_DATE + INTERVAL '7 days'
-      ORDER BY p.data_limite ASC
-      `,
+      `SELECT 
+        p.*,
+        pr.numero AS processo_numero,
+        COALESCE(c.nome, pr.cliente) AS cliente_nome,
+        pr.parte_contraria,
+        pr.tribunal
+       FROM prazos p
+       LEFT JOIN processos pr ON pr.id = p.processo_id
+       LEFT JOIN clientes c ON c.id = p.cliente_id
+       WHERE p.escritorio_id = $1
+         AND p.deletado = false
+         AND p.status = 'aberto'
+         AND p.data_limite > CURRENT_DATE + INTERVAL '7 days'
+       ORDER BY p.data_limite ASC`,
       [req.user.escritorio_id]
     );
 
+    console.log(`🔮 [PRAZOS FUTUROS] Retornando ${result.rowCount} prazos`);
     res.json(result.rows);
   } catch (err) {
-    console.error('Erro ao listar prazos futuros:', err.message);
+    console.error('❌ [PRAZOS FUTUROS] Erro:', err.message);
     res.status(500).json({ erro: err.message });
   }
 }
 
 /**
- * ✅ CORRIGIDA - 27/01/2026: Filtra deletados
+ * ============================================================
+ * 7. LISTAR PRAZOS CONCLUÍDOS
+ * ✅ CORRIGIDA - 31/01/2026: Adiciona JOIN com clientes
+ * ============================================================
  */
 async function listarPrazosConcluidos(req, res) {
   try {
     const result = await pool.query(
-      `SELECT p.*, pr.numero AS processo_numero, pr.cliente AS cliente_nome 
+      `SELECT 
+        p.*,
+        pr.numero AS processo_numero,
+        COALESCE(c.nome, pr.cliente) AS cliente_nome,
+        pr.parte_contraria,
+        pr.tribunal
        FROM prazos p 
        LEFT JOIN processos pr ON pr.id = p.processo_id
+       LEFT JOIN clientes c ON c.id = p.cliente_id
        WHERE p.escritorio_id = $1 
          AND p.deletado = false
          AND p.status = 'concluido' 
        ORDER BY p.concluido_em DESC`, 
       [req.user.escritorio_id]
     );
+    
+    console.log(`✅ [PRAZOS CONCLUÍDOS] Retornando ${result.rowCount} prazos`);
     res.json(result.rows);
   } catch (error) {
-    console.error('Erro ao listar concluídos:', error);
+    console.error('❌ [PRAZOS CONCLUÍDOS] Erro:', error);
     res.status(500).json({ erro: 'Erro ao listar concluídos' });
   }
 }
 
 /**
- * Atualiza status de um prazo específico (usado após edição ou criação)
+ * ============================================================
+ * 8. ATUALIZAR PRAZO
+ * ✅ CORRIGIDA - 31/01/2026: Aceita clienteId e cliente_id
+ * ============================================================
+ */
+async function atualizarPrazo(req, res) {
+    const { id } = req.params;
+    const { tipo, descricao, dataLimite, clienteId, cliente_id } = req.body;
+    const escritorioId = req.user.escritorio_id;
+
+    // Aceita ambos os formatos
+    const clienteFinal = clienteId || cliente_id || null;
+
+    console.log(`📝 [ATUALIZAR PRAZO] ID: ${id}, Cliente: ${clienteFinal}, Tipo: ${tipo}`);
+
+    try {
+        const result = await pool.query(
+            `UPDATE prazos 
+             SET tipo = $1, 
+                 descricao = $2, 
+                 data_limite = $3,
+                 cliente_id = $4
+             WHERE id = $5 
+             AND escritorio_id = $6 
+             AND deletado = false
+             RETURNING *`,
+            [tipo, descricao, dataLimite, clienteFinal, id, escritorioId]
+        );
+
+        if (result.rowCount === 0) {
+            console.warn(`⚠️ [ATUALIZAR PRAZO] Prazo ${id} não encontrado`);
+            return res.status(404).json({ erro: 'Prazo não encontrado' });
+        }
+
+        console.log(`✅ [ATUALIZAR PRAZO] Prazo ${id} atualizado - Cliente: ${clienteFinal || 'SEM CLIENTE'}`);
+        
+        res.json({ 
+            ok: true, 
+            prazo: result.rows[0],
+            mensagem: 'Prazo atualizado com sucesso'
+        });
+
+    } catch (err) {
+        console.error('❌ [ATUALIZAR PRAZO] Erro:', err.message);
+        res.status(500).json({ erro: 'Erro ao atualizar prazo' });
+    }
+}
+
+/**
+ * ============================================================
+ * 9. CONCLUIR PRAZO
+ * ============================================================
+ */
+async function concluirPrazo(req, res) {
+  try {
+    const result = await pool.query(
+      `UPDATE prazos 
+       SET status = 'concluido', 
+           concluido_em = NOW(), 
+           concluido_por = $1 
+       WHERE id = $2 
+       AND escritorio_id = $3
+       RETURNING *`,
+      [req.user.id, req.params.id, req.user.escritorio_id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ erro: 'Prazo não encontrado' });
+    }
+
+    console.log(`✅ [CONCLUIR PRAZO] ID: ${req.params.id}`);
+    res.json({ sucesso: true, prazo: result.rows[0] });
+  } catch (err) {
+    console.error('❌ [CONCLUIR PRAZO] Erro:', err);
+    res.status(500).json({ erro: err.message });
+  }
+}
+
+/**
+ * ============================================================
+ * 10. EXCLUIR PRAZO (SOFT DELETE)
+ * ✅ CORRIGIDA - 27/01/2026: SOFT DELETE ao invés de hard delete
+ * ============================================================
+ */
+async function excluirPrazo(req, res) {
+  try {
+    const result = await pool.query(
+      `UPDATE prazos 
+       SET deletado = true 
+       WHERE id = $1 
+       AND escritorio_id = $2 
+       RETURNING *`,
+      [req.params.id, req.user.escritorio_id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ erro: 'Prazo não encontrado' });
+    }
+
+    console.log(`🗑️ [EXCLUIR PRAZO] ID ${req.params.id} marcado como deletado`);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('❌ [EXCLUIR PRAZO] Erro:', error);
+    res.status(500).json({ erro: 'Erro ao excluir' });
+  }
+}
+
+/**
+ * ============================================================
+ * 11. LIMPAR PRAZOS CONCLUÍDOS
+ * Remove permanentemente prazos concluídos há mais de 30 dias
+ * ============================================================
+ */
+async function limparPrazosConcluidos(req, res) {
+  try {
+    const resultado = await pool.query(
+      `DELETE FROM prazos 
+       WHERE status = 'concluido' 
+       AND escritorio_id = $1
+       AND concluido_em < NOW() - INTERVAL '30 days'`,
+      [req.user.escritorio_id]
+    );
+    
+    console.log(`🧹 [LIMPAR CONCLUÍDOS] ${resultado.rowCount} prazos removidos`);
+    res.json({ sucesso: true, removidos: resultado.rowCount });
+  } catch (err) {
+    console.error('❌ [LIMPAR CONCLUÍDOS] Erro:', err);
+    res.status(500).json({ erro: 'Erro ao limpar' });
+  }
+}
+
+/**
+ * ============================================================
+ * 12. ATUALIZAR STATUS DO PRAZO (AUXILIAR)
+ * Marca prazos como atrasados quando a data passa
+ * ============================================================
  */
 async function atualizarStatusPrazo(id) {
   try {
@@ -321,95 +493,13 @@ async function atualizarStatusPrazo(id) {
         AND status IN ('aberto', 'hoje')
     `, [id]);
   } catch (err) {
-    console.error('Erro ao atualizar status do prazo', id, ':', err.message);
-  }
-}
-
-/**
- * Concluir prazo
- */
-async function concluirPrazo(req, res) {
-  try {
-    await pool.query(
-      `UPDATE prazos SET status = 'concluido', concluido_em = NOW(), concluido_por = $1 
-       WHERE id = $2 AND escritorio_id = $3`,
-      [req.user.id, req.params.id, req.user.escritorio_id]
-    );
-    res.json({ sucesso: true });
-  } catch (err) {
-    res.status(500).json({ erro: err.message });
-  }
-}
-
-/**
- * Limpar concluídos - Hard delete de prazos concluídos antigos
- * (Prazos concluídos há mais de 30 dias podem ser removidos permanentemente)
- */
-async function limparPrazosConcluidos(req, res) {
-  try {
-    const resultado = await pool.query(
-      `DELETE FROM prazos 
-       WHERE status = 'concluido' 
-       AND escritorio_id = $1
-       AND concluido_em < NOW() - INTERVAL '30 days'`,
-      [req.user.escritorio_id]
-    );
-    res.json({ sucesso: true, removidos: resultado.rowCount });
-  } catch (err) {
-    res.status(500).json({ erro: 'Erro ao limpar' });
-  }
-}
-
-/**
- * Excluir prazo
- * ✅ CORRIGIDA - 27/01/2026: SOFT DELETE ao invés de hard delete
- */
-async function excluirPrazo(req, res) {
-  try {
-    // ✅ SOFT DELETE: Marca como deletado ao invés de apagar
-    const result = await pool.query(
-      'UPDATE prazos SET deletado = true WHERE id = $1 AND escritorio_id = $2 RETURNING *',
-      [req.params.id, req.user.escritorio_id]
-    );
-
-    if (result.rowCount === 0) {
-      return res.status(404).json({ erro: 'Prazo não encontrado' });
-    }
-
-    console.log(`[PRAZO] Soft delete: ID ${req.params.id} marcado como deletado`);
-    res.json({ ok: true });
-  } catch (error) {
-    console.error('Erro ao excluir prazo:', error);
-    res.status(500).json({ erro: 'Erro ao excluir' });
-  }
-}
-
-/**
- * Atualizar prazo + forçar revalidação do status
- */
-async function atualizarPrazo(req, res) {
-  try {
-    const { tipo, dataLimite, descricao } = req.body;
-    const prazoId = req.params.id;
-
-    await pool.query(
-      'UPDATE prazos SET tipo = $1, data_limite = $2, descricao = $3 WHERE id = $4 AND escritorio_id = $5',
-      [tipo, dataLimite, descricao, prazoId, req.user.escritorio_id]
-    );
-
-    // Reavalia status após possível mudança de data
-    await atualizarStatusPrazo(prazoId);
-
-    res.json({ ok: true });
-  } catch (error) {
-    console.error('Erro ao atualizar prazo:', error);
-    res.status(500).json({ erro: 'Erro ao atualizar' });
+    console.error('❌ Erro ao atualizar status do prazo', id, ':', err.message);
   }
 }
 
 /**
  * ============================================================
- * PLANO E CONSUMO - ATUALIZADO COM LIMITES DO planLimits.json
+ * 13. PLANO E CONSUMO
  * ✅ CORRIGIDA - 27/01/2026: Usa created_at e conta todos (incluindo deletados)
  * ============================================================
  */
@@ -434,8 +524,7 @@ async function planoEConsumo(req, res) {
     const planoConfig = planLimits[planoSlug];
     const planoNome = planoResult.rows[0].nome;
 
-    // ✅ CORRIGIDO: Buscar consumo atual de prazos usando created_at
-    // Conta TODOS os prazos criados no mês (incluindo deletados)
+    // ✅ CORRIGIDO: Conta TODOS os prazos criados no mês (incluindo deletados)
     const prazosCount = await pool.query(
       `SELECT COUNT(*) as total 
        FROM prazos 
@@ -466,14 +555,12 @@ async function planoEConsumo(req, res) {
     const vencimento = planoResult.rows[0].data_vencimento ? new Date(planoResult.rows[0].data_vencimento) : null;
     let diasRestantes = vencimento ? Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24)) : null;
 
-    // Log para debug
-    console.log(`[PLANO CONSUMO] Escritório: ${escritorioId}`);
-    console.log(`[PLANO CONSUMO] Prazos criados no mês: ${prazosAtivos}/${planoConfig.prazos.max}`);
+    console.log(`📊 [PLANO CONSUMO] Escritório ${escritorioId}: ${prazosAtivos}/${planoConfig.prazos.max} prazos`);
 
-    // ✅ RESPOSTA COM COMPATIBILIDADE DUPLA (frontend antigo + novo)
+    // Resposta com compatibilidade dupla
     res.json({ 
-      // Estrutura ANTIGA (compatibilidade com páginas HTML existentes)
-      plano: planoNome,  // ← String simples "Básico"
+      // Estrutura antiga (compatibilidade)
+      plano: planoNome,
       limite_prazos: planoConfig.prazos.max,
       prazos_usados: prazosAtivos,
       ciclo: planoResult.rows[0].ciclo,
@@ -483,7 +570,7 @@ async function planoEConsumo(req, res) {
       em_tolerancia: (diasRestantes !== null && diasRestantes < 0 && diasRestantes >= -5),
       dias_para_bloqueio: vencimento ? diasRestantes + 5 : null,
       
-      // Estrutura NOVA (para novas features)
+      // Estrutura nova
       plano_detalhado: {
         nome: planoNome,
         slug: planoSlug
@@ -515,11 +602,16 @@ async function planoEConsumo(req, res) {
     });
 
   } catch (error) {
-    console.error('Erro em planoEConsumo:', error);
+    console.error('❌ [PLANO CONSUMO] Erro:', error);
     res.status(500).json({ erro: 'Erro interno' });
   }
 }
 
+/**
+ * ============================================================
+ * EXPORTS
+ * ============================================================
+ */
 module.exports = {
   criarPrazo,
   listarPrazosGeral,

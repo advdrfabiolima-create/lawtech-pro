@@ -278,6 +278,7 @@ router.get('/publicacoes-pendentes', authMiddleware, async (req, res) => {
 /**
  * ============================================================
  * ⚡ CONVERTER PUBLICAÇÃO EM PRAZO
+ * ✅ CORRIGIDO: Busca cliente_id do processo existente
  * ============================================================
  */
 router.post('/converter-publicacao', authMiddleware, async (req, res) => {
@@ -298,15 +299,20 @@ router.post('/converter-publicacao', authMiddleware, async (req, res) => {
         const pub = pubRes.rows[0];
 
         let processoId = null;
+        let clienteId = null;
         
+        // ✅ BUSCAR PROCESSO EXISTENTE E SEU CLIENTE
         const processoExistente = await pool.query(
-            'SELECT id FROM processos WHERE numero = $1 AND escritorio_id = $2',
+            'SELECT id, cliente_id FROM processos WHERE numero = $1 AND escritorio_id = $2',
             [pub.numero_processo, escritorioId]
         );
 
         if (processoExistente.rowCount > 0) {
             processoId = processoExistente.rows[0].id;
+            clienteId = processoExistente.rows[0].cliente_id;
+            console.log(`✅ Processo existente encontrado: ${pub.numero_processo} (cliente_id: ${clienteId})`);
         } else {
+            // ✅ CRIAR PROCESSO SEM CLIENTE (será preenchido depois)
             const novoProcesso = await pool.query(
                 `INSERT INTO processos (numero, escritorio_id, usuario_id, status) 
                  VALUES ($1, $2, $3, 'ativo') 
@@ -314,17 +320,19 @@ router.post('/converter-publicacao', authMiddleware, async (req, res) => {
                 [pub.numero_processo, escritorioId, usuarioId]
             );
             processoId = novoProcesso.rows[0].id;
-            console.log(`📁 Processo criado automaticamente: ${pub.numero_processo}`);
+            console.log(`📁 Processo criado automaticamente: ${pub.numero_processo} (SEM CLIENTE - precisa editar)`);
         }
 
+        // ✅ CRIAR PRAZO COM CLIENTE_ID SE DISPONÍVEL
         const prazoRes = await pool.query(
             `INSERT INTO prazos 
-             (tipo, processo_id, descricao, data_limite, status, escritorio_id, usuario_id, deletado, created_at) 
-             VALUES ($1, $2, $3, $4, 'aberto', $5, $6, false, NOW())
+             (tipo, processo_id, cliente_id, descricao, data_limite, status, escritorio_id, usuario_id, deletado, created_at) 
+             VALUES ($1, $2, $3, $4, $5, 'aberto', $6, $7, false, NOW())
              RETURNING *`,
             [
                 tipo,
                 processoId,
+                clienteId, // ✅ AGORA VINCULA O CLIENTE
                 `Processo: ${pub.numero_processo} | Prazo: ${dias} dias úteis | Gerado de publicação DJEN em ${pub.data_publicacao}`,
                 dataCalculada,
                 escritorioId,
@@ -337,12 +345,15 @@ router.post('/converter-publicacao', authMiddleware, async (req, res) => {
             [id_publicacao]
         );
 
-        console.log(`✅ Prazo criado: ${tipo} - Processo ${pub.numero_processo} - Vencimento: ${dataCalculada}`);
+        console.log(`✅ Prazo criado: ${tipo} - Processo ${pub.numero_processo} - Vencimento: ${dataCalculada} - Cliente: ${clienteId || 'NÃO VINCULADO'}`);
 
         res.json({ 
             ok: true, 
-            mensagem: 'Prazo criado com sucesso!',
-            prazo: prazoRes.rows[0]
+            mensagem: clienteId 
+                ? 'Prazo criado com sucesso e vinculado ao cliente!' 
+                : 'Prazo criado! ⚠️ Processo sem cliente - edite o prazo para vincular.',
+            prazo: prazoRes.rows[0],
+            processo_sem_cliente: !clienteId
         });
 
     } catch (err) {
