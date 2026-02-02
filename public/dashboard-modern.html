@@ -1862,6 +1862,41 @@ async function carregarPrazos() {
         const res = await fetch('/api/dashboard/prazos-geral', { headers: { Authorization: `Bearer ${token}` } });
         const prazos = await res.json();
         
+        // ✅ ADICIONAR CONTAGEM DE PRAZOS VENCIDOS E DA SEMANA
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        
+        const umaSemana = new Date(hoje);
+        umaSemana.setDate(hoje.getDate() + 7);
+        
+        let contadorVencidos = 0;
+        let contadorSemana = 0;
+        
+        prazos.forEach(p => {
+            const dataLimite = new Date(p.data_limite);
+            dataLimite.setHours(0, 0, 0, 0);
+            
+            // Contar vencidos (data limite < hoje)
+            if (dataLimite < hoje) {
+                contadorVencidos++;
+            }
+            
+            // Contar prazos da semana (entre hoje e 7 dias)
+            if (dataLimite >= hoje && dataLimite <= umaSemana) {
+                contadorSemana++;
+            }
+        });
+        
+        // Atualizar os cards
+        const elemVencidos = document.getElementById('count-vencidos');
+        const elemSemana = document.getElementById('count-semana');
+        
+        if (elemVencidos) elemVencidos.innerText = contadorVencidos;
+        if (elemSemana) elemSemana.innerText = contadorSemana;
+        
+        console.log(`📊 Contadores atualizados: ${contadorVencidos} vencidos, ${contadorSemana} na semana`);
+        // FIM DA CONTAGEM
+        
         containerGeral.innerHTML = '';
         const prazosExibicao = prazos.slice(0, 5);
 

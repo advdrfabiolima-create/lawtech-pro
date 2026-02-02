@@ -624,13 +624,114 @@
         // Máscaras
         const documentoMask = IMask(document.getElementById('documento'), { mask: '000.000.000-00' });
         IMask(document.getElementById('cep'), { mask: '00000-000' });
-        IMask(document.getElementById('card_numero'), { mask: '0000 0000 0000 0000' });
+        
+        const cardNumeroMask = IMask(document.getElementById('card_numero'), { mask: '0000 0000 0000 0000' });
         IMask(document.getElementById('card_validade'), { mask: '00/00' });
         IMask(document.getElementById('card_cvc'), { mask: '000' });
+
+        // ✅ Adicionar indicador visual de validação do cartão
+        const cardNumeroInput = document.getElementById('card_numero');
+        const cardContainer = cardNumeroInput.parentElement;
+        
+        // Criar elemento de feedback
+        const feedbackElement = document.createElement('div');
+        feedbackElement.style.cssText = `
+            font-size: 12px;
+            margin-top: 6px;
+            font-weight: 600;
+            display: none;
+        `;
+        cardContainer.appendChild(feedbackElement);
+        
+        cardNumeroInput.addEventListener('input', function() {
+            const numero = this.value;
+            const numeroLimpo = numero.replace(/\D/g, '');
+            
+            // Só valida quando tiver pelo menos 13 dígitos
+            if (numeroLimpo.length >= 13) {
+                const valido = validarCartaoCredito(numero);
+                const bandeira = identificarBandeira(numero);
+                
+                if (valido) {
+                    feedbackElement.style.display = 'block';
+                    feedbackElement.style.color = '#10b981';
+                    feedbackElement.innerHTML = `✅ Cartão válido - ${bandeira}`;
+                    cardNumeroInput.style.borderColor = '#10b981';
+                } else {
+                    feedbackElement.style.display = 'block';
+                    feedbackElement.style.color = '#ef4444';
+                    feedbackElement.innerHTML = `❌ Número de cartão inválido`;
+                    cardNumeroInput.style.borderColor = '#ef4444';
+                }
+            } else {
+                feedbackElement.style.display = 'none';
+                cardNumeroInput.style.borderColor = '#e2e8f0';
+            }
+        });
 
         const form = document.getElementById('formRegister');
         const errorBox = document.getElementById('errorBox');
         const btnSubmit = document.getElementById('btnSubmit');
+
+        /**
+         * ✅ Validação de Cartão de Crédito - Algoritmo de Luhn
+         * Este algoritmo é usado por TODAS as operadoras de cartão
+         */
+        function validarCartaoCredito(numero) {
+            // Remove espaços e caracteres não numéricos
+            const numeroLimpo = numero.replace(/\D/g, '');
+            
+            // Cartões devem ter entre 13 e 19 dígitos
+            if (numeroLimpo.length < 13 || numeroLimpo.length > 19) {
+                return false;
+            }
+            
+            // Algoritmo de Luhn
+            let soma = 0;
+            let dobrar = false;
+            
+            // Percorre do último para o primeiro dígito
+            for (let i = numeroLimpo.length - 1; i >= 0; i--) {
+                let digito = parseInt(numeroLimpo.charAt(i));
+                
+                if (dobrar) {
+                    digito *= 2;
+                    if (digito > 9) {
+                        digito -= 9;
+                    }
+                }
+                
+                soma += digito;
+                dobrar = !dobrar;
+            }
+            
+            // Se a soma é divisível por 10, o cartão é válido
+            return (soma % 10) === 0;
+        }
+        
+        /**
+         * ✅ Identificar bandeira do cartão
+         */
+        function identificarBandeira(numero) {
+            const numeroLimpo = numero.replace(/\D/g, '');
+            
+            // Visa: começa com 4
+            if (/^4/.test(numeroLimpo)) return 'Visa';
+            
+            // Mastercard: começa com 51-55 ou 2221-2720
+            if (/^5[1-5]/.test(numeroLimpo) || /^2[2-7]/.test(numeroLimpo)) return 'Mastercard';
+            
+            // Amex: começa com 34 ou 37
+            if (/^3[47]/.test(numeroLimpo)) return 'American Express';
+            
+            // Elo: começa com diversos prefixos
+            if (/^(4011|4312|4389|4514|4576|5041|5066|5090|6277|6362|6363|6504|6505|6516)/.test(numeroLimpo)) return 'Elo';
+            
+            // Hipercard: começa com 38 ou 60
+            if (/^(38|60)/.test(numeroLimpo)) return 'Hipercard';
+            
+            return 'Desconhecida';
+        }
 
         window.onload = () => {
             const params = new URLSearchParams(window.location.search);
@@ -680,6 +781,27 @@
             const senha = document.getElementById('senha').value;
             if (senha !== document.getElementById('confirmarSenha').value) return showError("Senhas não coincidem.");
             if (senha.length < 6) return showError("A senha deve ter 6+ caracteres.");
+
+            // ✅ VALIDAR CARTÃO DE CRÉDITO
+            const numeroCartao = document.getElementById('card_numero').value;
+            
+            if (numeroCartao && numeroCartao.trim() !== '') {
+                console.log('🔍 Validando cartão de crédito...');
+                
+                if (!validarCartaoCredito(numeroCartao)) {
+                    const bandeira = identificarBandeira(numeroCartao);
+                    console.error('❌ Cartão inválido:', numeroCartao.replace(/\d(?=\d{4})/g, '*'));
+                    return showError(
+                        `❌ Número de cartão inválido!\n\n` +
+                        `O número informado não passou na validação de segurança.\n` +
+                        `${bandeira !== 'Desconhecida' ? `Bandeira detectada: ${bandeira}\n` : ''}` +
+                        `Por favor, verifique os dígitos e tente novamente.`
+                    );
+                }
+                
+                const bandeira = identificarBandeira(numeroCartao);
+                console.log('✅ Cartão válido! Bandeira:', bandeira);
+            }
 
             btnSubmit.innerText = "Processando...";
             btnSubmit.disabled = true;

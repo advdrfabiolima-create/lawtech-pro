@@ -165,6 +165,8 @@ app.use((err, req, res, next) => {
 
 // --- 12. INICIALIZAÇÃO E AUTOMAÇÃO ---
 const { iniciarAgendamentos } = require('./cron/prazosCron');
+// ✅ Cron de cobranças automáticas após trial
+require('./cron/cobrancasTrial');
 
 async function iniciarSistema() {
     try {

@@ -245,6 +245,8 @@
 .btn-action.edit:hover { background: #eff6ff; border-color: var(--primary); }
 .btn-action.danger { color: var(--danger); }
 .btn-action.danger:hover { background: #fef2f2; border-color: var(--danger); }
+.btn-action.view { color: #8b5cf6; }
+.btn-action.view:hover { background: #f5f3ff; border-color: #8b5cf6; }
         .btn-crm-gold-nav {
             background: linear-gradient(135deg, var(--accent-gold) 0%, #facc15 100%) !important;
             color: #000 !important;
@@ -322,6 +324,220 @@ input, textarea, select {
     text-transform: lowercase !important;
     color: #cbd5e1;
     text-align: left;
+}
+/* 
+  ============================================
+  CSS PARA SISTEMA DE ANEXOS DE PDF
+  Adicione este CSS dentro da tag <style> do seu prazos.html
+  ============================================
+*/
+
+/* Estilo para área de anexo de PDF */
+.anexo-section {
+    margin-top: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-radius: 12px;
+    border: 2px dashed var(--border-medium);
+}
+
+.anexo-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.anexo-header i {
+    color: var(--accent-red);
+    width: 20px;
+    height: 20px;
+}
+
+.anexo-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Botão de upload estilizado */
+.upload-btn-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+}
+
+.upload-btn-wrapper input[type=file] {
+    position: absolute;
+    left: -9999px;
+}
+
+.upload-btn {
+    background: var(--primary);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+    border: none;
+}
+
+.upload-btn:hover {
+    background: var(--accent-blue-light);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.upload-btn i {
+    width: 18px;
+    height: 18px;
+}
+
+/* Card do PDF anexado */
+.pdf-card {
+    background: white;
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s;
+}
+
+.pdf-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.pdf-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.pdf-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.pdf-icon i {
+    width: 24px;
+    height: 24px;
+}
+
+.pdf-details {
+    flex: 1;
+}
+
+.pdf-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.pdf-size {
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.pdf-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-icon i {
+    width: 18px;
+    height: 18px;
+}
+
+.btn-icon.view {
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--primary);
+}
+
+.btn-icon.view:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-icon.delete {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--accent-red);
+}
+
+.btn-icon.delete:hover {
+    background: var(--accent-red);
+    color: white;
+}
+
+/* Loading spinner */
+.upload-loading {
+    display: none;
+    text-align: center;
+    padding: 20px;
+}
+
+.spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Badge de "Tem Anexo" no card do prazo */
+.badge-anexo {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.badge-anexo i {
+    width: 12px;
+    height: 12px;
 }
     </style>
 </head>
@@ -420,13 +636,21 @@ input, textarea, select {
         </main>
     </div>
 
+<!-- 
+  ============================================
+  MODAL DE PRAZO - VERSÃO CORRIGIDA
+  Substitua o modal inteiro no seu prazos.html
+  ============================================
+-->
+
 <div id="modalPrazo" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 600px;">
         <h3 style="margin-bottom: 20px; font-weight: 700;">📅 Gerenciar Prazo</h3>
         <input type="hidden" id="prazoId">
+        
         <div style="display:flex; flex-direction:column; gap:12px;">
             
-            <!-- ✅ NOVO: Campo Cliente -->
+            <!-- Campo Cliente -->
             <div>
                 <label style="font-size: 12px; font-weight: 700; color: var(--muted);">
                     CLIENTE
@@ -437,30 +661,85 @@ input, textarea, select {
                 </select>
             </div>
 
-            <!-- Campo Processo (existente) -->
+            <!-- Campo Processo -->
             <div>
                 <label style="font-size: 12px; font-weight: 700; color: var(--muted);">PROCESSO (CNJ)</label>
                 <select id="processoId" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;"></select>
             </div>
 
-            <!-- Tipo do Prazo (existente) -->
+            <!-- Tipo do Prazo -->
             <div>
                 <label style="font-size: 12px; font-weight: 700; color: var(--muted);">TIPO DO PRAZO</label>
                 <input id="tipoPrazo" placeholder="Ex: Contestação, Recurso..." style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;">
             </div>
 
-            <!-- Data Limite (existente) -->
+            <!-- Data Limite -->
             <div>
                 <label style="font-size: 12px; font-weight: 700; color: var(--muted);">DATA LIMITE (VENCIMENTO)</label>
                 <input type="date" id="dataPrazo" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;">
             </div>
 
-            <!-- Observações (existente) -->
+            <!-- Observações -->
             <div>
                 <label style="font-size: 12px; font-weight: 700; color: var(--muted);">OBSERVAÇÕES (OPCIONAL)</label>
                 <textarea id="descricaoPrazo" rows="3" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; resize: none; margin-top: 5px;"></textarea>
             </div>
+
+            <!-- ✅ SEÇÃO DE ANEXO - DENTRO DO MODAL -->
+            <div class="anexo-section" id="anexoSection" >
+                <div class="anexo-header">
+                    <i data-lucide="paperclip"></i>
+                    <span>Documento Anexado</span>
+                </div>
+                
+                <div class="anexo-container">
+                    <!-- Área de upload (quando não tem PDF) -->
+                    <div id="uploadArea" style="display: block;">
+                        <div class="upload-btn-wrapper">
+                            <button type="button" class="upload-btn" onclick="document.getElementById('pdfInput').click()">
+                                <i data-lucide="upload"></i>
+                                Anexar PDF do Laudo/Despacho
+                            </button>
+                            <input type="file" id="pdfInput" accept="application/pdf" onchange="uploadPDF()" />
+                        </div>
+                        <p style="font-size: 12px; color: var(--text-tertiary); margin-top: 8px;">
+                            Tamanho máximo: 10MB
+                        </p>
+                    </div>
+
+                    <!-- Loading durante upload -->
+                    <div class="upload-loading" id="uploadLoading">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 12px; color: var(--text-secondary);">Enviando PDF...</p>
+                    </div>
+
+                    <!-- Card do PDF (quando já tem anexo) -->
+                    <div id="pdfCard" style="display: none;" class="pdf-card">
+                        <div class="pdf-info">
+                            <div class="pdf-icon">
+                                <i data-lucide="file-text"></i>
+                            </div>
+                            <div class="pdf-details">
+                                <div class="pdf-name" id="pdfName">Documento anexado</div>
+                                <div class="pdf-size" id="pdfSize">--</div>
+                            </div>
+                        </div>
+                        <div class="pdf-actions">
+                            <button type="button" class="btn-icon view" onclick="visualizarPDF()" title="Visualizar PDF">
+                                <i data-lucide="eye"></i>
+                            </button>
+                            <button type="button" class="btn-icon delete" onclick="deletarPDF()" title="Remover PDF">
+                                <i data-lucide="trash-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- FIM DA SEÇÃO DE ANEXO -->
+
         </div>
+        
+        <!-- Botões de Ação -->
         <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:10px;">
             <button class="btn-primary" onclick="salvarPrazo()">Salvar Prazo</button>
             <button class="btn-secondary" onclick="fecharModalPrazo()">Cancelar</button>
@@ -568,6 +847,11 @@ async function carregarPrazosModernos() {
             }
 
             prazos.forEach(p => {
+                // ✅ NORMALIZAR: Garantir compatibilidade com diferentes formatos de anexo
+                if (!p.tem_anexo && p.anexo_pdf) {
+                    p.tem_anexo = true;
+                }
+
                 todosPrazos.push({ ...p, status: item.classe });
                 
                 // 1. Cálculo de dias para definir estilo da TAG e a CLASSE do card
@@ -633,6 +917,11 @@ async function carregarPrazosModernos() {
                         <button onclick="editarPrazo(${p.id})" class="btn-action edit" title="Editar">
                             <i data-lucide="edit-3"></i>
                         </button>
+                        ${(p.tem_anexo || p.anexo_pdf) ? `
+                        <button onclick="visualizarAnexoPrazo(${p.id})" class="btn-action view" title="Visualizar Anexo" style="color: #8b5cf6;">
+                            <i data-lucide="paperclip"></i>
+                        </button>
+                        ` : ''}
                         <button onclick="excluirPrazo(${p.id})" class="btn-action danger" title="Excluir">
                             <i data-lucide="trash-2"></i>
                         </button>
@@ -708,6 +997,10 @@ async function carregarPrazosModernos() {
         const url = prazoId ? `/api/prazos/${prazoId}` : '/api/prazos';
         const method = prazoId ? 'PUT' : 'POST';
 
+        console.log('📝 Salvando prazo...');
+        console.log('  - prazoId:', prazoId, '(vazio:', !prazoId, ')');
+        console.log('  - Arquivo temporário:', arquivoPDFTemporario);
+
         const res = await fetch(url, {
             method,
             headers: {
@@ -729,6 +1022,25 @@ async function carregarPrazosModernos() {
             return;
         }
 
+
+        const resultado = await res.json();
+        console.log('✅ Prazo criado/atualizado - resposta da API:', resultado);
+        
+        // ✅ NOVO: Se criou um prazo novo e tem PDF temporário, fazer upload
+        if (!prazoId && arquivoPDFTemporario) {
+            console.log('📎 Prazo novo com PDF temporário detectado!');
+            
+            // Se a API retornou o ID, usar direto
+            if (resultado.id) {
+                console.log('📎 Usando ID retornado pela API:', resultado.id);
+                await uploadPDFAposSalvar(resultado.id);
+            } else {
+                // Se não retornou ID, buscar o último prazo criado
+                console.log('📎 API não retornou ID, buscando último prazo...');
+                await uploadPDFParaUltimoPrazo(processoId, tipo, dataLimite);
+            }
+        }
+        
         alert('✅ Prazo salvo com sucesso!');
         fecharModalPrazo();
         carregarPrazosModernos();
@@ -805,6 +1117,9 @@ async function editarPrazo(id) {
     }
     
     document.getElementById('descricaoPrazo').value = p.descricao || '';
+    
+    // ✅ INICIALIZAR SEÇÃO DE ANEXO
+    inicializarAnexo(p.id, p.tem_anexo || p.anexo_pdf || false);
 }
 
         async function limparPrazosConcluidos() {
@@ -857,7 +1172,7 @@ async function editarPrazo(id) {
     document.getElementById('dataPrazo').value = '';
     document.getElementById('descricaoPrazo').value = '';
     document.getElementById('clienteId').value = ''; // ✅ NOVO
-    
+        
     // 2. Garante que o select de processo esteja liberado
     const selectProcesso = document.getElementById('processoId');
     selectProcesso.disabled = false;
@@ -867,10 +1182,20 @@ async function editarPrazo(id) {
     // 3. Carrega processos e clientes
     carregarProcessosSelect();
     carregarClientesSelect(); // ✅ NOVO
-    
+
+    inicializarAnexo(
+        null, 
+        false
+    );
+
     // 4. Exibe o modal
     document.getElementById('modalPrazo').style.display = 'flex'; 
+
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 }
+
 
 // 🚀 CORREÇÃO: Garante que nada sobre para a próxima abertura
 function fecharModalPrazo() { 
@@ -881,6 +1206,9 @@ function fecharModalPrazo() {
     const selectProcesso = document.getElementById('processoId');
     selectProcesso.disabled = false;
     selectProcesso.style.backgroundColor = "#fff";
+    
+    // Limpar PDF temporário ao fechar modal
+    arquivoPDFTemporario = null;
 }
 
 function exibirObservacaoAtualizada(id) {
@@ -1028,6 +1356,409 @@ window.addEventListener('click', (e) => {
         if(m) m.style.display = 'none';
     }
 });
+
+/* 
+  ============================================
+  JAVASCRIPT PARA SISTEMA DE ANEXOS DE PDF
+  Adicione este código dentro da tag <script> do seu prazos.html
+  ============================================
+*/
+
+// Variável global para armazenar o ID do prazo atual
+let prazoAtualId = null;
+let arquivoPDFTemporario = null; // Armazena PDF ao criar novo prazo
+
+/**
+ * Inicializar seção de anexo ao abrir modal
+ * Chamada quando você abre o modal para EDITAR um prazo existente
+ */
+function inicializarAnexo(prazoId, temAnexo) {
+    prazoAtualId = prazoId;
+    
+    const anexoSection = document.getElementById('anexoSection');
+    const uploadArea = document.getElementById('uploadArea');
+    const pdfCard = document.getElementById('pdfCard');
+    const uploadLoading = document.getElementById('uploadLoading');
+    
+    // Resetar estado
+    uploadLoading.style.display = 'none';
+    
+    // ✅ SEMPRE mostrar seção de anexo (tanto ao criar quanto ao editar)
+    anexoSection.style.display = 'block';
+    
+    if (prazoId && prazoId !== '' && prazoId !== 'null') {
+        // Editando prazo existente
+        if (temAnexo) {
+            // Mostrar card do PDF
+            uploadArea.style.display = 'none';
+            pdfCard.style.display = 'flex';
+            // Carregar informações do PDF
+            carregarInfoPDF(prazoId);
+        } else {
+            // Mostrar área de upload
+            uploadArea.style.display = 'block';
+            pdfCard.style.display = 'none';
+        }
+    } else {
+        // Criando novo prazo - mostrar área de upload
+        uploadArea.style.display = 'block';
+        pdfCard.style.display = 'none';
+    }
+    
+    // Atualizar ícones do Lucide
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+/**
+ * Upload de PDF
+ */
+async function uploadPDF() {
+    const fileInput = document.getElementById('pdfInput');
+    const file = fileInput.files[0];
+    
+    if (!file) return;
+    
+    // Validar tipo
+    if (file.type !== 'application/pdf') {
+        alert('❌ Apenas arquivos PDF são permitidos!');
+        fileInput.value = '';
+        return;
+    }
+    
+    // Validar tamanho (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+        alert('❌ Arquivo muito grande! Tamanho máximo: 10MB');
+        fileInput.value = '';
+        return;
+    }
+    
+    // ✅ NOVO: Se está criando prazo, armazenar temporariamente
+    if (!prazoAtualId || prazoAtualId === '' || prazoAtualId === 'null') {
+        arquivoPDFTemporario = file;
+        
+        // Mostrar card do PDF
+        document.getElementById('uploadArea').style.display = 'none';
+        document.getElementById('uploadLoading').style.display = 'none';
+        document.getElementById('pdfCard').style.display = 'flex';
+        document.getElementById('pdfName').textContent = file.name;
+        document.getElementById('pdfSize').textContent = formatarTamanho(file.size);
+        
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+        
+        console.log('📎 PDF armazenado temporariamente:', file.name, '(' + formatarTamanho(file.size) + ')');
+        console.log('   Será enviado após salvar o prazo.');
+        console.log('   prazoAtualId:', prazoAtualId);
+        fileInput.value = '';
+        return;
+    }
+    
+    // ✅ Se já tem ID (editando), fazer upload imediatamente
+    document.getElementById('uploadArea').style.display = 'none';
+    document.getElementById('uploadLoading').style.display = 'block';
+    
+    try {
+        const formData = new FormData();
+        formData.append('pdf', file);
+        
+        const response = await fetch(`/api/prazos/${prazoAtualId}/anexo`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            console.log('✅ PDF anexado com sucesso!');
+            
+            document.getElementById('uploadLoading').style.display = 'none';
+            document.getElementById('pdfCard').style.display = 'flex';
+            document.getElementById('pdfName').textContent = file.name;
+            document.getElementById('pdfSize').textContent = formatarTamanho(file.size);
+            
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+            
+            atualizarBadgeAnexo(prazoAtualId, true);
+            alert('✅ PDF anexado com sucesso!');
+        } else {
+            throw new Error(result.erro || 'Erro ao anexar PDF');
+        }
+        
+    } catch (err) {
+        console.error('❌ Erro no upload:', err);
+        alert('❌ Erro ao anexar PDF: ' + err.message);
+        
+        document.getElementById('uploadLoading').style.display = 'none';
+        document.getElementById('uploadArea').style.display = 'block';
+    }
+    
+    fileInput.value = '';
+}
+
+/**
+ * Fazer upload do PDF após salvar o prazo (para modo de criação)
+ */
+async function uploadPDFAposSalvar(prazoId) {
+    if (!arquivoPDFTemporario) return;
+    
+    console.log('📤 Enviando PDF armazenado para o prazo recém-criado...');
+    
+    try {
+        const formData = new FormData();
+        formData.append('pdf', arquivoPDFTemporario);
+        
+        const response = await fetch(`/api/prazos/${prazoId}/anexo`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
+        
+        if (response.ok) {
+            console.log('✅ PDF anexado ao prazo recém-criado!');
+            arquivoPDFTemporario = null;
+        } else {
+            const result = await response.json();
+            throw new Error(result.erro || 'Erro ao anexar PDF');
+        }
+        
+    } catch (err) {
+        console.error('❌ Erro ao anexar PDF:', err);
+        alert('⚠️ Prazo salvo, mas ocorreu um erro ao anexar o PDF. Tente anexar novamente editando o prazo.');
+        arquivoPDFTemporario = null;
+    }
+}
+
+/**
+ * Upload de PDF para o último prazo criado (quando API não retorna ID)
+ */
+async function uploadPDFParaUltimoPrazo(processoId, tipo, dataLimite) {
+    if (!arquivoPDFTemporario) return;
+    
+    try {
+        console.log('🔍 Buscando prazo recém-criado...');
+        
+        // Buscar todos os prazos
+        const response = await fetch('/api/prazos', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Erro ao buscar prazos');
+        }
+        
+        const prazos = await response.json();
+        
+        // Encontrar o prazo recém-criado (mesmo processo, tipo e data)
+        const prazoEncontrado = prazos.find(p => 
+            p.processo_id == processoId && 
+            p.tipo === tipo && 
+            p.data_limite.startsWith(dataLimite)
+        );
+        
+        if (!prazoEncontrado) {
+            throw new Error('Prazo recém-criado não encontrado');
+        }
+        
+        console.log('✅ Prazo encontrado! ID:', prazoEncontrado.id);
+        
+        // Fazer upload do PDF
+        await uploadPDFAposSalvar(prazoEncontrado.id);
+        
+    } catch (err) {
+        console.error('❌ Erro ao buscar prazo para anexar PDF:', err);
+        alert('⚠️ Prazo salvo, mas ocorreu um erro ao anexar o PDF. Tente anexar novamente editando o prazo.');
+        arquivoPDFTemporario = null;
+    }
+}
+
+/**
+ * Visualizar PDF em nova aba
+ */
+
+/**
+ * Visualizar anexo de um prazo diretamente do card
+ */
+async function visualizarAnexoPrazo(prazoId) {
+    if (!prazoId) {
+        alert('❌ ID do prazo não encontrado');
+        return;
+    }
+    
+    try {
+        const token = localStorage.getItem('token');
+        
+        const response = await fetch(`/api/prazos/${prazoId}/anexo`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Erro ao buscar PDF');
+        }
+        
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
+        
+    } catch (err) {
+        console.error('❌ Erro ao visualizar PDF:', err);
+        alert('❌ Erro ao visualizar anexo');
+    }
+}
+async function visualizarPDF() {
+    if (!prazoAtualId) {
+        mostrarToast('❌ ID do prazo não encontrado', 'error');
+        return;
+    }
+    
+    try {
+        // Fazer fetch com token no header
+        const response = await fetch(`/api/prazos/${prazoAtualId}/anexo`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Erro ao buscar PDF');
+        }
+        
+        // Converter resposta para blob
+        const blob = await response.blob();
+        
+        // Criar URL temporária do blob
+        const blobUrl = URL.createObjectURL(blob);
+        
+        // Abrir em nova aba
+        window.open(blobUrl, '_blank');
+        
+    } catch (err) {
+        console.error('❌ Erro ao visualizar PDF:', err);
+        mostrarToast('❌ Erro ao visualizar PDF', 'error');
+    }
+}
+
+/**
+ * Deletar PDF
+ */
+async function deletarPDF() {
+    if (!confirm('Tem certeza que deseja remover este PDF?')) return;
+    
+    if (!prazoAtualId) {
+        mostrarToast('❌ ID do prazo não encontrado', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/prazos/${prazoAtualId}/anexo`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            console.log('🗑️ PDF removido!');
+            
+            // Esconder card e mostrar upload
+            document.getElementById('pdfCard').style.display = 'none';
+            document.getElementById('uploadArea').style.display = 'block';
+            
+            // Atualizar badge no card principal
+            atualizarBadgeAnexo(prazoAtualId, false);
+            
+            mostrarToast('✅ PDF removido com sucesso!', 'success');
+        } else {
+            const result = await response.json();
+            throw new Error(result.erro || 'Erro ao deletar PDF');
+        }
+        
+    } catch (err) {
+        console.error('❌ Erro ao deletar:', err);
+        mostrarToast('❌ Erro ao remover PDF: ' + err.message, 'error');
+    }
+}
+
+/**
+ * Carregar informações do PDF
+ */
+async function carregarInfoPDF(prazoId) {
+    // Por enquanto, mostrar valores padrão
+    // Futuramente você pode fazer uma requisição para pegar metadados
+    document.getElementById('pdfName').textContent = 'Documento anexado';
+    document.getElementById('pdfSize').textContent = 'PDF';
+}
+
+/**
+ * Formatar tamanho do arquivo
+ */
+function formatarTamanho(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+/**
+ * Atualizar badge de anexo no card principal da lista
+ */
+function atualizarBadgeAnexo(prazoId, temAnexo) {
+    // Encontrar o card do prazo na lista
+    const allCards = document.querySelectorAll('.prazo-card');
+    
+    allCards.forEach(card => {
+        const cardId = card.getAttribute('data-prazo-id');
+        
+        if (cardId == prazoId) {
+            let badge = card.querySelector('.badge-anexo');
+            
+            if (temAnexo && !badge) {
+                // Adicionar badge
+                const badgeContainer = card.querySelector('.badge-container');
+                if (badgeContainer) {
+                    badge = document.createElement('span');
+                    badge.className = 'badge-anexo';
+                    badge.innerHTML = '<i data-lucide="paperclip"></i> PDF';
+                    badgeContainer.appendChild(badge);
+                    
+                    // Atualizar ícones
+                    if (typeof lucide !== 'undefined') {
+                        lucide.createIcons();
+                    }
+                }
+            } else if (!temAnexo && badge) {
+                // Remover badge
+                badge.remove();
+            }
+        }
+    });
+}
+
+/**
+ * Função auxiliar para mostrar toast
+ * Use a função de toast que já existe no seu sistema
+ */
+function mostrarToast(mensagem, tipo) {
+    // Se você já tem uma função de toast no sistema, use ela
+    // Senão, use alert simples
+    if (typeof exibirToast === 'function') {
+        exibirToast(mensagem, tipo);
+    } else {
+        alert(mensagem);
+    }
+}
     </script>
     <div id="modalIA" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.7); z-index:9999; justify-content:center; align-items:center; backdrop-filter: blur(4px);">
     <div style="background:white; padding:35px; border-radius:16px; max-width:700px; width:90%; max-height:85vh; overflow-y:auto; position:relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #e2e8f0;">

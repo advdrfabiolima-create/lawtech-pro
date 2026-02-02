@@ -609,6 +609,188 @@ async function planoEConsumo(req, res) {
 
 /**
  * ============================================================
+ * 14. UPLOAD DE ANEXO PDF
+ * ============================================================
+ */
+async function uploadAnexo(req, res) {
+  try {
+    const prazoId = req.params.id;
+    const escritorioId = req.user.escritorio_id;
+    
+    // Verificar se o arquivo foi enviado
+    if (!req.file) {
+      return res.status(400).json({ erro: 'Nenhum arquivo enviado' });
+    }
+    
+    // Verificar se o prazo existe e pertence ao escritório
+    const prazoCheck = await pool.query(
+      'SELECT id, anexo_pdf FROM prazos WHERE id = $1 AND escritorio_id = $2',
+      [prazoId, escritorioId]
+    );
+    
+    if (prazoCheck.rows.length === 0) {
+      // Deletar o arquivo enviado se o prazo não existir
+      const fs = require('fs');
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(404).json({ erro: 'Prazo não encontrado' });
+    }
+    
+    // Se já existia um anexo anterior, deletar o arquivo antigo
+    if (prazoCheck.rows[0].anexo_pdf) {
+      const fs = require('fs');
+      const path = require('path');
+      const oldFilePath = path.join(__dirname, '..', 'uploads', 'prazos', prazoCheck.rows[0].anexo_pdf);
+      
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+        console.log('🗑️ Arquivo antigo removido:', prazoCheck.rows[0].anexo_pdf);
+      }
+    }
+    
+    // Atualizar o banco com o nome do novo arquivo
+    const result = await pool.query(
+      `UPDATE prazos 
+       SET anexo_pdf = $1
+       WHERE id = $2 AND escritorio_id = $3
+       RETURNING *`,
+      [req.file.filename, prazoId, escritorioId]
+    );
+    
+    console.log(`📎 [UPLOAD ANEXO] PDF anexado ao prazo ${prazoId}: ${req.file.filename}`);
+    
+    res.json({
+      ok: true,
+      mensagem: 'PDF anexado com sucesso',
+      arquivo: {
+        nome: req.file.originalname,
+        tamanho: req.file.size,
+        nomeServidor: req.file.filename
+      },
+      prazo: result.rows[0]
+    });
+    
+  } catch (err) {
+    console.error('❌ [UPLOAD ANEXO] Erro:', err);
+    
+    // Tentar deletar o arquivo se houve erro
+    if (req.file) {
+      const fs = require('fs');
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+    }
+    
+    res.status(500).json({ erro: 'Erro ao fazer upload do PDF' });
+  }
+}
+
+/**
+ * ============================================================
+ * 15. VISUALIZAR/BAIXAR ANEXO PDF
+ * ============================================================
+ */
+async function visualizarAnexo(req, res) {
+  try {
+    const prazoId = req.params.id;
+    const escritorioId = req.user.escritorio_id;
+    
+    // Buscar informações do prazo
+    const result = await pool.query(
+      'SELECT anexo_pdf FROM prazos WHERE id = $1 AND escritorio_id = $2',
+      [prazoId, escritorioId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ erro: 'Prazo não encontrado' });
+    }
+    
+    if (!result.rows[0].anexo_pdf) {
+      return res.status(404).json({ erro: 'Este prazo não possui anexo' });
+    }
+    
+    // Montar caminho do arquivo
+    const path = require('path');
+    const filePath = path.join(__dirname, '..', 'uploads', 'prazos', result.rows[0].anexo_pdf);
+    
+    // Verificar se o arquivo existe
+    const fs = require('fs');
+    if (!fs.existsSync(filePath)) {
+      console.error('❌ Arquivo não encontrado:', filePath);
+      return res.status(404).json({ erro: 'Arquivo não encontrado no servidor' });
+    }
+    
+    console.log(`👁️ [VISUALIZAR ANEXO] Servindo PDF do prazo ${prazoId}`);
+    
+    // Enviar o arquivo
+    res.sendFile(filePath);
+    
+  } catch (err) {
+    console.error('❌ [VISUALIZAR ANEXO] Erro:', err);
+    res.status(500).json({ erro: 'Erro ao buscar PDF' });
+  }
+}
+
+/**
+ * ============================================================
+ * 16. DELETAR ANEXO PDF
+ * ============================================================
+ */
+async function deletarAnexo(req, res) {
+  try {
+    const prazoId = req.params.id;
+    const escritorioId = req.user.escritorio_id;
+    
+    // Buscar informações do prazo
+    const result = await pool.query(
+      'SELECT anexo_pdf FROM prazos WHERE id = $1 AND escritorio_id = $2',
+      [prazoId, escritorioId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ erro: 'Prazo não encontrado' });
+    }
+    
+    if (!result.rows[0].anexo_pdf) {
+      return res.status(404).json({ erro: 'Este prazo não possui anexo' });
+    }
+    
+    const nomeArquivo = result.rows[0].anexo_pdf;
+    
+    // Deletar arquivo do servidor
+    const path = require('path');
+    const fs = require('fs');
+    const filePath = path.join(__dirname, '..', 'uploads', 'prazos', nomeArquivo);
+    
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      console.log('🗑️ Arquivo deletado:', filePath);
+    }
+    
+    // Remover referência do banco
+    await pool.query(
+      `UPDATE prazos 
+       SET anexo_pdf = NULL
+       WHERE id = $1 AND escritorio_id = $2`,
+      [prazoId, escritorioId]
+    );
+    
+    console.log(`🗑️ [DELETAR ANEXO] PDF removido do prazo ${prazoId}`);
+    
+    res.json({
+      ok: true,
+      mensagem: 'PDF removido com sucesso'
+    });
+    
+  } catch (err) {
+    console.error('❌ [DELETAR ANEXO] Erro:', err);
+    res.status(500).json({ erro: 'Erro ao deletar PDF' });
+  }
+}
+
+/**
+ * ============================================================
  * EXPORTS
  * ============================================================
  */
@@ -625,5 +807,8 @@ module.exports = {
   excluirPrazo,
   limparPrazosConcluidos,
   planoEConsumo,
-  atualizarStatusPrazo
+  atualizarStatusPrazo,
+  uploadAnexo,
+  visualizarAnexo,
+  deletarAnexo
 };
