@@ -278,6 +278,84 @@ input, textarea, select {
     color: #cbd5e1;
     text-align: left;
 }
+
+/* Card de Estatísticas */
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 14px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card.green {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+}
+
+.stat-card.green:hover {
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+
+.stat-card-icon {
+    width: 30px;
+    height: 30px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.stat-card-value {
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    text-transform: none;
+}
+
+.stat-card-label {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-card-time {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    text-transform: none;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.stat-card-date {
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0.9;
+    text-transform: capitalize;
+}
+
+@media (max-width: 768px) {
+    .stats-container {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/imask"></script>
@@ -348,6 +426,27 @@ input, textarea, select {
                 <button class="btn-primary" onclick="abrirModal()">
                     <i class="lucide lucide-plus"></i> Novo Cliente
                 </button>
+            </div>
+
+            <!-- Cards de Estatísticas -->
+            <div class="stats-container">
+                <!-- Card 1: Total de Clientes -->
+                <div class="stat-card">
+                    <div class="stat-card-icon">
+                        <i class="lucide lucide-users" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <div class="stat-card-value" id="totalClientes">0</div>
+                    <div class="stat-card-label">Total de Clientes</div>
+                </div>
+
+                <!-- Card 2: Data e Hora -->
+                <div class="stat-card green">
+                    <div class="stat-card-icon">
+                        <i class="lucide lucide-calendar-clock" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <div class="stat-card-time" id="horaAtual">--:--:--</div>
+                    <div class="stat-card-date" id="dataAtual">Carregando...</div>
+                </div>
             </div>
 
             <div class="card">
@@ -551,6 +650,9 @@ window.onclick = (e) => {
             const res = await fetch('/api/clientes', { headers: { 'Authorization': `Bearer ${token}` } });
             if (res.ok) {
                 const clientes = await res.json();
+                
+                // ✅ Atualizar contador de clientes
+                document.getElementById('totalClientes').textContent = clientes.length;
                 
                 // 🔔 Lógica de Alerta (Bip e Badge)
                 if (totalClientesAnterior !== null && clientes.length > totalClientesAnterior) {
@@ -786,10 +888,39 @@ function fecharModalProcessos() {
 
     function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
 
+    // ⏰ Função para atualizar data e hora em tempo real
+    function atualizarRelogio() {
+        const agora = new Date();
+        
+        // Formatar hora (HH:MM:SS)
+        const hora = agora.toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit' 
+        });
+        
+        // Formatar data (Dia da semana, DD de Mês de YYYY)
+        const opcoes = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+        const data = agora.toLocaleDateString('pt-BR', opcoes);
+        
+        // Atualizar no DOM
+        document.getElementById('horaAtual').textContent = hora;
+        document.getElementById('dataAtual').textContent = data;
+    }
+
     // 🚀 INICIALIZAÇÃO SEGURA
     window.onload = () => {
     carregarInfoRodape();
     carregarClientes();
+    
+    // Inicializar e atualizar relógio a cada segundo
+    atualizarRelogio();
+    setInterval(atualizarRelogio, 1000);
     
     // Tenta "pré-carregar" o som para evitar atrasos
     somNotificacao.load(); 

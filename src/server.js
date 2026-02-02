@@ -22,13 +22,18 @@ const publicacoesRoutes = require('./routes/publicacoes.routes');
 const iaRoutes = require('./routes/ia.routes');
 const crmRoutes = require('./routes/crm.routes');
 const usuariosRoutes = require('./routes/usuarios.routes');
-const adminRoutes = require('./routes/admin.routes'); // ✅ Importado corretamente
+const adminRoutes = require('./routes/admin.routes');
+
+// ✅ NOVA ROTA: Múltiplas Partes por Processo
+// IMPORTANTE: Descomente a linha abaixo DEPOIS de copiar o arquivo partesProcesso.routes.js
+//             para a pasta backend/routes/
+const partesProcessoRoutes = require('./routes/partesProcesso.routes');
 
 // --- 2. MIDDLEWARES DE AUTENTICAÇÃO ---
 const authMiddleware = require('./middlewares/authMiddleware');
 const roleMiddleware = require('./middlewares/roleMiddleware');
 
-// 🚀 3. INICIALIZAÇÃO DO APP (Movido para cima para evitar erros)
+// 🚀 3. INICIALIZAÇÃO DO APP
 const app = express();
 
 // --- 4. MIDDLEWARE DE SEGURANÇA MÁXIMA (MASTER ADMIN) ---
@@ -66,12 +71,16 @@ app.use('/api/pagamentos', pagamentosRoutes);
 app.use('/api', publicacoesRoutes);
 app.use('/api', recibosRoutes);
 
-// ✅ 1. Remova o authMiddleware e o masterAdminOnly apenas desta linha
+// ✅ NOVA ROTA: Múltiplas Partes por Processo
+// IMPORTANTE: Descomente a linha abaixo DEPOIS de copiar o arquivo partesProcesso.routes.js
+app.use('/api', partesProcessoRoutes);
+
+// ✅ Rota do monitor admin
 app.get('/systems/monitor', (req, res) => {
     res.sendFile(path.join(publicPath, 'admin-monitor.html'));
 });
 
-// ✅ 2. MANTENHA a proteção total nas rotas que trazem os dados do banco
+// ✅ Proteção das rotas de dados do admin
 app.use('/systems', authMiddleware, masterAdminOnly, adminRoutes);
 
 // --- 9. PÁGINAS FRONTEND ---
@@ -173,17 +182,17 @@ async function iniciarSistema() {
         const PORT = process.env.PORT || 3000;
         app.listen(PORT, () => {
             console.log(`
-╔════════════════════════════════════════════════════════╗
-║                                                        ║
-║           🚀 LAWTECH PRO - SISTEMA ATIVO              ║
-║                                                        ║
-║  📊 Dashboard: http://localhost:${PORT}/dashboard         ║
-║  📄 Login: http://localhost:${PORT}/login                ║
-║                                                        ║
-║  🛡️  ADMIN - LawTech Systems:                         ║
-║  📈 Monitor: http://localhost:${PORT}/systems/monitor    ║
-║                                                        ║
-╚════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════╗
+║                                                      ║
+║           🚀 LAWTECH PRO - SISTEMA ATIVO            ║
+║                                                      ║
+║  📊 Dashboard: http://localhost:${PORT}/dashboard       ║
+║  📄 Login: http://localhost:${PORT}/login              ║
+║                                                      ║
+║  🛡️  ADMIN - LawTech Systems:                       ║
+║  📈 Monitor: http://localhost:${PORT}/systems/monitor  ║
+║                                                      ║
+╚══════════════════════════════════════════════════════╝
             `);
         });
     } catch (err) {

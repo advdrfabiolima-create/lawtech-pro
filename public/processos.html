@@ -8,7 +8,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+       
     <style>
         :root {
             /* Light Theme Colors - Professional & Clean */
@@ -416,6 +416,728 @@ input, textarea, select {
     letter-spacing: 1px;
 }
 
+/**
+ * ESTILOS: Gerenciador de Múltiplas Partes do Processo
+ * Arquivo CSS separado para facilitar manutenção
+ */
+
+/* ============================================================
+   CONTAINER PRINCIPAL
+   ============================================================ */
+
+.partes-container {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.partes-container:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* ============================================================
+   HEADER DO CONTAINER
+   ============================================================ */
+
+.partes-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.partes-header h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.contador-partes {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 8px rgba(37, 99, 235, 0.5);
+    }
+}
+
+/* ============================================================
+   BOTÃO ADICIONAR PARTE
+   ============================================================ */
+
+.btn-add-parte {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+.btn-add-parte:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-add-parte:active {
+    transform: translateY(0);
+}
+
+/* ============================================================
+   LISTA DE PARTES
+   ============================================================ */
+
+.partes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 80px;
+    padding: 8px;
+}
+
+.partes-list:empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ============================================================
+   ITEM DE PARTE
+   ============================================================ */
+
+.parte-item {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.3s ease;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+}
+
+.parte-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #94a3b8;
+    transition: all 0.3s ease;
+}
+
+.parte-item:hover {
+    border-color: #2563eb;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+    transform: translateX(2px);
+}
+
+.parte-item:hover::before {
+    width: 6px;
+    background: #2563eb;
+}
+
+/* Parte Principal */
+.parte-item.principal {
+    border-color: #fbbf24;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.parte-item.principal::before {
+    background: #fbbf24;
+    width: 6px;
+}
+
+.parte-item.principal:hover {
+    border-color: #f59e0b;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+
+/* ============================================================
+   INFORMAÇÕES DA PARTE
+   ============================================================ */
+
+.parte-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.badge-principal {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #78350f;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    width: fit-content;
+    box-shadow: 0 2px 4px rgba(251, 191, 36, 0.3);
+}
+
+.badge-principal::before {
+    content: '★';
+    font-size: 12px;
+}
+
+.btn-set-principal {
+    background: white;
+    border: 2px solid #e2e8f0;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #94a3b8;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    width: fit-content;
+}
+
+.btn-set-principal::before {
+    content: '☆';
+}
+
+.btn-set-principal:hover {
+    color: #fbbf24;
+    border-color: #fbbf24;
+    background: #fffbeb;
+    transform: scale(1.05);
+}
+
+.parte-nome {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.parte-tipo {
+    font-size: 11px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 600;
+}
+
+/* ============================================================
+   BOTÃO REMOVER
+   ============================================================ */
+
+.btn-remover {
+    background: #fee2e2;
+    border: 2px solid #fecaca;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    min-width: 36px;
+    min-height: 36px;
+}
+
+.btn-remover:hover:not(:disabled) {
+    background: #ef4444;
+    color: white;
+    border-color: #dc2626;
+    transform: scale(1.1) rotate(90deg);
+}
+
+.btn-remover:active:not(:disabled) {
+    transform: scale(0.95) rotate(90deg);
+}
+
+.btn-remover:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+}
+
+/* ============================================================
+   ESTADO VAZIO
+   ============================================================ */
+
+.partes-empty-state {
+    padding: 30px 20px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.partes-empty-state i {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 8px;
+    opacity: 0.5;
+}
+
+.partes-empty-state .title {
+    font-weight: 600;
+    color: #64748b;
+}
+
+.partes-empty-state .subtitle {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+/* ============================================================
+   MODAL ADICIONAR PARTE
+   ============================================================ */
+
+#modalAdicionarParte {
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+#modalAdicionarParte .modal-content {
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ============================================================
+   RESPONSIVIDADE
+   ============================================================ */
+
+@media (max-width: 768px) {
+    .partes-container {
+        padding: 16px;
+    }
+
+    .partes-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .partes-header h4 {
+        font-size: 12px;
+    }
+
+    .btn-add-parte {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .parte-item {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .btn-remover {
+        align-self: flex-end;
+    }
+}
+
+/* ============================================================
+   ANIMAÇÕES DE ENTRADA/SAÍDA
+   ============================================================ */
+
+.parte-item {
+    animation: slideInFromLeft 0.3s ease;
+}
+
+@keyframes slideInFromLeft {
+    from {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.parte-item.removing {
+    animation: slideOutToRight 0.3s ease forwards;
+}
+
+@keyframes slideOutToRight {
+    to {
+        transform: translateX(100px);
+        opacity: 0;
+    }
+}
+
+/* ============================================================
+   TOOLTIPS
+   ============================================================ */
+
+.btn-set-principal[title]:hover::after,
+.btn-remover[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    margin-bottom: 8px;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+/* ============================================================
+   INDICADORES DE VALIDAÇÃO
+   ============================================================ */
+
+.partes-list.invalid {
+    border: 2px dashed #ef4444;
+    border-radius: 8px;
+}
+
+.partes-list.valid {
+    border: 2px dashed #10b981;
+    border-radius: 8px;
+}
+
+/* ============================================================
+   LOADING STATE
+   ============================================================ */
+
+.partes-list.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.partes-list.loading::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* ============================================
+   ESTILOS PARA GERENCIADOR DE PARTES
+   ============================================ */
+.partes-container {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.partes-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.partes-header h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.contador-partes {
+    background: #2563eb;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.btn-add-parte {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+}
+
+.btn-add-parte:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+.partes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 60px;
+}
+
+.parte-item {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s;
+}
+
+.parte-item:hover {
+    border-color: #2563eb;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+}
+
+.parte-item.principal {
+    border-color: #fbbf24;
+    background: #fffbeb;
+}
+
+.parte-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.badge-principal {
+    display: inline-block;
+    background: #fbbf24;
+    color: #92400e;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.btn-set-principal {
+    background: none;
+    border: 1px solid #e2e8f0;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #94a3b8;
+    transition: all 0.2s;
+}
+
+.btn-set-principal:hover {
+    color: #fbbf24;
+    border-color: #fbbf24;
+}
+
+.parte-nome {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 13px;
+}
+
+.parte-tipo {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.btn-remover {
+    background: #fee2e2;
+    border: none;
+    padding: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-remover:hover:not(:disabled) {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-remover:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Modal de adicionar parte */
+.modal-adicionar-parte {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+}
+
+.modal-adicionar-parte.ativo {
+    display: flex;
+}
+
+.modal-parte-content {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Select com design moderno */
+.select-moderno {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1e293b;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 40px;
+}
+
+.select-moderno:hover {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.select-moderno:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.select-moderno:disabled {
+    background-color: #f1f5f9;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Label com estilo consistente */
+.label-moderno {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.label-obrigatorio::after {
+    content: " *";
+    color: #ef4444;
+    font-weight: 700;
+}
+
+/* Grid para campos lado a lado */
+.campo-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.campo-grid-3 {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .campo-grid-2,
+    .campo-grid-3 {
+        grid-template-columns: 1fr;
+    }
+}
     </style>
 </head>
 <body>
@@ -544,107 +1266,200 @@ input, textarea, select {
         <div class="modal-content">
             <h3 style="margin-bottom: 24px; font-size: 20px; font-weight: 700; color: var(--sidebar);">📂 Novo Processo</h3>
             <form id="formProcesso">
-                <div style="margin-bottom:16px;">
-                    <label style="display:block; font-size:11px; font-weight:700; color: var(--muted); margin-bottom:6px; text-transform:uppercase;">Nº do Processo (CNJ)</label>
-                    <input type="text" id="procNumero" placeholder="0000000-00.0000.0.00.0000" maxlength="25" oninput="mascaraCNJ(this)" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:8px;" required>
-                </div>
-                <div style="margin-bottom:16px;">
-                    <label style="display:block; font-size:11px; font-weight:700; color: var(--muted); margin-bottom:6px; text-transform:uppercase;">Parte Contrária (Ex: Empresa X / Réu)</label>
-                    <input type="text" id="procParteContraria" placeholder="Nome da parte adversa" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:8px;">
-                </div>
-                <div style="margin-bottom:16px;">
-                    <label style="display:block; font-size:11px; font-weight:700; color: var(--muted); margin-bottom:6px; text-transform:uppercase;">Vincular Cliente</label>
-                    <select id="procClienteId" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:8px;" required>
-                        <option value="">Carregando clientes...</option>
-                    </select>
-                </div>
+    <!-- Número do Processo -->
+    <div style="margin-bottom: 20px;">
+    <label class="label-moderno label-obrigatorio">Número do Processo (CNJ)</label>
+    <input 
+        type="text" 
+        id="numero" 
+        class="select-moderno"
+        placeholder="0000000-00.0000.0.00.0000"
+        required
+    >
+</div>
 
-                <!-- Grid corrigido: um field-group por select, para alinhar corretamente -->
-                <div class="modal-grid">
-                    <div class="field-group">
-                        <label class="label-premium">Esfera</label>
-                        <select id="procEsfera" class="select-premium" onchange="organizarTribunaisPorEsfera()" required>
-                            <option value="">Selecione...</option>
-                            <option value="estadual">Justiça Estadual</option>
-                            <option value="federal">Justiça Federal</option>
-                            <option value="trabalho">Justiça do Trabalho</option>
-                            <option value="eleitoral">Justiça Eleitoral</option>
-                            <option value="superior">Tribunais Superiores / Conselhos</option>
-                        </select>
-                    </div>
+    <!-- POLO ATIVO (Clientes/Autores) -->
+    <div class="partes-container">
+        <div class="partes-header">
+            <h4>
+                👤 Polo Ativo (Cliente/Autor)
+                <span class="contador-partes" id="contadorAtivo">0</span>
+            </h4>
+            <button type="button" class="btn-add-parte" onclick="abrirModalAdicionarParte('ativo')">
+                <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                Adicionar
+            </button>
+        </div>
+        <div class="partes-list" id="listaPartesAtivo"></div>
+    </div>
 
-                    <div class="field-group">
-                        <label class="label-premium">Tribunal</label>
-                        <select id="procTribunal" class="select-premium" required>
-                            <option value="">Aguardando Esfera...</option>
-                        </select>
-                    </div>
-                </div>
+    <!-- POLO PASSIVO (Réus) -->
+    <div class="partes-container">
+        <div class="partes-header">
+            <h4>
+                ⚖️ Polo Passivo (Parte Contrária/Réu)
+                <span class="contador-partes" id="contadorPassivo">0</span>
+            </h4>
+            <button type="button" class="btn-add-parte" onclick="abrirModalAdicionarParte('passivo')">
+                <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                Adicionar
+            </button>
+        </div>
+        <div class="partes-list" id="listaPartesPassivo"></div>
+    </div>
 
-                <div class="modal-grid">
-                    <div class="field-group">
-                        <label class="label-premium">Instância / Grau</label>
-                        <select id="procInstancia" class="select-premium">
-                            <option value="1">1º Grau</option>
-                            <option value="2">2º Grau</option>            
-                            <option value="STJ">STJ</option>
-                            <option value="STF">STF</option>
-                        </select>
-                    </div>
+<div class="campo-grid-2">
+    <div>
+        <label class="label-moderno label-obrigatorio">Esfera</label>
+        <select 
+            id="esfera" 
+            class="select-moderno"
+            onchange="atualizarTribunais()"
+            required
+        >
+            <option value="">Selecione...</option>
+            <option value="Estadual">Estadual</option>
+            <option value="Federal">Federal</option>
+            <option value="Trabalhista">Trabalhista</option>
+        </select>
+    </div>
+    <div>
+        <label class="label-moderno label-obrigatorio">Tribunal</label>
+        <select 
+            id="tribunal" 
+            class="select-moderno"
+            required
+        >
+            <option value="">Selecione a esfera primeiro</option>
+        </select>
+    </div>
+</div>
 
-                    <div class="field-group">
-                        <label class="label-premium">Estado (UF)</label>
-                        <select id="procEstado" class="select-premium">
-                            <option value="">Selecione...</option>
-                            <option value="AC">Acre</option>
-                            <option value="AL">Alagoas</option>
-                            <option value="AP">Amapá</option>
-                            <option value="AM">Amazonas</option>
-                            <option value="BA">Bahia</option>
-                            <option value="CE">Ceará</option>
-                            <option value="DF">Distrito Federal</option>
-                            <option value="ES">Espírito Santo</option>
-                            <option value="GO">Goiás</option>
-                            <option value="MA">Maranhão</option>
-                            <option value="MT">Mato Grosso</option>
-                            <option value="MS">Mato Grosso do Sul</option>
-                            <option value="MG">Minas Gerais</option>
-                            <option value="PA">Pará</option>
-                            <option value="PB">Paraíba</option>
-                            <option value="PR">Paraná</option>
-                            <option value="PE">Pernambuco</option>
-                            <option value="PI">Piauí</option>
-                            <option value="RJ">Rio de Janeiro</option>
-                            <option value="RN">Rio Grande do Norte</option>
-                            <option value="RS">Rio Grande do Sul</option>
-                            <option value="RO">Rondônia</option>
-                            <option value="RR">Roraima</option>
-                            <option value="SC">Santa Catarina</option>
-                            <option value="SP">São Paulo</option>
-                            <option value="SE">Sergipe</option>
-                            <option value="TO">Tocantins</option>
-                        </select>
-                    </div>
-                </div>
+<!-- Instância, Grau e UF (3 colunas) -->
+<div class="campo-grid-3">
+    <div>
+        <label class="label-moderno label-obrigatorio">Instância / Grau</label>
+        <select 
+            id="instancia" 
+            class="select-moderno"
+            required
+        >
+            <option value="">Selecione...</option>
+            <option value="1º GRAU">1º Grau</option>
+            <option value="2º GRAU">2º Grau</option>
+            <option value="JUIZADO">Juizado Especial</option>
+            <option value="SUPERIOR">Superior</option>
+            <option value="SUPREMO">Supremo</option>
+        </select>
+    </div>
+    <div>
+        <label class="label-moderno label-obrigatorio">UF</label>
+        <select 
+            id="uf" 
+            class="select-moderno"
+            required
+        >
+            <option value="">UF</option>
+            <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option>
+            <option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option>
+            <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
+            <option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option>
+            <option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option>
+            <option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option>
+            <option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option>
+            <option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option>
+            <option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
+        </select>
+    </div>
+    <div style="align-self: end;">
+        <button 
+            type="submit"
+            style="background: #10b981; color: white; padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; transition: all 0.2s ease;"
+            onmouseover="this.style.background='#059669'"
+            onmouseout="this.style.background='#10b981'"
+        >
+            ✓ Cadastrar
+        </button>
+    </div>
+</div>
 
-                <div style="margin-top: 30px; display: flex; gap: 12px;">
-                    <button type="submit" class="btn-primary-premium">
-                        <i class="lucide lucide-save"></i> Salvar Processo
-                    </button>
-                    <button type="button" onclick="fecharModalProcesso()" class="btn-cancel-premium">
-                        Cancelar
-                    </button>
-                </div>
-            </form>
+<!-- Botão Cancelar (separado) -->
+<div style="margin-top: 12px;">
+    <button 
+        type="button"
+        onclick="fecharModalProcesso()" 
+        style="background: #e5e7eb; color: #374151; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; transition: all 0.2s ease;"
+        onmouseover="this.style.background='#d1d5db'"
+        onmouseout="this.style.background='#e5e7eb'"
+    >
+        Cancelar
+    </button>
+</div>
+</form>
         </div>
     </div>
 
-  <script>
+    <!-- Modal para Adicionar Parte -->
+<div id="modalAdicionarParte" class="modal-adicionar-parte">
+    <div class="modal-parte-content">
+        <h3 style="margin-bottom: 16px; font-size: 18px; font-weight: 700;">
+            <span id="tituloModalParte">Adicionar Parte</span>
+        </h3>
+        
+       <form id="formAdicionarParte" onsubmit="event.preventDefault(); adicionarParteFormulario();">
+            <!-- Seleção de Cliente Existente -->
+            <div style="margin-bottom: 16px;">
+                <label style="display:block; font-size:11px; font-weight:700; color: #64748b; margin-bottom:6px; text-transform:uppercase;">
+                    Cliente Cadastrado (Opcional)
+                </label>
+                <select id="clienteSelect" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;" 
+                        onchange="preencherDadosCliente(this.value)">
+                    <option value="">Selecionar cliente ou digitar manualmente</option>
+                </select>
+            </div>
+
+            <!-- Nome da Parte -->
+            <div style="margin-bottom: 16px;">
+                <label style="display:block; font-size:11px; font-weight:700; color: #64748b; margin-bottom:6px; text-transform:uppercase;">
+                    Nome Completo *
+                </label>
+                <input type="text" id="parteNome" required
+                       style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
+            </div>
+
+            <!-- Tipo de Parte -->
+            <div style="margin-bottom: 16px;">
+                <label style="display:block; font-size:11px; font-weight:700; color: #64748b; margin-bottom:6px; text-transform:uppercase;">
+                    Tipo de Parte *
+                </label>
+                <select id="parteTipo" required
+                        style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
+                    <!-- Opções serão preenchidas dinamicamente -->
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 20px;">
+                <button type="submit" style="flex:1; background:#2563eb; color:white; border:none; padding:10px; border-radius:8px; font-weight:600; cursor:pointer;">
+                    Adicionar
+                </button>
+                <button type="button" onclick="fecharModalAdicionarParte()" 
+                        style="flex:1; background:#f1f5f9; color:#475569; border:none; padding:10px; border-radius:8px; font-weight:600; cursor:pointer;">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
     const token = localStorage.getItem('token');
     if (!token) window.location.href = '/login.html';
     
-    let todosProcessos = []; // 📂 Guardará a lista global para os filtros funcionar
+    let todosProcessos = [];
     let abaAtual = 'ativo';
+    let gerenciadorPartes = null;
+    let poloAtual = null;
+    let poloAtualEdicao = null;
 
     const regioesMap = {
         'SUL': ['PR', 'RS', 'SC'],
@@ -654,6 +1469,366 @@ input, textarea, select {
         'NORTE': ['AC', 'AM', 'AP', 'PA', 'RO', 'RR', 'TO']
     };
 
+    // ============================================
+    // CLASSE GERENCIADOR DE PARTES
+    // ============================================
+/**
+ * GERENCIADOR DE MÚLTIPLAS PARTES DO PROCESSO
+ * Componente para adicionar/remover múltiplas partes (autores e réus) em um processo
+ */
+
+class GerenciadorPartes {
+    constructor(containerAtivoId = 'listaPartesAtivo', containerPassivoId = 'listaPartesPassivo', instanceName = 'gerenciadorPartes') {
+        this.partesAtivo = [];
+        this.partesPassivo = [];
+        this.clientesDisponiveis = [];
+        this.containerAtivoId = containerAtivoId;
+        this.containerPassivoId = containerPassivoId;
+        this.contadorAtivoId = 'contadorAtivo';
+        this.contadorPassivoId = 'contadorPassivo';
+        this.instanceName = instanceName;
+    }
+
+    /**
+     * Inicializa o gerenciador e carrega clientes
+     */
+    async inicializar() {
+        await this.carregarClientes();
+        this.renderizar();
+    }
+
+    /**
+     * Carrega lista de clientes do backend
+     */
+    async carregarClientes() {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/api/clientes', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                this.clientesDisponiveis = await response.json();
+            }
+        } catch (err) {
+            console.error('Erro ao carregar clientes:', err);
+        }
+    }
+
+    /**
+     * Adiciona nova parte ao polo ativo
+     */
+    adicionarParteAtivo(dados) {
+        const parte = {
+            id: Date.now(),
+            pessoa_id: dados.pessoa_id || null,
+            pessoa_nome: dados.pessoa_nome,
+            tipo_parte: dados.tipo_parte || 'autor',
+            eh_principal: this.partesAtivo.length === 0 // Primeira parte é principal
+        };
+
+        this.partesAtivo.push(parte);
+        this.renderizar();
+    }
+
+    /**
+     * Adiciona nova parte ao polo passivo
+     */
+    adicionarPartePassivo(dados) {
+        const parte = {
+            id: Date.now(),
+            pessoa_id: dados.pessoa_id || null,
+            pessoa_nome: dados.pessoa_nome,
+            tipo_parte: dados.tipo_parte || 'reu',
+            eh_principal: this.partesPassivo.length === 0 // Primeira parte é principal
+        };
+
+        this.partesPassivo.push(parte);
+        this.renderizar();
+    }
+
+    /**
+     * Remove parte do polo ativo
+     */
+    removerParteAtivo(id) {
+        const index = this.partesAtivo.findIndex(p => p.id === id);
+        if (index === -1) return;
+
+        const ehPrincipal = this.partesAtivo[index].eh_principal;
+        this.partesAtivo.splice(index, 1);
+
+        // Se removeu a principal e ainda há partes, marca a primeira como principal
+        if (ehPrincipal && this.partesAtivo.length > 0) {
+            this.partesAtivo[0].eh_principal = true;
+        }
+
+        this.renderizar();
+    }
+
+    /**
+     * Remove parte do polo passivo
+     */
+    removerPartePassivo(id) {
+        const index = this.partesPassivo.findIndex(p => p.id === id);
+        if (index === -1) return;
+
+        const ehPrincipal = this.partesPassivo[index].eh_principal;
+        this.partesPassivo.splice(index, 1);
+
+        // Se removeu a principal e ainda há partes, marca a primeira como principal
+        if (ehPrincipal && this.partesPassivo.length > 0) {
+            this.partesPassivo[0].eh_principal = true;
+        }
+
+        this.renderizar();
+    }
+
+    /**
+     * Define parte como principal no polo ativo
+     */
+    definirPrincipalAtivo(id) {
+        this.partesAtivo.forEach(p => {
+            p.eh_principal = (p.id === id);
+        });
+        this.renderizar();
+    }
+
+    /**
+     * Define parte como principal no polo passivo
+     */
+    definirPrincipalPassivo(id) {
+        this.partesPassivo.forEach(p => {
+            p.eh_principal = (p.id === id);
+        });
+        this.renderizar();
+    }
+
+    /**
+     * Limpa todas as partes
+     */
+    limpar() {
+        this.partesAtivo = [];
+        this.partesPassivo = [];
+        this.renderizar();
+    }
+
+    /**
+     * Obtém dados para envio ao backend
+     */
+    obterDados() {
+        return {
+            ativo: this.partesAtivo.map(p => ({
+                pessoa_id: p.pessoa_id,
+                pessoa_nome: p.pessoa_nome,
+                tipo_parte: p.tipo_parte,
+                eh_principal: p.eh_principal
+            })),
+            passivo: this.partesPassivo.map(p => ({
+                pessoa_id: p.pessoa_id,
+                pessoa_nome: p.pessoa_nome,
+                tipo_parte: p.tipo_parte,
+                eh_principal: p.eh_principal
+            }))
+        };
+    }
+
+    /**
+     * Valida se os dados estão corretos
+     */
+    validar() {
+        const erros = [];
+
+        if (this.partesAtivo.length === 0) {
+            erros.push('É obrigatório adicionar pelo menos uma parte no Polo Ativo (Cliente/Autor)');
+        }
+
+        if (this.partesPassivo.length === 0) {
+            erros.push('É obrigatório adicionar pelo menos uma parte no Polo Passivo (Réu)');
+        }
+
+        // Auto-definir primeira parte como principal se nenhuma estiver marcada
+        const temPrincipalAtivo = this.partesAtivo.some(p => p.eh_principal);
+        const temPrincipalPassivo = this.partesPassivo.some(p => p.eh_principal);
+
+        if (!temPrincipalAtivo && this.partesAtivo.length > 0) {
+            this.partesAtivo[0].eh_principal = true;
+        }
+
+        if (!temPrincipalPassivo && this.partesPassivo.length > 0) {
+            this.partesPassivo[0].eh_principal = true;
+        }
+
+        return {
+            valido: erros.length === 0,
+            mensagem: erros.join('\n')
+        };
+    }
+
+    /**
+     * Renderiza a interface
+     */
+    renderizar() {
+        this.renderizarPoloAtivo();
+        this.renderizarPoloPassivo();
+        this.atualizarContadores();
+    }
+
+    /**
+     * Renderiza lista do polo ativo
+     */
+    renderizarPoloAtivo() {
+        const container = document.getElementById(this.containerAtivoId);
+        if (!container) return;
+
+        if (this.partesAtivo.length === 0) {
+            container.innerHTML = `
+                <div style="padding: 20px; text-align: center; color: #94a3b8; font-size: 13px;">
+                    <i data-lucide="user-plus" style="width: 32px; height: 32px; margin-bottom: 8px;"></i>
+                    <div>Nenhuma parte adicionada no polo ativo</div>
+                    <div style="font-size: 11px; margin-top: 4px;">Clique em "+" para adicionar</div>
+                </div>
+            `;
+            lucide.createIcons();
+            return;
+        }
+
+        container.innerHTML = this.partesAtivo.map(parte => `
+            <div class="parte-item ${parte.eh_principal ? 'principal' : ''}" data-id="${parte.id}">
+                <div class="parte-info">
+                    ${parte.eh_principal ? 
+                        '<span class="badge-principal">★ PRINCIPAL</span>' : 
+                        `<button class="btn-set-principal" onclick="${this.instanceName}.definirPrincipalAtivo(${parte.id})" title="Definir como principal">☆</button>`
+                    }
+                    <div class="parte-nome">${parte.pessoa_nome}</div>
+                    <div class="parte-tipo">${this.formatarTipoParte(parte.tipo_parte)}</div>
+                </div>
+                <button class="btn-remover" onclick="${this.instanceName}.removerParteAtivo(${parte.id})" 
+                        ${this.partesAtivo.length === 1 ? 'disabled' : ''}>
+                    <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                </button>
+            </div>
+        `).join('');
+
+        lucide.createIcons();
+    }
+
+    /**
+     * Renderiza lista do polo passivo
+     */
+    renderizarPoloPassivo() {
+        const container = document.getElementById(this.containerPassivoId);
+        if (!container) return;
+
+        if (this.partesPassivo.length === 0) {
+            container.innerHTML = `
+                <div style="padding: 20px; text-align: center; color: #94a3b8; font-size: 13px;">
+                    <i data-lucide="user-plus" style="width: 32px; height: 32px; margin-bottom: 8px;"></i>
+                    <div>Nenhuma parte adicionada no polo passivo</div>
+                    <div style="font-size: 11px; margin-top: 4px;">Clique em "+" para adicionar</div>
+                </div>
+            `;
+            lucide.createIcons();
+            return;
+        }
+
+        container.innerHTML = this.partesPassivo.map(parte => `
+            <div class="parte-item ${parte.eh_principal ? 'principal' : ''}" data-id="${parte.id}">
+                <div class="parte-info">
+                    ${parte.eh_principal ? 
+                        '<span class="badge-principal">★ PRINCIPAL</span>' : 
+                        `<button class="btn-set-principal" onclick="${this.instanceName}.definirPrincipalPassivo(${parte.id})" title="Definir como principal">☆</button>`
+                    }
+                    <div class="parte-nome">${parte.pessoa_nome}</div>
+                    <div class="parte-tipo">${this.formatarTipoParte(parte.tipo_parte)}</div>
+                </div>
+                <button class="btn-remover" onclick="${this.instanceName}.removerPartePassivo(${parte.id})" 
+                        ${this.partesPassivo.length === 1 ? 'disabled' : ''}>
+                    <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                </button>
+            </div>
+        `).join('');
+
+        lucide.createIcons();
+    }
+
+    /**
+     * Atualiza contadores de partes
+     */
+    atualizarContadores() {
+        const contadorAtivo = document.getElementById(this.contadorAtivoId);
+        const contadorPassivo = document.getElementById(this.contadorPassivoId);
+
+        if (contadorAtivo) {
+            contadorAtivo.textContent = this.partesAtivo.length;
+        }
+
+        if (contadorPassivo) {
+            contadorPassivo.textContent = this.partesPassivo.length;
+        }
+    }
+
+    /**
+     * Formata tipo de parte para exibição
+     */
+    formatarTipoParte(tipo) {
+        const tipos = {
+            'autor': 'Autor',
+            'reu': 'Réu',
+            'litisconsorte_ativo': 'Litisconsorte Ativo',
+            'litisconsorte_passivo': 'Litisconsorte Passivo',
+            'assistente': 'Assistente',
+            'terceiro_interessado': 'Terceiro Interessado',
+            'opoente': 'Opoente'
+        };
+        return tipos[tipo] || tipo;
+    }
+
+    /**
+     * Carrega partes de um processo existente
+     */
+    async carregarPartesProcesso(processoId) {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`/api/processos/${processoId}/partes`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const dados = await response.json();
+                
+                this.partesAtivo = dados.partesOrganizadas.ativo.map((p, i) => ({
+                    id: Date.now() + i,
+                    pessoa_id: p.pessoa_id,
+                    pessoa_nome: p.pessoa_nome,
+                    tipo_parte: p.tipo_parte,
+                    eh_principal: p.eh_principal
+                }));
+
+                this.partesPassivo = dados.partesOrganizadas.passivo.map((p, i) => ({
+                    id: Date.now() + 1000 + i,
+                    pessoa_id: p.pessoa_id,
+                    pessoa_nome: p.pessoa_nome,
+                    tipo_parte: p.tipo_parte,
+                    eh_principal: p.eh_principal
+                }));
+
+                this.renderizar();
+            }
+        } catch (err) {
+            console.error('Erro ao carregar partes do processo:', err);
+        }
+    }
+}
+
+// ✅ Tornar a classe disponível globalmente
+window.GerenciadorPartes = GerenciadorPartes;
+
+// Instâncias globais
+
+let gerenciadorPartesEdicao = null;
+    // ============================================
+    // INICIALIZAÇÃO
+    // ============================================
     async function inicializar() {
         try {
             console.log('🔄 Inicializando página de processos...');
@@ -697,11 +1872,20 @@ input, textarea, select {
 
             // 3. Carrega processos
             await carregarProcessos();
+            
+            // 4. Inicializar gerenciador de partes
+            gerenciadorPartes = new GerenciadorPartes('listaPartesAtivo', 'listaPartesPassivo');
+            await carregarClientesParaSelect();
+            console.log('✅ Gerenciador de partes inicializado');
+        
         } catch (err) {
             console.error("❌ Erro na inicialização:", err);
         }
     }
 
+    // ============================================
+    // PROCESSOS
+    // ============================================
     async function carregarProcessos() {
         try {
             const response = await fetch('/api/processos', {
@@ -712,10 +1896,6 @@ input, textarea, select {
             if (response.ok) {
                 todosProcessos = await response.json();
                 console.log('JSON RAW recebido:', JSON.stringify(todosProcessos[0], null, 2));
-                console.log("Esfera e tribunal do primeiro:", {
-                    esfera: todosProcessos[0]?.esfera,
-                    tribunal: todosProcessos[0]?.tribunal
-                });
                 renderizarTabela(todosProcessos);
             } else {
                 console.error('Erro na resposta:', response.status);
@@ -733,8 +1913,7 @@ input, textarea, select {
             tabela.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:50px; color:var(--muted);">Nenhum processo encontrado.</td></tr>`;
             return;
         }
-console.log('Data crua do banco (primeiro processo excluído):', todosProcessos.find(p => p.status?.toLowerCase() === 'excluido')?.data_exclusao);
-console.log('Data convertida no front:', new Date(todosProcessos.find(p => p.status?.toLowerCase() === 'excluido')?.data_exclusao).toLocaleString('pt-BR'));
+
         tabela.innerHTML = listaFiltrada.map(p => `
             <tr style="border-bottom: 1px solid #e2e8f0;">
                 <td style="padding: 16px 12px;">
@@ -749,7 +1928,7 @@ console.log('Data convertida no front:', new Date(todosProcessos.find(p => p.sta
                     </span>
                 </td>
                 <td style="padding: 16px 12px; font-weight: 500;">${formatarTribunal(p.tribunal) || '—'}</td>
-                <td style="padding: 16px 12px; text-align: center; font-weight: 600;">${p.instancia || '1'}º Grau</td>
+                <td style="padding: 16px 12px; text-align: center; font-weight: 600;">${formatarInstancia(p.instancia)}</td>
                 <td style="padding: 16px 12px; text-align: center; font-weight: 700; color: #2563eb;">${p.uf || '--'}</td>
                 <td style="padding: 16px 12px; text-align: center;">
                     <span style="background: ${abaAtual === 'excluido' ? '#fee2e2' : '#ecfdf5'}; color: ${abaAtual === 'excluido' ? '#ef4444' : '#10b981'}; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;">
@@ -757,286 +1936,736 @@ console.log('Data convertida no front:', new Date(todosProcessos.find(p => p.sta
                     </span>
                 </td>
                 <td style="padding: 16px 12px; text-align: right;">
-    <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
-        ${abaAtual === 'ativo' ? `
-    <button onclick="editarProcesso(${p.id})" title="Editar Processo" style="background:none;border:none;cursor:pointer;color:#3b82f6;"><i data-lucide="edit" style="width:18px;"></i></button>
-    <button onclick="arquivarProcesso(${p.id})" title="Arquivar" style="background:none;border:none;cursor:pointer;color:#f59e0b;"><i data-lucide="archive" style="width:18px;"></i></button>
-    <button onclick="excluirProcesso(${p.id})" title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;"><i data-lucide="trash-2" style="width:18px;"></i></button>
-` : abaAtual === 'arquivado' ? `
-    <button onclick="editarProcesso(${p.id})" title="Editar Processo" style="background:none;border:none;cursor:pointer;color:#3b82f6;"><i data-lucide="edit" style="width:18px;"></i></button>
-    <button onclick="desarquivarProcesso(${p.id})" title="Desarquivar" style="background:none;border:none;cursor:pointer;color:#10b981;"><i data-lucide="refresh-cw" style="width:18px;"></i></button>
-    <button onclick="excluirProcesso(${p.id})" title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;"><i data-lucide="trash-2" style="width:18px;"></i></button>
-        ` : `
-            <div style="text-align: right; line-height: 1.3; min-width: 160px;">
-                <div style="font-size: 9px; color: #94a3b8; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Auditado</div>
-                
-                <!-- Quem excluiu -->
-                <div style="font-size: 11px; color: #ef4444; font-weight: 600; margin-bottom: 2px;">
-                    ${p.excluido_por 
-                        ? (p.excluido_por.includes('@') ? p.excluido_por.split('@')[0] : p.excluido_por) 
-                        : 'Sistema'}
-                </div>
-                                
-            <!-- Data + hora corrigida 100% para -03:00 Bahia -->
-<div style="font-size: 10px; color: #64748b; font-weight: 500;">
-    ${p.data_exclusao 
-        ? (() => {
-            let data = new Date(p.data_exclusao);
-            // Se tiver 'Z' ou for UTC, ajusta manualmente para -03:00
-            if (p.data_exclusao.includes('Z') || data.getTimezoneOffset() === 0) {
-                data.setHours(data.getHours() - 3);  // Desloca -3h do UTC
-            }
-            return data.toLocaleString('pt-BR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-            });
-        })()
-        : 'Data não registrada'}
-</div>
-            </div>
-        `}
-    </div>
-</td>
+                    <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
+                        ${abaAtual === 'ativo' ? `
+                            <button onclick="editarProcesso(${p.id})" title="Editar Processo" style="background:none;border:none;cursor:pointer;color:#3b82f6;"><i data-lucide="edit" style="width:18px;"></i></button>
+                            <button onclick="arquivarProcesso(${p.id})" title="Arquivar" style="background:none;border:none;cursor:pointer;color:#f59e0b;"><i data-lucide="archive" style="width:18px;"></i></button>
+                            <button onclick="excluirProcesso(${p.id})" title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;"><i data-lucide="trash-2" style="width:18px;"></i></button>
+                        ` : abaAtual === 'arquivado' ? `
+                            <button onclick="editarProcesso(${p.id})" title="Editar Processo" style="background:none;border:none;cursor:pointer;color:#3b82f6;"><i data-lucide="edit" style="width:18px;"></i></button>
+                            <button onclick="desarquivarProcesso(${p.id})" title="Desarquivar" style="background:none;border:none;cursor:pointer;color:#10b981;"><i data-lucide="refresh-cw" style="width:18px;"></i></button>
+                            <button onclick="excluirProcesso(${p.id})" title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;"><i data-lucide="trash-2" style="width:18px;"></i></button>
+                        ` : `
+                            <div style="text-align: right; line-height: 1.3; min-width: 160px;">
+                                <div style="font-size: 9px; color: #94a3b8; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Auditado</div>
+                                <div style="font-size: 11px; color: #ef4444; font-weight: 600; margin-bottom: 2px;">
+                                    ${p.excluido_por ? (p.excluido_por.includes('@') ? p.excluido_por.split('@')[0] : p.excluido_por) : 'Sistema'}
+                                </div>
+                                <div style="font-size: 10px; color: #64748b; font-weight: 500;">
+                                    ${p.data_exclusao ? (() => {
+                                        let data = new Date(p.data_exclusao);
+                                        if (p.data_exclusao.includes('Z') || data.getTimezoneOffset() === 0) {
+                                            data.setHours(data.getHours() - 3);
+                                        }
+                                        return data.toLocaleString('pt-BR', {
+                                            day: '2-digit', month: '2-digit', year: 'numeric',
+                                            hour: '2-digit', minute: '2-digit', hour12: false
+                                        });
+                                    })() : 'Data não registrada'}
+                                </div>
+                            </div>
+                        `}
+                    </div>
+                </td>
             </tr>
         `).join('');
         lucide.createIcons();
     }
 
     function mudarAba(aba) {
-    abaAtual = aba;
-    ['btnTabAtivo', 'btnTabArquivado', 'btnTabExcluido'].forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) btn.classList.toggle('active', id === `btnTab${aba.charAt(0).toUpperCase() + aba.slice(1)}`);
-    });
-    renderizarTabela(todosProcessos);
-    
-    // Força recriação dos ícones Lucide após mudar aba
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-}
-
-    // SALVAMENTO DO PROCESSO COM LOGS PARA DEBUG
-document.getElementById('formProcesso').onsubmit = async (e) => {
-    e.preventDefault();
-
-    const btnSalvar = e.target.querySelector('button[type="submit"]');
-    const textoOriginal = btnSalvar.innerHTML;
-    btnSalvar.disabled = true;
-    btnSalvar.innerHTML = "Verificando...";
-
-    const esferaValue = document.getElementById('procEsfera').value.trim();
-    const tribunalValue = document.getElementById('procTribunal').value.trim();
-
-    console.log('Valor atual de esfera antes de enviar:', esferaValue);
-    console.log('Valor atual de tribunal antes de enviar:', tribunalValue);
-
-    const selectCliente = document.getElementById('procClienteId');
-    const numeroProcesso = document.getElementById('procNumero').value.trim();
-
-    const dados = {
-        numero: numeroProcesso,
-        cliente_id: selectCliente.value,
-        cliente: selectCliente.options[selectCliente.selectedIndex].text.trim(),
-        uf: document.getElementById('procEstado').value.trim(),
-        instancia: document.getElementById('procInstancia').value.trim(),
-        parte_contraria: document.getElementById('procParteContraria').value.trim(),
-        esfera: esferaValue,
-        tribunal: tribunalValue
-    };
-
-    console.log("Enviando para o backend:", dados);
-
-    // Validação básica
-    if (!dados.numero) {
-        alert("O número do processo é obrigatório!");
-        btnSalvar.disabled = false;
-        btnSalvar.innerHTML = textoOriginal;
-        return;
-    }
-    if (!dados.esfera) {
-        alert("Selecione a Esfera antes de salvar!");
-        btnSalvar.disabled = false;
-        btnSalvar.innerHTML = textoOriginal;
-        return;
-    }
-    if (!dados.tribunal) {
-        alert("Selecione o Tribunal antes de salvar!");
-        btnSalvar.disabled = false;
-        btnSalvar.innerHTML = textoOriginal;
-        return;
-    }
-
-    try {
-        // Passo 1: Verifica se já existe processo com esse número
-        btnSalvar.innerHTML = "Verificando duplicidade...";
-        const checkRes = await fetch(`/api/processos/existe/${encodeURIComponent(numeroProcesso)}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        abaAtual = aba;
+        ['btnTabAtivo', 'btnTabArquivado', 'btnTabExcluido'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) btn.classList.toggle('active', id === `btnTab${aba.charAt(0).toUpperCase() + aba.slice(1)}`);
         });
+        renderizarTabela(todosProcessos);
+        setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 100);
+    }
 
-        if (!checkRes.ok) {
-            throw new Error('Erro ao verificar duplicidade');
+    // ============================================
+    // MODAL DE PROCESSO
+    // ============================================
+    function abrirModalProcesso() { 
+        document.getElementById('modalProcesso').style.display = 'flex'; 
+        carregarClientesNoSelect(); 
+        document.getElementById('procEsfera').value = '';
+        document.getElementById('procTribunal').innerHTML = '<option value="">Aguardando Esfera...</option>';
+    }
+
+    function fecharModalProcesso() {
+        const modal = document.getElementById('modalProcesso');
+        modal.style.display = 'none';
+        if (gerenciadorPartes) gerenciadorPartes.limpar();
+        document.getElementById('formProcesso').reset();
+    }
+
+    // SALVAMENTO DO PROCESSO
+    document.getElementById('formProcesso').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        console.log('📝 Iniciando cadastro de processo...');
+        
+        if (!gerenciadorPartes) {
+            alert('❌ Erro: Gerenciador de partes não inicializado');
+            return;
         }
-
-        const checkData = await checkRes.json();
-
-        // Passo 2: Se existir, pergunta ao usuário
-        if (checkData.existe) {
-            const confirmar = confirm(
-                `Esse processo (${numeroProcesso}) já está cadastrado no sistema.\n\n` +
-                `Deseja cadastrar novamente (duplicado)?\n` +
-                `(Isso criará uma nova entrada com o mesmo número)`
-            );
-
-            if (!confirmar) {
-                btnSalvar.disabled = false;
-                btnSalvar.innerHTML = textoOriginal;
-                return; // Cancela o cadastro
+        
+        const validacao = gerenciadorPartes.validar();
+        if (!validacao.valido) {
+            alert(validacao.mensagem);
+            return;
+        }
+        
+        const dadosPartes = gerenciadorPartes.obterDados();
+        
+        // Validação adicional
+        if (!dadosPartes.ativo || dadosPartes.ativo.length === 0) {
+            alert('⚠️ Adicione pelo menos uma parte no Polo Ativo (Cliente/Autor)');
+            return;
+        }
+        
+        if (!dadosPartes.passivo || dadosPartes.passivo.length === 0) {
+            alert('⚠️ Adicione pelo menos uma parte no Polo Passivo (Parte Contrária/Réu)');
+            return;
+        }
+        
+        console.log('✅ Validação de partes OK:', {
+            ativo: dadosPartes.ativo.length,
+            passivo: dadosPartes.passivo.length
+        });
+        
+        // ✅ IDs CORRETOS dos campos do formulário
+        const numero = document.getElementById('numero');
+        const esfera = document.getElementById('esfera');
+        const tribunal = document.getElementById('tribunal');
+        const instancia = document.getElementById('instancia');
+        const uf = document.getElementById('uf');
+        
+        // Verificar se todos os campos existem
+        if (!numero || !esfera || !tribunal || !instancia || !uf) {
+            console.error('❌ Campos não encontrados:', {
+                numero: !!numero,
+                esfera: !!esfera,
+                tribunal: !!tribunal,
+                instancia: !!instancia,
+                uf: !!uf
+            });
+            alert('❌ Erro: Campos do formulário não encontrados');
+            return;
+        }
+        
+        const dados = {
+            numero: numero.value.trim(),
+            esfera: esfera.value,
+            tribunal: tribunal.value,
+            instancia: instancia.value,
+            uf: uf.value,
+            partes_ativo: dadosPartes.ativo,
+            partes_passivo: dadosPartes.passivo
+        };
+        
+        console.log('📤 Dados a serem enviados:', dados);
+        console.log('📊 Partes Ativo:', dadosPartes.ativo);
+        console.log('📊 Partes Passivo:', dadosPartes.passivo);
+        
+        // Validar campos obrigatórios
+        if (!dados.numero || !dados.esfera || !dados.tribunal || !dados.instancia || !dados.uf) {
+            alert('⚠️ Preencha todos os campos obrigatórios');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/processos', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dados)
+            });
+            
+            if (response.ok) {
+                alert('✅ Processo cadastrado com sucesso!');
+                fecharModalProcesso();
+                await carregarProcessos();
+            } else {
+                const erro = await response.json();
+                console.error('❌ Erro do servidor:', erro);
+                alert('❌ Erro: ' + (erro.erro || erro.error || 'Erro desconhecido'));
             }
+        } catch (err) {
+            console.error('❌ Erro ao salvar:', err);
+            alert('❌ Erro ao salvar processo: ' + err.message);
         }
-
-        // Passo 3: Prossegue com o salvamento
-        btnSalvar.innerHTML = "Salvando...";
-
-        const response = await fetch('/api/processos', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': `Bearer ${token}` 
-            },
-            body: JSON.stringify(dados)
-        });
-
-        if (response.ok) {
-            alert("✅ Processo cadastrado com sucesso!");
-            fecharModalProcesso();
-            e.target.reset();
-            await carregarProcessos();
-        } else {
-            const erroData = await response.json();
-            alert("❌ Erro ao salvar: " + (erroData.erro || "Falha desconhecida"));
-        }
-    } catch (err) {
-        console.error("Erro completo:", err);
-        alert("❌ Erro de conexão ou servidor.");
-    } finally {
-        btnSalvar.disabled = false;
-        btnSalvar.innerHTML = textoOriginal;
-    }
-};
+    });
 
     function organizarTribunaisPorEsfera() {
-    const esfera = document.getElementById('procEsfera').value;
-    console.log('Esfera selecionada:', esfera);
+        const esfera = document.getElementById('procEsfera').value;
+        const tribunalSelect = document.getElementById('procTribunal');
+        let html = '<option value="">Selecione o Tribunal...</option>';
 
-    const tribunalSelect = document.getElementById('procTribunal');
-    let html = '<option value="">Selecione o Tribunal...</option>';
+        if (esfera === 'estadual') {
+            ['TJAC','TJAL','TJAP','TJAM','TJBA','TJCE','TJDFT','TJES','TJGO','TJMA','TJMT','TJMS','TJMG','TJPA','TJPB','TJPR','TJPE','TJPI','TJRJ','TJRN','TJRS','TJRO','TJRR','TJSC','TJSP','TJSE','TJTO'].forEach(tj => html += `<option value="${tj}">${tj}</option>`);
+        } else if (esfera === 'federal') {
+            ['TRF1','TRF2','TRF3','TRF4','TRF5','TRF6'].forEach(trf => html += `<option value="${trf}">${trf}</option>`);
+        } else if (esfera === 'trabalho') {
+            for(let i=1; i<=24; i++) html += `<option value="TRT${i}">TRT${i}</option>`;
+        } else if (esfera === 'eleitoral') {
+            html += `<option value="TRE">TRE (Tribunal Regional Eleitoral)</option>`;
+        } else if (esfera === 'superior') {
+            ['STJ','STF','TST','TSE','STM','CNJ'].forEach(sup => html += `<option value="${sup}">${sup}</option>`);
+        }
 
-    if (esfera === 'estadual') {
-        ['TJAC','TJAL','TJAP','TJAM','TJBA','TJCE','TJDFT','TJES','TJGO','TJMA','TJMT','TJMS','TJMG','TJPA','TJPB','TJPR','TJPE','TJPI','TJRJ','TJRN','TJRS','TJRO','TJRR','TJSC','TJSP','TJSE','TJTO'].forEach(tj => html += `<option value="${tj}">${tj}</option>`);
-    } 
-    else if (esfera === 'federal') {
-        ['TRF1','TRF2','TRF3','TRF4','TRF5','TRF6'].forEach(trf => html += `<option value="${trf}">${trf}</option>`);
-    } 
-    else if (esfera === 'trabalho') {
-        for(let i=1; i<=24; i++) html += `<option value="TRT${i}">TRT${i}</option>`;
-    } 
-    else if (esfera === 'eleitoral') {
-        // Aqui adicionamos o TRE como opção principal
-        html += `<option value="TRE">TRE (Tribunal Regional Eleitoral)</option>`;
-        // Se quiser deixar mais opções no futuro, pode adicionar TREs específicos por estado
-        // Exemplo: html += `<option value="TRE-BA">TRE-BA</option>`;
-    } 
-    else if (esfera === 'superior') {
-        ['STJ','STF','TST','TSE','STM','CNJ'].forEach(sup => html += `<option value="${sup}">${sup}</option>`);
+        tribunalSelect.innerHTML = html;
     }
-
-    tribunalSelect.innerHTML = html;
-    console.log('Tribunal select atualizado com', tribunalSelect.options.length, 'opções');
-}
 
     async function carregarClientesNoSelect() {
         try {
             const res = await fetch('/api/clientes', { headers: { 'Authorization': `Bearer ${token}` } });
             const clientes = await res.json();
             const select = document.getElementById('procClienteId');
-            select.innerHTML = '<option value="">Selecione o Cliente...</option>' + 
-                clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-        } catch (err) { console.error("Erro ao carregar clientes"); }
+            if (select) {
+                select.innerHTML = '<option value="">Selecione o Cliente...</option>' + 
+                    clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            }
+        } catch (err) { 
+            console.error("Erro ao carregar clientes:", err); 
+        }
     }
 
-    function abrirModalProcesso() { 
-        document.getElementById('modalProcesso').style.display = 'flex'; 
-        carregarClientesNoSelect(); 
-        // Resetar selects
-        document.getElementById('procEsfera').value = '';
-        document.getElementById('procTribunal').innerHTML = '<option value="">Aguardando Esfera...</option>';
+    // ============================================
+    // MODAL DE ADICIONAR PARTE
+    // ============================================
+    async function carregarClientesParaSelect() {
+        try {
+            const response = await fetch('/api/clientes', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+                const clientes = await response.json();
+                const select = document.getElementById('clienteSelect');
+                
+                if (select) {
+                    select.innerHTML = '<option value="">Selecionar cliente ou digitar manualmente</option>';
+                    clientes.forEach(cliente => {
+                        const option = document.createElement('option');
+                        option.value = cliente.id;
+                        option.textContent = cliente.nome;
+                        option.dataset.nome = cliente.nome;
+                        select.appendChild(option);
+                    });
+                }
+            }
+        } catch (err) {
+            console.error('Erro ao carregar clientes:', err);
+        }
     }
 
-    function fecharModalProcesso() { 
-        document.getElementById('modalProcesso').style.display = 'none'; 
-        document.getElementById('formProcesso').reset(); 
+    function abrirModalAdicionarParte(polo) {
+        poloAtual = polo;
+        
+        const modal = document.getElementById('modalAdicionarParte');
+        const titulo = document.getElementById('tituloModalParte');
+        const tipoSelect = document.getElementById('parteTipo');
+        
+        titulo.textContent = polo === 'ativo' ? '👤 Adicionar ao Polo Ativo' : '⚖️ Adicionar ao Polo Passivo';
+        
+        tipoSelect.innerHTML = '';
+        if (polo === 'ativo') {
+            tipoSelect.innerHTML = `
+                <option value="autor">Autor / Reclamante</option>
+                <option value="litisconsorte_ativo">Litisconsorte Ativo</option>
+                <option value="assistente">Assistente</option>
+            `;
+        } else {
+            tipoSelect.innerHTML = `
+                <option value="reu">Réu / Reclamado</option>
+                <option value="litisconsorte_passivo">Litisconsorte Passivo</option>
+                <option value="terceiro_interessado">Terceiro Interessado</option>
+            `;
+        }
+        
+        document.getElementById('formAdicionarParte').reset();
+        document.getElementById('clienteSelect').value = '';
+        modal.classList.add('ativo');
     }
-    
-    function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
-    // 🚀 INICIALIZAÇÃO COM GARANTIA DUPLA
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('📄 DOM carregado');
-        setTimeout(() => {
-            inicializar();
-        }, 100);
-    });
 
-    window.onload = () => {
-        console.log('🌐 Window carregado');
-        inicializar();
+    function abrirModalAdicionarParteEdicao(polo) {
+        poloAtualEdicao = polo;
+        
+        const modal = document.getElementById('modalAdicionarParte');
+        const titulo = document.getElementById('tituloModalParte');
+        const tipoSelect = document.getElementById('parteTipo');
+        
+        titulo.textContent = polo === 'ativo' ? '👤 Adicionar ao Polo Ativo' : '⚖️ Adicionar ao Polo Passivo';
+        
+        // Limpar campos
+        document.getElementById('clienteSelect').value = '';
+        document.getElementById('parteNome').value = '';
+        
+        // Preencher tipos de parte conforme polo
+        if (polo === 'ativo') {
+            tipoSelect.innerHTML = `
+                <option value="autor">Autor</option>
+                <option value="requerente">Requerente</option>
+                <option value="recorrente">Recorrente</option>
+                <option value="impetrante">Impetrante</option>
+                <option value="exequente">Exequente</option>
+                <option value="litisconsorte_ativo">Litisconsorte Ativo</option>
+            `;
+        } else {
+            tipoSelect.innerHTML = `
+                <option value="reu">Réu</option>
+                <option value="requerido">Requerido</option>
+                <option value="recorrido">Recorrido</option>
+                <option value="impetrado">Impetrado</option>
+                <option value="executado">Executado</option>
+                <option value="litisconsorte_passivo">Litisconsorte Passivo</option>
+            `;
+        }
+        
+        modal.classList.add('ativo');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function fecharModalAdicionarParte() {
+        const modal = document.getElementById('modalAdicionarParte');
+        modal.classList.remove('ativo');
+        document.getElementById('formAdicionarParte').reset();
+        
+        // Limpar referências de polo
+        poloAtual = null;
+        poloAtualEdicao = null;
+    }
+
+    function preencherDadosCliente(clienteId) {
+        if (!clienteId) {
+            document.getElementById('parteNome').value = '';
+            return;
+        }
+        const select = document.getElementById('clienteSelect');
+        const option = select.options[select.selectedIndex];
+        document.getElementById('parteNome').value = option.dataset.nome;
+    }
+
+    function adicionarParte() {
+        const nome = document.getElementById('parteNome').value.trim();
+        const tipo = document.getElementById('parteTipo').value;
+        const clienteId = document.getElementById('clienteSelect').value;
+        
+        if (!nome || !tipo) {
+            alert('Preencha todos os campos obrigatórios');
+            return;
+        }
+        
+        const dadosParte = {
+            pessoa_id: clienteId || null,
+            pessoa_nome: nome,
+            tipo_parte: tipo
+        };
+        
+        // Verificar se está no modo cadastro ou edição
+        const modoEdicao = poloAtualEdicao !== null;
+        const gerenciador = modoEdicao ? gerenciadorPartesEdicao : gerenciadorPartes;
+        const polo = modoEdicao ? poloAtualEdicao : poloAtual;
+        
+        if (polo === 'ativo') {
+            gerenciador.adicionarParteAtivo(dadosParte);
+        } else {
+            gerenciador.adicionarPartePassivo(dadosParte);
+        }
+        
+        fecharModalAdicionarParte();
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    // Alias para compatibilidade com HTML que chama adicionarParteFormulario()
+    const adicionarParteFormulario = adicionarParte;
+
+    // ============================================
+    // EDIÇÃO DE PROCESSO
+    // ============================================
+    const tribunaisPorEsfera = {
+        'Estadual': ['TJAC', 'TJAL', 'TJAP', 'TJAM', 'TJBA', 'TJCE', 'TJDF', 'TJES', 'TJGO', 'TJMA', 'TJMT', 'TJMS', 'TJMG', 'TJPA', 'TJPB', 'TJPR', 'TJPE', 'TJPI', 'TJRJ', 'TJRN', 'TJRS', 'TJRO', 'TJRR', 'TJSC', 'TJSP', 'TJSE', 'TJTO'],
+        'Federal': ['TRF1', 'TRF2', 'TRF3', 'TRF4', 'TRF5', 'TRF6'],
+        'Trabalhista': ['TRT1', 'TRT2', 'TRT3', 'TRT4', 'TRT5', 'TRT6', 'TRT7', 'TRT8', 'TRT9', 'TRT10', 'TRT11', 'TRT12', 'TRT13', 'TRT14', 'TRT15', 'TRT16', 'TRT17', 'TRT18', 'TRT19', 'TRT20', 'TRT21', 'TRT22', 'TRT23', 'TRT24']
     };
 
-    // Filtros de Região
-    function filtrarRegiao(regiao, elemento) {
-        document.querySelectorAll('#region-filter .btn-filter').forEach(btn => btn.classList.remove('active'));
-        elemento.classList.add('active');
-        const stateFilterDiv = document.getElementById('state-filter');
-        const stateButtonsDiv = document.getElementById('state-buttons');
+    function atualizarTribunaisEdicao() {
+        const esfera = document.getElementById('processoEditEsfera').value;
+        const selectTribunal = document.getElementById('processoEditTribunal');
+        
+        selectTribunal.innerHTML = '<option value="">Selecione um tribunal</option>';
+        
+        if (esfera && tribunaisPorEsfera[esfera]) {
+            tribunaisPorEsfera[esfera].forEach(tribunal => {
+                const opt = document.createElement('option');
+                opt.value = tribunal;
+                opt.textContent = tribunal;
+                selectTribunal.appendChild(opt);
+            });
+        }
+    }
 
-        if (regiao === 'TODOS') {
-            stateFilterDiv.style.display = 'none';
-            renderizarTabela(todosProcessos);
+    // Função para atualizar tribunais no modal de CADASTRO de novo processo
+    function atualizarTribunais() {
+        const esfera = document.getElementById('esfera').value;
+        const selectTribunal = document.getElementById('tribunal');
+        
+        selectTribunal.innerHTML = '<option value="">Selecione um tribunal</option>';
+        
+        if (esfera && tribunaisPorEsfera[esfera]) {
+            tribunaisPorEsfera[esfera].forEach(tribunal => {
+                const opt = document.createElement('option');
+                opt.value = tribunal;
+                opt.textContent = tribunal;
+                selectTribunal.appendChild(opt);
+            });
+            console.log(`✅ ${tribunaisPorEsfera[esfera].length} tribunais carregados para ${esfera}`);
+        } else {
+            selectTribunal.innerHTML = '<option value="">Selecione a esfera primeiro</option>';
+        }
+    }
+
+async function editarProcesso(id) {
+    console.log('🔍 Abrindo edição do processo:', id);
+    
+    const processo = todosProcessos.find(p => p.id === id);
+    if (!processo) {
+        alert('❌ Processo não encontrado na lista local');
+        return;
+    }
+
+    console.log('📄 Dados do processo:', processo);
+
+    // ✅ Preencher campos básicos
+    document.getElementById('processoEditId').value = processo.id;
+    document.getElementById('processoEditNumero').value = processo.numero;
+    
+    // ✅ Preencher esfera primeiro
+    const esferaSelect = document.getElementById('processoEditEsfera');
+    esferaSelect.value = processo.esfera || '';
+    console.log('✅ Esfera preenchida:', esferaSelect.value);
+
+    // ✅ Atualizar tribunais baseado na esfera e aguardar
+    await atualizarTribunaisEdicao();
+    
+    // ✅ Aguardar um pouco para o DOM atualizar
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // ✅ Preencher tribunal
+    const tribunalSelect = document.getElementById('processoEditTribunal');
+    tribunalSelect.value = processo.tribunal || '';
+    console.log('✅ Tribunal preenchido:', tribunalSelect.value);
+
+    // ✅ Preencher instância
+    const instanciaSelect = document.getElementById('processoEditInstancia');
+    instanciaSelect.value = processo.instancia || '';
+    console.log('✅ Instância preenchida:', instanciaSelect.value);
+
+    // ✅ Preencher UF
+    const ufSelect = document.getElementById('processoEditUF');
+    ufSelect.value = processo.uf || '';
+    console.log('✅ UF preenchida:', ufSelect.value);
+
+    // ✅ Inicializar gerenciador de partes para edição
+    if (!window.GerenciadorPartes) {
+        console.error('❌ Classe GerenciadorPartes não encontrada!');
+        alert('❌ Erro: Sistema de partes não carregado. Recarregue a página.');
+        return;
+    }
+
+    gerenciadorPartesEdicao = new GerenciadorPartes('listaPartesAtivoEdicao', 'listaPartesPassivoEdicao', 'gerenciadorPartesEdicao');
+    gerenciadorPartesEdicao.contadorAtivoId = 'contadorAtivoEdicao';
+    gerenciadorPartesEdicao.contadorPassivoId = 'contadorPassivoEdicao';
+
+    console.log('✅ Gerenciador de partes inicializado');
+
+    // ✅ CARREGAR PARTES - Tentar API primeiro, depois usar fallback
+    let partesCarregadas = false;
+
+    // Tentativa 1: Buscar via API (se disponível)
+    try {
+        const token = localStorage.getItem('token');
+        const resPartes = await fetch(`/api/processos/${id}/partes`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (resPartes.ok) {
+            const dados = await resPartes.json();
+            console.log('✅ Resposta da API de partes:', dados);
+            
+            let partesAtivas = [];
+            let partesPassivas = [];
+            
+            // Suportar diferentes formatos de resposta
+            if (dados.partesOrganizadas) {
+                partesAtivas = dados.partesOrganizadas.ativo || [];
+                partesPassivas = dados.partesOrganizadas.passivo || [];
+            } else if (dados.partes) {
+                partesAtivas = dados.partes.filter(p => p.polo === 'ativo');
+                partesPassivas = dados.partes.filter(p => p.polo === 'passivo');
+            } else if (Array.isArray(dados)) {
+                partesAtivas = dados.filter(p => p.polo === 'ativo');
+                partesPassivas = dados.filter(p => p.polo === 'passivo');
+            }
+            
+            // Adicionar partes do polo ativo
+            if (partesAtivas.length > 0) {
+                partesAtivas.forEach((p, index) => {
+                    gerenciadorPartesEdicao.adicionarParteAtivo({
+                        pessoa_id: p.pessoa_id,
+                        pessoa_nome: p.pessoa_nome,
+                        tipo_parte: p.tipo_parte,
+                        eh_principal: p.eh_principal || index === 0
+                    });
+                });
+                console.log(`✅ ${partesAtivas.length} parte(s) ativa(s) carregada(s) da API`);
+                partesCarregadas = true;
+            }
+
+            // Adicionar partes do polo passivo
+            if (partesPassivas.length > 0) {
+                partesPassivas.forEach((p, index) => {
+                    gerenciadorPartesEdicao.adicionarPartePassivo({
+                        pessoa_id: p.pessoa_id,
+                        pessoa_nome: p.pessoa_nome,
+                        tipo_parte: p.tipo_parte,
+                        eh_principal: p.eh_principal || index === 0
+                    });
+                });
+                console.log(`✅ ${partesPassivas.length} parte(s) passiva(s) carregada(s) da API`);
+                partesCarregadas = true;
+            }
+        }
+    } catch (err) {
+        console.warn('⚠️ API de partes não disponível:', err.message);
+    }
+
+    // Tentativa 2: FALLBACK - Usar dados do cache do processo (campos legados)
+    if (!partesCarregadas) {
+        console.log('📦 API não retornou partes, usando dados dos campos legados do processo');
+        
+        // Adicionar cliente como parte ativa
+        if (processo.cliente && processo.cliente.trim()) {
+            gerenciadorPartesEdicao.adicionarParteAtivo({
+                pessoa_id: processo.cliente_id || null,
+                pessoa_nome: processo.cliente,
+                tipo_parte: 'autor',
+                eh_principal: true
+            });
+            console.log('✅ Cliente adicionado do cache:', processo.cliente);
+            partesCarregadas = true;
+        }
+        
+        // Adicionar parte contrária como parte passiva
+        if (processo.parte_contraria && processo.parte_contraria.trim()) {
+            gerenciadorPartesEdicao.adicionarPartePassivo({
+                pessoa_id: null,
+                pessoa_nome: processo.parte_contraria,
+                tipo_parte: 'reu',
+                eh_principal: true
+            });
+            console.log('✅ Parte contrária adicionada do cache:', processo.parte_contraria);
+            partesCarregadas = true;
+        }
+    }
+
+    // Verificação final
+    const temPartesAtivo = gerenciadorPartesEdicao.partesAtivo.length > 0;
+    const temPartesPassivo = gerenciadorPartesEdicao.partesPassivo.length > 0;
+    
+    if (!temPartesAtivo || !temPartesPassivo) {
+        console.warn('⚠️ Nenhuma parte foi carregada! Adicionando partes vazias para edição.');
+        alert('⚠️ Aviso: Não foi possível carregar as partes deste processo.\nVocê pode adicionar partes manualmente.');
+    } else {
+        console.log(`✅ Partes carregadas com sucesso! Ativo: ${gerenciadorPartesEdicao.partesAtivo.length}, Passivo: ${gerenciadorPartesEdicao.partesPassivo.length}`);
+    }
+
+    // ✅ Mostrar modal
+    document.getElementById('modalEditarProcesso').style.display = 'flex';
+    console.log('✅ Modal de edição exibido');
+    
+    // ✅ Atualizar ícones Lucide
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+
+    // ✅ Log final de confirmação
+    console.log('📊 Estado final da edição:', {
+        processo_id: processo.id,
+        esfera: esferaSelect.value,
+        tribunal: tribunalSelect.value,
+        instancia: instanciaSelect.value,
+        uf: ufSelect.value,
+        partes_ativo: gerenciadorPartesEdicao.partesAtivo.length,
+        partes_passivo: gerenciadorPartesEdicao.partesPassivo.length
+    });
+}
+
+/**
+ * FUNÇÃO CORRIGIDA: Salvar Edição do Processo
+ * Envia os dados atualizados para o backend
+ */
+async function salvarEdicaoProcesso() {
+    const id = document.getElementById('processoEditId').value;
+    const esfera = document.getElementById('processoEditEsfera').value;
+    const tribunal = document.getElementById('processoEditTribunal').value;
+    const instancia = document.getElementById('processoEditInstancia').value;
+    const uf = document.getElementById('processoEditUF').value;
+
+    console.log('📝 Valores dos campos:', { id, esfera, tribunal, instancia, uf });
+
+    // Validações básicas
+    if (!esfera || !tribunal || !instancia || !uf) {
+        alert('⚠️ Preencha todos os campos obrigatórios (Esfera, Tribunal, Instância e UF)');
+        return;
+    }
+
+    // ✨ Validar partes
+    if (!gerenciadorPartesEdicao) {
+        alert('❌ Erro: Gerenciador de partes não inicializado');
+        return;
+    }
+
+    const validacao = gerenciadorPartesEdicao.validar();
+    if (!validacao.valido) {
+        alert('⚠️ ' + validacao.mensagem);
+        return;
+    }
+
+    const dadosPartes = gerenciadorPartesEdicao.obterDados();
+    
+    // Montar payload
+    const payload = {
+        esfera: esfera,
+        tribunal: tribunal,
+        instancia: instancia,
+        uf: uf,
+        partes: {
+            ativo: dadosPartes.ativo,
+            passivo: dadosPartes.passivo
+        }
+    };
+    
+    console.log('📤 Payload completo a ser enviado:', JSON.stringify(payload, null, 2));
+
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/processos/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+
+        console.log('📊 Status da resposta:', res.status, res.statusText);
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error('❌ Resposta de erro (texto bruto):', errorText);
+            
+            try {
+                const err = JSON.parse(errorText);
+                console.error('❌ Erro parseado:', err);
+                alert('❌ Erro ao atualizar: ' + (err.erro || err.error || err.message || 'Erro desconhecido'));
+            } catch (parseError) {
+                alert('❌ Erro ao atualizar processo. Detalhes no console.');
+            }
             return;
         }
 
-        stateFilterDiv.style.display = 'flex';
-        stateButtonsDiv.innerHTML = '';
-        regioesMap[regiao].forEach(uf => {
-            const btn = document.createElement('button');
-            btn.className = 'btn-filter';
-            btn.innerText = uf;
-            btn.onclick = () => filtrarPorEstado(uf, btn);
-            stateButtonsDiv.appendChild(btn);
-        });
-        renderizarTabela(todosProcessos.filter(p => regioesMap[regiao].includes(p.uf)));
+        const resultado = await res.json();
+        console.log('✅ Processo atualizado:', resultado);
+        
+        alert('✅ Processo atualizado com sucesso!');
+        fecharModalEdicaoProcesso();
+        await carregarProcessos();
+        
+    } catch (err) {
+        console.error('❌ Erro de rede/conexão:', err);
+        alert('❌ Erro de conexão: ' + err.message);
     }
+}
 
-    function filtrarPorEstado(uf, elemento) {
-        document.querySelectorAll('#state-buttons .btn-filter').forEach(btn => btn.classList.remove('active'));
-        elemento.classList.add('active');
-        renderizarTabela(todosProcessos.filter(p => p.uf === uf));
+/**
+ * Fechar modal de edição e limpar dados
+ */
+function fecharModalEdicaoProcesso() {
+    document.getElementById('modalEditarProcesso').style.display = 'none';
+    
+    // Limpar gerenciador
+    if (gerenciadorPartesEdicao) {
+        gerenciadorPartesEdicao.limpar();
+        gerenciadorPartesEdicao = null;
     }
+}
 
-    // Máscara CNJ
-    function mascaraCNJ(i) {
-        let v = i.value.replace(/\D/g, "");
-        if (v.length > 7) v = v.replace(/^(\d{7})(\d)/, "$1-$2");
-        if (v.length > 9) v = v.replace(/^(\d{7})-(\d{2})(\d)/, "$1-$2.$3");
-        if (v.length > 13) v = v.replace(/^(\d{7})-(\d{2})\.(\d{4})(\d)/, "$1-$2.$3.$4");
-        if (v.length > 14) v = v.replace(/^(\d{7})-(\d{2})\.(\d{4})\.(\d{1})(\d)/, "$1-$2.$3.$4.$5");
-        if (v.length > 16) v = v.replace(/^(\d{7})-(\d{2})\.(\d{4})\.(\d{1})\.(\d{2})(\d)/, "$1-$2.$3.$4.$5.$6");
-        i.value = v;
+/**
+ * Função auxiliar para atualizar tribunais no modal de edição
+ */
+async function atualizarTribunaisEdicao() {
+    const esfera = document.getElementById('processoEditEsfera').value;
+    const selectTribunal = document.getElementById('processoEditTribunal');
+    
+    console.log('🔄 Atualizando tribunais para esfera:', esfera);
+    
+    // Limpar opções
+    selectTribunal.innerHTML = '<option value="">Selecione...</option>';
+    
+    if (!esfera) {
+        selectTribunal.innerHTML = '<option value="">Selecione a esfera primeiro</option>';
+        selectTribunal.disabled = true;
+        return;
     }
+    
+    selectTribunal.disabled = false;
+    
+    // Obter tribunais da esfera
+    const tribunais = obterTribunaisPorEsfera(esfera);
+    
+    tribunais.forEach(tribunal => {
+        const option = document.createElement('option');
+        option.value = tribunal;
+        option.textContent = tribunal;
+        selectTribunal.appendChild(option);
+    });
+    
+    console.log(`✅ ${tribunais.length} tribunais carregados`);
+}
 
-    // Arquivar
+/**
+ * Obter lista de tribunais por esfera
+ */
+function obterTribunaisPorEsfera(esfera) {
+    const tribunaisPorEsfera = {
+        'Estadual': [
+            'TJAC', 'TJAL', 'TJAM', 'TJAP', 'TJBA', 'TJCE', 'TJDF', 'TJES',
+            'TJGO', 'TJMA', 'TJMT', 'TJMS', 'TJMG', 'TJPA', 'TJPB', 'TJPR',
+            'TJPE', 'TJPI', 'TJRJ', 'TJRN', 'TJRS', 'TJRO', 'TJRR', 'TJSC',
+            'TJSP', 'TJSE', 'TJTO'
+        ],
+        'Federal': [
+            'TRF1', 'TRF2', 'TRF3', 'TRF4', 'TRF5', 'TRF6',
+            'STJ', 'STF'
+        ],
+        'Trabalhista': [
+            'TRT1', 'TRT2', 'TRT3', 'TRT4', 'TRT5', 'TRT6', 'TRT7', 'TRT8',
+            'TRT9', 'TRT10', 'TRT11', 'TRT12', 'TRT13', 'TRT14', 'TRT15',
+            'TRT16', 'TRT17', 'TRT18', 'TRT19', 'TRT20', 'TRT21', 'TRT22',
+            'TRT23', 'TRT24', 'TST'
+        ]
+    };
+    
+    return tribunaisPorEsfera[esfera] || [];
+}
+
+    // ============================================
+    // AÇÕES DE PROCESSO
+    // ============================================
     async function arquivarProcesso(id) {
         if (!confirm("Deseja mover este processo para os Arquivados?")) return;
         try {
@@ -1050,7 +2679,9 @@ document.getElementById('formProcesso').onsubmit = async (e) => {
             } else {
                 alert("Erro ao arquivar.");
             }
-        } catch (err) { alert("Erro ao arquivar."); }
+        } catch (err) { 
+            alert("Erro ao arquivar."); 
+        }
     }
 
     async function desarquivarProcesso(id) {
@@ -1083,20 +2714,56 @@ document.getElementById('formProcesso').onsubmit = async (e) => {
                 alert("Processo excluído!");
                 await carregarProcessos();
             }
-        } catch (err) { alert("Erro ao excluir."); }
-    }
-
-    function toggleUserMenu() {
-        const m = document.getElementById('userDropdown');
-        m.style.display = m.style.display === 'none' ? 'block' : 'none';
-    }
-
-    window.onclick = (e) => {
-        if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
-            const m = document.getElementById('userDropdown');
-            if(m) m.style.display = 'none';
+        } catch (err) { 
+            alert("Erro ao excluir."); 
         }
-    };
+    }
+
+    // ============================================
+    // FILTROS
+    // ============================================
+    function filtrarRegiao(regiao, elemento) {
+        document.querySelectorAll('#region-filter .btn-filter').forEach(btn => btn.classList.remove('active'));
+        elemento.classList.add('active');
+        const stateFilterDiv = document.getElementById('state-filter');
+        const stateButtonsDiv = document.getElementById('state-buttons');
+
+        if (regiao === 'TODOS') {
+            stateFilterDiv.style.display = 'none';
+            renderizarTabela(todosProcessos);
+            return;
+        }
+
+        stateFilterDiv.style.display = 'flex';
+        stateButtonsDiv.innerHTML = '';
+        regioesMap[regiao].forEach(uf => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-filter';
+            btn.innerText = uf;
+            btn.onclick = () => filtrarPorEstado(uf, btn);
+            stateButtonsDiv.appendChild(btn);
+        });
+        renderizarTabela(todosProcessos.filter(p => regioesMap[regiao].includes(p.uf)));
+    }
+
+    function filtrarPorEstado(uf, elemento) {
+        document.querySelectorAll('#state-buttons .btn-filter').forEach(btn => btn.classList.remove('active'));
+        elemento.classList.add('active');
+        renderizarTabela(todosProcessos.filter(p => p.uf === uf));
+    }
+
+    // ============================================
+    // UTILIDADES
+    // ============================================
+    function mascaraCNJ(i) {
+        let v = i.value.replace(/\D/g, "");
+        if (v.length > 7) v = v.replace(/^(\d{7})(\d)/, "$1-$2");
+        if (v.length > 9) v = v.replace(/^(\d{7})-(\d{2})(\d)/, "$1-$2.$3");
+        if (v.length > 13) v = v.replace(/^(\d{7})-(\d{2})\.(\d{4})(\d)/, "$1-$2.$3.$4");
+        if (v.length > 14) v = v.replace(/^(\d{7})-(\d{2})\.(\d{4})\.(\d{1})(\d)/, "$1-$2.$3.$4.$5");
+        if (v.length > 16) v = v.replace(/^(\d{7})-(\d{2})\.(\d{4})\.(\d{1})\.(\d{2})(\d)/, "$1-$2.$3.$4.$5.$6");
+        i.value = v;
+    }
 
     function formatarEsfera(valor) {
         if (!valor || valor === 'null' || valor === 'desconhecida') return 'Desconhecida';
@@ -1116,330 +2783,196 @@ document.getElementById('formProcesso').onsubmit = async (e) => {
         if (valor.startsWith('TJ')) return `TJ-${valor.slice(2)}`;
         return valor;
     }
-    // Inicializa ícones Lucide na carga inicial
-if (typeof lucide !== 'undefined') {
-    lucide.createIcons();
-}
 
-// E chama toda vez que mudar aba (para ícones dinâmicos)
-function mudarAba(aba) {
-    abaAtual = aba;
-    ['btnTabAtivo', 'btnTabArquivado', 'btnTabExcluido'].forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) {
-            btn.classList.toggle('active', id === `btnTab${aba.charAt(0).toUpperCase() + aba.slice(1)}`);
+    function formatarInstancia(valor) {
+        if (!valor) return '1º Grau';
+        const mapa = {
+            'JUIZADO': 'Juizado Especial',
+            '1º GRAU': '1º Grau',
+            '2º GRAU': '2º Grau',
+            'SUPERIOR': 'Superior',
+            'SUPREMO': 'Supremo'
+        };
+        return mapa[valor] || valor;
+    }
+
+    function toggleUserMenu() {
+        const m = document.getElementById('userDropdown');
+        m.style.display = m.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function logout() { 
+        localStorage.removeItem('token'); 
+        window.location.href = '/login.html'; 
+    }
+
+    // ============================================
+    // EVENTOS GLOBAIS
+    // ============================================
+    window.onclick = (e) => {
+        if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
+            const m = document.getElementById('userDropdown');
+            if(m) m.style.display = 'none';
         }
+        
+        const modalEdit = document.getElementById('modalEditarProcesso');
+        if (e.target === modalEdit) {
+            fecharModalEdicaoProcesso();
+        }
+    };
+
+    // ============================================
+    // INICIALIZAÇÃO AUTOMÁTICA
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('📄 DOM carregado');
+        setTimeout(() => {
+            inicializar();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }, 100);
     });
-    renderizarTabela(todosProcessos);
-    
-    // Força ícones em todas as abas e na carga
-setTimeout(() => {
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
-}, 500);  // Delay para garantir que DOM carregou
-}
 
-// ✅ FUNÇÕES DE EDIÇÃO DE PROCESSO
-
-// Mapeamento de tribunais por esfera (reutilizar do cadastro)
-const tribunaisPorEsfera = {
-    'Estadual': [
-        'TJAC', 'TJAL', 'TJAP', 'TJAM', 'TJBA', 'TJCE', 'TJDF', 'TJES', 'TJGO',
-        'TJMA', 'TJMT', 'TJMS', 'TJMG', 'TJPA', 'TJPB', 'TJPR', 'TJPE', 'TJPI',
-        'TJRJ', 'TJRN', 'TJRS', 'TJRO', 'TJRR', 'TJSC', 'TJSP', 'TJSE', 'TJTO'
-    ],
-    'Federal': [
-        'TRF1', 'TRF2', 'TRF3', 'TRF4', 'TRF5', 'TRF6'
-    ],
-    'Trabalhista': [
-        'TRT1', 'TRT2', 'TRT3', 'TRT4', 'TRT5', 'TRT6', 'TRT7', 'TRT8', 'TRT9',
-        'TRT10', 'TRT11', 'TRT12', 'TRT13', 'TRT14', 'TRT15', 'TRT16', 'TRT17',
-        'TRT18', 'TRT19', 'TRT20', 'TRT21', 'TRT22', 'TRT23', 'TRT24'
-    ]
-};
-
-function atualizarTribunaisEdicao() {
-    const esfera = document.getElementById('processoEditEsfera').value;
-    const selectTribunal = document.getElementById('processoEditTribunal');
-    
-    selectTribunal.innerHTML = '<option value="">Selecione um tribunal</option>';
-    
-    if (esfera && tribunaisPorEsfera[esfera]) {
-        tribunaisPorEsfera[esfera].forEach(tribunal => {
-            const opt = document.createElement('option');
-            opt.value = tribunal;
-            opt.textContent = tribunal;
-            selectTribunal.appendChild(opt);
-        });
-    }
-}
-
-async function editarProcesso(id) {
-    console.log('🔧 [DEBUG] Iniciando edição do processo:', id);
-    
-    try {
-        console.log('📡 [DEBUG] Buscando processos...');
-        const res = await fetch('/api/processos', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        console.log('📡 [DEBUG] Status:', res.status);
-        const processos = await res.json();
-        console.log('📡 [DEBUG] Processos recebidos:', processos.length);
-        
-        const processo = processos.find(p => p.id === id);
-        console.log('📡 [DEBUG] Processo encontrado:', processo);
-        
-        if (!processo) {
-            alert('Processo não encontrado');
-            return;
-        }
-
-        console.log('📡 [DEBUG] Carregando clientes...');
-        const resClientes = await fetch('/api/clientes', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        console.log('📡 [DEBUG] Status clientes:', resClientes.status);
-        const clientes = await resClientes.json();
-        console.log('📡 [DEBUG] Clientes recebidos:', clientes.length);
-        
-        const selectCliente = document.getElementById('processoEditCliente');
-        selectCliente.innerHTML = '<option value="">Selecione um cliente</option>';
-        clientes.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c.id;
-            opt.textContent = c.nome;
-            selectCliente.appendChild(opt);
-        });
-
-        // 3. Preencher campos
-        document.getElementById('processoEditId').value = processo.id;
-        document.getElementById('processoEditNumero').value = processo.numero;
-        document.getElementById('processoEditCliente').value = processo.cliente_id || '';
-        document.getElementById('processoEditParteContraria').value = processo.parte_contraria || '';
-        document.getElementById('processoEditEsfera').value = processo.esfera || '';
-        
-        // 4. Atualizar tribunais baseado na esfera
-        atualizarTribunaisEdicao();
-        document.getElementById('processoEditTribunal').value = processo.tribunal || '';
-        
-        document.getElementById('processoEditInstancia').value = processo.instancia || '';
-        document.getElementById('processoEditUF').value = processo.uf || '';
-
-        // 5. Exibir modal
-        const modal = document.getElementById('modalEditarProcesso');
-        modal.style.display = 'flex';
-        modal.style.zIndex = '10000'; // Força z-index alto
-        console.log('✅ [DEBUG] Modal exibido:', modal.style.display);
-        
-        console.log('✅ [DEBUG] Modal aberto com sucesso');
-        
-    } catch (err) {
-        console.error('❌ [DEBUG] Erro ao carregar processo:', err);
-        console.error('❌ [DEBUG] Stack:', err.stack);
-        alert('Erro ao carregar dados do processo');
-    }
-}
-
-async function salvarEdicaoProcesso() {
-    const id = document.getElementById('processoEditId').value;
-    const clienteId = document.getElementById('processoEditCliente').value;
-    const parteContraria = document.getElementById('processoEditParteContraria').value.trim();
-    const esfera = document.getElementById('processoEditEsfera').value;
-    const tribunal = document.getElementById('processoEditTribunal').value;
-    const instancia = document.getElementById('processoEditInstancia').value;
-    const uf = document.getElementById('processoEditUF').value;
-
-    // Validações
-    if (!clienteId) {
-        alert('⚠️ Selecione um cliente');
-        return;
-    }
-    if (!esfera || !tribunal || !instancia || !uf) {
-        alert('⚠️ Preencha todos os campos obrigatórios (Esfera, Tribunal, Instância e UF)');
-        return;
-    }
-
-    try {
-        const res = await fetch(`/api/processos/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                cliente_id: clienteId,
-                parte_contraria: parteContraria,
-                esfera: esfera,
-                tribunal: tribunal,
-                instancia: instancia,
-                uf: uf
-            })
-        });
-
-        if (!res.ok) {
-            const err = await res.json();
-            alert('❌ ' + (err.erro || 'Erro ao atualizar processo'));
-            return;
-        }
-
-        alert('✅ Processo atualizado com sucesso!');
-        fecharModalEdicaoProcesso();
-        carregarProcessos(); // Recarrega a lista
-        
-    } catch (err) {
-        console.error('Erro ao salvar:', err);
-        alert('❌ Erro de conexão');
-    }
-}
-
-function fecharModalEdicaoProcesso() {
-    document.getElementById('modalEditarProcesso').style.display = 'none';
-}
-
-// Fechar modal ao clicar fora
-window.onclick = function(event) {
-    const modal = document.getElementById('modalEditarProcesso');
-    if (event.target === modal) {
-        fecharModalEdicaoProcesso();
-    }
-}
+    window.onload = () => {
+        console.log('🌐 Window carregado');
+        inicializar();
+    };
 </script>
 
 <!-- ✅ MODAL DE EDIÇÃO DE PROCESSO -->
 <div id="modalEditarProcesso" class="modal" style="display:none;">
-    <div class="modal-content" style="max-width: 600px;">
+    <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
         <h3 style="margin-bottom: 20px; font-weight: 700;">📝 Editar Processo</h3>
         <input type="hidden" id="processoEditId">
         
-        <div style="display:flex; flex-direction:column; gap:14px;">
-            <!-- Número do Processo (bloqueado) -->
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 6px;">
-                    NÚMERO DO PROCESSO
-                </label>
-                <input 
-                    id="processoEditNumero" 
-                    disabled 
-                    style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: #f1f5f9; cursor: not-allowed;"
-                >
+        <div style="margin-bottom: 20px;">
+    <label class="label-moderno">Número do Processo (CNJ)</label>
+    <input 
+        id="processoEditNumero" 
+        type="text"
+        disabled 
+        class="select-moderno"
+        style="background: #f1f5f9; cursor: not-allowed;"
+    >
+</div>
+
+            <!-- POLO ATIVO (Clientes/Autores) -->
+            <div class="partes-container">
+                <div class="partes-header">
+                    <h4>
+                        👤 Polo Ativo (Cliente/Autor)
+                        <span class="contador-partes" id="contadorAtivoEdicao">0</span>
+                    </h4>
+                    <button type="button" class="btn-add-parte" onclick="abrirModalAdicionarParteEdicao('ativo')">
+                        <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                        Adicionar
+                    </button>
+                </div>
+                <div class="partes-list" id="listaPartesAtivoEdicao"></div>
             </div>
 
-            <!-- Cliente -->
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 6px;">
-                    CLIENTE <span style="color: #ef4444;">*</span>
-                </label>
-                <select 
-                    id="processoEditCliente" 
-                    style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;"
-                >
-                    <option value="">Selecione um cliente</option>
-                </select>
-            </div>
-
-            <!-- Parte Contrária -->
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 6px;">
-                    PARTE CONTRÁRIA
-                </label>
-                <input 
-                    id="processoEditParteContraria" 
-                    placeholder="Nome da parte contrária"
-                    style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;"
-                >
+            <!-- POLO PASSIVO (Réus) -->
+            <div class="partes-container">
+                <div class="partes-header">
+                    <h4>
+                        ⚖️ Polo Passivo (Parte Contrária/Réu)
+                        <span class="contador-partes" id="contadorPassivoEdicao">0</span>
+                    </h4>
+                    <button type="button" class="btn-add-parte" onclick="abrirModalAdicionarParteEdicao('passivo')">
+                        <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                        Adicionar
+                    </button>
+                </div>
+                <div class="partes-list" id="listaPartesPassivoEdicao"></div>
             </div>
 
             <!-- Esfera e Tribunal (lado a lado) -->
-            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px;">
-                <div>
-                    <label style="font-size: 12px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 6px;">
-                        ESFERA <span style="color: #ef4444;">*</span>
-                    </label>
-                    <select 
-                        id="processoEditEsfera" 
-                        style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;"
-                        onchange="atualizarTribunaisEdicao()"
-                    >
-                        <option value="">Selecione</option>
-                        <option value="Estadual">Estadual</option>
-                        <option value="Federal">Federal</option>
-                        <option value="Trabalhista">Trabalhista</option>
-                    </select>
-                </div>
-                <div>
-                    <label style="font-size: 12px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 6px;">
-                        TRIBUNAL <span style="color: #ef4444;">*</span>
-                    </label>
-                    <select 
-                        id="processoEditTribunal" 
-                        style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;"
-                    >
-                        <option value="">Selecione a esfera primeiro</option>
-                    </select>
-                </div>
-            </div>
+            <div class="campo-grid-2">
+    <div>
+        <label class="label-moderno label-obrigatorio">Esfera</label>
+        <select 
+            id="processoEditEsfera" 
+            class="select-moderno"
+            onchange="atualizarTribunaisEdicao()"
+            required
+        >
+            <option value="">Selecione...</option>
+            <option value="Estadual">Estadual</option>
+            <option value="Federal">Federal</option>
+            <option value="Trabalhista">Trabalhista</option>
+        </select>
+    </div>
+    <div>
+        <label class="label-moderno label-obrigatorio">Tribunal</label>
+        <select 
+            id="processoEditTribunal" 
+            class="select-moderno"
+            required
+        >
+            <option value="">Selecione a esfera primeiro</option>
+        </select>
+    </div>
+</div>
 
             <!-- Instância/Grau e UF (lado a lado) -->
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
-                <div>
-                    <label style="font-size: 12px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 6px;">
-                        INSTÂNCIA / GRAU <span style="color: #ef4444;">*</span>
-                    </label>
-                    <select 
-                        id="processoEditInstancia" 
-                        style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;"
-                    >
-                        <option value="">Selecione</option>
-                        <option value="1">1º Grau</option>
-                        <option value="2">2º Grau</option>
-                        <option value="STJ">STJ</option>
-                        <option value="STF">STF</option>
-                    </select>
-                </div>
-                <div>
-                    <label style="font-size: 12px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 6px;">
-                        UF <span style="color: #ef4444;">*</span>
-                    </label>
-                    <select 
-                        id="processoEditUF" 
-                        style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;"
-                    >
-                        <option value="">UF</option>
-                        <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option>
-                        <option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option>
-                        <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
-                        <option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option>
-                        <option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option>
-                        <option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option>
-                        <option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option>
-                        <option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option>
-                        <option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- Botões -->
-        <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:10px;">
-            <button 
-                class="btn-primary" 
-                onclick="salvarEdicaoProcesso()"
-                style="background: var(--accent-blue); color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;"
-            >
-                💾 Salvar Alterações
-            </button>
-            <button 
-                class="btn-secondary" 
-                onclick="fecharModalEdicaoProcesso()"
-                style="background: #e5e7eb; color: #374151; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;"
-            >
-                Cancelar
-            </button>
-        </div>
+            <div class="campo-grid-3">
+    <div>
+        <label class="label-moderno label-obrigatorio">Instância / Grau</label>
+        <select 
+            id="processoEditInstancia" 
+            class="select-moderno"
+            required
+        >
+            <option value="">Selecione...</option>
+            <option value="1º GRAU">1º Grau</option>
+            <option value="2º GRAU">2º Grau</option>
+            <option value="JUIZADO">Juizado Especial</option>
+            <option value="SUPERIOR">Superior</option>
+            <option value="SUPREMO">Supremo</option>
+        </select>
     </div>
+    <div>
+        <label class="label-moderno label-obrigatorio">UF</label>
+        <select 
+            id="processoEditUF" 
+            class="select-moderno"
+            required
+        >
+            <option value="">UF</option>
+            <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option>
+            <option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option>
+            <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
+            <option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option>
+            <option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option>
+            <option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option>
+            <option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option>
+            <option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option>
+            <option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
+        </select>
+    </div>
+    <div style="align-self: end;">
+        <button 
+            class="btn-primary" 
+            onclick="salvarEdicaoProcesso()"
+            style="background: #2563eb; color: white; padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; transition: all 0.2s ease;"
+            onmouseover="this.style.background='#1d4ed8'"
+            onmouseout="this.style.background='#2563eb'"
+        >
+            💾 Salvar
+        </button>
+    </div>
+</div>
+<div style="margin-top: 12px;">
+    <button 
+        class="btn-secondary" 
+        onclick="fecharModalEdicaoProcesso()"
+        style="background: #e5e7eb; color: #374151; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; transition: all 0.2s ease;"
+        onmouseover="this.style.background='#d1d5db'"
+        onmouseout="this.style.background='#e5e7eb'"
+    >
+        Cancelar
+    </button>
+</div>
+</div>
 </div>
 </body>
 </html>

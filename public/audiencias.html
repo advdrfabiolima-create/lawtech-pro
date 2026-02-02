@@ -288,6 +288,72 @@ input, textarea, select {
     font-variant: normal !important;
     color: #cbd5e1;
 }
+
+/* ============================================
+   NOVO DESIGN DAS ABAS - PROFISSIONAL SAAS
+   ============================================ */
+
+.tabs-wrapper {
+    background: linear-gradient(to bottom, #f8fafc, #ffffff);
+    border-radius: var(--radius-md);
+    padding: 6px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border-subtle);
+}
+
+.tabs-header-custom {
+    display: flex;
+    gap: 6px;
+    background: transparent;
+    border: none !important;
+    margin-bottom: 0;
+}
+
+.tab-btn-custom {
+    flex: 1;
+    padding: 14px 24px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text-tertiary);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-transform: uppercase;
+}
+
+.tab-btn-custom:hover {
+    background: rgba(37, 99, 235, 0.05);
+    color: var(--text-secondary);
+}
+
+.tab-btn-custom.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+.tab-badge-custom {
+    background: rgba(0, 0, 0, 0.15);
+    color: white;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 800;
+    min-width: 22px;
+    text-align: center;
+}
+
+.tab-btn-custom:not(.active) .tab-badge-custom {
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--text-tertiary);
+}
     </style>
 </head>
 <body>
@@ -355,21 +421,17 @@ input, textarea, select {
         <main class="content">
             <div class="card">
                 <!-- Abas de Navegação -->
-                <div style="display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 24px;">
-                    <button onclick="trocarAba('futuras')" id="abaFuturas" style="
-                        flex: 1; padding: 14px 24px; background: var(--primary); color: white;
-                        border: none; font-weight: 700; font-size: 14px; cursor: pointer;
-                        border-bottom: 3px solid var(--primary); transition: all 0.3s;
-                    ">
-                        📅 Audiências Agendadas
-                    </button>
-                    <button onclick="trocarAba('realizadas')" id="abaRealizadas" style="
-                        flex: 1; padding: 14px 24px; background: transparent; color: var(--muted);
-                        border: none; font-weight: 700; font-size: 14px; cursor: pointer;
-                        border-bottom: 3px solid transparent; transition: all 0.3s;
-                    ">
-                        ✅ Audiências Realizadas
-                    </button>
+                <div class="tabs-wrapper">
+                    <div class="tabs-header-custom">
+                        <button onclick="trocarAba('futuras')" id="abaFuturas" class="tab-btn-custom active">
+                            📅 Audiências Agendadas
+                            <span class="tab-badge-custom" id="contadorFuturas">0</span>
+                        </button>
+                        <button onclick="trocarAba('realizadas')" id="abaRealizadas" class="tab-btn-custom">
+                            ✅ Audiências Realizadas
+                            <span class="tab-badge-custom" id="contadorRealizadas">0</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Tabela de Audiências Futuras -->
@@ -563,8 +625,11 @@ async function inicializarPagina() {
 
         async function carregarAudiencias() {
             try {
+                console.log('🔄 [CARREGAR] Iniciando carregamento de audiências...');
                 const res = await fetch('/api/audiencias', { headers: { 'Authorization': `Bearer ${token}` } });
                 const dados = await res.json();
+                console.log('📊 [CARREGAR] Total de audiências recebidas:', dados.length);
+                console.log('📋 [CARREGAR] Dados:', dados);
                 
                 const corpoFuturas = document.getElementById('listaAudiencias');
                 const corpoRealizadas = document.getElementById('listaAudienciasRealizadas');
@@ -601,6 +666,13 @@ async function inicializarPagina() {
                         }
                     }
                 });
+
+                // Atualizar contadores das abas
+                console.log('🔢 [CARREGAR] Atualizando contadores - Futuras:', futuras.length, '| Realizadas:', realizadas.length);
+                const contadorFuturas = document.getElementById('contadorFuturas');
+                const contadorRealizadas = document.getElementById('contadorRealizadas');
+                if (contadorFuturas) contadorFuturas.textContent = futuras.length;
+                if (contadorRealizadas) contadorRealizadas.textContent = realizadas.length;
 
                 // Renderizar Audiências Futuras
                 if (futuras.length === 0) {
@@ -745,6 +817,8 @@ async function inicializarPagina() {
 
         document.getElementById('formAudiencia').onsubmit = async (e) => {
             e.preventDefault();
+            console.log('📝 [SALVAR] Formulário submetido!');
+            
             // Alinhando os nomes dos campos com o que o Backend Master espera
             const dados = {
                 processo_id: document.getElementById('audProcessoId').value,
@@ -754,6 +828,8 @@ async function inicializarPagina() {
                 local_virtual: document.getElementById('audLocal').value
             };
             
+            console.log('📋 [SALVAR] Dados a enviar:', dados);
+            
             try {
                 const response = await fetch('/api/audiencias', {
                     method: 'POST',
@@ -761,15 +837,25 @@ async function inicializarPagina() {
                     body: JSON.stringify(dados)
                 });
                 
+                console.log('📡 [SALVAR] Status da resposta:', response.status);
+                
                 if (response.ok) {
+                    const resultado = await response.json();
+                    console.log('✅ [SALVAR] Resposta do servidor:', resultado);
+                    alert('✅ Audiência cadastrada com sucesso!');
                     fecharModalAudiencia();
-                    document.getElementById('formAudiencia').reset(); // Limpa o formulário
-                    await carregarAudiencias(); // Recarrega a lista imediatamente
+                    document.getElementById('formAudiencia').reset();
+                    console.log('🔄 [SALVAR] Recarregando audiências...');
+                    await carregarAudiencias();
+                    console.log('✅ [SALVAR] Audiências recarregadas!');
                 } else {
-                    alert("Erro ao salvar audiência no servidor.");
+                    const erro = await response.text();
+                    console.error('❌ [SALVAR] Erro do servidor:', erro);
+                    alert("Erro ao salvar audiência no servidor: " + erro);
                 }
             } catch (err) {
-                console.error("Erro no salvamento:", err);
+                console.error("❌ [SALVAR] Erro no salvamento:", err);
+                alert("Erro de comunicação: " + err.message);
             }
         };
 
@@ -836,25 +922,13 @@ function avisarZap(cliente, processo, tipo, data, hora, local, telefone) {
             const tabelaRealizadas = document.getElementById('tabelaRealizadas');
 
             if (aba === 'futuras') {
-                abaFuturas.style.background = 'var(--primary)';
-                abaFuturas.style.color = 'white';
-                abaFuturas.style.borderBottom = '3px solid var(--primary)';
-                
-                abaRealizadas.style.background = 'transparent';
-                abaRealizadas.style.color = 'var(--muted)';
-                abaRealizadas.style.borderBottom = '3px solid transparent';
-                
+                abaFuturas.classList.add('active');
+                abaRealizadas.classList.remove('active');
                 tabelaFuturas.style.display = 'block';
                 tabelaRealizadas.style.display = 'none';
             } else {
-                abaRealizadas.style.background = 'var(--primary)';
-                abaRealizadas.style.color = 'white';
-                abaRealizadas.style.borderBottom = '3px solid var(--primary)';
-                
-                abaFuturas.style.background = 'transparent';
-                abaFuturas.style.color = 'var(--muted)';
-                abaFuturas.style.borderBottom = '3px solid transparent';
-                
+                abaRealizadas.classList.add('active');
+                abaFuturas.classList.remove('active');
                 tabelaFuturas.style.display = 'none';
                 tabelaRealizadas.style.display = 'block';
             }

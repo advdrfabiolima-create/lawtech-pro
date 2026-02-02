@@ -3,44 +3,60 @@ const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
 
-// Listar audiências com dados do processo e cliente
+// Listar audiências com dados do processo e cliente - CORRIGIDO
 router.get('/audiencias', authMiddleware, async (req, res) => {
     try {
+        console.log('🔍 [GET AUDIENCIAS] Buscando para usuario_id:', req.user.id);
+        
         const result = await pool.query(`
-            SELECT a.*, p.numero as processo_numero, c.nome as cliente, c.telefone, a.ata_audiencia
+            SELECT a.*, 
+                   p.numero as processo_numero, 
+                   COALESCE(c.nome, p.cliente) as cliente, 
+                   c.telefone, 
+                   a.ata_audiencia
             FROM audiencias a
             JOIN processos p ON a.processo_id = p.id
-            JOIN clientes c ON p.cliente = c.nome -- FAZ O VÍNCULO COM O CLIENTE
+            LEFT JOIN clientes c ON p.cliente_id = c.id
             WHERE a.usuario_id = $1
             ORDER BY a.data_audiencia ASC`, [req.user.id]);
+        
+        console.log('📊 [GET AUDIENCIAS] Total encontrado:', result.rows.length);
+        console.log('📋 [GET AUDIENCIAS] IDs:', result.rows.map(r => r.id));
         res.json(result.rows);
     } catch (err) {
+        console.error('❌ [GET AUDIENCIAS] Erro:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
 
 // Cadastrar nova audiência
-// Cadastrar nova audiência - VERSÃO CORRIGIDA MASTER
 router.post('/audiencias', authMiddleware, async (req, res) => {
     const { processo_id, tipo_audiencia, data_audiencia, hora_audiencia, local_virtual } = req.body;
+    
+    console.log('📝 [POST AUDIENCIA] Criando:', { processo_id, tipo_audiencia, data_audiencia });
+    
     try {
-        await pool.query(
+        const result = await pool.query(
             `INSERT INTO audiencias (usuario_id, processo_id, tipo_audiencia, data_audiencia, hora_audiencia, local_virtual)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
+             VALUES ($1, $2, $3, $4, $5, $6)
+             RETURNING *`,
             [req.user.id, processo_id, tipo_audiencia, data_audiencia, hora_audiencia, local_virtual]
         );
-        res.status(201).json({ ok: true });
+        
+        console.log('✅ [POST AUDIENCIA] Criada com ID:', result.rows[0].id);
+        res.status(201).json({ ok: true, audiencia: result.rows[0] });
     } catch (err) {
+        console.error('❌ [POST AUDIENCIA] Erro:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
-// Rota para EXCLUIR audiência
+
+// Excluir audiência
 router.delete('/audiencias/:id', authMiddleware, async (req, res) => {
     const { id } = req.params;
     const escritorioId = req.user.escritorio_id;
 
     try {
-        // Agora deletamos garantindo que a audiência pertence a um processo do escritório do usuário
         const result = await pool.query(
             `DELETE FROM audiencias 
              WHERE id = $1 
@@ -49,16 +65,17 @@ router.delete('/audiencias/:id', authMiddleware, async (req, res) => {
         );
 
         if (result.rowCount === 0) {
-            return res.status(403).json({ erro: 'Audiência não encontrada ou você não tem permissão para excluí-la.' });
+            return res.status(403).json({ erro: 'Audiência não encontrada.' });
         }
 
-        res.json({ mensagem: 'Audiência excluída com sucesso!' });
+        res.json({ mensagem: 'Audiência excluída!' });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ erro: 'Erro ao excluir audiência no banco de dados' });
+        res.status(500).json({ erro: 'Erro ao excluir audiência' });
     }
 });
 
+// Registrar ATA
 router.put('/audiencias/:id/ata', authMiddleware, async (req, res) => {
     const { id } = req.params;
     const { ata_audiencia } = req.body;
@@ -70,13 +87,13 @@ router.put('/audiencias/:id/ata', authMiddleware, async (req, res) => {
              WHERE id = $2 AND usuario_id = $3`,
             [ata_audiencia, id, req.user.id]
         );
-        res.json({ ok: true, mensagem: 'ATA registrada com sucesso!' });
+        res.json({ ok: true, mensagem: 'ATA registrada!' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Marcar audiência como realizada
+// Marcar como realizada
 router.put('/audiencias/:id/realizada', authMiddleware, async (req, res) => {
     const { id } = req.params;
 
@@ -89,17 +106,14 @@ router.put('/audiencias/:id/realizada', authMiddleware, async (req, res) => {
         );
 
         if (result.rowCount === 0) {
-            return res.status(403).json({
-                erro: 'Audiência não encontrada ou sem permissão'
-            });
+            return res.status(403).json({ erro: 'Audiência não encontrada' });
         }
 
-        res.json({ ok: true, mensagem: 'Audiência marcada como realizada' });
+        res.json({ ok: true, mensagem: 'Marcada como realizada' });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ erro: 'Erro ao atualizar audiência' });
+        res.status(500).json({ erro: 'Erro ao atualizar' });
     }
 });
-
 
 module.exports = router;
