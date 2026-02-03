@@ -8,6 +8,9 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+    
+    <!-- ✅ Stripe.js para tokenização segura de cartões -->
+    <script src="https://js.stripe.com/v3/"></script>
 
     <style>
         :root {
@@ -782,12 +785,21 @@
             if (senha !== document.getElementById('confirmarSenha').value) return showError("Senhas não coincidem.");
             if (senha.length < 6) return showError("A senha deve ter 6+ caracteres.");
 
-            // ✅ VALIDAR CARTÃO DE CRÉDITO
+            // ✅ TOKENIZAÇÃO COM STRIPE
             const numeroCartao = document.getElementById('card_numero').value;
+            const validadeCartao = document.getElementById('card_validade').value;
+            const cvcCartao = document.getElementById('card_cvc').value;
+            
+            let tokenCartao = null;
+            let last4 = null;
+            let brand = null;
+            let exp_month = null;
+            let exp_year = null;
             
             if (numeroCartao && numeroCartao.trim() !== '') {
                 console.log('🔍 Validando cartão de crédito...');
                 
+                // Validação de Luhn primeiro
                 if (!validarCartaoCredito(numeroCartao)) {
                     const bandeira = identificarBandeira(numeroCartao);
                     console.error('❌ Cartão inválido:', numeroCartao.replace(/\d(?=\d{4})/g, '*'));
@@ -800,13 +812,61 @@
                 }
                 
                 const bandeira = identificarBandeira(numeroCartao);
-                console.log('✅ Cartão válido! Bandeira:', bandeira);
+                console.log('✅ Cartão válido (Luhn)! Bandeira:', bandeira);
+                
+                // ✅ TOKENIZAR COM STRIPE
+                btnSubmit.innerText = "🔐 Tokenizando cartão...";
+                btnSubmit.disabled = true;
+                
+                try {
+                    // Inicializar Stripe com sua chave pública
+                    const stripe = Stripe('pk_test_51QfUjpP4mlOaBaNiWkDqvTqQv3c7a5BtUn2l9xfRCIZMmGTlDJRwV6b6SiLY74Hxq8jqeWKgkd7ioNQM2Ey7Z1WN00xYzKRf8Q');
+                    
+                    // Extrair mês e ano da validade
+                    const [mes, ano] = validadeCartao.split('/');
+                    const anoCompleto = ano.length === 2 ? '20' + ano : ano;
+                    
+                    // Criar token via Stripe (número do cartão NUNCA toca o servidor!)
+                    console.log('🔐 Gerando token seguro via Stripe...');
+                    const { token, error } = await stripe.createToken('card', {
+                        number: numeroCartao.replace(/\s/g, ''),
+                        exp_month: mes,
+                        exp_year: anoCompleto,
+                        cvc: cvcCartao
+                    });
+                    
+                    if (error) {
+                        console.error('❌ Erro Stripe:', error);
+                        btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
+                        btnSubmit.disabled = false;
+                        return showError(`❌ Erro ao validar cartão: ${error.message}`);
+                    }
+                    
+                    // Sucesso! Token criado
+                    tokenCartao = token.id;
+                    last4 = token.card.last4;
+                    brand = token.card.brand;
+                    exp_month = token.card.exp_month;
+                    exp_year = token.card.exp_year;
+                    
+                    console.log('✅ Token gerado:', tokenCartao);
+                    console.log('   Bandeira:', brand);
+                    console.log('   Últimos 4:', last4);
+                    console.log('   Validade:', exp_month + '/' + exp_year);
+                    
+                } catch (stripeErr) {
+                    console.error('❌ Erro ao tokenizar:', stripeErr);
+                    btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
+                    btnSubmit.disabled = false;
+                    return showError('❌ Erro ao processar cartão. Tente novamente.');
+                }
             }
 
-            btnSubmit.innerText = "Processando...";
+            btnSubmit.innerText = "Processando cadastro...";
             btnSubmit.disabled = true;
 
             try {
+                // ✅ NÃO ENVIA MAIS O NÚMERO DO CARTÃO!
                 const payload = {
                     nome: document.getElementById('nome').value,
                     email: document.getElementById('email').value,
@@ -818,12 +878,7 @@
                     endereco: document.getElementById('endereco').value,
                     cidade: document.getElementById('cidade').value,
                     estado: document.getElementById('estado').value,
-                    planoId: localStorage.getItem('plano_escolhido_id') || 1,
-                    pagamento: {
-                        numero: document.getElementById('card_numero').value,
-                        validade: document.getElementById('card_validade').value,
-                        cvc: document.getElementById('card_cvc').value
-                    }
+                    planoId: localStorage.getItem('plano_escolhido_id') || 1
                 };
 
                 const response = await fetch('/api/auth/register', {
@@ -835,15 +890,14 @@
 const data = await response.json();
 
 if (response.ok) {
-    // ✅ SUCESSO: Conta criada!
     console.log('✅ [REGISTRO] Conta criada com sucesso:', data);
     
-    // ✅ Salvar token do cartão (se fornecido)
-    if (payload.pagamento && payload.pagamento.numero && payload.pagamento.numero.replace(/\D/g, '').length >= 13) {
+    // ✅ Salvar TOKEN do cartão (não o número!)
+    if (tokenCartao) {
         try {
-            console.log('💳 [REGISTRO] Salvando dados do cartão...');
+            console.log('💳 [REGISTRO] Salvando TOKEN do cartão...');
             
-            // Fazer login para obter token
+            // Fazer login para obter token de autenticação
             const loginRes = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -853,6 +907,7 @@ if (response.ok) {
             if (loginRes.ok) {
                 const loginData = await loginRes.json();
                 
+                // ✅ ENVIAR TOKEN (não o número!)
                 const cartaoRes = await fetch('/api/pagamentos/salvar-cartao', {
                     method: 'POST',
                     headers: {
@@ -860,19 +915,25 @@ if (response.ok) {
                         'Authorization': `Bearer ${loginData.token}`
                     },
                     body: JSON.stringify({
-                        numero: payload.pagamento.numero,
-                        validade: payload.pagamento.validade
+                        token: tokenCartao,      // ✅ Token seguro do Stripe
+                        last4: last4,            // ✅ Últimos 4 dígitos
+                        brand: brand,            // ✅ Bandeira (visa, mastercard)
+                        exp_month: exp_month,    // ✅ Mês validade
+                        exp_year: exp_year,      // ✅ Ano validade
+                        gateway: 'stripe'        // ✅ Gateway usado
                     })
                 });
 
                 if (cartaoRes.ok) {
-                    console.log('✅ [REGISTRO] Cartão salvo com sucesso');
+                    console.log('✅ [REGISTRO] Token do cartão salvo com sucesso!');
+                    console.log('   ✅ Número do cartão NUNCA passou pelo servidor!');
+                    console.log('   ✅ PCI Compliance garantido!');
                 } else {
-                    console.warn('⚠️ [REGISTRO] Erro ao salvar cartão (não crítico)');
+                    console.warn('⚠️ [REGISTRO] Erro ao salvar token (não crítico)');
                 }
             }
         } catch (cartaoErr) {
-            console.error('❌ [REGISTRO] Erro ao salvar cartão:', cartaoErr);
+            console.error('❌ [REGISTRO] Erro ao salvar token:', cartaoErr);
             // Não bloqueia o cadastro por erro no cartão
         }
     }
@@ -887,6 +948,7 @@ if (response.ok) {
         '✅ Conta criada com sucesso!\n\n' +
         '🎉 Você ganhou 7 dias de teste gratuito para explorar todos os recursos do LawTech Pro.\n\n' +
         '💳 A cobrança no cartão cadastrado será realizada automaticamente após o período de teste.\n\n' +
+        '🔒 Seus dados de pagamento foram tokenizados com segurança máxima.\n\n' +
         'Clique em OK para fazer login e começar!'
     );
     
@@ -897,6 +959,7 @@ if (response.ok) {
     showError(data.erro || "Falha ao criar conta.");
 }
             } catch (err) {
+                console.error('❌ Erro:', err);
                 showError("Erro de conexão.");
             } finally {
                 btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";

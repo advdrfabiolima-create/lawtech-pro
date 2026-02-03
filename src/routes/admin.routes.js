@@ -31,10 +31,19 @@ router.get('/stats', async (req, res) => {
         `);
 
         // 4. Escritórios no limite (próximos de upgrade)
+        // ✅ EXCLUINDO planos ilimitados (-1, 999, 9999)
         const noLimiteCount = await pool.query(`
             SELECT COUNT(*) as total
             FROM escritorios e
             WHERE (
+                -- ✅ Apenas escritórios com limites definidos (não ilimitados)
+                e.limite_usuarios NOT IN (-1, 999, 9999) 
+                AND e.limite_prazos NOT IN (-1, 999, 9999)
+                AND e.limite_usuarios > 0 
+                AND e.limite_prazos > 0
+            )
+            AND (
+                -- ✅ E que estejam >= 90% do limite
                 (SELECT COUNT(*) FROM prazos WHERE escritorio_id = e.id) >= (e.limite_prazos * 0.9)
                 OR
                 (SELECT COUNT(*) FROM usuarios WHERE escritorio_id = e.id) >= (e.limite_usuarios * 0.9)
@@ -232,6 +241,15 @@ router.get('/no-limite', async (req, res) => {
                 END as recurso_limite
             FROM escritorios e
             WHERE (
+                -- ✅ EXCLUIR escritórios com recursos ilimitados
+                -- Valores -1, 999, ou 9999 indicam "ilimitado"
+                e.limite_usuarios NOT IN (-1, 999, 9999) 
+                AND e.limite_prazos NOT IN (-1, 999, 9999)
+                AND e.limite_usuarios > 0 
+                AND e.limite_prazos > 0
+            )
+            AND (
+                -- ✅ Apenas os que estão >= 90% do limite
                 (SELECT COUNT(*) FROM usuarios WHERE escritorio_id = e.id) >= (e.limite_usuarios * 0.9)
                 OR
                 (SELECT COUNT(*) FROM prazos WHERE escritorio_id = e.id) >= (e.limite_prazos * 0.9)

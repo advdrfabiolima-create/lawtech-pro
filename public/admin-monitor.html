@@ -2470,6 +2470,18 @@ function renderizarTabelaAudit(lista) {
             'status_pagamento': '#3b82f6'
         }[event.tipo_evento] || '#6b7280';
         
+        // ✅ GERAR DESCRIÇÃO AUTOMÁTICA quando for null
+        let descricao = event.descricao;
+        if (!descricao || descricao === 'null' || descricao === null) {
+            const descricaoAuto = {
+                'novo_cadastro': `Novo escritório cadastrado: ${event.escritorio}`,
+                'upgrade': `Upgrade de plano realizado por ${event.escritorio}`,
+                'milestone': `Marco importante atingido por ${event.escritorio}`,
+                'status_pagamento': `Alteração de status de pagamento - ${event.escritorio}`
+            }[event.tipo_evento] || `Evento do sistema registrado`;
+            descricao = descricaoAuto;
+        }
+        
         tbody.innerHTML += `
             <tr>
                 <td style="font-size:12px">${new Date(event.criado_em).toLocaleString('pt-BR')}</td>
@@ -2478,7 +2490,7 @@ function renderizarTabelaAudit(lista) {
                         ${iconeTipo} ${event.tipo_evento.replace('_', ' ').toUpperCase()}
                     </span>
                 </td>
-                <td style="font-size:13px">${event.descricao}</td>
+                <td style="font-size:13px">${descricao}</td>
                 <td>${event.escritorio}</td>
                 <td>${event.usuario}</td>
             </tr>
