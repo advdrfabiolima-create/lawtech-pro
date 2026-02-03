@@ -252,45 +252,47 @@ router.get('/processos/:id', authMiddleware, async (req, res) => {
  * BUSCAR PARTES DE UM PROCESSO
  * GET /api/processos/:id/partes
  */
-router.get('/processos/:id/partes', authMiddleware, async (req, res) => {
-    const { id } = req.params;
-    const escritorioId = req.user.escritorio_id;
+router.get('/processos/:processoId/partes', authMiddleware, async (req, res) => {
+  const { processoId } = req.params;
 
-    try {
-        const processoCheck = await pool.query(
-            'SELECT id FROM processos WHERE id = $1 AND escritorio_id = $2',
-            [id, escritorioId]
-        );
+  try {
+    const query = `
+      SELECT 
+        pp.*,
+        c.email as pessoa_email,
+        c.telefone as pessoa_telefone,
+        c.documento as pessoa_documento
+      FROM partes_processo pp
+      LEFT JOIN clientes c ON pp.pessoa_id = c.id
+      WHERE pp.processo_id = $1 
+      AND pp.escritorio_id = $2
+      ORDER BY 
+        pp.polo ASC,
+        pp.eh_principal DESC,
+        pp.pessoa_nome ASC
+    `;
 
-        if (processoCheck.rowCount === 0) {
-            return res.status(404).json({ erro: 'Processo não encontrado' });
-        }
+    const result = await pool.query(query, [processoId, req.user.escritorio_id]);
 
-        const result = await pool.query(
-            `SELECT 
-                pp.id,
-                pp.processo_id,
-                pp.pessoa_id,
-                pp.pessoa_nome,
-                pp.tipo_parte,
-                pp.polo,
-                pp.eh_principal
-             FROM processo_partes pp
-             WHERE pp.processo_id = $1
-             ORDER BY pp.polo, pp.eh_principal DESC, pp.id`,
-            [id]
-        );
+    const partesOrganizadas = {
+      ativo: result.rows.filter(p => p.polo === 'ativo'),
+      passivo: result.rows.filter(p => p.polo === 'passivo')
+    };
 
-        res.json(result.rows);
+    res.json({
+      ok: true,
+      partes: result.rows,
+      partesOrganizadas
+    });
 
-    } catch (err) {
-        console.error('Erro ao buscar partes:', err.message);
-        res.status(500).json({ erro: 'Erro ao buscar partes' });
-    }
+  } catch (err) {
+    console.error('Erro ao listar partes:', err.message);
+    res.status(500).json({ erro: 'Erro ao carregar partes' });
+  }
 });
 
 /**
- * ATUALIZAR PROCESSO
+ * ATUALIZAR PROCESSO (COM PARTES)
  * PUT /api/processos/:id
  */
 router.put('/processos/:id', authMiddleware, async (req, res) => {
@@ -298,21 +300,12 @@ router.put('/processos/:id', authMiddleware, async (req, res) => {
     const { esfera, tribunal, instancia, uf, partes_ativo, partes_passivo } = req.body;
     const escritorioId = req.user.escritorio_id;
 
-    console.log(`📝 Atualizando processo ${id}:`, req.body);
-
-    // Validações básicas
-    if (!esfera || !tribunal || !instancia || !uf) {
-        return res.status(400).json({ 
-          erro: 'Esfera, Tribunal, Instância e UF são obrigatórios' 
-        });
-    }
-
     const client = await pool.connect();
 
     try {
         await client.query('BEGIN');
 
-        // Atualizar dados do processo
+        // Atualizar dados básicos do processo
         await client.query(
             `UPDATE processos 
              SET esfera = $1, tribunal = $2, instancia = $3, uf = $4
@@ -535,28 +528,51 @@ router.patch('/processos/:id/desarquivar', authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * ✅ ROTA CORRIGIDA: BUSCAR PROCESSOS DE UM CLIENTE
+ * Agora busca processos onde o cliente está em QUALQUER polo (ativo OU passivo)
+ * 
+ * GET /api/por-cliente/:clienteId
+ */
 router.get('/por-cliente/:clienteId', authMiddleware, async (req, res) => {
   try {
     const { clienteId } = req.params;
 
     const query = `
-      SELECT 
-        p.id, p.numero, p.uf, p.instancia, p.esfera, p.tribunal,
-        (SELECT pessoa_nome FROM partes_processo 
-         WHERE processo_id = p.id AND polo = 'passivo' AND eh_principal = TRUE 
-         LIMIT 1) as parte_contraria
+      SELECT DISTINCT
+        p.id, 
+        p.numero, 
+        p.uf, 
+        p.instancia, 
+        p.esfera, 
+        p.tribunal,
+        -- Cliente pode estar no polo ativo OU passivo
+        pp_cliente.polo as polo_cliente,
+        pp_cliente.tipo_parte as tipo_cliente,
+        -- Exibir a parte CONTRÁRIA (se cliente for autor, exibir réu; se for réu, exibir autor)
+        CASE 
+          WHEN pp_cliente.polo = 'ativo' THEN 
+            (SELECT pessoa_nome FROM partes_processo 
+             WHERE processo_id = p.id AND polo = 'passivo' AND eh_principal = TRUE 
+             LIMIT 1)
+          ELSE 
+            (SELECT pessoa_nome FROM partes_processo 
+             WHERE processo_id = p.id AND polo = 'ativo' AND eh_principal = TRUE 
+             LIMIT 1)
+        END as parte_contraria
       FROM processos p
+      INNER JOIN partes_processo pp_cliente 
+        ON pp_cliente.processo_id = p.id 
+        AND pp_cliente.pessoa_id = $2
       WHERE p.escritorio_id = $1
-        AND EXISTS (
-          SELECT 1 FROM partes_processo pp
-          WHERE pp.processo_id = p.id
-          AND pp.polo = 'ativo'
-          AND pp.pessoa_id = $2
-        )
+        AND p.status != 'excluido'
       ORDER BY p.id DESC
     `;
 
     const result = await pool.query(query, [req.user.escritorio_id, clienteId]);
+    
+    console.log(`📋 Encontrados ${result.rowCount} processos para o cliente ${clienteId}`);
+    
     res.json(result.rows);
 
   } catch (err) {

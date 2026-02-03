@@ -1,17 +1,35 @@
 const pool = require('../config/db');
 
-// 1. Listar Clientes (Nomes de colunas alinhados com o Neon)
+// 1. Listar Clientes (CORRIGIDO: conta processos em ambos os polos)
 async function listarClientes(req, res) {
     try {
         const escritorioId = req.user.escritorio_id;
-        // Trocamos 'cpf' por 'documento' para bater com o seu banco
+        
+        // ✅ CORREÇÃO: Agora conta processos onde o cliente está em QUALQUER polo
         const query = `
-            SELECT id, nome, documento, email, telefone, cep, endereco, cidade, estado, 
-            (SELECT COUNT(*)::int FROM processos p WHERE p.cliente = c.nome AND p.escritorio_id = $1) as total_processos
+            SELECT 
+                c.id, 
+                c.nome, 
+                c.documento, 
+                c.email, 
+                c.telefone, 
+                c.cep, 
+                c.endereco, 
+                c.cidade, 
+                c.estado,
+                -- Contar processos onde este cliente está em qualquer polo (ativo OU passivo)
+                (SELECT COUNT(DISTINCT pp.processo_id)::int 
+                 FROM partes_processo pp
+                 INNER JOIN processos p ON p.id = pp.processo_id
+                 WHERE pp.pessoa_id = c.id 
+                 AND p.escritorio_id = $1
+                 AND p.status != 'excluido'
+                ) as total_processos
             FROM clientes c 
             WHERE c.escritorio_id = $1 
             ORDER BY c.nome ASC
         `;
+        
         const result = await pool.query(query, [escritorioId]);
         res.json(result.rows || []); 
     } catch (error) {

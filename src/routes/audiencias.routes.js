@@ -3,22 +3,29 @@ const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
 
-// Listar audiências com dados do processo e cliente - CORRIGIDO
+// ============================================================
+// 🔧 CORRIGIDO: Listar audiências DO ESCRITÓRIO (não só do usuário)
+// ============================================================
 router.get('/audiencias', authMiddleware, async (req, res) => {
     try {
-        console.log('🔍 [GET AUDIENCIAS] Buscando para usuario_id:', req.user.id);
+        console.log('🔍 [GET AUDIENCIAS] Buscando para escritorio_id:', req.user.escritorio_id);
         
+        // ✅ MUDANÇA: Busca por escritorio_id em vez de usuario_id
         const result = await pool.query(`
             SELECT a.*, 
                    p.numero as processo_numero, 
                    COALESCE(c.nome, p.cliente) as cliente, 
                    c.telefone, 
-                   a.ata_audiencia
+                   a.ata_audiencia,
+                   u.nome as cadastrado_por
             FROM audiencias a
             JOIN processos p ON a.processo_id = p.id
             LEFT JOIN clientes c ON p.cliente_id = c.id
-            WHERE a.usuario_id = $1
-            ORDER BY a.data_audiencia ASC`, [req.user.id]);
+            LEFT JOIN usuarios u ON a.usuario_id = u.id
+            WHERE p.escritorio_id = $1
+            ORDER BY a.data_audiencia ASC`, 
+            [req.user.escritorio_id]  // ✅ USA escritorio_id
+        );
         
         console.log('📊 [GET AUDIENCIAS] Total encontrado:', result.rows.length);
         console.log('📋 [GET AUDIENCIAS] IDs:', result.rows.map(r => r.id));
@@ -33,9 +40,10 @@ router.get('/audiencias', authMiddleware, async (req, res) => {
 router.post('/audiencias', authMiddleware, async (req, res) => {
     const { processo_id, tipo_audiencia, data_audiencia, hora_audiencia, local_virtual } = req.body;
     
-    console.log('📝 [POST AUDIENCIA] Criando:', { processo_id, tipo_audiencia, data_audiencia });
+    console.log('🔍 [POST AUDIENCIA] Criando:', { processo_id, tipo_audiencia, data_audiencia });
     
     try {
+        // ✅ Mantém usuario_id para saber quem cadastrou
         const result = await pool.query(
             `INSERT INTO audiencias (usuario_id, processo_id, tipo_audiencia, data_audiencia, hora_audiencia, local_virtual)
              VALUES ($1, $2, $3, $4, $5, $6)
@@ -51,12 +59,15 @@ router.post('/audiencias', authMiddleware, async (req, res) => {
     }
 });
 
-// Excluir audiência
+// ============================================================
+// 🔧 CORRIGIDO: Excluir audiência DO ESCRITÓRIO
+// ============================================================
 router.delete('/audiencias/:id', authMiddleware, async (req, res) => {
     const { id } = req.params;
     const escritorioId = req.user.escritorio_id;
 
     try {
+        // ✅ Verifica se a audiência pertence ao escritório do usuário
         const result = await pool.query(
             `DELETE FROM audiencias 
              WHERE id = $1 
@@ -65,53 +76,76 @@ router.delete('/audiencias/:id', authMiddleware, async (req, res) => {
         );
 
         if (result.rowCount === 0) {
-            return res.status(403).json({ erro: 'Audiência não encontrada.' });
+            return res.status(403).json({ erro: 'Audiência não encontrada ou sem permissão.' });
         }
 
+        console.log(`✅ [DELETE AUDIENCIA] ID ${id} excluída do escritório ${escritorioId}`);
         res.json({ mensagem: 'Audiência excluída!' });
     } catch (err) {
-        console.error(err);
+        console.error('❌ [DELETE AUDIENCIA]:', err);
         res.status(500).json({ erro: 'Erro ao excluir audiência' });
     }
 });
 
-// Registrar ATA
+// ============================================================
+// 🔧 CORRIGIDO: Registrar ATA (qualquer usuário do escritório)
+// ============================================================
 router.put('/audiencias/:id/ata', authMiddleware, async (req, res) => {
     const { id } = req.params;
     const { ata_audiencia } = req.body;
+    const escritorioId = req.user.escritorio_id;
     
     try {
-        await pool.query(
-            `UPDATE audiencias 
+        // ✅ Permite qualquer usuário do escritório editar a ATA
+        const result = await pool.query(
+            `UPDATE audiencias a
              SET ata_audiencia = $1, updated_at = NOW()
-             WHERE id = $2 AND usuario_id = $3`,
-            [ata_audiencia, id, req.user.id]
+             FROM processos p
+             WHERE a.id = $2 
+             AND a.processo_id = p.id 
+             AND p.escritorio_id = $3`,
+            [ata_audiencia, id, escritorioId]
         );
+        
+        if (result.rowCount === 0) {
+            return res.status(403).json({ erro: 'Audiência não encontrada.' });
+        }
+        
+        console.log(`✅ [ATA] Registrada para audiência ${id} por usuário ${req.user.id}`);
         res.json({ ok: true, mensagem: 'ATA registrada!' });
     } catch (err) {
+        console.error('❌ [ATA]:', err);
         res.status(500).json({ error: err.message });
     }
 });
 
-// Marcar como realizada
+// ============================================================
+// 🔧 CORRIGIDO: Marcar como realizada (qualquer usuário do escritório)
+// ============================================================
 router.put('/audiencias/:id/realizada', authMiddleware, async (req, res) => {
     const { id } = req.params;
+    const escritorioId = req.user.escritorio_id;
 
     try {
+        // ✅ Permite qualquer usuário do escritório marcar como realizada
         const result = await pool.query(
-            `UPDATE audiencias
+            `UPDATE audiencias a
              SET realizada = true
-             WHERE id = $1 AND usuario_id = $2`,
-            [id, req.user.id]
+             FROM processos p
+             WHERE a.id = $1 
+             AND a.processo_id = p.id 
+             AND p.escritorio_id = $2`,
+            [id, escritorioId]
         );
 
         if (result.rowCount === 0) {
             return res.status(403).json({ erro: 'Audiência não encontrada' });
         }
 
+        console.log(`✅ [REALIZADA] Audiência ${id} marcada pelo usuário ${req.user.id}`);
         res.json({ ok: true, mensagem: 'Marcada como realizada' });
     } catch (err) {
-        console.error(err);
+        console.error('❌ [REALIZADA]:', err);
         res.status(500).json({ erro: 'Erro ao atualizar' });
     }
 });

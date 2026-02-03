@@ -7,8 +7,9 @@ const planMiddleware = require('../middlewares/planMiddleware');
 
 /**
  * ============================================================
- * 📡 ROTA DE SINCRONIZAÇÃO - VERSÃO CORRIGIDA (27/01/2026)
- * ✅ Formato OAB correto: "BA-51288" (sem zeros, UF primeiro)
+ * 📡 ROTA DE SINCRONIZAÇÃO - VERSÃO CORRIGIDA COM PAGINAÇÃO
+ * ✅ Busca TODAS as publicações usando paginação
+ * ✅ Formato OAB correto: "BA-51288"
  * ============================================================
  */
 router.get('/publicacoes/fetch-all', 
@@ -34,13 +35,9 @@ router.get('/publicacoes/fetch-all',
         let monitoramento_id = escRes.rows[0].monitoramento_id;
 
         // ✅ FORMATAR OAB CORRETAMENTE
-        // Remove pontos, traços e barra
         const oabNumeros = oab ? oab.replace(/\D/g, '') : '';
-        // Remove zeros à esquerda
         const oabSemZeros = oabNumeros.replace(/^0+/, '');
         const ufFinal = uf || 'BA';
-        
-        // ✅ FORMATO CORRETO: "BA-51288" (UF primeiro, sem zeros)
         const oabFormatada = `${ufFinal}-${oabSemZeros}`;
 
         console.log(`📋 Escritório: ${advogado_responsavel}`);
@@ -53,7 +50,7 @@ router.get('/publicacoes/fetch-all',
             console.log("⚠️ Sem chave API configurada para este escritório");
             return res.json({
                 ok: false,
-                mensagem: "⚠️ Para usar sincronização automática, configure sua chave API do Escavador em:\n\nConfigurações → Integrações → Chave API do Escavador\n\nSem chave configurada, use o botão 'Adicionar Manual' para inserir publicações.",
+                mensagem: "⚠️ Para usar sincronização automática, configure sua chave API do Escavador em:\n\nConfigurações → Integrações → Chave API do Escavador",
                 sem_chave: true
             });
         }
@@ -78,16 +75,23 @@ router.get('/publicacoes/fetch-all',
 
                 console.log(`📊 Total de monitoramentos na conta: ${listRes.data.items?.length || 0}`);
 
-                // ✅ BUSCAR POR OAB FORMATADA CORRETA
                 const monitoramentoExistente = listRes.data.items?.find(m => {
-                    if (!m.termo) return false;
-                    
-                    // Tentar match com diferentes formatos
-                    const termo = m.termo.toUpperCase();
-                    return termo.includes(oabFormatada) || 
-                           termo.includes(oabSemZeros) ||
-                           termo.includes(oab);
-                });
+    if (!m.termo) return false;
+    
+    const termo = m.termo.toUpperCase().trim();
+    
+    // Adicionar pontos: "051288" → "051.288"
+    const oabComPontos = oabNumeros.replace(/^(\d{3})(\d{3})$/, '$1.$2');
+    
+    const formatosValidos = [
+        `${oabComPontos}/${ufFinal}`,         // 051.288/BA ✅
+        `${oabNumeros}/${ufFinal}`,           // 051288/BA
+        `${ufFinal}-${oabSemZeros}`,          // BA-51288
+    ];
+    
+    console.log(`   Comparando: "${termo}"`);
+    return formatosValidos.some(f => termo === f.toUpperCase());
+});
 
                 if (monitoramentoExistente) {
                     monitoramento_id = monitoramentoExistente.id;
@@ -100,15 +104,10 @@ router.get('/publicacoes/fetch-all',
                     );
                 } else {
                     console.log(`❌ Nenhum monitoramento encontrado para: ${oabFormatada}`);
-                    console.log(`   Monitoramentos disponíveis:`);
-                    listRes.data.items?.forEach((m, i) => {
-                        console.log(`   ${i+1}. ${m.termo} (ID: ${m.id})`);
-                    });
-                    
                     return res.json({
                         ok: true,
                         novas: 0,
-                        mensagem: `⚠️ Nenhum monitoramento ativo encontrado para sua OAB (${oabFormatada}).\n\nCrie um monitoramento no site do Escavador para esta OAB ou use 'Adicionar Manual'.`,
+                        mensagem: `⚠️ Nenhum monitoramento ativo encontrado para sua OAB (${oabFormatada}).\n\nCrie um monitoramento no site do Escavador.`,
                         sem_monitoramento: true,
                         oab_formatada: oabFormatada
                     });
@@ -131,23 +130,56 @@ router.get('/publicacoes/fetch-all',
             }
         }
 
-        // 3. BUSCAR PUBLICAÇÕES DO MONITORAMENTO
+        // 3. BUSCAR PUBLICAÇÕES COM PAGINAÇÃO
         console.log(`🔎 Buscando publicações do monitoramento ID: ${monitoramento_id}`);
         
         try {
-            const aparicoesRes = await axios.get(
-                `https://api.escavador.com/api/v1/monitoramentos/${monitoramento_id}/aparicoes`,
-                { 
-                    headers: authHeader,
-                    params: { limite: 100 },
-                    timeout: 20000
-                }
-            );
+            let todasPublicacoes = [];
+            let pagina = 1;
+            const itensPorPagina = 100;
+            let temMaisItens = true;
             
-            const itens = aparicoesRes.data.items || [];
-            console.log(`📊 API retornou: ${itens.length} publicações`);
+            // ✅ BUSCAR TODAS AS PÁGINAS
+            while (temMaisItens) {
+                console.log(`📄 Buscando página ${pagina}...`);
+                
+                const aparicoesRes = await axios.get(
+                    `https://api.escavador.com/api/v1/monitoramentos/${monitoramento_id}/aparicoes`,
+                    { 
+                        headers: authHeader,
+                        params: { 
+                            limite: itensPorPagina,
+                            pagina: pagina,
+                            // ✅ ADICIONAR PARÂMETROS PARA FILTRAR APENAS NOVAS
+                            ordenacao: 'data_desc', // Mais recentes primeiro
+                            periodo_inicio: '2026-01-25' // Buscar desde 25/01
+                        },
+                        timeout: 20000
+                    }
+                );
+                
+                const itens = aparicoesRes.data.items || [];
+                console.log(`   📊 Página ${pagina}: ${itens.length} publicações`);
+                
+                if (itens.length === 0) {
+                    temMaisItens = false;
+                } else {
+                    todasPublicacoes = todasPublicacoes.concat(itens);
+                    
+                    // Se retornou menos que o limite, não há mais páginas
+                    if (itens.length < itensPorPagina) {
+                        temMaisItens = false;
+                    } else {
+                        pagina++;
+                        // Aguardar 1 segundo entre requisições para não sobrecarregar
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                }
+            }
+            
+            console.log(`📊 Total de publicações encontradas: ${todasPublicacoes.length}`);
 
-            if (itens.length === 0) {
+            if (todasPublicacoes.length === 0) {
                 return res.json({ 
                     ok: true, 
                     novas: 0, 
@@ -161,10 +193,7 @@ router.get('/publicacoes/fetch-all',
 
             console.log('\n🔄 Processando publicações...');
             
-            for (const item of itens) {
-                console.log('\n📦 Processando item ID:', item.id);
-                
-                // ✅ API V1: Dados estão em estrutura diferente
+            for (const item of todasPublicacoes) {
                 const conteudoPub = item.movimentacao?.conteudo || item.conteudo || item.resumo || item.texto;
                 const numeroProcesso = item.numero_processo || 'SEM_NUMERO';
                 const dataPub = item.data_diario?.date?.split(' ')[0] || 
@@ -172,12 +201,7 @@ router.get('/publicacoes/fetch-all',
                                item.data_publicacao || 
                                new Date().toISOString().split('T')[0];
                 
-                console.log('   📋 Número processo:', numeroProcesso);
-                console.log('   📅 Data:', dataPub);
-                console.log('   📝 Tamanho conteúdo:', conteudoPub?.length || 0);
-                
                 if (!conteudoPub || conteudoPub.length < 10) {
-                    console.log('   ⏭️ IGNORADO: Conteúdo vazio ou muito curto');
                     continue;
                 }
 
@@ -193,24 +217,27 @@ router.get('/publicacoes/fetch-all',
 
                     if (result.rowCount > 0) {
                         totalNovas++;
-                        console.log(`   ✅ INSERIDO: ${numeroProcesso} (ID: ${result.rows[0].id})`);
+                        console.log(`   ✅ NOVA: ${numeroProcesso} - ${dataPub}`);
                     } else {
                         totalDuplicadas++;
                         console.log(`   ⏭️ DUPLICADO: ${numeroProcesso}`);
                     }
 
                 } catch (errInsert) {
-                    console.error(`   ❌ Erro ao inserir ${numeroProcesso}:`, errInsert.message);
+                    console.error(`❌ Erro ao inserir:`, errInsert.message);
                 }
             }
 
-            console.log(`✅ Sincronização concluída: ${totalNovas} novas, ${totalDuplicadas} duplicadas\n`);
+            console.log(`\n✅ Sincronização concluída: ${totalNovas} novas, ${totalDuplicadas} duplicadas`);
 
-            res.json({ 
-                ok: true, 
-                novas: totalNovas, 
+            res.json({
+                ok: true,
+                novas: totalNovas,
                 duplicadas: totalDuplicadas,
-                total_processadas: itens.length
+                mensagem: totalNovas > 0 
+                    ? `✅ ${totalNovas} novas publicações importadas!` 
+                    : 'Nenhuma publicação nova. Todas já estavam no sistema.',
+                total_processadas: todasPublicacoes.length
             });
 
         } catch (errAparicoes) {
@@ -278,7 +305,6 @@ router.get('/publicacoes-pendentes', authMiddleware, async (req, res) => {
 /**
  * ============================================================
  * ⚡ CONVERTER PUBLICAÇÃO EM PRAZO
- * ✅ CORRIGIDO: Busca cliente_id do processo existente
  * ============================================================
  */
 router.post('/converter-publicacao', authMiddleware, async (req, res) => {
@@ -301,7 +327,6 @@ router.post('/converter-publicacao', authMiddleware, async (req, res) => {
         let processoId = null;
         let clienteId = null;
         
-        // ✅ BUSCAR PROCESSO EXISTENTE E SEU CLIENTE
         const processoExistente = await pool.query(
             'SELECT id, cliente_id FROM processos WHERE numero = $1 AND escritorio_id = $2',
             [pub.numero_processo, escritorioId]
@@ -310,9 +335,7 @@ router.post('/converter-publicacao', authMiddleware, async (req, res) => {
         if (processoExistente.rowCount > 0) {
             processoId = processoExistente.rows[0].id;
             clienteId = processoExistente.rows[0].cliente_id;
-            console.log(`✅ Processo existente encontrado: ${pub.numero_processo} (cliente_id: ${clienteId})`);
         } else {
-            // ✅ CRIAR PROCESSO SEM CLIENTE (será preenchido depois)
             const novoProcesso = await pool.query(
                 `INSERT INTO processos (numero, escritorio_id, usuario_id, status) 
                  VALUES ($1, $2, $3, 'ativo') 
@@ -320,10 +343,8 @@ router.post('/converter-publicacao', authMiddleware, async (req, res) => {
                 [pub.numero_processo, escritorioId, usuarioId]
             );
             processoId = novoProcesso.rows[0].id;
-            console.log(`📁 Processo criado automaticamente: ${pub.numero_processo} (SEM CLIENTE - precisa editar)`);
         }
 
-        // ✅ CRIAR PRAZO COM CLIENTE_ID SE DISPONÍVEL
         const prazoRes = await pool.query(
             `INSERT INTO prazos 
              (tipo, processo_id, cliente_id, descricao, data_limite, status, escritorio_id, usuario_id, deletado, created_at) 
@@ -332,7 +353,7 @@ router.post('/converter-publicacao', authMiddleware, async (req, res) => {
             [
                 tipo,
                 processoId,
-                clienteId, // ✅ AGORA VINCULA O CLIENTE
+                clienteId,
                 `Processo: ${pub.numero_processo} | Prazo: ${dias} dias úteis | Gerado de publicação DJEN em ${pub.data_publicacao}`,
                 dataCalculada,
                 escritorioId,
@@ -345,20 +366,14 @@ router.post('/converter-publicacao', authMiddleware, async (req, res) => {
             [id_publicacao]
         );
 
-        console.log(`✅ Prazo criado: ${tipo} - Processo ${pub.numero_processo} - Vencimento: ${dataCalculada} - Cliente: ${clienteId || 'NÃO VINCULADO'}`);
-
         res.json({ 
             ok: true, 
-            mensagem: clienteId 
-                ? 'Prazo criado com sucesso e vinculado ao cliente!' 
-                : 'Prazo criado! ⚠️ Processo sem cliente - edite o prazo para vincular.',
-            prazo: prazoRes.rows[0],
-            processo_sem_cliente: !clienteId
+            mensagem: 'Prazo criado com sucesso!',
+            prazo: prazoRes.rows[0]
         });
 
     } catch (err) {
         console.error('❌ Erro ao converter publicação:', err.message);
-        console.error('Stack:', err.stack);
         res.status(500).json({ erro: 'Erro ao criar prazo', detalhes: err.message });
     }
 });

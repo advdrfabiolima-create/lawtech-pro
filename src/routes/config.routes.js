@@ -57,27 +57,86 @@ router.put('/escritorio', authMiddleware, async (req, res) => {
         await pool.query(query, values);
 
         // 🚀 3. GATILHO DO RADAR ESCAVADOR (ESCALA AUTOMÁTICA)
-        if (oabApenasNumeros) {
-            const termoFormatado = `${oabApenasNumeros}-${ufFinal}`;
-            console.log(`📡 [ESCALA] Registrando OAB no Escavador: ${termoFormatado}`);
+if (oabApenasNumeros) {
+    // ✅ FORMATO CORRETO: UF-número (sem zeros à esquerda)
+    const oabSemZeros = oabApenasNumeros.replace(/^0+/, '');
+    const termoFormatado = `${ufFinal}-${oabSemZeros}`;
+    
+    console.log(`📡 [ESCALA] Registrando OAB no Escavador: ${termoFormatado}`);
 
-            // Envia para o Escavador em segundo plano (não trava o usuário)
-            axios.post(`https://api.escavador.com/api/v1/monitoramentos`, {
-                tipo: "termo",
-                termo: termoFormatado,
-                frequencia: "diaria",
-                origens_ids: [1, 8, 140] // DJEN e tribunais base
-            }, {
-                headers: { 
-                    'Authorization': `Bearer ${process.env.ESCAVADOR_API_KEY}`,
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            }).then(() => {
-                console.log(`✅ [ESCALA] Sucesso: ${termoFormatado} agora está sendo monitorada.`);
-            }).catch(err => {
-                console.log(`ℹ️ [ESCALA] Aviso: ${termoFormatado} já possui registro ou aguarda saldo.`);
-            });
-        }
+    // Verificar se escritório tem chave API própria
+    const verificarChave = await pool.query(
+        'SELECT escavador_api_key FROM escritorios WHERE id = $1',
+        [escritorioId]
+    );
+    
+    const chaveApi = verificarChave.rows[0]?.escavador_api_key;
+    
+    // Se não tem chave própria, pula criação de monitoramento
+    if (!chaveApi || chaveApi.trim() === '') {
+        console.log(`⚠️ [ESCALA] Escritório ${escritorioId} sem chave API própria.`);
+    } else {
+        // Envia para o Escavador com a chave do cliente
+        axios.post(`https://api.escavador.com/api/v1/monitoramentos`, {
+            tipo: "termo",
+            termo: termoFormatado,
+            frequencia: "diaria",
+            origens_ids: [1, 8, 140]
+        }, {
+            headers: { 
+                'Authorization': `Bearer ${chaveApi.trim()}`,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json'
+            },
+            timeout: 15000
+        }).then(async (response) => {
+            const monitoramentoId = response.data.id;
+            console.log(`✅ [ESCALA] Sucesso: ${termoFormatado} - ID: ${monitoramentoId}`);
+            
+            // Salvar ID no banco
+            try {
+                await pool.query(
+                    'UPDATE escritorios SET monitoramento_id = $1 WHERE id = $2',
+                    [monitoramentoId, escritorioId]
+                );
+                console.log(`   ✅ ID salvo no banco`);
+            } catch (errDb) {
+                console.error(`   ❌ Erro ao salvar ID:`, errDb.message);
+            }
+        }).catch(err => {
+            if (err.response?.status === 409) {
+                console.log(`ℹ️ [ESCALA] Monitoramento ${termoFormatado} já existe`);
+                
+                // Buscar ID do existente
+                axios.get('https://api.escavador.com/api/v1/monitoramentos', {
+                    headers: { 
+                        'Authorization': `Bearer ${chaveApi.trim()}`,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(async (listRes) => {
+                    const monExistente = listRes.data.items?.find(m => 
+                        m.termo && m.termo.toUpperCase() === termoFormatado.toUpperCase()
+                    );
+                    
+                    if (monExistente) {
+                        console.log(`   ✅ Encontrado: ID ${monExistente.id}`);
+                        try {
+                            await pool.query(
+                                'UPDATE escritorios SET monitoramento_id = $1 WHERE id = $2',
+                                [monExistente.id, escritorioId]
+                            );
+                            console.log(`   ✅ ID salvo no banco`);
+                        } catch (errDb) {
+                            console.error(`   ❌ Erro:`, errDb.message);
+                        }
+                    }
+                }).catch(() => {});
+            } else {
+                console.log(`⚠️ [ESCALA] Erro: ${err.message}`);
+            }
+        });
+    }
+}
 
         res.json({ ok: true, mensagem: 'Configurações salvas e Radar DJEN ativado para sua OAB!' });
 
