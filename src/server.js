@@ -168,6 +168,8 @@ const { iniciarAgendamentos } = require('./cron/prazosCron');
 // ✅ Cron de cobranças automáticas após trial
 require('./cron/cobrancasTrial');
 
+require('./cron/djen_scraper_cron');
+
 async function iniciarSistema() {
     try {
         console.log("⏳ Conectando ao Neon e validando acesso master...");

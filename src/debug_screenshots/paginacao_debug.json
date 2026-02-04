@@ -1,0 +1,131 @@
+{
+  "encontrou": false,
+  "clicou": false,
+  "metodo": "",
+  "todosOsBotoes": [
+    {
+      "texto": "",
+      "ariaLabel": null,
+      "className": "",
+      "disabled": false,
+      "outerHTML": "<button _ngcontent-dpb-c167=\"\" style=\"display: none;\"></button>"
+    },
+    {
+      "texto": "",
+      "ariaLabel": null,
+      "className": "mat-focus-indicator btn-attach mat-icon-button mat-button-base mat-primary",
+      "disabled": false,
+      "outerHTML": "<button _ngcontent-dpb-c169=\"\" tabindex=\"-1\" mat-icon-button=\"\" color=\"primary\" class=\"mat-focus-indicator btn-attach mat-icon-button mat-button-base mat-primary\"><span class=\"mat-button-wrapper\"><mat"
+    },
+    {
+      "texto": "",
+      "ariaLabel": "Abri menu de navegação",
+      "className": "mat-focus-indicator mat-tooltip-trigger btn-hamburger hamburger--slider mat-flat-button mat-button-base mat-primary",
+      "disabled": false,
+      "outerHTML": "<button _ngcontent-dpb-c168=\"\" tabindex=\"1\" mat-flat-button=\"\" color=\"primary\" type=\"button\" aria-label=\"Abri menu de navegação\" aria-controls=\"navigation\" mattooltip=\"Abrir menu de navegação\" class=\""
+    },
+    {
+      "texto": "",
+      "ariaLabel": "Acessibilidade",
+      "className": "mat-focus-indicator mat-tooltip-trigger mat-menu-trigger mat-icon-button mat-button-base mat-primary",
+      "disabled": false,
+      "outerHTML": "<button _ngcontent-dpb-c177=\"\" aria-haspopup=\"true\" mat-icon-button=\"\" color=\"primary\" mattooltip=\"Acessibilidade\" aria-label=\"Acessibilidade\" tabindex=\"5\" class=\"mat-focus-indicator mat-tooltip-trigg"
+    },
+    {
+      "texto": "",
+      "ariaLabel": null,
+      "className": "mat-focus-indicator nav-mobile is-mobile mat-fab mat-button-base mat-accent",
+      "disabled": false,
+      "outerHTML": "<button _ngcontent-dpb-c167=\"\" mat-fab=\"\" class=\"mat-focus-indicator nav-mobile is-mobile mat-fab mat-button-base mat-accent\"><span class=\"mat-button-wrapper\"><mat-icon _ngcontent-dpb-c167=\"\" role=\"im"
+    },
+    {
+      "texto": "ui-btn",
+      "ariaLabel": null,
+      "className": "ui-button-secondary flat mobile-filtro ui-button ui-widget ui-state-default ui-corner-all ui-button-text-empty",
+      "disabled": false,
+      "outerHTML": "<button _ngcontent-dpb-c227=\"\" pbutton=\"\" type=\"button mobile-filtro\" class=\"ui-button-secondary flat mobile-filtro ui-button ui-widget ui-state-default ui-corner-all ui-button-text-empty\"><i _ngconte"
+    },
+    {
+      "texto": "",
+      "ariaLabel": "Open calendar",
+      "className": "mat-focus-indicator mat-icon-button mat-button-base",
+      "disabled": false,
+      "outerHTML": "<button mat-icon-button=\"\" type=\"button\" class=\"mat-focus-indicator mat-icon-button mat-button-base\" aria-haspopup=\"dialog\" aria-label=\"Open calendar\" tabindex=\"0\"><span class=\"mat-button-wrapper\"><sv"
+    },
+    {
+      "texto": "",
+      "ariaLabel": "Open calendar",
+      "className": "mat-focus-indicator mat-icon-button mat-button-base",
+      "disabled": false,
+      "outerHTML": "<button mat-icon-button=\"\" type=\"button\" class=\"mat-focus-indicator mat-icon-button mat-button-base\" aria-haspopup=\"dialog\" aria-label=\"Open calendar\" tabindex=\"0\"><span class=\"mat-button-wrapper\"><sv"
+    },
+    {
+      "texto": "Voltar",
+      "ariaLabel": null,
+      "className": "ui-button-secondary flat ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only",
+      "disabled": false,
+      "outerHTML": "<button _ngcontent-dpb-c227=\"\" pbutton=\"\" type=\"button\" label=\"Voltar\" class=\"ui-button-secondary flat ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only\" tabindex=\"0\"><span class="
+    },
+    {
+      "texto": "Limpar Filtros",
+      "ariaLabel": null,
+      "className": "ui-button-secondary flat ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only",
+      "disabled": false,
+      "outerHTML": "<button _ngcontent-dpb-c227=\"\" pbutton=\"\" type=\"button\" label=\"Limpar Filtros\" class=\"ui-button-secondary flat ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only\"><span class=\"ui-b"
+    },
+    {
+      "texto": "Pesquisar",
+      "ariaLabel": null,
+      "className": "ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only",
+      "disabled": false,
+      "outerHTML": "<button _ngcontent-dpb-c227=\"\" pbutton=\"\" type=\"button\" label=\"Pesquisar\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only\"><span class=\"ui-button-text ui-clickable\">Pesqu"
+    },
+    {
+      "texto": "NOV. DE 2026",
+      "ariaLabel": "Choose month and year",
+      "className": "mat-focus-indicator mat-calendar-period-button mat-button mat-button-base",
+      "disabled": false,
+      "outerHTML": "<button mat-button=\"\" type=\"button\" cdkarialive=\"polite\" class=\"mat-focus-indicator mat-calendar-period-button mat-button mat-button-base\" aria-label=\"Choose month and year\" aria-describedby=\"mat-cale"
+    },
+    {
+      "texto": "",
+      "ariaLabel": "Previous month",
+      "className": "mat-focus-indicator mat-calendar-previous-button mat-icon-button mat-button-base",
+      "disabled": false,
+      "outerHTML": "<button mat-icon-button=\"\" type=\"button\" class=\"mat-focus-indicator mat-calendar-previous-button mat-icon-button mat-button-base\" aria-label=\"Previous month\"><span class=\"mat-button-wrapper\"></span><s"
+    },
+    {
+      "texto": "",
+      "ariaLabel": "Next month",
+      "className": "mat-focus-indicator mat-calendar-next-button mat-icon-button mat-button-base",
+      "disabled": false,
+      "outerHTML": "<button mat-icon-button=\"\" type=\"button\" class=\"mat-focus-indicator mat-calendar-next-button mat-icon-button mat-button-base\" aria-label=\"Next month\"><span class=\"mat-button-wrapper\"></span><span matr"
+    },
+    {
+      "texto": "Close calendar",
+      "ariaLabel": null,
+      "className": "mat-focus-indicator mat-datepicker-close-button ng-tns-c212-16 mat-raised-button mat-button-base cdk-visually-hidden mat-primary",
+      "disabled": false,
+      "outerHTML": "<button type=\"button\" mat-raised-button=\"\" class=\"mat-focus-indicator mat-datepicker-close-button ng-tns-c212-16 mat-raised-button mat-button-base cdk-visually-hidden mat-primary\"><span class=\"mat-but"
+    }
+  ],
+  "elementosPaginacao": [
+    {
+      "className": "mat-ripple mat-tab-header-pagination mat-tab-header-pagination-before mat-elevation-z4 mat-tab-header-pagination-disabled",
+      "outerHTML": "<div aria-hidden=\"true\" mat-ripple=\"\" class=\"mat-ripple mat-tab-header-pagination mat-tab-header-pagination-before mat-elevation-z4 mat-tab-header-pagination-disabled\"><div class=\"mat-tab-header-pagination-chevron\"></div></div>"
+    },
+    {
+      "className": "mat-tab-header-pagination-chevron",
+      "outerHTML": "<div class=\"mat-tab-header-pagination-chevron\"></div>"
+    },
+    {
+      "className": "mat-ripple mat-tab-header-pagination mat-tab-header-pagination-after mat-elevation-z4 mat-tab-header-pagination-disabled",
+      "outerHTML": "<div aria-hidden=\"true\" mat-ripple=\"\" class=\"mat-ripple mat-tab-header-pagination mat-tab-header-pagination-after mat-elevation-z4 mat-tab-header-pagination-disabled\"><div class=\"mat-tab-header-pagination-chevron\"></div></div>"
+    },
+    {
+      "className": "mat-tab-header-pagination-chevron",
+      "outerHTML": "<div class=\"mat-tab-header-pagination-chevron\"></div>"
+    }
+  ],
+  "htmlPaginacao": ""
+}

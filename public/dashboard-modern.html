@@ -1675,7 +1675,7 @@ async function inicializarDashboard() {
             const uEmail = document.getElementById('userEmail');
             if (uEmail) uEmail.innerText = user.email;
 
-            if (user.data_criacao) iniciarCronometroTrial(user.data_criacao);
+            if (user.escritorio_data_criacao) iniciarCronometroTrial(user.escritorio_data_criacao);
 
             if (user.perfilCompleto === false) {
                 const modalW = document.getElementById('modalWelcome');

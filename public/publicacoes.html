@@ -58,6 +58,18 @@
             --claude-accent: #ca8a4c;
         }
 
+        /* Animação de loading */
+        @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+        }
+
+        /* Botão durante loading */
+        button:disabled {
+        cursor: wait !important;
+        opacity: 0.7;
+        }
+
         /* Reset LawTech Pro */
         * { box-sizing: border-box; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
         body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; }
@@ -353,6 +365,46 @@ input, textarea, select {
     font-variant: normal !important;
     color: #cbd5e1;
 }
+
+/* Spinner animado */
+.spinner-border {
+    width: 80px;
+    height: 80px;
+    border: 6px solid #e5e7eb;
+    border-top: 6px solid var(--accent-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Barra de progresso animada */
+.progress-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-blue-light));
+    border-radius: 4px;
+    animation: progress 3s ease-in-out infinite;
+}
+
+@keyframes progress {
+    0% { width: 0%; }
+    50% { width: 70%; }
+    100% { width: 100%; }
+}
+
+/* Modal fade in */
+.modal {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
     </style>
 </head>
 <body>
@@ -397,7 +449,7 @@ input, textarea, select {
     <header class="header">
         <div>
             <h2 style="font-size: 18px; font-weight: 600;">📰 Publicações DJEN</h2>
-            <p style="color: var(--muted); font-size: 12px; font-weight: 500;">Radar automático via API Escavador</p>
+            <p style="color: var(--muted); font-size: 12px; font-weight: 500;">Intimações eletrônicas do Comunica PJe</p>
         </div>
         
         <div style="display:flex; gap:20px; align-items:center;">
@@ -422,44 +474,150 @@ input, textarea, select {
     </header>
 
     <div class="content">
-        <div class="info-box">
-            <strong>ℹ️ Como funciona:</strong>
-            Configure sua chave API do Escavador em "Configurações" para sincronização automática, 
-            ou adicione publicações manualmente clicando no botão verde acima.
+        <!-- ℹ️ Sincronização Automática -->
+        <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 4px solid var(--accent-blue); padding: 16px 20px; border-radius: 12px; margin-bottom: 24px;">
+            <div style="display: flex; align-items: start; gap: 12px;">
+                <i data-lucide="info" style="width: 20px; height: 20px; color: var(--accent-blue); flex-shrink: 0; margin-top: 2px;"></i>
+                <div>
+                    <p style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px; font-size: 14px;">📡 Sincronização Automática</p>
+                    <p style="color: var(--text-secondary); font-size: 13px; line-height: 1.6;">
+                        O sistema busca automaticamente intimações no <strong>Comunica PJe</strong> usando sua OAB cadastrada. Clique em "Sincronizar DJEN" para buscar novas intimações.
+                    </p>
+                </div>
+            </div>
         </div>
+
+        <!-- 📅 Filtro de Datas -->
+        <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;">
+                        📅 Data Inicial
+                    </label>
+                    <input 
+                        type="date" 
+                        id="dataInicio" 
+                        style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-medium); border-radius: 8px; font-size: 14px;"
+                    >
+                </div>
+                
+                <div style="flex: 1; min-width: 200px;">
+                    <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;">
+                        📅 Data Final
+                    </label>
+                    <input 
+                        type="date" 
+                        id="dataFim" 
+                        style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-medium); border-radius: 8px; font-size: 14px;"
+                    >
+                </div>
+                
+                <div style="display: flex; gap: 8px; align-items: flex-end;">
+                    <button 
+                        onclick="filtrarPorData()" 
+                        style="padding: 10px 20px; background: var(--accent-blue); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; height: 42px;">
+                        <i data-lucide="filter" style="width: 16px; height: 16px;"></i>
+                        Filtrar
+                    </button>
+                    
+                    <button 
+                        onclick="limparFiltro()" 
+                        style="padding: 10px 20px; background: var(--text-tertiary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; height: 42px;">
+                        <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+                        Limpar
+                    </button>
+                </div>
+            </div>
+            
+            <div id="infoFiltro" style="margin-top: 12px; font-size: 13px; color: var(--text-secondary); display: none;">
+                <!-- Info do filtro aparece aqui -->
+            </div>
+        </div>
+
+        <!-- Lista de Publicações -->
         <div id="publicacoes-container"></div>
+    </div>
+
+    <!-- MODAL PERÍODO DE SINCRONIZAÇÃO -->
+<div id="modalPeriodo" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-header">
+            <h3>📅 Selecionar Data da Publicação</h3>
+            <button class="modal-close" onclick="fecharModalPeriodo()">×</button>
+        </div>
+        
+        <div style="padding: 20px;">
+            <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">
+                Escolha a <strong>data específica</strong> da publicação que deseja buscar:
+            </p>
+            
+            <div class="form-group">
+                <label>📅 Data da Publicação</label>
+                <input 
+                    type="date" 
+                    id="dataBusca" 
+                    class="form-input"
+                    style="width: 100%;"
+                >
+            </div>
+            
+            <div style="background: #fef3c7; border: 1px solid #fbbf24; padding: 12px; border-radius: 8px; margin: 16px 0;">
+                <p style="font-size: 13px; color: #78350f; margin: 0;">
+                    ⚠️ <strong>Importante:</strong> Busque uma data por vez para melhor desempenho do sistema.
+                </p>
+            </div>
+            
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px;">
+                <button 
+                    type="button" 
+                    class="btn" 
+                    style="background: var(--text-tertiary);" 
+                    onclick="fecharModalPeriodo()">
+                    Cancelar
+                </button>
+                <button 
+                    type="button" 
+                    class="btn" 
+                    style="background: var(--accent-blue);" 
+                    onclick="confirmarData()">
+                    <i data-lucide="search" style="width: 14px; height: 14px;"></i>
+                    Buscar Intimações
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- MODAL ADICIONAR MANUAL -->
-<div id="modalManual" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>➕ Adicionar Publicação Manual</h3>
-            <button class="modal-close" onclick="fecharModalManual()">×</button>
+    <!-- MODAL ADICIONAR MANUAL -->
+    <div id="modalManual" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>➕ Adicionar Publicação Manual</h3>
+                <button class="modal-close" onclick="fecharModalManual()">×</button>
+            </div>
+            <form onsubmit="salvarPublicacaoManual(event)">
+                <div class="form-group">
+                    <label>Número do Processo *</label>
+                    <input type="text" id="manualProcesso" class="form-input" placeholder="0000000-00.0000.0.00.0000" required>
+                </div>
+                <div class="form-group">
+                    <label>Conteúdo da Publicação *</label>
+                    <textarea id="manualConteudo" class="form-textarea" placeholder="Cole aqui o texto completo da publicação..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Data da Publicação *</label>
+                    <input type="date" id="manualData" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label>Tribunal</label>
+                    <input type="text" id="manualTribunal" class="form-input" value="DJEN" placeholder="Ex: DJEN, DJE, DJBA">
+                </div>
+                <div style="display:flex; gap:12px; justify-content: flex-end;">
+                    <button type="button" class="btn" style="background:var(--muted);" onclick="fecharModalManual()">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Salvar Publicação</button>
+                </div>
+            </form>
         </div>
-        <form onsubmit="salvarPublicacaoManual(event)">
-            <div class="form-group">
-                <label>Número do Processo *</label>
-                <input type="text" id="manualProcesso" class="form-input" placeholder="0000000-00.0000.0.00.0000" required>
-            </div>
-            <div class="form-group">
-                <label>Conteúdo da Publicação *</label>
-                <textarea id="manualConteudo" class="form-textarea" placeholder="Cole aqui o texto completo da publicação..." required></textarea>
-            </div>
-            <div class="form-group">
-                <label>Data da Publicação *</label>
-                <input type="date" id="manualData" class="form-input" required>
-            </div>
-            <div class="form-group">
-                <label>Tribunal</label>
-                <input type="text" id="manualTribunal" class="form-input" value="DJEN" placeholder="Ex: DJEN, DJE, DJBA">
-            </div>
-            <div style="display:flex; gap:12px; justify-content: flex-end;">
-                <button type="button" class="btn" style="background:var(--muted);" onclick="fecharModalManual()">Cancelar</button>
-                <button type="submit" class="btn btn-success">Salvar Publicação</button>
-            </div>
-        </form>
     </div>
 </div>
 
@@ -501,54 +659,64 @@ input, textarea, select {
         }
     }
 
-    async function carregarPublicacoes() {
-        const container = document.getElementById('publicacoes-container');
-        container.innerHTML = '<p style="text-align:center;padding:40px;color:var(--muted);">Carregando publicações...</p>';
+ async function carregarPublicacoes() {
+    const container = document.getElementById('publicacoes-container');
+    container.innerHTML = '<p style="text-align:center;padding:40px;color:var(--muted);">Carregando publicações...</p>';
 
-        try {
-            const res = await fetch('/api/publicacoes-pendentes', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const dados = await res.json();
+    try {
+        const res = await fetch('/api/publicacoes-pendentes', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const dados = await res.json();
 
-            if (!dados || dados.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align:center; padding:60px;">
-                        <i data-lucide="inbox" style="width:64px; height:64px; color:var(--muted); margin-bottom:16px;"></i>
-                        <p style="color:var(--muted); font-size:16px; font-weight:500;">Nenhuma publicação pendente</p>
-                        <p style="color:var(--muted); font-size:13px; margin-top:8px;">Clique em "Sincronizar DJEN" ou "Adicionar Manual"</p>
-                    </div>
-                `;
-                if (window.lucide) lucide.createIcons();
-                return;
-            }
-
-            container.innerHTML = dados.map(pub => `
-                <div class="card-pub" id="card-${pub.id}">
-                    <div class="pub-header">
-                        <span class="processo-tag">${pub.numero_processo}</span>
-                        <span class="data-tag">📅 ${new Date(pub.data_publicacao).toLocaleDateString('pt-BR')}</span>
-                    </div>
-                    <div class="texto-corpo">${pub.conteudo}</div>
-                    <div class="btn-group">
-                        <button class="btn" onclick="gerarPrazo(${pub.id}, '${pub.numero_processo}')">
-                            <i data-lucide="zap" style="width:14px;"></i> Gerar Prazo Útil
-                        </button>
-                        <button class="btn btn-ia" onclick="analisarComIA(${pub.id}, '${pub.numero_processo}', this)">
-                            <i data-lucide="sparkles" style="width:14px;"></i> Analisar com IA Claude
-                        </button>
-                    </div>
-                    <div id="analise-${pub.id}" class="analise-ia-box"></div>
+        if (!dados || dados.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:60px;">
+                    <i data-lucide="inbox" style="width:64px; height:64px; color:var(--muted); margin-bottom:16px;"></i>
+                    <p style="color:var(--muted); font-size:16px; font-weight:500;">Nenhuma publicação pendente</p>
+                    <p style="color:var(--muted); font-size:13px; margin-top:8px;">Clique em "Sincronizar DJEN" ou "Adicionar Manual"</p>
                 </div>
-            `).join('');
-
+            `;
             if (window.lucide) lucide.createIcons();
-
-        } catch (err) {
-            console.error("Erro ao carregar:", err);
-            container.innerHTML = `<p style="text-align:center; color:red; padding:20px;">❌ Erro ao carregar. Tente atualizar.</p>`;
+            return;
         }
+
+        container.innerHTML = dados.map(pub => `
+            <div class="card-pub" id="card-${pub.id}" data-pub-date="${pub.data_publicacao}">
+                <div class="pub-header">
+                    <span class="processo-tag">${pub.numero_processo}</span>
+                    <span class="data-tag pub-date">📅 ${new Date(pub.data_publicacao).toLocaleDateString('pt-BR')}</span>
+                </div>
+                <div class="texto-corpo">${pub.conteudo}</div>
+                <div class="btn-group">
+                    <button class="btn" onclick="gerarPrazo(${pub.id}, '${pub.numero_processo}')">
+                        <i data-lucide="zap" style="width:14px;"></i> Gerar Prazo Útil
+                    </button>
+                    <button class="btn btn-ia" onclick="analisarComIA(${pub.id}, '${pub.numero_processo}', this)">
+                        <i data-lucide="sparkles" style="width:14px;"></i> Analisar com IA LawTech Pro
+                    </button>
+                    <button class="btn" style="background: var(--danger);" onclick="excluirPublicacao(${pub.id})">
+                        <i data-lucide="trash-2" style="width:14px;"></i> Excluir
+                    </button>
+                </div>
+                <div id="analise-${pub.id}" class="analise-ia-box"></div>
+            </div>
+        `).join('');
+
+        if (window.lucide) lucide.createIcons();
+
+        // ✅ REAPLICAR FILTRO SE ESTIVER ATIVO
+        if (typeof filtroAtivo !== 'undefined' && filtroAtivo) {
+            setTimeout(() => {
+                filtrarPorData();
+            }, 100);
+        }
+
+    } catch (err) {
+        console.error("Erro ao carregar:", err);
+        container.innerHTML = `<p style="text-align:center; color:red; padding:20px;">❌ Erro ao carregar. Tente atualizar.</p>`;
     }
+}
 
     // 🚀 NOVA FUNÇÃO: ANALISAR COM IA
     async function analisarComIA(idPub, numeroProcesso, btnElement) {
@@ -559,14 +727,14 @@ input, textarea, select {
         // Verificar se já tem análise aberta
         if (analiseBox.classList.contains('ativa')) {
             analiseBox.classList.remove('ativa');
-            btnElement.innerHTML = '<i data-lucide="sparkles" style="width:14px;"></i> Analisar com IA Claude';
+            btnElement.innerHTML = '<i data-lucide="sparkles" style="width:14px;"></i> Analisar com IA LawTech Pro';
             if (window.lucide) lucide.createIcons();
             return;
         }
 
         // Verificar plano Premium
         if (planoAtual !== 'premium') {
-            alert('🔒 A análise com IA Claude é exclusiva do plano Premium.\n\nFaça upgrade em "Gestão de Planos".');
+            alert('🔒 A análise com IA LawTech Pro é exclusiva do plano Premium.\n\nFaça upgrade em "Gestão de Planos".');
             return;
         }
 
@@ -580,7 +748,7 @@ input, textarea, select {
                 <div class="dot-flashing"></div>
                 <div class="dot-flashing"></div>
                 <div class="dot-flashing"></div>
-                <p style="margin-top: 12px; font-size: 13px; color: var(--muted);">Claude está analisando a publicação...</p>
+                <p style="margin-top: 12px; font-size: 13px; color: var(--muted);">IA LawTech Pro está analisando a publicação...</p>
             </div>
         `;
         analiseBox.classList.add('ativa');
@@ -615,7 +783,7 @@ Responda de forma objetiva e técnica.`;
                 analiseBox.innerHTML = `
                     <div class="analise-ia-header">
                         <i data-lucide="sparkles" style="width:18px; height:18px;"></i>
-                        Análise Técnica - Claude Haiku
+                        Análise Técnica - LawTech Pro IA
                     </div>
                     <div class="analise-ia-content">
                         ${analiseHTML}
@@ -731,48 +899,143 @@ Responda de forma objetiva e técnica.`;
         return modal;
     }
 
-    // ✅ FUNÇÃO DE SINCRONIZAÇÃO CORRIGIDA
-    async function sincronizarEscavadorManual() {
-        if (!confirm("Deseja buscar publicações via API? (Requer configuração de chave API)")) return;
+    // Abrir modal de período
+function abrirModalPeriodo() {
+    // Definir data padrão (hoje)
+    const hoje = new Date();
+    document.getElementById('dataBusca').value = hoje.toISOString().split('T')[0];
+    
+    // Mostrar modal
+    document.getElementById('modalPeriodo').style.display = 'flex';
+}
 
-        const btn = document.getElementById('btnSincronizar');
-        const icon = document.getElementById('iconSync');
-        if (!btn || !icon) return;
+// Fechar modal
+function fecharModalPeriodo() {
+    document.getElementById('modalPeriodo').style.display = 'none';
+}
 
-        btn.disabled = true;
-        icon.classList.add('lucide-spin');
+// Confirmar data e buscar
+async function confirmarData() {
+    const dataBusca = document.getElementById('dataBusca').value;
+    
+    if (!dataBusca) {
+        alert('⚠️ Por favor, selecione uma data');
+        return;
+    }
+    
+    // Fechar modal
+    fecharModalPeriodo();
+    
+    // Buscar com mesma data início e fim
+    await sincronizarComPeriodo(dataBusca, dataBusca);
+}
+
+// Sincronização com período
+async function sincronizarComPeriodo(dataInicio, dataFim) {
+    const btn = document.getElementById('btnSincronizar');
+    const textoOriginal = btn.innerHTML;
+    
+    // Loading
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" style="animation: spin 1s linear infinite;"></i> Buscando intimações...';
+    btn.style.opacity = '0.7';
+    
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+    
+    try {
+        const res = await fetch(`/api/publicacoes/sincronizar?dataInicio=${dataInicio}&dataFim=${dataFim}`, {
+            headers: { 
+                'Authorization': 'Bearer ' + localStorage.getItem('token') 
+            }
+        });
         
-        try {
-            const res = await fetch('/api/publicacoes/fetch-all', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            
-            const data = await res.json();
-
-            // ✅ Interceptar erro 402 (Plano não permite)
-            if (res.status === 402) {
-                const mensagem = data.message || 'A sincronização automática do DJEN está disponível apenas no plano Premium. Faça upgrade para acessar.';
-                exibirAvisoUpgrade(mensagem);
-                return;
-            }
-            
-            if (data.ok) {
-                if (data.plano_gratuito) {
-                    alert("ℹ️ " + data.mensagem);
-                } else {
-                    alert(`✅ Sincronização concluída! ${data.novas || 0} novas publicações`);
-                    await carregarPublicacoes();
-                }
+        const data = await res.json();
+        
+        console.log('Resposta:', data);
+        
+        if (data.ok) {
+            if (data.novas > 0) {
+                alert(`✅ ${data.novas} novas intimações encontradas!`);
+                await carregarPublicacoes();
+            } else if (data.total > 0) {
+                alert(`ℹ️ ${data.total} intimações encontradas (já cadastradas)`);
             } else {
-                alert("⚠️ " + (data.mensagem || 'Nenhuma publicação encontrada'));
+                alert(`ℹ️ Nenhuma intimação encontrada em ${dataInicio.split('-').reverse().join('/')}`);
             }
-        } catch (err) { 
-            console.error('Erro:', err);
-            alert("❌ Erro de conexão"); 
-        } finally {
-            btn.disabled = false;
-            icon.classList.remove('lucide-spin');
+        } else {
+            alert('⚠️ ' + (data.erro || data.mensagem || 'Erro ao sincronizar'));
         }
+        
+    } catch (err) { 
+        console.error('Erro:', err);
+        alert('❌ Erro de conexão: ' + err.message);
+    }
+    
+    // Restaurar botão
+    btn.disabled = false;
+    btn.innerHTML = textoOriginal;
+    btn.style.opacity = '1';
+    
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+// Função do botão sincronizar
+async function sincronizarEscavadorManual() {
+    abrirModalPeriodo();
+}
+
+    // ========================================
+// ADICIONE ESTE CÓDIGO ANTES DA FUNÇÃO sincronizarEscavadorManual()
+// Por volta da linha 745
+// ========================================
+
+    // ✅ FUNÇÃO DE NOTIFICAÇÃO
+     function mostrarNotificacao(mensagem, tipo = 'info') {
+        // Remover notificação anterior (se existir)
+        const notifAnterior = document.querySelector('.notificacao-toast');
+        if (notifAnterior) {
+            notifAnterior.remove();
+        }
+        
+        // Cores por tipo
+        const cores = {
+            success: '#4caf50',
+            error: '#f44336',
+            warning: '#ff9800',
+            info: '#2196f3'
+        };
+        
+        // Criar elemento
+        const notif = document.createElement('div');
+        notif.className = 'notificacao-toast';
+        notif.textContent = mensagem;
+        notif.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            background: ${cores[tipo] || cores.info};
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 99999;
+            font-size: 14px;
+            font-weight: 500;
+            max-width: 400px;
+            animation: slideInRight 0.3s ease;
+        `;
+        
+        document.body.appendChild(notif);
+        
+        // Remover após 5s
+        setTimeout(() => {
+            notif.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => notif.remove(), 300);
+        }, 5000);
     }
     function adicionarDiasUteis(dataInicial, dias) {
         let data = new Date(dataInicial);
@@ -847,6 +1110,304 @@ Responda de forma objetiva e técnica.`;
         localStorage.removeItem('token');
         window.location.href = '/login.html';
     }
+
+    async function excluirPublicacao(idPub) {
+        if (!confirm('Tem certeza que deseja excluir esta publicação?')) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/publicacoes/${idPub}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (res.ok) {
+                alert('✅ Publicação excluída com sucesso!');
+                carregarPublicacoes();
+            } else {
+                const erro = await res.json();
+                alert('❌ ' + (erro.erro || 'Erro ao excluir publicação'));
+            }
+        } catch (err) {
+            console.error("Erro ao excluir:", err);
+            alert('❌ Erro de conexão');
+        }
+    }
+
+    // Variáveis globais para controle do filtro
+let publicacoesOriginal = []; // Guardar lista original
+let filtroAtivo = false;
+
+// Função para filtrar por data
+function filtrarPorData() {
+    const dataInicio = document.getElementById('dataInicio').value;
+    const dataFim = document.getElementById('dataFim').value;
+    
+    if (!dataInicio || !dataFim) {
+        alert('⚠️ Por favor, preencha ambas as datas');
+        return;
+    }
+    
+    // Converter para objetos Date
+    const inicio = new Date(dataInicio);
+    const fim = new Date(dataFim);
+    
+    if (inicio > fim) {
+        alert('⚠️ A data inicial não pode ser maior que a final');
+        return;
+    }
+    
+    // ✅ CORREÇÃO: ID correto
+    const container = document.getElementById('publicacoes-container');
+    
+    if (!container) {
+        console.error('❌ Container não encontrado');
+        alert('❌ Erro: Container de publicações não encontrado');
+        return;
+    }
+    
+    const cards = container.querySelectorAll('.card-pub');
+    let visiveis = 0;
+    
+    console.log(`🔍 Filtrando ${cards.length} publicações...`);
+    console.log(`📅 Período: ${dataInicio} a ${dataFim}`);
+    
+    cards.forEach(card => {
+        // Pegar data do card
+        let dataTexto = card.querySelector('.pub-date')?.textContent?.trim();
+        
+        if (!dataTexto) {
+            // Tentar atributo data-pub-date
+            const dataPub = card.getAttribute('data-pub-date');
+            if (dataPub) {
+                const d = new Date(dataPub);
+                dataTexto = d.toLocaleDateString('pt-BR');
+            }
+        }
+        
+        if (dataTexto) {
+            // Remover emoji
+            dataTexto = dataTexto.replace(/📅/g, '').trim();
+            
+            // Converter data do card (formato: "04/02/2026")
+            const partes = dataTexto.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+            
+            if (partes) {
+                const dataCard = new Date(`${partes[3]}-${partes[2]}-${partes[1]}`);
+                
+                // Verificar se está no intervalo
+                if (dataCard >= inicio && dataCard <= fim) {
+                    card.style.display = 'block';
+                    visiveis++;
+                    console.log(`✅ Visível: ${partes[0]}`);
+                } else {
+                    card.style.display = 'none';
+                    console.log(`❌ Oculto: ${partes[0]}`);
+                }
+            } else {
+                console.warn('⚠️ Data não reconhecida:', dataTexto);
+                // Mostrar por padrão se não conseguir parsear
+                card.style.display = 'block';
+            }
+        } else {
+            console.warn('⚠️ Data não encontrada no card');
+            // Mostrar por padrão
+            card.style.display = 'block';
+        }
+    });
+    
+    // Mostrar info do filtro
+    const infoFiltro = document.getElementById('infoFiltro');
+    if (infoFiltro) {
+        infoFiltro.style.display = 'block';
+        infoFiltro.innerHTML = `
+            <i data-lucide="info" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></i>
+            Exibindo <strong>${visiveis}</strong> intimações de <strong>${dataInicio.split('-').reverse().join('/')}</strong> até <strong>${dataFim.split('-').reverse().join('/')}</strong>
+        `;
+        
+        // Recriar ícones
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+    
+    console.log(`✅ Filtro aplicado: ${visiveis} de ${cards.length} visíveis`);
+    
+    filtroAtivo = true;
+}
+
+// FUNÇÃO LIMPAR FILTRO (corrigida)
+function limparFiltro() {
+    // Limpar campos
+    document.getElementById('dataInicio').value = '';
+    document.getElementById('dataFim').value = '';
+    
+    // ✅ CORREÇÃO: ID correto
+    const container = document.getElementById('publicacoes-container');
+    
+    if (!container) {
+        console.error('❌ Container não encontrado');
+        return;
+    }
+    
+    const cards = container.querySelectorAll('.card-pub');
+    
+    cards.forEach(card => {
+        card.style.display = 'block';
+    });
+    
+    // Esconder info
+    const infoFiltro = document.getElementById('infoFiltro');
+    if (infoFiltro) {
+        infoFiltro.style.display = 'none';
+    }
+    
+    console.log('🧹 Filtro limpo - todas as publicações visíveis');
+    
+    filtroAtivo = false;
+}
+
+// FUNÇÃO PARA DEFINIR PERÍODO PADRÃO (opcional - adicionar)
+function setPeriodoPadrao() {
+    const hoje = new Date();
+    const trintaDiasAtras = new Date();
+    trintaDiasAtras.setDate(hoje.getDate() - 30);
+    
+    document.getElementById('dataFim').value = hoje.toISOString().split('T')[0];
+    document.getElementById('dataInicio').value = trintaDiasAtras.toISOString().split('T')[0];
+    
+    console.log('📅 Período padrão definido: últimos 30 dias');
+}
+
+// Definir período padrão ao carregar
+window.addEventListener('DOMContentLoaded', () => {
+    setPeriodoPadrao();
+});
+
+const loadingTexts = [
+    'Acessando Comunica PJe...',
+    'Processando abas...',
+    'Extraindo intimações...',
+    'Quase lá...'
+];
+
+let loadingTextIndex = 0;
+let loadingInterval = null;
+
+// Mostrar loading
+function mostrarLoading() {
+    const modal = document.getElementById('modalLoading');
+    modal.style.display = 'flex';
+    
+    // Alternar textos
+    loadingTextIndex = 0;
+    loadingInterval = setInterval(() => {
+        loadingTextIndex = (loadingTextIndex + 1) % loadingTexts.length;
+        const textEl = document.getElementById('loadingText');
+        if (textEl) {
+            textEl.textContent = loadingTexts[loadingTextIndex];
+        }
+    }, 2000); // Muda a cada 2s
+}
+
+// Esconder loading
+function esconderLoading() {
+    const modal = document.getElementById('modalLoading');
+    modal.style.display = 'none';
+    
+    // Parar alternância de textos
+    if (loadingInterval) {
+        clearInterval(loadingInterval);
+        loadingInterval = null;
+    }
+}
+
+// MODIFICAR função sincronizarComPeriodo existente
+async function sincronizarComPeriodo(dataInicio, dataFim) {
+    const btn = document.getElementById('btnSincronizar');
+    const textoOriginal = btn.innerHTML;
+    
+    // ✅ MOSTRAR LOADING ANIMADO
+    mostrarLoading();
+    
+    // Desabilitar botão
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    
+    try {
+        const res = await fetch(`/api/publicacoes/sincronizar?dataInicio=${dataInicio}&dataFim=${dataFim}`, {
+            headers: { 
+                'Authorization': 'Bearer ' + localStorage.getItem('token') 
+            }
+        });
+        
+        const data = await res.json();
+        
+        console.log('Resposta:', data);
+        
+        // ✅ ESCONDER LOADING
+        esconderLoading();
+        
+        if (data.ok) {
+            if (data.novas > 0) {
+                alert(`✅ ${data.novas} novas intimações encontradas!`);
+                await carregarPublicacoes();
+            } else if (data.total > 0) {
+                alert(`ℹ️ ${data.total} intimações encontradas (já cadastradas)`);
+            } else {
+                alert(`ℹ️ Nenhuma intimação encontrada em ${dataInicio.split('-').reverse().join('/')}`);
+            }
+        } else {
+            alert('⚠️ ' + (data.erro || data.mensagem || 'Erro ao sincronizar'));
+        }
+        
+    } catch (err) { 
+        console.error('Erro:', err);
+        
+        // ✅ ESCONDER LOADING EM CASO DE ERRO
+        esconderLoading();
+        
+        alert('❌ Erro de conexão: ' + err.message);
+    } finally {
+        // Restaurar botão
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    }
+}
 </script>
+
+<!-- MODAL LOADING -->
+<div id="modalLoading" class="modal" style="display: none; background: rgba(0,0,0,0.8);">
+    <div style="background: white; padding: 40px; border-radius: 16px; text-align: center; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        
+        <!-- Spinner animado -->
+        <div style="margin: 0 auto 24px; width: 80px; height: 80px; position: relative;">
+            <div class="spinner-border"></div>
+        </div>
+        
+        <!-- Texto -->
+        <h3 style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">
+            🔍 Buscando Intimações
+        </h3>
+        
+        <p id="loadingText" style="color: var(--text-secondary); font-size: 14px; margin-bottom: 8px;">
+            Acessando Comunica PJe...
+        </p>
+        
+        <p style="color: var(--text-tertiary); font-size: 13px;">
+            Isso pode levar alguns segundos
+        </p>
+        
+        <!-- Barra de progresso -->
+        <div style="width: 100%; height: 4px; background: #e5e7eb; border-radius: 4px; margin-top: 20px; overflow: hidden;">
+            <div class="progress-bar"></div>
+        </div>
+        
+    </div>
+</div>
 </body>
 </html>

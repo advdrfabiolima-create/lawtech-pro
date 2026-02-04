@@ -1,0 +1,196 @@
+{
+  "botoes": [
+    {
+      "indice": 2,
+      "texto": "",
+      "ariaLabel": "Abri menu de navegação",
+      "className": "mat-focus-indicator mat-tooltip-trigger btn-hamburger hamburger--slider mat-flat-button mat-button-b",
+      "disabled": false,
+      "ariaDisabled": null,
+      "parentClass": "mat-toolbar mat-toolbar-single-row",
+      "temSvg": false
+    },
+    {
+      "indice": 3,
+      "texto": "",
+      "ariaLabel": "Acessibilidade",
+      "className": "mat-focus-indicator mat-tooltip-trigger mat-menu-trigger mat-icon-button mat-button-base mat-primary",
+      "disabled": false,
+      "ariaDisabled": null,
+      "parentClass": "",
+      "temSvg": false
+    },
+    {
+      "indice": 5,
+      "texto": "ui-btn",
+      "ariaLabel": "",
+      "className": "ui-button-secondary flat mobile-filtro ui-button ui-widget ui-state-default ui-corner-all ui-button-",
+      "disabled": false,
+      "ariaDisabled": null,
+      "parentClass": "col-md-3",
+      "temSvg": false
+    },
+    {
+      "indice": 6,
+      "texto": "",
+      "ariaLabel": "Open calendar",
+      "className": "mat-focus-indicator mat-icon-button mat-button-base",
+      "disabled": false,
+      "ariaDisabled": null,
+      "parentClass": "mat-datepicker-toggle ng-tns-c22-2",
+      "temSvg": true
+    },
+    {
+      "indice": 7,
+      "texto": "",
+      "ariaLabel": "Open calendar",
+      "className": "mat-focus-indicator mat-icon-button mat-button-base",
+      "disabled": false,
+      "ariaDisabled": null,
+      "parentClass": "mat-datepicker-toggle ng-tns-c22-3",
+      "temSvg": true
+    },
+    {
+      "indice": 8,
+      "texto": "Voltar",
+      "ariaLabel": "",
+      "className": "ui-button-secondary flat ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only",
+      "disabled": false,
+      "ariaDisabled": null,
+      "parentClass": "ui-g-4 m-b",
+      "temSvg": false
+    },
+    {
+      "indice": 9,
+      "texto": "Limpar Filtros",
+      "ariaLabel": "",
+      "className": "ui-button-secondary flat ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only",
+      "disabled": false,
+      "ariaDisabled": null,
+      "parentClass": "ui-g-4 m-b",
+      "temSvg": false
+    },
+    {
+      "indice": 10,
+      "texto": "Pesquisar",
+      "ariaLabel": "",
+      "className": "ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only",
+      "disabled": false,
+      "ariaDisabled": null,
+      "parentClass": "ui-g-4 m-b",
+      "temSvg": false
+    }
+  ],
+  "containers": [
+    {
+      "seletor": "[class*=\"pagination\"]",
+      "indice": 0,
+      "className": "mat-ripple mat-tab-header-pagination mat-tab-header-pagination-before mat-elevation-z4 mat-tab-heade",
+      "html": "<div class=\"mat-tab-header-pagination-chevron\"></div>",
+      "botoesInternos": 0
+    },
+    {
+      "seletor": "[class*=\"pagination\"]",
+      "indice": 1,
+      "className": "mat-tab-header-pagination-chevron",
+      "html": "",
+      "botoesInternos": 0
+    },
+    {
+      "seletor": "[class*=\"pagination\"]",
+      "indice": 2,
+      "className": "mat-ripple mat-tab-header-pagination mat-tab-header-pagination-after mat-elevation-z4 mat-tab-header",
+      "html": "<div class=\"mat-tab-header-pagination-chevron\"></div>",
+      "botoesInternos": 0
+    },
+    {
+      "seletor": "[class*=\"pagination\"]",
+      "indice": 3,
+      "className": "mat-tab-header-pagination-chevron",
+      "html": "",
+      "botoesInternos": 0
+    }
+  ],
+  "navegacao": [
+    {
+      "tipo": "a",
+      "texto": "1",
+      "className": "ui-paginator-page ui-paginator-element ui-state-default ui-corner-all ui-state-active ng-star-insert",
+      "ariaLabel": "",
+      "ariaCurrent": "",
+      "parentClass": "ui-paginator-pages"
+    },
+    {
+      "tipo": "a",
+      "texto": "2",
+      "className": "ui-paginator-page ui-paginator-element ui-state-default ui-corner-all ng-star-inserted",
+      "ariaLabel": "",
+      "ariaCurrent": "",
+      "parentClass": "ui-paginator-pages"
+    },
+    {
+      "tipo": "a",
+      "texto": "3",
+      "className": "ui-paginator-page ui-paginator-element ui-state-default ui-corner-all ng-star-inserted",
+      "ariaLabel": "",
+      "ariaCurrent": "",
+      "parentClass": "ui-paginator-pages"
+    },
+    {
+      "tipo": "a",
+      "texto": "4",
+      "className": "ui-paginator-page ui-paginator-element ui-state-default ui-corner-all ng-star-inserted",
+      "ariaLabel": "",
+      "ariaCurrent": "",
+      "parentClass": "ui-paginator-pages"
+    },
+    {
+      "tipo": "a",
+      "texto": "5",
+      "className": "ui-paginator-page ui-paginator-element ui-state-default ui-corner-all ng-star-inserted",
+      "ariaLabel": "",
+      "ariaCurrent": "",
+      "parentClass": "ui-paginator-pages"
+    },
+    {
+      "tipo": "div",
+      "texto": "5",
+      "className": "ng-tns-c222-9 ui-dropdown ui-widget ui-state-default ui-corner-all",
+      "ariaLabel": "",
+      "ariaCurrent": "",
+      "parentClass": "ng-tns-c222-9 ui-inputwrapper-filled ng-untouched ng-pristine ng-valid ng-star-inserted"
+    },
+    {
+      "tipo": "div",
+      "texto": "5",
+      "className": "ui-dropdown-label-container ng-tns-c222-9",
+      "ariaLabel": "",
+      "ariaCurrent": "",
+      "parentClass": "ng-tns-c222-9 ui-dropdown ui-widget ui-state-default ui-corner-all"
+    },
+    {
+      "tipo": "span",
+      "texto": "5",
+      "className": "ng-tns-c222-9 ui-dropdown-label ui-inputtext ui-corner-all ng-star-inserted",
+      "ariaLabel": "",
+      "ariaCurrent": "",
+      "parentClass": "ui-dropdown-label-container ng-tns-c222-9"
+    },
+    {
+      "tipo": "a",
+      "texto": "1",
+      "className": "num ng-star-inserted",
+      "ariaLabel": "",
+      "ariaCurrent": "",
+      "parentClass": "mat-tab-label-content"
+    },
+    {
+      "tipo": "a",
+      "texto": "4",
+      "className": "num ng-star-inserted",
+      "ariaLabel": "",
+      "ariaCurrent": "",
+      "parentClass": "mat-tab-label-content"
+    }
+  ]
+}

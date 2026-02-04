@@ -611,82 +611,19 @@ input, textarea, select {
         </button>        
     </div>
    
-<!-- Integrações com APIs Externas -->
-<div class="card" style="border-top: 4px solid #8b5cf6;">
-    <div class="card-title">
-        <i data-lucide="plug"></i> Integrações com APIs Externas
-    </div>
 
-    <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-        <strong style="color: #0c4a6e; font-size: 14px; display: block; margin-bottom: 8px;">
-            💡 Como funciona?
-        </strong>
-        <p style="font-size: 13px; color: #0369a1; line-height: 1.6; margin: 0;">
-            <strong>Sem chave API:</strong> Você adiciona publicações manualmente copiando do DJEN oficial.<br>
-            <strong>Com chave API:</strong> O sistema busca automaticamente as publicações para você (monitoramento 24/7).
-        </p>
-    </div>
-
-    <!-- Escavador API -->
-    <div style="margin-bottom: 32px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <img src="https://www.escavador.com/assets/images/logo-escavador.png" 
-                 alt="Escavador" 
-                 style="height: 24px; object-fit: contain;"
-                 onerror="this.style.display='none'">
-            <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main);">
-                Escavador - Monitoramento DJEN
-            </h4>
-            <span id="badgeEscavador" style="font-size: 10px; padding: 4px 8px; border-radius: 4px; font-weight: 700; background: #fee2e2; color: #991b1b;">
-                DESATIVADO
-            </span>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 16px;">
-            <label>Chave API do Escavador (Opcional)</label>
-            <input type="password" 
-                   id="escavadorApiKey" 
-                   class="form-input" 
-                   placeholder="Deixe vazio para usar inserção manual"
-                   style="font-family: monospace;">
-            <small style="font-size: 11px; color: var(--muted); display: block; margin-top: 6px;">
-                ⚠️ Esta chave será usada com <strong>SUA conta do Escavador</strong>. Você gerencia seus próprios créditos.
-            </small>
-        </div>
-
-        <div style="display: flex; gap: 12px;">
-            <button class="btn-save" style="flex: 1;" onclick="salvarChaveEscavador()">
-                💾 Salvar Chave
-            </button>
-            <button class="btn-save" 
-                    style="flex: 1; background: #10b981;" 
-                    onclick="testarChaveEscavador()"
-                    id="btnTestarEscavador">
-                🔍 Testar Conexão
-            </button>
-        </div>
-
-        <div id="resultadoTesteEscavador" style="margin-top: 16px; display: none;"></div>
-    </div>
-
-    <!-- Informações Adicionais -->
-    <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 16px;">
-        <div style="display: flex; align-items: start; gap: 12px;">
-            <span style="font-size: 20px;">📚</span>
-            <div>
-                <strong style="color: #78350f; font-size: 13px; display: block; margin-bottom: 6px;">
-                    Como obter minha chave API do Escavador?
-                </strong>
-                <ol style="font-size: 12px; color: #92400e; line-height: 1.7; margin: 0; padding-left: 20px;">
-                    <li>Acesse <a href="https://www.escavador.com" target="_blank" style="color: #2563eb; font-weight: 600;">www.escavador.com</a></li>
-                    <li>Faça login na sua conta</li>
-                    <li>Vá em "Configurações" → "API"</li>
-                    <li>Gere uma nova chave e cole aqui</li>
-                </ol>
-            </div>
-        </div>
-    </div>
+<!-- INFORMAÇÃO SYNC -->
+<div class="info-box" style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0;">
+    <h4 style="margin: 0 0 10px 0; color: #1976d2;">
+        📡 Sincronização Automática
+    </h4>
+    <p style="margin: 0;">
+        O sistema busca automaticamente intimações no <strong>Comunica PJe</strong> 
+        usando sua OAB cadastrada. Basta clicar em <strong>"Sincronizar DJEN"</strong> 
+        na página de Publicações.
+    </p>
 </div>
+
 
  <div style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid var(--border); padding: 32px; border-radius: 16px; margin-top: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
     
