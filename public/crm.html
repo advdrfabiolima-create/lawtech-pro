@@ -259,6 +259,17 @@ input, textarea, select {
     font-variant: normal !important;
     color: #cbd5e1;
 }
+
+@keyframes pulse-badge {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.9;
+    }
+}
     </style>
 </head>
 <body>
@@ -280,7 +291,7 @@ input, textarea, select {
             </a>
             <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
             <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
-            <a href="/crm-page" class="active btn-crm-gold-nav">
+            <a href="/crm-page" id="nav-crm-button" class="active btn-crm-gold-nav" style="position: relative;">
                 <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
             </a>
         </nav>
@@ -441,7 +452,8 @@ input, textarea, select {
 
         let leadSelecionadoId = null;
         let quantidadeLeadsAnterior = 0;
-        const somNotificacao = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        const somNotificacao = new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3');
+        somNotificacao.volume = 0.25; // ✅ 25% do volume
 
         // 🏢 Variáveis globais para dados do escritório
         let nomeEscritorio = 'nosso escritório';
@@ -524,6 +536,7 @@ input, textarea, select {
                 document.getElementById('count-triagem').innerText = metricas.reuniao || 0;
                 document.getElementById('count-proposta').innerText = metricas.proposta || 0;
                 document.getElementById('count-ganho').innerText = metricas.ganho || 0;
+                atualizarBadgeCRM(metricas.leads || 0);
 
                 document.querySelectorAll('[id^="container-"]').forEach(c => c.innerHTML = '');
 
@@ -858,6 +871,42 @@ async function excluirLead() {
 
             setInterval(carregarLeads, 30000);
         };
+
+        function atualizarBadgeCRM(quantidade) {
+    const btnCRM = document.getElementById('nav-crm-button');
+    if (!btnCRM) return;
+
+    // Remove badge antiga se existir
+    const badgeAntiga = document.getElementById('badge-crm-alerta');
+    if (badgeAntiga) badgeAntiga.remove();
+
+    if (quantidade > 0) {
+        const badge = document.createElement('span');
+        badge.id = 'badge-crm-alerta';
+        badge.innerText = quantidade;
+        // Estilo da bolinha vermelha
+        badge.style = `
+    position: absolute;
+    top: 6px;
+    right: 12px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4),
+                0 0 0 2px #111827,
+                0 0 0 3px rgba(239, 68, 68, 0.3);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 7px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    animation: pulse-badge 2s ease-in-out infinite;
+`;
+        btnCRM.appendChild(badge);
+    }
+}
 
         // Função para sair do sistema
         function logout() {

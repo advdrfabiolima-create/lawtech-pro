@@ -774,9 +774,23 @@ async function inicializarPagina() {
                         const dataFormatada = a.data_audiencia ? new Date(a.data_audiencia).toLocaleDateString('pt-BR') : '---';
                         const horaFormatada = a.hora_audiencia ? a.hora_audiencia.slice(0,5) : '--:--';
                         
+                        
                         // Verifica se já tem ATA registrada
                         const temATA = a.ata_audiencia && a.ata_audiencia.trim() !== '';
-                        const ataEscaped = temATA ? a.ata_audiencia.replace(/'/g, "\\'") : '';
+                        
+                        // Cria um ID único para armazenar os dados da audiência
+                        const uniqueId = 'ata_' + a.id;
+                        
+                        // Armazena os dados no window para acesso posterior
+                        if (temATA) {
+                            window[uniqueId] = {
+                                id: a.id,
+                                processo: a.processo_numero,
+                                cliente: a.cliente,
+                                data: dataFormatada,
+                                ata: a.ata_audiencia
+                            };
+                        }
                         
                         return `
                         <tr style="background: #f8fafc;">
@@ -795,7 +809,7 @@ async function inicializarPagina() {
                             <td style="font-size:12px; color:var(--muted); max-width:200px; overflow:hidden; text-overflow:ellipsis;">${a.local_virtual || a.local || '-'}</td>
                             <td style="text-align: center;">
                                 ${temATA ? `
-                                    <button onclick="visualizarATA(${a.id}, '${a.processo_numero}', '${a.cliente}', '${dataFormatada}', '${ataEscaped}')" style="background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700;">
+                                    <button onclick="visualizarATASafe(window.${uniqueId})" style="background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700;">
                                         <i class="lucide lucide-eye" style="width:14px; vertical-align:middle;"></i> Ver ATA
                                     </button>
                                 ` : `
@@ -807,6 +821,7 @@ async function inicializarPagina() {
                         </tr>`;
                     }).join('');
                 }
+
 
                 if (window.lucide) lucide.createIcons();
             } catch (err) { 
@@ -934,6 +949,17 @@ function avisarZap(cliente, processo, tipo, data, hora, local, telefone) {
             }
         }
 
+
+        // ✅ NOVA FUNÇÃO SEGURA para visualizar ATA
+        function visualizarATASafe(dados) {
+            document.getElementById('ataAudienciaId').value = dados.id;
+            document.getElementById('ataProcesso').innerText = dados.processo;
+            document.getElementById('ataCliente').innerText = dados.cliente;
+            document.getElementById('ataData').innerText = dados.data;
+            document.getElementById('ataTexto').value = dados.ata || '';
+            document.getElementById('modalATA').style.display = 'flex';
+        }
+
         // Abrir modal para registrar ATA
         function abrirModalATA(id, processo, cliente, data) {
             document.getElementById('ataAudienciaId').value = id;
@@ -949,7 +975,7 @@ function avisarZap(cliente, processo, tipo, data, hora, local, telefone) {
             document.getElementById('modalATA').style.display = 'none';
         }
 
-        // Visualizar ATA existente
+        // Visualizar ATA existente (função antiga mantida para compatibilidade)
         function visualizarATA(id, processo, cliente, data, ata) {
             document.getElementById('ataAudienciaId').value = id;
             document.getElementById('ataProcesso').innerText = processo;
@@ -991,6 +1017,7 @@ function avisarZap(cliente, processo, tipo, data, hora, local, telefone) {
         };
 
         function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
+        
         // 🚀 INICIALIZAÇÃO COM GARANTIA DUPLA
         document.addEventListener('DOMContentLoaded', () => {
             console.log('📄 DOM carregado');
@@ -1005,127 +1032,73 @@ function avisarZap(cliente, processo, tipo, data, hora, local, telefone) {
         };
 
         function toggleUserMenu() {
-    const m = document.getElementById('userDropdown');
-    if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
-}
-
-window.addEventListener('click', (e) => {
-    if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
-        const m = document.getElementById('userDropdown');
-        if(m) m.style.display = 'none';
-    }
-});
-
-// Abrir modal para registrar ATA
-function abrirModalATA(id, processo, cliente, data) {
-    document.getElementById('ataAudienciaId').value = id;
-    document.getElementById('ataProcesso').innerText = processo;
-    document.getElementById('ataCliente').innerText = cliente;
-    document.getElementById('ataData').innerText = data;
-    document.getElementById('ataTexto').value = '';
-    document.getElementById('modalATA').style.display = 'flex';
-}
-
-// Fechar modal ATA
-function fecharModalATA() {
-    document.getElementById('modalATA').style.display = 'none';
-}
-
-// Visualizar ATA existente
-function visualizarATA(id, processo, cliente, data, ata) {
-    document.getElementById('ataAudienciaId').value = id;
-    document.getElementById('ataProcesso').innerText = processo;
-    document.getElementById('ataCliente').innerText = cliente;
-    document.getElementById('ataData').innerText = data;
-    document.getElementById('ataTexto').value = ata;
-    document.getElementById('modalATA').style.display = 'flex';
-}
-
-// Salvar ATA
-document.getElementById('formATA').onsubmit = async (e) => {
-    e.preventDefault();
-    const id = document.getElementById('ataAudienciaId').value;
-    const ata = document.getElementById('ataTexto').value;
-    
-    try {
-        const response = await fetch(`/api/audiencias/${id}/ata`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ ata_audiencia: ata })
-        });
-        
-        if (response.ok) {
-            alert('✅ ATA registrada com sucesso!');
-            fecharModalATA();
-            await carregarAudiencias();
-        } else {
-            alert('❌ Erro ao salvar ATA');
+            const m = document.getElementById('userDropdown');
+            if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
         }
-    } catch (err) {
-        console.error('Erro:', err);
-        alert('❌ Erro ao comunicar com servidor');
-    }
-};
 
-// Trocar entre abas
-function trocarAba(aba) {
-    const abaFuturas = document.getElementById('abaFuturas');
-    const abaRealizadas = document.getElementById('abaRealizadas');
-    const tabelaFuturas = document.getElementById('tabelaFuturas');
-    const tabelaRealizadas = document.getElementById('tabelaRealizadas');
-
-    if (aba === 'futuras') {
-        // Ativar aba futuras
-        abaFuturas.style.background = 'var(--primary)';
-        abaFuturas.style.color = 'white';
-        abaFuturas.style.borderBottom = '3px solid var(--primary)';
-        
-        abaRealizadas.style.background = 'transparent';
-        abaRealizadas.style.color = 'var(--muted)';
-        abaRealizadas.style.borderBottom = '3px solid transparent';
-        
-        tabelaFuturas.style.display = 'block';
-        tabelaRealizadas.style.display = 'none';
-    } else {
-        // Ativar aba realizadas
-        abaRealizadas.style.background = 'var(--primary)';
-        abaRealizadas.style.color = 'white';
-        abaRealizadas.style.borderBottom = '3px solid var(--primary)';
-        
-        abaFuturas.style.background = 'transparent';
-        abaFuturas.style.color = 'var(--muted)';
-        abaFuturas.style.borderBottom = '3px solid transparent';
-        
-        tabelaFuturas.style.display = 'none';
-        tabelaRealizadas.style.display = 'block';
-    }
-}
-
-async function marcarComoRealizada(id) {
-    if (!confirm('Confirmar que a audiência foi realizada?')) return;
-
-    try {
-        const res = await fetch(`/api/audiencias/${id}/realizada`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`
+        window.addEventListener('click', (e) => {
+            if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
+                const m = document.getElementById('userDropdown');
+                if(m) m.style.display = 'none';
             }
         });
 
-        if (res.ok) {
-            await carregarAudiencias();
-            trocarAba('realizadas');
-        } else {
-            alert('Erro ao marcar audiência como realizada');
+        // Trocar entre abas
+        function trocarAba(aba) {
+            const abaFuturas = document.getElementById('abaFuturas');
+            const abaRealizadas = document.getElementById('abaRealizadas');
+            const tabelaFuturas = document.getElementById('tabelaFuturas');
+            const tabelaRealizadas = document.getElementById('tabelaRealizadas');
+
+            if (aba === 'futuras') {
+                // Ativar aba futuras
+                abaFuturas.style.background = 'var(--primary)';
+                abaFuturas.style.color = 'white';
+                abaFuturas.style.borderBottom = '3px solid var(--primary)';
+                
+                abaRealizadas.style.background = 'transparent';
+                abaRealizadas.style.color = 'var(--muted)';
+                abaRealizadas.style.borderBottom = '3px solid transparent';
+                
+                tabelaFuturas.style.display = 'block';
+                tabelaRealizadas.style.display = 'none';
+            } else {
+                // Ativar aba realizadas
+                abaRealizadas.style.background = 'var(--primary)';
+                abaRealizadas.style.color = 'white';
+                abaRealizadas.style.borderBottom = '3px solid var(--primary)';
+                
+                abaFuturas.style.background = 'transparent';
+                abaFuturas.style.color = 'var(--muted)';
+                abaFuturas.style.borderBottom = '3px solid transparent';
+                
+                tabelaFuturas.style.display = 'none';
+                tabelaRealizadas.style.display = 'block';
+            }
         }
-    } catch (err) {
-        console.error(err);
-        alert('Erro de comunicação com servidor');
-    }
-}
+
+        async function marcarComoRealizada(id) {
+            if (!confirm('Confirmar que a audiência foi realizada?')) return;
+
+            try {
+                const res = await fetch(`/api/audiencias/${id}/realizada`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (res.ok) {
+                    await carregarAudiencias();
+                    trocarAba('realizadas');
+                } else {
+                    alert('Erro ao marcar audiência como realizada');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Erro de comunicação com servidor');
+            }
+        }
 
     </script>
 </body>

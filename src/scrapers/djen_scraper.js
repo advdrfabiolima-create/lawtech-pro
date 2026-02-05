@@ -1,19 +1,78 @@
 /**
- * 🎯 SCRAPER COMUNICA PJE - VERSÃO FINAL CORRIGIDA
+ * 🎯 SCRAPER COMUNICA PJE - VERSÃO UNIVERSAL
  * 
- * ✅ Extração de conteúdo SEPARADO (não mistura intimações)
- * ✅ Período padrão: 90 dias
- * ✅ Sem paginação (impossível com Angular)
- * ✅ Remove duplicatas
+ * ✅ Windows (desenvolvimento)
+ * ✅ Linux (servidor local)
+ * ✅ Render.com (produção)
  */
 
-const puppeteer = require('puppeteer');
 const pool = require('../config/db');
 const path = require('path');
 const fs = require('fs');
 
+// ✅ DETECÇÃO AUTOMÁTICA DE AMBIENTE - CORRIGIDA
+const isRender = process.env.RENDER === 'true';
+const isProduction = process.env.NODE_ENV === 'production';
+const isWindows = process.platform === 'win32';
+
+// ✅ Usar puppeteer-core APENAS no Render, não em produção local
+const shouldUseChromium = isRender && !isWindows;
+
+let puppeteer;
+let chromium = null;
+
+// Carregar dependências corretas baseado no ambiente
+if (shouldUseChromium) {
+    // PRODUÇÃO NO RENDER (Linux serverless)
+    try {
+        puppeteer = require('puppeteer-core');
+        chromium = require('@sparticuz/chromium');
+        console.log('✅ Modo RENDER: puppeteer-core + @sparticuz/chromium');
+    } catch (err) {
+        console.warn('⚠️ Fallback para puppeteer padrão');
+        puppeteer = require('puppeteer');
+        chromium = null;
+    }
+} else {
+    // DESENVOLVIMENTO ou PRODUÇÃO LOCAL (Windows/Linux com Chrome instalado)
+    puppeteer = require('puppeteer');
+    console.log(`✅ Modo ${isWindows ? 'DESENVOLVIMENTO WINDOWS' : 'LOCAL'}: puppeteer`);
+}
+
+async function getBrowserConfig() {
+    // ✅ Usar chromium APENAS se estiver no Render
+    if (shouldUseChromium && chromium) {
+        console.log('   🚀 Usando Chromium serverless (Render)');
+        return {
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+            executablePath: await chromium.executablePath(),
+            headless: chromium.headless,
+            ignoreHTTPSErrors: true
+        };
+    } else {
+        // Local - Deixar Puppeteer encontrar Chrome automaticamente
+        console.log('   🖥️ Usando Chrome/Chromium local');
+        return {
+            headless: 'new',
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--disable-gpu'
+            ]
+            // ✅ NÃO definir executablePath - deixa Puppeteer achar sozinho
+        };
+    }
+}
+
 async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, dataFim = null) {
     console.log(`\n🎯 [COMUNICA PJE] Iniciando busca...`);
+    console.log(`   🌍 Ambiente: ${isRender ? 'RENDER' : isWindows ? 'WINDOWS' : 'LINUX LOCAL'}`);
+    console.log(`   📦 NODE_ENV: ${process.env.NODE_ENV || 'não definido'}`);
+    console.log(`   💻 Platform: ${process.platform}`);
+    console.log(`   🔧 Usando Chromium: ${shouldUseChromium ? 'SIM' : 'NÃO'}`);
     console.log(`   OAB: ${oab}`);
     console.log(`   UF: ${uf}`);
     console.log(`   Escritório ID: ${escritorioId}`);
@@ -33,7 +92,6 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
             dataFimStr = dataFim;
             console.log(`   📅 Período PERSONALIZADO: ${dataInicio} a ${dataFim}`);
         } else {
-            // Padrão: 90 dias
             const hoje = new Date();
             const noventaDiasAtras = new Date();
             noventaDiasAtras.setDate(hoje.getDate() - 90);
@@ -47,19 +105,13 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
         const url = `https://comunica.pje.jus.br/consulta?dataDisponibilizacaoInicio=${dataInicioStr}&dataDisponibilizacaoFim=${dataFimStr}&numeroOab=${oabSemZeros}&ufOab=${uf}`;
         
         console.log(`\n🔗 URL: ${url}`);
-        console.log('\n🌐 Abrindo navegador...');
+        console.log('🌐 Abrindo navegador...');
         
-        browser = await puppeteer.launch({
-            headless: 'new',
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--disable-gpu'
-            ],
-            timeout: 60000
-        });
+        // ✅ Obter configuração correta para o ambiente
+        const config = await getBrowserConfig();
+        
+        browser = await puppeteer.launch(config);
+        console.log('   ✅ Navegador aberto com sucesso');
         
         const page = await browser.newPage();
         await page.setViewport({ width: 1920, height: 1080 });
@@ -140,11 +192,14 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
         
     } catch (err) {
         console.error('❌ [COMUNICA PJE] Erro:', err.message);
+        console.error('Stack trace:', err.stack);
         
         if (browser) {
             try {
                 await browser.close();
-            } catch (e) {}
+            } catch (e) {
+                console.error('Erro ao fechar navegador:', e.message);
+            }
         }
         
         return {
@@ -200,14 +255,10 @@ async function clicarAba(page, aba) {
     }, aba.texto);
 }
 
-/**
- * 🎯 EXTRAÇÃO MELHORADA - SEPARA CONTEÚDO POR INTIMAÇÃO
- */
 async function extrairPublicacoesPagina(page, abaAtiva) {
     const publicacoes = await page.evaluate(() => {
         const items = [];
         
-        // ESTRATÉGIA 1: Procurar por elementos estruturados
         const seletoresIntimacao = [
             '[class*="intimacao"]',
             '[class*="comunicacao"]',
@@ -221,13 +272,9 @@ async function extrairPublicacoesPagina(page, abaAtiva) {
         let elementos = [];
         for (const sel of seletoresIntimacao) {
             elementos = Array.from(document.querySelectorAll(sel));
-            if (elementos.length > 0) {
-                console.log(`Usando seletor: ${sel} (${elementos.length} elementos)`);
-                break;
-            }
+            if (elementos.length > 0) break;
         }
         
-        // Se encontrou elementos estruturados
         if (elementos.length > 0) {
             elementos.forEach(elem => {
                 try {
@@ -253,27 +300,20 @@ async function extrairPublicacoesPagina(page, abaAtiva) {
                             tipo: 'Intimação Eletrônica'
                         });
                     }
-                } catch (err) {
-                    console.error('Erro ao processar elemento:', err.message);
-                }
+                } catch (err) {}
             });
             
             return items;
         }
         
-        // ESTRATÉGIA 2: Extração por regex com separação
         const textoCompleto = document.body.innerText;
         const processosMatch = Array.from(new Set(
             textoCompleto.match(/\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/g) || []
         ));
         
-        if (processosMatch.length === 0) {
-            return [];
-        }
+        if (processosMatch.length === 0) return [];
         
-        // Para cada processo, isolar seu conteúdo
-        processosMatch.forEach((proc, idx) => {
-            // Regex que captura desde o processo até o próximo ou fim
+        processosMatch.forEach((proc) => {
             const escProc = proc.replace(/[.-]/g, '\\$&');
             const regex = new RegExp(
                 escProc + '([\\s\\S]{100,3000}?)' +
