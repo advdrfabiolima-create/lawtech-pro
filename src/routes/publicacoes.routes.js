@@ -4,7 +4,7 @@ const pool = require('../config/db');
 const axios = require('axios');
 const authMiddleware = require('../middlewares/authMiddleware');
 const planMiddleware = require('../middlewares/planMiddleware');
-const { buscarPublicacoesDJEN } = require('../scrapers/djen_scraper');
+
 
 /**
  * ============================================================
@@ -14,95 +14,83 @@ const { buscarPublicacoesDJEN } = require('../scrapers/djen_scraper');
  * ============================================================
  */
 router.get('/publicacoes/sincronizar', authMiddleware, async (req, res) => {
-    try {
-        const escritorioId = req.user.escritorio_id;
-        
-        // ✅ PEGAR PARÂMETROS DE DATA DA QUERY
-        const { dataInicio, dataFim } = req.query;
-        
-        console.log('📄 [SYNC SCRAPER] Iniciando sincronização com DJEN...');
-        console.log('📋 Escritório ID:', escritorioId);
-        
-        if (dataInicio && dataFim) {
-            console.log(`📅 Período personalizado: ${dataInicio} a ${dataFim}`);
-        }
-        
-        // Buscar dados do escritório
-        const escritorio = await pool.query(
-            'SELECT oab, uf, advogado_responsavel FROM escritorios WHERE id = $1',
-            [escritorioId]
-        );
-        
-        if (escritorio.rowCount === 0) {
-            return res.status(404).json({
-                ok: false,
-                erro: 'Escritório não encontrado'
-            });
-        }
-        
-        let { oab, uf, advogado_responsavel } = escritorio.rows[0];
-        
-        // ✅ CORREÇÃO: Extrair apenas os números da OAB
-        // Remove tudo que não é número
-        oab = oab ? oab.replace(/\D/g, '') : '';
-        
-        // Se não tem UF, tenta extrair da OAB original
-        if (!uf) {
-            const oabOriginal = escritorio.rows[0].oab;
-            const match = oabOriginal.match(/\/([A-Z]{2})$/);
-            uf = match ? match[1] : 'BA';
-        }
-        
-        // Formatar OAB com pontos se necessário (051288 -> 051.288)
-        if (oab.length === 6) {
-            oab = `${oab.substring(0, 3)}.${oab.substring(3)}`;
-        }
-        
-        console.log('📋 Advogado:', advogado_responsavel);
-        console.log('📋 OAB processada:', oab);
-        console.log('📋 UF:', uf);
-        
-        // Validar OAB
-        if (!oab || !uf) {
-            return res.status(400).json({
-                ok: false,
-                erro: 'OAB não cadastrada. Configure sua OAB em Configurações.',
-                sem_oab: true
-            });
-        }
-        
-        // Executar scraper
-        console.log('🤖 Iniciando scraper...');
-        
-        const resultado = await buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio, dataFim);
-        
-        // Retornar resultado
-        if (resultado.ok) {
-            console.log(`✅ Sincronização concluída: ${resultado.novas} novas, ${resultado.duplicadas} duplicadas`);
-            
-            return res.json({
-                ok: true,
-                total: resultado.total,
-                novas: resultado.novas,
-                duplicadas: resultado.duplicadas,
-                mensagem: resultado.mensagem || `Sincronização concluída! ${resultado.novas} novas publicações.`
-            });
-        } else {
-            console.error('❌ Erro no scraper:', resultado.erro);
-            
-            return res.status(500).json({
-                ok: false,
-                erro: 'Erro ao buscar publicações: ' + resultado.erro
-            });
-        }
-        
-    } catch (err) {
-        console.error('❌ [SYNC SCRAPER] Erro geral:', err.message);
-        return res.status(500).json({
-            ok: false,
-            erro: 'Erro ao sincronizar publicações: ' + err.message
-        });
+  try {
+    const escritorioId = req.user.escritorio_id;
+    const { dataInicio, dataFim } = req.query;
+
+    console.log('📄 [SYNC] Enviando solicitação ao WORKER DJEN...');
+    console.log('📋 Escritório ID:', escritorioId);
+
+    if (!process.env.WORKER_URL) {
+      return res.status(500).json({
+        ok: false,
+        erro: 'WORKER_URL não configurada no servidor.'
+      });
     }
+
+    const escritorio = await pool.query(
+      'SELECT oab, uf, advogado_responsavel FROM escritorios WHERE id = $1',
+      [escritorioId]
+    );
+
+    if (escritorio.rowCount === 0) {
+      return res.status(404).json({ ok: false, erro: 'Escritório não encontrado' });
+    }
+
+    let { oab, uf, advogado_responsavel } = escritorio.rows[0];
+
+    // OAB SEM FORMATAÇÃO
+    oab = oab ? oab.replace(/\D/g, '') : '';
+
+    if (!uf) {
+      const oabOriginal = escritorio.rows[0].oab || '';
+      const match = oabOriginal.match(/\/([A-Z]{2})$/);
+      uf = match ? match[1] : 'BA';
+    }
+
+    if (!oab || !uf) {
+      return res.status(400).json({
+        ok: false,
+        erro: 'OAB não cadastrada. Configure sua OAB em Configurações.',
+        sem_oab: true
+      });
+    }
+
+    const response = await axios.post(
+      `${process.env.WORKER_URL}/worker/djen/sync`,
+      {
+        escritorio_id: escritorioId,
+        advogado: advogado_responsavel,
+        oab,
+        uf,
+        dataInicio,
+        dataFim
+      },
+      {
+        headers: {
+          'x-worker-secret': process.env.WORKER_SECRET
+        },
+        timeout: 5 * 60 * 1000
+      }
+    );
+
+    console.log('✅ Worker DJEN executado com sucesso');
+
+    return res.json({
+      ok: true,
+      mensagem: 'Sincronização iniciada com sucesso.',
+      resultado_worker: response.data
+    });
+
+  } catch (err) {
+    console.error('❌ Erro ao chamar worker DJEN:', err.message);
+
+    return res.status(500).json({
+      ok: false,
+      erro: 'Erro ao sincronizar publicações via DJEN.',
+      detalhes: err.message
+    });
+  }
 });
 
 /**
