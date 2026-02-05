@@ -1,8 +1,8 @@
 /**
- * 🎯 SCRAPER COMUNICA PJE - VERSÃO UNIVERSAL
+ * 🎯 SCRAPER COMUNICA PJE - DETECÇÃO DE AMBIENTE CORRIGIDA
  * 
  * ✅ Windows (desenvolvimento)
- * ✅ Linux (servidor local)
+ * ✅ Linux local (servidor)
  * ✅ Render.com (produção)
  */
 
@@ -10,49 +10,61 @@ const pool = require('../config/db');
 const path = require('path');
 const fs = require('fs');
 
-// ✅ DETECÇÃO AUTOMÁTICA DE AMBIENTE - CORRIGIDA
-const isRender = process.env.RENDER === 'true';
-const isProduction = process.env.NODE_ENV === 'production';
+// ✅ DETECÇÃO DE AMBIENTE MAIS PRECISA
+const isRender = process.env.RENDER === 'true' || process.env.RENDER_SERVICE_NAME !== undefined;
 const isWindows = process.platform === 'win32';
+const isLocal = !isRender; // Se não for Render, é local
 
-// ✅ Usar puppeteer-core APENAS no Render, não em produção local
-const shouldUseChromium = isRender && !isWindows;
+console.log('🔍 [AMBIENTE] Detecção:');
+console.log(`   RENDER env: ${process.env.RENDER}`);
+console.log(`   RENDER_SERVICE_NAME: ${process.env.RENDER_SERVICE_NAME}`);
+console.log(`   Platform: ${process.platform}`);
+console.log(`   isRender: ${isRender}`);
+console.log(`   isLocal: ${isLocal}`);
+console.log(`   isWindows: ${isWindows}`);
 
 let puppeteer;
-let chromium = null;
 
-// Carregar dependências corretas baseado no ambiente
-if (shouldUseChromium) {
-    // PRODUÇÃO NO RENDER (Linux serverless)
+// ✅ LÓGICA SIMPLIFICADA: Render usa puppeteer-core, resto usa puppeteer
+if (isRender) {
     try {
         puppeteer = require('puppeteer-core');
-        chromium = require('@sparticuz/chromium');
-        console.log('✅ Modo RENDER: puppeteer-core + @sparticuz/chromium');
+        const chromium = require('@sparticuz/chromium');
+        console.log('✅ Modo RENDER: puppeteer-core + chromium');
+        module.exports.chromium = chromium;
     } catch (err) {
-        console.warn('⚠️ Fallback para puppeteer padrão');
+        console.error('❌ Erro ao carregar puppeteer-core no Render:', err.message);
         puppeteer = require('puppeteer');
-        chromium = null;
     }
 } else {
-    // DESENVOLVIMENTO ou PRODUÇÃO LOCAL (Windows/Linux com Chrome instalado)
+    // LOCAL (Windows ou Linux)
     puppeteer = require('puppeteer');
-    console.log(`✅ Modo ${isWindows ? 'DESENVOLVIMENTO WINDOWS' : 'LOCAL'}: puppeteer`);
+    console.log(`✅ Modo LOCAL (${isWindows ? 'Windows' : 'Linux'}): puppeteer`);
 }
 
 async function getBrowserConfig() {
-    // ✅ Usar chromium APENAS se estiver no Render
-    if (shouldUseChromium && chromium) {
-        console.log('   🚀 Usando Chromium serverless (Render)');
+    if (isRender && module.exports.chromium) {
+        // RENDER - Usar Chromium serverless
+        const chromium = module.exports.chromium;
+        console.log('   🚀 Config: Chromium serverless (Render)');
+        
         return {
-            args: chromium.args,
+            args: [
+                ...chromium.args,
+                '--single-process',
+                '--no-zygote'
+            ],
             defaultViewport: chromium.defaultViewport,
             executablePath: await chromium.executablePath(),
             headless: chromium.headless,
-            ignoreHTTPSErrors: true
+            ignoreHTTPSErrors: true,
+            timeout: 120000,
+            protocolTimeout: 120000
         };
     } else {
-        // Local - Deixar Puppeteer encontrar Chrome automaticamente
-        console.log('   🖥️ Usando Chrome/Chromium local');
+        // LOCAL - Chrome/Chromium instalado
+        console.log('   🖥️ Config: Chrome/Chromium local');
+        
         return {
             headless: 'new',
             args: [
@@ -61,18 +73,17 @@ async function getBrowserConfig() {
                 '--disable-dev-shm-usage',
                 '--disable-accelerated-2d-canvas',
                 '--disable-gpu'
-            ]
-            // ✅ NÃO definir executablePath - deixa Puppeteer achar sozinho
+            ],
+            timeout: 60000
+            // ✅ SEM executablePath - deixa Puppeteer encontrar
         };
     }
 }
 
 async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, dataFim = null) {
     console.log(`\n🎯 [COMUNICA PJE] Iniciando busca...`);
-    console.log(`   🌍 Ambiente: ${isRender ? 'RENDER' : isWindows ? 'WINDOWS' : 'LINUX LOCAL'}`);
-    console.log(`   📦 NODE_ENV: ${process.env.NODE_ENV || 'não definido'}`);
+    console.log(`   🌍 Ambiente: ${isRender ? 'RENDER' : 'LOCAL'}`);
     console.log(`   💻 Platform: ${process.platform}`);
-    console.log(`   🔧 Usando Chromium: ${shouldUseChromium ? 'SIM' : 'NÃO'}`);
     console.log(`   OAB: ${oab}`);
     console.log(`   UF: ${uf}`);
     console.log(`   Escritório ID: ${escritorioId}`);
@@ -90,7 +101,7 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
         if (dataInicio && dataFim) {
             dataInicioStr = dataInicio;
             dataFimStr = dataFim;
-            console.log(`   📅 Período PERSONALIZADO: ${dataInicio} a ${dataFim}`);
+            console.log(`   📅 Período: ${dataInicio} a ${dataFim}`);
         } else {
             const hoje = new Date();
             const noventaDiasAtras = new Date();
@@ -99,7 +110,7 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
             dataInicioStr = noventaDiasAtras.toISOString().split('T')[0];
             dataFimStr = hoje.toISOString().split('T')[0];
             
-            console.log(`   📅 Período PADRÃO (90 dias): ${dataInicioStr} a ${dataFimStr}`);
+            console.log(`   📅 Período padrão: ${dataInicioStr} a ${dataFimStr}`);
         }
         
         const url = `https://comunica.pje.jus.br/consulta?dataDisponibilizacaoInicio=${dataInicioStr}&dataDisponibilizacaoFim=${dataFimStr}&numeroOab=${oabSemZeros}&ufOab=${uf}`;
@@ -107,31 +118,63 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
         console.log(`\n🔗 URL: ${url}`);
         console.log('🌐 Abrindo navegador...');
         
-        // ✅ Obter configuração correta para o ambiente
         const config = await getBrowserConfig();
         
         browser = await puppeteer.launch(config);
-        console.log('   ✅ Navegador aberto com sucesso');
+        console.log('   ✅ Navegador aberto');
         
         const page = await browser.newPage();
+        
+        // ✅ Timeout maior APENAS no Render
+        if (isRender) {
+            await page.setDefaultNavigationTimeout(90000);
+            await page.setDefaultTimeout(90000);
+            console.log('   ⏱️ Timeout: 90s (Render)');
+        } else {
+            await page.setDefaultNavigationTimeout(30000);
+            await page.setDefaultTimeout(30000);
+            console.log('   ⏱️ Timeout: 30s (Local)');
+        }
+        
         await page.setViewport({ width: 1920, height: 1080 });
         await page.setUserAgent(
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         );
+        
+        // ✅ Otimização APENAS no Render (local não precisa)
+        if (isRender) {
+            console.log('   🚀 Otimização Render: bloqueando imagens/CSS');
+            await page.setRequestInterception(true);
+            page.on('request', (req) => {
+                const resourceType = req.resourceType();
+                if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
+                    req.abort();
+                } else {
+                    req.continue();
+                }
+            });
+        }
         
         const screenshotDir = path.join(__dirname, '..', 'debug_screenshots');
         if (!fs.existsSync(screenshotDir)) {
             fs.mkdirSync(screenshotDir, { recursive: true });
         }
         
-        console.log('⏳ Carregando resultados...');
+        console.log('⏳ Carregando página...');
+        
+        // ✅ Navegação com timeout apropriado
+        const navTimeout = isRender ? 90000 : 30000;
         
         await page.goto(url, {
             waitUntil: 'networkidle2',
-            timeout: 30000
+            timeout: navTimeout
         });
         
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        console.log('   ✅ Página carregada');
+        
+        // Aguardar conteúdo
+        const waitTime = isRender ? 10000 : 5000;
+        await new Promise(resolve => setTimeout(resolve, waitTime));
         
         await page.screenshot({ 
             path: path.join(screenshotDir, 'comunica_pje_pagina.png'),
@@ -144,7 +187,6 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
         
         console.log(`\n📄 ========== PROCESSANDO INTIMAÇÕES ==========`);
         
-        // Detectar abas
         console.log('📊 Detectando abas...');
         const abas = await detectarAbas(page);
         
@@ -158,7 +200,6 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
             const pubs = await extrairPublicacoesPagina(page, '');
             adicionarPublicacoesUnicas(pubs, todasPublicacoes, processosJaVistos);
         } else {
-            // Processar cada aba
             for (let i = 0; i < abas.length; i++) {
                 const aba = abas[i];
                 console.log(`\n   🔍 Aba ${i + 1}/${abas.length}: ${aba.texto}`);
@@ -179,7 +220,6 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
         }
         
         console.log(`\n✅ Total: ${todasPublicacoes.length} intimações únicas`);
-        console.log(`   Processos únicos: ${processosJaVistos.size}`);
         
         await page.screenshot({ 
             path: path.join(screenshotDir, 'comunica_pje_final.png'),
@@ -192,14 +232,12 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
         
     } catch (err) {
         console.error('❌ [COMUNICA PJE] Erro:', err.message);
-        console.error('Stack trace:', err.stack);
+        console.error('Stack:', err.stack);
         
         if (browser) {
             try {
                 await browser.close();
-            } catch (e) {
-                console.error('Erro ao fechar navegador:', e.message);
-            }
+            } catch (e) {}
         }
         
         return {
@@ -286,10 +324,7 @@ async function extrairPublicacoesPagina(page, abaAtiva) {
                     const matchData = textoElem.match(/(\d{2})\/(\d{2})\/(\d{4})/);
                     const data = matchData ? matchData[0] : new Date().toLocaleDateString('pt-BR');
                     
-                    const conteudo = textoElem
-                        .replace(/\s+/g, ' ')
-                        .trim()
-                        .substring(0, 5000);
+                    const conteudo = textoElem.replace(/\s+/g, ' ').trim().substring(0, 5000);
                     
                     if (conteudo.length > 100) {
                         items.push({
@@ -324,10 +359,7 @@ async function extrairPublicacoesPagina(page, abaAtiva) {
             const match = textoCompleto.match(regex);
             
             if (match) {
-                const conteudo = (proc + ' ' + match[1])
-                    .replace(/\s+/g, ' ')
-                    .trim();
-                
+                const conteudo = (proc + ' ' + match[1]).replace(/\s+/g, ' ').trim();
                 const matchData = conteudo.match(/(\d{2})\/(\d{2})\/(\d{4})/);
                 const data = matchData ? matchData[0] : new Date().toLocaleDateString('pt-BR');
                 
@@ -371,8 +403,7 @@ async function salvarPublicacoes(publicacoes, escritorioId) {
     for (const pub of publicacoes) {
         try {
             const existe = await pool.query(
-                `SELECT id FROM publicacoes 
-                 WHERE numero_processo = $1 AND escritorio_id = $2`,
+                `SELECT id FROM publicacoes WHERE numero_processo = $1 AND escritorio_id = $2`,
                 [pub.processo, escritorioId]
             );
             
@@ -393,8 +424,7 @@ async function salvarPublicacoes(publicacoes, escritorioId) {
             
             await pool.query(
                 `INSERT INTO publicacoes 
-                 (escritorio_id, numero_processo, data_publicacao, conteudo, 
-                  tribunal, tipo, status)
+                 (escritorio_id, numero_processo, data_publicacao, conteudo, tribunal, tipo, status)
                  VALUES ($1, $2, $3, $4, $5, $6, 'pendente')`,
                 [escritorioId, pub.processo, dataSql, pub.conteudo, pub.tribunal, pub.tipo]
             );
