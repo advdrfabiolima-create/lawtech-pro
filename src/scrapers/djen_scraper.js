@@ -1,93 +1,57 @@
 /**
- * 🎯 SCRAPER COMUNICA PJE - VERSÃO COM FALLBACK ROBUSTO
+ * 🎯 SCRAPER COMUNICA PJE - VERSÃO ULTRA RESILIENTE
  * 
  * ✅ Windows (desenvolvimento)
  * ✅ Linux local (servidor)
- * ✅ Render.com (produção) - COM FALLBACK
+ * ✅ Render.com (produção) - COM RETRY E TIMEOUT ALTO
  */
 
 const pool = require('../config/db');
 const path = require('path');
 const fs = require('fs');
 
-// ✅ DETECÇÃO DE AMBIENTE
 const isRender = process.env.RENDER === 'true' || process.env.RENDER_SERVICE_NAME !== undefined;
 const isWindows = process.platform === 'win32';
 
-console.log('🔍 [AMBIENTE] Detecção:');
-console.log(`   RENDER: ${isRender}`);
-console.log(`   Platform: ${process.platform}`);
+console.log('🔍 [AMBIENTE]:', isRender ? 'RENDER' : 'LOCAL');
 
 let puppeteer;
 let chromium = null;
 
-// ✅ CARREGAR PUPPETEER COM FALLBACK
 if (isRender) {
     try {
-        console.log('   📦 Tentando carregar puppeteer-core + chromium...');
         puppeteer = require('puppeteer-core');
         chromium = require('@sparticuz/chromium');
-        console.log('   ✅ puppeteer-core + chromium carregados');
+        console.log('✅ puppeteer-core + chromium');
     } catch (err) {
-        console.warn('   ⚠️ Chromium não encontrado, usando puppeteer padrão');
-        console.warn(`   Erro: ${err.message}`);
+        console.warn('⚠️ Fallback: puppeteer padrão');
         puppeteer = require('puppeteer');
         chromium = null;
     }
 } else {
     puppeteer = require('puppeteer');
-    console.log(`   ✅ puppeteer (${isWindows ? 'Windows' : 'Linux'})`);
+    console.log(`✅ puppeteer (${isWindows ? 'Windows' : 'Linux'})`);
 }
 
 async function getBrowserConfig() {
     if (isRender && chromium) {
-        // RENDER COM CHROMIUM
-        console.log('   🚀 Config: Chromium serverless');
-        
-        try {
-            const executablePath = await chromium.executablePath();
-            console.log(`   ✅ executablePath: ${executablePath}`);
-            
-            return {
-                args: [
-                    ...chromium.args,
-                    '--single-process',
-                    '--no-zygote'
-                ],
-                defaultViewport: chromium.defaultViewport,
-                executablePath: executablePath,
-                headless: chromium.headless,
-                ignoreHTTPSErrors: true,
-                timeout: 120000,
-                protocolTimeout: 120000
-            };
-        } catch (err) {
-            console.error('   ❌ Erro ao obter executablePath:', err.message);
-            throw err;
-        }
-        
-    } else if (isRender && !chromium) {
-        // RENDER SEM CHROMIUM (fallback)
-        console.log('   ⚠️ Config: Puppeteer padrão no Render (sem chromium)');
+        const executablePath = await chromium.executablePath();
         
         return {
-            headless: 'new',
             args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-gpu',
+                ...chromium.args,
                 '--single-process',
-                '--no-zygote'
+                '--no-zygote',
+                '--disable-dev-shm-usage'
             ],
-            timeout: 120000
-            // SEM executablePath - deixa Puppeteer tentar encontrar
+            defaultViewport: chromium.defaultViewport,
+            executablePath: executablePath,
+            headless: chromium.headless,
+            ignoreHTTPSErrors: true,
+            timeout: 180000, // ✅ 3 MINUTOS
+            protocolTimeout: 180000
         };
-        
     } else {
-        // LOCAL
-        console.log('   🖥️ Config: Chrome/Chromium local');
-        
         return {
             headless: 'new',
             args: [
@@ -102,11 +66,9 @@ async function getBrowserConfig() {
 }
 
 async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, dataFim = null) {
-    console.log(`\n🎯 [COMUNICA PJE] Iniciando busca...`);
-    console.log(`   🌍 Ambiente: ${isRender ? 'RENDER' : 'LOCAL'}`);
-    console.log(`   OAB: ${oab}`);
-    console.log(`   UF: ${uf}`);
-    console.log(`   Escritório ID: ${escritorioId}`);
+    console.log(`\n🎯 [COMUNICA PJE] Iniciando...`);
+    console.log(`   Ambiente: ${isRender ? 'RENDER' : 'LOCAL'}`);
+    console.log(`   OAB: ${oab} / UF: ${uf}`);
     
     let browser = null;
     
@@ -114,24 +76,20 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
         const oabNumeros = oab.replace(/\D/g, '');
         const oabSemZeros = oabNumeros.replace(/^0+/, '');
         
-        console.log(`   OAB formatada: ${oabSemZeros}`);
-        
         let dataInicioStr, dataFimStr;
         
         if (dataInicio && dataFim) {
             dataInicioStr = dataInicio;
             dataFimStr = dataFim;
-            console.log(`   📅 Período: ${dataInicio} a ${dataFim}`);
         } else {
             const hoje = new Date();
             const noventaDiasAtras = new Date();
             noventaDiasAtras.setDate(hoje.getDate() - 90);
-            
             dataInicioStr = noventaDiasAtras.toISOString().split('T')[0];
             dataFimStr = hoje.toISOString().split('T')[0];
-            
-            console.log(`   📅 Período padrão: ${dataInicioStr} a ${dataFimStr}`);
         }
+        
+        console.log(`   📅 Período: ${dataInicioStr} a ${dataFimStr}`);
         
         const url = `https://comunica.pje.jus.br/consulta?dataDisponibilizacaoInicio=${dataInicioStr}&dataDisponibilizacaoFim=${dataFimStr}&numeroOab=${oabSemZeros}&ufOab=${uf}`;
         
@@ -139,30 +97,29 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
         console.log('🌐 Abrindo navegador...');
         
         const config = await getBrowserConfig();
-        
         browser = await puppeteer.launch(config);
         console.log('   ✅ Navegador aberto');
         
         const page = await browser.newPage();
         
-        // Timeout adaptativo
-        const timeout = isRender ? 90000 : 30000;
+        // ✅ TIMEOUT MUITO ALTO NO RENDER
+        const timeout = isRender ? 180000 : 30000; // 3 min vs 30s
         await page.setDefaultNavigationTimeout(timeout);
         await page.setDefaultTimeout(timeout);
         console.log(`   ⏱️ Timeout: ${timeout / 1000}s`);
         
         await page.setViewport({ width: 1920, height: 1080 });
         await page.setUserAgent(
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         );
         
-        // Otimização apenas no Render
+        // Otimização Render
         if (isRender) {
-            console.log('   🚀 Otimização: bloqueando recursos pesados');
+            console.log('   🚀 Bloqueando recursos pesados');
             await page.setRequestInterception(true);
             page.on('request', (req) => {
-                const resourceType = req.resourceType();
-                if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
+                const type = req.resourceType();
+                if (['image', 'stylesheet', 'font', 'media'].includes(type)) {
                     req.abort();
                 } else {
                     req.continue();
@@ -175,21 +132,48 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
             fs.mkdirSync(screenshotDir, { recursive: true });
         }
         
-        console.log('⏳ Carregando página...');
+        // ✅ NAVEGAÇÃO COM RETRY (3 TENTATIVAS)
+        console.log('⏳ Carregando página (até 3 tentativas)...');
         
-        await page.goto(url, {
-            waitUntil: 'networkidle2',
-            timeout: timeout
-        });
+        let carregou = false;
+        let tentativa = 1;
+        let ultimoErro = null;
         
-        console.log('   ✅ Página carregada');
+        while (!carregou && tentativa <= 3) {
+            try {
+                console.log(`   Tentativa ${tentativa}/3...`);
+                
+                await page.goto(url, {
+                    waitUntil: tentativa === 1 ? 'domcontentloaded' : 'load',
+                    timeout: timeout
+                });
+                
+                carregou = true;
+                console.log('   ✅ Página carregada!');
+                
+            } catch (err) {
+                ultimoErro = err;
+                console.log(`   ⚠️ Tentativa ${tentativa} falhou: ${err.message.substring(0, 50)}`);
+                tentativa++;
+                
+                if (tentativa <= 3) {
+                    console.log('   ⏳ Aguardando 10s antes de tentar novamente...');
+                    await new Promise(r => setTimeout(r, 10000));
+                }
+            }
+        }
+        
+        if (!carregou) {
+            throw new Error(`Não foi possível carregar após 3 tentativas. Último erro: ${ultimoErro.message}`);
+        }
         
         // Aguardar conteúdo
-        const waitTime = isRender ? 10000 : 5000;
+        const waitTime = isRender ? 15000 : 5000;
+        console.log(`⏳ Aguardando conteúdo (${waitTime / 1000}s)...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         
         await page.screenshot({ 
-            path: path.join(screenshotDir, 'comunica_pje_pagina.png'),
+            path: path.join(screenshotDir, 'comunica_pje.png'),
             fullPage: true 
         });
         console.log('📸 Screenshot salvo');
@@ -197,21 +181,18 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
         const todasPublicacoes = [];
         const processosJaVistos = new Set();
         
-        console.log(`\n📄 ========== PROCESSANDO INTIMAÇÕES ==========`);
+        console.log(`\n📄 ===== PROCESSANDO =====`);
         
-        console.log('📊 Detectando abas...');
         const abas = await detectarAbas(page);
-        
-        console.log(`   ✅ ${abas.length} abas encontradas`);
+        console.log(`📊 ${abas.length} abas encontradas`);
         
         if (abas.length === 0) {
-            console.log('   ⚠️ Nenhuma aba. Extraindo conteúdo direto...');
             const pubs = await extrairPublicacoesPagina(page, '');
             adicionarPublicacoesUnicas(pubs, todasPublicacoes, processosJaVistos);
         } else {
             for (let i = 0; i < abas.length; i++) {
                 const aba = abas[i];
-                console.log(`\n   🔍 Aba ${i + 1}/${abas.length}: ${aba.texto}`);
+                console.log(`🔍 Aba ${i + 1}/${abas.length}: ${aba.texto}`);
                 
                 try {
                     await clicarAba(page, aba);
@@ -220,28 +201,24 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
                     const pubsAba = await extrairPublicacoesPagina(page, aba.texto);
                     const novos = adicionarPublicacoesUnicas(pubsAba, todasPublicacoes, processosJaVistos);
                     
-                    console.log(`      ✅ ${pubsAba.length} intimações (${novos} novas)`);
-                    
+                    console.log(`   ✅ ${pubsAba.length} intimações (${novos} novas)`);
                 } catch (errAba) {
-                    console.error(`      ❌ Erro: ${errAba.message}`);
+                    console.error(`   ❌ ${errAba.message}`);
                 }
             }
         }
         
-        console.log(`\n✅ Total: ${todasPublicacoes.length} intimações únicas`);
+        console.log(`\n✅ Total: ${todasPublicacoes.length} intimações`);
         
         await browser.close();
         
         return await salvarPublicacoes(todasPublicacoes, escritorioId);
         
     } catch (err) {
-        console.error('❌ [COMUNICA PJE] Erro:', err.message);
-        console.error('Stack:', err.stack);
+        console.error('❌ Erro:', err.message);
         
         if (browser) {
-            try {
-                await browser.close();
-            } catch (e) {}
+            try { await browser.close(); } catch (e) {}
         }
         
         return {
@@ -255,40 +232,31 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
 }
 
 async function detectarAbas(page) {
-    const abas = await page.evaluate(() => {
+    return await page.evaluate(() => {
         let botoes = [];
         let elementos = Array.from(document.querySelectorAll('button[role="tab"]'));
         
         if (elementos.length === 0) {
             elementos = Array.from(document.querySelectorAll('button, a, div'))
-                .filter(el => {
-                    const texto = el.innerText || '';
-                    return /TJ[A-Z]{2}|TRF\d/i.test(texto);
-                });
+                .filter(el => /TJ[A-Z]{2}|TRF\d/i.test(el.innerText || ''));
         }
         
         elementos.forEach(el => {
-            const texto = (el.innerText || el.textContent || '').trim();
+            const texto = (el.innerText || '').trim();
             if (/TJ[A-Z]{2}|TRF\d/i.test(texto) && texto.length < 20) {
-                botoes.push({
-                    texto: texto,
-                    elemento: el.outerHTML.substring(0, 200)
-                });
+                botoes.push({ texto: texto });
             }
         });
         
         return botoes;
     });
-    
-    return abas;
 }
 
 async function clicarAba(page, aba) {
     await page.evaluate((abaTexto) => {
         const elementos = Array.from(document.querySelectorAll('button[role="tab"], button, a, div'));
         for (const el of elementos) {
-            const texto = (el.innerText || el.textContent || '').trim();
-            if (texto === abaTexto) {
+            if ((el.innerText || '').trim() === abaTexto) {
                 el.click();
                 return true;
             }
@@ -298,19 +266,12 @@ async function clicarAba(page, aba) {
 }
 
 async function extrairPublicacoesPagina(page, abaAtiva) {
-    const publicacoes = await page.evaluate(() => {
+    return await page.evaluate(() => {
         const items = [];
-        
-        const seletoresIntimacao = [
-            '[class*="intimacao"]',
-            '[class*="comunicacao"]',
-            '[class*="publicacao"]',
-            'article',
-            '.card'
-        ];
+        const seletores = ['[class*="intimacao"]', '[class*="comunicacao"]', 'article', '.card'];
         
         let elementos = [];
-        for (const sel of seletoresIntimacao) {
+        for (const sel of seletores) {
             elementos = Array.from(document.querySelectorAll(sel));
             if (elementos.length > 0) break;
         }
@@ -318,28 +279,21 @@ async function extrairPublicacoesPagina(page, abaAtiva) {
         if (elementos.length > 0) {
             elementos.forEach(elem => {
                 try {
-                    const textoElem = elem.innerText || elem.textContent || '';
-                    const matchProc = textoElem.match(/(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/);
+                    const texto = (elem.innerText || '').trim();
+                    const matchProc = texto.match(/(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/);
                     if (!matchProc) return;
                     
-                    const processo = matchProc[1];
-                    const matchData = textoElem.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-                    const data = matchData ? matchData[0] : new Date().toLocaleDateString('pt-BR');
+                    const matchData = texto.match(/(\d{2})\/(\d{2})\/(\d{4})/);
                     
-                    const conteudo = textoElem.replace(/\s+/g, ' ').trim().substring(0, 5000);
-                    
-                    if (conteudo.length > 100) {
-                        items.push({
-                            processo: processo,
-                            data: data,
-                            conteudo: conteudo,
-                            tribunal: 'PJE',
-                            tipo: 'Intimação Eletrônica'
-                        });
-                    }
+                    items.push({
+                        processo: matchProc[1],
+                        data: matchData ? matchData[0] : new Date().toLocaleDateString('pt-BR'),
+                        conteudo: texto.replace(/\s+/g, ' ').substring(0, 5000),
+                        tribunal: 'PJE',
+                        tipo: 'Intimação Eletrônica'
+                    });
                 } catch (err) {}
             });
-            
             return items;
         }
         
@@ -348,39 +302,27 @@ async function extrairPublicacoesPagina(page, abaAtiva) {
             textoCompleto.match(/\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/g) || []
         ));
         
-        if (processosMatch.length === 0) return [];
-        
         processosMatch.forEach((proc) => {
             const escProc = proc.replace(/[.-]/g, '\\$&');
-            const regex = new RegExp(
-                escProc + '([\\s\\S]{100,3000}?)' +
-                '(?=' + '\\d{7}-\\d{2}\\.\\d{4}\\.\\d\\.\\d{2}\\.\\d{4}' + '|$)',
-                'i'
-            );
-            
+            const regex = new RegExp(escProc + '([\\s\\S]{100,3000}?)(?=\\d{7}-\\d{2}\\.\\d{4}\\.\\d\\.\\d{2}\\.\\d{4}|$)', 'i');
             const match = textoCompleto.match(regex);
             
             if (match) {
                 const conteudo = (proc + ' ' + match[1]).replace(/\s+/g, ' ').trim();
                 const matchData = conteudo.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-                const data = matchData ? matchData[0] : new Date().toLocaleDateString('pt-BR');
                 
-                if (conteudo.length > 100) {
-                    items.push({
-                        processo: proc,
-                        data: data,
-                        conteudo: conteudo.substring(0, 5000),
-                        tribunal: 'PJE',
-                        tipo: 'Intimação Eletrônica'
-                    });
-                }
+                items.push({
+                    processo: proc,
+                    data: matchData ? matchData[0] : new Date().toLocaleDateString('pt-BR'),
+                    conteudo: conteudo.substring(0, 5000),
+                    tribunal: 'PJE',
+                    tipo: 'Intimação Eletrônica'
+                });
             }
         });
         
         return items;
     });
-    
-    return publicacoes;
 }
 
 function adicionarPublicacoesUnicas(pubs, todasPublicacoes, processosJaVistos) {
@@ -404,7 +346,7 @@ async function salvarPublicacoes(publicacoes, escritorioId) {
     for (const pub of publicacoes) {
         try {
             const existe = await pool.query(
-                `SELECT id FROM publicacoes WHERE numero_processo = $1 AND escritorio_id = $2`,
+                'SELECT id FROM publicacoes WHERE numero_processo = $1 AND escritorio_id = $2',
                 [pub.processo, escritorioId]
             );
             
@@ -414,12 +356,10 @@ async function salvarPublicacoes(publicacoes, escritorioId) {
             }
             
             let dataSql = null;
-            try {
-                const partesData = pub.data.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-                if (partesData) {
-                    dataSql = `${partesData[3]}-${partesData[2]}-${partesData[1]}`;
-                }
-            } catch (errData) {
+            const partesData = pub.data.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+            if (partesData) {
+                dataSql = `${partesData[3]}-${partesData[2]}-${partesData[1]}`;
+            } else {
                 dataSql = new Date().toISOString().split('T')[0];
             }
             
@@ -431,35 +371,22 @@ async function salvarPublicacoes(publicacoes, escritorioId) {
             );
             
             novas++;
-            
         } catch (errDb) {
-            console.error(`   ❌ Erro: ${errDb.message}`);
+            console.error(`❌ ${errDb.message}`);
         }
     }
     
-    console.log(`✅ Salvas: ${novas} novas, ${duplicadas} duplicadas`);
+    console.log(`✅ ${novas} novas, ${duplicadas} duplicadas`);
     
     return {
         ok: true,
         total: publicacoes.length,
         novas: novas,
         duplicadas: duplicadas,
-        mensagem: novas > 0 
-            ? `${novas} novas intimações!` 
-            : publicacoes.length > 0
-                ? `${publicacoes.length} intimações (já cadastradas)`
-                : 'Nenhuma intimação encontrada.'
+        mensagem: novas > 0 ? `${novas} novas intimações!` : 'Nenhuma nova.'
     };
 }
 
-async function testarScraper() {
-    console.log('🧪 Testando...\n');
-    const resultado = await buscarPublicacoesDJEN('051.288', 'BA', 1);
-    console.log('\n📋 Resultado:');
-    console.log(JSON.stringify(resultado, null, 2));
-}
-
 module.exports = {
-    buscarPublicacoesDJEN,
-    testarScraper
+    buscarPublicacoesDJEN
 };
