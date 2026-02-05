@@ -23,10 +23,6 @@ const iaRoutes = require('./routes/ia.routes');
 const crmRoutes = require('./routes/crm.routes');
 const usuariosRoutes = require('./routes/usuarios.routes');
 const adminRoutes = require('./routes/admin.routes');
-
-// ✅ NOVA ROTA: Múltiplas Partes por Processo
-// IMPORTANTE: Descomente a linha abaixo DEPOIS de copiar o arquivo partesProcesso.routes.js
-//             para a pasta backend/routes/
 const partesProcessoRoutes = require('./routes/partesProcesso.routes');
 
 // --- 2. MIDDLEWARES DE AUTENTICAÇÃO ---
@@ -70,9 +66,6 @@ app.use('/api', usuariosRoutes);
 app.use('/api/pagamentos', pagamentosRoutes);
 app.use('/api', publicacoesRoutes);
 app.use('/api', recibosRoutes);
-
-// ✅ NOVA ROTA: Múltiplas Partes por Processo
-// IMPORTANTE: Descomente a linha abaixo DEPOIS de copiar o arquivo partesProcesso.routes.js
 app.use('/api', partesProcessoRoutes);
 
 // ✅ Rota do monitor admin
@@ -165,9 +158,7 @@ app.use((err, req, res, next) => {
 
 // --- 12. INICIALIZAÇÃO E AUTOMAÇÃO ---
 const { iniciarAgendamentos } = require('./cron/prazosCron');
-// ✅ Cron de cobranças automáticas após trial
 require('./cron/cobrancasTrial');
-
 require('./cron/djen_scraper_cron');
 
 async function iniciarSistema() {
@@ -184,23 +175,22 @@ async function iniciarSistema() {
         iniciarAgendamentos();
 
         const PORT = process.env.PORT || 3000;
-        app.listen(PORT, () => {
+        // ⚠️ MUDANÇA CRÍTICA PARA RAILWAY
+        app.listen(PORT, '0.0.0.0', () => {
             console.log(`
 ╔══════════════════════════════════════════════════════╗
 ║                                                      ║
 ║           🚀 LAWTECH PRO - SISTEMA ATIVO            ║
 ║                                                      ║
-║  📊 Dashboard: http://localhost:${PORT}/dashboard       ║
-║  📄 Login: http://localhost:${PORT}/login              ║
-║                                                      ║
-║  🛡️  ADMIN - LawTech Systems:                       ║
-║  📈 Monitor: http://localhost:${PORT}/systems/monitor  ║
+║  Ambiente: ${process.env.NODE_ENV || 'development'}
+║  Porta: ${PORT}
 ║                                                      ║
 ╚══════════════════════════════════════════════════════╝
             `);
         });
     } catch (err) {
         console.error("❌ [ERRO CRÍTICO] Falha ao iniciar sistema:", err.message);
+        process.exit(1); // ⚠️ Força reinício no Railway em caso de erro crítico
     }
 }
 
