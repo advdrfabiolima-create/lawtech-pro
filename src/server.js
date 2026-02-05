@@ -156,28 +156,13 @@ app.use((err, req, res, next) => {
     res.status(err.status || 500).json({ ok: false, erro: err.message || 'Erro interno do servidor' });
 });
 
-// --- 12. INICIALIZAÇÃO E AUTOMAÇÃO ---
-const { iniciarAgendamentos } = require('./cron/prazosCron');
-require('./cron/cobrancasTrial');
-require('./cron/djen_scraper_cron');
+// ============================
+// 🚀 START DO SERVIDOR (IMEDIATO)
+// ============================
+const PORT = process.env.PORT || 3000;
 
-async function iniciarSistema() {
-    try {
-        console.log("⏳ Conectando ao Neon e validando acesso master...");
-        const hash = await bcrypt.hash('Lei@2026', 10);
-        await pool.query(`
-            INSERT INTO usuarios (nome, email, senha, role, escritorio_id)
-            VALUES ('Dr. Fábio Lima', 'adv.limaesilva@hotmail.com', $1, 'admin', 1)
-            ON CONFLICT (email) DO NOTHING
-        `, [hash]);
-
-        console.log("✅ [SISTEMA] Verificação de Acesso Master concluída.");
-        iniciarAgendamentos();
-
-        const PORT = process.env.PORT || 3000;
-        // ⚠️ MUDANÇA CRÍTICA PARA RAILWAY
-        app.listen(PORT, '0.0.0.0', () => {
-            console.log(`
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`
 ╔══════════════════════════════════════════════════════╗
 ║                                                      ║
 ║           🚀 LAWTECH PRO - SISTEMA ATIVO            ║
@@ -186,12 +171,31 @@ async function iniciarSistema() {
 ║  Porta: ${PORT}
 ║                                                      ║
 ╚══════════════════════════════════════════════════════╝
-            `);
-        });
-    } catch (err) {
-        console.error("❌ [ERRO CRÍTICO] Falha ao iniciar sistema:", err.message);
-        process.exit(1); // ⚠️ Força reinício no Railway em caso de erro crítico
-    }
-}
+    `);
+});
 
-iniciarSistema();
+// --- 12. INICIALIZAÇÃO E AUTOMAÇÃO (BACKGROUND) ---
+const { iniciarAgendamentos } = require('./cron/prazosCron');
+require('./cron/cobrancasTrial');
+require('./cron/djen_scraper_cron');
+
+(async function iniciarSistema() {
+    try {
+        console.log("⏳ Conectando ao Neon e validando acesso master...");
+
+        const hash = await bcrypt.hash('Lei@2026', 10);
+        await pool.query(`
+            INSERT INTO usuarios (nome, email, senha, role, escritorio_id)
+            VALUES ('Dr. Fábio Lima', 'adv.limaesilva@hotmail.com', $1, 'admin', 1)
+            ON CONFLICT (email) DO NOTHING
+        `, [hash]);
+
+        console.log("✅ [SISTEMA] Verificação de Acesso Master concluída.");
+
+        iniciarAgendamentos();
+
+    } catch (err) {
+        console.error("⚠️ [BOOTSTRAP] Erro na inicialização:", err.message);
+        // NÃO derruba o servidor no Railway
+    }
+})();
