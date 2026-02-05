@@ -1,68 +1,91 @@
 /**
- * 🎯 SCRAPER COMUNICA PJE - DETECÇÃO DE AMBIENTE CORRIGIDA
+ * 🎯 SCRAPER COMUNICA PJE - VERSÃO COM FALLBACK ROBUSTO
  * 
  * ✅ Windows (desenvolvimento)
  * ✅ Linux local (servidor)
- * ✅ Render.com (produção)
+ * ✅ Render.com (produção) - COM FALLBACK
  */
 
 const pool = require('../config/db');
 const path = require('path');
 const fs = require('fs');
 
-// ✅ DETECÇÃO DE AMBIENTE MAIS PRECISA
+// ✅ DETECÇÃO DE AMBIENTE
 const isRender = process.env.RENDER === 'true' || process.env.RENDER_SERVICE_NAME !== undefined;
 const isWindows = process.platform === 'win32';
-const isLocal = !isRender; // Se não for Render, é local
 
 console.log('🔍 [AMBIENTE] Detecção:');
-console.log(`   RENDER env: ${process.env.RENDER}`);
-console.log(`   RENDER_SERVICE_NAME: ${process.env.RENDER_SERVICE_NAME}`);
+console.log(`   RENDER: ${isRender}`);
 console.log(`   Platform: ${process.platform}`);
-console.log(`   isRender: ${isRender}`);
-console.log(`   isLocal: ${isLocal}`);
-console.log(`   isWindows: ${isWindows}`);
 
 let puppeteer;
+let chromium = null;
 
-// ✅ LÓGICA SIMPLIFICADA: Render usa puppeteer-core, resto usa puppeteer
+// ✅ CARREGAR PUPPETEER COM FALLBACK
 if (isRender) {
     try {
+        console.log('   📦 Tentando carregar puppeteer-core + chromium...');
         puppeteer = require('puppeteer-core');
-        const chromium = require('@sparticuz/chromium');
-        console.log('✅ Modo RENDER: puppeteer-core + chromium');
-        module.exports.chromium = chromium;
+        chromium = require('@sparticuz/chromium');
+        console.log('   ✅ puppeteer-core + chromium carregados');
     } catch (err) {
-        console.error('❌ Erro ao carregar puppeteer-core no Render:', err.message);
+        console.warn('   ⚠️ Chromium não encontrado, usando puppeteer padrão');
+        console.warn(`   Erro: ${err.message}`);
         puppeteer = require('puppeteer');
+        chromium = null;
     }
 } else {
-    // LOCAL (Windows ou Linux)
     puppeteer = require('puppeteer');
-    console.log(`✅ Modo LOCAL (${isWindows ? 'Windows' : 'Linux'}): puppeteer`);
+    console.log(`   ✅ puppeteer (${isWindows ? 'Windows' : 'Linux'})`);
 }
 
 async function getBrowserConfig() {
-    if (isRender && module.exports.chromium) {
-        // RENDER - Usar Chromium serverless
-        const chromium = module.exports.chromium;
-        console.log('   🚀 Config: Chromium serverless (Render)');
+    if (isRender && chromium) {
+        // RENDER COM CHROMIUM
+        console.log('   🚀 Config: Chromium serverless');
+        
+        try {
+            const executablePath = await chromium.executablePath();
+            console.log(`   ✅ executablePath: ${executablePath}`);
+            
+            return {
+                args: [
+                    ...chromium.args,
+                    '--single-process',
+                    '--no-zygote'
+                ],
+                defaultViewport: chromium.defaultViewport,
+                executablePath: executablePath,
+                headless: chromium.headless,
+                ignoreHTTPSErrors: true,
+                timeout: 120000,
+                protocolTimeout: 120000
+            };
+        } catch (err) {
+            console.error('   ❌ Erro ao obter executablePath:', err.message);
+            throw err;
+        }
+        
+    } else if (isRender && !chromium) {
+        // RENDER SEM CHROMIUM (fallback)
+        console.log('   ⚠️ Config: Puppeteer padrão no Render (sem chromium)');
         
         return {
+            headless: 'new',
             args: [
-                ...chromium.args,
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
                 '--single-process',
                 '--no-zygote'
             ],
-            defaultViewport: chromium.defaultViewport,
-            executablePath: await chromium.executablePath(),
-            headless: chromium.headless,
-            ignoreHTTPSErrors: true,
-            timeout: 120000,
-            protocolTimeout: 120000
+            timeout: 120000
+            // SEM executablePath - deixa Puppeteer tentar encontrar
         };
+        
     } else {
-        // LOCAL - Chrome/Chromium instalado
+        // LOCAL
         console.log('   🖥️ Config: Chrome/Chromium local');
         
         return {
@@ -71,11 +94,9 @@ async function getBrowserConfig() {
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
                 '--disable-gpu'
             ],
             timeout: 60000
-            // ✅ SEM executablePath - deixa Puppeteer encontrar
         };
     }
 }
@@ -83,7 +104,6 @@ async function getBrowserConfig() {
 async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, dataFim = null) {
     console.log(`\n🎯 [COMUNICA PJE] Iniciando busca...`);
     console.log(`   🌍 Ambiente: ${isRender ? 'RENDER' : 'LOCAL'}`);
-    console.log(`   💻 Platform: ${process.platform}`);
     console.log(`   OAB: ${oab}`);
     console.log(`   UF: ${uf}`);
     console.log(`   Escritório ID: ${escritorioId}`);
@@ -125,25 +145,20 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
         
         const page = await browser.newPage();
         
-        // ✅ Timeout maior APENAS no Render
-        if (isRender) {
-            await page.setDefaultNavigationTimeout(90000);
-            await page.setDefaultTimeout(90000);
-            console.log('   ⏱️ Timeout: 90s (Render)');
-        } else {
-            await page.setDefaultNavigationTimeout(30000);
-            await page.setDefaultTimeout(30000);
-            console.log('   ⏱️ Timeout: 30s (Local)');
-        }
+        // Timeout adaptativo
+        const timeout = isRender ? 90000 : 30000;
+        await page.setDefaultNavigationTimeout(timeout);
+        await page.setDefaultTimeout(timeout);
+        console.log(`   ⏱️ Timeout: ${timeout / 1000}s`);
         
         await page.setViewport({ width: 1920, height: 1080 });
         await page.setUserAgent(
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         );
         
-        // ✅ Otimização APENAS no Render (local não precisa)
+        // Otimização apenas no Render
         if (isRender) {
-            console.log('   🚀 Otimização Render: bloqueando imagens/CSS');
+            console.log('   🚀 Otimização: bloqueando recursos pesados');
             await page.setRequestInterception(true);
             page.on('request', (req) => {
                 const resourceType = req.resourceType();
@@ -162,12 +177,9 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
         
         console.log('⏳ Carregando página...');
         
-        // ✅ Navegação com timeout apropriado
-        const navTimeout = isRender ? 90000 : 30000;
-        
         await page.goto(url, {
             waitUntil: 'networkidle2',
-            timeout: navTimeout
+            timeout: timeout
         });
         
         console.log('   ✅ Página carregada');
@@ -191,9 +203,6 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
         const abas = await detectarAbas(page);
         
         console.log(`   ✅ ${abas.length} abas encontradas`);
-        abas.forEach((aba, idx) => {
-            console.log(`      ${idx + 1}. ${aba.texto}`);
-        });
         
         if (abas.length === 0) {
             console.log('   ⚠️ Nenhuma aba. Extraindo conteúdo direto...');
@@ -220,11 +229,6 @@ async function buscarPublicacoesDJEN(oab, uf, escritorioId, dataInicio = null, d
         }
         
         console.log(`\n✅ Total: ${todasPublicacoes.length} intimações únicas`);
-        
-        await page.screenshot({ 
-            path: path.join(screenshotDir, 'comunica_pje_final.png'),
-            fullPage: true 
-        });
         
         await browser.close();
         
@@ -301,10 +305,8 @@ async function extrairPublicacoesPagina(page, abaAtiva) {
             '[class*="intimacao"]',
             '[class*="comunicacao"]',
             '[class*="publicacao"]',
-            '[class*="resultado"]',
             'article',
-            '.card',
-            '[class*="item"]'
+            '.card'
         ];
         
         let elementos = [];
@@ -398,7 +400,6 @@ async function salvarPublicacoes(publicacoes, escritorioId) {
     
     let novas = 0;
     let duplicadas = 0;
-    let erros = 0;
     
     for (const pub of publicacoes) {
         try {
@@ -432,8 +433,7 @@ async function salvarPublicacoes(publicacoes, escritorioId) {
             novas++;
             
         } catch (errDb) {
-            erros++;
-            console.error(`   ❌ Erro ao salvar ${pub.processo}: ${errDb.message}`);
+            console.error(`   ❌ Erro: ${errDb.message}`);
         }
     }
     
@@ -444,7 +444,6 @@ async function salvarPublicacoes(publicacoes, escritorioId) {
         total: publicacoes.length,
         novas: novas,
         duplicadas: duplicadas,
-        erros: erros,
         mensagem: novas > 0 
             ? `${novas} novas intimações!` 
             : publicacoes.length > 0
@@ -454,7 +453,7 @@ async function salvarPublicacoes(publicacoes, escritorioId) {
 }
 
 async function testarScraper() {
-    console.log('🧪 Testando Comunica PJe...\n');
+    console.log('🧪 Testando...\n');
     const resultado = await buscarPublicacoesDJEN('051.288', 'BA', 1);
     console.log('\n📋 Resultado:');
     console.log(JSON.stringify(resultado, null, 2));
