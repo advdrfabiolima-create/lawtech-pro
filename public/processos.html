@@ -12,31 +12,31 @@
     <style>
         :root {
             /* Light Theme Colors - Professional & Clean */
-            --bg-primary: #f8fafc;
-            --bg-secondary: #111827;
-            --bg-tertiary: #1a2332;
+            --bg-primary: #F8FAFB;
+            --bg-secondary: #1E3A5F;
+            --bg-tertiary: #2A4A73;
             --bg-elevated: #ffffff;
             
-            --text-primary: #1e293b;
-            --text-secondary: #475569;
-            --text-tertiary: #64748b;
+            --text-primary: #2C3E50;
+            --text-secondary: #5A6C7D;
+            --text-tertiary: #7B8794;
             
-            --accent-blue: #2563eb;
-            --accent-blue-light: #3b82f6;
-            --accent-blue-glow: rgba(37, 99, 235, 0.3);
+            --accent-blue: #4A90E2;
+            --accent-blue-light: #5BA4DB;
+            --accent-blue-glow: rgba(74, 144, 226, 0.2);
             
-            --accent-green: #10b981;
-            --accent-purple: #8b5cf6;
-            --accent-orange: #f59e0b;
-            --accent-red: #ef4444;
-            --accent-gold: #fbbf24;
+            --accent-green: #52B788;
+            --accent-purple: #7E8CE0;
+            --accent-orange: #F2A65A;
+            --accent-red: #E76F51;
+            --accent-gold: #F4D06F;
             
-            --border-subtle: rgba(0, 0, 0, 0.08);
-            --border-medium: rgba(0, 0, 0, 0.12);
+            --border-subtle: rgba(42, 74, 115, 0.08);
+            --border-medium: rgba(42, 74, 115, 0.12);
             
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
+            --radius-sm: 4px;
+            --radius-md: 6px;
+            --radius-lg: 8px;
             
             --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
             
@@ -57,152 +57,193 @@
         }
 
         * { box-sizing: border-box; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--text-main); line-height: 1.5; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; height: 100vh; overflow: hidden; }                /* Animated Background */        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.015; background-image: linear-gradient(rgba(74, 144, 226, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(74, 144, 226, 0.08) 1px, transparent 1px); background-size: 50px 50px; animation: patternMove 20s linear infinite; pointer-events: none; }        @keyframes patternMove { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }        body::after { content: ""; position: fixed; width: 600px; height: 600px; background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%); top: -300px; right: -300px; border-radius: 50%; filter: blur(100px); opacity: 0.08; z-index: 0; animation: float 20s ease-in-out infinite; pointer-events: none; }        @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-30px, 30px) scale(0.9); } }        @keyframes slideInLeft { from { opacity: 0; transform: translateX(-100%); } to { opacity: 1; transform: translateX(0); } }
         
         /* Sidebar Premium */
-        .sidebar {
-            width: 280px;
-            background: var(--bg-secondary);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-right: 1px solid var(--border-subtle);
-            padding: 32px 24px;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            z-index: 1000;
-        }
+.sidebar {
+    width: 280px;
+    background: var(--bg-secondary);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-right: 1px solid var(--border-subtle);
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
-        .sidebar-header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 24px;
-            border-bottom: 1px solid var(--border-subtle);
-        }
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-100%); }
+    to { opacity: 1; transform: translateX(0); }
+}
 
-        .sidebar-header img {
-            width: 100%;
-            max-width: 180px;
-            height: auto;
-            filter: drop-shadow(0 0 20px var(--accent-blue-glow));
-            transition: all var(--transition-base);
-        }
+/* Sidebar Header */
+.sidebar-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-subtle);
+}
 
-        .sidebar-header img:hover {
-            filter: drop-shadow(0 0 30px var(--accent-blue-glow));
-            transform: scale(1.05);
-        }
+.sidebar-header img {
+    width: 100%;
+    max-width: 180px;
+    height: auto;
+    filter: drop-shadow(0 0 20px var(--accent-blue-glow));
+    transition: all var(--transition-base);
+}
 
-        .menu {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            flex-grow: 1;
-        }
+.sidebar-header img:hover {
+    filter: drop-shadow(0 0 30px var(--accent-blue-glow));
+    transform: scale(1.05);
+}
 
-        .menu a {
-            display: flex;
-            align-items: center;
-            padding: 14px 16px;
-            color: #94a3b8;
-            text-decoration: none;
-            border-radius: var(--radius-lg);
-            font-size: 14px;
-            font-weight: 600;
-            transition: all var(--transition-base);
-            position: relative;
-            overflow: hidden;
-        }
+/* Menu Container */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-grow: 1;
+}
 
-        .menu a::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: var(--accent-blue);
-            transform: scaleY(0);
-            transition: transform var(--transition-base);
-        }
+/* Menu Links */
+.menu a {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    color: #94a3b8; /* CINZA CLARO para links não ativos */
+    text-decoration: none;
+    border-radius: var(--radius-lg);
+    font-size: 14px;
+    font-weight: 600;
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid transparent; /* ← ADICIONAR ESTA LINHA */
+}
 
-        .menu a:hover::before,
-        .menu a.active::before {
-            transform: scaleY(1);
-        }
+/* Barra lateral azul nos links */
+.menu a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent-blue);
+    transform: scaleY(0);
+    transition: transform var(--transition-base);
+}
 
-        .menu a i {
-            margin-right: 12px;
-            font-size: 18px;
-            transition: all var(--transition-base);
-        }
+.menu a:hover::before,
+.menu a.active::before {
+    transform: scaleY(1);
+}
 
-        .menu a:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: #e2e8f0;
-            transform: translateX(4px);
-        }
+/* Ícones dos links */
+.menu a i {
+    margin-right: 12px;
+    font-size: 18px;
+    transition: all var(--transition-base);
+}
 
-        .menu a.active {
-            background: rgba(37, 99, 235, 0.15);
-            color: #60a5fa;
-            border: 1px solid rgba(37, 99, 235, 0.4);
-        }
+/* Hover dos links */
+.menu a:hover {
+    background: rgba(255, 255, 255, 0.05); /* Hover suave */
+    color: #e2e8f0; /* Cinza bem claro no hover */
+    transform: translateX(4px);
+}
 
-        .menu a.active i {
-            color: #60a5fa;
-        }
+/* Link ativo */
+.menu a.active {
+    background: rgba(37, 99, 235, 0.15); /* Azul visível */
+    color: #60a5fa; /* Azul claro */
+    border: 1px solid rgba(37, 99, 235, 0.4);
+}
 
+.menu a.active i {
+    color: #60a5fa; /* Azul claro */
+}
+
+/* Botão CRM Gold - IMPORTANTE: margin-top cria o espaçamento */
+.btn-crm-gold-nav { 
+    background: #fbbf24 !important; 
+    color: #000 !important; 
+    font-weight: 800 !important; 
+    margin-top: 15px !important; /* ⚡ ESPAÇAMENTO CRÍTICO */
+    display: flex !important; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 12px !important; 
+    border-radius: 8px; 
+    text-decoration: none; 
+    font-size: 14px; 
+    transition: 0.3s; 
+}
+
+.btn-crm-gold-nav:hover { 
+    background: #facc15 !important; 
+    transform: scale(1.02); 
+}
+
+.btn-crm-gold-nav i { 
+    margin-right: 10px; 
+}
+
+/* Sidebar Footer */
 .sidebar-footer {
-    padding-top: 20px;
+    padding-top: 24px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 12px;
     margin-top: auto;
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-/* Alinhamento à esquerda (Início) */
+.sidebar-footer span {
+    color: #cbd5e1 !important;
+}
+
+/* Footer Info Row - Alinhamento das informações */
 .footer-info-row {
     display: flex;
-    justify-content: flex-start; /* Alinha no começo da linha */
+    justify-content: flex-start;
     align-items: center;
-    gap: 5px; /* Espaço fixo após os ":" */
+    gap: 5px;
     font-size: 12px;
+    width: 100%;
 }
 
-/* Rótulos em caixa alta */
 .footer-info-row span:first-child {
     text-transform: uppercase;
-    color: var(--text-tertiary, #64748b);
+    color: var(--text-tertiary);
     font-weight: 700;
-    white-space: nowrap;
+    min-width: 65px; /* Alinha os dois pontos verticalmente */
 }
 
-/* ✅ Regra para e-mail e plano em minúsculas */
+/* Mantém e-mail e plano minúsculos */
 .keep-lowercase {
-    text-transform: none !important; /* Cancela o uppercase global */
-    font-variant: normal !important;
+    text-transform: lowercase !important;
     color: #cbd5e1;
-}      
-
-        .sidebar-footer span {
-            color: #cbd5e1 !important;
-        }
+    font-weight: 500;
+}
 
         /* Área Principal */
-        .main { margin-left: 280px; min-height: 100vh; display: flex; flex-direction: column; position: relative; z-index: 1; }
-        .header { background: var(--white); height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; }
-        .content { padding: 32px; }
+        .main { margin-left: 280px; min-height: 100vh; display: flex; flex-direction: column; position: relative; z-index: 1; width: calc(100% - 280px); }
+        .header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; }
+        .content { padding: 32px 40px; flex-grow: 1; overflow-y: auto; max-height: calc(100vh - 72px); }
 
         /* Filtros Estilizados */
         .filters-container { background: var(--white); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .filter-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-right: 15px; }
         
-        .btn-filter { background: #f1f5f9; border: 1px solid transparent; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); transition: 0.2s; }
+        .btn-filter { background: #f1f5f9; border: 1px solid transparent; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); transition: 0.2s; }
         .btn-filter:hover { background: #e2e8f0; color: var(--text-main); }
         .btn-filter.active { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
 
@@ -211,16 +252,16 @@
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; color: var(--muted); padding: 16px 24px; border-bottom: 2px solid var(--border); font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
         td { padding: 16px 24px; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-main); }
-        tr:hover td { background-color: #f8fafc; }
+        tr:hover td { background-color: #F8FAFB; }
         
-        .status-pill { color: var(--success); font-weight: 700; font-size: 11px; background: #ecfdf5; padding: 4px 10px; border-radius: 50px; border: 1px solid #d1fae5; }
+        .status-pill { color: var(--success); font-weight: 700; font-size: 11px; background: #ecfdf5; padding: 4px 10px; border-radius: 4px; border: 1px solid #d1fae5; }
 
-        .btn-primary { background: var(--primary); color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: #fff; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.2s; }
         .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
 
         /* Modal */
         #modalProcesso { backdrop-filter: blur(4px); }
-        .modal-content { background:#fff; width:100%; max-width:480px; padding:32px; border-radius:16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .modal-content { background:#fff; width:100%; max-width:480px; padding:32px; border-radius:4px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
 
         #modalEditarProcesso {
     display: none; /* Começa oculto */
@@ -243,7 +284,7 @@
 .modal-content {
     background: white;
     padding: 30px;
-    border-radius: 12px;
+    border-radius: 4px;
     max-width: 600px;
     width: 90%;
     max-height: 90vh;
@@ -252,36 +293,6 @@
     position: relative;
     z-index: 10001; /* ✅ Ainda mais alto */
 }
-
-        .btn-crm-gold-nav {
-            background: linear-gradient(135deg, var(--accent-gold) 0%, #facc15 100%) !important;
-            color: #000 !important;
-            font-weight: 800 !important;
-            margin-top: 16px !important;
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
-            position: relative;
-            overflow: hidden;
-            border-radius: var(--radius-lg);
-            padding: 14px 16px !important;
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            font-size: 14px;
-            transition: all var(--transition-base);
-        }
-
-        .btn-crm-gold-nav i {
-            margin-right: 10px;
-            font-size: 18px;
-        }
-
-        .btn-crm-gold-nav:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(251, 191, 36, 0.6);
-        } 
-        
-        .btn-crm-gold-nav i { margin-right: 10px; }
 
         /* Estilização Premium para os Selects e Labels */
         .modal-grid {
@@ -297,7 +308,7 @@
         .label-premium {
             font-size: 11px;
             font-weight: 800;
-            color: #64748b;
+            color: #7B8794;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 8px;
@@ -307,8 +318,8 @@
             padding: 12px;
             border: 1px solid #e2e8f0;
             border-radius: 10px;
-            background-color: #f8fafc;
-            color: #1e293b;
+            background-color: #F8FAFB;
+            color: #2C3E50;
             font-size: 14px;
             font-weight: 500;
             transition: all 0.2s;
@@ -320,18 +331,18 @@
             background-size: 16px;
         }
         .select-premium:focus {
-            border-color: #2563eb;
+            border-color: #4A90E2;
             outline: none;
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
             background-color: #fff;
         }
         .btn-primary-premium {
     flex: 2;
-    background: #2563eb;
+    background: #4A90E2;
     color: #ffffff;
     border: none;
     padding: 14px;
-    border-radius: 12px;
+    border-radius: 4px;
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
@@ -354,10 +365,10 @@
 .btn-cancel-premium {
     flex: 1;
     background: #f1f5f9;
-    color: #64748b;
+    color: #7B8794;
     border: none;
     padding: 14px;
-    border-radius: 12px;
+    border-radius: 4px;
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
@@ -365,16 +376,16 @@
 }
 .btn-cancel-premium:hover {
     background: #e2e8f0;
-    color: #475569;
+    color: #5A6C7D;
 }
 .aba-btn {
     background: #f1f5f9;
     border: none;
     padding: 12px 20px;
-    border-radius: 50px;
+    border-radius: 4px;
     font-weight: 600;
     font-size: 14px;
-    color: #64748b;
+    color: #7B8794;
     cursor: pointer;
     transition: all 0.25s ease;
     display: flex;
@@ -426,8 +437,8 @@ input, textarea, select {
    ============================================================ */
 
 .partes-container {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    border-radius: 12px;
+    background: linear-gradient(135deg, #F8FAFB 0%, #f1f5f9 100%);
+    border-radius: 4px;
     padding: 20px;
     margin-bottom: 20px;
     border: 1px solid #e2e8f0;
@@ -455,7 +466,7 @@ input, textarea, select {
 .partes-header h4 {
     font-size: 13px;
     font-weight: 700;
-    color: #1e293b;
+    color: #2C3E50;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     display: flex;
@@ -465,10 +476,10 @@ input, textarea, select {
 }
 
 .contador-partes {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #4A90E2 0%, #1d4ed8 100%);
     color: white;
     padding: 3px 10px;
-    border-radius: 12px;
+    border-radius: 4px;
     font-size: 11px;
     font-weight: 700;
     box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
@@ -493,7 +504,7 @@ input, textarea, select {
     color: white;
     border: none;
     padding: 8px 16px;
-    border-radius: 8px;
+    border-radius: 4px;
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
@@ -562,14 +573,14 @@ input, textarea, select {
 }
 
 .parte-item:hover {
-    border-color: #2563eb;
+    border-color: #4A90E2;
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
     transform: translateX(2px);
 }
 
 .parte-item:hover::before {
     width: 6px;
-    background: #2563eb;
+    background: #4A90E2;
 }
 
 /* Parte Principal */
@@ -649,14 +660,14 @@ input, textarea, select {
 
 .parte-nome {
     font-weight: 600;
-    color: #1e293b;
+    color: #2C3E50;
     font-size: 14px;
     line-height: 1.4;
 }
 
 .parte-tipo {
     font-size: 11px;
-    color: #64748b;
+    color: #7B8794;
     text-transform: uppercase;
     letter-spacing: 0.3px;
     font-weight: 600;
@@ -670,7 +681,7 @@ input, textarea, select {
     background: #fee2e2;
     border: 2px solid #fecaca;
     padding: 8px;
-    border-radius: 8px;
+    border-radius: 4px;
     cursor: pointer;
     color: #ef4444;
     display: flex;
@@ -724,7 +735,7 @@ input, textarea, select {
 
 .partes-empty-state .title {
     font-weight: 600;
-    color: #64748b;
+    color: #7B8794;
 }
 
 .partes-empty-state .subtitle {
@@ -840,7 +851,7 @@ input, textarea, select {
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
-    background: #1e293b;
+    background: #2C3E50;
     color: white;
     padding: 6px 10px;
     border-radius: 6px;
@@ -857,12 +868,12 @@ input, textarea, select {
 
 .partes-list.invalid {
     border: 2px dashed #ef4444;
-    border-radius: 8px;
+    border-radius: 4px;
 }
 
 .partes-list.valid {
     border: 2px dashed #10b981;
-    border-radius: 8px;
+    border-radius: 4px;
 }
 
 /* ============================================================
@@ -887,9 +898,9 @@ input, textarea, select {
    ESTILOS PARA GERENCIADOR DE PARTES
    ============================================ */
 .partes-container {
-    background: #f8fafc;
+    background: #F8FAFB;
     border: 1px solid #e2e8f0;
-    border-radius: 12px;
+    border-radius: 4px;
     padding: 16px;
     margin-bottom: 20px;
 }
@@ -904,7 +915,7 @@ input, textarea, select {
 .partes-header h4 {
     font-size: 13px;
     font-weight: 700;
-    color: #1e293b;
+    color: #2C3E50;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     display: flex;
@@ -913,10 +924,10 @@ input, textarea, select {
 }
 
 .contador-partes {
-    background: #2563eb;
+    background: #4A90E2;
     color: white;
     padding: 2px 8px;
-    border-radius: 12px;
+    border-radius: 4px;
     font-size: 11px;
     font-weight: 700;
 }
@@ -951,7 +962,7 @@ input, textarea, select {
 .parte-item {
     background: white;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    border-radius: 4px;
     padding: 12px;
     display: flex;
     align-items: center;
@@ -960,7 +971,7 @@ input, textarea, select {
 }
 
 .parte-item:hover {
-    border-color: #2563eb;
+    border-color: #4A90E2;
     box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
 }
 
@@ -1007,13 +1018,13 @@ input, textarea, select {
 
 .parte-nome {
     font-weight: 600;
-    color: #1e293b;
+    color: #2C3E50;
     font-size: 13px;
 }
 
 .parte-tipo {
     font-size: 11px;
-    color: #64748b;
+    color: #7B8794;
 }
 
 .btn-remover {
@@ -1056,7 +1067,7 @@ input, textarea, select {
 
 .modal-parte-content {
     background: white;
-    border-radius: 16px;
+    border-radius: 4px;
     padding: 24px;
     width: 90%;
     max-width: 500px;
@@ -1072,7 +1083,7 @@ input, textarea, select {
     border-radius: 10px;
     font-size: 14px;
     font-weight: 500;
-    color: #1e293b;
+    color: #2C3E50;
     background: white;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -1084,13 +1095,13 @@ input, textarea, select {
 }
 
 .select-moderno:hover {
-    border-color: #2563eb;
+    border-color: #4A90E2;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .select-moderno:focus {
     outline: none;
-    border-color: #2563eb;
+    border-color: #4A90E2;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
@@ -1105,7 +1116,7 @@ input, textarea, select {
     display: block;
     font-size: 12px;
     font-weight: 700;
-    color: #64748b;
+    color: #7B8794;
     margin-bottom: 8px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -1142,27 +1153,32 @@ input, textarea, select {
 </head>
 <body>
 
-    <aside class="sidebar">
-        <div class="sidebar-header"><img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro"></div>
-        <nav class="menu">
-            <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
-            <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
-            <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
-            <a href="/processos-page" class="active"><i class="lucide lucide-folder"></i> Processos</a>
-            <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
-            <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
-            <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
-            <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
-            <a href="/ia-page" style="display: flex; align-items: center; gap: 10px;">
-                <i class="lucide lucide-sparkles" style="color: #fbbf24;"></i> IA Jurídica 
-                <span style="font-size: 9px; background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; margin-left: auto;">PREMIUM</span>
-            </a>
-            <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
-            <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
-            <a href="/crm-page" class="btn-crm-gold-nav">
-                <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
-            </a>
-        </nav>
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+    </div>
+    <nav class="menu">
+        <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+        <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+        <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
+        <a href="/processos-page" class="active"><i class="lucide lucide-folder"></i> Processos</a>
+        <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+        <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+        <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+        <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
+        <a href="/ia-page" style="display:flex; align-items:center; gap:10px;">
+            <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i> IA Jurídica
+            <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">PREMIUM</span>
+        </a>
+        <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+        <a href="/config-page" id="guia-config" onclick="limparBolinha()">
+            <i class="lucide lucide-settings"></i> Configurações
+            <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
+        </a>
+        <a href="/crm-page" class="btn-crm-gold-nav">
+            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+        </a>
+    </nav>
        <div class="sidebar-footer">
     <div class="footer-info-row">
         <span>Usuário:</span> 
@@ -1190,7 +1206,7 @@ input, textarea, select {
                     <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
                         --
                     </div>
-                    <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
+                    <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 4px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
                         <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
                         <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
                     </div>
@@ -1242,7 +1258,7 @@ input, textarea, select {
             <div class="card" style="overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 1200px;">
                     <thead>
-                        <tr style="background: #f1f5f9; color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">
+                        <tr style="background: #f1f5f9; color: #7B8794; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">
                             <th style="width: 22%; padding: 16px 12px; text-align: left;">Nº Processo (CNJ)</th>
                             <th style="width: 18%; padding: 16px 12px; text-align: left;">Cliente</th>
                             <th style="width: 14%; padding: 16px 12px; text-align: left;">Parte Contrária</th>
@@ -1409,10 +1425,10 @@ input, textarea, select {
        <form id="formAdicionarParte" onsubmit="event.preventDefault(); adicionarParteFormulario();">
             <!-- Seleção de Cliente Existente -->
             <div style="margin-bottom: 16px;">
-                <label style="display:block; font-size:11px; font-weight:700; color: #64748b; margin-bottom:6px; text-transform:uppercase;">
+                <label style="display:block; font-size:11px; font-weight:700; color: #7B8794; margin-bottom:6px; text-transform:uppercase;">
                     Cliente Cadastrado (Opcional)
                 </label>
-                <select id="clienteSelect" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;" 
+                <select id="clienteSelect" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:4px;" 
                         onchange="preencherDadosCliente(this.value)">
                     <option value="">Selecionar cliente ou digitar manualmente</option>
                 </select>
@@ -1420,30 +1436,30 @@ input, textarea, select {
 
             <!-- Nome da Parte -->
             <div style="margin-bottom: 16px;">
-                <label style="display:block; font-size:11px; font-weight:700; color: #64748b; margin-bottom:6px; text-transform:uppercase;">
+                <label style="display:block; font-size:11px; font-weight:700; color: #7B8794; margin-bottom:6px; text-transform:uppercase;">
                     Nome Completo *
                 </label>
                 <input type="text" id="parteNome" required
-                       style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
+                       style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:4px;">
             </div>
 
             <!-- Tipo de Parte -->
             <div style="margin-bottom: 16px;">
-                <label style="display:block; font-size:11px; font-weight:700; color: #64748b; margin-bottom:6px; text-transform:uppercase;">
+                <label style="display:block; font-size:11px; font-weight:700; color: #7B8794; margin-bottom:6px; text-transform:uppercase;">
                     Tipo de Parte *
                 </label>
                 <select id="parteTipo" required
-                        style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
+                        style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:4px;">
                     <!-- Opções serão preenchidas dinamicamente -->
                 </select>
             </div>
 
             <div style="display: flex; gap: 8px; margin-top: 20px;">
-                <button type="submit" style="flex:1; background:#2563eb; color:white; border:none; padding:10px; border-radius:8px; font-weight:600; cursor:pointer;">
+                <button type="submit" style="flex:1; background:#4A90E2; color:white; border:none; padding:10px; border-radius:4px; font-weight:600; cursor:pointer;">
                     Adicionar
                 </button>
                 <button type="button" onclick="fecharModalAdicionarParte()" 
-                        style="flex:1; background:#f1f5f9; color:#475569; border:none; padding:10px; border-radius:8px; font-weight:600; cursor:pointer;">
+                        style="flex:1; background:#f1f5f9; color:#5A6C7D; border:none; padding:10px; border-radius:4px; font-weight:600; cursor:pointer;">
                     Cancelar
                 </button>
             </div>
@@ -1917,8 +1933,8 @@ let gerenciadorPartesEdicao = null;
         tabela.innerHTML = listaFiltrada.map(p => `
             <tr style="border-bottom: 1px solid #e2e8f0;">
                 <td style="padding: 16px 12px;">
-                    <div style="font-weight: 700; color: #2563eb; font-size: 14px;">${p.numero || 'N/A'}</div>
-                    <div style="font-size: 12px; color: #64748b;">vs. ${p.parte_contraria || 'Não informada'}</div>
+                    <div style="font-weight: 700; color: #4A90E2; font-size: 14px;">${p.numero || 'N/A'}</div>
+                    <div style="font-size: 12px; color: #7B8794;">vs. ${p.parte_contraria || 'Não informada'}</div>
                 </td>
                 <td style="padding: 16px 12px; font-weight: 600;">${p.cliente || '---'}</td>
                 <td style="padding: 16px 12px;">${p.parte_contraria || '---'}</td>
@@ -1929,20 +1945,20 @@ let gerenciadorPartesEdicao = null;
                 </td>
                 <td style="padding: 16px 12px; font-weight: 500;">${formatarTribunal(p.tribunal) || '—'}</td>
                 <td style="padding: 16px 12px; text-align: center; font-weight: 600;">${formatarInstancia(p.instancia)}</td>
-                <td style="padding: 16px 12px; text-align: center; font-weight: 700; color: #2563eb;">${p.uf || '--'}</td>
+                <td style="padding: 16px 12px; text-align: center; font-weight: 700; color: #4A90E2;">${p.uf || '--'}</td>
                 <td style="padding: 16px 12px; text-align: center;">
-                    <span style="background: ${abaAtual === 'excluido' ? '#fee2e2' : '#ecfdf5'}; color: ${abaAtual === 'excluido' ? '#ef4444' : '#10b981'}; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;">
+                    <span style="background: ${abaAtual === 'excluido' ? '#fee2e2' : '#ecfdf5'}; color: ${abaAtual === 'excluido' ? '#ef4444' : '#10b981'}; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 700;">
                         ${(p.status || 'ATIVO').toUpperCase()}
                     </span>
                 </td>
                 <td style="padding: 16px 12px; text-align: right;">
                     <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
                         ${abaAtual === 'ativo' ? `
-                            <button onclick="editarProcesso(${p.id})" title="Editar Processo" style="background:none;border:none;cursor:pointer;color:#3b82f6;"><i data-lucide="edit" style="width:18px;"></i></button>
+                            <button onclick="editarProcesso(${p.id})" title="Editar Processo" style="background:none;border:none;cursor:pointer;color:#5BA4DB;"><i data-lucide="edit" style="width:18px;"></i></button>
                             <button onclick="arquivarProcesso(${p.id})" title="Arquivar" style="background:none;border:none;cursor:pointer;color:#f59e0b;"><i data-lucide="archive" style="width:18px;"></i></button>
                             <button onclick="excluirProcesso(${p.id})" title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;"><i data-lucide="trash-2" style="width:18px;"></i></button>
                         ` : abaAtual === 'arquivado' ? `
-                            <button onclick="editarProcesso(${p.id})" title="Editar Processo" style="background:none;border:none;cursor:pointer;color:#3b82f6;"><i data-lucide="edit" style="width:18px;"></i></button>
+                            <button onclick="editarProcesso(${p.id})" title="Editar Processo" style="background:none;border:none;cursor:pointer;color:#5BA4DB;"><i data-lucide="edit" style="width:18px;"></i></button>
                             <button onclick="desarquivarProcesso(${p.id})" title="Desarquivar" style="background:none;border:none;cursor:pointer;color:#10b981;"><i data-lucide="refresh-cw" style="width:18px;"></i></button>
                             <button onclick="excluirProcesso(${p.id})" title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;"><i data-lucide="trash-2" style="width:18px;"></i></button>
                         ` : `
@@ -1951,7 +1967,7 @@ let gerenciadorPartesEdicao = null;
                                 <div style="font-size: 11px; color: #ef4444; font-weight: 600; margin-bottom: 2px;">
                                     ${p.excluido_por ? (p.excluido_por.includes('@') ? p.excluido_por.split('@')[0] : p.excluido_por) : 'Sistema'}
                                 </div>
-                                <div style="font-size: 10px; color: #64748b; font-weight: 500;">
+                                <div style="font-size: 10px; color: #7B8794; font-weight: 500;">
                                     ${p.data_exclusao ? (() => {
                                         let data = new Date(p.data_exclusao);
                                         if (p.data_exclusao.includes('Z') || data.getTimezoneOffset() === 0) {
@@ -2957,9 +2973,9 @@ function obterTribunaisPorEsfera(esfera) {
         <button 
             class="btn-primary" 
             onclick="salvarEdicaoProcesso()"
-            style="background: #2563eb; color: white; padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; transition: all 0.2s ease;"
+            style="background: #4A90E2; color: white; padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; transition: all 0.2s ease;"
             onmouseover="this.style.background='#1d4ed8'"
-            onmouseout="this.style.background='#2563eb'"
+            onmouseout="this.style.background='#4A90E2'"
         >
             💾 Salvar
         </button>

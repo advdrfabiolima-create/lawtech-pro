@@ -344,6 +344,49 @@
             overflow: hidden;
         }
 
+        /* Gradientes específicos por categoria */
+        [data-category="tecnologia"] .article-image {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        [data-category="tributario"] .article-image {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        [data-category="trabalho"] .article-image {
+            background: linear-gradient(135deg, #ffa751 0%, #ffe259 100%);
+        }
+
+        [data-category="digital"] .article-image {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        [data-category="civil"] .article-image {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        [data-category="penal"] .article-image {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        /* Padrão de background decorativo para os cards */
+        .article-image::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -100px;
+            right: -100px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-20px, 20px); }
+        }
+
         .article-image::before {
             content: '';
             position: absolute;
@@ -437,6 +480,11 @@
         .cat-digital {
             background: #ccfbf1;
             color: #115e59;
+        }
+
+        .cat-tributario {
+            background: #fce7f3;
+            color: #9f1239;
         }
 
         /* Categoria Tecnologia (Destaque especial) */
@@ -849,7 +897,7 @@
                 <li><a href="index.html#planos">Planos</a></li>
                 <a href="sobre-nos.html">Sobre Nós</a>
                 <a href="blog.html" class="active">Blog</a>
-                <li><a href="mailto:contato@lawtechpro.com.br">Contato</a></li>
+                <li><a href="/cdn-cgi/l/email-protection#8ae9e5e4feebfee5cae6ebfdfeefe9e2faf8e5a4e9e5e7a4e8f8">Contato</a></li>
             </div>
             <div class="nav-buttons">
                 <a href="login.html" class="btn btn-login">Entrar</a>
@@ -880,14 +928,12 @@
     <section class="filters-section">
         <div class="container">
             <div class="filters-container">
-                <button class="filter-btn active">Todos os Artigos</button>
-                <button class="filter-btn tech">🚀 Tecnologia & Inovação</button>
-                <button class="filter-btn">Direito do Consumidor</button>
-                <button class="filter-btn">Direito Civil</button>
-                <button class="filter-btn">Direito do Trabalho</button>
-                <button class="filter-btn">Direito Penal</button>
-                <button class="filter-btn">Direito Previdenciário</button>
-                <button class="filter-btn">Direito Digital</button>
+                <button class="filter-btn active" data-filter="todos">Todos os Artigos</button>
+                <button class="filter-btn tech" data-filter="tecnologia">🚀 Tecnologia & Inovação</button>
+                <button class="filter-btn" data-filter="tributario">💰 Tributário</button>
+                <button class="filter-btn" data-filter="trabalho">👷 Direito do Trabalho</button>
+                <button class="filter-btn" data-filter="digital">🔐 Direito Digital</button>
+                <button class="filter-btn" data-filter="civil">🏛️ Processo Civil</button>
             </div>
         </div>
     </section>
@@ -903,18 +949,18 @@
                 <article class="featured-article">
                     <div class="featured-content">
                         <span class="featured-badge">⚡ Artigo em Destaque</span>
-                        <h2>Como a Inteligência Artificial Está Revolucionando a Advocacia Brasileira</h2>
+                        <h2>Automação e Estratégia: Tendências da Advocacia em 2026</h2>
                         <p>
-                            Descubra como ferramentas de IA estão transformando a rotina dos advogados: 
-                            desde análise preditiva de processos até geração automática de petições. 
-                            Entenda o impacto real da tecnologia no Direito moderno.
+                            Pesquisa da OAB-SP revela que 55,1% dos advogados já utilizam IA generativa 
+                            em suas rotinas, com 78% usando essas ferramentas semanalmente. Especialistas 
+                            avaliam que 2026 será decisivo para consolidação de práticas digitais estratégicas.
                         </p>
                         <div class="featured-meta">
-                            <span class="featured-meta-item">📅 15 Jan 2026</span>
+                            <span class="featured-meta-item">📅 13 Jan 2026</span>
                             <span class="featured-meta-item">⏱️ 8 min de leitura</span>
                             <span class="featured-meta-item">🤖 Tecnologia</span>
                         </div>
-                        <a href="#" class="featured-cta">Ler artigo completo</a>
+                        <a href="https://www.uai.com.br/app/noticia/mundo-corporativo/2026/01/19/noticia-mundo-corporativo,376357/automacao-e-estrategia-sao-tendencias-da-advocacia-em-2026.shtml" target="_blank" class="featured-cta">Ler artigo completo</a>
                     </div>
                     <div class="featured-image-side">
                         <svg viewBox="0 0 24 24">
@@ -924,8 +970,8 @@
                     </div>
                 </article>
 
-                <!-- ARTIGO 1 - LEGALTECHS -->
-                <article class="article-card">
+                <!-- ARTIGO 1 - OAB/SC E IA -->
+                <article class="article-card" data-category="tecnologia">
                     <div class="article-image">
                         <div class="article-icon">
                             <svg viewBox="0 0 24 24">
@@ -937,22 +983,22 @@
                     <div class="article-content">
                         <div class="article-meta">
                             <span class="article-category cat-tecnologia">Tecnologia</span>
-                            <span class="article-date">12 Jan 2026</span>
+                            <span class="article-date">02 Jan 2026</span>
                         </div>
-                        <h3 class="article-title">O Boom das LegalTechs: Por Que Todo Escritório Precisa Adotar Agora</h3>
+                        <h3 class="article-title">2026 Será o Ano da Inteligência Artificial na OAB/SC</h3>
                         <p class="article-excerpt">
-                            Entenda o crescimento exponencial das LegalTechs no Brasil e por que 
-                            a transformação digital deixou de ser opcional para escritórios de advocacia.
+                            A OAB de Santa Catarina prepara agenda com capacitações, treinamentos e acesso 
+                            a ferramentas de IA acessíveis para simplificar o cotidiano forense dos advogados.
                         </p>
                         <div class="article-footer">
-                            <a href="#" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 6 min</span>
+                            <a href="https://www.oab-sc.org.br/noticias/2026-sera-ano-inteligencia-artificial-na-oabsc/24371" target="_blank" class="read-more">Continuar lendo</a>
+                            <span class="quick-read">⏱️ 5 min</span>
                         </div>
                     </div>
                 </article>
 
-                <!-- ARTIGO 2 - DIREITO DO CONSUMIDOR -->
-                <article class="article-card">
+                <!-- ARTIGO 2 - REFORMA TRIBUTÁRIA -->
+                <article class="article-card" data-category="tributario">
                     <div class="article-image">
                         <div class="article-icon">
                             <svg viewBox="0 0 24 24">
@@ -963,23 +1009,23 @@
                     </div>
                     <div class="article-content">
                         <div class="article-meta">
-                            <span class="article-category cat-consumidor">Direito do Consumidor</span>
-                            <span class="article-date">10 Jan 2026</span>
+                            <span class="article-category cat-tributario">Tributário</span>
+                            <span class="article-date">02 Jan 2026</span>
                         </div>
-                        <h3 class="article-title">Novas Regras do CDC: O Que Mudou em 2026 para Compras Online</h3>
+                        <h3 class="article-title">2026 Marca Implementação da Reforma Tributária no Brasil</h3>
                         <p class="article-excerpt">
-                            Análise completa das alterações recentes no Código de Defesa do Consumidor 
-                            e seus impactos no comércio eletrônico brasileiro.
+                            Após sete anos de tramitação, o Brasil inicia o teste do novo sistema tributário. 
+                            Empresas devem emitir notas destacando CBS e IBS, com projeto piloto já em andamento.
                         </p>
                         <div class="article-footer">
-                            <a href="#" class="read-more">Continuar lendo</a>
+                            <a href="https://www12.senado.leg.br/noticias/materias/2026/01/02/ano-de-2026-marca-implementacao-da-reforma-tributaria" target="_blank" class="read-more">Continuar lendo</a>
                             <span class="quick-read">⏱️ 7 min</span>
                         </div>
                     </div>
                 </article>
 
-                <!-- ARTIGO 3 - AUTOMAÇÃO -->
-                <article class="article-card">
+                <!-- ARTIGO 3 - OAB APROVA RECOMENDAÇÕES DE IA -->
+                <article class="article-card" data-category="tecnologia">
                     <div class="article-image">
                         <div class="article-icon">
                             <svg viewBox="0 0 24 24">
@@ -993,22 +1039,22 @@
                     <div class="article-content">
                         <div class="article-meta">
                             <span class="article-category cat-tecnologia">Tecnologia</span>
-                            <span class="article-date">08 Jan 2026</span>
+                            <span class="article-date">Jan 2026</span>
                         </div>
-                        <h3 class="article-title">Automação de Processos: Como Ganhar 20 Horas por Semana no Seu Escritório</h3>
+                        <h3 class="article-title">OAB Aprova Recomendações para Uso de IA na Prática Jurídica</h3>
                         <p class="article-excerpt">
-                            Guia prático de automação jurídica: quais tarefas automatizar primeiro 
-                            e quais ferramentas utilizar para máxima eficiência.
+                            Conselho Federal da OAB estabelece diretrizes sobre confidencialidade, privacidade 
+                            e prática ética no uso de inteligência artificial generativa na advocacia.
                         </p>
                         <div class="article-footer">
-                            <a href="#" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 10 min</span>
+                            <a href="http://www.oab.org.br/noticia/62704/oab-aprova-recomendacoes-para-uso-de-ia-na-pratica-juridica" target="_blank" class="read-more">Continuar lendo</a>
+                            <span class="quick-read">⏱️ 6 min</span>
                         </div>
                     </div>
                 </article>
 
-                <!-- ARTIGO 4 - DIREITO CIVIL -->
-                <article class="article-card">
+                <!-- ARTIGO 4 - STJ JULGAMENTOS 2026 -->
+                <article class="article-card" data-category="civil">
                     <div class="article-image">
                         <div class="article-icon">
                             <svg viewBox="0 0 24 24">
@@ -1019,23 +1065,23 @@
                     </div>
                     <div class="article-content">
                         <div class="article-meta">
-                            <span class="article-category cat-civil">Direito Civil</span>
-                            <span class="article-date">05 Jan 2026</span>
+                            <span class="article-category cat-civil">Processo</span>
+                            <span class="article-date">01 Fev 2026</span>
                         </div>
-                        <h3 class="article-title">Usucapião Digital: Como a Tecnologia Facilita o Processo</h3>
+                        <h3 class="article-title">STJ Destaca Principais Julgamentos Previstos para 2026</h3>
                         <p class="article-excerpt">
-                            Entenda como a digitalização dos cartórios e processos judiciais 
-                            está acelerando ações de usucapião em todo o país.
+                            Tribunal analisará casos sobre benefícios previdenciários, planos de saúde, 
+                            impenhorabilidade, tributação e temas penais com grande impacto jurídico e social.
                         </p>
                         <div class="article-footer">
-                            <a href="#" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 5 min</span>
+                            <a href="https://www.stj.jus.br/sites/portalp/paginas/comunicacao/noticias/2026/01022026-corte-especial-abre-ano-judiciario-nesta-segunda-feira--2---confira-julgamentos-de-destaque-previstos-para-2026.aspx" target="_blank" class="read-more">Continuar lendo</a>
+                            <span class="quick-read">⏱️ 8 min</span>
                         </div>
                     </div>
                 </article>
 
-                <!-- ARTIGO 5 - JURIMETRIA -->
-                <article class="article-card">
+                <!-- ARTIGO 5 - ABONO SALARIAL PIS/PASEP -->
+                <article class="article-card" data-category="trabalho">
                     <div class="article-image">
                         <div class="article-icon">
                             <svg viewBox="0 0 24 24">
@@ -1047,23 +1093,23 @@
                     </div>
                     <div class="article-content">
                         <div class="article-meta">
-                            <span class="article-category cat-tecnologia">Tecnologia</span>
-                            <span class="article-date">03 Jan 2026</span>
+                            <span class="article-category cat-trabalho">Direito do Trabalho</span>
+                            <span class="article-date">05 Fev 2026</span>
                         </div>
-                        <h3 class="article-title">Jurimetria: Como Análise de Dados Aumenta Chances de Sucesso em 40%</h3>
+                        <h3 class="article-title">Consulta ao Abono Salarial PIS/Pasep 2026 Já Está Liberada</h3>
                         <p class="article-excerpt">
-                            Descubra como grandes escritórios usam big data e jurimetria para 
-                            tomar decisões estratégicas baseadas em evidências concretas.
+                            Trabalhadores podem verificar se têm direito ao benefício referente ao ano-base 2024 
+                            pelo app Carteira de Trabalho Digital ou portal Gov.br. Contemplados 2 milhões de trabalhadores.
                         </p>
                         <div class="article-footer">
-                            <a href="#" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 9 min</span>
+                            <a href="https://agenciabrasil.ebc.com.br/economia/noticia/2026-02/saiba-como-consultar-se-tem-direito-ao-abono-salarial-pispasep-2026" target="_blank" class="read-more">Continuar lendo</a>
+                            <span class="quick-read">⏱️ 5 min</span>
                         </div>
                     </div>
                 </article>
 
-                <!-- ARTIGO 6 - DIREITO DO TRABALHO -->
-                <article class="article-card">
+                <!-- ARTIGO 6 - ISENÇÃO DE IMPOSTOS PCD -->
+                <article class="article-card" data-category="tributario">
                     <div class="article-image">
                         <div class="article-icon">
                             <svg viewBox="0 0 24 24">
@@ -1074,23 +1120,23 @@
                     </div>
                     <div class="article-content">
                         <div class="article-meta">
-                            <span class="article-category cat-trabalho">Direito do Trabalho</span>
-                            <span class="article-date">29 Dez 2025</span>
+                            <span class="article-category cat-tributario">Tributário</span>
+                            <span class="article-date">06 Fev 2026</span>
                         </div>
-                        <h3 class="article-title">Home Office na Legislação: Direitos e Deveres Atualizados 2026</h3>
+                        <h3 class="article-title">Novos Grupos Têm Direito à Isenção de IPI e IOF na Compra de Veículos</h3>
                         <p class="article-excerpt">
-                            Análise completa da CLT atualizada sobre trabalho remoto, jornada híbrida 
-                            e novas obrigações para empregadores e empregados.
+                            Pessoas com deficiência, autistas e taxistas podem obter isenção fiscal na compra 
+                            de carros em 2026. Processo continua sendo feito pela Receita Federal.
                         </p>
                         <div class="article-footer">
-                            <a href="#" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 8 min</span>
+                            <a href="https://terrabrasilnoticias.com/2026/02/novo-grupo-de-brasileiros-passa-a-ter-direito-a-isencao-de-dois-impostos-na-compra-de-carro-em-2026/" target="_blank" class="read-more">Continuar lendo</a>
+                            <span class="quick-read">⏱️ 6 min</span>
                         </div>
                     </div>
                 </article>
 
-                <!-- ARTIGO 7 - LGPD E PROTEÇÃO DE DADOS -->
-                <article class="article-card">
+                <!-- ARTIGO 7 - LGPD BRASIL-UE -->
+                <article class="article-card" data-category="digital">
                     <div class="article-image">
                         <div class="article-icon">
                             <svg viewBox="0 0 24 24">
@@ -1102,22 +1148,22 @@
                     <div class="article-content">
                         <div class="article-meta">
                             <span class="article-category cat-digital">Direito Digital</span>
-                            <span class="article-date">26 Dez 2025</span>
+                            <span class="article-date">27 Jan 2026</span>
                         </div>
-                        <h3 class="article-title">LGPD para Advogados: Como Garantir Conformidade no Seu Escritório</h3>
+                        <h3 class="article-title">Brasil e União Europeia Firmam Acordo Histórico de Transferência de Dados</h3>
                         <p class="article-excerpt">
-                            Guia essencial sobre proteção de dados para escritórios: como armazenar 
-                            dados de clientes, obrigações legais e como evitar multas.
+                            ANPD e Comissão Europeia reconhecem reciprocamente LGPD e GDPR como equivalentes, 
+                            criando a maior área de fluxo seguro de dados do mundo com 700 milhões de pessoas.
                         </p>
                         <div class="article-footer">
-                            <a href="#" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 11 min</span>
+                            <a href="https://smabr.com/dados-pessoais/" target="_blank" class="read-more">Continuar lendo</a>
+                            <span class="quick-read">⏱️ 7 min</span>
                         </div>
                     </div>
                 </article>
 
-                <!-- ARTIGO 8 - DIREITO PENAL -->
-                <article class="article-card">
+                <!-- ARTIGO 8 - PESQUISA NACIONAL IA -->
+                <article class="article-card" data-category="tecnologia">
                     <div class="article-image">
                         <div class="article-icon">
                             <svg viewBox="0 0 24 24">
@@ -1129,23 +1175,23 @@
                     </div>
                     <div class="article-content">
                         <div class="article-meta">
-                            <span class="article-category cat-penal">Direito Penal</span>
-                            <span class="article-date">22 Dez 2025</span>
+                            <span class="article-category cat-tecnologia">Tecnologia</span>
+                            <span class="article-date">Jan 2026</span>
                         </div>
-                        <h3 class="article-title">Crimes Cibernéticos em Alta: Como se Defender e Prevenir</h3>
+                        <h3 class="article-title">OAB Lança Pesquisa Nacional para Mapear Impacto da IA na Advocacia</h3>
                         <p class="article-excerpt">
-                            Entenda os principais crimes digitais, como phishing, ransomware e 
-                            fraudes online, e as medidas penais aplicáveis em cada caso.
+                            Levantamento reúne dados de profissionais em todo o país sobre uso de IA generativa, 
+                            buscando identificar mudanças e orientar uso responsável da tecnologia no Direito.
                         </p>
                         <div class="article-footer">
-                            <a href="#" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 7 min</span>
+                            <a href="https://gazetadoparana.com.br/artigo/oab-lanca-pesquisa-nacional-para-mapear-impacto-da-ia-generativa-na-advocacia" target="_blank" class="read-more">Continuar lendo</a>
+                            <span class="quick-read">⏱️ 6 min</span>
                         </div>
                     </div>
                 </article>
 
-                <!-- ARTIGO 9 - SOFTWARE JURÍDICO -->
-                <article class="article-card">
+                <!-- ARTIGO 9 - TENDÊNCIAS LGPD 2026 -->
+                <article class="article-card" data-category="digital">
                     <div class="article-image">
                         <div class="article-icon">
                             <svg viewBox="0 0 24 24">
@@ -1157,23 +1203,23 @@
                     </div>
                     <div class="article-content">
                         <div class="article-meta">
-                            <span class="article-category cat-tecnologia">Tecnologia</span>
-                            <span class="article-date">19 Dez 2025</span>
+                            <span class="article-category cat-digital">LGPD</span>
+                            <span class="article-date">06 Jan 2026</span>
                         </div>
-                        <h3 class="article-title">Top 10 Softwares Jurídicos Essenciais para Advocacia em 2026</h3>
+                        <h3 class="article-title">Tendências da LGPD e Proteção de Dados para 2026</h3>
                         <p class="article-excerpt">
-                            Ranking atualizado com as melhores ferramentas do mercado: gestão de 
-                            processos, prazos, contratos, IA, automação e muito mais.
+                            Com a ANPD fortalecida como Agência Reguladora, 2026 marca fiscalização mais 
+                            intensa. Marco Legal da IA e ECA Digital trazem novos desafios para empresas.
                         </p>
                         <div class="article-footer">
-                            <a href="#" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 12 min</span>
+                            <a href="https://cafecombytes.com.br/2026/01/06/tendencias-da-lgpd-protecao-de-dados-e-privacidade-para-o-ano-de-2026/" target="_blank" class="read-more">Continuar lendo</a>
+                            <span class="quick-read">⏱️ 9 min</span>
                         </div>
                     </div>
                 </article>
 
-                <!-- ARTIGO 10 - DIREITO PREVIDENCIÁRIO -->
-                <article class="article-card">
+                <!-- ARTIGO 10 - COMPENSAÇÃO ICMS -->
+                <article class="article-card" data-category="tributario">
                     <div class="article-image">
                         <div class="article-icon">
                             <svg viewBox="0 0 24 24">
@@ -1186,23 +1232,23 @@
                     </div>
                     <div class="article-content">
                         <div class="article-meta">
-                            <span class="article-category cat-previdenciario">Previdenciário</span>
-                            <span class="article-date">16 Dez 2025</span>
+                            <span class="article-category cat-tributario">Tributário</span>
+                            <span class="article-date">14 Jan 2026</span>
                         </div>
-                        <h3 class="article-title">Reforma da Previdência: Guia Completo para Aposentadoria em 2026</h3>
+                        <h3 class="article-title">Compensação do ICMS: Por Que 2026 Define o Jogo para 2029-2032</h3>
                         <p class="article-excerpt">
-                            Tudo sobre as novas regras de aposentadoria: idade mínima, tempo de 
-                            contribuição, regras de transição e cálculo de benefícios.
+                            Habilitação de 2026-2028 pode excluir contribuintes. Especialistas explicam 
+                            requisitos, comprovação e estratégias para proteger direitos de compensação.
                         </p>
                         <div class="article-footer">
-                            <a href="#" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 15 min</span>
+                            <a href="https://www.migalhas.com.br/depeso/447773/compensacao-do-icms-por-que-2026-define-o-jogo-para-2029-2032" target="_blank" class="read-more">Continuar lendo</a>
+                            <span class="quick-read">⏱️ 12 min</span>
                         </div>
                     </div>
                 </article>
 
-                <!-- ARTIGO 11 - CONTRATOS INTELIGENTES -->
-                <article class="article-card">
+                <!-- ARTIGO 11 - MERCADO DE SEGUROS 2026 -->
+                <article class="article-card" data-category="civil">
                     <div class="article-image">
                         <div class="article-icon">
                             <svg viewBox="0 0 24 24">
@@ -1215,23 +1261,23 @@
                     </div>
                     <div class="article-content">
                         <div class="article-meta">
-                            <span class="article-category cat-tecnologia">Tecnologia</span>
-                            <span class="article-date">13 Dez 2025</span>
+                            <span class="article-category cat-civil">Seguros</span>
+                            <span class="article-date">04 Fev 2026</span>
                         </div>
-                        <h3 class="article-title">Contratos Inteligentes e Blockchain: O Futuro do Direito Contratual</h3>
+                        <h3 class="article-title">Projeções para 2026: Mercado de Seguros e Novo Marco Legal</h3>
                         <p class="article-excerpt">
-                            Entenda como a blockchain está revolucionando contratos, trazendo 
-                            segurança, transparência e execução automática de cláusulas.
+                            Tribunais superiores terão julgamentos relevantes em matéria securitária. 
+                            Novo marco legal traz mudanças importantes para contratos de seguro e resseguro.
                         </p>
                         <div class="article-footer">
-                            <a href="#" class="read-more">Continuar lendo</a>
+                            <a href="https://www.migalhas.com.br/coluna/migalhas-securitarias/449204/projecoes-para-2026" target="_blank" class="read-more">Continuar lendo</a>
                             <span class="quick-read">⏱️ 10 min</span>
                         </div>
                     </div>
                 </article>
 
-                <!-- ARTIGO 12 - PROCESSO CIVIL -->
-                <article class="article-card">
+                <!-- ARTIGO 12 - LEI MARIA DA PENHA -->
+                <article class="article-card" data-category="penal">
                     <div class="article-image">
                         <div class="article-icon">
                             <svg viewBox="0 0 24 24">
@@ -1243,17 +1289,17 @@
                     </div>
                     <div class="article-content">
                         <div class="article-meta">
-                            <span class="article-category cat-civil">Processo Civil</span>
-                            <span class="article-date">10 Dez 2025</span>
+                            <span class="article-category cat-penal">Direitos Humanos</span>
+                            <span class="article-date">05 Fev 2026</span>
                         </div>
-                        <h3 class="article-title">Novo CPC e Processo Eletrônico: Tudo Sobre PJe e Peticionamento</h3>
+                        <h3 class="article-title">STF Decide Que Lei Maria da Penha Se Estende a Casais Homoafetivos</h3>
                         <p class="article-excerpt">
-                            Guia atualizado sobre processo judicial eletrônico, prazos digitais, 
-                            certificação digital e boas práticas de peticionamento online.
+                            Decisão histórica do Supremo amplia proteção da Lei Maria da Penha para 
+                            casais gays, mulheres trans e travestis, garantindo medidas protetivas.
                         </p>
                         <div class="article-footer">
-                            <a href="#" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 9 min</span>
+                            <a href="https://www.migalhas.com.br/" target="_blank" class="read-more">Continuar lendo</a>
+                            <span class="quick-read">⏱️ 7 min</span>
                         </div>
                     </div>
                 </article>
@@ -1306,7 +1352,7 @@
                     <ul>
                         <li><a href="sobre-nos.html">Sobre Nós</a></li>
                         <li><a href="blog.html">Blog</a></li>
-                        <li><a href="mailto:suporte@lawtechpro.com.br">Suporte</a></li>
+                        <li><a href="/cdn-cgi/l/email-protection#453630352a373120052924323120262d35372a6b262a286b2737">Suporte</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">
@@ -1324,5 +1370,59 @@
             </div>
         </div>
     </footer>
+
+    <!-- ========================================
+         JAVASCRIPT - FILTROS E INTERAÇÕES
+    ======================================== -->
+    <script>
+        // Sistema de filtros por categoria
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const articles = document.querySelectorAll('.article-card');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active de todos os botões
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    // Adiciona active no botão clicado
+                    this.classList.add('active');
+                    
+                    const filter = this.getAttribute('data-filter');
+                    
+                    // Filtra os artigos
+                    articles.forEach(article => {
+                        if (filter === 'todos') {
+                            article.style.display = 'block';
+                            article.style.animation = 'fadeIn 0.5s ease';
+                        } else {
+                            const category = article.getAttribute('data-category');
+                            if (category === filter) {
+                                article.style.display = 'block';
+                                article.style.animation = 'fadeIn 0.5s ease';
+                                // Scroll suave até o primeiro artigo da categoria
+                                if (articles[0] === article || Array.from(articles).indexOf(article) === Array.from(articles).findIndex(a => a.getAttribute('data-category') === filter)) {
+                                    setTimeout(() => {
+                                        article.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    }, 100);
+                                }
+                            } else {
+                                article.style.display = 'none';
+                            }
+                        }
+                    });
+                });
+            });
+        });
+        
+        // Animação de fade in
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
 </body>
 </html>

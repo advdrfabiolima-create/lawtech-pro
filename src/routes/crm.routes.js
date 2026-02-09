@@ -5,8 +5,10 @@ const authMiddleware = require('../middlewares/authMiddleware');
 const planMiddleware = require('../middlewares/planMiddleware');
 
 // ============================================================
-// ROTAS PÚBLICAS (SEM AUTENTICAÇÃO)
+// ⚠️ ROTAS PÚBLICAS TEMPORARIAMENTE DESABILITADAS PARA TESTE
 // ============================================================
+
+/*
 router.post('/public/captura-lead', async (req, res) => {
     const { escritorio_id, nome, email, telefone, assunto, mensagem } = req.body;
 
@@ -83,10 +85,9 @@ router.post('/public/onboarding', async (req, res) => {
         res.status(500).json({ ok: false, mensagem: "Erro ao processar cadastro automático." });
     }
 });
+*/
 
-const crmController = require('../controllers/crmController'); // Garanta que o require existe
-
-// Rota que a ficha-cliente.html está tentando chamar
+const crmController = require('../controllers/crmController');
 router.post('/proposta/:id/completar-dados', crmController.completarDadosLead);
 
 // ============================================================
@@ -99,13 +100,28 @@ router.get('/leads',
     async (req, res) => {
         try {
             const escritorioId = req.user.escritorio_id;
-            console.log('📋 [GET /leads] Buscando leads do escritório:', escritorioId);
-            
-            const query = "SELECT * FROM leads WHERE escritorio_id = $1 ORDER BY data_criacao DESC";
+
+            const query = `
+    SELECT
+        id,
+        nome,
+        email,
+        telefone,
+        assunto AS interesse,
+        mensagem,
+        status,
+        origem,
+        data_criacao
+    FROM leads
+    WHERE escritorio_id = $1
+    ORDER BY data_criacao DESC
+`;
+
             const resultado = await pool.query(query, [escritorioId]);
-            
+
             console.log('✅ [GET /leads] Retornando', resultado.rows.length, 'leads');
             res.json(resultado.rows);
+
         } catch (err) {
             console.error('❌ [GET /leads] Erro:', err);
             res.status(500).json({ ok: false, erro: err.message });
@@ -165,89 +181,81 @@ router.patch('/lead/:id/status',
     }
 );
 
-// ✅ ROTA CORRIGIDA - CRIAR LEAD MANUAL (SEM EXIGIR EMAIL)
+// ✅ ROTA POST /leads CORRIGIDA COM LOGS DETALHADOS
 router.post('/leads', 
     authMiddleware,
     planMiddleware.checkFeature('crm'),
     async (req, res) => {
+        console.log('🟢🟢🟢 ROTA /leads EXECUTADA! 🟢🟢🟢');
+        console.log('🟢 URL chamada:', req.originalUrl);
+        console.log('🟢 Método:', req.method);
+        console.log('🟢 Body:', req.body);
+        console.log('🟢 User autenticado:', req.user);
+        
         try {
-            const { nome, telefone, area_interesse } = req.body;
+            const { nome, email, telefone, interesse } = req.body;
             const escritorioId = req.user.escritorio_id;
 
-            console.log('📝 [POST /leads] Dados recebidos:', { 
-                nome, 
-                telefone, 
-                area_interesse,
-                escritorioId 
+            console.log('📝 [POST /leads] Campos extraídos:', {
+                nome,
+                email,
+                telefone,
+                interesse,
+                escritorioId
             });
 
-            // ✅ VALIDAÇÃO: APENAS NOME E TELEFONE
-            if (!nome || nome.trim() === '') {
-                console.log('❌ Validação: nome vazio');
-                return res.status(400).json({ 
+            if (!nome || !telefone) {
+                return res.status(400).json({
                     ok: false,
-                    error: 'Nome é obrigatório' 
+                    error: 'Nome e telefone são obrigatórios'
                 });
             }
 
-            if (!telefone || telefone.trim() === '') {
-                console.log('❌ Validação: telefone vazio');
-                return res.status(400).json({ 
-                    ok: false,
-                    error: 'Telefone é obrigatório' 
-                });
+            // ✅ GARANTIR QUE INTERESSE NUNCA SEJA NULL
+            let interesseFinal = 'Não informado';
+            
+            if (interesse && typeof interesse === 'string') {
+                const interesseLimpo = interesse.trim();
+                if (interesseLimpo !== '' && interesseLimpo !== 'undefined' && interesseLimpo !== 'null') {
+                    interesseFinal = interesseLimpo;
+                }
             }
+            
+            console.log('✅ [POST /leads] Interesse tratado:', interesseFinal);
 
-            // ✅ INSERT - EMAIL NÃO É OBRIGATÓRIO
             const query = `
                 INSERT INTO leads 
-                (escritorio_id, nome, telefone, status, origem, assunto)
-                VALUES ($1, $2, $3, 'Novo', 'Manual', $4)
+                (escritorio_id, nome, email, telefone, assunto, status, origem)
+                VALUES ($1, $2, $3, $4, $5, 'Novo', 'Manual')
                 RETURNING *
             `;
-
+            
             const values = [
                 escritorioId,
                 nome.trim(),
+                email?.trim() || null,
                 telefone.trim(),
-                area_interesse && area_interesse.trim() !== '' ? area_interesse.trim() : null
+                interesseFinal
             ];
 
-            console.log('💾 Executando INSERT com valores:', values);
+            console.log('💾 [POST /leads] SQL VALUES:', values);
+
             const result = await pool.query(query, values);
 
-            console.log('✅ Lead criado! ID:', result.rows[0].id);
+            console.log('✅ [POST /leads] Lead criado:', result.rows[0]);
+            console.log('✅ [POST /leads] assunto:', result.rows[0].assunto);
+            console.log('✅ [POST /leads] origem:', result.rows[0].origem);
 
-            res.status(201).json({ 
-                ok: true, 
-                lead: result.rows[0],
-                mensagem: 'Lead criado com sucesso!'
+            res.status(201).json({
+                ok: true,
+                lead: result.rows[0]
             });
 
         } catch (err) {
-            console.error('❌ ERRO COMPLETO:', err);
-            
-            // Erros específicos do PostgreSQL
-            if (err.code === '23502') {
-                return res.status(400).json({ 
-                    ok: false,
-                    error: 'Campo obrigatório faltando no banco de dados',
-                    detalhe: err.message 
-                });
-            }
-            
-            if (err.code === '23503') {
-                return res.status(400).json({ 
-                    ok: false,
-                    error: 'Escritório não encontrado',
-                    detalhe: err.message 
-                });
-            }
-            
-            res.status(500).json({ 
+            console.error('❌ [POST /leads] ERRO:', err);
+            res.status(500).json({
                 ok: false,
-                error: 'Erro ao criar lead',
-                detalhe: err.message 
+                error: err.message
             });
         }
     }

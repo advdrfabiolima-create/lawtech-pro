@@ -3,42 +3,49 @@
 <head>
     <meta charset="UTF-8" />
     <title>LawTech Pro — Agenda de Audiências</title>
-    <link rel="icon" type="image/png" href="favicon.png"> 
+    <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
-    
+
     <style>
         :root {
-            /* Light Theme Colors - Professional & Clean */
-            --bg-primary: #f8fafc;
-            --bg-secondary: #111827;
-            --bg-tertiary: #1a2332;
-            --bg-elevated: #ffffff;
+            /* Neutral Blue Theme - Corporativo Dashboard */
+            --bg-primary: #F8FAFB;
+            --bg-secondary: #1E3A5F;
+            --bg-tertiary: #2A4A73;
+            --bg-elevated: #FFFFFF;
+            --bg-glass: rgba(255, 255, 255, 0.95);
             
-            --text-primary: #1e293b;
-            --text-secondary: #475569;
-            --text-tertiary: #64748b;
+            --text-primary: #2C3E50;
+            --text-secondary: #5A6C7D;
+            --text-tertiary: #7B8794;
             
-            --accent-blue: #2563eb;
-            --accent-blue-light: #3b82f6;
-            --accent-blue-glow: rgba(37, 99, 235, 0.3);
+            --accent-blue: #4A90E2;
+            --accent-blue-light: #5BA4DB;
+            --accent-blue-glow: rgba(74, 144, 226, 0.2);
             
-            --accent-green: #10b981;
-            --accent-purple: #8b5cf6;
-            --accent-orange: #f59e0b;
-            --accent-red: #ef4444;
-            --accent-gold: #fbbf24;
+            --accent-green: #52B788;
+            --accent-purple: #7E8CE0;
+            --accent-orange: #F2A65A;
+            --accent-red: #E76F51;
+            --accent-gold: #F4D06F;
             
-            --border-subtle: rgba(0, 0, 0, 0.08);
-            --border-medium: rgba(0, 0, 0, 0.12);
+            --border-subtle: rgba(42, 74, 115, 0.08);
+            --border-medium: rgba(42, 74, 115, 0.12);
+            --border-strong: rgba(42, 74, 115, 0.2);
             
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
+            --shadow-glow: 0 0 20px rgba(74, 144, 226, 0.15);
             
+            --radius-sm: 4px;
+            --radius-md: 6px;
+            --radius-lg: 8px;
+            --radius-xl: 10px;
+            
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
             --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
             
             /* Compatibility */
             --bg: var(--bg-primary);
@@ -49,6 +56,7 @@
             --success: var(--accent-green);
             --danger: var(--accent-red);
             --warning: var(--accent-orange);
+            --gold: var(--accent-gold);
             --muted: var(--text-tertiary);
             --text-main: var(--text-primary);
             --text-menu: var(--text-tertiary);
@@ -57,593 +65,1374 @@
             --whatsapp: #25d366;
         }
 
-        /* Reset LawTech Pro */
-        * { box-sizing: border-box; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; }
-        
-        /* Sidebar Premium */
-        .sidebar {
-            width: 280px;
-            background: var(--bg-secondary);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-right: 1px solid var(--border-subtle);
-            padding: 32px 24px;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            z-index: 1000;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
-        .sidebar-header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 24px;
-            border-bottom: 1px solid var(--border-subtle);
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            text-transform: uppercase;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
         }
 
-        .sidebar-header img {
-            width: 100%;
-            max-width: 180px;
-            height: auto;
-            filter: drop-shadow(0 0 20px var(--accent-blue-glow));
-            transition: all var(--transition-base);
-        }
-
-        .sidebar-header img:hover {
-            filter: drop-shadow(0 0 30px var(--accent-blue-glow));
-            transform: scale(1.05);
-        }
-
-        .menu {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            flex-grow: 1;
-        }
-
-        .menu a {
-            display: flex;
-            align-items: center;
-            padding: 14px 16px;
-            color: #94a3b8;
-            text-decoration: none;
-            border-radius: var(--radius-lg);
-            font-size: 14px;
-            font-weight: 600;
-            transition: all var(--transition-base);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .menu a::before {
+        /* Animated Background */
+        body::before {
             content: '';
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
-            width: 4px;
+            width: 100%;
             height: 100%;
-            background: var(--accent-blue);
-            transform: scaleY(0);
-            transition: transform var(--transition-base);
+            z-index: 0;
+            opacity: 0.015;
+            background-image: 
+                linear-gradient(rgba(74, 144, 226, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(74, 144, 226, 0.08) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: patternMove 20s linear infinite;
+            pointer-events: none;
         }
 
-        .menu a:hover::before,
-        .menu a.active::before {
-            transform: scaleY(1);
+        @keyframes patternMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
         }
 
-        .menu a i {
-            margin-right: 12px;
-            font-size: 18px;
-            transition: all var(--transition-base);
+        body::after {
+            content: '';
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%);
+            top: -300px;
+            right: -300px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.08;
+            z-index: 0;
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
         }
 
-        .menu a:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: #e2e8f0;
-            transform: translateX(4px);
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-30px, 30px) scale(0.9); }
         }
 
-        .menu a.active {
-            background: rgba(37, 99, 235, 0.15);
-            color: #60a5fa;
-            border: 1px solid rgba(37, 99, 235, 0.4);
-        }
-
-        .menu a.active i {
-            color: #60a5fa;
-        }
-
-        .sidebar-footer {
-            padding-top: 24px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 12px;
-            margin-top: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .sidebar-footer span {
-            color: #cbd5e1 !important;
-        }
-
-        /* Main Area */
-        .main { margin-left: 280px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; position: relative; z-index: 1; }
-
-        /* Cabeçalho (72px) */
-        .header {
-            background: var(--white); height: 72px; padding: 0 32px;
-            display: flex; align-items: center; justify-content: space-between;
-            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900;
-        }
-
-        .content { padding: 32px; }
-
-        /* Card e Tabela */
-        .card { 
-            background: var(--white); border-radius: var(--radius); padding: 24px; 
-            border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-        }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: var(--muted); padding: 12px; border-bottom: 2px solid var(--border); font-size: 12px; text-transform: uppercase; font-weight: 700; }
-        td { padding: 16px 12px; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-main); vertical-align: middle; }
-
-        /* Botões */
-        .btn-primary { 
-            background: var(--primary); color: #fff; border: none; 
-            padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .btn-whatsapp { 
-            background: var(--whatsapp); color: white; border: none; padding: 8px 12px; 
-            border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; 
-            display: inline-flex; align-items: center; gap: 6px; transition: 0.3s;
-        }
-        .btn-whatsapp:hover { background: #1eb954; transform: scale(1.02); }
-
-        /* Modal */
-        .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:10000; align-items:center; justify-content:center; }
-        .modal-content { background:#fff; width:100%; max-width:480px; padding:32px; border-radius:12px; }
-
-        .btn-crm-gold-nav {
-            background: linear-gradient(135deg, var(--accent-gold) 0%, #facc15 100%) !important;
-            color: #000 !important;
-            font-weight: 800 !important;
-            margin-top: 16px !important;
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
-            position: relative;
-            overflow: hidden;
-            border-radius: var(--radius-lg);
-            padding: 14px 16px !important;
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            font-size: 14px;
-            transition: all var(--transition-base);
-        }
-
-        .btn-crm-gold-nav i {
-            margin-right: 10px;
-            font-size: 18px;
-        }
-
-        .btn-crm-gold-nav:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(251, 191, 36, 0.6);
-        }
-
-        /* Padronização LawTech Pro - Caixa Alta Global */
-body {
-    text-transform: uppercase;
+        /* Sidebar Premium - IDÊNTICA AO CLIENTES */
+.sidebar {
+    width: 280px;
+    background: var(--bg-secondary);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-right: 1px solid var(--border-subtle);
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Garante que os campos de digitação também mostrem caixa alta enquanto o usuário digita */
-input, textarea, select {
-    text-transform: uppercase;
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-100%); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
-/* Opcional: Se quiser que os números dos processos mantenham o estilo técnico, 
-   mas ainda em caixa alta */
-.numero-processo, .processo-hash {
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 1px;
+/* Sidebar Header */
+.sidebar-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-subtle);
 }
 
-/* Container do rodapé */
+.sidebar-header img {
+    width: 100%;
+    max-width: 180px;
+    height: auto;
+    filter: drop-shadow(0 0 20px var(--accent-blue-glow));
+    transition: all var(--transition-base);
+}
+
+.sidebar-header img:hover {
+    filter: drop-shadow(0 0 30px var(--accent-blue-glow));
+    transform: scale(1.05);
+}
+
+/* Menu Container */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-grow: 1;
+}
+
+/* Menu Links */
+.menu a {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    color: #94a3b8; /* CINZA CLARO para links não ativos */
+    text-decoration: none;
+    border-radius: var(--radius-lg);
+    font-size: 14px;
+    font-weight: 600;
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Barra lateral azul nos links */
+.menu a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent-blue);
+    transform: scaleY(0);
+    transition: transform var(--transition-base);
+}
+
+.menu a:hover::before,
+.menu a.active::before {
+    transform: scaleY(1);
+}
+
+/* Ícones dos links */
+.menu a i {
+    margin-right: 12px;
+    font-size: 18px;
+    transition: all var(--transition-base);
+}
+
+/* Hover dos links */
+.menu a:hover {
+    background: rgba(255, 255, 255, 0.05); /* Hover suave */
+    color: #e2e8f0; /* Cinza bem claro no hover */
+    transform: translateX(4px);
+}
+
+/* Link ativo */
+.menu a.active {
+    background: rgba(37, 99, 235, 0.15); /* Azul visível */
+    color: #60a5fa; /* Azul claro */
+    border: 1px solid rgba(37, 99, 235, 0.4);
+}
+
+.menu a.active i {
+    color: #60a5fa; /* Azul claro */
+}
+
+/* Botão CRM Gold - IMPORTANTE: margin-top cria o espaçamento */
+.btn-crm-gold-nav { 
+    background: #fbbf24 !important; 
+    color: #000 !important; 
+    font-weight: 800 !important; 
+    margin-top: 15px !important; /* ⚡ ESPAÇAMENTO CRÍTICO */
+    display: flex !important; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 12px !important; 
+    border-radius: 8px; 
+    text-decoration: none; 
+    font-size: 14px; 
+    transition: 0.3s; 
+}
+
+.btn-crm-gold-nav:hover { 
+    background: #facc15 !important; 
+    transform: scale(1.02); 
+}
+
+.btn-crm-gold-nav i { 
+    margin-right: 10px; 
+}
+
+/* Sidebar Footer */
 .sidebar-footer {
-    padding-top: 20px;
+    padding-top: 24px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 12px;
     margin-top: auto;
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-/* Alinhamento à esquerda (Início) */
+.sidebar-footer span {
+    color: #cbd5e1 !important;
+}
+
+/* Footer Info Row - Alinhamento das informações */
 .footer-info-row {
     display: flex;
-    justify-content: flex-start; /* Alinha no começo da linha */
+    justify-content: flex-start;
     align-items: center;
-    gap: 5px; /* Espaço fixo após os ":" */
+    gap: 5px;
     font-size: 12px;
+    width: 100%;
 }
 
-/* Rótulos em caixa alta */
 .footer-info-row span:first-child {
     text-transform: uppercase;
-    color: var(--text-tertiary, #64748b);
+    color: var(--text-tertiary);
     font-weight: 700;
-    white-space: nowrap;
+    min-width: 65px; /* Alinha os dois pontos verticalmente */
 }
 
-/* ✅ Regra para e-mail e plano em minúsculas */
+/* Mantém e-mail e plano minúsculos */
 .keep-lowercase {
-    text-transform: none !important; /* Cancela o uppercase global */
-    font-variant: normal !important;
+    text-transform: lowercase !important;
     color: #cbd5e1;
+    font-weight: 500;
 }
 
-/* ============================================
-   NOVO DESIGN DAS ABAS - PROFISSIONAL SAAS
-   ============================================ */
+        /* Main Content */
+        .main {
+            margin-left: 280px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
 
-.tabs-wrapper {
-    background: linear-gradient(to bottom, #f8fafc, #ffffff);
-    border-radius: var(--radius-md);
-    padding: 6px;
-    margin-bottom: 24px;
-    border: 1px solid var(--border-subtle);
-}
+        /* Header Premium */
+        .header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            height: 80px;
+            padding: 0 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 
+                0 1px 3px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+        }
 
-.tabs-header-custom {
-    display: flex;
-    gap: 6px;
-    background: transparent;
-    border: none !important;
-    margin-bottom: 0;
-}
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-.tab-btn-custom {
-    flex: 1;
-    padding: 14px 24px;
-    background: transparent;
-    border: none;
-    border-radius: 10px;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    color: var(--text-tertiary);
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    text-transform: uppercase;
-}
+        .header h2 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-.tab-btn-custom:hover {
-    background: rgba(37, 99, 235, 0.05);
-    color: var(--text-secondary);
-}
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
 
-.tab-btn-custom.active {
-    background: var(--primary);
-    color: white;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
-}
+        .user-menu span {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
 
-.tab-badge-custom {
-    background: rgba(0, 0, 0, 0.15);
-    color: white;
-    padding: 3px 9px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 800;
-    min-width: 22px;
-    text-align: center;
-}
+        #userCircle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-light));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
 
-.tab-btn-custom:not(.active) .tab-badge-custom {
-    background: rgba(0, 0, 0, 0.08);
-    color: var(--text-tertiary);
-}
+        #userCircle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+
+        #userDropdown {
+            display: none;
+            position: absolute;
+            top: 55px;
+            right: 0;
+            background: white;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            min-width: 200px;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        #userDropdown a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all var(--transition-fast);
+        }
+
+        #userDropdown a:hover {
+            background: var(--bg-primary);
+            color: var(--accent-blue);
+        }
+
+        #userDropdown a i {
+            font-size: 16px;
+        }
+
+        .content {
+            padding: 32px 40px;
+            flex-grow: 1;
+        }
+
+        /* CARDS DE ESTATÍSTICAS */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #5B9FD8 0%, #4A90E2 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-base);
+            animation: slideUp 0.5s ease-out forwards;
+            opacity: 0;
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+            animation: pulseCard 4s ease-in-out infinite;
+        }
+
+        @keyframes pulseCard {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(74, 144, 226, 0.25);
+        }
+
+        .stat-card.orange {
+            background: linear-gradient(135deg, #F2A65A 0%, #E89543 100%);
+        }
+
+        .stat-card.green {
+            background: linear-gradient(135deg, #52B788 0%, #40916c 100%);
+        }
+
+        .stat-card-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-card-icon i {
+            width: 24px;
+            height: 24px;
+            color: white;
+            stroke-width: 2;
+        }
+
+        .stat-card-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-card-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: white;
+            line-height: 1;
+            margin-bottom: 4px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Main Content Card */
+        .main-content {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 32px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Abas */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--border-subtle);
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-tertiary);
+            transition: all var(--transition-base);
+            position: relative;
+            margin-bottom: -2px;
+        }
+
+        .tab:hover {
+            color: var(--accent-blue);
+            background: rgba(74, 144, 226, 0.05);
+        }
+
+        .tab.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+        }
+
+        .tab-badge {
+            display: inline-block;
+            background: var(--accent-blue);
+            color: white;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: 8px;
+        }
+
+        .tab.active .tab-badge {
+            background: var(--accent-blue);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+            font-size: 18px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: all var(--transition-base);
+            background: var(--bg-elevated);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px var(--accent-blue-glow);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-light));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: var(--radius-lg);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all var(--transition-base);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn-primary i { font-size: 18px; }
+
+        /* Tabela */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 6px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+        }
+
+        thead th {
+            padding: 16px 20px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--border-medium);
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border-subtle);
+            transition: all var(--transition-fast);
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        tbody td {
+            padding: 16px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Badges de Alerta */
+        .badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            margin-left: 8px;
+        }
+
+        .badge-hoje {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+        }
+
+        .badge-amanha {
+            background: linear-gradient(135deg, #fffbeb, #fde68a);
+            color: #d97706;
+            border: 1px solid #fcd34d;
+        }
+
+        .badge-proximo {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            color: #16a34a;
+            border: 1px solid #86efac;
+        }
+
+        /* Botões de Ação */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-direction: column;
+        }
+
+        .btn-action {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-action::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .btn-action:hover::before {
+            width: 120px;
+            height: 120px;
+        }
+
+        .btn-action i {
+            font-size: 14px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-action span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-whatsapp {
+            background: linear-gradient(135deg, #25d366, #20ba5a);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-whatsapp:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+        }
+
+        .btn-realizada {
+            background: linear-gradient(135deg, var(--accent-green), #40916c);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-realizada:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(82, 183, 136, 0.3);
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: var(--bg-elevated);
+            border-radius: var(--radius-xl);
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalSlide {
+            from { opacity: 0; transform: translateY(-50px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-light));
+            color: white;
+            padding: 24px 32px;
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-base);
+        }
+
+        .close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 32px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px 16px;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: all var(--transition-base);
+            background: var(--bg-elevated);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px var(--accent-blue-glow);
+        }
+
+        .modal-footer {
+            padding: 24px 32px;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-secondary {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-medium);
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-elevated);
+            border-color: var(--text-secondary);
+        }
+
+        /* Rodapé */
+        .footer-info-section {
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 2px solid var(--border-subtle);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+
+        .footer-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .footer-info-item i {
+            color: var(--accent-blue);
+            font-size: 16px;
+        }
+
+        .footer-info-item span {
+            color: var(--text-primary);
+        }
+
+        /* Responsividade */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform var(--transition-base);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main {
+                margin-left: 0;
+            }
+            
+            .content {
+                padding: 24px 20px;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+
+            .header h2 {
+                font-size: 18px;
+            }
+
+            .toolbar {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .main-content {
+                padding: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            thead th,
+            tbody td {
+                padding: 12px;
+            }
+        }
     </style>
 </head>
 <body>
-
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
-        </div>
-        
-        <nav class="menu">
-    <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
-    <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
-    <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
-    <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
-    <a href="/audiencias-page" class="active"><i class="lucide lucide-calendar-days"></i> Audiências</a>
-    <a href="/calculos-page" id="link-calculos"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
-    <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
-    <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
-    <a href="/ia-page" style="display: flex; align-items: center; gap: 10px;">
-        <i class="lucide lucide-sparkles" style="color: #fbbf24;"></i> IA Jurídica 
-        <span style="font-size: 9px; background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; margin-left: auto;">PREMIUM</span>
-    </a>
-    <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
-    <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
-    <a href="/crm-page" class="btn-crm-gold-nav">
-    <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
-    </a>   
-    </nav>
-
-<div class="sidebar-footer">
-    <div class="footer-info-row">
-        <span>Usuário:</span> 
-        <span id="footerEmail" class="keep-lowercase">...</span>
+    <!-- SIDEBAR - IDÊNTICA AO CLIENTES -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
     </div>
-    
+    <nav class="menu">
+        <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+        <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+        <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
+        <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+        <a href="/audiencias-page" class="active"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+        <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+        <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+        <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
+        <a href="/ia-page" style="display:flex; align-items:center; gap:10px;">
+            <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i> IA Jurídica
+            <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">PREMIUM</span>
+        </a>
+        <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+        <a href="/config-page" id="guia-config" onclick="limparBolinha()">
+            <i class="lucide lucide-settings"></i> Configurações
+            <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
+        </a>
+        <a href="/crm-page" class="btn-crm-gold-nav">
+            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="footer-info-row">
+            <span>Usuário:</span> 
+            <span id="userEmail" class="keep-lowercase">...</span>
+        </div>
+  
     <div class="footer-info-row">
         <span>Plano:</span> 
         <span id="footerPlano" class="keep-lowercase">...</span>
     </div>
 </div>
-    </aside>
+</aside>
 
+    <!-- MAIN CONTENT -->
     <div class="main">
-<header class="header">
-    <h2 style="font-size: 18px; font-weight: 600;">📅 Agenda de Audiências</h2>
-    
-    <div style="display:flex; gap:20px; align-items:center;">
-        <button class="btn-primary" onclick="abrirModalAudiencia()">
-            <i class="lucide lucide-plus"></i> Nova Audiência
-        </button>
-
-        <div style="position: relative; display: flex; align-items: center; gap: 12px;">
-            <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
-            <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
-                --
+        <!-- HEADER -->
+        <header class="header">
+            <h2>
+                <i class="lucide lucide-calendar-days"></i>
+                AGENDA DE AUDIÊNCIAS
+            </h2>
+            
+            <div class="user-menu">
+                <span id="userNameHeader">ADVOGADO</span>
+                <div onclick="toggleUserMenu()" id="userCircle">
+                    --
+                </div>
+                <div id="userDropdown">
+                    <a href="/config-page"><i class="lucide lucide-user"></i> MEUS DADOS</a>
+                    <a href="#" onclick="logout()"><i class="lucide lucide-log-out"></i> SAIR</a>
+                </div>
             </div>
-            <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
-                <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
-                <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
-            </div>
-        </div>
-    </div>
-</header>
+        </header>
 
+        <!-- CONTENT -->
         <main class="content">
-            <div class="card">
-                <!-- Abas de Navegação -->
-                <div class="tabs-wrapper">
-                    <div class="tabs-header-custom">
-                        <button onclick="trocarAba('futuras')" id="abaFuturas" class="tab-btn-custom active">
-                            📅 Audiências Agendadas
-                            <span class="tab-badge-custom" id="contadorFuturas">0</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <p style="color: var(--muted); font-size: 14px;">GERENCIE AUDIÊNCIAS AGENDADAS E ACOMPANHE O HISTÓRICO DE REALIZADAS.</p>
+            </div>
+
+            <!-- CARDS DE ESTATÍSTICAS -->
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-card-icon">
+                        <i class="lucide lucide-calendar" style="width: 24px; height: 24px; stroke-width: 2.5;"></i>
+                    </div>
+                    <div class="stat-card-value" id="totalAudiencias">0</div>
+                    <div class="stat-card-label">TOTAL DE AUDIÊNCIAS</div>
+                </div>
+
+                <div class="stat-card orange">
+                    <div class="stat-card-icon">
+                        <i class="lucide lucide-calendar-clock" style="width: 24px; height: 24px; stroke-width: 2.5;"></i>
+                    </div>
+                    <div class="stat-card-value" id="audienciasAgendadas">0</div>
+                    <div class="stat-card-label">AUDIÊNCIAS AGENDADAS</div>
+                </div>
+
+                <div class="stat-card green">
+                    <div class="stat-card-icon">
+                        <i class="lucide lucide-calendar-check" style="width: 24px; height: 24px; stroke-width: 2.5;"></i>
+                    </div>
+                    <div class="stat-card-value" id="audienciasRealizadas">0</div>
+                    <div class="stat-card-label">AUDIÊNCIAS REALIZADAS</div>
+                </div>
+            </div>
+
+            <!-- CONTEÚDO PRINCIPAL -->
+            <div class="main-content">
+                <!-- Abas -->
+                <div class="tabs">
+                    <button class="tab active" onclick="trocarAba('agendadas')">
+                        AGENDADAS <span class="tab-badge" id="contadorFuturas">0</span>
+                    </button>
+                    <button class="tab" onclick="trocarAba('realizadas')">
+                        REALIZADAS <span class="tab-badge" id="contadorRealizadas">0</span>
+                    </button>
+                </div>
+
+                <!-- Conteúdo Aba Agendadas -->
+                <div id="abaAgendadas" class="tab-content active">
+                    <!-- Toolbar -->
+                    <div class="toolbar">
+                        <div class="search-box">
+                            <i class="lucide lucide-search"></i>
+                            <input type="text" placeholder="BUSCAR AUDIÊNCIA..." />
+                        </div>
+                        <button class="btn-primary" onclick="abrirModal()">
+                            <i class="lucide lucide-plus"></i>
+                            NOVA AUDIÊNCIA
                         </button>
-                        <button onclick="trocarAba('realizadas')" id="abaRealizadas" class="tab-btn-custom">
-                            ✅ Audiências Realizadas
-                            <span class="tab-badge-custom" id="contadorRealizadas">0</span>
-                        </button>
+                    </div>
+
+                    <!-- Tabela Agendadas -->
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>DATA/HORA</th>
+                                    <th>PROCESSO</th>
+                                    <th>TIPO</th>
+                                    <th>LOCAL/LINK</th>
+                                    <th style="text-align: center;">AÇÕES</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaAudiencias">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 60px 20px; color: var(--text-tertiary);">
+                                        <i class="lucide lucide-loader" style="font-size: 32px; animation: spin 1s linear infinite;"></i>
+                                        <p style="margin-top: 16px; font-weight: 600;">CARREGANDO AUDIÊNCIAS...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <!-- Tabela de Audiências Futuras -->
-                <div id="tabelaFuturas">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Data/Hora</th>
-                                <th>Processo/Cliente</th>
-                                <th>Tipo</th>
-                                <th>Local/Link</th>
-                                <th style="text-align: center;">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="listaAudiencias">
-                            <tr><td colspan="5" style="text-align:center; padding:40px; color: var(--muted);">Carregando audiências...</td></tr>
-                        </tbody>
-                    </table>
+                <!-- Conteúdo Aba Realizadas -->
+                <div id="abaRealizadas" class="tab-content">
+                    <!-- Tabela Realizadas -->
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>DATA/HORA</th>
+                                    <th>PROCESSO</th>
+                                    <th>TIPO</th>
+                                    <th>LOCAL/LINK</th>
+                                    <th style="text-align: center;">AÇÕES</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaAudienciasRealizadas">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 60px 20px; color: var(--text-tertiary);">
+                                        <i class="lucide lucide-loader" style="font-size: 32px; animation: spin 1s linear infinite;"></i>
+                                        <p style="margin-top: 16px; font-weight: 600;">CARREGANDO AUDIÊNCIAS...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+            </div>
 
-                <!-- Tabela de Audiências Realizadas -->
-                <div id="tabelaRealizadas" style="display: none;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Data/Hora</th>
-                                <th>Processo/Cliente</th>
-                                <th>Tipo</th>
-                                <th>Local/Link</th>
-                                <th style="text-align: center;">ATA</th>
-                            </tr>
-                        </thead>
-                        <tbody id="listaAudienciasRealizadas">
-                            <tr><td colspan="5" style="text-align:center; padding:40px; color: var(--muted);">Carregando...</td></tr>
-                        </tbody>
-                    </table>
+            <!-- RODAPÉ -->
+            <div class="footer-info-section">
+                <div class="footer-info-item">
+                    <i class="lucide lucide-user"></i>
+                    <span id="usuarioRodape">---</span>
+                </div>
+                <div class="footer-info-item">
+                    <i class="lucide lucide-building"></i>
+                    <span id="escritorioRodape">---</span>
+                </div>
+                <div class="footer-info-item">
+                    <i class="lucide lucide-hash"></i>
+                    <span id="oabRodape">---</span>
                 </div>
             </div>
         </main>
     </div>
 
-    <div id="modalAudiencia" class="modal">
+    <!-- Modal Nova Audiência -->
+    <div class="modal" id="modalAudiencia">
         <div class="modal-content">
-            <h3 style="margin-bottom: 24px; font-size: 18px;">⚖️ Agendar Audiência</h3>
-            <form id="formAudiencia">
-                <div style="margin-bottom:15px;">
-                    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px;">Vincular Processo</label>
-                    <select id="audProcessoId" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;" required></select>
-                </div>
-                
-                <div style="margin-bottom:15px;">
-                    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px;">Tipo de Audiência</label>
-                    <input type="text" id="audTipo" placeholder="Ex: Conciliação" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;" required>
-                </div>
-                
-                <div style="display:flex; gap:12px; margin-bottom:15px;">
-                    <div style="flex:1;">
-                        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px;">Data</label>
-                        <input type="date" id="audData" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;" required>
-                    </div>
-                    <div style="flex:1;">
-                        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px;">Hora</label>
-                        <input type="time" id="audHora" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;" required>
-                    </div>
-                </div>
-
-                <div style="margin-bottom:24px;">
-                    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:5px;">Link ou Local Físico</label>
-                    <input type="text" id="audLocal" placeholder="Link da sala virtual ou endereço" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
-                </div>
-
-                <div style="display:flex; gap:12px;">
-                    <button type="submit" class="btn-primary" style="flex:1; justify-content:center;">Salvar</button>
-                    <button type="button" onclick="fecharModalAudiencia()" style="flex:1; background:#f1f5f9; border:none; border-radius:8px; cursor:pointer; font-weight: 600; color: var(--muted);">Cancelar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal ATA da Audiência -->
-    <div id="modalATA" class="modal">
-        <div class="modal-content" style="max-width: 600px;">
-            <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--primary);">📝 Registrar ATA da Audiência</h3>
-            
-            <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--primary);">
-                <div style="font-size: 13px; color: var(--muted); margin-bottom: 8px;">
-                    <strong>Processo:</strong> <span id="ataProcesso">---</span>
-                </div>
-                <div style="font-size: 13px; color: var(--muted); margin-bottom: 8px;">
-                    <strong>Cliente:</strong> <span id="ataCliente">---</span>
-                </div>
-                <div style="font-size: 13px; color: var(--muted);">
-                    <strong>Data:</strong> <span id="ataData">---</span>
-                </div>
+            <div class="modal-header">
+                <h2><i class="lucide lucide-calendar-plus"></i> NOVA AUDIÊNCIA</h2>
+                <button class="close" onclick="fecharModal()">×</button>
             </div>
+            <form id="formAudiencia">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>NÚMERO DO PROCESSO *</label>
+                            <select id="audProcesso" required onchange="carregarDadosProcesso()">
+                                <option value="">SELECIONE UM PROCESSO</option>
+                            </select>
+                        </div>
 
-            <form id="formATA">
-                <input type="hidden" id="ataAudienciaId">
-                
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-main);">
-                        Descreva o que ocorreu na audiência:
-                    </label>
-                    <textarea 
-                        id="ataTexto" 
-                        rows="8" 
-                        placeholder="Ex: Audiência de conciliação realizada. Acordo firmado no valor de R$ 5.000,00. Prazo de pagamento: 30 dias. Homologação pelo juiz realizada."
-                        style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical;"
-                        required
-                    ></textarea>
-                    <div style="font-size: 11px; color: var(--muted); margin-top: 6px;">
-                        💡 Dica: Inclua informações sobre acordos, prazos, decisões e próximos passos.
+                        <div class="form-group">
+                            <label>CLIENTE</label>
+                            <select id="audCliente" onchange="preencherTelefoneCliente()">
+                                <option value="">SELECIONE UM CLIENTE</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>DATA *</label>
+                            <input type="date" id="audData" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label>HORA *</label>
+                            <input type="time" id="audHora" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label>TIPO DE AUDIÊNCIA *</label>
+                            <select id="audTipo" required>
+                                <option value="">SELECIONE</option>
+                                <option value="Conciliação">CONCILIAÇÃO</option>
+                                <option value="Instrução">INSTRUÇÃO</option>
+                                <option value="Inicial">INICIAL</option>
+                                <option value="Justificação">JUSTIFICAÇÃO</option>
+                                <option value="Interrogatório">INTERROGATÓRIO</option>
+                                <option value="Outras">OUTRAS</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>TELEFONE CLIENTE</label>
+                            <input type="text" id="audTelefone" />
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>LOCAL/LINK VIRTUAL</label>
+                            <textarea id="audLocal" placeholder="Endereço ou link da audiência virtual"></textarea>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>OBSERVAÇÕES</label>
+                            <textarea id="audObs" placeholder="Observações adicionais sobre a audiência"></textarea>
+                        </div>
                     </div>
                 </div>
-
-                <div style="display: flex; gap: 12px;">
-                    <button type="submit" class="btn-primary" style="flex: 1; justify-content: center;">
-                        <i class="lucide lucide-save"></i> Salvar ATA
-                    </button>
-                    <button type="button" onclick="fecharModalATA()" style="flex: 1; background: #f1f5f9; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--muted);">
-                        Cancelar
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="fecharModal()">CANCELAR</button>
+                    <button type="submit" class="btn-primary">
+                        <i class="lucide lucide-save"></i>
+                        SALVAR AUDIÊNCIA
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.451.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/imask@7.1.3/dist/imask.min.js"></script>
     <script>
         const token = localStorage.getItem('token');
-        if (!token) window.location.href = '/login.html';
+        if (!token) window.location.href = '/login';
 
-        // 🚀 Variáveis para armazenar os dados do advogado logado
-        let nomeAdvogado = "Advogado Responsável";
-        let oabAdvogado = "";
-
-async function inicializarPagina() {
-    try {
-        console.log('🔄 Inicializando página de audiências...');
-        
-        // 1. Busca Info do Usuário e preenche Cabeçalho
-        const resUser = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
-        const dataUser = await resUser.json();
-        
-        if (dataUser.ok) {
-            const emailElement = document.getElementById('footerEmail');
-            if (emailElement) {
-                emailElement.innerText = dataUser.usuario.email || 'Não disponível';
-                console.log('✅ Email atualizado:', dataUser.usuario.email);
-            }
-            
-            // 🚀 CAPTURA DADOS PARA O WHATSAPP
-            nomeAdvogadoLogado = dataUser.usuario.nome || "Equipe Jurídica"; 
-            oabAdvogadoLogado = dataUser.usuario.oab || ""; 
-
-            // --- LÓGICA DO CABEÇALHO PADRONIZADA ---
-            const nomeCompleto = dataUser.usuario.nome || 'Advogado';
-            
-            // Extrai primeiro nome
-            const primeiroNome = nomeCompleto.trim().split(' ')[0];
-            const nameHeader = document.getElementById('userNameHeader');
-            if (nameHeader) nameHeader.innerText = primeiroNome;
-
-            // Extrai iniciais (Primeiro e Último nome)
-            const partes = nomeCompleto.trim().split(' ').filter(n => n);
-            let iniciais = partes[0][0];
-            if (partes.length > 1) {
-                iniciais += partes[partes.length - 1][0];
-            }
-            
-            const circulo = document.getElementById('userCircle');
-            if (circulo) circulo.innerText = iniciais.toUpperCase();
-            // -------------------------------------
+        // Toggle menu do usuário
+        function toggleUserMenu() {
+            const m = document.getElementById('userDropdown');
+            if (m) m.style.display = m.style.display === 'none' || m.style.display === '' ? 'block' : 'none';
         }
 
-        // 2. Info do Plano
-        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
-        const dataPlan = await resPlan.json();
+        // Fechar dropdown ao clicar fora
+        window.addEventListener('click', (e) => {
+            if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
+                const m = document.getElementById('userDropdown');
+                if (m) m.style.display = 'none';
+            }
+        });
         
-        const planoElement = document.getElementById('footerPlano');
-        if (planoElement) {
-            planoElement.innerText = dataPlan.plano || 'Free';
-            console.log('✅ Plano atualizado:', dataPlan.plano);
+        // Logout
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
         }
 
-        // 3. Carrega Audiências
-        await carregarAudiencias();
-    } catch (err) { 
-        console.error("❌ Erro na inicialização:", err); 
-    }
-}
+        // Carregar informações do usuário
+        async function carregarInfoUsuario() {
+            try {
+                const res = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                
+                if (data.ok) {
+                    const user = data.usuario;
+                    
+                    // Rodapé
+                    document.getElementById('usuarioRodape').innerText = user.nome || 'Usuário';
+                    document.getElementById('escritorioRodape').innerText = user.escritorio || 'Escritório';
+                    document.getElementById('oabRodape').innerText = user.oab || '---';
+                    
+                    // Sidebar
+                    document.getElementById('userEmail').innerText = user.email || '...';
+                    document.getElementById('userNameHeader').innerText = user.nome ? user.nome.split(' ')[0] : 'ADVOGADO';
+                    
+                    // Iniciais
+                    const partes = (user.nome || '').split(' ').filter(n => n);
+                    let iniciais = partes[0] ? partes[0][0] : '-';
+                    if (partes.length > 1) iniciais += partes[partes.length - 1][0];
+                    document.getElementById('userCircle').innerText = iniciais.toUpperCase();
+                }
+            } catch (err) { 
+                console.error("Erro ao carregar perfil:", err); 
+            }
+        }
 
+        // Carregar plano
+        async function carregarPlano() {
+            try {
+                const res = await fetch('/api/plano-consumo', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                document.getElementById('footerPlano').innerText = data.plano || 'free';
+            } catch (err) { 
+                console.error("Erro ao carregar plano:", err); 
+            }
+        }
+
+        // Trocar aba
+        function trocarAba(aba) {
+            // Remover active de todas
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Ativar aba selecionada
+            if (aba === 'agendadas') {
+                document.querySelector('.tab:first-child').classList.add('active');
+                document.getElementById('abaAgendadas').classList.add('active');
+            } else {
+                document.querySelector('.tab:last-child').classList.add('active');
+                document.getElementById('abaRealizadas').classList.add('active');
+            }
+        }
+
+        // Carregar audiências
         async function carregarAudiencias() {
             try {
-                console.log('🔄 [CARREGAR] Iniciando carregamento de audiências...');
                 const res = await fetch('/api/audiencias', { headers: { 'Authorization': `Bearer ${token}` } });
                 const dados = await res.json();
-                console.log('📊 [CARREGAR] Total de audiências recebidas:', dados.length);
-                console.log('📋 [CARREGAR] Dados:', dados);
                 
                 const corpoFuturas = document.getElementById('listaAudiencias');
                 const corpoRealizadas = document.getElementById('listaAudienciasRealizadas');
                 
                 if (!dados || dados.length === 0) {
-                    corpoFuturas.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--muted);">Nenhuma audiência agendada.</td></tr>';
-                    corpoRealizadas.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--muted);">Nenhuma audiência realizada.</td></tr>';
+                    corpoFuturas.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:60px 20px; color:var(--muted);"><i class="lucide lucide-calendar-x" style="font-size:48px; margin-bottom:16px;"></i><p style="font-weight:600; font-size:16px;">NENHUMA AUDIÊNCIA AGENDADA</p></td></tr>';
+                    corpoRealizadas.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:60px 20px; color:var(--muted);"><i class="lucide lucide-calendar-check" style="font-size:48px; margin-bottom:16px;"></i><p style="font-weight:600; font-size:16px;">NENHUMA AUDIÊNCIA REALIZADA</p></td></tr>';
+                    lucide.createIcons();
                     return;
                 }
 
-                // Separar audiências futuras e passadas
+                // Separar audiências
                 const hoje = new Date();
                 hoje.setHours(0, 0, 0, 0);
-
                 const futuras = [];
                 const realizadas = [];
 
@@ -667,439 +1456,333 @@ async function inicializarPagina() {
                     }
                 });
 
-                // Atualizar contadores das abas
-                console.log('🔢 [CARREGAR] Atualizando contadores - Futuras:', futuras.length, '| Realizadas:', realizadas.length);
-                const contadorFuturas = document.getElementById('contadorFuturas');
-                const contadorRealizadas = document.getElementById('contadorRealizadas');
-                if (contadorFuturas) contadorFuturas.textContent = futuras.length;
-                if (contadorRealizadas) contadorRealizadas.textContent = realizadas.length;
+                // Atualizar contadores
+                document.getElementById('totalAudiencias').innerText = dados.length;
+                document.getElementById('audienciasAgendadas').innerText = futuras.length;
+                document.getElementById('audienciasRealizadas').innerText = realizadas.length;
+                document.getElementById('contadorFuturas').innerText = futuras.length;
+                document.getElementById('contadorRealizadas').innerText = realizadas.length;
 
-                // Renderizar Audiências Futuras
+                // Renderizar agendadas
                 if (futuras.length === 0) {
-                    corpoFuturas.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--muted);">Nenhuma audiência agendada.</td></tr>';
+                    corpoFuturas.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:60px 20px; color:var(--muted);"><i class="lucide lucide-calendar-x" style="font-size:48px; margin-bottom:16px;"></i><p style="font-weight:600; font-size:16px;">NENHUMA AUDIÊNCIA AGENDADA</p></td></tr>';
                 } else {
                     corpoFuturas.innerHTML = futuras.map(a => {
                         const dataFormatada = a.data_audiencia ? new Date(a.data_audiencia).toLocaleDateString('pt-BR') : '---';
                         const horaFormatada = a.hora_audiencia ? a.hora_audiencia.slice(0,5) : '--:--';
 
-                        // Calcula dias restantes
+                        // Calcular badge de alerta
                         let alertaBadge = '';
                         let alertaStyle = '';
                         
                         if (a.data_audiencia) {
-                            const hoje = new Date();
-                            hoje.setHours(0, 0, 0, 0);
-                            
-                            let dataAud;
-                            if (a.data_audiencia.includes('T')) {
-                                dataAud = new Date(a.data_audiencia);
-                            } else {
-                                dataAud = new Date(a.data_audiencia + 'T00:00:00');
-                            }
+                            let dataAud = a.data_audiencia.includes('T') ? new Date(a.data_audiencia) : new Date(a.data_audiencia + 'T00:00:00');
                             dataAud.setHours(0, 0, 0, 0);
                             
                             const diffTime = dataAud - hoje;
                             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                             
-                            let badgeStyle = '';
-                            let badgeText = '';
-                            
                             if (diffDays === 0) {
-                                badgeStyle = 'background: #fee2e2; color: #dc2626; border: 1px solid #fecaca;';
-                                badgeText = 'HOJE';
+                                alertaBadge = '<span class="badge badge-hoje">HOJE</span>';
                                 alertaStyle = 'background: rgba(239, 68, 68, 0.05); border-left: 3px solid #ef4444;';
                             } else if (diffDays === 1) {
-                                badgeStyle = 'background: #fffbeb; color: #d97706; border: 1px solid #fde68a;';
-                                badgeText = 'AMANHÃ';
+                                alertaBadge = '<span class="badge badge-amanha">AMANHÃ</span>';
                                 alertaStyle = 'background: rgba(245, 158, 11, 0.05); border-left: 3px solid #f59e0b;';
-                            } else if (diffDays <= 3) {
-                                badgeStyle = 'background: #fffbeb; color: #d97706; border: 1px solid #fde68a;';
-                                badgeText = 'FALTAM ' + diffDays + ' DIAS';
                             } else if (diffDays <= 7) {
-                                badgeStyle = 'background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0;';
-                                badgeText = 'FALTAM ' + diffDays + ' DIAS';
+                                alertaBadge = `<span class="badge badge-proximo">FALTAM ${diffDays} DIAS</span>`;
                             } else {
-                                badgeStyle = 'background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0;';
-                                badgeText = 'FALTAM ' + diffDays + ' DIAS';
+                                alertaBadge = `<span class="badge badge-proximo">FALTAM ${diffDays} DIAS</span>`;
                             }
-                            
-                            alertaBadge = '<span class="badge" style="' + badgeStyle + ' font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; margin-left: 8px; display: inline-block; margin-top: 4px;">' + badgeText + '</span>';
                         }
-                        
 
                         return `
                         <tr style="${alertaStyle}">
                             <td>
-                                <strong style="color:var(--primary);">${dataFormatada}</strong><br>
+                                <strong style="color:var(--primary); display:block; margin-bottom:4px;">${dataFormatada}</strong>
                                 <span style="font-size:12px; font-weight:600; color:var(--muted);">${horaFormatada}</span>
                                 ${alertaBadge}
                             </td>
                             <td>
-                                <div style="font-weight:700; color:var(--text-main);">${a.processo_numero || 'Sem Número'}</div>
-                                <div style="font-size:12px; color:var(--muted);">${a.cliente || 'Consumidor'}</div>
+                                <div style="font-weight:700; color:var(--text-main); margin-bottom:4px;">${a.processo_numero || 'SEM NÚMERO'}</div>
+                                <div style="font-size:12px; color:var(--muted);">${a.cliente || 'CLIENTE NÃO INFORMADO'}</div>
                             </td>
-                            <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600;">${a.tipo_audiencia || a.tipo || 'Audiência'}</span></td>
-                            <td style="font-size:12px; color:var(--muted); max-width:200px; overflow:hidden; text-overflow:ellipsis;">${a.local_virtual || a.local || '-'}</td>
-                            <td style="text-align: center;">
-                                <div style="display:flex; flex-direction:column; gap:8px; align-items:center;">
-                                    <button class="btn-whatsapp" onclick="avisarZap('${a.cliente}', '${a.processo_numero}', '${a.tipo_audiencia}', '${a.data_audiencia}', '${a.hora_audiencia}', '${a.local_virtual}', '${a.telefone}')">
-                                        <i class="lucide lucide-message-circle"></i> WhatsApp Cliente
+                            <td><span style="background:#f1f5f9; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:700;">${(a.tipo_audiencia || a.tipo || 'AUDIÊNCIA').toUpperCase()}</span></td>
+                            <td style="font-size:12px; color:var(--muted); max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.local_virtual || a.local || '---'}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-whatsapp" onclick="avisarZap('${a.cliente}', '${a.processo_numero}', '${a.tipo_audiencia}', '${a.data_audiencia}', '${a.hora_audiencia}', '${a.local_virtual}', '${a.telefone}')">
+                                        <i class="lucide lucide-message-circle"></i>
+                                        <span>WHATSAPP</span>
                                     </button>
-                                    <button 
-    onclick="marcarComoRealizada(${a.id})"
-    style="background: var(--accent-green); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 11px;"
->
-    <i class="lucide lucide-check-circle" style="width:12px; vertical-align:middle;"></i>
-    REALIZADA
-</button>
-
-<button 
-    onclick="excluirAudiencia(${a.id})"
-    style="color:var(--danger); background:none; border:none; cursor:pointer; font-weight:700; font-size:11px;"
->
-    <i class="lucide lucide-trash-2" style="width:12px; vertical-align:middle;"></i>
-    EXCLUIR
-</button>
+                                    <button class="btn-action btn-realizada" onclick="marcarComoRealizada(${a.id})">
+                                        <i class="lucide lucide-check"></i>
+                                        <span>REALIZADA</span>
+                                    </button>
+                                    <button class="btn-action btn-delete" onclick="excluirAudiencia(${a.id})">
+                                        <i class="lucide lucide-trash-2"></i>
+                                        <span>EXCLUIR</span>
+                                    </button>
                                 </div>
                             </td>
-                        </tr>`;
+                        </tr>
+                        `;
                     }).join('');
                 }
 
-                // Renderizar Audiências Realizadas
+                // Renderizar realizadas
                 if (realizadas.length === 0) {
-                    corpoRealizadas.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--muted);">Nenhuma audiência realizada.</td></tr>';
+                    corpoRealizadas.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:60px 20px; color:var(--muted);"><i class="lucide lucide-calendar-check" style="font-size:48px; margin-bottom:16px;"></i><p style="font-weight:600; font-size:16px;">NENHUMA AUDIÊNCIA REALIZADA</p></td></tr>';
                 } else {
                     corpoRealizadas.innerHTML = realizadas.map(a => {
                         const dataFormatada = a.data_audiencia ? new Date(a.data_audiencia).toLocaleDateString('pt-BR') : '---';
                         const horaFormatada = a.hora_audiencia ? a.hora_audiencia.slice(0,5) : '--:--';
-                        
-                        
-                        // Verifica se já tem ATA registrada
-                        const temATA = a.ata_audiencia && a.ata_audiencia.trim() !== '';
-                        
-                        // Cria um ID único para armazenar os dados da audiência
-                        const uniqueId = 'ata_' + a.id;
-                        
-                        // Armazena os dados no window para acesso posterior
-                        if (temATA) {
-                            window[uniqueId] = {
-                                id: a.id,
-                                processo: a.processo_numero,
-                                cliente: a.cliente,
-                                data: dataFormatada,
-                                ata: a.ata_audiencia
-                            };
-                        }
-                        
+
                         return `
-                        <tr style="background: #f8fafc;">
+                        <tr>
                             <td>
-                                <strong style="color:var(--muted);">${dataFormatada}</strong><br>
+                                <strong style="color:var(--muted); display:block; margin-bottom:4px;">${dataFormatada}</strong>
                                 <span style="font-size:12px; font-weight:600; color:var(--muted);">${horaFormatada}</span>
-                                <span class="badge" style="background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; margin-left: 8px; display: inline-block; margin-top: 4px;">
-                                    REALIZADA
-                                </span>
                             </td>
                             <td>
-                                <div style="font-weight:700; color:var(--text-main);">${a.processo_numero || 'Sem Número'}</div>
-                                <div style="font-size:12px; color:var(--muted);">${a.cliente || 'Consumidor'}</div>
+                                <div style="font-weight:700; color:var(--text-main); margin-bottom:4px;">${a.processo_numero || 'SEM NÚMERO'}</div>
+                                <div style="font-size:12px; color:var(--muted);">${a.cliente || 'CLIENTE NÃO INFORMADO'}</div>
                             </td>
-                            <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600;">${a.tipo_audiencia || a.tipo || 'Audiência'}</span></td>
-                            <td style="font-size:12px; color:var(--muted); max-width:200px; overflow:hidden; text-overflow:ellipsis;">${a.local_virtual || a.local || '-'}</td>
-                            <td style="text-align: center;">
-                                ${temATA ? `
-                                    <button onclick="visualizarATASafe(window.${uniqueId})" style="background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700;">
-                                        <i class="lucide lucide-eye" style="width:14px; vertical-align:middle;"></i> Ver ATA
+                            <td><span style="background:#f1f5f9; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:700;">${(a.tipo_audiencia || a.tipo || 'AUDIÊNCIA').toUpperCase()}</span></td>
+                            <td style="font-size:12px; color:var(--muted); max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.local_virtual || a.local || '---'}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-delete" onclick="excluirAudiencia(${a.id})">
+                                        <i class="lucide lucide-trash-2"></i>
+                                        <span>EXCLUIR</span>
                                     </button>
-                                ` : `
-                                    <button onclick="abrirModalATA(${a.id}, '${a.processo_numero}', '${a.cliente}', '${dataFormatada}')" style="background: var(--accent-green); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700;">
-                                        <i class="lucide lucide-file-plus" style="width:14px; vertical-align:middle;"></i> Registrar ATA
-                                    </button>
-                                `}
+                                </div>
                             </td>
-                        </tr>`;
+                        </tr>
+                        `;
                     }).join('');
                 }
 
-
-                if (window.lucide) lucide.createIcons();
-            } catch (err) { 
-                console.error("Erro ao listar audiências:", err);
-                document.getElementById('listaAudiencias').innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Erro ao carregar dados.</td></tr>';
+                lucide.createIcons();
+            } catch (err) {
+                console.error("Erro ao carregar audiências:", err);
+                document.getElementById('listaAudiencias').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--danger); font-weight:600;">❌ ERRO AO CARREGAR AUDIÊNCIAS</td></tr>';
             }
         }
 
-        document.getElementById('formAudiencia').onsubmit = async (e) => {
-            e.preventDefault();
-            console.log('📝 [SALVAR] Formulário submetido!');
+        // Modal
+        function abrirModal() {
+            document.getElementById('modalAudiencia').style.display = 'flex';
+            carregarProcessosModal();
+            carregarClientesModal();
+            aplicarMascaraTelefone();
+        }
+
+        function fecharModal() {
+            document.getElementById('modalAudiencia').style.display = 'none';
+            document.getElementById('formAudiencia').reset();
+        }
+
+        // Carregar processos no select
+        async function carregarProcessosModal() {
+            try {
+                const res = await fetch('/api/processos', { headers: { 'Authorization': `Bearer ${token}` } });
+                const processos = await res.json();
+                
+                const select = document.getElementById('audProcesso');
+                select.innerHTML = '<option value="">SELECIONE UM PROCESSO</option>';
+                
+                processos.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.id; // ID do processo para enviar ao backend
+                    option.textContent = p.numero; // Apenas o número do processo
+                    option.dataset.cliente = p.cliente || '';
+                    option.dataset.clienteId = p.cliente_id || '';
+                    select.appendChild(option);
+                });
+            } catch (err) {
+                console.error("Erro ao carregar processos:", err);
+            }
+        }
+
+        // Carregar clientes no select
+        async function carregarClientesModal() {
+            try {
+                const res = await fetch('/api/clientes', { headers: { 'Authorization': `Bearer ${token}` } });
+                const clientes = await res.json();
+                
+                const select = document.getElementById('audCliente');
+                select.innerHTML = '<option value="">SELECIONE UM CLIENTE</option>';
+                
+                clientes.forEach(c => {
+                    const option = document.createElement('option');
+                    option.value = c.nome;
+                    option.textContent = c.nome;
+                    option.dataset.telefone = c.telefone || '';
+                    select.appendChild(option);
+                });
+            } catch (err) {
+                console.error("Erro ao carregar clientes:", err);
+            }
+        }
+
+        // Quando selecionar um processo, preencher o cliente automaticamente
+        function carregarDadosProcesso() {
+            const select = document.getElementById('audProcesso');
+            const selectedOption = select.options[select.selectedIndex];
             
-            // Alinhando os nomes dos campos com o que o Backend Master espera
+            if (selectedOption && selectedOption.dataset.cliente) {
+                const selectCliente = document.getElementById('audCliente');
+                
+                // Buscar a opção do cliente no select
+                for (let i = 0; i < selectCliente.options.length; i++) {
+                    if (selectCliente.options[i].value === selectedOption.dataset.cliente) {
+                        selectCliente.selectedIndex = i;
+                        
+                        // Preencher telefone se disponível
+                        if (selectCliente.options[i].dataset.telefone) {
+                            document.getElementById('audTelefone').value = selectCliente.options[i].dataset.telefone;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Preencher telefone quando cliente for selecionado diretamente
+        function preencherTelefoneCliente() {
+            const select = document.getElementById('audCliente');
+            const selectedOption = select.options[select.selectedIndex];
+            
+            if (selectedOption && selectedOption.dataset.telefone) {
+                document.getElementById('audTelefone').value = selectedOption.dataset.telefone;
+            }
+        }
+
+        // Aplicar máscara de telefone
+        function aplicarMascaraTelefone() {
+            const telefoneInput = document.getElementById('audTelefone');
+            if (telefoneInput) {
+                IMask(telefoneInput, {
+                    mask: '(00) 00000-0000'
+                });
+            }
+        }
+
+        // Salvar audiência
+        document.getElementById('formAudiencia').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
             const dados = {
-                processo_id: document.getElementById('audProcessoId').value,
+                processo_id: document.getElementById('audProcesso').value, // ID do processo
                 tipo_audiencia: document.getElementById('audTipo').value,
                 data_audiencia: document.getElementById('audData').value,
                 hora_audiencia: document.getElementById('audHora').value,
                 local_virtual: document.getElementById('audLocal').value
             };
-            
-            console.log('📋 [SALVAR] Dados a enviar:', dados);
-            
+
             try {
-                const response = await fetch('/api/audiencias', {
+                const res = await fetch('/api/audiencias', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
                     body: JSON.stringify(dados)
                 });
-                
-                console.log('📡 [SALVAR] Status da resposta:', response.status);
-                
-                if (response.ok) {
-                    const resultado = await response.json();
-                    console.log('✅ [SALVAR] Resposta do servidor:', resultado);
-                    alert('✅ Audiência cadastrada com sucesso!');
-                    fecharModalAudiencia();
+
+                if (res.ok) {
+                    alert("✅ AUDIÊNCIA CADASTRADA COM SUCESSO!");
+                    fecharModal();
                     document.getElementById('formAudiencia').reset();
-                    console.log('🔄 [SALVAR] Recarregando audiências...');
-                    await carregarAudiencias();
-                    console.log('✅ [SALVAR] Audiências recarregadas!');
-                } else {
-                    const erro = await response.text();
-                    console.error('❌ [SALVAR] Erro do servidor:', erro);
-                    alert("Erro ao salvar audiência no servidor: " + erro);
-                }
-            } catch (err) {
-                console.error("❌ [SALVAR] Erro no salvamento:", err);
-                alert("Erro de comunicação: " + err.message);
-            }
-        };
-
-        // Lógica de WhatsApp original mantida
-function avisarZap(cliente, processo, tipo, data, hora, local, telefone) {
-    if (!telefone || telefone === 'null' || telefone === 'undefined') {
-        alert("Atenção: Este cliente não possui telefone cadastrado!");
-        return;
-    }
-
-    // 🚀 AQUI ESTAVA O ERRO: Precisamos definir a dataFormatada antes de usar
-    const dataFormatada = data ? new Date(data).toLocaleDateString('pt-BR') : 'A definir';
-    const foneLimpo = telefone.replace(/\D/g, "");
-    
-    // Monta a assinatura com os dados que o inicializarPagina capturou
-    const assinatura = `Dr(a). ${nomeAdvogadoLogado}${oabAdvogadoLogado ? ' (OAB/' + oabAdvogadoLogado + ')' : ''}`;
-
-    const mensagem = `*AVISO DE AUDIÊNCIA*%0A%0A` +
-                     `Olá, *${cliente}*!%0A` +
-                     `Confirmamos o agendamento da sua audiência:%0A%0A` +
-                     `📂 *Processo:* ${processo}%0A` +
-                     `⚖️ *Tipo:* ${tipo}%0A` +
-                     `📅 *Data:* ${dataFormatada}%0A` + // Agora a variável existe!
-                     `🕒 *Hora:* ${hora.slice(0,5)}%0A` +
-                     `📍 *Local/Link:* ${local || 'A definir'}%0A%0A` +
-                     `Atenciosamente,%0A` +
-                     `*${assinatura}*`;
-
-    window.open(`https://wa.me/55${foneLimpo}?text=${mensagem}`, '_blank');
-}
-
-        function abrirModalAudiencia() {
-            document.getElementById('modalAudiencia').style.display = 'flex';
-            carregarProcessosSelect();
-        }
-
-        function fecharModalAudiencia() { document.getElementById('modalAudiencia').style.display = 'none'; }
-
-        async function carregarProcessosSelect() {
-            const res = await fetch('/api/processos', { headers: { 'Authorization': `Bearer ${token}` } });
-            const processos = await res.json();
-            const select = document.getElementById('audProcessoId');
-            select.innerHTML = '<option value="">Selecione o processo...</option>' + 
-                processos.map(p => `<option value="${p.id}">${p.numero} - ${p.cliente}</option>`).join('');
-        }
-
-        async function excluirAudiencia(id) {
-            if (!confirm("Deseja realmente excluir esta audiência?")) return;
-            try {
-                const res = await fetch(`/api/audiencias/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) carregarAudiencias();
-            } catch (err) { console.error(err); }
-        }
-
-        
-        // Função para trocar entre abas
-        function trocarAba(aba) {
-            const abaFuturas = document.getElementById('abaFuturas');
-            const abaRealizadas = document.getElementById('abaRealizadas');
-            const tabelaFuturas = document.getElementById('tabelaFuturas');
-            const tabelaRealizadas = document.getElementById('tabelaRealizadas');
-
-            if (aba === 'futuras') {
-                abaFuturas.classList.add('active');
-                abaRealizadas.classList.remove('active');
-                tabelaFuturas.style.display = 'block';
-                tabelaRealizadas.style.display = 'none';
-            } else {
-                abaRealizadas.classList.add('active');
-                abaFuturas.classList.remove('active');
-                tabelaFuturas.style.display = 'none';
-                tabelaRealizadas.style.display = 'block';
-            }
-        }
-
-
-        // ✅ NOVA FUNÇÃO SEGURA para visualizar ATA
-        function visualizarATASafe(dados) {
-            document.getElementById('ataAudienciaId').value = dados.id;
-            document.getElementById('ataProcesso').innerText = dados.processo;
-            document.getElementById('ataCliente').innerText = dados.cliente;
-            document.getElementById('ataData').innerText = dados.data;
-            document.getElementById('ataTexto').value = dados.ata || '';
-            document.getElementById('modalATA').style.display = 'flex';
-        }
-
-        // Abrir modal para registrar ATA
-        function abrirModalATA(id, processo, cliente, data) {
-            document.getElementById('ataAudienciaId').value = id;
-            document.getElementById('ataProcesso').innerText = processo;
-            document.getElementById('ataCliente').innerText = cliente;
-            document.getElementById('ataData').innerText = data;
-            document.getElementById('ataTexto').value = '';
-            document.getElementById('modalATA').style.display = 'flex';
-        }
-
-        // Fechar modal ATA
-        function fecharModalATA() {
-            document.getElementById('modalATA').style.display = 'none';
-        }
-
-        // Visualizar ATA existente (função antiga mantida para compatibilidade)
-        function visualizarATA(id, processo, cliente, data, ata) {
-            document.getElementById('ataAudienciaId').value = id;
-            document.getElementById('ataProcesso').innerText = processo;
-            document.getElementById('ataCliente').innerText = cliente;
-            document.getElementById('ataData').innerText = data;
-            document.getElementById('ataTexto').value = ata;
-            document.getElementById('modalATA').style.display = 'flex';
-        }
-
-        // Salvar ATA
-        document.getElementById('formATA').onsubmit = async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('ataAudienciaId').value;
-            const ata = document.getElementById('ataTexto').value;
-            
-            try {
-                const response = await fetch(`/api/audiencias/${id}/ata`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ ata_audiencia: ata })
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    alert('✅ ATA registrada com sucesso!');
-                    fecharModalATA();
                     await carregarAudiencias();
                 } else {
-                    alert('❌ Erro ao salvar ATA: ' + (result.error || 'Erro desconhecido'));
+                    const erro = await res.text();
+                    alert("❌ ERRO AO SALVAR: " + erro);
                 }
-            } catch (err) {
-                console.error('Erro:', err);
-                alert('❌ Erro ao comunicar com servidor');
-            }
-        };
-
-        function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
-        
-        // 🚀 INICIALIZAÇÃO COM GARANTIA DUPLA
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('📄 DOM carregado');
-            setTimeout(() => {
-                inicializarPagina();
-            }, 100);
-        });
-
-        window.onload = () => {
-            console.log('🌐 Window carregado');
-            inicializarPagina();
-        };
-
-        function toggleUserMenu() {
-            const m = document.getElementById('userDropdown');
-            if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
-        }
-
-        window.addEventListener('click', (e) => {
-            if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
-                const m = document.getElementById('userDropdown');
-                if(m) m.style.display = 'none';
+            } catch (err) { 
+                console.error("Erro na requisição:", err);
+                alert("❌ ERRO DE COMUNICAÇÃO: " + err.message);
             }
         });
 
-        // Trocar entre abas
-        function trocarAba(aba) {
-            const abaFuturas = document.getElementById('abaFuturas');
-            const abaRealizadas = document.getElementById('abaRealizadas');
-            const tabelaFuturas = document.getElementById('tabelaFuturas');
-            const tabelaRealizadas = document.getElementById('tabelaRealizadas');
-
-            if (aba === 'futuras') {
-                // Ativar aba futuras
-                abaFuturas.style.background = 'var(--primary)';
-                abaFuturas.style.color = 'white';
-                abaFuturas.style.borderBottom = '3px solid var(--primary)';
-                
-                abaRealizadas.style.background = 'transparent';
-                abaRealizadas.style.color = 'var(--muted)';
-                abaRealizadas.style.borderBottom = '3px solid transparent';
-                
-                tabelaFuturas.style.display = 'block';
-                tabelaRealizadas.style.display = 'none';
-            } else {
-                // Ativar aba realizadas
-                abaRealizadas.style.background = 'var(--primary)';
-                abaRealizadas.style.color = 'white';
-                abaRealizadas.style.borderBottom = '3px solid var(--primary)';
-                
-                abaFuturas.style.background = 'transparent';
-                abaFuturas.style.color = 'var(--muted)';
-                abaFuturas.style.borderBottom = '3px solid transparent';
-                
-                tabelaFuturas.style.display = 'none';
-                tabelaRealizadas.style.display = 'block';
-            }
-        }
-
+        // Marcar como realizada
         async function marcarComoRealizada(id) {
-            if (!confirm('Confirmar que a audiência foi realizada?')) return;
-
+            if (!confirm("CONFIRMAR QUE A AUDIÊNCIA FOI REALIZADA?")) return;
+            
             try {
                 const res = await fetch(`/api/audiencias/${id}/realizada`, {
                     method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
+                    headers: { 
+                        'Authorization': `Bearer ${token}` 
                     }
                 });
 
                 if (res.ok) {
+                    alert("✅ AUDIÊNCIA MARCADA COMO REALIZADA!");
                     await carregarAudiencias();
                     trocarAba('realizadas');
                 } else {
-                    alert('Erro ao marcar audiência como realizada');
+                    alert("❌ ERRO AO ATUALIZAR AUDIÊNCIA");
                 }
             } catch (err) {
-                console.error(err);
-                alert('Erro de comunicação com servidor');
+                console.error("Erro:", err);
+                alert("❌ ERRO DE COMUNICAÇÃO COM SERVIDOR");
             }
         }
 
+        // Excluir audiência
+        async function excluirAudiencia(id) {
+            if (!confirm("DESEJA REALMENTE EXCLUIR ESTA AUDIÊNCIA?")) return;
+            
+            try {
+                const res = await fetch(`/api/audiencias/${id}`, { 
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (res.ok) {
+                    alert("✅ AUDIÊNCIA EXCLUÍDA!");
+                    carregarAudiencias();
+                } else {
+                    alert("❌ ERRO AO EXCLUIR");
+                }
+            } catch (err) {
+                console.error("Erro:", err);
+            }
+        }
+
+        // WhatsApp
+        function avisarZap(cliente, processo, tipo, data, hora, local, telefone) {
+            if (!telefone) {
+                alert("❌ TELEFONE NÃO CADASTRADO PARA ESTE CLIENTE!");
+                return;
+            }
+
+            const dataFormatada = data ? new Date(data).toLocaleDateString('pt-BR') : '---';
+            const horaFormatada = hora ? hora.slice(0,5) : '--:--';
+            
+            const mensagem = `🔔 *LEMBRETE DE AUDIÊNCIA*\n\n` +
+                `📋 *Processo:* ${processo}\n` +
+                `📅 *Data:* ${dataFormatada}\n` +
+                `🕐 *Horário:* ${horaFormatada}\n` +
+                `⚖️ *Tipo:* ${tipo}\n` +
+                `📍 *Local:* ${local || 'A informar'}\n\n` +
+                `Por favor, confirme seu comparecimento.`;
+            
+            const tel = telefone.replace(/\D/g, '');
+            const url = `https://wa.me/55${tel}?text=${encodeURIComponent(mensagem)}`;
+            window.open(url, '_blank');
+        }
+
+        // Inicialização
+        window.onload = async () => {
+            await carregarInfoUsuario();
+            await carregarPlano();
+            await carregarAudiencias();
+            setInterval(carregarAudiencias, 60000); // Atualiza a cada 1 minuto
+        };
+
+        lucide.createIcons();
     </script>
 </body>
 </html>

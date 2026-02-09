@@ -12,33 +12,33 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
-        :root {
+         :root {
             /* Light Theme Colors - Professional & Clean */
-            --bg-primary: #f8fafc;
-            --bg-secondary: #111827;
-            --bg-tertiary: #1a2332;
+            --bg-primary: #F8FAFB;
+            --bg-secondary: #1E3A5F;
+            --bg-tertiary: #2A4A73;
             --bg-elevated: #ffffff;
             
-            --text-primary: #1e293b;
-            --text-secondary: #475569;
-            --text-tertiary: #64748b;
+            --text-primary: #2C3E50;
+            --text-secondary: #5A6C7D;
+            --text-tertiary: #7B8794;
             
-            --accent-blue: #2563eb;
-            --accent-blue-light: #3b82f6;
-            --accent-blue-glow: rgba(37, 99, 235, 0.3);
+            --accent-blue: #4A90E2;
+            --accent-blue-light: #5BA4DB;
+            --accent-blue-glow: rgba(74, 144, 226, 0.2);
             
-            --accent-green: #10b981;
-            --accent-purple: #8b5cf6;
-            --accent-orange: #f59e0b;
-            --accent-red: #ef4444;
-            --accent-gold: #fbbf24;
+            --accent-green: #52B788;
+            --accent-purple: #7E8CE0;
+            --accent-orange: #F2A65A;
+            --accent-red: #E76F51;
+            --accent-gold: #F4D06F;
             
-            --border-subtle: rgba(0, 0, 0, 0.08);
-            --border-medium: rgba(0, 0, 0, 0.12);
+            --border-subtle: rgba(42, 74, 115, 0.08);
+            --border-medium: rgba(42, 74, 115, 0.12);
             
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
+            --radius-sm: 4px;
+            --radius-md: 6px;
+            --radius-lg: 8px;
             
             --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
             
@@ -67,115 +67,179 @@
         body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; height: 100vh; overflow: hidden; }
 
         /* Sidebar Premium */
-        .sidebar {
-            width: 280px;
-            background: var(--bg-secondary);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-right: 1px solid var(--border-subtle);
-            padding: 32px 24px;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            z-index: 1000;
-        }
+.sidebar {
+    width: 280px;
+    background: var(--bg-secondary);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-right: 1px solid var(--border-subtle);
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
-        .sidebar-header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 24px;
-            border-bottom: 1px solid var(--border-subtle);
-        }
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-100%); }
+    to { opacity: 1; transform: translateX(0); }
+}
 
-        .sidebar-header img {
-            width: 100%;
-            max-width: 180px;
-            height: auto;
-            filter: drop-shadow(0 0 20px var(--accent-blue-glow));
-            transition: all var(--transition-base);
-        }
+/* Sidebar Header */
+.sidebar-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-subtle);
+}
 
-        .sidebar-header img:hover {
-            filter: drop-shadow(0 0 30px var(--accent-blue-glow));
-            transform: scale(1.05);
-        }
+.sidebar-header img {
+    width: 100%;
+    max-width: 180px;
+    height: auto;
+    filter: drop-shadow(0 0 20px var(--accent-blue-glow));
+    transition: all var(--transition-base);
+}
 
-        .menu {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            flex-grow: 1;
-        }
+.sidebar-header img:hover {
+    filter: drop-shadow(0 0 30px var(--accent-blue-glow));
+    transform: scale(1.05);
+}
 
-        .menu a {
-            display: flex;
-            align-items: center;
-            padding: 14px 16px;
-            color: #94a3b8;
-            text-decoration: none;
-            border-radius: var(--radius-lg);
-            font-size: 14px;
-            font-weight: 600;
-            transition: all var(--transition-base);
-            position: relative;
-            overflow: hidden;
-        }
+/* Menu Container */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-grow: 1;
+}
 
-        .menu a::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: var(--accent-blue);
-            transform: scaleY(0);
-            transition: transform var(--transition-base);
-        }
+/* Menu Links */
+.menu a {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    color: #94a3b8; /* CINZA CLARO para links não ativos */
+    text-decoration: none;
+    border-radius: var(--radius-lg);
+    font-size: 14px;
+    font-weight: 600;
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid transparent; /* ← ADICIONAR ESTA LINHA */
+}
 
-        .menu a:hover::before,
-        .menu a.active::before {
-            transform: scaleY(1);
-        }
+/* Barra lateral azul nos links */
+.menu a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent-blue);
+    transform: scaleY(0);
+    transition: transform var(--transition-base);
+}
 
-        .menu a i {
-            margin-right: 12px;
-            font-size: 18px;
-            transition: all var(--transition-base);
-        }
+.menu a:hover::before,
+.menu a.active::before {
+    transform: scaleY(1);
+}
 
-        .menu a:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: #e2e8f0;
-            transform: translateX(4px);
-        }
+/* Ícones dos links */
+.menu a i {
+    margin-right: 12px;
+    font-size: 18px;
+    transition: all var(--transition-base);
+}
 
-        .menu a.active {
-            background: rgba(37, 99, 235, 0.15);
-            color: #60a5fa;
-            border: 1px solid rgba(37, 99, 235, 0.4);
-        }
+/* Hover dos links */
+.menu a:hover {
+    background: rgba(255, 255, 255, 0.05); /* Hover suave */
+    color: #e2e8f0; /* Cinza bem claro no hover */
+    transform: translateX(4px);
+}
 
-        .menu a.active i {
-            color: #60a5fa;
-        }
+/* Link ativo */
+.menu a.active {
+    background: rgba(37, 99, 235, 0.15); /* Azul visível */
+    color: #60a5fa; /* Azul claro */
+    border: 1px solid rgba(37, 99, 235, 0.4);
+}
 
-        .sidebar-footer {
-            padding-top: 24px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 12px;
-            margin-top: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+.menu a.active i {
+    color: #60a5fa; /* Azul claro */
+}
 
-        .sidebar-footer span {
-            color: #cbd5e1 !important;
-        }
+/* Botão CRM Gold - IMPORTANTE: margin-top cria o espaçamento */
+.btn-crm-gold-nav { 
+    background: #fbbf24 !important; 
+    color: #000 !important; 
+    font-weight: 800 !important; 
+    margin-top: 15px !important; /* ⚡ ESPAÇAMENTO CRÍTICO */
+    display: flex !important; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 12px !important; 
+    border-radius: 8px; 
+    text-decoration: none; 
+    font-size: 14px; 
+    transition: 0.3s; 
+}
+
+.btn-crm-gold-nav:hover { 
+    background: #facc15 !important; 
+    transform: scale(1.02); 
+}
+
+.btn-crm-gold-nav i { 
+    margin-right: 10px; 
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 12px;
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar-footer span {
+    color: #cbd5e1 !important;
+}
+
+/* Footer Info Row - Alinhamento das informações */
+.footer-info-row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    width: 100%;
+}
+
+.footer-info-row span:first-child {
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    font-weight: 700;
+    min-width: 65px; /* Alinha os dois pontos verticalmente */
+}
+
+/* Mantém e-mail e plano minúsculos */
+.keep-lowercase {
+    text-transform: lowercase !important;
+    color: #cbd5e1;
+    font-weight: 500;
+}
 
         /* Área Principal */
         .main { margin-left: 280px; flex: 1; display: flex; flex-direction: column; height: 100vh; background: var(--bg); }
@@ -462,41 +526,43 @@ input, textarea, select {
 </head>
 <body>
 
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+    </div>
+    <nav class="menu">
+        <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+        <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+        <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
+        <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+        <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+        <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+        <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+        <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
+        <a href="/ia-page" class="active" style="display:flex; align-items:center; gap:10px;">
+            <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i> IA Jurídica
+            <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">PREMIUM</span>
+        </a>
+        <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+        <a href="/config-page" id="guia-config" onclick="limparBolinha()">
+            <i class="lucide lucide-settings"></i> Configurações
+            <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
+        </a>
+        <a href="/crm-page" class="btn-crm-gold-nav">
+            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="footer-info-row">
+            <span>Usuário:</span> 
+            <span id="userEmail" class="keep-lowercase">...</span>
         </div>
-        <nav class="menu">
-            <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
-            <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
-            <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
-            <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
-            <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
-            <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
-            <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
-            <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
-            <a href="/ia-page" class="active" style="display: flex; align-items: center; gap: 10px;">
-                <i class="lucide lucide-sparkles" style="color: #fbbf24;"></i> IA Jurídica 
-                <span style="font-size: 9px; background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; margin-left: auto;">PREMIUM</span>
-            </a>
-            <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
-            <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
-            <a href="/crm-page" class="btn-crm-gold-nav">
-                <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
-            </a>
-        </nav>
-        <div class="sidebar-footer">
-    <div class="footer-info-row">
-        <span>Usuário:</span> 
-        <span id="userEmail" class="keep-lowercase">...</span>
+        <div class="footer-info-row">
+            <span>Plano:</span> 
+            <span id="planNameFooter" class="keep-lowercase">...</span>
+        </div>
     </div>
-    
-    <div class="footer-info-row">
-        <span>Plano:</span> 
-        <span id="planNameFooter" class="keep-lowercase">...</span>
-    </div>
-</div>
-    </aside>
+</aside>
 
     <div class="main">
         <header class="header">

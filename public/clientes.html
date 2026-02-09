@@ -7,943 +7,1933 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
 
     <style>
-    :root {
-        /* Light Theme Colors - Professional & Clean */
-        --bg-primary: #f8fafc;
-        --bg-secondary: #111827;
-        --bg-tertiary: #1a2332;
-        --bg-elevated: #ffffff;
-        
-        --text-primary: #1e293b;
-        --text-secondary: #475569;
-        --text-tertiary: #64748b;
-        
-        --accent-blue: #2563eb;
-        --accent-blue-light: #3b82f6;
-        --accent-blue-glow: rgba(37, 99, 235, 0.3);
-        
-        --accent-green: #10b981;
-        --accent-purple: #8b5cf6;
-        --accent-orange: #f59e0b;
-        --accent-red: #ef4444;
-        --accent-gold: #fbbf24;
-        
-        --border-subtle: rgba(0, 0, 0, 0.08);
-        --border-medium: rgba(0, 0, 0, 0.12);
-        
-        --radius-sm: 8px;
-        --radius-md: 12px;
-        --radius-lg: 16px;
-        
-        --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-        
-        /* Compatibility */
-        --bg: var(--bg-primary);
-        --sidebar: var(--bg-secondary);
-        --white: var(--bg-elevated);
-        --border: var(--border-medium);
-        --primary: var(--accent-blue);
-        --success: var(--accent-green);
-        --danger: var(--accent-red);
-        --warning: var(--accent-orange);
-        --muted: var(--text-tertiary);
-        --text-main: var(--text-primary);
-        --text-menu: var(--text-tertiary);
-        --sidebar-hover: var(--bg-tertiary);
-        --radius: var(--radius-md);
-    }
+        :root {
+            /* Neutral Blue Theme - Corporativo Dashboard */
+            --bg-primary: #F8FAFB;
+            --bg-secondary: #1E3A5F;
+            --bg-tertiary: #2A4A73;
+            --bg-elevated: #FFFFFF;
+            --bg-glass: rgba(255, 255, 255, 0.95);
+            
+            --text-primary: #2C3E50;
+            --text-secondary: #5A6C7D;
+            --text-tertiary: #7B8794;
+            
+            --accent-blue: #4A90E2;
+            --accent-blue-light: #5BA4DB;
+            --accent-blue-glow: rgba(74, 144, 226, 0.2);
+            
+            --accent-green: #52B788;
+            --accent-purple: #7E8CE0;
+            --accent-orange: #F2A65A;
+            --accent-red: #E76F51;
+            --accent-gold: #F4D06F;
+            
+            --border-subtle: rgba(42, 74, 115, 0.08);
+            --border-medium: rgba(42, 74, 115, 0.12);
+            --border-strong: rgba(42, 74, 115, 0.2);
+            
+            --shadow-glow: 0 0 20px rgba(74, 144, 226, 0.15);
+            
+            --radius-sm: 4px;
+            --radius-md: 6px;
+            --radius-lg: 8px;
+            --radius-xl: 10px;
+            
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* Compatibility */
+            --bg: var(--bg-primary);
+            --sidebar: var(--bg-secondary);
+            --white: var(--bg-elevated);
+            --border: var(--border-medium);
+            --primary: var(--accent-blue);
+            --success: var(--accent-green);
+            --danger: var(--accent-red);
+            --warning: var(--accent-orange);
+            --gold: var(--accent-gold);
+            --muted: var(--text-tertiary);
+            --text-main: var(--text-primary);
+            --text-menu: var(--text-tertiary);
+            --sidebar-hover: var(--bg-tertiary);
+            --radius: var(--radius-md);
+        }
 
-    /* Reset LawTech Pro */
-    * { box-sizing: border-box; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text-main); line-height: 1.5; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    /* Sidebar Premium */
-    .sidebar {
-        width: 280px;
-        background: var(--bg-secondary);
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        border-right: 1px solid var(--border-subtle);
-        padding: 32px 24px;
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        position: fixed;
-        left: 0;
-        top: 0;
-        z-index: 1000;
-    }
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            text-transform: uppercase;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
 
-    .sidebar-header {
-        text-align: center;
-        margin-bottom: 40px;
-        padding-bottom: 24px;
-        border-bottom: 1px solid var(--border-subtle);
-    }
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.015;
+            background-image: 
+                linear-gradient(rgba(74, 144, 226, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(74, 144, 226, 0.08) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: patternMove 20s linear infinite;
+            pointer-events: none;
+        }
 
-    .sidebar-header img {
-        width: 100%;
-        max-width: 180px;
-        height: auto;
-        filter: drop-shadow(0 0 20px var(--accent-blue-glow));
-        transition: all var(--transition-base);
-    }
+        @keyframes patternMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+        }
 
-    .sidebar-header img:hover {
-        filter: drop-shadow(0 0 30px var(--accent-blue-glow));
-        transform: scale(1.05);
-    }
+        body::after {
+            content: '';
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%);
+            top: -300px;
+            right: -300px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.08;
+            z-index: 0;
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+        }
 
-    .menu {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        flex-grow: 1;
-    }
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-30px, 30px) scale(0.9); }
+        }
 
-    .menu a {
-        display: flex;
-        align-items: center;
-        padding: 14px 16px;
-        color: #94a3b8;
-        text-decoration: none;
-        border-radius: var(--radius-lg);
-        font-size: 14px;
-        font-weight: 600;
-        transition: all var(--transition-base);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .menu a::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-        background: var(--accent-blue);
-        transform: scaleY(0);
-        transition: transform var(--transition-base);
-    }
-
-    .menu a:hover::before,
-    .menu a.active::before {
-        transform: scaleY(1);
-    }
-
-    .menu a i {
-        margin-right: 12px;
-        font-size: 18px;
-        transition: all var(--transition-base);
-    }
-
-    .menu a:hover {
-        background: rgba(255, 255, 255, 0.05);
-        color: #e2e8f0;
-        transform: translateX(4px);
-    }
-
-    .menu a.active {
-        background: rgba(37, 99, 235, 0.15);
-        color: #60a5fa;
-        border: 1px solid rgba(37, 99, 235, 0.4);
-    }
-
-    .menu a.active i {
-        color: #60a5fa;
-    }
-    
-    /* Sidebar Footer (User/Plan Info) */
-    .sidebar-footer {
-        padding-top: 24px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        font-size: 12px;
-        margin-top: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .sidebar-footer span {
-        color: #cbd5e1 !important;
-    }
-
-    /* Main Area */
-    .main { margin-left: 280px; min-height: 100vh; display: flex; flex-direction: column; }
-    .header { background: var(--white); height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; }
-    .content { padding: 32px; }
-
-    /* Cards e Tabelas */
-    .card { background: var(--white); border-radius: var(--radius); padding: 24px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-    table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; padding: 12px; border-bottom: 2px solid var(--border); color: var(--muted); font-size: 12px; text-transform: uppercase; font-weight: 700; }
-    td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
-
-    .btn-primary { background: var(--primary); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; }
-    
-    /* Botões de Ação na Tabela */
-    .btn-action { border: none; background: none; cursor: pointer; font-weight: 600; font-size: 12px; padding: 4px 8px; border-radius: 4px; transition: 0.2s; }
-    .btn-view { color: var(--success); }
-    .btn-view:hover { background: #f0fdf4; }
-    .btn-edit { color: var(--primary); }
-    .btn-edit:hover { background: #eff6ff; }
-    .btn-delete { color: var(--danger); }
-    .btn-delete:hover { background: #fef2f2; }
-
-    /* Modal */
-    .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-    .modal-content { background: #ffffff; width: 95%; max-width: 550px; max-height: 95vh; padding: 32px; border-radius: 16px; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
-
-    .form-row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
-    .form-group { flex: 1; display: flex; flex-direction: column; min-width: 200px; }
-    .form-group.small { flex: 0 0 120px; min-width: 100px; }
-    .form-group label { font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; color: #1e293b; transition: border-color 0.2s; }
-    .form-group input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
-
-    .btn-crm-gold-nav { background: #fbbf24 !important; color: #000 !important; font-weight: 800 !important; margin-top: 15px !important; display: flex !important; align-items: center; justify-content: center; padding: 12px !important; border-radius: 8px; text-decoration: none; font-size: 14px; transition: 0.3s; }
-    .btn-crm-gold-nav:hover { background: #facc15 !important; transform: scale(1.02); }
-    .btn-crm-gold-nav i { margin-right: 10px; }
-
-    /* 🔔 ESTILO DO BADGE DE NOTIFICAÇÃO (NOVO) */
-    .badge-novo {
-        background: #ef4444;
-        color: white;
-        font-size: 9px;
-        padding: 2px 6px;
-        border-radius: 10px;
-        margin-left: auto; /* Alinha à direita no menu */
-        font-weight: 800;
-        display: none; /* Inicia oculto */
-        animation: pulse-red 2s infinite;
-    }
-    @keyframes pulse-red {
-        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-        70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-    }
-    
-    /* Padronização LawTech Pro - Caixa Alta Global */
-body {
-    text-transform: uppercase;
+        /* Sidebar Premium - IDÊNTICA AO DASHBOARD */
+.sidebar {
+    width: 280px;
+    background: var(--bg-secondary);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-right: 1px solid var(--border-subtle);
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Garante que os campos de digitação também mostrem caixa alta enquanto o usuário digita */
-input, textarea, select {
-    text-transform: uppercase;
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-100%); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
-/* Opcional: Se quiser que os números dos processos mantenham o estilo técnico, 
-   mas ainda em caixa alta */
-.numero-processo, .processo-hash {
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 1px;
+/* Sidebar Header */
+.sidebar-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-subtle);
 }
 
-/* Container principal do rodapé */
+.sidebar-header img {
+    width: 100%;
+    max-width: 180px;
+    height: auto;
+    filter: drop-shadow(0 0 20px var(--accent-blue-glow));
+    transition: all var(--transition-base);
+}
+
+.sidebar-header img:hover {
+    filter: drop-shadow(0 0 30px var(--accent-blue-glow));
+    transform: scale(1.05);
+}
+
+/* Menu Container */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-grow: 1;
+}
+
+/* Menu Links */
+.menu a {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    color: #94a3b8; /* CINZA CLARO para links não ativos */
+    text-decoration: none;
+    border-radius: var(--radius-lg);
+    font-size: 14px;
+    font-weight: 600;
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Barra lateral azul nos links */
+.menu a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent-blue);
+    transform: scaleY(0);
+    transition: transform var(--transition-base);
+}
+
+.menu a:hover::before,
+.menu a.active::before {
+    transform: scaleY(1);
+}
+
+/* Ícones dos links */
+.menu a i {
+    margin-right: 12px;
+    font-size: 18px;
+    transition: all var(--transition-base);
+}
+
+/* Hover dos links */
+.menu a:hover {
+    background: rgba(255, 255, 255, 0.05); /* Hover suave */
+    color: #e2e8f0; /* Cinza bem claro no hover */
+    transform: translateX(4px);
+}
+
+/* Link ativo */
+.menu a.active {
+    background: rgba(37, 99, 235, 0.15); /* Azul visível */
+    color: #60a5fa; /* Azul claro */
+    border: 1px solid rgba(37, 99, 235, 0.4);
+}
+
+.menu a.active i {
+    color: #60a5fa; /* Azul claro */
+}
+
+/* Botão CRM Gold - IMPORTANTE: margin-top cria o espaçamento */
+.btn-crm-gold-nav { 
+    background: #fbbf24 !important; 
+    color: #000 !important; 
+    font-weight: 800 !important; 
+    margin-top: 15px !important; /* ⚡ ESPAÇAMENTO CRÍTICO */
+    display: flex !important; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 12px !important; 
+    border-radius: 8px; 
+    text-decoration: none; 
+    font-size: 14px; 
+    transition: 0.3s; 
+}
+
+.btn-crm-gold-nav:hover { 
+    background: #facc15 !important; 
+    transform: scale(1.02); 
+}
+
+.btn-crm-gold-nav i { 
+    margin-right: 10px; 
+}
+
+/* Sidebar Footer */
 .sidebar-footer {
-    padding-top: 20px;
+    padding-top: 24px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 12px;
     margin-top: auto;
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-/* Alinhamento à esquerda com pequeno espaço após o label */
-.footer-info-row {
-    display: flex;
-    justify-content: flex-start; /* Alinha tudo no início (esquerda) */
-    align-items: center;
-    gap: 8px; /* Espaço fixo de 8px após os ":" */
-    font-size: 12px;
+.sidebar-footer span {
+    color: #cbd5e1 !important;
 }
 
-/* Estilo dos Rótulos (USUÁRIO: e PLANO:) */
+/* Footer Info Row - Alinhamento das informações */
+.footer-info-row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    width: 100%;
+}
+
 .footer-info-row span:first-child {
     text-transform: uppercase;
     color: var(--text-tertiary);
     font-weight: 700;
-    white-space: nowrap; /* Impede que o rótulo quebre linha */
+    min-width: 65px; /* Alinha os dois pontos verticalmente */
 }
 
-/* ✅ EXCEÇÃO: Força e-mail e plano em CAIXA BAIXA e alinhados à esquerda */
+/* Mantém e-mail e plano minúsculos */
 .keep-lowercase {
     text-transform: lowercase !important;
     color: #cbd5e1;
-    text-align: left;
-}
-
-/* Card de Estatísticas */
-.stats-container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
-}
-
-.stat-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 12px;
-    padding: 14px;
-    color: white;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.stat-card.green {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-}
-
-.stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
-}
-
-.stat-card.green:hover {
-    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
-}
-
-.stat-card-icon {
-    width: 30px;
-    height: 30px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 8px;
-}
-
-.stat-card-value {
-    font-size: 26px;
-    font-weight: 800;
-    margin-bottom: 4px;
-    text-transform: none;
-}
-
-.stat-card-label {
-    font-size: 12px;
-    font-weight: 600;
-    opacity: 0.9;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.stat-card-time {
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 4px;
-    text-transform: none;
-    font-family: 'JetBrains Mono', monospace;
-}
-
-.stat-card-date {
-    font-size: 14px;
     font-weight: 500;
-    opacity: 0.9;
-    text-transform: capitalize;
 }
+        /* Layout Principal */
+        .container {
+            margin-left: 280px;
+            padding: 32px 40px;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+            animation: fadeIn 0.6s ease-out;
+        }
 
-@media (max-width: 768px) {
-    .stats-container {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
-<script src="https://unpkg.com/lucide@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/imask"></script>
-<body>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
-        </div>
-        <nav class="menu">
-            <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+        /* Main Content */
+        .main {
+            margin-left: 280px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header Premium */
+        .header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            height: 80px;
+            padding: 0 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 
+                0 1px 3px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header h2 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+
+        .user-menu span {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        #userCircle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-light));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        #userCircle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+
+        #userDropdown {
+            display: none;
+            position: absolute;
+            top: 55px;
+            right: 0;
+            background: white;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            min-width: 200px;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        #userDropdown a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all var(--transition-fast);
+        }
+
+        #userDropdown a:hover {
+            background: var(--bg-primary);
+            color: var(--accent-blue);
+        }
+
+        #userDropdown a i {
+            font-size: 16px;
+        }
+
+        .content {
+            padding: 32px 40px;
+            flex-grow: 1;
+        }
+
+        /* Rodapé com informações */
+        .footer-info-section {
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 2px solid var(--border-subtle);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+
+        .footer-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .footer-info-item i {
+            color: var(--accent-blue);
+            font-size: 16px;
+        }
+
+        .footer-info-item span {
+            color: var(--text-primary);
+        }
+
+        /* CARDS DE ESTATÍSTICAS - DESIGN CORPORATIVO AZUL */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #5B9FD8 0%, #4A90E2 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-base);
+            animation: slideUp 0.5s ease-out forwards;
+            opacity: 0;
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+            animation: pulseCard 4s ease-in-out infinite;
+        }
+
+        @keyframes pulseCard {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(74, 144, 226, 0.25);
+        }
+
+        .stat-card.green {
+            background: linear-gradient(135deg, #2A4A73 0%, #1E3A5F 100%);
+        }
+
+        .stat-card.green::before {
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        }
+
+        .stat-card-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-card-icon i {
+            width: 24px;
+            height: 24px;
+            color: white;
+            stroke-width: 2;
+        }
+
+        .stat-card-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-card-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: white;
+            line-height: 1;
+            margin-bottom: 4px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Conteúdo Principal - Card Branco */
+        .main-content {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 32px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Toolbar de Ações */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+            font-size: 18px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: all var(--transition-base);
+            background: var(--bg-elevated);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px var(--accent-blue-glow);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-light));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: var(--radius-lg);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all var(--transition-base);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn-primary i { font-size: 18px; }
+
+        /* Tabela Moderna */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 6px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+        }
+
+        thead th {
+            padding: 16px 20px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--border-medium);
+        }
+
+        thead th:nth-child(4) {
+            width: 160px; /* Aumentando largura da coluna TELEFONE */
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border-subtle);
+            transition: all var(--transition-fast);
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        tbody td {
+            padding: 16px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* STATUS MODERNO */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            transition: all var(--transition-base);
+        }
+
+        .status-badge i {
+            font-size: 12px;
+        }
+
+        .status-ativo {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+
+        .status-inativo {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .status-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* BOTÕES DE AÇÃO MODERNOS */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-action {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-action::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .btn-action:hover::before {
+            width: 120px;
+            height: 120px;
+        }
+
+        .btn-action i {
+            font-size: 14px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-action span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-view {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-view:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-content {
+            background: var(--bg-elevated);
+            border-radius: var(--radius-xl);
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalSlide {
+            from { opacity: 0; transform: translateY(-50px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-light));
+            color: white;
+            padding: 24px 32px;
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-header h2 i { font-size: 24px; }
+
+        .close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-base);
+        }
+
+        .close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 32px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px 16px;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: all var(--transition-base);
+            background: var(--bg-elevated);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px var(--accent-blue-glow);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 16px;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 10px 16px;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-base);
+        }
+
+        .radio-group label:hover {
+            border-color: var(--accent-blue);
+            background: var(--accent-blue-glow);
+        }
+
+        .radio-group input[type="radio"]:checked + span {
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .modal-footer {
+            padding: 24px 32px;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-secondary {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-medium);
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-elevated);
+            border-color: var(--text-secondary);
+        }
+
+        /* Responsividade */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform var(--transition-base);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main {
+                margin-left: 0;
+            }
             
-            <a href="/clientes-page" class="active">
-                <i class="lucide lucide-users"></i> Clientes 
-                <span id="badgeClientes" class="badge-novo">NOVO</span>
-            </a>
+            .content {
+                padding: 24px 20px;
+            }
 
-            <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
-            <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
-            <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
-            <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
-            <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
-            <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
-            <a href="/ia-page" style="display: flex; align-items: center; gap: 10px;">
-                <i class="lucide lucide-sparkles" style="color: #fbbf24;"></i> IA Jurídica 
-                <span style="font-size: 9px; background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; margin-left: auto;">PREMIUM</span>
-            </a>
-            <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
-            <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
-            <a href="/crm-page" class="btn-crm-gold-nav">
-                <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
-            </a>
-        </nav>
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
 
+            .header h2 {
+                font-size: 18px;
+            }
+
+            .toolbar {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .main-content {
+                padding: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            thead th,
+            tbody td {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- SIDEBAR - IDÊNTICA AO DASHBOARD COM MAIÚSCULAS -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+    </div>
+    <nav class="menu">
+        <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+        <a href="/clientes-page" class="active"><i class="lucide lucide-users"></i> Clientes</a>
+        <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
+        <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+        <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+        <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+        <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+        <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
+        <a href="/ia-page" style="display:flex; align-items:center; gap:10px;">
+            <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i> IA Jurídica
+            <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">PREMIUM</span>
+        </a>
+        <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+        <a href="/config-page" id="guia-config" onclick="limparBolinha()">
+            <i class="lucide lucide-settings"></i> Configurações
+            <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
+        </a>
+        <a href="/crm-page" class="btn-crm-gold-nav">
+            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+        </a>
+    </nav>
         <div class="sidebar-footer">
     <div class="footer-info-row">
         <span>Usuário:</span> 
-        <span id="userEmail" class="keep-lowercase">...</span>
+        <span id="footerEmail" class="keep-lowercase">...</span>
     </div>
+    
     <div class="footer-info-row">
         <span>Plano:</span> 
-        <span id="planNameFooter" class="keep-lowercase">...</span>
+        <span id="footerPlano" class="keep-lowercase">...</span>
     </div>
 </div>
     </aside>
 
+    <!-- MAIN CONTENT -->
     <div class="main">
-<header class="header">
-    <h2 style="font-size: 18px; font-weight: 700;">👥 Gestão de Clientes</h2>
+        <!-- HEADER -->
+        <header class="header">
+    <h2>
+        <i class="lucide lucide-users"></i>
+        GESTÃO DE CLIENTES
+    </h2>
     
     <div style="display:flex; gap:20px; align-items:center;">
         <div style="position: relative; display: flex; align-items: center; gap: 12px;">
             <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
+            
             <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
                 --
             </div>
+            
             <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
-                <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
-                <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
+                <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">
+                    👤 Meus Dados
+                </a>
+                <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">
+                    🚪 Sair
+                </a>
             </div>
         </div>
     </div>
 </header>
 
+        <!-- CONTENT -->
         <main class="content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <p style="color: var(--muted); font-size: 14px;">Administre sua base de clientes e visualize processos vinculados.</p>
+                <p style="color: var(--muted); font-size: 14px;">ADMINISTRE SUA BASE DE CLIENTES E VISUALIZE PROCESSOS VINCULADOS.</p>
+            </div>
+
+            <!-- CARDS DE ESTATÍSTICAS -->
+<div class="stats-container">
+    <!-- Card 1: Total de Clientes -->
+    <div class="stat-card">
+        <div class="stat-card-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #4A90E2, #5BA4DB); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+        </div>
+        <div class="stat-card-value" id="totalClientes">0</div>
+        <div class="stat-card-label">TOTAL DE CLIENTES</div>
+    </div>
+
+    <!-- Card 2: Clientes Ativos -->
+    <div class="stat-card green">
+        <div class="stat-card-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #52B788, #40916C); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <polyline points="17 11 19 13 23 9"></polyline>
+            </svg>
+        </div>
+        <div class="stat-card-value" id="clientesAtivos">0</div>
+        <div class="stat-card-label">CLIENTES COM PROCESSOS</div>
+    </div>
+
+    <!-- Card 3: Processos -->
+    <div class="stat-card">
+        <div class="stat-card-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #7E8CE0, #6366F1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+        </div>
+        <div class="stat-card-value" id="processosVinculados">0</div>
+        <div class="stat-card-label">PROCESSOS VINCULADOS</div>
+    </div>
+</div>
+
+            <!-- TABELA DE CLIENTES -->
+            <div class="main-content">
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="search-box">
+                    <i class="lucide lucide-search"></i>
+                    <input type="text" id="searchClientes" placeholder="BUSCAR CLIENTE POR NOME..." onkeyup="filtrarClientes()" />
+                </div>
                 <button class="btn-primary" onclick="abrirModal()">
-                    <i class="lucide lucide-plus"></i> Novo Cliente
+                    <i class="lucide lucide-user-plus"></i>
+                    NOVO CLIENTE
                 </button>
             </div>
 
-            <!-- Cards de Estatísticas -->
-            <div class="stats-container">
-                <!-- Card 1: Total de Clientes -->
-                <div class="stat-card">
-                    <div class="stat-card-icon">
-                        <i class="lucide lucide-users" style="width: 24px; height: 24px;"></i>
-                    </div>
-                    <div class="stat-card-value" id="totalClientes">0</div>
-                    <div class="stat-card-label">Total de Clientes</div>
-                </div>
-
-                <!-- Card 2: Data e Hora -->
-                <div class="stat-card green">
-                    <div class="stat-card-icon">
-                        <i class="lucide lucide-calendar-clock" style="width: 24px; height: 24px;"></i>
-                    </div>
-                    <div class="stat-card-time" id="horaAtual">--:--:--</div>
-                    <div class="stat-card-date" id="dataAtual">Carregando...</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div style="margin-bottom: 16px; display: flex; justify-content: flex-end;">
-    <input
-        type="text"
-        id="buscaCliente"
-        placeholder="🔍 Buscar cliente por nome..."
-        style="
-            width: 280px;
-            padding: 10px 14px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            font-size: 14px;
-            outline: none;
-        "
-        oninput="filtrarClientes()"
-    />
-</div>
+            <!-- Tabela de Clientes -->
+            <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Nome</th>
-                            <th>CPF/CNPJ</th>
-                            <th>Email</th>
-                            <th>Telefone</th>
-                            <th>Status</th>
-                            <th>Ações</th>
+                            <th>NOME</th>
+                            <th>DOCUMENTO</th>
+                            <th>EMAIL</th>
+                            <th>TELEFONE</th>
+                            <th>CIDADE</th>
+                            <th>STATUS</th>
+                            <th>AÇÕES</th>
                         </tr>
                     </thead>
                     <tbody id="listaClientes">
-                        <tr><td colspan="6" style="text-align:center; color:var(--muted); padding:40px;">Carregando clientes...</td></tr>
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 60px 20px; color: var(--text-tertiary);">
+                                <i class="lucide lucide-loader" style="font-size: 32px; animation: spin 1s linear infinite;"></i>
+                                <p style="margin-top: 16px; font-weight: 600;">CARREGANDO CLIENTES...</p>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
+            </div>
+            </div>
+            
+            <!-- RODAPÉ COM INFORMAÇÕES -->
+            <div class="footer-info-section">
+                <div class="footer-info-item">
+                    <i class="lucide lucide-user"></i>
+                    <span id="usuarioRodape">---</span>
+                </div>
+                <div class="footer-info-item">
+                    <i class="lucide lucide-building"></i>
+                    <span id="escritorioRodape">---</span>
+                </div>
+                <div class="footer-info-item">
+                    <i class="lucide lucide-hash"></i>
+                    <span id="oabRodape">---</span>
+                </div>
             </div>
         </main>
     </div>
 
-    <div id="modalCliente" class="modal">
+    <!-- Modal de Cliente -->
+    <div class="modal" id="modalCliente">
         <div class="modal-content">
-            <h3 id="modalTitle" style="margin-bottom: 24px; font-size: 20px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 10px;">
-                <i class="lucide lucide-user-plus" style="color: #2563eb;"></i> Novo Cliente
-            </h3>
-            
+            <div class="modal-header">
+                <h2 id="modalTitle"><i class="lucide lucide-user-plus"></i>NOVO CLIENTE</h2>
+                <button class="close" onclick="fecharModal()">×</button>
+            </div>
             <form id="formCliente">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Nome Completo / Razão Social</label>
-                        <input type="text" id="cliNome" placeholder="Ex: João Silva" required>
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label>TIPO DE PESSOA</label>
+                            <div class="radio-group">
+                                <label>
+                                    <input type="radio" name="tipoPessoa" id="cliTipo" value="fisica" checked onchange="alternarCamposPessoa('fisica')" />
+                                    <span>PESSOA FÍSICA</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="tipoPessoa" value="juridica" onchange="alternarCamposPessoa('juridica')" />
+                                    <span>PESSOA JURÍDICA</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>NOME COMPLETO / RAZÃO SOCIAL *</label>
+                            <input type="text" id="cliNome" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label id="labelDoc">CPF *</label>
+                            <input type="text" id="cliDocumento" required />
+                        </div>
+
+                        <div class="form-group" id="groupNascimento">
+                            <label>DATA DE NASCIMENTO</label>
+                            <input type="date" id="cliDataNascimento" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>E-MAIL *</label>
+                            <input type="email" id="cliEmail" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label>TELEFONE</label>
+                            <input type="text" id="cliTelefone" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>CEP</label>
+                            <input type="text" id="cliCep" onblur="buscarEnderecoPorCep(this.value)" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>CIDADE</label>
+                            <input type="text" id="cliCidade" />
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>ENDEREÇO</label>
+                            <input type="text" id="cliEndereco" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>UF</label>
+                            <select id="cliUf">
+                                <option value="">SELECIONE</option>
+                                <option value="AC">AC</option>
+                                <option value="AL">AL</option>
+                                <option value="AP">AP</option>
+                                <option value="AM">AM</option>
+                                <option value="BA">BA</option>
+                                <option value="CE">CE</option>
+                                <option value="DF">DF</option>
+                                <option value="ES">ES</option>
+                                <option value="GO">GO</option>
+                                <option value="MA">MA</option>
+                                <option value="MT">MT</option>
+                                <option value="MS">MS</option>
+                                <option value="MG">MG</option>
+                                <option value="PA">PA</option>
+                                <option value="PB">PB</option>
+                                <option value="PR">PR</option>
+                                <option value="PE">PE</option>
+                                <option value="PI">PI</option>
+                                <option value="RJ">RJ</option>
+                                <option value="RN">RN</option>
+                                <option value="RS">RS</option>
+                                <option value="RO">RO</option>
+                                <option value="RR">RR</option>
+                                <option value="SC">SC</option>
+                                <option value="SP">SP</option>
+                                <option value="SE">SE</option>
+                                <option value="TO">TO</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Tipo de Pessoa</label>
-                        <select id="cliTipo" onchange="alternarCamposPessoa(this.value)">
-                            <option value="fisica">Pessoa Física (CPF)</option>
-                            <option value="juridica">Pessoa Jurídica (CNPJ)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label id="labelDoc">CPF</label>
-                        <input type="text" id="cliDocumento" placeholder="000.000.000-00" required>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>E-mail</label>
-                        <input type="email" id="cliEmail" placeholder="cliente@email.com">
-                    </div>
-                    <div class="form-group" id="groupNascimento">
-                        <label>Data de Nascimento</label>
-                        <input type="date" id="cliDataNascimento">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Telefone (WhatsApp)</label>
-                        <input type="text" id="cliTelefone" placeholder="(00) 00000-0000">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group small">
-                        <label>CEP</label>
-                        <input type="text" id="cliCep" placeholder="00000-000" onblur="buscarEnderecoPorCep(this.value)">
-                    </div>
-                    <div class="form-group">
-                        <label>Cidade</label>
-                        <input type="text" id="cliCidade" placeholder="Cidade">
-                    </div>
-                    <div class="form-group small">
-                        <label>Estado (UF)</label>
-                        <select id="cliUf">
-                            <option value="">--</option>
-                            <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option>
-                            <option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option>
-                            <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
-                            <option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option>
-                            <option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option>
-                            <option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option>
-                            <option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option>
-                            <option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option>
-                            <option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Endereço Completo</label>
-                        <input type="text" id="cliEndereco" placeholder="Rua, Número, Bairro">
-                    </div>
-                </div>
-
-                <div style="display: flex; gap: 12px; margin-top: 32px;">
-                    <button type="submit" class="btn-primary" style="flex: 1.5; height: 48px; font-weight: 600;">Salvar Dados</button>
-                    <button type="button" onclick="fecharModal()" class="btn-secondary" style="flex: 1; height: 48px; font-weight: 600; background: #f1f5f9; color: #475569; border: none; border-radius: 8px; cursor: pointer;">Cancelar</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="fecharModal()">CANCELAR</button>
+                    <button type="submit" class="btn-primary">
+                        <i class="lucide lucide-save"></i>
+                        SALVAR CLIENTE
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Modal de Visualização de Processos -->
+    <div class="modal" id="modalVisualizarProcessos">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="tituloModalProcessos"><i class="lucide lucide-briefcase"></i>PROCESSOS DO CLIENTE</h2>
+                <button class="close" onclick="fecharModalProcessos()">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="listaProcessosCliente"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.451.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/imask@7.1.3/dist/imask.min.js"></script>
     <script>
-    const token = localStorage.getItem('token');
-    if (!token) window.location.href = '/login.html';
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
 
-    // 🔔 CONFIGURAÇÃO DE ALERTA SONORO E MONITORAMENTO
-    const somNotificacao = new Audio('https://notificationsounds.com/storage/sounds/file-sounds-1150-pristine.mp3');
-    let totalClientesAnterior = null;
-    let maskDoc; 
+        const somNotificacao = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIFmm98OScTgwPUKjo8LVkGwU7k9r0ynouBR53yO/flUELEme58+mhWRIIRKDj9bpoJAUrgc7y2Yk3CBVpvfDjnE4MD1Co6PC1ZBsFO5Ha9Ml6LgUfd8jv35VAChJnufPpoVkSCESg4vW6aCQFKoHO8tmJNwgWab3w5JxODA9QqOjwtWQbBTqR2vTJey4EH3fI79+VQAoSZ7nz6aFZEghEoOL1umgkBSqBzvLZiTYIFmm98OOcTgwPUKjo8LVjGwU6kdr0yXouBB93yO/flUAKE2W58+mhWRIIRKDi9bpoJAUqgc7y2Yk2CBZpvfDjnE4MD1Co6PC1YxsFOpHa9Ml6LgQfd8jv35VACRNlufPpoVkSCESg4vW6aCQFKoHO8tmJNggWab3w45xODA9QqOjwtWMbBTqR2vTJei4EH3fI79+VQAkTZbnz6aFZEghEoOL1umgkBSqBzvLZiTYIFmm98OOcTgwPUKjo8LVjGwU6kdr0yXouBB93yO/flUAJE2W58+mhWRIIRKDi9bpoJAUqgc7y2Yk2CBZpvfDjnE4MD1Co6PC1YxsFOpHa9Ml6LgQfd8jv35VACRNlufPpoVkSCESg4vW6aCQFKoHO8tmJNggWab3w45xODA9QqOjwtWMbBTqR2vTJei4EH3fI79+VQAkTZbnz6aFZEghEoOL1umgkBSqBzvLZiTYIFmm98OOcTgwPUKjo8LVjGwU6kdr0yXouBB93yO/flUAJE2W58+mhWRIIRKDi9bpoJAUqgc7y2Yk2CBZpvfDjnE4MD1Co6PC1YxsFOpHa9Ml6LgQfd8jv35VACRNlufPpoVkSCESg4vW6aCQFKoHO8tmJNggWab3w45xODA9QqOjwtWMbBTqR2vTJei4EH3fI79+VQAkTZbnz6aFZEghEoOL1umgkBSqBzvLZiTYIFmm98OOcTgwPUKjo8LVjGwU6kdr0yXouBB93yO/flUAJE2W58+mhWRIIRKDi9bpoJAUqgc7y2Yk2CBZpvfDjnE4MD1Co6PC1YxsFOpHa9Ml6LgQfd8jv35VACRNlufPpoVkSCESg4vW6aCQFKoHO8tmJNggWab3w45xODA9QqOjwtWMbBTqR2vTJei4EH3fI79+VQAkTZbnz6aFZEghEoOL1umgkBSqBzvLZiTYIFmm98OOcTgwPUKjo8LVjGwU6kdr0yXouBB93yO/flUAJE2W58+mhWRIIRKDi9bpoJAUqgc7y2Yk2CBZpvfDjnE4MD1Co6PC1YxsFOpHa9Ml6LgQfd8jv35VACRNlufPpoVkSCESg4vW6aCQFKoHO8tmJNggWab3w45xODA9QqOjwtWMbBTqR2vTJei4EH3fI79+VQA==');
 
-    // 1. CARREGA USUÁRIO E PLANO NO RODAPÉ
-async function carregarInfoRodape() {
-    try {
-        const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
-        const dataUser = await resUser.json();
-        
-        if (dataUser.ok) {
-            // Atualiza sidebar
-            document.getElementById('userEmail').innerText = dataUser.usuario.email;
+        // ============================================
+        // CACHE DE CLIENTES EM MEMÓRIA
+        // ============================================
+        let clientesCache = [];
 
-            // --- LÓGICA DO CABEÇALHO PADRONIZADA ---
-            const nomeCompleto = dataUser.usuario.nome || 'Advogado';
-            
-            // 1. Apenas o primeiro nome
-            const primeiroNome = nomeCompleto.trim().split(' ')[0];
-            document.getElementById('userNameHeader').innerText = primeiroNome;
+        // ============================================
+        // INICIALIZAÇÃO DA PÁGINA
+        // ============================================
+        async function inicializarPagina() {
+            try {
+                console.log('🔄 Inicializando página de clientes...');
+                
+                // 1. Busca Info do Usuário
+                const resUser = await fetch('/api/auth/me', { 
+                    headers: { 'Authorization': `Bearer ${token}` } 
+                });
+                const dataUser = await resUser.json();
+                
+                if (dataUser.ok) {
+                    // Atualizar email no rodapé
+                    const emailElement = document.getElementById('footerEmail');
+                    if (emailElement) {
+                        emailElement.innerText = dataUser.usuario.email || 'não disponível';
+                        console.log('✅ Email atualizado:', dataUser.usuario.email);
+                    }
+                    
+                    // Atualizar nome no header (primeiro nome apenas)
+                    const nomeCompleto = dataUser.usuario.nome || 'Advogado';
+                    const primeiroNome = nomeCompleto.trim().split(' ')[0];
+                    const nameHeader = document.getElementById('userNameHeader');
+                    if (nameHeader) nameHeader.innerText = primeiroNome;
 
-            // 2. Iniciais (Primeiro e Último nome)
-            const partes = nomeCompleto.trim().split(' ').filter(n => n);
-            let iniciais = partes[0][0];
-            if (partes.length > 1) {
-                iniciais += partes[partes.length - 1][0];
+                    // Atualizar iniciais no círculo (Primeira + Última)
+                    const partes = nomeCompleto.trim().split(' ').filter(n => n);
+                    let iniciais = partes[0][0];
+                    if (partes.length > 1) {
+                        iniciais += partes[partes.length - 1][0];
+                    }
+                    
+                    const circulo = document.getElementById('userCircle');
+                    if (circulo) circulo.innerText = iniciais.toUpperCase();
+                    
+                    console.log('✅ Usuário carregado:', dataUser.usuario);
+                }
+
+                // 2. Busca Info do Plano
+                const resPlan = await fetch('/api/plano-consumo', { 
+                    headers: { Authorization: `Bearer ${token}` } 
+                });
+                const dataPlan = await resPlan.json();
+                
+                const planoElement = document.getElementById('footerPlano');
+                if (planoElement) {
+                    planoElement.innerText = dataPlan.plano || 'Free';
+                    console.log('✅ Plano atualizado:', dataPlan.plano);
+                }
+
+                // 3. Carrega Clientes
+                await carregarClientes();
+                
+            } catch (err) { 
+                console.error("❌ Erro na inicialização:", err); 
             }
-            
-            const circulo = document.getElementById('userCircle');
-            if (circulo) circulo.innerText = iniciais.toUpperCase();
+        }
+        
+        // ============================================
+        // TOGGLE MENU DO USUÁRIO
+        // ============================================
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            }
         }
 
-        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
-        const dataPlan = await resPlan.json();
-        document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
-        
-    } catch (err) { 
-        console.error("Erro ao carregar cabeçalho:", err); 
-    }
-}
-
-// Garanta que essas funções existam para o dropdown funcionar
-function toggleUserMenu() {
-    const m = document.getElementById('userDropdown');
-    if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
-}
-
-window.onclick = (e) => {
-    if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
-        const m = document.getElementById('userDropdown');
-        if(m) m.style.display = 'none';
-    }
-};
-
-// 🚀 Adicione estas funções extras ao final do script para o menu funcionar:
-function toggleUserMenu() {
-    const m = document.getElementById('userDropdown');
-    if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
-}
-
-window.onclick = (e) => {
-    if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
-        const m = document.getElementById('userDropdown');
-        if(m) m.style.display = 'none';
-    }
-};
-
-    // 2. CARREGA E MONITORA LISTA DE CLIENTES
-    async function carregarClientes() {
-        try {
-            const res = await fetch('/api/clientes', { headers: { 'Authorization': `Bearer ${token}` } });
-            if (res.ok) {
-                const clientes = await res.json();
-                
-                // ✅ Atualizar contador de clientes
-                document.getElementById('totalClientes').textContent = clientes.length;
-                
-                // 🔔 Lógica de Alerta (Bip e Badge)
-                if (totalClientesAnterior !== null && clientes.length > totalClientesAnterior) {
-                    document.getElementById('badgeClientes').style.display = 'inline-block';
-                    somNotificacao.play().catch(e => console.log("Som aguardando interação..."));
+        // Fechar dropdown ao clicar fora
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const userCircle = document.getElementById('userCircle');
+            
+            if (dropdown && userCircle) {
+                if (!userCircle.contains(event.target) && !dropdown.contains(event.target)) {
+                    dropdown.style.display = 'none';
                 }
-                totalClientesAnterior = clientes.length;
+            }
+        });
+        
+        // ============================================
+        // LOGOUT
+        // ============================================
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        }
 
-                const tabela = document.getElementById('listaClientes');
-                tabela.innerHTML = '';
+        // ============================================
+        // CARREGAR CLIENTES - APENAS INICIAL
+        // ============================================
+        async function carregarClientes() {
+    const tbody = document.getElementById('listaClientes');
+    try {
+        // Carrega clientes e processos EM PARALELO
+        const [resClientes, resProcessos] = await Promise.all([
+            fetch('/api/clientes', { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch('/api/processos', { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+        
+        if (resClientes.status === 401) {
+            alert("SESSÃO EXPIRADA! REDIRECIONANDO...");
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+            return;
+        }
+        
+        const clientes = await resClientes.json();
+        const todosProcessos = await resProcessos.json();
+        
+        clientesCache = clientes; // Armazena em cache
 
-                if (clientes.length === 0) {
-                    tabela.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--muted);">Nenhum cliente cadastrado.</td></tr>';
+        // Total de clientes
+        document.getElementById('totalClientes').innerText = clientes.length;
+        
+        // Contar clientes com processos (RÁPIDO - sem loop de requisições)
+        const clientesComProcessosSet = new Set(
+            todosProcessos.map(p => p.cliente_id).filter(Boolean)
+        );
+        document.getElementById('clientesAtivos').innerText = clientesComProcessosSet.size;
+
+        // Total de processos
+        document.getElementById('processosVinculados').innerText = todosProcessos.length;
+
+        renderizarClientes(clientes);
+
+    } catch (err) {
+        console.error("Erro ao carregar clientes:", err);
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px; color:var(--danger); font-weight:600;">❌ ERRO AO CARREGAR CLIENTES</td></tr>';
+    }
+}
+
+        // ============================================
+        // RENDERIZAR LISTA DE CLIENTES
+        // ============================================
+        function renderizarClientes(clientes) {
+            const tbody = document.getElementById('listaClientes');
+            
+            if (clientes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:60px 20px; color:var(--text-tertiary);"><i class="lucide lucide-user-x" style="font-size:48px; margin-bottom:16px;"></i><p style="font-weight:600; font-size:16px;">NENHUM CLIENTE CADASTRADO</p><p style="font-size:13px; margin-top:8px;">CLIQUE EM "NOVO CLIENTE" PARA COMEÇAR</p></td></tr>';
+                lucide.createIcons();
+                return;
+            }
+
+            tbody.innerHTML = clientes.map(c => `
+                <tr id="cliente-${c.id}" data-cliente-id="${c.id}">
+                    <td style="font-weight:700; color:var(--text-primary);">${c.nome}</td>
+                    <td style="font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--text-secondary);">${c.documento}</td>
+                    <td style="color:var(--text-secondary);">${c.email}</td>
+                    <td style="color:var(--text-secondary);">${c.telefone || '---'}</td>
+                    <td style="color:var(--text-secondary);">${c.cidade || '---'}</td>
+                    <td>
+                        <span class="status-badge status-ativo">
+                            <i class="lucide lucide-check-circle"></i>
+                            ATIVO
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-action btn-view" onclick="visualizarProcessosCliente(${c.id}, '${c.nome.replace(/'/g, "\\'")}')" title="VER PROCESSOS">
+                                <i class="lucide lucide-eye"></i>
+                                <span>VER</span>
+                            </button>
+                            <button class="btn-action btn-edit" onclick="prepararEdicao(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${c.documento}', '${c.email}', '${c.telefone || ''}', '${c.cep || ''}', '${c.endereco || ''}', '${c.cidade || ''}', '${c.estado || ''}')" title="EDITAR">
+                                <i class="lucide lucide-pencil"></i>
+                                <span>EDITAR</span>
+                            </button>
+                            <button class="btn-action btn-delete" onclick="excluirCliente(${c.id})" title="EXCLUIR">
+                                <i class="lucide lucide-trash-2"></i>
+                                <span>EXCLUIR</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        // ============================================
+        // ADICIONAR CLIENTE NO DOM (SEM RECARREGAR)
+        // ============================================
+        function adicionarClienteNaTabela(cliente) {
+            const tbody = document.getElementById('listaClientes');
+            
+            // Remove mensagem "nenhum cliente" se existir
+            const mensagemVazia = tbody.querySelector('tr td[colspan="7"]');
+            if (mensagemVazia) {
+                tbody.innerHTML = '';
+            }
+
+            const novaLinha = document.createElement('tr');
+            novaLinha.id = `cliente-${cliente.id}`;
+            novaLinha.setAttribute('data-cliente-id', cliente.id);
+            novaLinha.style.animation = 'fadeInSlide 0.3s ease-out';
+            
+            novaLinha.innerHTML = `
+                <td style="font-weight:700; color:var(--text-primary);">${cliente.nome}</td>
+                <td style="font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--text-secondary);">${cliente.documento}</td>
+                <td style="color:var(--text-secondary);">${cliente.email}</td>
+                <td style="color:var(--text-secondary);">${cliente.telefone || '---'}</td>
+                <td style="color:var(--text-secondary);">${cliente.cidade || '---'}</td>
+                <td>
+                    <span class="status-badge status-ativo">
+                        <i class="lucide lucide-check-circle"></i>
+                        ATIVO
+                    </span>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-action btn-view" onclick="visualizarProcessosCliente(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}')" title="VER PROCESSOS">
+                            <i class="lucide lucide-eye"></i>
+                            <span>VER</span>
+                        </button>
+                        <button class="btn-action btn-edit" onclick="prepararEdicao(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}', '${cliente.documento}', '${cliente.email}', '${cliente.telefone || ''}', '${cliente.cep || ''}', '${cliente.endereco || ''}', '${cliente.cidade || ''}', '${cliente.estado || ''}')" title="EDITAR">
+                            <i class="lucide lucide-pencil"></i>
+                            <span>EDITAR</span>
+                        </button>
+                        <button class="btn-action btn-delete" onclick="excluirCliente(${cliente.id})" title="EXCLUIR">
+                            <i class="lucide lucide-trash-2"></i>
+                            <span>EXCLUIR</span>
+                        </button>
+                    </div>
+                </td>
+            `;
+
+            tbody.insertBefore(novaLinha, tbody.firstChild);
+            lucide.createIcons();
+            
+            // Adiciona ao cache
+            clientesCache.unshift(cliente);
+            
+            // Atualiza contador
+            const totalElement = document.getElementById('totalClientes');
+            if (totalElement) {
+                totalElement.innerText = parseInt(totalElement.innerText) + 1;
+            }
+        }
+
+        // ============================================
+        // ATUALIZAR CLIENTE NO DOM (SEM RECARREGAR)
+        // ============================================
+        function atualizarClienteNaTabela(cliente) {
+            const linhaExistente = document.getElementById(`cliente-${cliente.id}`);
+            if (!linhaExistente) return;
+
+            linhaExistente.innerHTML = `
+                <td style="font-weight:700; color:var(--text-primary);">${cliente.nome}</td>
+                <td style="font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--text-secondary);">${cliente.documento}</td>
+                <td style="color:var(--text-secondary);">${cliente.email}</td>
+                <td style="color:var(--text-secondary);">${cliente.telefone || '---'}</td>
+                <td style="color:var(--text-secondary);">${cliente.cidade || '---'}</td>
+                <td>
+                    <span class="status-badge status-ativo">
+                        <i class="lucide lucide-check-circle"></i>
+                        ATIVO
+                    </span>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-action btn-view" onclick="visualizarProcessosCliente(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}')" title="VER PROCESSOS">
+                            <i class="lucide lucide-eye"></i>
+                            <span>VER</span>
+                        </button>
+                        <button class="btn-action btn-edit" onclick="prepararEdicao(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}', '${cliente.documento}', '${cliente.email}', '${cliente.telefone || ''}', '${cliente.cep || ''}', '${cliente.endereco || ''}', '${cliente.cidade || ''}', '${cliente.estado || ''}')" title="EDITAR">
+                            <i class="lucide lucide-pencil"></i>
+                            <span>EDITAR</span>
+                        </button>
+                        <button class="btn-action btn-delete" onclick="excluirCliente(${cliente.id})" title="EXCLUIR">
+                            <i class="lucide lucide-trash-2"></i>
+                            <span>EXCLUIR</span>
+                        </button>
+                    </div>
+                </td>
+            `;
+
+            lucide.createIcons();
+            
+            // Atualiza no cache
+            const index = clientesCache.findIndex(c => c.id === cliente.id);
+            if (index !== -1) clientesCache[index] = cliente;
+        }
+
+        // ============================================
+        // REMOVER CLIENTE DO DOM (SEM RECARREGAR)
+        // ============================================
+        function removerClienteDaTabela(id) {
+            const linha = document.getElementById(`cliente-${id}`);
+            if (!linha) return;
+
+            // Adiciona animação de saída
+            linha.style.animation = 'fadeOutSlide 0.3s ease-out forwards';
+            
+            // Remove após animação
+            setTimeout(() => {
+                linha.remove();
+                
+                // Remove do cache
+                clientesCache = clientesCache.filter(c => c.id !== id);
+                
+                // Atualiza contador
+                const totalElement = document.getElementById('totalClientes');
+                if (totalElement) {
+                    totalElement.innerText = Math.max(0, parseInt(totalElement.innerText) - 1);
+                }
+                
+                // Se não houver mais clientes, mostra mensagem
+                const tbody = document.getElementById('listaClientes');
+                if (tbody.children.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:60px 20px; color:var(--text-tertiary);"><i class="lucide lucide-user-x" style="font-size:48px; margin-bottom:16px;"></i><p style="font-weight:600; font-size:16px;">NENHUM CLIENTE CADASTRADO</p><p style="font-size:13px; margin-top:8px;">CLIQUE EM "NOVO CLIENTE" PARA COMEÇAR</p></td></tr>';
+                    lucide.createIcons();
+                }
+            }, 300);
+        }
+
+        // ============================================
+        // FILTRAR CLIENTES
+        // ============================================
+        function filtrarClientes() {
+            const termo = document.getElementById('searchClientes').value.toLowerCase();
+            const linhas = document.querySelectorAll('#listaClientes tr');
+
+            linhas.forEach(linha => {
+                const nome = linha.querySelector('td')?.innerText.toLowerCase() || '';
+                linha.style.display = nome.includes(termo) ? '' : 'none';
+            });
+        }
+
+        // ============================================
+        // MODAL
+        // ============================================
+        function abrirModal() {
+            document.getElementById('modalCliente').style.display = 'flex';
+            document.getElementById('badgeClientes').style.display = 'none';
+            aplicarMascaras();
+        }
+
+        function fecharModal() { 
+            document.getElementById('modalCliente').style.display = 'none'; 
+            document.getElementById('formCliente').reset();
+            delete document.getElementById('formCliente').dataset.editId;
+            document.getElementById('modalTitle').innerHTML = '<i class="lucide lucide-user-plus"></i> NOVO CLIENTE';
+            lucide.createIcons();
+        }
+
+        function alternarCamposPessoa(tipo) {
+            const labelDoc = document.getElementById('labelDoc');
+            const groupNasc = document.getElementById('groupNascimento');
+            if (tipo === 'fisica') {
+                labelDoc.innerText = "CPF *";
+                groupNasc.style.display = "flex";
+            } else {
+                labelDoc.innerText = "CNPJ *";
+                groupNasc.style.display = "none";
+            }
+        }
+
+        // ============================================
+        // SALVAR/EDITAR - COM ATUALIZAÇÃO OTIMISTA
+        // ============================================
+        document.getElementById('formCliente').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const editId = e.target.dataset.editId;
+            const metodo = editId ? 'PUT' : 'POST';
+            const url = editId ? `/api/clientes/${editId}` : '/api/clientes';
+
+            const dados = {
+                nome: document.getElementById('cliNome').value,
+                documento: document.getElementById('cliDocumento').value,
+                email: document.getElementById('cliEmail').value,
+                telefone: document.getElementById('cliTelefone').value,
+                cep: document.getElementById('cliCep').value,
+                endereco: document.getElementById('cliEndereco').value,
+                cidade: document.getElementById('cliCidade').value,
+                estado: document.getElementById('cliUf').value,
+                tipo_pessoa: document.getElementById('cliTipo').value,
+                data_nascimento: document.getElementById('cliDataNascimento').value || null
+            };
+
+            try {
+                const res = await fetch(url, {
+                    method: metodo,
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify(dados)
+                });
+
+                if (res.ok) {
+                    const clienteSalvo = await res.json();
+                    alert("✅ CLIENTE SALVO COM SUCESSO!");
+                    fecharModal();
+                    
+                    // ATUALIZAÇÃO OTIMISTA - sem recarregar tudo
+                    if (editId) {
+                        atualizarClienteNaTabela(clienteSalvo);
+                    } else {
+                        adicionarClienteNaTabela(clienteSalvo);
+                    }
+                } else {
+                    const erro = await res.json();
+                    alert("❌ ERRO: " + (erro.erro || "FALHA AO SALVAR"));
+                }
+            } catch (err) { 
+                console.error("Erro na requisição:", err);
+                alert("❌ ERRO DE CONEXÃO");
+            }
+        });
+
+        // ============================================
+        // EXCLUIR - COM ATUALIZAÇÃO OTIMISTA
+        // ============================================
+        async function excluirCliente(id) {
+            if (!confirm("DESEJA REALMENTE EXCLUIR?")) return;
+            
+            try {
+                const res = await fetch(`/api/clientes/${id}`, { 
+                    method: 'DELETE', 
+                    headers: { 'Authorization': `Bearer ${token}` } 
+                });
+                
+                if (res.ok) {
+                    // ATUALIZAÇÃO OTIMISTA - remove do DOM imediatamente
+                    removerClienteDaTabela(id);
+                    console.log(`✅ Cliente ${id} removido com sucesso`);
+                } else {
+                    alert("❌ ERRO AO EXCLUIR CLIENTE");
+                }
+            } catch (err) {
+                console.error("Erro ao excluir:", err);
+                alert("❌ ERRO DE CONEXÃO");
+            }
+        }
+
+        // ============================================
+        // PREPARAR EDIÇÃO
+        // ============================================
+        function prepararEdicao(id, nome, documento, email, telefone, cep, endereco, cidade, estado) {
+            abrirModal();
+            document.getElementById('modalTitle').innerHTML = '<i class="lucide lucide-pencil"></i> EDITAR CLIENTE';
+            document.getElementById('cliNome').value = nome;
+            document.getElementById('cliDocumento').value = documento;
+            document.getElementById('cliEmail').value = email;
+            document.getElementById('cliTelefone').value = telefone || '';
+            document.getElementById('cliCep').value = cep || '';
+            document.getElementById('cliEndereco').value = endereco || '';
+            document.getElementById('cliCidade').value = cidade || '';
+            document.getElementById('cliUf').value = estado || '';
+            document.getElementById('formCliente').dataset.editId = id;
+            lucide.createIcons();
+        }
+
+        // ============================================
+        // VISUALIZAR PROCESSOS
+        // ============================================
+        async function visualizarProcessosCliente(clienteId, clienteNome) {
+            const container = document.getElementById('listaProcessosCliente');
+            const modal = document.getElementById('modalVisualizarProcessos');
+            const titulo = document.getElementById('tituloModalProcessos');
+
+            titulo.innerHTML = `<i class="lucide lucide-briefcase"></i> PROCESSOS: ${clienteNome}`;
+            container.innerHTML = '<p style="text-align:center; padding:20px;">CARREGANDO PROCESSOS...</p>';
+            modal.style.display = 'flex';
+            lucide.createIcons();
+
+            try {
+                const res = await fetch(`/api/por-cliente/${clienteId}`, { 
+                    method: 'GET',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    } 
+                });
+
+                if (!res.ok) throw new Error("Erro na resposta do servidor");
+                const processos = await res.json();
+
+                if (processos.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:var(--muted); padding:20px;">ESTE CLIENTE NÃO POSSUI PROCESSOS CADASTRADOS.</p>';
                     return;
                 }
 
-                clientes.forEach(cli => {
-                    const documentoLimpo = cli.documento ? cli.documento.replace(/"/g, '') : '---';
-                    const acoes = `
-                        <div style="display: flex; gap: 15px; align-items: center;">
-                            <i data-lucide="eye" 
-                            onclick="visualizarProcessosCliente(${cli.id}, '${cli.nome}')" 
-                            style="cursor:pointer; color:#10b981; width:18px;" 
-                        title="Ver Processos"></i>
-        
-                        <i data-lucide="pencil" 
-                            onclick="prepararEdicao(${cli.id}, '${cli.nome}', '${documentoLimpo}', '${cli.email}', '${cli.telefone || ''}', '${cli.cep || ''}', '${cli.endereco || ''}', '${cli.cidade || ''}', '${cli.estado || ''}')" 
-                            style="cursor:pointer; color:#2563eb; width:18px;" 
-                            title="Editar"></i>
-        
-                        <i data-lucide="trash-2" 
-                            onclick="excluirCliente(${cli.id})" 
-                            style="cursor:pointer; color:#ef4444; width:18px;" 
-                            title="Excluir"></i>
-                    </div>
-                `;
+                container.innerHTML = processos.map(p => `
+                    <div style="padding:16px; border:1px solid var(--border); border-radius:12px; background: white; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom:10px;">
+                        <div style="flex: 1;">
+                            <strong style="display:block; color:var(--primary); font-family:monospace; font-size:14px; margin-bottom:4px;">${p.numero}</strong>
+                            
+                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                                <span style="color:var(--danger); font-size:10px; font-weight:800;">VS</span>
+                                <span style="font-size:13px; font-weight:600; color:var(--text-main);">${p.parte_contraria || 'PARTE NÃO INFORMADA'}</span>
+                            </div>
 
-                    tabela.innerHTML += `
-                        <tr>
-                            <td><strong style="color:var(--text-main);">${cli.nome}</strong></td>
-                            <td>${documentoLimpo}</td>
-                            <td>${cli.email}</td>
-                            <td>${cli.telefone || '-'}</td>
-                            <td>
-                                <span style="background:#eff6ff; color:#2563eb; padding:4px 10px; border-radius:12px; font-weight:600; font-size:11px;">
-                                    ${cli.total_processos || 0} processos
+                            <div style="display:flex; gap:8px; align-items:center; flex-wrap: wrap;">
+                                <span style="background: #e0f2fe; color: #0369a1; font-size:9px; font-weight:800; padding:2px 6px; border-radius:4px; text-transform:uppercase;">
+                                    ${p.esfera || 'N/A'}
                                 </span>
-                            </td>
-                            <td>${acoes}</td>
-                        </tr>`;
-                });
+                                <span style="color:var(--muted); font-size:11px; font-weight:600;">${p.tribunal || '---'}</span>
+                                <small style="color:var(--muted); font-size:11px;">${p.instancia || '1'}º GRAU - ${p.uf || '--'}</small>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
 
-                if (typeof lucide !== 'undefined') lucide.createIcons();
+                lucide.createIcons();
+
+            } catch (err) {
+                console.error("Erro detalhado:", err);
+                container.innerHTML = '<p style="color:var(--danger); text-align:center; padding:20px; font-weight:600;">❌ FALHA AO CARREGAR PROCESSOS. VERIFIQUE SUA CONEXÃO.</p>';
             }
-        } catch (err) { console.error('Erro ao carregar:', err); }
-    }
-
-    function filtrarClientes() {
-    const termo = document.getElementById('buscaCliente').value.toLowerCase();
-    const linhas = document.querySelectorAll('#listaClientes tr');
-
-    linhas.forEach(linha => {
-        const nome = linha.querySelector('td')?.innerText.toLowerCase() || '';
-        linha.style.display = nome.includes(termo) ? '' : 'none';
-    });
-}
-
-    // 3. FUNÇÕES DE MODAL E FORMULÁRIO
-    function abrirModal() {
-        document.getElementById('modalCliente').style.display = 'flex';
-        // Reset do badge ao abrir a página/modal para indicar que o Dr. já viu as novidades
-        document.getElementById('badgeClientes').style.display = 'none';
-        aplicarMascaras();
-    }
-
-    function fecharModal() { 
-        document.getElementById('modalCliente').style.display = 'none'; 
-        document.getElementById('formCliente').reset();
-        delete document.getElementById('formCliente').dataset.editId;
-        document.getElementById('modalTitle').innerHTML = '<i class="lucide lucide-user-plus" style="color: #2563eb;"></i> Novo Cliente';
-    }
-
-    function alternarCamposPessoa(tipo) {
-        const labelDoc = document.getElementById('labelDoc');
-        const groupNasc = document.getElementById('groupNascimento');
-        if (tipo === 'fisica') {
-            labelDoc.innerText = "CPF";
-            groupNasc.style.display = "flex";
-        } else {
-            labelDoc.innerText = "CNPJ";
-            groupNasc.style.display = "none";
         }
-    }
 
-    // 4. PERSISTÊNCIA DE DADOS (SALVAR/EDITAR/EXCLUIR)
-    document.getElementById('formCliente').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const editId = e.target.dataset.editId;
-        const metodo = editId ? 'PUT' : 'POST';
-        const url = editId ? `/api/clientes/${editId}` : '/api/clientes';
+        function fecharModalProcessos() {
+            document.getElementById('modalVisualizarProcessos').style.display = 'none';
+        }
 
-        const dados = {
-            nome: document.getElementById('cliNome').value,
-            documento: document.getElementById('cliDocumento').value,
-            email: document.getElementById('cliEmail').value,
-            telefone: document.getElementById('cliTelefone').value,
-            cep: document.getElementById('cliCep').value,
-            endereco: document.getElementById('cliEndereco').value,
-            cidade: document.getElementById('cliCidade').value,
-            estado: document.getElementById('cliUf').value,
-            tipo_pessoa: document.getElementById('cliTipo').value,
-            data_nascimento: document.getElementById('cliDataNascimento').value || null
-        };
+        // ============================================
+        // BUSCAR CEP
+        // ============================================
+        async function buscarEnderecoPorCep(cep) {
+            const valorCep = cep.replace(/\D/g, '');
+            if (valorCep.length !== 8) return;
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${valorCep}/json/`);
+                const data = await response.json();
+                if (!data.erro) {
+                    document.getElementById('cliEndereco').value = `${data.logradouro}, ${data.bairro}`;
+                    document.getElementById('cliCidade').value = data.localidade;
+                    document.getElementById('cliUf').value = data.uf;
+                }
+            } catch (err) { console.error("Erro CEP:", err); }
+        }
 
-        try {
-            const res = await fetch(url, {
-                method: metodo,
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(dados)
+        // ============================================
+        // MÁSCARAS
+        // ============================================
+        function aplicarMascaras() {
+            IMask(document.getElementById('cliDocumento'), {
+                mask: [ 
+                    { mask: '000.000.000-00', type: 'CPF' }, 
+                    { mask: '00.000.000/0000-00', type: 'CNPJ' } 
+                ]
             });
-
-            if (res.ok) {
-                alert("✅ Cliente salvo com sucesso!");
-                fecharModal();
-                carregarClientes();
-            } else {
-                const erro = await res.json();
-                alert("❌ Erro: " + (erro.erro || "Falha ao salvar"));
-            }
-        } catch (err) { console.error("Erro na requisição:", err); }
-    });
-
-    async function excluirCliente(id) {
-        if (!confirm("Deseja realmente excluir?")) return;
-        const res = await fetch(`/api/clientes/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-        if (res.ok) carregarClientes();
-    }
-
-    function prepararEdicao(id, nome, documento, email, telefone, cep, endereco, cidade, estado) {
-        abrirModal();
-        document.getElementById('modalTitle').innerText = "📝 Editar Cliente";
-        document.getElementById('cliNome').value = nome;
-        document.getElementById('cliDocumento').value = documento;
-        document.getElementById('cliEmail').value = email;
-        document.getElementById('cliTelefone').value = telefone || '';
-        document.getElementById('cliCep').value = cep || '';
-        document.getElementById('cliEndereco').value = endereco || '';
-        document.getElementById('cliCidade').value = cidade || '';
-        document.getElementById('cliUf').value = estado || '';
-        document.getElementById('formCliente').dataset.editId = id;
-    }
-
-    async function visualizarProcessosCliente(clienteId, clienteNome) {
-    const container = document.getElementById('listaProcessosCliente');
-    const modal = document.getElementById('modalVisualizarProcessos');
-    const titulo = document.getElementById('tituloModalProcessos');
-
-    titulo.innerText = `📂 Processos: ${clienteNome}`;
-    container.innerHTML = '<p style="text-align:center; padding:20px;">Carregando processos...</p>';
-    modal.style.display = 'flex';
-
-    try {
-        // 🚀 URL CORRIGIDA: Removido o "/processos" para bater com seu server.js
-        const res = await fetch(`/api/por-cliente/${clienteId}`, { 
-            method: 'GET',
-            headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            } 
-        });
-
-        if (!res.ok) throw new Error("Erro na resposta do servidor");
-        const processos = await res.json();
-
-        if (processos.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:var(--muted); padding:20px;">Este cliente não possui processos cadastrados.</p>';
-            return;
+            IMask(document.getElementById('cliTelefone'), { mask: '(00) 00000-0000' });
+            IMask(document.getElementById('cliCep'), { mask: '00000-000' });
         }
 
-        // Renderiza os cards dos processos com Esfera e Tribunal
-        container.innerHTML = processos.map(p => `
-            <div style="padding:16px; border:1px solid var(--border); border-radius:12px; background: white; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom:10px;">
-                <div style="flex: 1;">
-                    <strong style="display:block; color:var(--primary); font-family:monospace; font-size:14px; margin-bottom:4px;">${p.numero}</strong>
-                    
-                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
-                        <span style="color:var(--danger); font-size:10px; font-weight:800;">VS</span>
-                        <span style="font-size:13px; font-weight:600; color:var(--text-main);">${p.parte_contraria || 'Parte não informada'}</span>
-                    </div>
-
-                    <div style="display:flex; gap:8px; align-items:center; flex-wrap: wrap;">
-                        <span style="background: #e0f2fe; color: #0369a1; font-size:9px; font-weight:800; padding:2px 6px; border-radius:4px; text-transform:uppercase;">
-                            ${p.esfera || 'N/A'}
-                        </span>
-                        <span style="color:var(--muted); font-size:11px; font-weight:600;">${p.tribunal || '---'}</span>
-                        <small style="color:var(--muted); font-size:11px;">${p.instancia || '1'}º Grau - ${p.uf || '--'}</small>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-
-    } catch (err) {
-        console.error("Erro detalhado:", err);
-        container.innerHTML = '<p style="color:var(--danger); text-align:center; padding:20px; font-weight:600;">❌ Falha ao carregar processos. Verifique sua conexão.</p>';
-    }
-}
-
-function fecharModalProcessos() {
-    document.getElementById('modalVisualizarProcessos').style.display = 'none';
-}
-
-    async function buscarEnderecoPorCep(cep) {
-        const valorCep = cep.replace(/\D/g, '');
-        if (valorCep.length !== 8) return;
-        try {
-            const response = await fetch(`https://viacep.com.br/ws/${valorCep}/json/`);
-            const data = await response.json();
-            if (!data.erro) {
-                document.getElementById('cliEndereco').value = `${data.logradouro}, ${data.bairro}`;
-                document.getElementById('cliCidade').value = data.localidade;
-                document.getElementById('cliUf').value = data.uf;
+        // ============================================
+        // ANIMAÇÕES CSS
+        // ============================================
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInSlide {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
-        } catch (err) { console.error("Erro CEP:", err); }
-    }
+            
+            @keyframes fadeOutSlide {
+                from {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateX(-20px);
+                }
+            }
+        `;
+        document.head.appendChild(style);
 
-    function aplicarMascaras() {
-        IMask(document.getElementById('cliDocumento'), {
-            mask: [ { mask: '000.000.000-00', type: 'CPF' }, { mask: '00.000.000/0000-00', type: 'CNPJ' } ]
-        });
-        IMask(document.getElementById('cliTelefone'), { mask: '(00) 00000-0000' });
-        IMask(document.getElementById('cliCep'), { mask: '00000-000' });
-    }
-
-    function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
-
-    // ⏰ Função para atualizar data e hora em tempo real
-    function atualizarRelogio() {
-        const agora = new Date();
-        
-        // Formatar hora (HH:MM:SS)
-        const hora = agora.toLocaleTimeString('pt-BR', { 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            second: '2-digit' 
-        });
-        
-        // Formatar data (Dia da semana, DD de Mês de YYYY)
-        const opcoes = { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
+        // ============================================
+        // INICIALIZAÇÃO - SEM POLLING EXCESSIVO
+        // ============================================
+        window.onload = () => {
+            inicializarPagina(); // Carrega apenas uma vez
+            aplicarMascaras();
+            somNotificacao.load();
+            
+            // REMOVIDO: setInterval(carregarClientes, 40000);
+            // Se precisar de atualização automática, implemente WebSocket ou aumente para 5+ minutos
+            
+            lucide.createIcons();
         };
-        const data = agora.toLocaleDateString('pt-BR', opcoes);
-        
-        // Atualizar no DOM
-        document.getElementById('horaAtual').textContent = hora;
-        document.getElementById('dataAtual').textContent = data;
-    }
-
-    // 🚀 INICIALIZAÇÃO SEGURA
-    window.onload = () => {
-    carregarInfoRodape();
-    carregarClientes();
-    
-    // Inicializar e atualizar relógio a cada segundo
-    atualizarRelogio();
-    setInterval(atualizarRelogio, 1000);
-    
-    // Tenta "pré-carregar" o som para evitar atrasos
-    somNotificacao.load(); 
-    
-    setInterval(carregarClientes, 40000);
-};
-</script>
-<div id="modalVisualizarProcessos" class="modal">
-    <div class="modal-content" style="max-width: 600px; border-radius: 20px; padding: 0; overflow: hidden;">
-        <div style="background: var(--sidebar); padding: 24px; color: white; display: flex; justify-content: space-between; align-items: center;">
-            <h3 id="tituloModalProcessos" style="margin: 0; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
-                <i class="lucide-folder-open"></i> Processos do Cliente
-            </h3>
-            <span onclick="fecharModalProcessos()" style="cursor: pointer; opacity: 0.7; font-size: 24px;">&times;</span>
-        </div>
-        
-        <div id="listaProcessosCliente" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; max-height: 450px; overflow-y: auto; background: #f8fafc;">
-            </div>
-
-        <div style="padding: 16px 24px; background: white; border-top: 1px solid var(--border); display: flex; justify-content: flex-end;">
-            <button class="btn-primary" onclick="fecharModalProcessos()" style="background: var(--sidebar);">Fechar Janela</button>
-        </div>
-    </div>
-</div>
+    </script>
 </body>
 </html>

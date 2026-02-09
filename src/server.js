@@ -53,7 +53,7 @@ app.use(express.static(publicPath));
 // --- 7. APIs (ROTAS DE DADOS) ---
 app.use('/api/auth', authRoutes);
 app.use('/api', iaRoutes);
-app.use('/api/crm', crmRoutes);
+app.use('/api/crm', authMiddleware, crmRoutes);
 app.use('/api', prazosRoutes);
 app.use('/api', processosRoutes);
 app.use('/api', calculosRoutes);
@@ -75,6 +75,11 @@ app.get('/systems/monitor', (req, res) => {
 
 // ✅ Proteção das rotas de dados do admin
 app.use('/systems', authMiddleware, masterAdminOnly, adminRoutes);
+
+if (process.env.NODE_ENV === 'production') {
+require('./cron/djen_scraper_cron');
+//console.log('✅ Cron DJEN ativado');
+}
 
 // --- 9. PÁGINAS FRONTEND ---
 app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')));

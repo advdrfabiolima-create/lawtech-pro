@@ -934,6 +934,96 @@
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
         }
 
+        /* ============================================
+           CARD PREMIUM - DESTAQUE ESPECIAL
+        ============================================ */
+        .plan-card.premium {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 3px solid #f59e0b;
+            transform: scale(1.05);
+            box-shadow: 0 20px 50px rgba(245, 158, 11, 0.3);
+            position: relative;
+        }
+
+        .plan-card.premium::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+            border-radius: 20px;
+            z-index: -1;
+            opacity: 0.3;
+            filter: blur(8px);
+        }
+
+        .plan-card.premium::after {
+            content: '👑 Full Access';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+        }
+
+        .plan-card.premium:hover {
+            transform: scale(1.07) translateY(-8px);
+            box-shadow: 0 28px 60px rgba(245, 158, 11, 0.4);
+        }
+
+        .plan-card.premium h3 {
+            color: #92400e;
+            font-size: 28px;
+        }
+
+        .plan-card.premium .plan-price .currency,
+        .plan-card.premium .plan-price .period {
+            color: #92400e;
+        }
+
+        .plan-card.premium .plan-price .amount {
+            color: #92400e;
+            font-size: 46px;
+        }
+
+        .plan-card.premium .plan-features li {
+            color: #78350f;
+            font-weight: 500;
+        }
+
+        .plan-card.premium .plan-features li:before {
+            color: #15803d;
+            font-size: 20px;
+        }
+
+        .plan-card.premium .plan-cta {
+            background: linear-gradient(135deg, #92400e 0%, #78350f 100%);
+            box-shadow: 0 8px 20px rgba(146, 64, 14, 0.4);
+            font-size: 16px;
+            padding: 18px 32px;
+        }
+
+        .plan-card.premium .plan-cta:hover {
+            background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
+            box-shadow: 0 12px 28px rgba(146, 64, 14, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .plan-card.premium .plan-badge {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #78350f;
+            font-size: 14px;
+            padding: 8px 24px;
+            box-shadow: 0 6px 16px rgba(251, 191, 36, 0.6);
+        }
+
         .plan-card h3 {
             font-size: 24px;
             font-weight: 700;
@@ -945,6 +1035,7 @@
             display: flex;
             align-items: baseline;
             margin-bottom: 32px;
+            justify-content: center;
         }
 
         .plan-price .currency {
@@ -959,6 +1050,12 @@
             font-weight: 800;
             color: var(--primary);
             line-height: 1;
+        }
+
+        /* Estilo para os centavos (números após a vírgula) */
+        .plan-price .amount::after {
+            font-size: 28px;
+            vertical-align: super;
         }
 
         .plan-price .period {
@@ -1900,7 +1997,7 @@
                     <ul>
                         <li><a href="sobre-nos.html">Sobre Nós</a></li>
                         <li><a href="blog.html">Blog</a></li>                        
-                        <li><a href="mailto:suporte@lawtechpro.com.br">Suporte</a></li>
+                        <li><a href="/cdn-cgi/l/email-protection#6f1c1a1f001d1b0a2f030e181b0a0c071f1d00410c0002410d1d">Suporte</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">
@@ -1941,7 +2038,22 @@
         </div>
     </footer>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        function formatarPreco(valor, isAnual) {
+            // Se for anual e não tiver vírgula, adiciona ,00
+            if (isAnual && !valor.includes(',')) {
+                valor = valor + ',00';
+            }
+            
+            // Separa a parte inteira dos centavos
+            const partes = valor.split(',');
+            const inteiro = partes[0];
+            const centavos = partes[1] || '00';
+            
+            // Retorna HTML com centavos menores
+            return `${inteiro}<span style="font-size: 0.55em; vertical-align: super;">,${centavos}</span>`;
+        }
+
         function toggleBilling() {
             const isAnnual = document.getElementById('billingToggle').checked;
             const amounts = document.querySelectorAll('.amount');
@@ -1951,7 +2063,7 @@
 
             amounts.forEach(amount => {
                 const value = isAnnual ? amount.dataset.anual : amount.dataset.mensal;
-                amount.textContent = value;
+                amount.innerHTML = formatarPreco(value, isAnnual);
             });
 
             periods.forEach(period => {
@@ -1966,6 +2078,15 @@
                 labelAnual.classList.remove('active');
             }
         }
+
+        // Formata os preços na inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            const amounts = document.querySelectorAll('.amount');
+            amounts.forEach(amount => {
+                const value = amount.dataset.mensal;
+                amount.innerHTML = formatarPreco(value, false);
+            });
+        });
 
         function iniciarTeste(plano) {
             const isAnnual = document.getElementById('billingToggle').checked;
@@ -2135,10 +2256,34 @@
             } else if (valor.length > 2) {
                 valor = valor.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
             } else {
-                valor = valor.replace(/^(\d*)/, '($1');
+            valor = valor.replace(/^(\d*)/, '($1)');
             }
             
             e.target.value = valor;
+        });
+
+        // Validação do formulário
+        document.getElementById('contatoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const nome = document.getElementById('contatoNome').value.trim();
+            const email = document.getElementById('contatoEmail').value.trim();
+            const telefone = document.getElementById('contatoTelefone').value.trim();
+            const mensagem = document.getElementById('contatoMensagem').value.trim();
+            
+            if (!nome || !email || !telefone || !mensagem) {
+                alert('Por favor, preencha todos os campos obrigatórios.');
+                return;
+            }
+            
+            if (!email.includes('@') || !email.includes('.')) {
+                alert('Por favor, insira um e-mail válido.');
+                return;
+            }
+            
+            // Aqui você pode adicionar a lógica para enviar o formulário
+            alert('Mensagem enviada com sucesso! Em breve entraremos em contato.');
+            this.reset();
         });
     </script>
 </body>

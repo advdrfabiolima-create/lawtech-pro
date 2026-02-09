@@ -12,31 +12,31 @@
     <style>
         :root {
             /* Light Theme Colors - Professional & Clean */
-            --bg-primary: #f8fafc;
-            --bg-secondary: #111827;
-            --bg-tertiary: #1a2332;
+            --bg-primary: #F8FAFB;
+            --bg-secondary: #1E3A5F;
+            --bg-tertiary: #2A4A73;
             --bg-elevated: #ffffff;
             
-            --text-primary: #1e293b;
-            --text-secondary: #475569;
-            --text-tertiary: #64748b;
+            --text-primary: #2C3E50;
+            --text-secondary: #5A6C7D;
+            --text-tertiary: #7B8794;
             
-            --accent-blue: #2563eb;
-            --accent-blue-light: #3b82f6;
-            --accent-blue-glow: rgba(37, 99, 235, 0.3);
+            --accent-blue: #4A90E2;
+            --accent-blue-light: #5BA4DB;
+            --accent-blue-glow: rgba(74, 144, 226, 0.2);
             
-            --accent-green: #10b981;
-            --accent-purple: #8b5cf6;
-            --accent-orange: #f59e0b;
-            --accent-red: #ef4444;
-            --accent-gold: #fbbf24;
+            --accent-green: #52B788;
+            --accent-purple: #7E8CE0;
+            --accent-orange: #F2A65A;
+            --accent-red: #E76F51;
+            --accent-gold: #F4D06F;
             
-            --border-subtle: rgba(0, 0, 0, 0.08);
-            --border-medium: rgba(0, 0, 0, 0.12);
+            --border-subtle: rgba(42, 74, 115, 0.08);
+            --border-medium: rgba(42, 74, 115, 0.12);
             
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
+            --radius-sm: 4px;
+            --radius-md: 6px;
+            --radius-lg: 8px;
             
             --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
             
@@ -60,512 +60,629 @@
         * { box-sizing: border-box; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
         body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; height: 100vh; overflow: hidden; }
 
-        /* Sidebar Premium */
-        .sidebar {
-            width: 280px;
-            background: var(--bg-secondary);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-right: 1px solid var(--border-subtle);
-            padding: 32px 24px;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
+        /* Animated Background */
+        body::before {
+            content: "";
             position: fixed;
-            left: 0;
             top: 0;
-            z-index: 1000;
-        }
-
-        .sidebar-header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 24px;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .sidebar-header img {
+            left: 0;
             width: 100%;
-            max-width: 180px;
-            height: auto;
-            filter: drop-shadow(0 0 20px var(--accent-blue-glow));
-            transition: all var(--transition-base);
-        }
-
-        .sidebar-header img:hover {
-            filter: drop-shadow(0 0 30px var(--accent-blue-glow));
-            transform: scale(1.05);
-        }
-
-        .menu {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            flex-grow: 1;
-        }
-
-        .menu a {
-            display: flex;
-            align-items: center;
-            padding: 14px 16px;
-            color: #94a3b8;
-            text-decoration: none;
-            border-radius: var(--radius-lg);
-            font-size: 14px;
-            font-weight: 600;
-            transition: all var(--transition-base);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .menu a::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
             height: 100%;
-            background: var(--accent-blue);
-            transform: scaleY(0);
-            transition: transform var(--transition-base);
+            z-index: 0;
+            opacity: 0.015;
+            background-image: 
+                linear-gradient(rgba(74, 144, 226, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(74, 144, 226, 0.08) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: patternMove 20s linear infinite;
+            pointer-events: none;
         }
 
-        .menu a:hover::before,
-        .menu a.active::before {
-            transform: scaleY(1);
+        @keyframes patternMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
         }
 
-        .menu a i {
-            margin-right: 12px;
-            font-size: 18px;
-            transition: all var(--transition-base);
+        body::after {
+            content: "";
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%);
+            top: -300px;
+            right: -300px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.08;
+            z-index: 0;
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
         }
 
-        .menu a:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: #e2e8f0;
-            transform: translateX(4px);
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-30px, 30px) scale(0.9); }
         }
 
-        .menu a.active {
-            background: rgba(37, 99, 235, 0.15);
-            color: #60a5fa;
-            border: 1px solid rgba(37, 99, 235, 0.4);
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-100%); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
-        .menu a.active i {
-            color: #60a5fa;
-        }
-
-        .sidebar-footer {
-            padding-top: 24px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 12px;
-            margin-top: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .sidebar-footer span {
-            color: #cbd5e1 !important;
-        }
-
-        /* Área Principal */
-        .main { margin-left: 280px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; position: relative; z-index: 1; }
-        .header { background: var(--white); height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; }
-        .content { padding: 32px; }
-
-        /* Estilos de Prazos e Badges */
-        .section { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 24px; margin-bottom: 24px; }
-        .prazo { border-left: 4px solid var(--primary); padding: 16px; margin-bottom: 12px; border-radius: 8px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-        .prazo:hover { transform: translateX(4px); background: #f1f5f9; }
-        .prazo.vencido { border-color: var(--danger); background: #fef2f2; }
-        .prazo.semana { border-color: var(--warning); background: #fffbeb; }
-        .prazo.futuro { border-color: var(--success); }
-
-        .badge { font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700; text-transform: uppercase; margin-left: 8px; }
-        .badge.urgente-hoje { background: var(--danger); color: #fff; animation: pulse 1.5s infinite; }
-        .badge.urgente-amanha { background: var(--warning); color: #fff; }
-
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-
-        .btn-primary { background: var(--primary); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
-        .btn-secondary { background: #f1f5f9; color: var(--muted); border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-        .btn-secondary.active { background: var(--primary); color: #fff; }
-
-        /* Modal */
-        .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:10000; align-items:center; justify-content:center; }
-        .modal-content { background:#fff; width:100%; max-width:450px; padding:30px; border-radius:12px; }
-        
-        #toast { position: fixed; bottom: 20px; right: 20px; color: #fff; padding: 12px 16px; border-radius: 8px; display: none; z-index: 11000; font-weight: 600; font-size: 13px; }
-
-        .acoes-concluidos {
-  display: flex;
-  justify-content: flex-end;
-  margin: 12px 0 20px;
+        /* Sidebar Premium */
+.sidebar {
+    width: 280px;
+    background: var(--bg-secondary);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-right: 1px solid var(--border-subtle);
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.btn-limpar-concluidos {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: #f8fafc;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
-  padding: 6px 12px;
-  font-size: 13px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-100%); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
-.btn-limpar-concluidos:hover {
-  background: #fee2e2;
-  color: #b91c1c;
-  border-color: #fecaca;
+/* Sidebar Header */
+.sidebar-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-subtle);
 }
 
-.actions-prazo { display: flex; gap: 8px; margin-left: 15px; }
-.btn-action {
-    background: #ffffff;
-    border: 1px solid var(--border);
-    padding: 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.2s;
+.sidebar-header img {
+    width: 100%;
+    max-width: 180px;
+    height: auto;
+    filter: drop-shadow(0 0 20px var(--accent-blue-glow));
+    transition: all var(--transition-base);
+}
+
+.sidebar-header img:hover {
+    filter: drop-shadow(0 0 30px var(--accent-blue-glow));
+    transform: scale(1.05);
+}
+
+/* Menu Container */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-grow: 1;
+}
+
+/* Menu Links */
+.menu a {
     display: flex;
     align-items: center;
-    justify-content: center;
-}
-.btn-action i { width: 16px; height: 16px; }
-.btn-action.success { color: var(--success); }
-.btn-action.success:hover { background: #ecfdf5; border-color: var(--success); }
-.btn-action.edit { color: var(--primary); }
-.btn-action.edit:hover { background: #eff6ff; border-color: var(--primary); }
-.btn-action.danger { color: var(--danger); }
-.btn-action.danger:hover { background: #fef2f2; border-color: var(--danger); }
-.btn-action.view { color: #8b5cf6; }
-.btn-action.view:hover { background: #f5f3ff; border-color: #8b5cf6; }
-        .btn-crm-gold-nav {
-            background: linear-gradient(135deg, var(--accent-gold) 0%, #facc15 100%) !important;
-            color: #000 !important;
-            font-weight: 800 !important;
-            margin-top: 16px !important;
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
-            position: relative;
-            overflow: hidden;
-            border-radius: var(--radius-lg);
-            padding: 14px 16px !important;
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            font-size: 14px;
-            transition: all var(--transition-base);
-        }
-
-        .btn-crm-gold-nav i {
-            margin-right: 10px;
-            font-size: 18px;
-        }
-
-        .btn-crm-gold-nav:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(251, 191, 36, 0.6);
-        }
-
-        /* Padronização LawTech Pro - Caixa Alta Global */
-body {
-    text-transform: uppercase;
+    padding: 14px 16px;
+    color: #94a3b8; /* CINZA CLARO para links não ativos */
+    text-decoration: none;
+    border-radius: var(--radius-lg);
+    font-size: 14px;
+    font-weight: 600;
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid transparent; /* ← ADICIONAR ESTA LINHA */
 }
 
-/* Garante que os campos de digitação também mostrem caixa alta enquanto o usuário digita */
-input, textarea, select {
-    text-transform: uppercase;
+/* Barra lateral azul nos links */
+.menu a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent-blue);
+    transform: scaleY(0);
+    transition: transform var(--transition-base);
 }
 
-/* Opcional: Se quiser que os números dos processos mantenham o estilo técnico, 
-   mas ainda em caixa alta */
-.numero-processo, .processo-hash {
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 1px;
+.menu a:hover::before,
+.menu a.active::before {
+    transform: scaleY(1);
 }
 
-/* Container principal do rodapé */
+/* Ícones dos links */
+.menu a i {
+    margin-right: 12px;
+    font-size: 18px;
+    transition: all var(--transition-base);
+}
+
+/* Hover dos links */
+.menu a:hover {
+    background: rgba(255, 255, 255, 0.05); /* Hover suave */
+    color: #e2e8f0; /* Cinza bem claro no hover */
+    transform: translateX(4px);
+    border: 1px solid transparent; /* Mantém border transparente */
+}
+
+/* Link ativo - AGORA SEM DESLOCAMENTO */
+.menu a.active {
+    background: rgba(37, 99, 235, 0.15); /* Azul visível */
+    color: #60a5fa; /* Azul claro */
+    border: 1px solid rgba(37, 99, 235, 0.4); /* Border colorida */
+}
+
+.menu a.active i {
+    color: #60a5fa; /* Azul claro */
+}
+
+/* Botão CRM Gold - IMPORTANTE: margin-top cria o espaçamento */
+.btn-crm-gold-nav { 
+    background: #fbbf24 !important; 
+    color: #000 !important; 
+    font-weight: 800 !important; 
+    margin-top: 15px !important; /* ⚡ ESPAÇAMENTO CRÍTICO */
+    display: flex !important; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 12px !important; 
+    border-radius: 8px; 
+    text-decoration: none; 
+    font-size: 14px; 
+    transition: 0.3s; 
+}
+
+.btn-crm-gold-nav:hover { 
+    background: #facc15 !important; 
+    transform: scale(1.02); 
+}
+
+.btn-crm-gold-nav i { 
+    margin-right: 10px; 
+}
+
+/* Sidebar Footer */
 .sidebar-footer {
-    padding-top: 20px;
+    padding-top: 24px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 12px;
     margin-top: auto;
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-/* Alinhamento à esquerda com pequeno espaço após o label */
-.footer-info-row {
-    display: flex;
-    justify-content: flex-start; /* Alinha tudo no início (esquerda) */
-    align-items: center;
-    gap: 8px; /* Espaço fixo de 8px após os ":" */
-    font-size: 12px;
+.sidebar-footer span {
+    color: #cbd5e1 !important;
 }
 
-/* Estilo dos Rótulos (USUÁRIO: e PLANO:) */
+/* Footer Info Row - Alinhamento das informações */
+.footer-info-row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    width: 100%;
+}
+
 .footer-info-row span:first-child {
     text-transform: uppercase;
     color: var(--text-tertiary);
     font-weight: 700;
-    white-space: nowrap; /* Impede que o rótulo quebre linha */
+    min-width: 65px; /* Alinha os dois pontos verticalmente */
 }
 
-/* ✅ EXCEÇÃO: Força e-mail e plano em CAIXA BAIXA e alinhados à esquerda */
+/* Mantém e-mail e plano minúsculos */
 .keep-lowercase {
     text-transform: lowercase !important;
     color: #cbd5e1;
-    text-align: left;
+    font-weight: 500;
 }
-/* 
-  ============================================
-  CSS PARA SISTEMA DE ANEXOS DE PDF
-  Adicione este CSS dentro da tag <style> do seu prazos.html
-  ============================================
-*/
+        /* Área Principal */
+        .main { margin-left: 280px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; position: relative; z-index: 1; }
+        .header { background: var(--white); height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; }
+        .content { padding: 32px; }
 
-/* Estilo para área de anexo de PDF */
-.anexo-section {
-    margin-top: 20px;
-    padding: 20px;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    border-radius: 12px;
-    border: 2px dashed var(--border-medium);
-}
+        /* Cards de Estatísticas */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
 
-.anexo-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 16px;
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--text-primary);
-}
+        .stat-card {
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+            border-radius: 12px;
+            padding: 24px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-base);
+            cursor: pointer;
+        }
 
-.anexo-header i {
-    color: var(--accent-red);
-    width: 20px;
-    height: 20px;
-}
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transition: all 0.6s ease;
+        }
 
-.anexo-container {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
+        .stat-card:hover::before {
+            top: -60%;
+            right: -60%;
+        }
 
-/* Botão de upload estilizado */
-.upload-btn-wrapper {
-    position: relative;
-    overflow: hidden;
-    display: inline-block;
-}
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(74, 144, 226, 0.3);
+        }
 
-.upload-btn-wrapper input[type=file] {
-    position: absolute;
-    left: -9999px;
-}
+        .stat-card.orange {
+            background: linear-gradient(135deg, #F2A65A 0%, #E89544 100%);
+        }
 
-.upload-btn {
-    background: var(--primary);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-    font-size: 14px;
-    transition: all 0.3s;
-    border: none;
-}
+        .stat-card.orange:hover {
+            box-shadow: 0 12px 24px rgba(242, 166, 90, 0.3);
+        }
 
-.upload-btn:hover {
-    background: var(--accent-blue-light);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-}
+        .stat-card.yellow {
+            background: linear-gradient(135deg, #F4D06F 0%, #E8BD4F 100%);
+        }
 
-.upload-btn i {
-    width: 18px;
-    height: 18px;
-}
+        .stat-card.yellow:hover {
+            box-shadow: 0 12px 24px rgba(244, 208, 111, 0.3);
+        }
 
-/* Card do PDF anexado */
-.pdf-card {
-    background: white;
-    border: 1px solid var(--border-subtle);
-    border-radius: 10px;
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s;
-}
+        .stat-card.dark {
+            background: linear-gradient(135deg, #2A4A73 0%, #1E3A5F 100%);
+        }
 
-.pdf-card:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
-}
+        .stat-card.dark:hover {
+            box-shadow: 0 12px 24px rgba(42, 74, 115, 0.3);
+        }
 
-.pdf-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-}
+        .stat-card-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
 
-.pdf-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-}
+        .stat-card-icon i {
+            width: 24px;
+            height: 24px;
+        }
 
-.pdf-icon i {
-    width: 24px;
-    height: 24px;
-}
+        .stat-card-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
 
-.pdf-details {
-    flex: 1;
-}
+        .stat-card-value {
+            font-size: 36px;
+            font-weight: 800;
+            position: relative;
+            z-index: 1;
+        }
 
-.pdf-name {
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-}
+        /* Filtros em Abas */
+        .filters-section {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
 
-.pdf-size {
-    font-size: 12px;
-    color: var(--text-tertiary);
-}
+        .filters-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+            padding: 0;
+        }
 
-.pdf-actions {
-    display: flex;
-    gap: 8px;
-}
+        .filter-tab {
+            flex: 0 0 auto;
+            padding: 16px 24px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
-.btn-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s;
-}
+        .filter-tab::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-blue);
+            transform: scaleX(0);
+            transition: transform var(--transition-base);
+        }
 
-.btn-icon i {
-    width: 18px;
-    height: 18px;
-}
+        .filter-tab:hover {
+            background: rgba(74, 144, 226, 0.05);
+            color: var(--accent-blue);
+        }
 
-.btn-icon.view {
-    background: rgba(37, 99, 235, 0.1);
-    color: var(--primary);
-}
+        .filter-tab.active {
+            background: var(--accent-blue);
+            color: white;
+        }
 
-.btn-icon.view:hover {
-    background: var(--primary);
-    color: white;
-}
+        .filter-tab.active::after {
+            transform: scaleX(1);
+        }
 
-.btn-icon.delete {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--accent-red);
-}
+        .filters-actions {
+            padding: 20px 24px;
+            display: flex;
+            justify-content: flex-end;
+        }
 
-.btn-icon.delete:hover {
-    background: var(--accent-red);
-    color: white;
-}
+        /* Botão Novo Prazo */
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all var(--transition-base);
+        }
 
-/* Loading spinner */
-.upload-loading {
-    display: none;
-    text-align: center;
-    padding: 20px;
-}
+        .btn-primary:hover {
+            background: var(--accent-blue-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px var(--accent-blue-glow);
+        }
 
-.spinner {
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid var(--primary);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 0 auto;
-}
+        .btn-primary i {
+            width: 18px;
+            height: 18px;
+        }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+        .btn-secondary { 
+            background: #f1f5f9; 
+            color: var(--muted); 
+            border: none; 
+            padding: 10px 16px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 600; 
+        }
 
-/* Badge de "Tem Anexo" no card do prazo */
-.badge-anexo {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
+        /* Estilos de Prazos */
+        .section { 
+            background: var(--white); 
+            border-radius: var(--radius); 
+            border: 1px solid var(--border); 
+            padding: 24px; 
+            margin-bottom: 24px; 
+        }
+        
+        .prazo { 
+            border-left: 4px solid var(--primary); 
+            padding: 16px; 
+            margin-bottom: 12px; 
+            border-radius: 8px; 
+            background: #f8fafc; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            transition: 0.2s; 
+        }
+        
+        .prazo:hover { 
+            transform: translateX(4px); 
+            background: #f1f5f9; 
+        }
+        
+        .prazo.vencido { 
+            border-color: var(--danger); 
+            background: #fef2f2; 
+        }
+        
+        .prazo.semana { 
+            border-color: var(--warning); 
+            background: #fffbeb; 
+        }
+        
+        .prazo.futuro { 
+            border-color: var(--success); 
+        }
 
-.badge-anexo i {
-    width: 12px;
-    height: 12px;
-}
+        .badge { 
+            font-size: 10px; 
+            padding: 2px 8px; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            margin-left: 8px; 
+        }
+        
+        .badge.urgente-hoje { 
+            background: var(--danger); 
+            color: #fff; 
+            animation: pulse 1.5s infinite; 
+        }
+        
+        .badge.urgente-amanha { 
+            background: var(--warning); 
+            color: #fff; 
+        }
+
+        @keyframes pulse { 
+            0% { opacity: 1; } 
+            50% { opacity: 0.7; } 
+            100% { opacity: 1; } 
+        }
+
+        .actions-prazo { 
+            display: flex; 
+            gap: 8px; 
+            margin-left: 15px; 
+        }
+        
+        .btn-action {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-action i { 
+            width: 16px; 
+            height: 16px; 
+        }
+        
+        .btn-action.success { 
+            color: var(--success); 
+        }
+        
+        .btn-action.success:hover { 
+            background: #ecfdf5; 
+            border-color: var(--success); 
+        }
+        
+        .btn-action.edit { 
+            color: var(--primary); 
+        }
+        
+        .btn-action.edit:hover { 
+            background: #eff6ff; 
+            border-color: var(--primary); 
+        }
+        
+        .btn-action.danger { 
+            color: var(--danger); 
+        }
+        
+        .btn-action.danger:hover { 
+            background: #fef2f2; 
+            border-color: var(--danger); 
+        }
+        
+        .btn-action.view { 
+            color: #8b5cf6; 
+        }
+        
+        .btn-action.view:hover { 
+            background: #f5f3ff; 
+            border-color: #8b5cf6; 
+        }
+
+        /* Modal */
+        .modal { 
+            display:none; 
+            position:fixed; 
+            inset:0; 
+            background:rgba(0,0,0,.6); 
+            z-index:10000; 
+            align-items:center; 
+            justify-content:center; 
+        }
+        
+        .modal-content { 
+            background:#fff; 
+            width:100%; 
+            max-width:450px; 
+            padding:30px; 
+            border-radius:12px; 
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Padronização LawTech Pro - Caixa Alta Global */
+        body {
+            text-transform: uppercase;
+        }
+
+        input, textarea, select {
+            text-transform: uppercase;
+        }
+
+        .numero-processo, .processo-hash {
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 1px;
+        }
     </style>
 </head>
 <body>
-
+    <!-- Sidebar -->
     <aside class="sidebar">
-        <div class="sidebar-header">
-            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
-        </div>
-        <nav class="menu">
-            <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
-            <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
-            <a href="/prazos-page" class="active"><i class="lucide lucide-clock"></i> Prazos</a>
-            <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
-            <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
-            <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
-            <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
-            <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
-            <a href="/ia-page" style="display: flex; align-items: center; gap: 10px;">
-                <i class="lucide lucide-sparkles" style="color: #fbbf24;"></i> IA Jurídica 
-                <span style="font-size: 9px; background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; margin-left: auto;">PREMIUM</span>
-            </a>
-            <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
-            <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
-            <a href="/crm-page" class="btn-crm-gold-nav">
+    <div class="sidebar-header">
+        <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+    </div>
+    <nav class="menu">
+        <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+        <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+        <a href="/prazos-page" class="active"><i class="lucide lucide-clock"></i> Prazos</a>
+        <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+        <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+        <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+        <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+        <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
+        <a href="/ia-page" style="display:flex; align-items:center; gap:10px;">
+            <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i> IA Jurídica
+            <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">PREMIUM</span>
+        </a>
+        <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+        <a href="/config-page" id="guia-config" onclick="limparBolinha()">
+            <i class="lucide lucide-settings"></i> Configurações
+            <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
+        </a>
+        <a href="/crm-page" class="btn-crm-gold-nav">
             <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
         </a>
-        </nav>
+    </nav>
         <div class="sidebar-footer">
     <div class="footer-info-row">
         <span>Usuário:</span> 
@@ -578,7 +695,9 @@ input, textarea, select {
 </div>
     </aside>
 
-    <div class="main">
+    <!-- Main -->
+    <main class="main">
+        <!-- Header -->
         <header class="header">
     <h2 style="font-size: 18px; font-weight: 600;">📅 Gestão de Prazos Processuais</h2>
     
@@ -596,672 +715,406 @@ input, textarea, select {
     </div>
 </header>
 
-        <main class="content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <div style="display: flex; gap: 10px;">
-                    <button id="abaTodos" class="btn-secondary active" onclick="mostrarAba('todos')">📅 Prazos Ativos</button>
-                    <button id="abaConcluidos" class="btn-secondary" onclick="mostrarAba('concluidos')">✔️ Concluídos</button>
+        <!-- Content -->
+        <div class="content">
+            <!-- Cards de Estatísticas -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-icon">
+                        <i data-lucide="calendar"></i>
+                    </div>
+                    <div class="stat-card-label">Total de Prazos</div>
+                    <div class="stat-card-value" id="totalPrazos">0</div>
                 </div>
-                <button id="btnNovoPrazo" class="btn-primary" onclick="abrirModalPrazo()">
-                    <i class="lucide lucide-plus"></i> Novo Prazo
-                </button>
-            </div>
-<div id="acoes-concluidos" style="display: none; justify-content: flex-end; margin-bottom: 16px;">
-  <button class="btn-limpar-concluidos" onclick="limparPrazosConcluidos()">
-    <i data-lucide="trash-2"></i>
-    Limpar Concluídos
-  </button>
-</div>
-            <div class="section" style="padding: 15px; display: flex; gap: 15px; align-items: center; margin-bottom: 20px;">
-                <i class="lucide lucide-search" style="color: var(--muted); width: 18px;"></i>
-                <input type="text" id="buscaPrazo" placeholder="Buscar por processo ou tipo de prazo..." 
-                       style="flex: 1; border: none; outline: none; font-size: 14px; background: transparent;">
-                <select id="filtroStatus" style="border: 1px solid var(--border); padding: 5px 10px; border-radius: 6px; outline: none; font-size: 13px;">
-                    <option value="todos">Todos os Status</option>
-                    <option value="vencido">Vencidos</option>
-                    <option value="semana">Desta Semana</option>
-                    <option value="futuro">Futuros</option>
-                </select>
+
+                <div class="stat-card orange">
+                    <div class="stat-card-icon">
+                        <i data-lucide="clock"></i>
+                    </div>
+                    <div class="stat-card-label">Vencidos</div>
+                    <div class="stat-card-value" id="totalVencidos">0</div>
+                </div>
+
+                <div class="stat-card yellow">
+                    <div class="stat-card-icon">
+                        <i data-lucide="alert-triangle"></i>
+                    </div>
+                    <div class="stat-card-label">Iminentes</div>
+                    <div class="stat-card-value" id="totalIminentes">0</div>
+                </div>
+
+                <div class="stat-card dark">
+                    <div class="stat-card-icon">
+                        <i data-lucide="check-circle"></i>
+                    </div>
+                    <div class="stat-card-label">Concluídos</div>
+                    <div class="stat-card-value" id="totalConcluidos">0</div>
+                </div>
             </div>
 
-            <div id="aba-todos">
-                <div id="lista-vencidos"></div>
-                <div id="lista-semana"></div>
+            <!-- Filtros -->
+            <div class="filters-section">
+                <div class="filters-tabs">
+                    <button class="filter-tab active" data-filter="todos">Todos</button>
+                    <button class="filter-tab" data-filter="vencidos">Vencidos</button>
+                    <button class="filter-tab" data-filter="hoje">Hoje</button>
+                    <button class="filter-tab" data-filter="esta-semana">Esta Semana</button>
+                    <button class="filter-tab" data-filter="concluidos">Concluídos</button>
+                </div>
+                <div class="filters-actions">
+                    <button class="btn-primary" onclick="abrirModalPrazo()">
+                        <i data-lucide="plus"></i>
+                        NOVO PRAZO
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lista de Prazos -->
+            <div class="section">
                 <div id="lista-futuros"></div>
             </div>
-
-            <div id="aba-concluidos" style="display:none;">
-                <div id="lista-concluidos"></div>
-            </div>
-        </main>
-    </div>
-
-<!-- 
-  ============================================
-  MODAL DE PRAZO - VERSÃO CORRIGIDA
-  Substitua o modal inteiro no seu prazos.html
-  ============================================
--->
-
-<div id="modalPrazo" class="modal">
-    <div class="modal-content" style="max-width: 600px;">
-        <h3 style="margin-bottom: 20px; font-weight: 700;">📅 Gerenciar Prazo</h3>
-        <input type="hidden" id="prazoId">
-        
-        <div style="display:flex; flex-direction:column; gap:12px;">
-            
-            <!-- Campo Cliente -->
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: var(--muted);">
-                    CLIENTE
-                    <span style="font-size: 10px; font-weight: 400; color: var(--text-tertiary);"> (opcional)</span>
-                </label>
-                <select id="clienteId" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;">
-                    <option value="">Selecione um cliente (opcional)</option>
-                </select>
-            </div>
-
-            <!-- Campo Processo -->
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: var(--muted);">PROCESSO (CNJ)</label>
-                <select id="processoId" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;"></select>
-            </div>
-
-            <!-- Tipo do Prazo -->
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: var(--muted);">TIPO DO PRAZO</label>
-                <input id="tipoPrazo" placeholder="Ex: Contestação, Recurso..." style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;">
-            </div>
-
-            <!-- Data Limite -->
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: var(--muted);">DATA LIMITE (VENCIMENTO)</label>
-                <input type="date" id="dataPrazo" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;">
-            </div>
-
-            <!-- Observações -->
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: var(--muted);">OBSERVAÇÕES (OPCIONAL)</label>
-                <textarea id="descricaoPrazo" rows="3" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; resize: none; margin-top: 5px;"></textarea>
-            </div>
-
-            <!-- ✅ SEÇÃO DE ANEXO - DENTRO DO MODAL -->
-            <div class="anexo-section" id="anexoSection" >
-                <div class="anexo-header">
-                    <i data-lucide="paperclip"></i>
-                    <span>Documento Anexado</span>
-                </div>
-                
-                <div class="anexo-container">
-                    <!-- Área de upload (quando não tem PDF) -->
-                    <div id="uploadArea" style="display: block;">
-                        <div class="upload-btn-wrapper">
-                            <button type="button" class="upload-btn" onclick="document.getElementById('pdfInput').click()">
-                                <i data-lucide="upload"></i>
-                                Anexar PDF do Laudo/Despacho
-                            </button>
-                            <input type="file" id="pdfInput" accept="application/pdf" onchange="uploadPDF()" />
-                        </div>
-                        <p style="font-size: 12px; color: var(--text-tertiary); margin-top: 8px;">
-                            Tamanho máximo: 10MB
-                        </p>
-                    </div>
-
-                    <!-- Loading durante upload -->
-                    <div class="upload-loading" id="uploadLoading">
-                        <div class="spinner"></div>
-                        <p style="margin-top: 12px; color: var(--text-secondary);">Enviando PDF...</p>
-                    </div>
-
-                    <!-- Card do PDF (quando já tem anexo) -->
-                    <div id="pdfCard" style="display: none;" class="pdf-card">
-                        <div class="pdf-info">
-                            <div class="pdf-icon">
-                                <i data-lucide="file-text"></i>
-                            </div>
-                            <div class="pdf-details">
-                                <div class="pdf-name" id="pdfName">Documento anexado</div>
-                                <div class="pdf-size" id="pdfSize">--</div>
-                            </div>
-                        </div>
-                        <div class="pdf-actions">
-                            <button type="button" class="btn-icon view" onclick="visualizarPDF()" title="Visualizar PDF">
-                                <i data-lucide="eye"></i>
-                            </button>
-                            <button type="button" class="btn-icon delete" onclick="deletarPDF()" title="Remover PDF">
-                                <i data-lucide="trash-2"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- FIM DA SEÇÃO DE ANEXO -->
-
         </div>
-        
-        <!-- Botões de Ação -->
-        <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:10px;">
-            <button class="btn-primary" onclick="salvarPrazo()">Salvar Prazo</button>
-            <button class="btn-secondary" onclick="fecharModalPrazo()">Cancelar</button>
-        </div>
-    </div>
-</div>
+    </main>
 
-    <div id="toast"></div>
+    <!-- Loader -->
     <div id="loader" style="position: fixed; inset: 0; background: rgba(255,255,255,.6); display: none; align-items: center; justify-content: center; z-index: 10000;">
         <div style="width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
     </div>
 
+    <!-- Modal Prazo -->
+    <div id="modalPrazo" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom:20px; color:var(--sidebar);">⏱️ Gerenciar Prazo</h3>
+            
+            <input type="hidden" id="prazoId">
+            
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                
+                <!-- Campo Cliente -->
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--muted);">
+                        CLIENTE
+                        <span style="font-size: 10px; font-weight: 400; color: var(--text-tertiary);"> (opcional)</span>
+                    </label>
+                    <select id="clienteId" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;">
+                        <option value="">Selecione um cliente (opcional)</option>
+                    </select>
+                </div>
+
+                <!-- Campo Processo -->
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--muted);">PROCESSO (CNJ)</label>
+                    <select id="processoId" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;"></select>
+                </div>
+
+                <!-- Tipo do Prazo -->
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--muted);">TIPO DO PRAZO</label>
+                    <input id="tipoPrazo" placeholder="Ex: Contestação, Recurso..." style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;">
+                </div>
+
+                <!-- Data Limite -->
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--muted);">DATA LIMITE (VENCIMENTO)</label>
+                    <input type="date" id="dataPrazo" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;">
+                </div>
+
+                <!-- Observações -->
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: var(--muted);">OBSERVAÇÕES (OPCIONAL)</label>
+                    <textarea id="descricaoPrazo" rows="3" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; resize: none; margin-top: 5px;"></textarea>
+                </div>
+
+                <!-- Seção de Anexo -->
+                <div style="margin-top: 10px;">
+                    <!-- Área de upload (quando não tem PDF) -->
+                    <div id="uploadArea" style="display: block;">
+                        <div style="text-align: center; padding: 20px; border: 2px dashed var(--border); border-radius: 8px; cursor: pointer;" onclick="document.getElementById('pdfInput').click()">
+                            <i data-lucide="upload" style="width: 32px; height: 32px; margin: 0 auto 10px; color: var(--primary);"></i>
+                            <p style="font-size: 13px; color: var(--muted);">Clique para anexar PDF</p>
+                            <input type="file" id="pdfInput" accept="application/pdf" style="display: none;" onchange="uploadPDF()" />
+                        </div>
+                    </div>
+
+                    <!-- Card do PDF (quando já tem anexo) -->
+                    <div id="pdfCard" style="display: none; padding: 15px; border: 1px solid var(--border); border-radius: 8px; background: #f8fafc;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <i data-lucide="file-text" style="color: #ef4444; width: 24px; height: 24px;"></i>
+                                <div>
+                                    <div id="pdfName" style="font-size: 13px; font-weight: 600; color: var(--text-main);">Documento anexado</div>
+                                    <div id="pdfSize" style="font-size: 11px; color: var(--muted);">PDF</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button type="button" onclick="visualizarPDF()" title="Visualizar PDF" style="background: #f1f5f9; border: 1px solid var(--border); padding: 8px; border-radius: 6px; cursor: pointer;">
+                                    <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
+                                </button>
+                                <button type="button" onclick="deletarPDF()" title="Remover PDF" style="background: #fef2f2; border: 1px solid #fecaca; padding: 8px; border-radius: 6px; cursor: pointer; color: var(--danger);">
+                                    <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Botões de Ação -->
+            <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn-primary" onclick="salvarPrazo()">Salvar Prazo</button>
+                <button class="btn-secondary" onclick="fecharModalPrazo()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal IA -->
+    <div id="modalIA" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom:20px; color:var(--sidebar);">
+                <i data-lucide="sparkles"></i>
+                Informações Importantes sobre o Prazo
+            </h2>
+            <div id="aiResponseContent" style="white-space: pre-wrap; line-height: 1.8; color: #334155; font-size: 15px;"></div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn-secondary" onclick="document.getElementById('modalIA').style.display='none'">Fechar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Inicializar Lucide Icons
+        lucide.createIcons();
+
+        // Variáveis globais
         const token = localStorage.getItem('token');
         if (!token) window.location.href = '/login.html';
+        
         let todosPrazos = [];
+        let prazoAtualId = null;
+        let arquivoPDFTemporario = null;
 
-        // 1. Inicialização e Rodapé
-        // 🚀 INICIALIZAÇÃO COM GARANTIA DUPLA
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('📄 DOM carregado');
-            setTimeout(() => {
-                carregarInfoRodape();
-                carregarPrazosModernos();
-            }, 100);
+        // Carregar dados ao iniciar
+        document.addEventListener('DOMContentLoaded', async () => {
+            await carregarInfoRodape();
+            await carregarPrazosModernos();
+            inicializarFiltros();
         });
 
-        window.onload = () => {
-            console.log('🌐 Window carregado');
-            carregarInfoRodape();
-            carregarPrazosModernos();
-            document.getElementById('buscaPrazo').addEventListener('input', aplicarFiltros);
-            document.getElementById('filtroStatus').addEventListener('change', aplicarFiltros);
-        };
-
+        // Carregar informações do rodapé e usuário
         async function carregarInfoRodape() {
-    try {
-        console.log('🔄 Carregando informações do rodapé...');
-        const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
-        const dataUser = await resUser.json();
-        
-        if (dataUser.ok) {
-            // Atualiza sidebar
-            const emailElement = document.getElementById('userEmail');
-            if (emailElement) {
-                emailElement.innerText = dataUser.usuario.email || 'Não disponível';
-                console.log('✅ Email atualizado:', dataUser.usuario.email);
-            }
-
-            // --- LÓGICA DO CABEÇALHO PADRONIZADA ---
-            const nomeCompleto = dataUser.usuario.nome || 'Advogado';
-            
-            // 1. Extrai primeiro nome
-            const primeiroNome = nomeCompleto.trim().split(' ')[0];
-            const nameHeader = document.getElementById('userNameHeader');
-            if (nameHeader) nameHeader.innerText = primeiroNome;
-
-            // 2. Extrai iniciais
-            const partes = nomeCompleto.trim().split(' ').filter(n => n);
-            let iniciais = partes[0][0];
-            if (partes.length > 1) iniciais += partes[partes.length - 1][0];
-            
-            const circulo = document.getElementById('userCircle');
-            if (circulo) circulo.innerText = iniciais.toUpperCase();
-        }
-
-        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
-        const dataPlan = await resPlan.json();
-        
-        const planoElement = document.getElementById('planNameFooter');
-        if (planoElement) {
-            planoElement.innerText = dataPlan.plano || 'Free';
-            console.log('✅ Plano atualizado:', dataPlan.plano);
-        }
-        
-        // Mantém sua trava original do plano
-        const btnNovoPrazo = document.getElementById('btnNovoPrazo');
-        if (dataPlan.limite_prazos && dataPlan.prazos_usados >= dataPlan.limite_prazos && dataPlan.plano !== 'Premium') {
-            if(btnNovoPrazo) btnNovoPrazo.style.display = 'none';
-        }
-    } catch (err) { 
-        console.error("❌ Erro ao carregar rodapé:", err); 
-    }
-}
-        // 2. Motor de Prazos
-async function carregarPrazosModernos() {
-    const map = [
-        // 🚀 AJUSTE: Trocamos a rota de 'dashboard/prazos-semana' pela rota geral de ativos
-        { url: '/api/prazos?status=aberto', container: 'lista-futuros', classe: 'futuro' }
-    ];
-    
-    todosPrazos = [];
-    mostrarLoader();
-
-    for (const item of map) {
-        try {
-            const res = await fetch(item.url, { headers: { Authorization: `Bearer ${token}` } });
-            const prazos = await res.json();
-            const container = document.getElementById(item.container);
-            container.innerHTML = '';
-            
-            if (prazos.length === 0) {
-                container.innerHTML = `<p style="color:var(--muted); font-size:12px; padding:10px;">Nenhum prazo encontrado.</p>`;
-                continue;
-            }
-
-            prazos.forEach(p => {
-                // ✅ NORMALIZAR: Garantir compatibilidade com diferentes formatos de anexo
-                if (!p.tem_anexo && p.anexo_pdf) {
-                    p.tem_anexo = true;
-                }
-
-                todosPrazos.push({ ...p, status: item.classe });
-                
-                // 1. Cálculo de dias para definir estilo da TAG e a CLASSE do card
-                const hoje = new Date();
-                hoje.setHours(0,0,0,0);
-                const vencimento = new Date(p.data_limite);
-                vencimento.setHours(0,0,0,0);
-                const diff = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
-
-                // 2. Lógica de Cores das TAGS e do CARD
-                let estiloTag = 'background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;'; // Verde
-                let classeCard = 'futuro'; // Borda verde no seu CSS
-
-                if (diff < 0) {
-                    // Vermelho para Vencidos
-                    estiloTag = 'background: #fef2f2; color: #ef4444; border: 1px solid #fecaca;';
-                    classeCard = 'vencido'; // Borda vermelha no seu CSS
-                } else if (diff === 0 || diff === 1) {
-                    // Amarelo para Hoje/Amanhã
-                    estiloTag = 'background: #fffbeb; color: #d97706; border: 1px solid #fde68a;';
-                    classeCard = 'semana'; // Borda amarela no seu CSS
-                }
-
-                const contagemDias = calcularDiferencaDiasFormatado(p.data_limite);
-                const urgencia = calcularUrgencia(p.data_limite);
-
-                container.innerHTML += `
-                <div class="prazo ${classeCard}" 
-                     onclick="exibirObservacaoAtualizada(${p.id})" 
-                     style="cursor:pointer;">
-                    
-                    <div style="flex: 1;">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                            <strong style="font-size: 15px; color: var(--sidebar);">${p.tipo || 'Prazo'}</strong>
-                            <span class="badge" style="${estiloTag} font-size: 10px; font-weight: 800;">
-                                ${contagemDias}
-                            </span>
-                            ${urgencia ? `<span class="badge ${urgencia.classe}">${urgencia.label}</span>` : ''}
-                        </div>
-                        
-                        <div style="display: flex; flex-direction: column; gap: 6px;">
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <i data-lucide="user" style="width: 14px; color: var(--muted);"></i>
-                                <span style="font-size: 13px; font-weight: 700; color: var(--text-main); text-transform: uppercase;">
-                                    ${p.cliente_nome || 'Cliente não identificado'}
-                                </span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px; padding-left: 20px;">
-                                <span style="background: #f1f5f9; color: #475569; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-family: monospace;">
-                                    NPU: ${p.processo_numero || 'Não vinculado'}
-                                </span>
-                            </div>
-                        </div>
-                        <small style="display: block; margin-top: 8px; color:var(--muted);">
-                            📅 Vencimento: ${new Date(p.data_limite).toLocaleDateString('pt-BR')}
-                        </small>
-                    </div>
-
-                    <div class="actions-prazo" onclick="event.stopPropagation()">
-                        <button onclick="concluirPrazo(${p.id})" class="btn-action success" title="Concluir">
-                            <i data-lucide="check-circle"></i>
-                        </button>
-                        <button onclick="editarPrazo(${p.id})" class="btn-action edit" title="Editar">
-                            <i data-lucide="edit-3"></i>
-                        </button>
-                        ${(p.tem_anexo || p.anexo_pdf) ? `
-                        <button onclick="visualizarAnexoPrazo(${p.id})" class="btn-action view" title="Visualizar Anexo" style="color: #8b5cf6;">
-                            <i data-lucide="paperclip"></i>
-                        </button>
-                        ` : ''}
-                        <button onclick="excluirPrazo(${p.id})" class="btn-action danger" title="Excluir">
-                            <i data-lucide="trash-2"></i>
-                        </button>
-                    </div>
-                </div>`;
-            });
-
-            // Recria ícones do Lucide
-            setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 100);
-
-        } catch (err) { 
-            console.error("Erro ao carregar prazos:", err); 
-        }
-    }
-    esconderLoader();
-}
-
-        function verDetalhesPrazo(texto) {
-    // Usando o modal da IA para mostrar a observação com estilo LawTech Pro
-    const modal = document.getElementById('modalIA');
-    const content = document.getElementById('aiResponseContent');
-    const title = document.querySelector('#modalIA h3');
-
-    if (modal && content) {
-        title.innerText = "📝 Observações do Prazo";
-        content.innerText = texto;
-        modal.style.display = 'flex';
-    } else {
-        alert("Observações:\n" + texto);
-    }
-}
-
-        async function carregarPrazosConcluidos() {
-            const container = document.getElementById('lista-concluidos');
-            container.innerHTML = '<p style="padding:20px;">Carregando...</p>';
             try {
-                const res = await fetch('/api/prazos-concluidos', { headers: { Authorization: `Bearer ${token}` } });
-                const prazos = await res.json();
-                console.log("Prazos carregados do Neon:", prazos); // ADICIONE ESTA LINHA AQUI
-                container.innerHTML = '';
-                if (prazos.length === 0) {
-                    container.innerHTML = '<p style="padding:20px; color:var(--muted);">Nenhum prazo concluído ainda.</p>';
-                    return;
+                const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+                const dataUser = await resUser.json();
+                
+                if (dataUser.ok) {
+                    const emailElement = document.getElementById('userEmail');
+                    if (emailElement) {
+                        emailElement.innerText = dataUser.usuario.email || 'Não disponível';
+                    }
+
+                    const nomeCompleto = dataUser.usuario.nome || 'Advogado';
+                    const primeiroNome = nomeCompleto.trim().split(' ')[0];
+                    const nameHeader = document.getElementById('userNameHeader');
+                    if (nameHeader) nameHeader.innerText = primeiroNome;
+
+                    const partes = nomeCompleto.trim().split(' ').filter(n => n);
+                    let iniciais = partes[0][0];
+                    if (partes.length > 1) iniciais += partes[partes.length - 1][0];
+                    
+                    const circulo = document.getElementById('userCircle');
+                    if (circulo) circulo.innerText = iniciais.toUpperCase();
                 }
-                prazos.forEach(p => {
-                    container.innerHTML += `
-                        <div class="prazo futuro">
-                            <div>
-                                <strong style="font-size: 14px;">${p.tipo} — Proc. ${p.processo_numero} <span class="badge" style="background:#e2e8f0; color:#475569;">CONCLUÍDO</span></strong>
-                                <small style="display: block; margin-top: 4px;">✅ Concluído em: ${new Date(p.concluido_em || p.updated_at).toLocaleDateString('pt-BR')}</small>
+
+                const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+                const dataPlan = await resPlan.json();
+                
+                const planoElement = document.getElementById('planNameFooter');
+                if (planoElement) {
+                    planoElement.innerText = dataPlan.plano || 'Free';
+                }
+            } catch (err) { 
+                console.error("Erro ao carregar rodapé:", err); 
+            }
+        }
+
+        // Motor de Prazos
+        async function carregarPrazosModernos() {
+            const map = [
+                { url: '/api/prazos?status=aberto', container: 'lista-futuros', classe: 'futuro' }
+            ];
+            
+            todosPrazos = [];
+            mostrarLoader();
+
+            for (const item of map) {
+                try {
+                    const res = await fetch(item.url, { headers: { Authorization: `Bearer ${token}` } });
+                    const prazos = await res.json();
+                    const container = document.getElementById(item.container);
+                    
+                    if (!container) {
+                        console.error('Container não encontrado:', item.container);
+                        continue;
+                    }
+                    
+                    container.innerHTML = '';
+                    
+                    if (prazos.length === 0) {
+                        container.innerHTML = `<p style="color:var(--muted); font-size:12px; padding:10px;">Nenhum prazo encontrado.</p>`;
+                        continue;
+                    }
+
+                    prazos.forEach(p => {
+                        if (!p.tem_anexo && p.anexo_pdf) {
+                            p.tem_anexo = true;
+                        }
+
+                        todosPrazos.push({ ...p, status: item.classe });
+                        
+                        const hoje = new Date();
+                        hoje.setHours(0,0,0,0);
+                        const vencimento = new Date(p.data_limite);
+                        vencimento.setHours(0,0,0,0);
+                        const diff = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
+
+                        let estiloTag = 'background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;';
+                        let classeCard = 'futuro';
+
+                        if (diff < 0) {
+                            estiloTag = 'background: #fef2f2; color: #ef4444; border: 1px solid #fecaca;';
+                            classeCard = 'vencido';
+                        } else if (diff === 0 || diff === 1) {
+                            estiloTag = 'background: #fffbeb; color: #d97706; border: 1px solid #fde68a;';
+                            classeCard = 'semana';
+                        }
+
+                        const contagemDias = calcularDiferencaDiasFormatado(p.data_limite);
+                        const urgencia = calcularUrgencia(p.data_limite);
+
+                        container.innerHTML += `
+                        <div class="prazo ${classeCard}" 
+                             onclick="exibirObservacaoAtualizada(${p.id})" 
+                             style="cursor:pointer;" data-prazo-id="${p.id}">
+                            
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                    <strong style="font-size: 15px; color: var(--sidebar);">${p.tipo || 'Prazo'}</strong>
+                                    <span class="badge" style="${estiloTag} font-size: 10px; font-weight: 800;">
+                                        ${contagemDias}
+                                    </span>
+                                    ${urgencia ? `<span class="badge ${urgencia.classe}">${urgencia.label}</span>` : ''}
+                                </div>
+                                
+                                <div style="display: flex; flex-direction: column; gap: 6px;">
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <i data-lucide="user" style="width: 14px; color: var(--muted);"></i>
+                                        <span style="font-size: 13px; font-weight: 700; color: var(--text-main); text-transform: uppercase;">
+                                            ${p.cliente_nome || 'Cliente não identificado'}
+                                        </span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px; padding-left: 20px;">
+                                        <span style="background: #f1f5f9; color: #475569; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-family: monospace;">
+                                            NPU: ${p.processo_numero || 'Não vinculado'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <small style="display: block; margin-top: 8px; color:var(--muted);">
+                                    📅 Vencimento: ${new Date(p.data_limite).toLocaleDateString('pt-BR')}
+                                </small>
+                            </div>
+
+                            <div class="actions-prazo" onclick="event.stopPropagation()">
+                                <button onclick="concluirPrazo(${p.id})" class="btn-action success" title="Concluir">
+                                    <i data-lucide="check-circle"></i>
+                                </button>
+                                <button onclick="editarPrazo(${p.id})" class="btn-action edit" title="Editar">
+                                    <i data-lucide="edit-3"></i>
+                                </button>
+                                ${(p.tem_anexo || p.anexo_pdf) ? `
+                                <button onclick="visualizarAnexoPrazo(${p.id})" class="btn-action view" title="Visualizar Anexo" style="color: #8b5cf6;">
+                                    <i data-lucide="paperclip"></i>
+                                </button>
+                                ` : ''}
+                                <button onclick="excluirPrazo(${p.id})" class="btn-action danger" title="Excluir">
+                                    <i data-lucide="trash-2"></i>
+                                </button>
                             </div>
                         </div>`;
-                });
-                if (window.lucide) lucide.createIcons();
-            } catch (err) { console.error(err); }
-        }
+                    });
 
-        // 3. Funções de Ação
- async function salvarPrazo() {
-    const prazoId = document.getElementById('prazoId').value;
-    const processoId = document.getElementById('processoId').value;
-    const clienteId = document.getElementById('clienteId').value || null; // ✅ NOVO
-    const tipo = document.getElementById('tipoPrazo').value.trim();
-    const dataLimite = document.getElementById('dataPrazo').value;
-    const descricao = document.getElementById('descricaoPrazo').value.trim();
+                    setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 100);
 
-    if (!processoId || !tipo || !dataLimite) {
-        alert('Preencha todos os campos obrigatórios!');
-        return;
-    }
-
-    try {
-        const url = prazoId ? `/api/prazos/${prazoId}` : '/api/prazos';
-        const method = prazoId ? 'PUT' : 'POST';
-
-        console.log('📝 Salvando prazo...');
-        console.log('  - prazoId:', prazoId, '(vazio:', !prazoId, ')');
-        console.log('  - Arquivo temporário:', arquivoPDFTemporario);
-
-        const res = await fetch(url, {
-            method,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                processoId,
-                clienteId,  // ✅ NOVO
-                tipo,
-                dataLimite,
-                descricao
-            })
-        });
-
-        if (!res.ok) {
-            const data = await res.json();
-            alert(data.erro || 'Erro ao salvar');
-            return;
-        }
-
-
-        const resultado = await res.json();
-        console.log('✅ Prazo criado/atualizado - resposta da API:', resultado);
-        
-        // ✅ NOVO: Se criou um prazo novo e tem PDF temporário, fazer upload
-        if (!prazoId && arquivoPDFTemporario) {
-            console.log('📎 Prazo novo com PDF temporário detectado!');
+                } catch (err) { 
+                    console.error("Erro ao carregar prazos:", err); 
+                    const container = document.getElementById(item.container);
+                    if (container) {
+                        container.innerHTML = '<p style="color:var(--danger); padding:10px;">Erro ao carregar prazos.</p>';
+                    }
+                }
+            }
             
-            // Se a API retornou o ID, usar direto
-            if (resultado.id) {
-                console.log('📎 Usando ID retornado pela API:', resultado.id);
-                await uploadPDFAposSalvar(resultado.id);
-            } else {
-                // Se não retornou ID, buscar o último prazo criado
-                console.log('📎 API não retornou ID, buscando último prazo...');
-                await uploadPDFParaUltimoPrazo(processoId, tipo, dataLimite);
-            }
+            esconderLoader();
+            atualizarEstatisticas();
         }
-        
-        alert('✅ Prazo salvo com sucesso!');
-        fecharModalPrazo();
-        carregarPrazosModernos();
-    } catch (err) {
-        alert('Erro de conexão');
-    }
-}
 
-async function concluirPrazo(id) {
-  if (!confirm("Marcar este prazo como concluído?")) return;
+        // Atualizar estatísticas
+        function atualizarEstatisticas() {
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
 
-  const res = await fetch(`/api/prazos/${id}/concluir`, {
-    method: 'PUT',
-    headers: { 
-      Authorization: `Bearer ${token}` 
-    },
-  });
+            const stats = {
+                total: 0,
+                vencidos: 0,
+                iminentes: 0,
+                concluidos: 0
+            };
 
-  if (!res.ok) {
-    alert('Erro ao concluir prazo');
-    return;
-  }
+            fetch('/api/prazos', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(res => res.json())
+            .then(allPrazos => {
+                stats.total = allPrazos.length;
 
-  carregarPrazosModernos();
-}
+                allPrazos.forEach(prazo => {
+                    const dataLimite = new Date(prazo.data_limite);
+                    dataLimite.setHours(0, 0, 0, 0);
+                    const diasRestantes = Math.ceil((dataLimite - hoje) / (1000 * 60 * 60 * 24));
 
-function mostrarConcluidos() {
-  abaAtual = 'concluidos';
-  carregarPrazosModernos();
-  document.getElementById('acoes-concluidos').style.display = 'flex';
-}
+                    if (prazo.concluido) {
+                        stats.concluidos++;
+                    } else if (diasRestantes < 0) {
+                        stats.vencidos++;
+                    } else if (diasRestantes <= 5) {
+                        stats.iminentes++;
+                    }
+                });
 
-function mostrarAtivos() {
-  abaAtual = 'ativos';
-  carregarPrazosModernos();
-  document.getElementById('acoes-concluidos').style.display = 'none';
-}
-
-        async function excluirPrazo(id) {
-            if (!confirm("Deseja realmente excluir este prazo?")) return;
-            const res = await fetch(`/api/prazos/${id}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` }
+                document.getElementById('totalPrazos').textContent = stats.total;
+                document.getElementById('totalVencidos').textContent = stats.vencidos;
+                document.getElementById('totalIminentes').textContent = stats.iminentes;
+                document.getElementById('totalConcluidos').textContent = stats.concluidos;
+            })
+            .catch(err => {
+                console.error('Erro ao atualizar estatísticas:', err);
             });
-            if (res.ok) {
-                mostrarToast("Prazo removido.", "sucesso");
-                carregarPrazosModernos();
-            }
         }
 
-async function editarPrazo(id) {
-    const p = todosPrazos.find(x => x.id === id);
-    if (!p) return;
+        // Funções auxiliares
+        function calcularDiferencaDiasFormatado(dataVencimento) {
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            const vencimento = new Date(dataVencimento);
+            vencimento.setHours(0, 0, 0, 0);
+            
+            const diffTime = vencimento - hoje;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    document.getElementById('modalPrazo').style.display = 'flex';
-    
-    // 🚀 BLOQUEIO: Desativa o select para não permitir troca de processo na edição
-    const selectProcesso = document.getElementById('processoId');
-    selectProcesso.disabled = true; 
-    selectProcesso.style.backgroundColor = "#f1f5f9";
-    selectProcesso.style.cursor = "not-allowed";
-
-    // ✅ CARREGAR PROCESSOS E CLIENTES
-    await carregarProcessosSelect();
-    await carregarClientesSelect(); // ✅ NOVO
-
-    document.getElementById('prazoId').value = p.id;
-    document.getElementById('processoId').value = p.processo_id;
-    document.getElementById('clienteId').value = p.cliente_id || ''; // ✅ NOVO
-    document.getElementById('tipoPrazo').value = p.tipo;
-    
-    if (p.data_limite) {
-        document.getElementById('dataPrazo').value = new Date(p.data_limite).toISOString().split('T')[0];
-    }
-    
-    document.getElementById('descricaoPrazo').value = p.descricao || '';
-    
-    // ✅ INICIALIZAR SEÇÃO DE ANEXO
-    inicializarAnexo(p.id, p.tem_anexo || p.anexo_pdf || false);
-}
-
-        async function limparPrazosConcluidos() {
-  if (!confirm("Tem certeza que deseja apagar TODOS os prazos concluídos? Essa ação não pode ser desfeita.")) {
-    return;
-  }
-
-  try {
-    const res = await fetch('/api/prazos/concluidos/limpar', {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.erro || 'Erro ao limpar prazos concluídos');
-      return;
-    }
-
-    alert(`✔️ ${data.removidos} prazos concluídos foram removidos.`);
-    carregarPrazosModernos();
-
-  } catch (err) {
-    alert('Erro de conexão com o servidor');
-  }
-}
-
-
-        // 4. Interface e Apoio
-        function mostrarAba(aba) {
-            document.getElementById('aba-todos').style.display = aba === 'todos' ? 'block' : 'none';
-            document.getElementById('aba-concluidos').style.display = aba === 'concluidos' ? 'block' : 'none';
-            document.getElementById('abaTodos').classList.toggle('active', aba === 'todos');
-            document.getElementById('abaConcluidos').classList.toggle('active', aba === 'concluidos');
-            if (aba === 'concluidos') carregarPrazosConcluidos();
-
-            // 👇 CONTROLE DO BOTÃO "LIMPAR CONCLUÍDOS"
-            const acoesConcluidos = document.getElementById('acoes-concluidos');
-            acoesConcluidos.style.display = aba === 'concluidos' ? 'flex' : 'none';
-
-        }
-
- function abrirModalPrazo() { 
-    // 1. Limpa todos os campos
-    document.getElementById('prazoId').value = '';
-    document.getElementById('tipoPrazo').value = '';
-    document.getElementById('dataPrazo').value = '';
-    document.getElementById('descricaoPrazo').value = '';
-    document.getElementById('clienteId').value = ''; // ✅ NOVO
-        
-    // 2. Garante que o select de processo esteja liberado
-    const selectProcesso = document.getElementById('processoId');
-    selectProcesso.disabled = false;
-    selectProcesso.style.backgroundColor = "";
-    selectProcesso.style.cursor = "";
-    
-    // 3. Carrega processos e clientes
-    carregarProcessosSelect();
-    carregarClientesSelect(); // ✅ NOVO
-
-    inicializarAnexo(
-        null, 
-        false
-    );
-
-    // 4. Exibe o modal
-    document.getElementById('modalPrazo').style.display = 'flex'; 
-
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
-}
-
-
-// 🚀 CORREÇÃO: Garante que nada sobre para a próxima abertura
-function fecharModalPrazo() { 
-    document.getElementById('modalPrazo').style.display = 'none'; 
-    document.getElementById('prazoId').value = '';
-    
-    // Reset visual do campo de processo
-    const selectProcesso = document.getElementById('processoId');
-    selectProcesso.disabled = false;
-    selectProcesso.style.backgroundColor = "#fff";
-    
-    // Limpar PDF temporário ao fechar modal
-    arquivoPDFTemporario = null;
-}
-
-function exibirObservacaoAtualizada(id) {
-    // Busca o prazo atualizado dentro do array que está na memória
-    const prazo = todosPrazos.find(x => x.id === id);
-    const texto = (prazo && prazo.descricao && prazo.descricao.trim() !== "") 
-                  ? prazo.descricao 
-                  : "Sem observações cadastradas para este prazo.";
-                  
-    verDetalhesPrazo(texto);
-}
-
-        async function carregarProcessosSelect() {
-            const select = document.getElementById('processoId');
-            const res = await fetch('/api/processos', { headers: { Authorization: `Bearer ${token}` } });
-            const processos = await res.json();
-            select.innerHTML = '<option value="">Selecione o Processo</option>';
-            processos.forEach(p => { select.innerHTML += `<option value="${p.id}">${p.numero}</option>`; });
-        }
-
-        async function carregarClientesSelect() {
-    try {
-        const res = await fetch('/api/clientes', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        const clientes = await res.json();
-        const select = document.getElementById('clienteId');
-        
-        select.innerHTML = '<option value="">Selecione um cliente (opcional)</option>';
-        
-        clientes.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c.id;
-            opt.textContent = c.nome;
-            select.appendChild(opt);
-        });
-        
-        console.log('✅ Clientes carregados no select');
-    } catch (err) {
-        console.error('Erro ao carregar clientes:', err);
-    }
-}
-
-        function aplicarFiltros() {
-            const termo = document.getElementById('buscaPrazo').value.toLowerCase();
-            const status = document.getElementById('filtroStatus').value;
-            document.querySelectorAll('.prazo').forEach(card => {
-                const texto = card.innerText.toLowerCase();
-                const matchTexto = texto.includes(termo);
-                const matchStatus = status === 'todos' || card.classList.contains(status);
-                card.style.display = (matchTexto && matchStatus) ? 'flex' : 'none';
-            });
+            if (diffDays < 0) return `VENCIDO HÁ ${Math.abs(diffDays)} DIAS`;
+            if (diffDays === 0) return "VENCE HOJE";
+            if (diffDays === 1) return "VENCE AMANHÃ";
+            return `VENCE EM ${diffDays} DIAS`;
         }
 
         function calcularUrgencia(data) {
@@ -1271,509 +1124,583 @@ function exibirObservacaoAtualizada(id) {
             return null;
         }
 
-        function exibirAvisoUpgrade(mensagem) {
-        const overlay = document.createElement('div');
-        overlay.id = "overlay-upgrade"; // Adicionado ID para facilitar remoção
-        overlay.style = "position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:20000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(5px);";
-        overlay.innerHTML = `
-        <div style="background:#fff; padding:40px; border-radius:20px; text-align:center; max-width:350px;">
-            <div style="font-size:50px;">🚀</div>
-            <h3 style="margin-top:15px; color:var(--sidebar);">Limite Atingido</h3>
-            <p style="color:var(--muted); margin:15px 0;">${mensagem}</p>
-            <button onclick="window.location.href='/planos-page'" class="btn-primary" style="width:100%; justify-content:center; margin-bottom:10px;">Fazer Upgrade Agora</button>
-            <button onclick="document.getElementById('overlay-upgrade').remove()" style="background:none; border:none; margin-top:5px; color:var(--muted); cursor:pointer; font-weight:600;">Depois</button>
-        </div>`;
-        document.body.appendChild(overlay);
+        function verDetalhesPrazo(texto) {
+            const modal = document.getElementById('modalIA');
+            const content = document.getElementById('aiResponseContent');
+
+            if (modal && content) {
+                content.innerText = texto;
+                modal.style.display = 'flex';
+            } else {
+                alert("Observações:\n" + texto);
+            }
         }
 
-        function mostrarLoader() { document.getElementById('loader').style.display = 'flex'; }
-        function esconderLoader() { document.getElementById('loader').style.display = 'none'; }
-        function logout() { localStorage.removeItem('token'); window.location.href = '/login.html'; }
-        
-        function mostrarToast(msg, tipo) {
-            const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.style.background = tipo === 'sucesso' ? 'var(--success)' : 'var(--danger)';
-            t.style.display = 'block';
-            setTimeout(() => { t.style.display = 'none'; }, 3000);
+        function exibirObservacaoAtualizada(id) {
+            const prazo = todosPrazos.find(x => x.id === id);
+            const texto = (prazo && prazo.descricao && prazo.descricao.trim() !== "") 
+                          ? prazo.descricao 
+                          : "Sem observações cadastradas para este prazo.";
+                          
+            verDetalhesPrazo(texto);
         }
-        async function analisarComDeepSeek(tipo, descricao) {
-    const modal = document.getElementById('modalIA');
-    const content = document.getElementById('aiResponseContent');
-    const tokenMaster = localStorage.getItem('token'); // Recupera seu acesso master
 
-    if (modal) modal.style.display = 'flex';
-    content.innerText = "Doutor, o DeepSeek está processando os dados jurídicos... Aguarde.";
-
-    try {
-        const response = await fetch('/api/analisar-prazo', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${tokenMaster}` 
-            },
-            body: JSON.stringify({ tipo: tipo, descricao: descricao }) 
-        });
-        
-        const data = await response.json();
-        
-        // Se o servidor retornar a análise, exibe; caso contrário, avisa o erro técnico
-        if (data.analise) {
-            content.innerText = data.analise;
-        } else {
-            content.innerText = "O servidor Master recebeu o pedido, mas o DeepSeek retornou vazio. Verifique sua chave API no .env.";
-        }
-    } catch (err) {
-        content.innerText = "Erro Crítico: O navegador não conseguiu falar com o servidor Master na porta 3000.";
-    }
-}
-setInterval(() => { if (window.lucide) lucide.createIcons(); }, 1000);
-
-function calcularDiferencaDiasFormatado(dataVencimento) {
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-    const vencimento = new Date(dataVencimento);
-    vencimento.setHours(0, 0, 0, 0);
-    
-    const diffTime = vencimento - hoje;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 0) return `VENCIDO HÁ ${Math.abs(diffDays)} DIAS`;
-    if (diffDays === 0) return "VENCE HOJE";
-    if (diffDays === 1) return "VENCE AMANHÃ";
-    return `VENCE EM ${diffDays} DIAS`;
-}
-
-function toggleUserMenu() {
-    const m = document.getElementById('userDropdown');
-    if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
-}
-
-// Fecha o menu se clicar fora dele
-window.addEventListener('click', (e) => {
-    if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
-        const m = document.getElementById('userDropdown');
-        if(m) m.style.display = 'none';
-    }
-});
-
-/* 
-  ============================================
-  JAVASCRIPT PARA SISTEMA DE ANEXOS DE PDF
-  Adicione este código dentro da tag <script> do seu prazos.html
-  ============================================
-*/
-
-// Variável global para armazenar o ID do prazo atual
-let prazoAtualId = null;
-let arquivoPDFTemporario = null; // Armazena PDF ao criar novo prazo
-
-/**
- * Inicializar seção de anexo ao abrir modal
- * Chamada quando você abre o modal para EDITAR um prazo existente
- */
-function inicializarAnexo(prazoId, temAnexo) {
-    prazoAtualId = prazoId;
-    
-    const anexoSection = document.getElementById('anexoSection');
-    const uploadArea = document.getElementById('uploadArea');
-    const pdfCard = document.getElementById('pdfCard');
-    const uploadLoading = document.getElementById('uploadLoading');
-    
-    // Resetar estado
-    uploadLoading.style.display = 'none';
-    
-    // ✅ SEMPRE mostrar seção de anexo (tanto ao criar quanto ao editar)
-    anexoSection.style.display = 'block';
-    
-    if (prazoId && prazoId !== '' && prazoId !== 'null') {
-        // Editando prazo existente
-        if (temAnexo) {
-            // Mostrar card do PDF
-            uploadArea.style.display = 'none';
-            pdfCard.style.display = 'flex';
-            // Carregar informações do PDF
-            carregarInfoPDF(prazoId);
-        } else {
-            // Mostrar área de upload
-            uploadArea.style.display = 'block';
-            pdfCard.style.display = 'none';
-        }
-    } else {
-        // Criando novo prazo - mostrar área de upload
-        uploadArea.style.display = 'block';
-        pdfCard.style.display = 'none';
-    }
-    
-    // Atualizar ícones do Lucide
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
-}
-
-/**
- * Upload de PDF
- */
-async function uploadPDF() {
-    const fileInput = document.getElementById('pdfInput');
-    const file = fileInput.files[0];
-    
-    if (!file) return;
-    
-    // Validar tipo
-    if (file.type !== 'application/pdf') {
-        alert('❌ Apenas arquivos PDF são permitidos!');
-        fileInput.value = '';
-        return;
-    }
-    
-    // Validar tamanho (10MB)
-    if (file.size > 10 * 1024 * 1024) {
-        alert('❌ Arquivo muito grande! Tamanho máximo: 10MB');
-        fileInput.value = '';
-        return;
-    }
-    
-    // ✅ NOVO: Se está criando prazo, armazenar temporariamente
-    if (!prazoAtualId || prazoAtualId === '' || prazoAtualId === 'null') {
-        arquivoPDFTemporario = file;
-        
-        // Mostrar card do PDF
-        document.getElementById('uploadArea').style.display = 'none';
-        document.getElementById('uploadLoading').style.display = 'none';
-        document.getElementById('pdfCard').style.display = 'flex';
-        document.getElementById('pdfName').textContent = file.name;
-        document.getElementById('pdfSize').textContent = formatarTamanho(file.size);
-        
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
+        function mostrarLoader() { 
+            const loader = document.getElementById('loader');
+            if (loader) loader.style.display = 'flex'; 
         }
         
-        console.log('📎 PDF armazenado temporariamente:', file.name, '(' + formatarTamanho(file.size) + ')');
-        console.log('   Será enviado após salvar o prazo.');
-        console.log('   prazoAtualId:', prazoAtualId);
-        fileInput.value = '';
-        return;
-    }
-    
-    // ✅ Se já tem ID (editando), fazer upload imediatamente
-    document.getElementById('uploadArea').style.display = 'none';
-    document.getElementById('uploadLoading').style.display = 'block';
-    
-    try {
-        const formData = new FormData();
-        formData.append('pdf', file);
-        
-        const response = await fetch(`/api/prazos/${prazoAtualId}/anexo`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
-            body: formData
-        });
-        
-        const result = await response.json();
-        
-        if (response.ok) {
-            console.log('✅ PDF anexado com sucesso!');
+        function esconderLoader() { 
+            const loader = document.getElementById('loader');
+            if (loader) loader.style.display = 'none'; 
+        }
+
+        // Inicializar filtros
+        function inicializarFiltros() {
+            const tabs = document.querySelectorAll('.filter-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    const filtro = tab.dataset.filter;
+                    aplicarFiltroAba(filtro);
+                });
+            });
+        }
+
+        // Aplicar filtro de aba
+        function aplicarFiltroAba(filtro) {
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+
+            document.querySelectorAll('.prazo').forEach(card => {
+                const prazoId = parseInt(card.getAttribute('data-prazo-id'));
+                const prazo = todosPrazos.find(p => p.id === prazoId);
+                
+                if (!prazo) {
+                    card.style.display = 'flex';
+                    return;
+                }
+
+                const dataLimite = new Date(prazo.data_limite);
+                dataLimite.setHours(0, 0, 0, 0);
+                const diasRestantes = Math.ceil((dataLimite - hoje) / (1000 * 60 * 60 * 24));
+
+                let mostrar = false;
+
+                switch (filtro) {
+                    case 'todos':
+                        mostrar = !prazo.concluido;
+                        break;
+                    case 'vencidos':
+                        mostrar = !prazo.concluido && diasRestantes < 0;
+                        break;
+                    case 'hoje':
+                        mostrar = !prazo.concluido && diasRestantes === 0;
+                        break;
+                    case 'esta-semana':
+                        mostrar = !prazo.concluido && diasRestantes >= 0 && diasRestantes <= 7;
+                        break;
+                    case 'concluidos':
+                        mostrar = prazo.concluido === true;
+                        break;
+                    default:
+                        mostrar = true;
+                }
+
+                card.style.display = mostrar ? 'flex' : 'none';
+            });
+        }
+
+        // Abrir modal
+        function abrirModalPrazo() {
+            document.getElementById('prazoId').value = '';
+            document.getElementById('tipoPrazo').value = '';
+            document.getElementById('dataPrazo').value = '';
+            document.getElementById('descricaoPrazo').value = '';
+            document.getElementById('clienteId').value = '';
             
-            document.getElementById('uploadLoading').style.display = 'none';
-            document.getElementById('pdfCard').style.display = 'flex';
-            document.getElementById('pdfName').textContent = file.name;
-            document.getElementById('pdfSize').textContent = formatarTamanho(file.size);
+            const selectProcesso = document.getElementById('processoId');
+            selectProcesso.disabled = false;
+            selectProcesso.style.backgroundColor = "";
+            selectProcesso.style.cursor = "";
+            
+            carregarProcessosSelect();
+            carregarClientesSelect();
+
+            prazoAtualId = null;
+            arquivoPDFTemporario = null;
+            document.getElementById('pdfCard').style.display = 'none';
+            document.getElementById('uploadArea').style.display = 'block';
+
+            document.getElementById('modalPrazo').style.display = 'flex';
+
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
+        // Carregar processos no select
+        async function carregarProcessosSelect() {
+            const select = document.getElementById('processoId');
+            try {
+                const res = await fetch('/api/processos', { headers: { Authorization: `Bearer ${token}` } });
+                const processos = await res.json();
+                select.innerHTML = '<option value="">Selecione o Processo</option>';
+                processos.forEach(p => { 
+                    select.innerHTML += `<option value="${p.id}">${p.numero}</option>`; 
+                });
+            } catch (err) {
+                console.error('Erro ao carregar processos:', err);
+            }
+        }
+
+        // Carregar clientes no select
+        async function carregarClientesSelect() {
+            try {
+                const res = await fetch('/api/clientes', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const clientes = await res.json();
+                const select = document.getElementById('clienteId');
+                
+                select.innerHTML = '<option value="">Selecione um cliente (opcional)</option>';
+                
+                clientes.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.nome;
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error('Erro ao carregar clientes:', err);
+            }
+        }
+
+        // Fechar modal
+        function fecharModalPrazo() { 
+            document.getElementById('modalPrazo').style.display = 'none'; 
+            document.getElementById('prazoId').value = '';
+            
+            const selectProcesso = document.getElementById('processoId');
+            if (selectProcesso) {
+                selectProcesso.disabled = false;
+                selectProcesso.style.backgroundColor = "#fff";
+            }
+            
+            arquivoPDFTemporario = null;
+            prazoAtualId = null;
+        }
+
+        // Salvar prazo
+        async function salvarPrazo() {
+            const prazoId = document.getElementById('prazoId').value;
+            const processoId = document.getElementById('processoId').value;
+            const clienteId = document.getElementById('clienteId').value || null;
+            const tipo = document.getElementById('tipoPrazo').value.trim();
+            const dataLimite = document.getElementById('dataPrazo').value;
+            const descricao = document.getElementById('descricaoPrazo').value.trim();
+
+            if (!processoId || !tipo || !dataLimite) {
+                alert('Preencha todos os campos obrigatórios!');
+                return;
+            }
+
+            try {
+                const url = prazoId ? `/api/prazos/${prazoId}` : '/api/prazos';
+                const method = prazoId ? 'PUT' : 'POST';
+
+                const res = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        processoId,
+                        clienteId,
+                        tipo,
+                        dataLimite,
+                        descricao
+                    })
+                });
+
+                if (!res.ok) {
+                    const data = await res.json();
+                    alert(data.erro || 'Erro ao salvar');
+                    return;
+                }
+
+                const resultado = await res.json();
+                
+                // Se criou prazo novo e tem PDF temporário, fazer upload
+                if (!prazoId && arquivoPDFTemporario) {
+                    if (resultado.id) {
+                        await uploadPDFAposSalvar(resultado.id);
+                    } else {
+                        await uploadPDFParaUltimoPrazo(processoId, tipo, dataLimite);
+                    }
+                }
+                
+                alert('✅ Prazo salvo com sucesso!');
+                fecharModalPrazo();
+                carregarPrazosModernos();
+            } catch (err) {
+                alert('Erro de conexão');
+            }
+        }
+
+        // Upload de PDF
+        async function uploadPDF() {
+            const fileInput = document.getElementById('pdfInput');
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+            
+            if (file.type !== 'application/pdf') {
+                alert('❌ Apenas arquivos PDF são permitidos!');
+                fileInput.value = '';
+                return;
+            }
+            
+            if (file.size > 10 * 1024 * 1024) {
+                alert('❌ Arquivo muito grande! Tamanho máximo: 10MB');
+                fileInput.value = '';
+                return;
+            }
+            
+            // Se está criando prazo, armazenar temporariamente
+            if (!prazoAtualId || prazoAtualId === '' || prazoAtualId === 'null') {
+                arquivoPDFTemporario = file;
+                
+                document.getElementById('uploadArea').style.display = 'none';
+                document.getElementById('pdfCard').style.display = 'flex';
+                document.getElementById('pdfName').textContent = file.name;
+                document.getElementById('pdfSize').textContent = formatarTamanho(file.size);
+                
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+                
+                console.log('📎 PDF armazenado temporariamente:', file.name);
+                fileInput.value = '';
+                return;
+            }
+            
+            // Se já tem ID (editando), fazer upload imediatamente
+            try {
+                const formData = new FormData();
+                formData.append('pdf', file);
+                
+                const response = await fetch(`/api/prazos/${prazoAtualId}/anexo`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('pdfCard').style.display = 'flex';
+                    document.getElementById('uploadArea').style.display = 'none';
+                    document.getElementById('pdfName').textContent = file.name;
+                    document.getElementById('pdfSize').textContent = formatarTamanho(file.size);
+                    
+                    if (typeof lucide !== 'undefined') {
+                        lucide.createIcons();
+                    }
+                    
+                    alert('✅ PDF anexado com sucesso!');
+                } else {
+                    throw new Error(result.erro || 'Erro ao anexar PDF');
+                }
+                
+            } catch (err) {
+                console.error('❌ Erro no upload:', err);
+                alert('❌ Erro ao anexar PDF: ' + err.message);
+            }
+            
+            fileInput.value = '';
+        }
+
+        // Upload PDF após salvar
+        async function uploadPDFAposSalvar(prazoId) {
+            if (!arquivoPDFTemporario) return;
+            
+            try {
+                const formData = new FormData();
+                formData.append('pdf', arquivoPDFTemporario);
+                
+                const response = await fetch(`/api/prazos/${prazoId}/anexo`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    console.log('✅ PDF anexado ao prazo recém-criado!');
+                    arquivoPDFTemporario = null;
+                } else {
+                    const result = await response.json();
+                    throw new Error(result.erro || 'Erro ao anexar PDF');
+                }
+                
+            } catch (err) {
+                console.error('❌ Erro ao anexar PDF:', err);
+                alert('⚠️ Prazo salvo, mas ocorreu um erro ao anexar o PDF.');
+                arquivoPDFTemporario = null;
+            }
+        }
+
+        // Upload PDF para último prazo
+        async function uploadPDFParaUltimoPrazo(processoId, tipo, dataLimite) {
+            if (!arquivoPDFTemporario) return;
+            
+            try {
+                const response = await fetch('/api/prazos', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar prazos');
+                }
+                
+                const prazos = await response.json();
+                
+                const prazoEncontrado = prazos.find(p => 
+                    p.processo_id == processoId && 
+                    p.tipo === tipo && 
+                    p.data_limite.startsWith(dataLimite)
+                );
+                
+                if (!prazoEncontrado) {
+                    throw new Error('Prazo recém-criado não encontrado');
+                }
+                
+                await uploadPDFAposSalvar(prazoEncontrado.id);
+                
+            } catch (err) {
+                console.error('❌ Erro ao buscar prazo para anexar PDF:', err);
+                alert('⚠️ Prazo salvo, mas ocorreu um erro ao anexar o PDF.');
+                arquivoPDFTemporario = null;
+            }
+        }
+
+        // Formatar tamanho
+        function formatarTamanho(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        // Visualizar PDF
+        async function visualizarPDF() {
+            if (!prazoAtualId) {
+                alert('❌ ID do prazo não encontrado');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/prazos/${prazoAtualId}/anexo`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar PDF');
+                }
+                
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                window.open(blobUrl, '_blank');
+                
+            } catch (err) {
+                console.error('❌ Erro ao visualizar PDF:', err);
+                alert('❌ Erro ao visualizar PDF');
+            }
+        }
+
+        // Visualizar anexo do prazo
+        async function visualizarAnexoPrazo(prazoId) {
+            if (!prazoId) {
+                alert('❌ ID do prazo não encontrado');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/prazos/${prazoId}/anexo`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar PDF');
+                }
+                
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                window.open(blobUrl, '_blank');
+                
+            } catch (err) {
+                console.error('❌ Erro ao visualizar PDF:', err);
+                alert('❌ Erro ao visualizar anexo');
+            }
+        }
+
+        // Deletar PDF
+        async function deletarPDF() {
+            if (!confirm('Tem certeza que deseja remover este PDF?')) return;
+            
+            if (!prazoAtualId) {
+                alert('❌ ID do prazo não encontrado');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/prazos/${prazoAtualId}/anexo`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    document.getElementById('pdfCard').style.display = 'none';
+                    document.getElementById('uploadArea').style.display = 'block';
+                    alert('✅ PDF removido com sucesso!');
+                } else {
+                    const result = await response.json();
+                    throw new Error(result.erro || 'Erro ao deletar PDF');
+                }
+                
+            } catch (err) {
+                console.error('❌ Erro ao deletar:', err);
+                alert('❌ Erro ao remover PDF: ' + err.message);
+            }
+        }
+
+        // Editar prazo
+        async function editarPrazo(id) {
+            const prazo = todosPrazos.find(p => p.id === id);
+            if (!prazo) {
+                console.error('Prazo não encontrado');
+                return;
+            }
+
+            prazoAtualId = id;
+            
+            document.getElementById('prazoId').value = id;
+            document.getElementById('processoId').value = prazo.processo_id || '';
+            document.getElementById('tipoPrazo').value = prazo.tipo || '';
+            document.getElementById('dataPrazo').value = prazo.data_limite || '';
+            document.getElementById('descricaoPrazo').value = prazo.descricao || '';
+            document.getElementById('clienteId').value = prazo.cliente_id || '';
+
+            // Carregar selects
+            await carregarProcessosSelect();
+            await carregarClientesSelect();
+            
+            // Definir valores após carregar
+            setTimeout(() => {
+                document.getElementById('processoId').value = prazo.processo_id || '';
+                document.getElementById('clienteId').value = prazo.cliente_id || '';
+            }, 100);
+
+            // Verificar anexo
+            if (prazo.anexo_pdf || prazo.tem_anexo) {
+                document.getElementById('pdfName').textContent = 'Documento anexado';
+                document.getElementById('pdfSize').textContent = 'PDF';
+                document.getElementById('pdfCard').style.display = 'flex';
+                document.getElementById('uploadArea').style.display = 'none';
+            } else {
+                document.getElementById('pdfCard').style.display = 'none';
+                document.getElementById('uploadArea').style.display = 'block';
+            }
+
+            document.getElementById('modalPrazo').style.display = 'flex';
             
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
-            
-            atualizarBadgeAnexo(prazoAtualId, true);
-            alert('✅ PDF anexado com sucesso!');
-        } else {
-            throw new Error(result.erro || 'Erro ao anexar PDF');
         }
-        
-    } catch (err) {
-        console.error('❌ Erro no upload:', err);
-        alert('❌ Erro ao anexar PDF: ' + err.message);
-        
-        document.getElementById('uploadLoading').style.display = 'none';
-        document.getElementById('uploadArea').style.display = 'block';
-    }
-    
-    fileInput.value = '';
-}
 
-/**
- * Fazer upload do PDF após salvar o prazo (para modo de criação)
- */
-async function uploadPDFAposSalvar(prazoId) {
-    if (!arquivoPDFTemporario) return;
-    
-    console.log('📤 Enviando PDF armazenado para o prazo recém-criado...');
-    
-    try {
-        const formData = new FormData();
-        formData.append('pdf', arquivoPDFTemporario);
-        
-        const response = await fetch(`/api/prazos/${prazoId}/anexo`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
-            body: formData
-        });
-        
-        if (response.ok) {
-            console.log('✅ PDF anexado ao prazo recém-criado!');
-            arquivoPDFTemporario = null;
-        } else {
-            const result = await response.json();
-            throw new Error(result.erro || 'Erro ao anexar PDF');
-        }
-        
-    } catch (err) {
-        console.error('❌ Erro ao anexar PDF:', err);
-        alert('⚠️ Prazo salvo, mas ocorreu um erro ao anexar o PDF. Tente anexar novamente editando o prazo.');
-        arquivoPDFTemporario = null;
-    }
-}
+        // Concluir prazo
+        async function concluirPrazo(id) {
+            if (!confirm('Deseja marcar este prazo como concluído?')) return;
 
-/**
- * Upload de PDF para o último prazo criado (quando API não retorna ID)
- */
-async function uploadPDFParaUltimoPrazo(processoId, tipo, dataLimite) {
-    if (!arquivoPDFTemporario) return;
-    
-    try {
-        console.log('🔍 Buscando prazo recém-criado...');
-        
-        // Buscar todos os prazos
-        const response = await fetch('/api/prazos', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Erro ao buscar prazos');
-        }
-        
-        const prazos = await response.json();
-        
-        // Encontrar o prazo recém-criado (mesmo processo, tipo e data)
-        const prazoEncontrado = prazos.find(p => 
-            p.processo_id == processoId && 
-            p.tipo === tipo && 
-            p.data_limite.startsWith(dataLimite)
-        );
-        
-        if (!prazoEncontrado) {
-            throw new Error('Prazo recém-criado não encontrado');
-        }
-        
-        console.log('✅ Prazo encontrado! ID:', prazoEncontrado.id);
-        
-        // Fazer upload do PDF
-        await uploadPDFAposSalvar(prazoEncontrado.id);
-        
-    } catch (err) {
-        console.error('❌ Erro ao buscar prazo para anexar PDF:', err);
-        alert('⚠️ Prazo salvo, mas ocorreu um erro ao anexar o PDF. Tente anexar novamente editando o prazo.');
-        arquivoPDFTemporario = null;
-    }
-}
-
-/**
- * Visualizar PDF em nova aba
- */
-
-/**
- * Visualizar anexo de um prazo diretamente do card
- */
-async function visualizarAnexoPrazo(prazoId) {
-    if (!prazoId) {
-        alert('❌ ID do prazo não encontrado');
-        return;
-    }
-    
-    try {
-        const token = localStorage.getItem('token');
-        
-        const response = await fetch(`/api/prazos/${prazoId}/anexo`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Erro ao buscar PDF');
-        }
-        
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        window.open(blobUrl, '_blank');
-        
-    } catch (err) {
-        console.error('❌ Erro ao visualizar PDF:', err);
-        alert('❌ Erro ao visualizar anexo');
-    }
-}
-async function visualizarPDF() {
-    if (!prazoAtualId) {
-        mostrarToast('❌ ID do prazo não encontrado', 'error');
-        return;
-    }
-    
-    try {
-        // Fazer fetch com token no header
-        const response = await fetch(`/api/prazos/${prazoAtualId}/anexo`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Erro ao buscar PDF');
-        }
-        
-        // Converter resposta para blob
-        const blob = await response.blob();
-        
-        // Criar URL temporária do blob
-        const blobUrl = URL.createObjectURL(blob);
-        
-        // Abrir em nova aba
-        window.open(blobUrl, '_blank');
-        
-    } catch (err) {
-        console.error('❌ Erro ao visualizar PDF:', err);
-        mostrarToast('❌ Erro ao visualizar PDF', 'error');
-    }
-}
-
-/**
- * Deletar PDF
- */
-async function deletarPDF() {
-    if (!confirm('Tem certeza que deseja remover este PDF?')) return;
-    
-    if (!prazoAtualId) {
-        mostrarToast('❌ ID do prazo não encontrado', 'error');
-        return;
-    }
-    
-    try {
-        const response = await fetch(`/api/prazos/${prazoAtualId}/anexo`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (response.ok) {
-            console.log('🗑️ PDF removido!');
-            
-            // Esconder card e mostrar upload
-            document.getElementById('pdfCard').style.display = 'none';
-            document.getElementById('uploadArea').style.display = 'block';
-            
-            // Atualizar badge no card principal
-            atualizarBadgeAnexo(prazoAtualId, false);
-            
-            mostrarToast('✅ PDF removido com sucesso!', 'success');
-        } else {
-            const result = await response.json();
-            throw new Error(result.erro || 'Erro ao deletar PDF');
-        }
-        
-    } catch (err) {
-        console.error('❌ Erro ao deletar:', err);
-        mostrarToast('❌ Erro ao remover PDF: ' + err.message, 'error');
-    }
-}
-
-/**
- * Carregar informações do PDF
- */
-async function carregarInfoPDF(prazoId) {
-    // Por enquanto, mostrar valores padrão
-    // Futuramente você pode fazer uma requisição para pegar metadados
-    document.getElementById('pdfName').textContent = 'Documento anexado';
-    document.getElementById('pdfSize').textContent = 'PDF';
-}
-
-/**
- * Formatar tamanho do arquivo
- */
-function formatarTamanho(bytes) {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-}
-
-/**
- * Atualizar badge de anexo no card principal da lista
- */
-function atualizarBadgeAnexo(prazoId, temAnexo) {
-    // Encontrar o card do prazo na lista
-    const allCards = document.querySelectorAll('.prazo-card');
-    
-    allCards.forEach(card => {
-        const cardId = card.getAttribute('data-prazo-id');
-        
-        if (cardId == prazoId) {
-            let badge = card.querySelector('.badge-anexo');
-            
-            if (temAnexo && !badge) {
-                // Adicionar badge
-                const badgeContainer = card.querySelector('.badge-container');
-                if (badgeContainer) {
-                    badge = document.createElement('span');
-                    badge.className = 'badge-anexo';
-                    badge.innerHTML = '<i data-lucide="paperclip"></i> PDF';
-                    badgeContainer.appendChild(badge);
-                    
-                    // Atualizar ícones
-                    if (typeof lucide !== 'undefined') {
-                        lucide.createIcons();
+            try {
+                const response = await fetch(`/api/prazos/${id}/concluir`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
                     }
+                });
+
+                if (response.ok) {
+                    await carregarPrazosModernos();
+                    alert('✅ Prazo concluído com sucesso!');
+                } else {
+                    throw new Error('Erro ao concluir prazo');
                 }
-            } else if (!temAnexo && badge) {
-                // Remover badge
-                badge.remove();
+            } catch (err) {
+                console.error('Erro:', err);
+                alert('❌ Erro ao concluir prazo');
             }
         }
-    });
-}
 
-/**
- * Função auxiliar para mostrar toast
- * Use a função de toast que já existe no seu sistema
- */
-function mostrarToast(mensagem, tipo) {
-    // Se você já tem uma função de toast no sistema, use ela
-    // Senão, use alert simples
-    if (typeof exibirToast === 'function') {
-        exibirToast(mensagem, tipo);
-    } else {
-        alert(mensagem);
-    }
-}
+        // Excluir prazo
+        async function excluirPrazo(id) {
+            if (!confirm('Tem certeza que deseja deletar este prazo?')) return;
+
+            try {
+                const response = await fetch(`/api/prazos/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    await carregarPrazosModernos();
+                    alert('✅ Prazo deletado com sucesso!');
+                } else {
+                    throw new Error('Erro ao deletar prazo');
+                }
+            } catch (err) {
+                console.error('Erro:', err);
+                alert('❌ Erro ao deletar prazo');
+            }
+        }
+
+        // Toggle menu usuário
+        function toggleUserMenu() {
+            const m = document.getElementById('userDropdown');
+            if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Fechar menu ao clicar fora
+        window.addEventListener('click', (e) => {
+            if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
+                const m = document.getElementById('userDropdown');
+                if(m) m.style.display = 'none';
+            }
+        });
+
+        // Logout
+        function logout() { 
+            localStorage.removeItem('token'); 
+            window.location.href = '/login.html'; 
+        }
+
+        // Atualizar ícones periodicamente
+        setInterval(() => { if (window.lucide) lucide.createIcons(); }, 1000);
     </script>
-    <div id="modalIA" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.7); z-index:9999; justify-content:center; align-items:center; backdrop-filter: blur(4px);">
-    <div style="background:white; padding:35px; border-radius:16px; max-width:700px; width:90%; max-height:85vh; overflow-y:auto; position:relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #e2e8f0;">
-        
-        <span onclick="document.getElementById('modalIA').style.display='none'" style="position:absolute; top:20px; right:20px; cursor:pointer; font-size:20px; color:#94a3b8; font-weight:bold;">&times;</span>
-        
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px; border-bottom:2px solid #f1f5f9; padding-bottom:15px;">
-            <i class="lucide-sparkles" style="color:#fbbf24; width:24px; height:24px;"></i>
-            <h3 style="margin:0; color:#0f172a; font-size:20px; font-weight:700;">Parecer Técnico DeepSeek</h3>
-        </div>
-
-        <div id="aiResponseContent" style="white-space:pre-wrap; line-height:1.8; color:#334155; font-size:15px; font-family:'Inter', sans-serif; letter-spacing:-0.01em;"></div>
-        
-        <div style="margin-bottom: 10px;"></div>
-    </div>
-</div>
 </body>
 </html>
