@@ -572,24 +572,6 @@
             color: var(--accent-blue);
         }
 
-
-        /* 🎨 Cores Progressivas por Status */
-        .lead-card-header-lead {
-            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
-        }
-
-        .lead-card-header-triagem {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-        }
-
-        .lead-card-header-proposta {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-        }
-
-        .lead-card-header-ganho {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-        }
-
         /* Modal Overlay */
         .modal-overlay { 
             display: none;
@@ -1103,7 +1085,7 @@
                     container.innerHTML += `
                         <div class="lead-card" id="lead-${lead.id}" draggable="true" ondragstart="drag(event)" 
                              onclick="abrirDetalhes(${lead.id}, '${lead.nome.replace(/'/g, "\\'")}', '${(lead.telefone || '').replace(/'/g, "\\'")}', '${areaInteresse.replace(/'/g, "\\'")}', '${notasLimpas}')">
-                            <div class="lead-card-header-${statusKey}" style="padding: 12px; margin: -20px -20px 12px -20px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-light) 100%); padding: 12px; margin: -20px -20px 12px -20px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center;">
                                 <strong style="color: white; margin: 0; font-size: 14px;">${lead.nome}</strong>
                                 <i class="lucide lucide-message-circle" 
                                    onclick="abrirWhatsApp(event, '${lead.telefone || ''}', '${lead.nome.replace(/'/g, "\\'")}')" 
