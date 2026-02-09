@@ -1314,7 +1314,7 @@ input, textarea, select {
 
     <div class="main">
         <header class="header">
-            <input type="text" placeholder="Buscar processo ou prazo..." id="inputBuscaDash"/>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin: 0;">Dashboard</h1>
             
             <!-- Cronômetro de Trial -->
             <div id="trial-timer">
@@ -1369,7 +1369,7 @@ input, textarea, select {
             <small>Audiências</small>
             <h2 id="totalAudiencias">0</h2>
         </div>
-        <div class="card" style="border-left:5px solid var(--warning);">
+        <div class="card" onclick="window.location.href='/prazos-page'" style="cursor:pointer; border-left:5px solid var(--danger);">
             <small>Prazos da Semana</small>
             <h2 id="count-semana">0</h2>
         </div>
@@ -1505,7 +1505,7 @@ input, textarea, select {
                 <i data-lucide="link-2" style="width: 22px; height: 22px; color: #fff;"></i>
             </div>
             <div>
-                <small style="color: #4A6B8A; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: block;">Formulário de Captação</small>
+                <small style="color: #4A6B8A; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: block;">Formulário de Captação - Copie o link e cole em suas Redes Sociais</small>
                 <h3 style="font-size: 17px; margin: 4px 0 0 0; font-weight: 700; color: #2A5A8F;">Link Exclusivo Online</h3>
             </div>
         </div>
@@ -1758,6 +1758,10 @@ async function inicializarDashboard() {
         const footPlan = document.getElementById('planNameFooter');
         if (footPlan) footPlan.innerText = planName;
         
+        // Atualizar o card Status da Assinatura
+        const planoAtualCard = document.getElementById('planoAtual');
+        if (planoAtualCard) planoAtualCard.innerText = planName;
+        
         const badgeContainer = document.getElementById('premiumWelcome');
         if (badgeContainer) {
             badgeContainer.style.display = planName.toLowerCase() === 'premium' ? 'flex' : 'none';
@@ -1846,8 +1850,8 @@ function executarBusca() {
 
     switch (tipo) {
         case "tjba":
-            // 🚀 URL Corrigida para o Portal de Jurisprudência da Bahia
-            url = `https://jurisprudencia.tjba.jus.br/busca?q=${termoEncoded}`;
+            // Abre a página de jurisprudência do TJBA
+            url = `https://jurisprudencia.tjba.jus.br/`;
             break;
         case "jusbrasil":
             url = `https://www.jusbrasil.com.br/busca?q=${termoEncoded}`;

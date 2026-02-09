@@ -1239,22 +1239,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- RODAPÉ -->
-            <div class="footer-info-section">
-                <div class="footer-info-item">
-                    <i class="lucide lucide-user"></i>
-                    <span id="usuarioRodape">---</span>
-                </div>
-                <div class="footer-info-item">
-                    <i class="lucide lucide-building"></i>
-                    <span id="escritorioRodape">---</span>
-                </div>
-                <div class="footer-info-item">
-                    <i class="lucide lucide-hash"></i>
-                    <span id="oabRodape">---</span>
-                </div>
-            </div>
         </main>
     </div>
 
@@ -1366,11 +1350,6 @@
                 
                 if (data.ok) {
                     const user = data.usuario;
-                    
-                    // Rodapé
-                    document.getElementById('usuarioRodape').innerText = user.nome || 'Usuário';
-                    document.getElementById('escritorioRodape').innerText = user.escritorio || 'Escritório';
-                    document.getElementById('oabRodape').innerText = user.oab || '---';
                     
                     // Sidebar
                     document.getElementById('userEmail').innerText = user.email || '...';

@@ -270,48 +270,6 @@ router.post('/analisar-prazo',
     analisarPrazoComClaude
 );
 
-/**
- * ============================================================
- * 🔐 ROTAS DO CRM - APENAS PLANO PREMIUM
- * ============================================================
- */
-
-router.post('/crm/leads', 
-    authMiddleware, 
-    planMiddleware.checkFeature('crm'),
-    async (req, res) => {
-        try {
-            const { nome, email, telefone, origem, observacoes } = req.body;
-            const escritorioId = req.user.escritorio_id;
-
-            if (!nome || !email) {
-                return res.status(400).json({ erro: 'Nome e email são obrigatórios' });
-            }
-
-            const query = `
-                INSERT INTO leads (nome, email, telefone, origem, mensagem, escritorio_id, status, data_criacao)
-                VALUES ($1, $2, $3, $4, $5, $6, 'Novo', NOW())
-                RETURNING *
-            `;
-            
-            const result = await pool.query(query, [
-                nome, 
-                email, 
-                telefone || null, 
-                origem || 'site', 
-                observacoes || null, 
-                escritorioId
-            ]);
-
-            res.status(201).json(result.rows[0]);
-
-        } catch (err) {
-            console.error('❌ ERRO AO ADICIONAR LEAD:', err.message);
-            res.status(500).json({ erro: 'Erro ao adicionar lead: ' + err.message });
-        }
-    }
-);
-
 router.get('/crm/leads', 
     authMiddleware, 
     planMiddleware.checkFeature('crm'),

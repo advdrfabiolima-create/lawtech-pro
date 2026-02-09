@@ -54,6 +54,7 @@ app.use(express.static(publicPath));
 app.use('/api/auth', authRoutes);
 app.use('/api', iaRoutes);
 app.use('/api/crm', authMiddleware, crmRoutes);
+console.log('✅ Rotas CRM registradas no servidor principal');
 app.use('/api', prazosRoutes);
 app.use('/api', processosRoutes);
 app.use('/api', calculosRoutes);

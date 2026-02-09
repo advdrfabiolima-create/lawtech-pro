@@ -15,7 +15,10 @@ const planLimits = require('../config/planLimits.json');
 const checkFeature = (featureName) => {
     return async (req, res, next) => {
         try {
+            console.log('🔍 [MIDDLEWARE] checkFeature chamado para:', featureName);
             const escritorioId = req.user.escritorio_id;
+            console.log('🔍 [MIDDLEWARE] escritorioId:', escritorioId);
+            
 
             const result = await pool.query(
                 `SELECT p.slug, p.nome 
@@ -42,6 +45,8 @@ const checkFeature = (featureName) => {
             }
 
             const featureEnabled = planoConfig.funcionalidades[featureName];
+            console.log('🔍 [MIDDLEWARE] Plano:', planoSlug);
+            console.log('🔍 [MIDDLEWARE] Feature habilitada?:', featureEnabled);
 
             if (!featureEnabled) {
                 return res.status(402).json({
@@ -55,6 +60,8 @@ const checkFeature = (featureName) => {
 
             req.plan = planoConfig;
             req.planSlug = planoSlug;
+            console.log('✅ [MIDDLEWARE] Chamando next() - Feature liberada!');
+            console.log('🎯 [MIDDLEWARE] Próximo handler deve ser executado AGORA!');
             next();
 
         } catch (err) {

@@ -912,8 +912,8 @@
             <input type="email" id="novoEmail" placeholder="Ex: email@exemplo.com" required>
             
             <label>Área de Interesse</label>
-            <select id="novoInteresse">                
-                <option value="Trabalhista">Trabalhista</option>
+            <select id="novoInteresse" required>                
+                <option value="Trabalhista" selected>Trabalhista</option>
                 <option value="Cível">Cível</option>
                 <option value="Consumidor">Consumidor</option>
                 <option value="Bancário">Bancário</option>
@@ -1076,8 +1076,8 @@
                     const notasLimpas = (lead.mensagem || '').replace(/'/g, "\\'");
                     
                     // Tenta pegar do lead, depois do sessionStorage, depois "Não informado"
-                    const areaInteresse = lead.interesse && lead.interesse.trim()
-                    ? lead.interesse
+                    const areaInteresse = lead.assunto && lead.assunto.trim()
+                    ? lead.assunto
                     : 'Não informado';
                     
                     console.log('Area de interesse final:', areaInteresse);

@@ -1188,22 +1188,6 @@
                 </table>
             </div>
             </div>
-            
-            <!-- RODAPÉ COM INFORMAÇÕES -->
-            <div class="footer-info-section">
-                <div class="footer-info-item">
-                    <i class="lucide lucide-user"></i>
-                    <span id="usuarioRodape">---</span>
-                </div>
-                <div class="footer-info-item">
-                    <i class="lucide lucide-building"></i>
-                    <span id="escritorioRodape">---</span>
-                </div>
-                <div class="footer-info-item">
-                    <i class="lucide lucide-hash"></i>
-                    <span id="oabRodape">---</span>
-                </div>
-            </div>
         </main>
     </div>
 
@@ -1357,15 +1341,17 @@
                 const dataUser = await resUser.json();
                 
                 if (dataUser.ok) {
+                    const user = dataUser.usuario;
+                    
                     // Atualizar email no rodapé
                     const emailElement = document.getElementById('footerEmail');
                     if (emailElement) {
-                        emailElement.innerText = dataUser.usuario.email || 'não disponível';
-                        console.log('✅ Email atualizado:', dataUser.usuario.email);
+                        emailElement.innerText = user.email || 'não disponível';
+                        console.log('✅ Email atualizado:', user.email);
                     }
                     
                     // Atualizar nome no header (primeiro nome apenas)
-                    const nomeCompleto = dataUser.usuario.nome || 'Advogado';
+                    const nomeCompleto = user.nome || 'Advogado';
                     const primeiroNome = nomeCompleto.trim().split(' ')[0];
                     const nameHeader = document.getElementById('userNameHeader');
                     if (nameHeader) nameHeader.innerText = primeiroNome;
@@ -1380,7 +1366,7 @@
                     const circulo = document.getElementById('userCircle');
                     if (circulo) circulo.innerText = iniciais.toUpperCase();
                     
-                    console.log('✅ Usuário carregado:', dataUser.usuario);
+                    console.log('✅ Usuário carregado:', user);
                 }
 
                 // 2. Busca Info do Plano

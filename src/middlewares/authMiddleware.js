@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
 
 const authMiddleware = async (req, res, next) => {
+  console.log('🔐 [AUTH] Middleware chamado:', req.method, req.originalUrl);
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -55,8 +56,11 @@ const authMiddleware = async (req, res, next) => {
         dias_restantes: diasRestantes,
         eh_master: ehMaster
     };
+    
 
-    next();
+    req.user = result.rows[0];
+  console.log('✅ [AUTH] Usuário autenticado:', req.user.id, req.user.email);
+  next();
   } catch (err) {
     console.error('Erro no authMiddleware:', err.message);
     return res.status(401).json({ error: 'Token inválido' });
