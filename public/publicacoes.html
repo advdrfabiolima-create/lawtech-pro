@@ -1045,40 +1045,34 @@ async function sincronizarComPeriodo(dataInicio, dataFim) {
     const btn = document.getElementById('btnSincronizar');
     const textoOriginal = btn.innerHTML;
     
-    // Mostrar loading
-    mostrarLoading();
+    // Loading
     btn.disabled = true;
-    btn.style.opacity = '0.5';
+    btn.innerHTML = '<i data-lucide="loader-2" style="animation: spin 1s linear infinite;"></i> Buscando intimações...';
+    btn.style.opacity = '0.7';
+    
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
     
     try {
-        const res = await fetch('/api/sincronizar', {
-            method: 'POST',
+        const res = await fetch(`/api/publicacoes/sincronizar?dataInicio=${dataInicio}&dataFim=${dataFim}`, {
             headers: { 
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ dataInicio, dataFim })
+                'Authorization': 'Bearer ' + localStorage.getItem('token') 
+            }
         });
         
         const data = await res.json();
+        
         console.log('Resposta:', data);
         
-        // Esconder loading
-        esconderLoading();
-        
         if (data.ok) {
-            // PEGA O NÚMERO DE NOVAS DO RESULTADO DO WORKER
-            const novas = data.resultado_worker?.resultado?.novas || 0;
-            const total = data.resultado_worker?.resultado?.total || 0;
-            
-            if (novas > 0) {
-                alert(`✅ ${novas} novas intimações encontradas!`);
-                // ✅ RECARREGAR LISTA
+            if (data.novas > 0) {
+                alert(`✅ ${data.novas} novas intimações encontradas!`);
                 await carregarPublicacoes();
-            } else if (total > 0) {
-                alert(`ℹ️ ${total} intimações encontradas (já cadastradas)`);
+            } else if (data.total > 0) {
+                alert(`ℹ️ ${data.total} intimações encontradas (já cadastradas)`);
             } else {
-                alert(`ℹ️ Nenhuma intimação encontrada`);
+                alert(`ℹ️ Nenhuma intimação encontrada em ${dataInicio.split('-').reverse().join('/')}`);
             }
         } else {
             alert('⚠️ ' + (data.erro || data.mensagem || 'Erro ao sincronizar'));
@@ -1086,11 +1080,16 @@ async function sincronizarComPeriodo(dataInicio, dataFim) {
         
     } catch (err) { 
         console.error('Erro:', err);
-        esconderLoading();
         alert('❌ Erro de conexão: ' + err.message);
-    } finally {
-        btn.disabled = false;
-        btn.style.opacity = '1';
+    }
+    
+    // Restaurar botão
+    btn.disabled = false;
+    btn.innerHTML = textoOriginal;
+    btn.style.opacity = '1';
+    
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
     }
 }
 
