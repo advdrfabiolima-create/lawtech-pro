@@ -20,6 +20,7 @@ const clientesRoutes = require('./routes/clientes.routes');
 const configRoutes = require('./routes/config.routes');
 const publicacoesRoutes = require('./routes/publicacoes.routes');
 const iaRoutes = require('./routes/ia.routes');
+const crmPublicRoutes = require('./routes/crm.public.routes');
 const crmRoutes = require('./routes/crm.routes');
 const usuariosRoutes = require('./routes/usuarios.routes');
 const adminRoutes = require('./routes/admin.routes');
@@ -54,6 +55,7 @@ app.use(express.static(publicPath));
 // --- 7. APIs (ROTAS DE DADOS) ---
 app.use('/api/auth', authRoutes);
 app.use('/api', iaRoutes);
+app.use('/api/crm/public', crmPublicRoutes); // 🔓 público
 app.use('/api/crm', authMiddleware, crmRoutes);
 console.log('✅ Rotas CRM registradas no servidor principal');
 app.use('/api', prazosRoutes);

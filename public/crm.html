@@ -880,6 +880,20 @@
         </a>
         <a href="/crm-page" class="btn-crm-gold-nav active">
             <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+            <span 
+        id="crmDot"
+        style="
+            display: none;
+            position: absolute;
+            top: 8px;
+            right: 14px;
+            width: 10px;
+            height: 10px;
+            background: #ef4444;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #ef4444;
+        ">
+    </span>
         </a>
     </nav>
     <div class="sidebar-footer">
@@ -1101,68 +1115,96 @@
         return 'lead';
     };
 
-    async function carregarLeads() {
-        try {
-            const resLeads = await fetch('/api/crm/leads', { headers: { Authorization: `Bearer ${token}` } });
-            if (!resLeads.ok) throw new Error('Erro ao carregar leads');
-            const leads = await resLeads.json();
-            console.log('Leads recebidos:', leads);
+ async function carregarLeads() {
+    try {
+        const resLeads = await fetch('/api/crm/leads', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!resLeads.ok) throw new Error('Erro ao carregar leads');
+        const leads = await resLeads.json();
 
-            const resMetricas = await fetch('/api/crm/metricas', { headers: { Authorization: `Bearer ${token}` } });
-            if (!resMetricas.ok) throw new Error('Erro ao carregar métricas');
-            const metricas = await resMetricas.json();
-            console.log('Métricas recebidas:', metricas);
+        const resMetricas = await fetch('/api/crm/metricas', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!resMetricas.ok) throw new Error('Erro ao carregar métricas');
+        const metricas = await resMetricas.json();
 
-            document.getElementById('count-lead').innerText = metricas.leads || 0;
-            document.getElementById('count-triagem').innerText = metricas.reuniao || 0;
-            document.getElementById('count-proposta').innerText = metricas.proposta || 0;
-            document.getElementById('count-ganho').innerText = metricas.ganho || 0;
-            atualizarBadgeCRM(metricas.leads || 0);
+        document.getElementById('count-lead').innerText = metricas.leads || 0;
+        document.getElementById('count-triagem').innerText = metricas.reuniao || 0;
+        document.getElementById('count-proposta').innerText = metricas.proposta || 0;
+        document.getElementById('count-ganho').innerText = metricas.ganho || 0;
 
-            document.querySelectorAll('[id^="container-"]').forEach(c => c.innerHTML = '');
+        atualizarBadgeCRM(metricas.leads || 0);
 
-            leads.forEach(lead => {
-                console.log('Processando lead:', lead);
-                console.log('Campos do lead:', {
-                    id: lead.id,
-                    nome: lead.nome,
-                    interesse: lead.interesse,
-                    interesse: lead.interesse,
-                    telefone: lead.telefone
-                });
-                
-                const statusKey = mapeamentoStatus(lead.status);
-                const container = document.getElementById(`container-${statusKey}`);
-                if (container) {
-                    const notasLimpas = (lead.mensagem || '').replace(/'/g, "\\'");
-                    
-                    // Tenta pegar do lead, depois do sessionStorage, depois "Não informado"
-                    const areaInteresse = lead.assunto && lead.assunto.trim()
-                    ? lead.assunto
-                    : 'Não informado';
-                    
-                    console.log('Area de interesse final:', areaInteresse);
-                    
-                    container.innerHTML += `
-                        <div class="lead-card" id="lead-${lead.id}" draggable="true" ondragstart="drag(event)" 
-                             onclick="abrirDetalhes(${lead.id}, '${lead.nome.replace(/'/g, "\\'")}', '${(lead.telefone || '').replace(/'/g, "\\'")}', '${areaInteresse.replace(/'/g, "\\'")}', '${notasLimpas}')">
-                            <div class="lead-card-header-${statusKey}" style="padding: 12px; margin: -20px -20px 12px -20px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center;">
-                                <strong style="color: white; margin: 0; font-size: 14px;">${lead.nome}</strong>
-                                <i class="lucide lucide-message-circle" 
-                                   onclick="abrirWhatsApp(event, '${lead.telefone || ''}', '${lead.nome.replace(/'/g, "\\'")}')" 
-                                   style="width:16px; height:16px; color: white; cursor: pointer;" 
-                                   title="Chamar no WhatsApp"></i>
-                            </div>
-                            <span><i class="lucide lucide-phone" style="width:14px; height:14px;"></i> ${lead.telefone || '---'}</span>
-                            <span><i class="lucide lucide-briefcase" style="width:14px; height:14px;"></i> ${areaInteresse}</span>
-                        </div>`;
-                }
+        document.querySelectorAll('[id^="container-"]').forEach(c => c.innerHTML = '');
+
+        leads.forEach(lead => {
+            const statusKey = mapeamentoStatus(lead.status);
+            const container = document.getElementById(`container-${statusKey}`);
+            if (!container) return;
+
+            const card = document.createElement('div');
+            card.className = 'lead-card';
+            card.id = `lead-${lead.id}`;
+
+            if (statusKey !== 'ganho') {
+                card.draggable = true;
+                card.addEventListener('dragstart', drag);
+            }
+
+            card.dataset.id = lead.id;
+            card.dataset.nome = lead.nome || '';
+            card.dataset.telefone = lead.telefone || '';
+            card.dataset.interesse = lead.assunto || 'Não informado';
+            card.dataset.notas = lead.mensagem || '';
+
+            card.innerHTML = `
+                <div class="lead-card-header-${statusKey}"
+                     style="padding:12px; margin:-20px -20px 12px -20px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center;">
+                    <strong style="color:white; font-size:14px;">${lead.nome}</strong>
+
+                    <i class="lucide lucide-message-circle"
+                       style="width:16px; height:16px; color:white; cursor:pointer;"
+                       title="Chamar no WhatsApp"></i>
+                </div>
+
+                <span>
+                    <i class="lucide lucide-phone"></i>
+                    ${lead.telefone || '---'}
+                </span>
+
+                <span>
+                    <i class="lucide lucide-briefcase"></i>
+                    ${lead.assunto || 'Não informado'}
+                </span>
+            `;
+
+            // clique no card
+            card.addEventListener('click', () => {
+                abrirDetalhes(
+                    card.dataset.id,
+                    card.dataset.nome,
+                    card.dataset.telefone,
+                    card.dataset.interesse,
+                    card.dataset.notas
+                );
             });
 
-        } catch (e) {
-            console.error("Erro ao carregar CRM:", e);
-        }
+            // clique no whatsapp
+            card.querySelector('.lucide-message-circle')
+                .addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    abrirWhatsApp(e, lead.telefone, lead.nome);
+                });
+
+            container.appendChild(card);
+        });
+
+    } catch (e) {
+        console.error("Erro ao carregar CRM:", e);
     }
+}
+
 
     async function salvarNovoLead(e) {
     e.preventDefault();
@@ -1543,6 +1585,15 @@
     const submenu = document.getElementById('submenu-ia');
     submenu.classList.toggle('open');
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    localStorage.removeItem('novoLead');
+
+    const crmDot = document.getElementById('crmDot');
+    if (crmDot) {
+        crmDot.style.display = 'none';
+    }
+});
 </script>
 </body>
 </html>
