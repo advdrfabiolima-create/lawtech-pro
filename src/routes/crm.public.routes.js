@@ -12,7 +12,7 @@ router.post('/onboarding', async (req, res) => {
             tipoPessoa,
             documento,
             email,
-            telefone, // ✅
+            telefone,
             nascimento,
             cep,
             cidade,
@@ -22,7 +22,7 @@ router.post('/onboarding', async (req, res) => {
 
         // ✅ Validação mínima
         if (!leadId || !nome || !documento || !cidade || !uf || !telefone) {
-        return res.status(400).json({ error: 'Dados obrigatórios ausentes' });
+            return res.status(400).json({ error: 'Dados obrigatórios ausentes' });
         }
 
         // 🔎 Buscar lead + escritorio_id
@@ -89,21 +89,21 @@ ENDEREÇO: ${endereco}
                     tipo_pessoa,
                     data_nascimento
                 )
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
                 `,
                 [
-                    escritorio_id,
-                    nome,
-                    email || null,
-                    telefone || null,
-                    documento || null,   // cpf_cnpj
-                    documento || null,   // documento
-                    cep || null,
-                    endereco || null,
-                    cidade || null,
-                    uf || null,
-                    tipoPessoa || null,
-                    nascimento || null
+                    escritorio_id,      // $1
+                    nome,               // $2
+                    email || null,      // $3
+                    telefone || null,   // $4
+                    documento || null,  // $5 - cpf_cnpj
+                    documento || null,  // $6 - documento
+                    cep || null,        // $7
+                    endereco || null,   // $8
+                    cidade || null,     // $9
+                    uf || null,         // $10 - estado
+                    tipoPessoa || null, // $11 - tipo_pessoa
+                    nascimento || null  // $12 - data_nascimento ✅ CORRIGIDO
                 ]
             );
 
@@ -116,7 +116,11 @@ ENDEREÇO: ${endereco}
 
     } catch (err) {
         console.error('[CRM PUBLIC] Erro:', err);
-        return res.status(500).json({ error: err.message });
+        console.error('[CRM PUBLIC] Stack trace:', err.stack);
+        return res.status(500).json({ 
+            error: err.message,
+            details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        });
     }
 });
 
