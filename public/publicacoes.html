@@ -1449,11 +1449,14 @@ async function sincronizarComPeriodo(dataInicio, dataFim) {
     btn.style.opacity = '0.5';
     
     try {
-        const res = await fetch(`/api/publicacoes/sincronizar?dataInicio=${dataInicio}&dataFim=${dataFim}`, {
-            headers: { 
-                'Authorization': 'Bearer ' + localStorage.getItem('token') 
-            }
-        });
+        const res = await fetch('/api/sincronizar', {
+    method: 'POST',
+    headers: { 
+        'Authorization': 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ dataInicio, dataFim })
+});
         
         const data = await res.json();
         

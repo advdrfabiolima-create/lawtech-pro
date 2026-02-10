@@ -3,21 +3,19 @@ const router = express.Router();
 const pool = require('../config/db');
 const axios = require('axios');
 const authMiddleware = require('../middlewares/authMiddleware');
-const planMiddleware = require('../middlewares/planMiddleware');
-
 
 /**
  * ============================================================
- * 📡 ROTA DE SINCRONIZAÇÃO - VERSÃO CORRIGIDA
- * ✅ Mudado de GET para POST
- * ✅ Endpoint correto: /worker/djen/sync
+ * 📡 ROTA DE SINCRONIZAÇÃO - VERSÃO CORRIGIDA FINAL
+ * ✅ Endpoint correto: /sincronizar (sem /publicacoes)
+ * ✅ POST (req.body)
  * ✅ Logs detalhados
  * ============================================================
  */
-router.post('/publicacoes/sincronizar', authMiddleware, async (req, res) => {
+router.post('/sincronizar', authMiddleware, async (req, res) => {
   try {
     const escritorioId = req.user.escritorio_id;
-    const { dataInicio, dataFim } = req.body; // ← MUDOU: req.body ao invés de req.query
+    const { dataInicio, dataFim } = req.body;
 
     console.log('📄 [SYNC] Enviando solicitação ao WORKER DJEN...');
     console.log('📋 Escritório ID:', escritorioId);
@@ -70,7 +68,7 @@ router.post('/publicacoes/sincronizar', authMiddleware, async (req, res) => {
     }
 
     console.log('👤 Advogado:', advogado_responsavel);
-    console.log('📝 OAB:', oab, '/', uf);
+    console.log('🎓 OAB:', oab, '/', uf);
 
     // ✅ CHAMADA CORRETA AO WORKER
     const response = await axios.post(
