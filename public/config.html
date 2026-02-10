@@ -418,6 +418,27 @@ input, textarea, select {
     font-variant: normal !important;
     color: #cbd5e1;
 }
+
+.menu-item-with-submenu {
+    cursor: pointer;
+}
+
+.submenu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    padding-left: 30px;
+}
+
+.submenu.open {
+    max-height: 200px;
+}
+
+.submenu a {
+    padding: 10px 16px;
+    font-size: 13px;
+    margin-top: 4px;
+}
     </style>
 </head>
 <body>
@@ -434,10 +455,32 @@ input, textarea, select {
             <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
             <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
             <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
-            <a href="/ia-page" style="display: flex; align-items: center; gap: 10px;">
-                <i class="lucide lucide-sparkles" style="color: #fbbf24;"></i> IA Jurídica 
-                <span style="font-size: 9px; background: #fbbf24; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; margin-left: auto;">PREMIUM</span>
-            </a>
+ <div class="menu-item-with-submenu">
+
+    <!-- LINK PRINCIPAL (IA PAGE) -->
+    <a href="/ia-page" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
+        <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
+        IA Jurídica
+        <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">
+            PREMIUM
+        </span>
+    </a>
+
+    <!-- SUBMENU -->
+    <div class="submenu" id="submenu-ia">
+        <a href="/peticoes.html">
+            <i class="lucide lucide-file-text"></i>
+            Petições IA
+        </a>
+
+        <a href="/ia-page">
+            <i class="lucide lucide-bot"></i>
+            Assistente IA
+        </a>
+    </div>
+
+</div>
+
             <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
             <a href="/config-page" class="active"><i class="lucide lucide-settings"></i> Configurações</a>
             <a href="/crm-page" class="btn-crm-gold-nav">
@@ -1538,6 +1581,12 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>`;
         document.body.appendChild(overlay);
     }
+
+    function toggleIaMenu(event) {
+    event.preventDefault(); // impede navegação imediata
+    const submenu = document.getElementById('submenu-ia');
+    submenu.classList.toggle('open');
+}
     </script>
 </body>
 </html>

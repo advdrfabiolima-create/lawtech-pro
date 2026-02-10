@@ -8,25 +8,38 @@ const planMiddleware = require('../middlewares/planMiddleware');
 
 /**
  * ============================================================
- * 📡 ROTA DE SINCRONIZAÇÃO - VERSÃO CORRIGIDA COM PAGINAÇÃO
- * ✅ Busca TODAS as publicações usando paginação
- * ✅ Formato OAB correto: "BA-51288"
+ * 📡 ROTA DE SINCRONIZAÇÃO - VERSÃO CORRIGIDA
+ * ✅ Mudado de GET para POST
+ * ✅ Endpoint correto: /worker/djen/sync
+ * ✅ Logs detalhados
  * ============================================================
  */
-router.get('/publicacoes/sincronizar', authMiddleware, async (req, res) => {
+router.post('/publicacoes/sincronizar', authMiddleware, async (req, res) => {
   try {
     const escritorioId = req.user.escritorio_id;
-    const { dataInicio, dataFim } = req.query;
+    const { dataInicio, dataFim } = req.body; // ← MUDOU: req.body ao invés de req.query
 
     console.log('📄 [SYNC] Enviando solicitação ao WORKER DJEN...');
     console.log('📋 Escritório ID:', escritorioId);
+    console.log('📅 Período:', dataInicio, 'até', dataFim);
 
     if (!process.env.WORKER_URL) {
+      console.error('❌ WORKER_URL não configurada!');
       return res.status(500).json({
         ok: false,
         erro: 'WORKER_URL não configurada no servidor.'
       });
     }
+
+    if (!process.env.WORKER_SECRET) {
+      console.error('❌ WORKER_SECRET não configurada!');
+      return res.status(500).json({
+        ok: false,
+        erro: 'WORKER_SECRET não configurada no servidor.'
+      });
+    }
+
+    console.log('🔗 Worker URL:', process.env.WORKER_URL);
 
     const escritorio = await pool.query(
       'SELECT oab, uf, advogado_responsavel FROM escritorios WHERE id = $1',
@@ -56,6 +69,10 @@ router.get('/publicacoes/sincronizar', authMiddleware, async (req, res) => {
       });
     }
 
+    console.log('👤 Advogado:', advogado_responsavel);
+    console.log('📝 OAB:', oab, '/', uf);
+
+    // ✅ CHAMADA CORRETA AO WORKER
     const response = await axios.post(
       `${process.env.WORKER_URL}/worker/djen/sync`,
       {
@@ -75,15 +92,34 @@ router.get('/publicacoes/sincronizar', authMiddleware, async (req, res) => {
     );
 
     console.log('✅ Worker DJEN executado com sucesso');
+    console.log('📊 Resultado:', response.data);
 
     return res.json({
       ok: true,
-      mensagem: 'Sincronização iniciada com sucesso.',
+      mensagem: `Sincronização concluída! ${response.data.resultado?.novas || 0} novas publicações encontradas.`,
       resultado_worker: response.data
     });
 
   } catch (err) {
     console.error('❌ Erro ao chamar worker DJEN:', err.message);
+    
+    if (err.code === 'ECONNREFUSED') {
+      console.error('❌ Worker offline ou inacessível');
+      return res.status(503).json({
+        ok: false,
+        erro: 'Worker DJEN está temporariamente indisponível.',
+        detalhes: 'O servidor de sincronização não respondeu. Tente novamente em alguns minutos.'
+      });
+    }
+
+    if (err.response) {
+      console.error('❌ Resposta do worker:', err.response.status, err.response.data);
+      return res.status(err.response.status).json({
+        ok: false,
+        erro: 'Erro no worker DJEN',
+        detalhes: err.response.data
+      });
+    }
 
     return res.status(500).json({
       ok: false,
