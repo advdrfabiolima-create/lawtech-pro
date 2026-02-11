@@ -129,7 +129,7 @@ router.post('/sincronizar', authMiddleware, async (req, res) => {
 
 /**
  * ============================================================
- * 📋 BUSCAR PUBLICAÇÕES PENDENTES
+ * 📋 BUSCAR TODAS AS PUBLICAÇÕES
  * ============================================================
  */
 router.get('/publicacoes-pendentes', authMiddleware, async (req, res) => {
@@ -146,13 +146,12 @@ router.get('/publicacoes-pendentes', authMiddleware, async (req, res) => {
                 status
             FROM publicacoes 
             WHERE escritorio_id = $1 
-            AND status = 'pendente' 
             ORDER BY data_publicacao DESC
-            LIMIT 100`;
+            LIMIT 200`;
 
         const result = await pool.query(query, [escritorioId]);
         
-        console.log(`📋 Retornando ${result.rows.length} publicações pendentes`);
+        console.log(`📋 Retornando ${result.rows.length} publicações (todas)`);
         
         res.json(result.rows);
         
@@ -307,6 +306,75 @@ router.post('/publicacoes/manual', authMiddleware, async (req, res) => {
         }
         console.error('❌ Erro ao inserir publicação manual:', err.message);
         res.status(500).json({ erro: 'Erro ao inserir publicação' });
+    }
+});
+
+/**
+ * ============================================================
+ * 🔄 ATUALIZAR STATUS DA PUBLICAÇÃO
+ * ============================================================
+ */
+router.patch('/publicacoes/:id/status', authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        const escritorioId = req.user.escritorio_id;
+
+        console.log('\n========================================');
+        console.log('🔄 [PATCH STATUS] INICIANDO...');
+        console.log('ID:', id);
+        console.log('Novo status:', status);
+        console.log('Escritório:', escritorioId);
+        console.log('========================================');
+
+        if (!['pendente', 'convertida', 'descartada'].includes(status)) {
+            console.error('❌ Status inválido:', status);
+            return res.status(400).json({ 
+                ok: false, 
+                erro: 'Status inválido. Use: pendente, convertida ou descartada' 
+            });
+        }
+
+        console.log('💾 Executando UPDATE...');
+        
+        const result = await pool.query(
+            `UPDATE publicacoes 
+             SET status = $1 
+             WHERE id = $2 AND escritorio_id = $3
+             RETURNING *`,
+            [status, id, escritorioId]
+        );
+
+        console.log('📊 Linhas afetadas:', result.rowCount);
+
+        if (result.rowCount === 0) {
+            console.error('❌ Publicação não encontrada ou não pertence ao escritório');
+            return res.status(404).json({ 
+                ok: false, 
+                erro: 'Publicação não encontrada' 
+            });
+        }
+
+        console.log('✅ Status atualizado com sucesso!');
+        console.log('📦 Publicação atualizada:', result.rows[0]);
+        console.log('========================================\n');
+
+        res.json({ 
+            ok: true, 
+            publicacao: result.rows[0] 
+        });
+    } catch (err) {
+        console.error('\n========================================');
+        console.error('❌ ERRO AO ATUALIZAR STATUS');
+        console.error('Mensagem:', err.message);
+        console.error('Código:', err.code);
+        console.error('========================================\n');
+        
+        res.status(500).json({ 
+            ok: false, 
+            erro: 'Erro ao atualizar status',
+            detalhe: err.message
+        });
     }
 });
 
