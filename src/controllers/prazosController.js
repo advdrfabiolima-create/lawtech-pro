@@ -696,39 +696,80 @@ async function visualizarAnexo(req, res) {
     const prazoId = req.params.id;
     const escritorioId = req.user.escritorio_id;
     
+    console.log(`👁️ [VISUALIZAR ANEXO] Prazo: ${prazoId}, Escritório: ${escritorioId}`);
+    
     // Buscar informações do prazo
     const result = await pool.query(
-      'SELECT anexo_pdf FROM prazos WHERE id = $1 AND escritorio_id = $2',
+      'SELECT anexo_pdf FROM prazos WHERE id = $1 AND escritorio_id = $2 AND deletado = false',
       [prazoId, escritorioId]
     );
     
     if (result.rows.length === 0) {
+      console.warn(`⚠️ [VISUALIZAR ANEXO] Prazo ${prazoId} não encontrado`);
       return res.status(404).json({ erro: 'Prazo não encontrado' });
     }
     
-    if (!result.rows[0].anexo_pdf) {
+    const anexoPdf = result.rows[0].anexo_pdf;
+    
+    if (!anexoPdf) {
+      console.warn(`⚠️ [VISUALIZAR ANEXO] Prazo ${prazoId} não possui anexo`);
       return res.status(404).json({ erro: 'Este prazo não possui anexo' });
     }
     
     // Montar caminho do arquivo
     const path = require('path');
-    const filePath = path.join(__dirname, '..', 'uploads', 'prazos', result.rows[0].anexo_pdf);
+    const fs = require('fs');
+    const filePath = path.join(__dirname, '..', 'uploads', 'prazos', anexoPdf);
+    
+    console.log(`📂 [VISUALIZAR ANEXO] Caminho do arquivo: ${filePath}`);
     
     // Verificar se o arquivo existe
-    const fs = require('fs');
     if (!fs.existsSync(filePath)) {
-      console.error('❌ Arquivo não encontrado:', filePath);
-      return res.status(404).json({ erro: 'Arquivo não encontrado no servidor' });
+      console.error(`❌ [VISUALIZAR ANEXO] Arquivo não encontrado: ${filePath}`);
+      
+      // Limpar referência do banco se arquivo não existe
+      await pool.query(
+        'UPDATE prazos SET anexo_pdf = NULL WHERE id = $1',
+        [prazoId]
+      );
+      
+      return res.status(404).json({ 
+        erro: 'Arquivo não encontrado no servidor',
+        detalhes: 'O arquivo foi removido do sistema. A referência foi limpa.'
+      });
     }
     
-    console.log(`👁️ [VISUALIZAR ANEXO] Servindo PDF do prazo ${prazoId}`);
+    // Verificar se é realmente um PDF
+    const stats = fs.statSync(filePath);
+    console.log(`📊 [VISUALIZAR ANEXO] Tamanho do arquivo: ${stats.size} bytes`);
+    
+    // Configurar headers para PDF
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${anexoPdf}"`);
+    res.setHeader('Content-Length', stats.size);
+    
+    console.log(`✅ [VISUALIZAR ANEXO] Servindo PDF do prazo ${prazoId}`);
     
     // Enviar o arquivo
-    res.sendFile(filePath);
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error(`❌ [VISUALIZAR ANEXO] Erro ao enviar arquivo:`, err);
+        if (!res.headersSent) {
+          res.status(500).json({ erro: 'Erro ao enviar arquivo' });
+        }
+      }
+    });
     
   } catch (err) {
-    console.error('❌ [VISUALIZAR ANEXO] Erro:', err);
-    res.status(500).json({ erro: 'Erro ao buscar PDF' });
+    console.error('❌ [VISUALIZAR ANEXO] Erro:', err.message);
+    console.error('Stack trace:', err.stack);
+    
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        erro: 'Erro ao buscar PDF',
+        detalhes: err.message 
+      });
+    }
   }
 }
 

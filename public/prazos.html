@@ -799,11 +799,11 @@
             <!-- Filtros -->
             <div class="filters-section">
                 <div class="filters-tabs">
-                    <button class="filter-tab active" data-filter="todos">Todos</button>
-                    <button class="filter-tab" data-filter="vencidos">Vencidos</button>
-                    <button class="filter-tab" data-filter="hoje">Hoje</button>
-                    <button class="filter-tab" data-filter="esta-semana">Esta Semana</button>
-                    <button class="filter-tab" data-filter="concluidos">Concluídos</button>
+                    <button class="filter-tab active" data-filter="todos" onclick="filtrarPrazos('todos', this)">Todos</button>
+                    <button class="filter-tab" data-filter="vencidos" onclick="filtrarPrazos('vencidos', this)">Vencidos</button>
+                    <button class="filter-tab" data-filter="hoje" onclick="filtrarPrazos('hoje', this)">Hoje</button>
+                    <button class="filter-tab" data-filter="esta-semana" onclick="filtrarPrazos('esta-semana', this)">Esta Semana</button>
+                    <button class="filter-tab" data-filter="concluidos" onclick="filtrarPrazos('concluidos', this)">Concluídos</button>
                 </div>
                 <div class="filters-actions">
                     <button class="btn-primary" onclick="abrirModalPrazo()">
@@ -816,6 +816,7 @@
             <!-- Lista de Prazos -->
             <div class="section">
                 <div id="lista-futuros"></div>
+                <div id="lista-concluidos"></div>
             </div>
         </div>
     </main>
@@ -926,96 +927,159 @@
         </div>
     </div>
 
-    <script>
-        // Inicializar Lucide Icons
-        lucide.createIcons();
+<script>
+    // Inicializar Lucide Icons
+    lucide.createIcons();
 
-        // Variáveis globais
-        const token = localStorage.getItem('token');
-        if (!token) window.location.href = '/login.html';
-        
-        let todosPrazos = [];
-        let prazoAtualId = null;
-        let arquivoPDFTemporario = null;
+    // Variáveis globais
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login.html';
+    
+    let todosPrazos = [];
+    let prazoAtualId = null;
+    let arquivoPDFTemporario = null;
 
-        // Carregar dados ao iniciar
-        document.addEventListener('DOMContentLoaded', async () => {
-            await carregarInfoRodape();
-            await carregarPrazosModernos();
-            inicializarFiltros();
-        });
+    // Carregar dados ao iniciar
+    document.addEventListener('DOMContentLoaded', async () => {
+        await carregarInfoRodape();
+        await carregarPrazosModernos();
+    });
 
-        // Carregar informações do rodapé e usuário
-        async function carregarInfoRodape() {
-            try {
-                const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
-                const dataUser = await resUser.json();
-                
-                if (dataUser.ok) {
-                    const emailElement = document.getElementById('userEmail');
-                    if (emailElement) {
-                        emailElement.innerText = dataUser.usuario.email || 'Não disponível';
-                    }
-
-                    const nomeCompleto = dataUser.usuario.nome || 'Advogado';
-                    const primeiroNome = nomeCompleto.trim().split(' ')[0];
-                    const nameHeader = document.getElementById('userNameHeader');
-                    if (nameHeader) nameHeader.innerText = primeiroNome;
-
-                    const partes = nomeCompleto.trim().split(' ').filter(n => n);
-                    let iniciais = partes[0][0];
-                    if (partes.length > 1) iniciais += partes[partes.length - 1][0];
-                    
-                    const circulo = document.getElementById('userCircle');
-                    if (circulo) circulo.innerText = iniciais.toUpperCase();
-                }
-
-                const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
-                const dataPlan = await resPlan.json();
-                
-                const planoElement = document.getElementById('planNameFooter');
-                if (planoElement) {
-                    planoElement.innerText = dataPlan.plano || 'Free';
-                }
-            } catch (err) { 
-                console.error("Erro ao carregar rodapé:", err); 
-            }
-        }
-
-        // Motor de Prazos
-        async function carregarPrazosModernos() {
-            const map = [
-                { url: '/api/prazos?status=aberto', container: 'lista-futuros', classe: 'futuro' }
-            ];
+    // Carregar informações do rodapé e usuário
+    async function carregarInfoRodape() {
+        try {
+            const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+            const dataUser = await resUser.json();
             
-            todosPrazos = [];
-            mostrarLoader();
+            if (dataUser.ok) {
+                const emailElement = document.getElementById('userEmail');
+                if (emailElement) {
+                    emailElement.innerText = dataUser.usuario.email || 'Não disponível';
+                }
 
-            for (const item of map) {
-                try {
-                    const res = await fetch(item.url, { headers: { Authorization: `Bearer ${token}` } });
-                    const prazos = await res.json();
-                    const container = document.getElementById(item.container);
-                    
-                    if (!container) {
-                        console.error('Container não encontrado:', item.container);
-                        continue;
+                const nomeCompleto = dataUser.usuario.nome || 'Advogado';
+                const primeiroNome = nomeCompleto.trim().split(' ')[0];
+                const nameHeader = document.getElementById('userNameHeader');
+                if (nameHeader) nameHeader.innerText = primeiroNome;
+
+                const partes = nomeCompleto.trim().split(' ').filter(n => n);
+                let iniciais = partes[0][0];
+                if (partes.length > 1) iniciais += partes[partes.length - 1][0];
+                
+                const circulo = document.getElementById('userCircle');
+                if (circulo) circulo.innerText = iniciais.toUpperCase();
+            }
+
+            const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+            const dataPlan = await resPlan.json();
+            
+            const planoElement = document.getElementById('planNameFooter');
+            if (planoElement) {
+                planoElement.innerText = dataPlan.plano || 'Free';
+            }
+        } catch (err) { 
+            console.error("Erro ao carregar rodapé:", err); 
+        }
+    }
+
+    // Motor de Prazos
+    async function carregarPrazosModernos() {
+        const map = [
+            { url: '/api/prazos?status=aberto', container: 'lista-futuros', classe: 'futuro' },
+            { url: '/api/prazos-concluidos', container: 'lista-concluidos', classe: 'concluido' }
+        ];
+        
+        console.log('🔄 [CARREGAR] Iniciando carregamento de prazos...');
+        
+        todosPrazos = [];
+        mostrarLoader();
+
+        for (const item of map) {
+            try {
+                console.log(`📡 [CARREGAR] Buscando: ${item.url}`);
+                const res = await fetch(item.url, { headers: { Authorization: `Bearer ${token}` } });
+                const prazos = await res.json();
+                
+                console.log(`✅ [CARREGAR] Recebidos ${prazos.length} prazos de ${item.url}`);
+                console.log(`📦 [CARREGAR] Container: ${item.container}, Classe: ${item.classe}`);
+                
+                const container = document.getElementById(item.container);
+                
+                if (!container) {
+                    console.error('❌ [CARREGAR] Container não encontrado:', item.container);
+                    continue;
+                }
+                
+                console.log(`🧹 [CARREGAR] Limpando container ${item.container}...`);
+                container.innerHTML = '';
+                
+                if (prazos.length === 0) {
+                    const mensagem = item.classe === 'concluido' 
+                        ? 'Nenhum prazo concluído ainda.' 
+                        : 'Nenhum prazo ativo encontrado.';
+                    container.innerHTML = `<p style="color:var(--muted); font-size:13px; padding:20px; text-align:center; background:#f8fafc; border-radius:8px;">${mensagem}</p>`;
+                    console.log(`ℹ️ [CARREGAR] Container ${item.container} vazio`);
+                    continue;
+                }
+
+                prazos.forEach(p => {
+                    if (!p.tem_anexo && p.anexo_pdf) {
+                        p.tem_anexo = true;
                     }
-                    
-                    container.innerHTML = '';
-                    
-                    if (prazos.length === 0) {
-                        container.innerHTML = `<p style="color:var(--muted); font-size:12px; padding:10px;">Nenhum prazo encontrado.</p>`;
-                        continue;
-                    }
 
-                    prazos.forEach(p => {
-                        if (!p.tem_anexo && p.anexo_pdf) {
-                            p.tem_anexo = true;
-                        }
-
-                        todosPrazos.push({ ...p, status: item.classe });
+                    // ✅ IMPORTANTE: Marcar status correto
+                    p.concluido = (item.classe === 'concluido' || p.status === 'concluido');
+                    
+                    todosPrazos.push({ ...p, status: item.classe });
+                    
+                    // Se for prazo concluído, renderiza diferente
+                    if (item.classe === 'concluido') {
+                        const dataConclusao = p.concluido_em ? new Date(p.concluido_em).toLocaleDateString('pt-BR') : 'N/A';
                         
+                        container.innerHTML += `
+                        <div class="prazo concluido" 
+                             onclick="exibirObservacaoAtualizada(${p.id})" 
+                             style="cursor:pointer; opacity:0.85;" data-prazo-id="${p.id}">
+                            
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                    <strong style="font-size: 15px; color: var(--sidebar);">${p.tipo || 'Prazo'}</strong>
+                                    <span class="badge" style="background: #ecfdf5; color: #10b981; border: 1px solid #d1fae5; font-size: 10px; font-weight: 800;">
+                                        ✅ CONCLUÍDO
+                                    </span>
+                                </div>
+                                
+                                <div style="display: flex; flex-direction: column; gap: 6px;">
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <i data-lucide="user" style="width: 14px; color: var(--muted);"></i>
+                                        <span style="font-size: 13px; font-weight: 700; color: var(--text-main); text-transform: uppercase;">
+                                            ${p.cliente_nome || 'Cliente não identificado'}
+                                        </span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px; padding-left: 20px;">
+                                        <span style="background: #f1f5f9; color: #475569; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-family: monospace;">
+                                            NPU: ${p.processo_numero || 'Não vinculado'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <small style="display: block; margin-top: 8px; color:var(--muted);">
+                                    ✅ Concluído em: ${dataConclusao}
+                                </small>
+                            </div>
+
+                            <div class="actions-prazo" onclick="event.stopPropagation()">
+                                ${(p.tem_anexo || p.anexo_pdf) ? `
+                                <button onclick="visualizarAnexoPrazo(${p.id})" class="btn-action view" title="Visualizar Anexo" style="color: #8b5cf6;">
+                                    <i data-lucide="paperclip"></i>
+                                </button>
+                                ` : ''}
+                                <button onclick="excluirPrazo(${p.id})" class="btn-action danger" title="Excluir">
+                                    <i data-lucide="trash-2"></i>
+                                </button>
+                            </div>
+                        </div>`;
+                    } else {
+                        // Prazos não concluídos (renderização original)
                         const hoje = new Date();
                         hoje.setHours(0,0,0,0);
                         const vencimento = new Date(p.data_limite);
@@ -1085,341 +1149,326 @@
                                 </button>
                             </div>
                         </div>`;
-                    });
-
-                    setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 100);
-
-                } catch (err) { 
-                    console.error("Erro ao carregar prazos:", err); 
-                    const container = document.getElementById(item.container);
-                    if (container) {
-                        container.innerHTML = '<p style="color:var(--danger); padding:10px;">Erro ao carregar prazos.</p>';
-                    }
-                }
-            }
-            
-            esconderLoader();
-            atualizarEstatisticas();
-        }
-
-        // Atualizar estatísticas
-        function atualizarEstatisticas() {
-            const hoje = new Date();
-            hoje.setHours(0, 0, 0, 0);
-
-            const stats = {
-                total: 0,
-                vencidos: 0,
-                iminentes: 0,
-                concluidos: 0
-            };
-
-            fetch('/api/prazos', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            })
-            .then(res => res.json())
-            .then(allPrazos => {
-                stats.total = allPrazos.length;
-
-                allPrazos.forEach(prazo => {
-                    const dataLimite = new Date(prazo.data_limite);
-                    dataLimite.setHours(0, 0, 0, 0);
-                    const diasRestantes = Math.ceil((dataLimite - hoje) / (1000 * 60 * 60 * 24));
-
-                    if (prazo.concluido) {
-                        stats.concluidos++;
-                    } else if (diasRestantes < 0) {
-                        stats.vencidos++;
-                    } else if (diasRestantes <= 5) {
-                        stats.iminentes++;
                     }
                 });
 
-                document.getElementById('totalPrazos').textContent = stats.total;
-                document.getElementById('totalVencidos').textContent = stats.vencidos;
-                document.getElementById('totalIminentes').textContent = stats.iminentes;
-                document.getElementById('totalConcluidos').textContent = stats.concluidos;
-            })
-            .catch(err => {
-                console.error('Erro ao atualizar estatísticas:', err);
-            });
-        }
+                setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 100);
 
-        // Funções auxiliares
-        function calcularDiferencaDiasFormatado(dataVencimento) {
-            const hoje = new Date();
-            hoje.setHours(0, 0, 0, 0);
-            const vencimento = new Date(dataVencimento);
-            vencimento.setHours(0, 0, 0, 0);
-            
-            const diffTime = vencimento - hoje;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            if (diffDays < 0) return `VENCIDO HÁ ${Math.abs(diffDays)} DIAS`;
-            if (diffDays === 0) return "VENCE HOJE";
-            if (diffDays === 1) return "VENCE AMANHÃ";
-            return `VENCE EM ${diffDays} DIAS`;
-        }
-
-        function calcularUrgencia(data) {
-            const diff = Math.ceil((new Date(data) - new Date()) / (1000 * 60 * 60 * 24));
-            if (diff === 0) return { label: 'HOJE', classe: 'urgente-hoje' };
-            if (diff === 1) return { label: 'AMANHÃ', classe: 'urgente-amanha' };
-            return null;
-        }
-
-        function verDetalhesPrazo(texto) {
-            const modal = document.getElementById('modalIA');
-            const content = document.getElementById('aiResponseContent');
-
-            if (modal && content) {
-                content.innerText = texto;
-                modal.style.display = 'flex';
-            } else {
-                alert("Observações:\n" + texto);
+            } catch (err) { 
+                console.error("Erro ao carregar prazos:", err); 
+                const container = document.getElementById(item.container);
+                if (container) {
+                    container.innerHTML = '<p style="color:var(--danger); padding:10px;">Erro ao carregar prazos.</p>';
+                }
             }
-        }
-
-        function exibirObservacaoAtualizada(id) {
-            const prazo = todosPrazos.find(x => x.id === id);
-            const texto = (prazo && prazo.descricao && prazo.descricao.trim() !== "") 
-                          ? prazo.descricao 
-                          : "Sem observações cadastradas para este prazo.";
-                          
-            verDetalhesPrazo(texto);
-        }
-
-        function mostrarLoader() { 
-            const loader = document.getElementById('loader');
-            if (loader) loader.style.display = 'flex'; 
         }
         
-        function esconderLoader() { 
-            const loader = document.getElementById('loader');
-            if (loader) loader.style.display = 'none'; 
+        esconderLoader();
+        atualizarEstatisticas();
+        
+        // Garantir que apenas a lista correta está visível
+        const listaFuturos = document.getElementById('lista-futuros');
+        const listaConcluidos = document.getElementById('lista-concluidos');
+        
+        const abaConcluidosAtiva = document.querySelector('.filter-tab[data-filter="concluidos"].active');
+        
+        if (abaConcluidosAtiva) {
+            console.log('🎯 [CARREGAR] Aba Concluídos está ativa - mantendo visível');
+            listaFuturos.style.display = 'none';
+            listaConcluidos.style.display = 'block';
+        } else {
+            console.log('🎯 [CARREGAR] Aba Ativos está ativa - escondendo Concluídos');
+            listaFuturos.style.display = 'block';
+            listaConcluidos.style.display = 'none';
         }
+    }
 
-        // Inicializar filtros
-        function inicializarFiltros() {
-            const tabs = document.querySelectorAll('.filter-tab');
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    tabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    const filtro = tab.dataset.filter;
-                    aplicarFiltroAba(filtro);
-                });
-            });
-        }
+    // ✅ CORRIGIDO: Atualizar estatísticas
+    function atualizarEstatisticas() {
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
 
-        // Aplicar filtro de aba
-        function aplicarFiltroAba(filtro) {
-            const hoje = new Date();
-            hoje.setHours(0, 0, 0, 0);
+        const stats = {
+            total: 0,
+            vencidos: 0,
+            iminentes: 0,
+            concluidos: 0
+        };
 
-            document.querySelectorAll('.prazo').forEach(card => {
-                const prazoId = parseInt(card.getAttribute('data-prazo-id'));
-                const prazo = todosPrazos.find(p => p.id === prazoId);
-                
-                if (!prazo) {
-                    card.style.display = 'flex';
-                    return;
-                }
+        // Contar a partir de todosPrazos que já tem todos os dados
+        stats.total = todosPrazos.filter(p => !p.concluido).length;
+        stats.concluidos = todosPrazos.filter(p => p.concluido).length;
 
-                const dataLimite = new Date(prazo.data_limite);
-                dataLimite.setHours(0, 0, 0, 0);
-                const diasRestantes = Math.ceil((dataLimite - hoje) / (1000 * 60 * 60 * 24));
-
-                let mostrar = false;
-
-                switch (filtro) {
-                    case 'todos':
-                        mostrar = !prazo.concluido;
-                        break;
-                    case 'vencidos':
-                        mostrar = !prazo.concluido && diasRestantes < 0;
-                        break;
-                    case 'hoje':
-                        mostrar = !prazo.concluido && diasRestantes === 0;
-                        break;
-                    case 'esta-semana':
-                        mostrar = !prazo.concluido && diasRestantes >= 0 && diasRestantes <= 7;
-                        break;
-                    case 'concluidos':
-                        mostrar = prazo.concluido === true;
-                        break;
-                    default:
-                        mostrar = true;
-                }
-
-                card.style.display = mostrar ? 'flex' : 'none';
-            });
-        }
-
-        // Abrir modal
-        function abrirModalPrazo() {
-            document.getElementById('prazoId').value = '';
-            document.getElementById('tipoPrazo').value = '';
-            document.getElementById('dataPrazo').value = '';
-            document.getElementById('descricaoPrazo').value = '';
-            document.getElementById('clienteId').value = '';
+        todosPrazos.forEach(prazo => {
+            if (prazo.concluido) return; // Pular concluídos
             
-            const selectProcesso = document.getElementById('processoId');
+            const dataLimite = new Date(prazo.data_limite);
+            dataLimite.setHours(0, 0, 0, 0);
+            const diasRestantes = Math.ceil((dataLimite - hoje) / (1000 * 60 * 60 * 24));
+
+            if (diasRestantes < 0) {
+                stats.vencidos++;
+            } else if (diasRestantes <= 5) {
+                stats.iminentes++;
+            }
+        });
+
+        document.getElementById('totalPrazos').textContent = stats.total;
+        document.getElementById('totalVencidos').textContent = stats.vencidos;
+        document.getElementById('totalIminentes').textContent = stats.iminentes;
+        document.getElementById('totalConcluidos').textContent = stats.concluidos;
+        
+        console.log('📊 [ESTATÍSTICAS] Total:', stats.total, '| Concluídos:', stats.concluidos);
+    }
+
+    // Funções auxiliares
+    function calcularDiferencaDiasFormatado(dataVencimento) {
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const vencimento = new Date(dataVencimento);
+        vencimento.setHours(0, 0, 0, 0);
+        
+        const diffTime = vencimento - hoje;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays < 0) return `VENCIDO HÁ ${Math.abs(diffDays)} DIAS`;
+        if (diffDays === 0) return "VENCE HOJE";
+        if (diffDays === 1) return "VENCE AMANHÃ";
+        return `VENCE EM ${diffDays} DIAS`;
+    }
+
+    function calcularUrgencia(data) {
+        const diff = Math.ceil((new Date(data) - new Date()) / (1000 * 60 * 60 * 24));
+        if (diff === 0) return { label: 'HOJE', classe: 'urgente-hoje' };
+        if (diff === 1) return { label: 'AMANHÃ', classe: 'urgente-amanha' };
+        return null;
+    }
+
+    function verDetalhesPrazo(texto) {
+        const modal = document.getElementById('modalIA');
+        const content = document.getElementById('aiResponseContent');
+
+        if (modal && content) {
+            content.innerText = texto;
+            modal.style.display = 'flex';
+        } else {
+            alert("Observações:\n" + texto);
+        }
+    }
+
+    function exibirObservacaoAtualizada(id) {
+        const prazo = todosPrazos.find(x => x.id === id);
+        const texto = (prazo && prazo.descricao && prazo.descricao.trim() !== "") 
+                      ? prazo.descricao 
+                      : "Sem observações cadastradas para este prazo.";
+                      
+        verDetalhesPrazo(texto);
+    }
+
+    function mostrarLoader() { 
+        const loader = document.getElementById('loader');
+        if (loader) loader.style.display = 'flex'; 
+    }
+    
+    function esconderLoader() { 
+        const loader = document.getElementById('loader');
+        if (loader) loader.style.display = 'none'; 
+    }
+
+    // Abrir modal
+    function abrirModalPrazo() {
+        document.getElementById('prazoId').value = '';
+        document.getElementById('tipoPrazo').value = '';
+        document.getElementById('dataPrazo').value = '';
+        document.getElementById('descricaoPrazo').value = '';
+        document.getElementById('clienteId').value = '';
+        
+        const selectProcesso = document.getElementById('processoId');
+        selectProcesso.disabled = false;
+        selectProcesso.style.backgroundColor = "";
+        selectProcesso.style.cursor = "";
+        
+        carregarProcessosSelect();
+        carregarClientesSelect();
+
+        prazoAtualId = null;
+        arquivoPDFTemporario = null;
+        document.getElementById('pdfCard').style.display = 'none';
+        document.getElementById('uploadArea').style.display = 'block';
+
+        document.getElementById('modalPrazo').style.display = 'flex';
+
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+
+    // Carregar processos no select
+    async function carregarProcessosSelect() {
+        const select = document.getElementById('processoId');
+        try {
+            const res = await fetch('/api/processos', { headers: { Authorization: `Bearer ${token}` } });
+            const processos = await res.json();
+            select.innerHTML = '<option value="">Selecione o Processo</option>';
+            processos.forEach(p => { 
+                select.innerHTML += `<option value="${p.id}">${p.numero}</option>`; 
+            });
+        } catch (err) {
+            console.error('Erro ao carregar processos:', err);
+        }
+    }
+
+    // Carregar clientes no select
+    async function carregarClientesSelect() {
+        try {
+            const res = await fetch('/api/clientes', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            const clientes = await res.json();
+            const select = document.getElementById('clienteId');
+            
+            select.innerHTML = '<option value="">Selecione um cliente (opcional)</option>';
+            
+            clientes.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.nome;
+                select.appendChild(opt);
+            });
+        } catch (err) {
+            console.error('Erro ao carregar clientes:', err);
+        }
+    }
+
+    // Fechar modal
+    function fecharModalPrazo() { 
+        document.getElementById('modalPrazo').style.display = 'none'; 
+        document.getElementById('prazoId').value = '';
+        
+        const selectProcesso = document.getElementById('processoId');
+        if (selectProcesso) {
             selectProcesso.disabled = false;
-            selectProcesso.style.backgroundColor = "";
-            selectProcesso.style.cursor = "";
+            selectProcesso.style.backgroundColor = "#fff";
+        }
+        
+        arquivoPDFTemporario = null;
+        prazoAtualId = null;
+    }
+
+    // Salvar prazo
+    async function salvarPrazo() {
+        const prazoId = document.getElementById('prazoId').value;
+        const processoId = document.getElementById('processoId').value;
+        const clienteId = document.getElementById('clienteId').value || null;
+        const tipo = document.getElementById('tipoPrazo').value.trim();
+        const dataLimite = document.getElementById('dataPrazo').value;
+        const descricao = document.getElementById('descricaoPrazo').value.trim();
+
+        if (!processoId || !tipo || !dataLimite) {
+            alert('Preencha todos os campos obrigatórios!');
+            return;
+        }
+
+        try {
+            const url = prazoId ? `/api/prazos/${prazoId}` : '/api/prazos';
+            const method = prazoId ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    processoId,
+                    clienteId,
+                    tipo,
+                    dataLimite,
+                    descricao
+                })
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                alert(data.erro || 'Erro ao salvar');
+                return;
+            }
+
+            const resultado = await res.json();
             
-            carregarProcessosSelect();
-            carregarClientesSelect();
+            // Se criou prazo novo e tem PDF temporário, fazer upload
+            if (!prazoId && arquivoPDFTemporario) {
+                if (resultado.id) {
+                    await uploadPDFAposSalvar(resultado.id);
+                } else {
+                    await uploadPDFParaUltimoPrazo(processoId, tipo, dataLimite);
+                }
+            }
+            
+            alert('✅ Prazo salvo com sucesso!');
+            fecharModalPrazo();
+            await carregarPrazosModernos();
+        } catch (err) {
+            alert('Erro de conexão');
+        }
+    }
 
-            prazoAtualId = null;
-            arquivoPDFTemporario = null;
-            document.getElementById('pdfCard').style.display = 'none';
-            document.getElementById('uploadArea').style.display = 'block';
-
-            document.getElementById('modalPrazo').style.display = 'flex';
-
+    // Upload de PDF
+    async function uploadPDF() {
+        const fileInput = document.getElementById('pdfInput');
+        const file = fileInput.files[0];
+        
+        if (!file) return;
+        
+        if (file.type !== 'application/pdf') {
+            alert('❌ Apenas arquivos PDF são permitidos!');
+            fileInput.value = '';
+            return;
+        }
+        
+        if (file.size > 10 * 1024 * 1024) {
+            alert('❌ Arquivo muito grande! Tamanho máximo: 10MB');
+            fileInput.value = '';
+            return;
+        }
+        
+        // Se está criando prazo, armazenar temporariamente
+        if (!prazoAtualId || prazoAtualId === '' || prazoAtualId === 'null') {
+            arquivoPDFTemporario = file;
+            
+            document.getElementById('uploadArea').style.display = 'none';
+            document.getElementById('pdfCard').style.display = 'flex';
+            document.getElementById('pdfName').textContent = file.name;
+            document.getElementById('pdfSize').textContent = formatarTamanho(file.size);
+            
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
+            
+            console.log('📎 PDF armazenado temporariamente:', file.name);
+            fileInput.value = '';
+            return;
         }
-
-        // Carregar processos no select
-        async function carregarProcessosSelect() {
-            const select = document.getElementById('processoId');
-            try {
-                const res = await fetch('/api/processos', { headers: { Authorization: `Bearer ${token}` } });
-                const processos = await res.json();
-                select.innerHTML = '<option value="">Selecione o Processo</option>';
-                processos.forEach(p => { 
-                    select.innerHTML += `<option value="${p.id}">${p.numero}</option>`; 
-                });
-            } catch (err) {
-                console.error('Erro ao carregar processos:', err);
-            }
-        }
-
-        // Carregar clientes no select
-        async function carregarClientesSelect() {
-            try {
-                const res = await fetch('/api/clientes', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                const clientes = await res.json();
-                const select = document.getElementById('clienteId');
-                
-                select.innerHTML = '<option value="">Selecione um cliente (opcional)</option>';
-                
-                clientes.forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c.id;
-                    opt.textContent = c.nome;
-                    select.appendChild(opt);
-                });
-            } catch (err) {
-                console.error('Erro ao carregar clientes:', err);
-            }
-        }
-
-        // Fechar modal
-        function fecharModalPrazo() { 
-            document.getElementById('modalPrazo').style.display = 'none'; 
-            document.getElementById('prazoId').value = '';
+        
+        // Se já tem ID (editando), fazer upload imediatamente
+        try {
+            const formData = new FormData();
+            formData.append('pdf', file);
             
-            const selectProcesso = document.getElementById('processoId');
-            if (selectProcesso) {
-                selectProcesso.disabled = false;
-                selectProcesso.style.backgroundColor = "#fff";
-            }
+            const response = await fetch(`/api/prazos/${prazoAtualId}/anexo`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
             
-            arquivoPDFTemporario = null;
-            prazoAtualId = null;
-        }
-
-        // Salvar prazo
-        async function salvarPrazo() {
-            const prazoId = document.getElementById('prazoId').value;
-            const processoId = document.getElementById('processoId').value;
-            const clienteId = document.getElementById('clienteId').value || null;
-            const tipo = document.getElementById('tipoPrazo').value.trim();
-            const dataLimite = document.getElementById('dataPrazo').value;
-            const descricao = document.getElementById('descricaoPrazo').value.trim();
-
-            if (!processoId || !tipo || !dataLimite) {
-                alert('Preencha todos os campos obrigatórios!');
-                return;
-            }
-
-            try {
-                const url = prazoId ? `/api/prazos/${prazoId}` : '/api/prazos';
-                const method = prazoId ? 'PUT' : 'POST';
-
-                const res = await fetch(url, {
-                    method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        processoId,
-                        clienteId,
-                        tipo,
-                        dataLimite,
-                        descricao
-                    })
-                });
-
-                if (!res.ok) {
-                    const data = await res.json();
-                    alert(data.erro || 'Erro ao salvar');
-                    return;
-                }
-
-                const resultado = await res.json();
-                
-                // Se criou prazo novo e tem PDF temporário, fazer upload
-                if (!prazoId && arquivoPDFTemporario) {
-                    if (resultado.id) {
-                        await uploadPDFAposSalvar(resultado.id);
-                    } else {
-                        await uploadPDFParaUltimoPrazo(processoId, tipo, dataLimite);
-                    }
-                }
-                
-                alert('✅ Prazo salvo com sucesso!');
-                fecharModalPrazo();
-                carregarPrazosModernos();
-            } catch (err) {
-                alert('Erro de conexão');
-            }
-        }
-
-        // Upload de PDF
-        async function uploadPDF() {
-            const fileInput = document.getElementById('pdfInput');
-            const file = fileInput.files[0];
+            const result = await response.json();
             
-            if (!file) return;
-            
-            if (file.type !== 'application/pdf') {
-                alert('❌ Apenas arquivos PDF são permitidos!');
-                fileInput.value = '';
-                return;
-            }
-            
-            if (file.size > 10 * 1024 * 1024) {
-                alert('❌ Arquivo muito grande! Tamanho máximo: 10MB');
-                fileInput.value = '';
-                return;
-            }
-            
-            // Se está criando prazo, armazenar temporariamente
-            if (!prazoAtualId || prazoAtualId === '' || prazoAtualId === 'null') {
-                arquivoPDFTemporario = file;
-                
-                document.getElementById('uploadArea').style.display = 'none';
+            if (response.ok) {
                 document.getElementById('pdfCard').style.display = 'flex';
+                document.getElementById('uploadArea').style.display = 'none';
                 document.getElementById('pdfName').textContent = file.name;
                 document.getElementById('pdfSize').textContent = formatarTamanho(file.size);
                 
@@ -1427,330 +1476,390 @@
                     lucide.createIcons();
                 }
                 
-                console.log('📎 PDF armazenado temporariamente:', file.name);
-                fileInput.value = '';
-                return;
-            }
-            
-            // Se já tem ID (editando), fazer upload imediatamente
-            try {
-                const formData = new FormData();
-                formData.append('pdf', file);
-                
-                const response = await fetch(`/api/prazos/${prazoAtualId}/anexo`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: formData
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    document.getElementById('pdfCard').style.display = 'flex';
-                    document.getElementById('uploadArea').style.display = 'none';
-                    document.getElementById('pdfName').textContent = file.name;
-                    document.getElementById('pdfSize').textContent = formatarTamanho(file.size);
-                    
-                    if (typeof lucide !== 'undefined') {
-                        lucide.createIcons();
-                    }
-                    
-                    alert('✅ PDF anexado com sucesso!');
-                } else {
-                    throw new Error(result.erro || 'Erro ao anexar PDF');
-                }
-                
-            } catch (err) {
-                console.error('❌ Erro no upload:', err);
-                alert('❌ Erro ao anexar PDF: ' + err.message);
-            }
-            
-            fileInput.value = '';
-        }
-
-        // Upload PDF após salvar
-        async function uploadPDFAposSalvar(prazoId) {
-            if (!arquivoPDFTemporario) return;
-            
-            try {
-                const formData = new FormData();
-                formData.append('pdf', arquivoPDFTemporario);
-                
-                const response = await fetch(`/api/prazos/${prazoId}/anexo`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: formData
-                });
-                
-                if (response.ok) {
-                    console.log('✅ PDF anexado ao prazo recém-criado!');
-                    arquivoPDFTemporario = null;
-                } else {
-                    const result = await response.json();
-                    throw new Error(result.erro || 'Erro ao anexar PDF');
-                }
-                
-            } catch (err) {
-                console.error('❌ Erro ao anexar PDF:', err);
-                alert('⚠️ Prazo salvo, mas ocorreu um erro ao anexar o PDF.');
-                arquivoPDFTemporario = null;
-            }
-        }
-
-        // Upload PDF para último prazo
-        async function uploadPDFParaUltimoPrazo(processoId, tipo, dataLimite) {
-            if (!arquivoPDFTemporario) return;
-            
-            try {
-                const response = await fetch('/api/prazos', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Erro ao buscar prazos');
-                }
-                
-                const prazos = await response.json();
-                
-                const prazoEncontrado = prazos.find(p => 
-                    p.processo_id == processoId && 
-                    p.tipo === tipo && 
-                    p.data_limite.startsWith(dataLimite)
-                );
-                
-                if (!prazoEncontrado) {
-                    throw new Error('Prazo recém-criado não encontrado');
-                }
-                
-                await uploadPDFAposSalvar(prazoEncontrado.id);
-                
-            } catch (err) {
-                console.error('❌ Erro ao buscar prazo para anexar PDF:', err);
-                alert('⚠️ Prazo salvo, mas ocorreu um erro ao anexar o PDF.');
-                arquivoPDFTemporario = null;
-            }
-        }
-
-        // Formatar tamanho
-        function formatarTamanho(bytes) {
-            if (bytes < 1024) return bytes + ' B';
-            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-        }
-
-        // Visualizar PDF
-        async function visualizarPDF() {
-            if (!prazoAtualId) {
-                alert('❌ ID do prazo não encontrado');
-                return;
-            }
-            
-            try {
-                const response = await fetch(`/api/prazos/${prazoAtualId}/anexo`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Erro ao buscar PDF');
-                }
-                
-                const blob = await response.blob();
-                const blobUrl = URL.createObjectURL(blob);
-                window.open(blobUrl, '_blank');
-                
-            } catch (err) {
-                console.error('❌ Erro ao visualizar PDF:', err);
-                alert('❌ Erro ao visualizar PDF');
-            }
-        }
-
-        // Visualizar anexo do prazo
-        async function visualizarAnexoPrazo(prazoId) {
-            if (!prazoId) {
-                alert('❌ ID do prazo não encontrado');
-                return;
-            }
-            
-            try {
-                const response = await fetch(`/api/prazos/${prazoId}/anexo`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Erro ao buscar PDF');
-                }
-                
-                const blob = await response.blob();
-                const blobUrl = URL.createObjectURL(blob);
-                window.open(blobUrl, '_blank');
-                
-            } catch (err) {
-                console.error('❌ Erro ao visualizar PDF:', err);
-                alert('❌ Erro ao visualizar anexo');
-            }
-        }
-
-        // Deletar PDF
-        async function deletarPDF() {
-            if (!confirm('Tem certeza que deseja remover este PDF?')) return;
-            
-            if (!prazoAtualId) {
-                alert('❌ ID do prazo não encontrado');
-                return;
-            }
-            
-            try {
-                const response = await fetch(`/api/prazos/${prazoAtualId}/anexo`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                if (response.ok) {
-                    document.getElementById('pdfCard').style.display = 'none';
-                    document.getElementById('uploadArea').style.display = 'block';
-                    alert('✅ PDF removido com sucesso!');
-                } else {
-                    const result = await response.json();
-                    throw new Error(result.erro || 'Erro ao deletar PDF');
-                }
-                
-            } catch (err) {
-                console.error('❌ Erro ao deletar:', err);
-                alert('❌ Erro ao remover PDF: ' + err.message);
-            }
-        }
-
-        // Editar prazo
-        async function editarPrazo(id) {
-            const prazo = todosPrazos.find(p => p.id === id);
-            if (!prazo) {
-                console.error('Prazo não encontrado');
-                return;
-            }
-
-            prazoAtualId = id;
-            
-            document.getElementById('prazoId').value = id;
-            document.getElementById('processoId').value = prazo.processo_id || '';
-            document.getElementById('tipoPrazo').value = prazo.tipo || '';
-            document.getElementById('dataPrazo').value = prazo.data_limite || '';
-            document.getElementById('descricaoPrazo').value = prazo.descricao || '';
-            document.getElementById('clienteId').value = prazo.cliente_id || '';
-
-            // Carregar selects
-            await carregarProcessosSelect();
-            await carregarClientesSelect();
-            
-            // Definir valores após carregar
-            setTimeout(() => {
-                document.getElementById('processoId').value = prazo.processo_id || '';
-                document.getElementById('clienteId').value = prazo.cliente_id || '';
-            }, 100);
-
-            // Verificar anexo
-            if (prazo.anexo_pdf || prazo.tem_anexo) {
-                document.getElementById('pdfName').textContent = 'Documento anexado';
-                document.getElementById('pdfSize').textContent = 'PDF';
-                document.getElementById('pdfCard').style.display = 'flex';
-                document.getElementById('uploadArea').style.display = 'none';
+                alert('✅ PDF anexado com sucesso!');
             } else {
+                throw new Error(result.erro || 'Erro ao anexar PDF');
+            }
+            
+        } catch (err) {
+            console.error('❌ Erro no upload:', err);
+            alert('❌ Erro ao anexar PDF: ' + err.message);
+        }
+        
+        fileInput.value = '';
+    }
+
+    // Upload PDF após salvar
+    async function uploadPDFAposSalvar(prazoId) {
+        if (!arquivoPDFTemporario) return;
+        
+        try {
+            const formData = new FormData();
+            formData.append('pdf', arquivoPDFTemporario);
+            
+            const response = await fetch(`/api/prazos/${prazoId}/anexo`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            
+            if (response.ok) {
+                console.log('✅ PDF anexado ao prazo recém-criado!');
+                arquivoPDFTemporario = null;
+            } else {
+                const result = await response.json();
+                throw new Error(result.erro || 'Erro ao anexar PDF');
+            }
+            
+        } catch (err) {
+            console.error('❌ Erro ao anexar PDF:', err);
+            alert('⚠️ Prazo salvo, mas ocorreu um erro ao anexar o PDF.');
+            arquivoPDFTemporario = null;
+        }
+    }
+
+    // Upload PDF para último prazo
+    async function uploadPDFParaUltimoPrazo(processoId, tipo, dataLimite) {
+        if (!arquivoPDFTemporario) return;
+        
+        try {
+            const response = await fetch('/api/prazos', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Erro ao buscar prazos');
+            }
+            
+            const prazos = await response.json();
+            
+            const prazoEncontrado = prazos.find(p => 
+                p.processo_id == processoId && 
+                p.tipo === tipo && 
+                p.data_limite.startsWith(dataLimite)
+            );
+            
+            if (!prazoEncontrado) {
+                throw new Error('Prazo recém-criado não encontrado');
+            }
+            
+            await uploadPDFAposSalvar(prazoEncontrado.id);
+            
+        } catch (err) {
+            console.error('❌ Erro ao buscar prazo para anexar PDF:', err);
+            alert('⚠️ Prazo salvo, mas ocorreu um erro ao anexar o PDF.');
+            arquivoPDFTemporario = null;
+        }
+    }
+
+    // Formatar tamanho
+    function formatarTamanho(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    // Visualizar PDF
+    async function visualizarPDF() {
+        if (!prazoAtualId) {
+            alert('❌ ID do prazo não encontrado');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/prazos/${prazoAtualId}/anexo`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Erro ao buscar PDF');
+            }
+            
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            window.open(blobUrl, '_blank');
+            
+        } catch (err) {
+            console.error('❌ Erro ao visualizar PDF:', err);
+            alert('❌ Erro ao visualizar PDF');
+        }
+    }
+
+    // Visualizar anexo do prazo
+    async function visualizarAnexoPrazo(prazoId) {
+        if (!prazoId) {
+            alert('❌ ID do prazo não encontrado');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/prazos/${prazoId}/anexo`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Erro ao buscar PDF');
+            }
+            
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            window.open(blobUrl, '_blank');
+            
+        } catch (err) {
+            console.error('❌ Erro ao visualizar PDF:', err);
+            alert('❌ Erro ao visualizar anexo');
+        }
+    }
+
+    // Deletar PDF
+    async function deletarPDF() {
+        if (!confirm('Tem certeza que deseja remover este PDF?')) return;
+        
+        if (!prazoAtualId) {
+            alert('❌ ID do prazo não encontrado');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/prazos/${prazoAtualId}/anexo`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
                 document.getElementById('pdfCard').style.display = 'none';
                 document.getElementById('uploadArea').style.display = 'block';
+                alert('✅ PDF removido com sucesso!');
+            } else {
+                const result = await response.json();
+                throw new Error(result.erro || 'Erro ao deletar PDF');
             }
-
-            document.getElementById('modalPrazo').style.display = 'flex';
             
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
+        } catch (err) {
+            console.error('❌ Erro ao deletar:', err);
+            alert('❌ Erro ao remover PDF: ' + err.message);
+        }
+    }
+
+    // Editar prazo
+    async function editarPrazo(id) {
+        const prazo = todosPrazos.find(p => p.id === id);
+        if (!prazo) {
+            console.error('Prazo não encontrado');
+            return;
         }
 
-        // Concluir prazo
-        async function concluirPrazo(id) {
-            if (!confirm('Deseja marcar este prazo como concluído?')) return;
+        prazoAtualId = id;
+        
+        document.getElementById('prazoId').value = id;
+        document.getElementById('processoId').value = prazo.processo_id || '';
+        document.getElementById('tipoPrazo').value = prazo.tipo || '';
+        document.getElementById('dataPrazo').value = prazo.data_limite || '';
+        document.getElementById('descricaoPrazo').value = prazo.descricao || '';
+        document.getElementById('clienteId').value = prazo.cliente_id || '';
 
-            try {
-                const response = await fetch(`/api/prazos/${id}/concluir`, {
-                    method: 'PUT',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                    }
-                });
+        // Carregar selects
+        await carregarProcessosSelect();
+        await carregarClientesSelect();
+        
+        // Definir valores após carregar
+        setTimeout(() => {
+            document.getElementById('processoId').value = prazo.processo_id || '';
+            document.getElementById('clienteId').value = prazo.cliente_id || '';
+        }, 100);
 
-                if (response.ok) {
-                    await carregarPrazosModernos();
-                    alert('✅ Prazo concluído com sucesso!');
-                } else {
-                    throw new Error('Erro ao concluir prazo');
+        // Verificar anexo
+        if (prazo.anexo_pdf || prazo.tem_anexo) {
+            document.getElementById('pdfName').textContent = 'Documento anexado';
+            document.getElementById('pdfSize').textContent = 'PDF';
+            document.getElementById('pdfCard').style.display = 'flex';
+            document.getElementById('uploadArea').style.display = 'none';
+        } else {
+            document.getElementById('pdfCard').style.display = 'none';
+            document.getElementById('uploadArea').style.display = 'block';
+        }
+
+        document.getElementById('modalPrazo').style.display = 'flex';
+        
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+
+    // Concluir prazo
+    async function concluirPrazo(id) {
+        if (!confirm('Deseja marcar este prazo como concluído?')) return;
+
+        try {
+            const response = await fetch(`/api/prazos/${id}/concluir`, {
+                method: 'PUT',
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
                 }
-            } catch (err) {
-                console.error('Erro:', err);
-                alert('❌ Erro ao concluir prazo');
-            }
-        }
+            });
 
-        // Excluir prazo
-        async function excluirPrazo(id) {
-            if (!confirm('Tem certeza que deseja deletar este prazo?')) return;
-
-            try {
-                const response = await fetch(`/api/prazos/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (response.ok) {
-                    await carregarPrazosModernos();
-                    alert('✅ Prazo deletado com sucesso!');
-                } else {
-                    throw new Error('Erro ao deletar prazo');
+            if (response.ok) {
+                await carregarPrazosModernos();
+                alert('✅ Prazo concluído com sucesso!');
+                
+                // Trocar automaticamente para aba Concluídos
+                const abaConcluidos = document.querySelector('.filter-tab[data-filter="concluidos"]');
+                if (abaConcluidos) {
+                    filtrarPrazos('concluidos', abaConcluidos);
                 }
-            } catch (err) {
-                console.error('Erro:', err);
-                alert('❌ Erro ao deletar prazo');
+            } else {
+                throw new Error('Erro ao concluir prazo');
             }
+        } catch (err) {
+            console.error('Erro:', err);
+            alert('❌ Erro ao concluir prazo');
         }
+    }
 
-        // Toggle menu usuário
-        function toggleUserMenu() {
+    // Excluir prazo
+    async function excluirPrazo(id) {
+        if (!confirm('Tem certeza que deseja deletar este prazo?')) return;
+
+        try {
+            const response = await fetch(`/api/prazos/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                await carregarPrazosModernos();
+                alert('✅ Prazo deletado com sucesso!');
+                
+                // Voltar para aba Todos
+                const abaTodos = document.querySelector('.filter-tab[data-filter="todos"]');
+                if (abaTodos) {
+                    filtrarPrazos('todos', abaTodos);
+                }
+            } else {
+                throw new Error('Erro ao deletar prazo');
+            }
+        } catch (err) {
+            console.error('Erro:', err);
+            alert('❌ Erro ao deletar prazo');
+        }
+    }
+
+    // Toggle menu usuário
+    function toggleUserMenu() {
+        const m = document.getElementById('userDropdown');
+        if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // Filtrar prazos por aba
+    function filtrarPrazos(filtro, elemento) {
+        console.log('🔍 [FILTRAR] Filtro selecionado:', filtro);
+        
+        // Atualizar classes ativas
+        document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
+        elemento.classList.add('active');
+        
+        const listaFuturos = document.getElementById('lista-futuros');
+        const listaConcluidos = document.getElementById('lista-concluidos');
+        
+        console.log('📋 [FILTRAR] Lista futuros:', listaFuturos ? 'OK' : 'NÃO ENCONTRADA');
+        console.log('📋 [FILTRAR] Lista concluídos:', listaConcluidos ? 'OK' : 'NÃO ENCONTRADA');
+        
+        if (filtro === 'concluidos') {
+            // Mostrar concluídos
+            console.log('✅ [FILTRAR] Mudando para aba Concluídos');
+            console.log('📊 [FILTRAR] Conteúdo do container:', listaConcluidos.innerHTML.length, 'caracteres');
+            
+            listaFuturos.style.display = 'none';
+            listaConcluidos.style.display = 'block';
+            
+            if (listaConcluidos.innerHTML.trim() === '' || listaConcluidos.innerHTML.length < 100) {
+                console.warn('⚠️ [FILTRAR] Container de concluídos está VAZIO ou muito pequeno!');
+                console.warn('⚠️ [FILTRAR] Tentando recarregar...');
+                carregarPrazosModernos();
+            }
+        } else {
+            // Mostrar ativos e filtrar
+            console.log('📂 [FILTRAR] Filtrando prazos ativos:', filtro);
+            listaFuturos.style.display = 'block';
+            listaConcluidos.style.display = 'none';
+            
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            
+            // Pegar todos os cards de prazo
+            const cards = listaFuturos.querySelectorAll('[data-prazo-id]');
+            console.log('📌 [FILTRAR] Total de cards encontrados:', cards.length);
+            
+            cards.forEach(card => {
+                const prazoId = parseInt(card.dataset.prazoId);
+                const prazo = todosPrazos.find(p => p.id === prazoId);
+                
+                if (!prazo) {
+                    card.style.display = 'none';
+                    return;
+                }
+                
+                const vencimento = new Date(prazo.data_limite);
+                vencimento.setHours(0, 0, 0, 0);
+                const diff = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
+                
+                let mostrar = false;
+                
+                switch(filtro) {
+                    case 'todos':
+                        mostrar = true;
+                        break;
+                    case 'vencidos':
+                        mostrar = diff < 0;
+                        break;
+                    case 'hoje':
+                        mostrar = diff === 0;
+                        break;
+                    case 'esta-semana':
+                        mostrar = diff >= 0 && diff <= 7;
+                        break;
+                }
+                
+                card.style.display = mostrar ? '' : 'none';
+            });
+        }
+        
+        // Atualizar ícones
+        setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 50);
+    }
+
+    // Fechar menu ao clicar fora
+    window.addEventListener('click', (e) => {
+        if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
             const m = document.getElementById('userDropdown');
-            if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
+            if(m) m.style.display = 'none';
         }
+    });
 
-        // Fechar menu ao clicar fora
-        window.addEventListener('click', (e) => {
-            if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {
-                const m = document.getElementById('userDropdown');
-                if(m) m.style.display = 'none';
-            }
-        });
+    // Logout
+    function logout() { 
+        localStorage.removeItem('token'); 
+        window.location.href = '/login.html'; 
+    }
 
-        // Logout
-        function logout() { 
-            localStorage.removeItem('token'); 
-            window.location.href = '/login.html'; 
-        }
+    // Atualizar ícones periodicamente
+    setInterval(() => { if (window.lucide) lucide.createIcons(); }, 1000);
 
-        // Atualizar ícones periodicamente
-        setInterval(() => { if (window.lucide) lucide.createIcons(); }, 1000);
-
-        function toggleIaMenu(event) {
-    event.preventDefault(); // impede navegação imediata
-    const submenu = document.getElementById('submenu-ia');
-    submenu.classList.toggle('open');
-}
-    </script>
+    function toggleIaMenu(event) {
+        event.preventDefault();
+        const submenu = document.getElementById('submenu-ia');
+        submenu.classList.toggle('open');
+    }
+</script>
 </body>
 </html>

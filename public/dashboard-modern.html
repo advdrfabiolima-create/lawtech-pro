@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="js/modal-welcome.js"></script>
 
     <style>
         :root {
@@ -1291,10 +1292,258 @@ input, textarea, select {
     text-align: left; /* Garante alinhamento à esquerda */
 }
 
+       /* Modal de Boas-Vindas */
+        .modal-welcome {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
 
+        .modal-welcome.show {
+            display: flex;
+        }
+
+        .welcome-content {
+            background: white;
+            max-width: 550px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: slideInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .welcome-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .welcome-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .welcome-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1e40af;
+            margin-bottom: 6px;
+        }
+
+        .welcome-subtitle {
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        .welcome-form {
+            margin-top: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4A90E2;
+            box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 16px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, #4A90E2, #5BA4DB);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 16px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(74, 144, 226, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .info-box {
+            background: #eff6ff;
+            border: 2px solid #bfdbfe;
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 24px;
+        }
+
+        .info-box strong {
+            color: #1e40af;
+            font-size: 13px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .sync-indicator {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            background: #f0fdf4;
+            border-radius: 10px;
+            margin-top: 16px;
+        }
+
+        .sync-indicator.show {
+            display: block;
+        }
+
+        .sync-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #d1fae5;
+            border-top-color: #10b981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .sync-message {
+            font-size: 14px;
+            font-weight: 600;
+            color: #065f46;
+        }
     </style>
 </head>
 <body>
+
+    <!-- MODAL DE BOAS-VINDAS -->
+<div class="modal-welcome" id="modalWelcome">
+    <div class="welcome-content">
+        <div class="welcome-header">
+            <div class="welcome-icon">👋</div>
+            <h1 class="welcome-title">Bem-vindo ao LawTech Pro!</h1>
+            <p class="welcome-subtitle">
+                Sua plataforma completa para gestão jurídica está pronta para uso.
+                Comece cadastrando seus clientes e processos.
+            </p>
+        </div>
+
+        <div style="margin: 20px 0;">
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                <!-- Card Clientes -->
+                <div style="background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); border-radius: 10px; padding: 16px; color: white; text-align: center;">
+                    <i data-lucide="users" style="width: 36px; height: 36px; margin: 0 auto 8px; display: block;"></i>
+                    <h3 style="font-size: 14px; margin-bottom: 4px; font-weight: 700;">Clientes</h3>
+                    <p style="font-size: 11px; opacity: 0.85; margin-bottom: 8px;">Gerencie sua carteira</p>
+                    <a href="/clientes-page" style="display: inline-block; padding: 6px 12px; background: rgba(255,255,255,0.2); border-radius: 5px; color: white; text-decoration: none; font-size: 11px; font-weight: 600;">
+                        Acessar →
+                    </a>
+                </div>
+
+                <!-- Card Processos -->
+                <div style="background: linear-gradient(135deg, #52B788 0%, #3D8B64 100%); border-radius: 10px; padding: 16px; color: white; text-align: center;">
+                    <i data-lucide="folder" style="width: 36px; height: 36px; margin: 0 auto 8px; display: block;"></i>
+                    <h3 style="font-size: 14px; margin-bottom: 4px; font-weight: 700;">Processos</h3>
+                    <p style="font-size: 11px; opacity: 0.85; margin-bottom: 8px;">Cadastre e monitore</p>
+                    <a href="/processos-page" style="display: inline-block; padding: 6px 12px; background: rgba(255,255,255,0.2); border-radius: 5px; color: white; text-decoration: none; font-size: 11px; font-weight: 600;">
+                        Acessar →
+                    </a>
+                </div>
+
+                <!-- Card Prazos -->
+                <div style="background: linear-gradient(135deg, #F2A65A 0%, #E89544 100%); border-radius: 10px; padding: 16px; color: white; text-align: center;">
+                    <i data-lucide="clock" style="width: 36px; height: 36px; margin: 0 auto 8px; display: block;"></i>
+                    <h3 style="font-size: 14px; margin-bottom: 4px; font-weight: 700;">Prazos</h3>
+                    <p style="font-size: 11px; opacity: 0.85; margin-bottom: 8px;">Controle prazos</p>
+                    <a href="/prazos-page" style="display: inline-block; padding: 6px 12px; background: rgba(255,255,255,0.2); border-radius: 5px; color: white; text-decoration: none; font-size: 11px; font-weight: 600;">
+                        Acessar →
+                    </a>
+                </div>
+
+                <!-- Card IA Jurídica -->
+                <div style="background: linear-gradient(135deg, #7E8CE0 0%, #5E6CB0 100%); border-radius: 10px; padding: 16px; color: white; text-align: center;">
+                    <i data-lucide="sparkles" style="width: 36px; height: 36px; margin: 0 auto 8px; display: block;"></i>
+                    <h3 style="font-size: 14px; margin-bottom: 4px; font-weight: 700;">IA Jurídica</h3>
+                    <p style="font-size: 11px; opacity: 0.85; margin-bottom: 8px;">Petições e assistente</p>
+                    <a href="/ia-page" style="display: inline-block; padding: 6px 12px; background: rgba(255,255,255,0.2); border-radius: 5px; color: white; text-decoration: none; font-size: 11px; font-weight: 600;">
+                        Acessar →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="btn-primary" onclick="fecharModalBoasVindas()">
+            🚀 Começar a Usar
+        </button>
+    </div>
+</div>
 
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -1625,6 +1874,47 @@ input, textarea, select {
     <script>
         // 🛡️ VERIFICAÇÃO DE SEGURANÇA OBRIGATÓRIA
         const token = localStorage.getItem('token');
+
+// ============================================================
+// VERIFICAR SE PRECISA MOSTRAR MODAL
+// ============================================================
+// ============================================================
+// VERIFICAR SE É PRIMEIRA VEZ DO USUÁRIO
+// ============================================================
+async function verificarPrimeiroAcesso() {
+    try {
+        const primeiroAcesso = localStorage.getItem('lawtech_primeiro_acesso');
+        
+        if (!primeiroAcesso) {
+            // Primeira vez - mostrar modal de boas-vindas
+            setTimeout(() => {
+                document.getElementById('modalWelcome').classList.add('show');
+                // Inicializar ícones Lucide no modal
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            }, 500);
+        }
+    } catch (err) {
+        console.error('Erro ao verificar primeiro acesso:', err);
+    }
+}
+
+// ============================================================
+// FECHAR MODAL DE BOAS-VINDAS
+// ============================================================
+function fecharModalBoasVindas() {
+    document.getElementById('modalWelcome').classList.remove('show');
+    localStorage.setItem('lawtech_primeiro_acesso', 'false');
+    console.log('✅ Modal de boas-vindas fechado');
+}
+
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+    verificarPrimeiroAcesso();
+});
         if (!token) {
             window.location.href = '/login.html';
         } else {
@@ -1757,10 +2047,8 @@ async function inicializarDashboard() {
 
             if (user.escritorio_data_criacao) iniciarCronometroTrial(user.escritorio_data_criacao);
 
-            if (user.perfilCompleto === false) {
-                const modalW = document.getElementById('modalWelcome');
-                if (modalW) modalW.style.display = 'flex';
-            }
+            // ✅ REMOVIDO: Verificação duplicada que forçava modal aparecer
+            // O modal já é controlado por verificarPrimeiroAcesso() via localStorage
         }
 
         // --- PLANO E CONSUMO ---

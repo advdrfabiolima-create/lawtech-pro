@@ -26,6 +26,7 @@ const usuariosRoutes = require('./routes/usuarios.routes');
 const adminRoutes = require('./routes/admin.routes');
 const partesProcessoRoutes = require('./routes/partesProcesso.routes');
 const peticoesRoutes = require('./routes/peticoes.routes');
+const syncRoutes = require('./routes/sync.routes');
 
 // --- 2. MIDDLEWARES DE AUTENTICAÇÃO ---
 const authMiddleware = require('./middlewares/authMiddleware');
@@ -72,6 +73,7 @@ app.use('/api', publicacoesRoutes);
 app.use('/api', recibosRoutes);
 app.use('/api', partesProcessoRoutes);
 app.use('/api/peticoes', authMiddleware, peticoesRoutes);
+app.use('/api', syncRoutes);
 
 // ✅ Rota do monitor admin
 app.get('/systems/monitor', (req, res) => {
@@ -80,6 +82,7 @@ app.get('/systems/monitor', (req, res) => {
 
 // ✅ Proteção das rotas de dados do admin
 app.use('/systems', authMiddleware, masterAdminOnly, adminRoutes);
+
 
 if (process.env.NODE_ENV === 'production') {
 require('./cron/djen_scraper_cron');

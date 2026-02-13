@@ -17,6 +17,7 @@ async function listarClientes(req, res) {
                 c.endereco, 
                 c.cidade, 
                 c.estado,
+                c.data_nascimento,
                 -- Contar processos onde este cliente está em qualquer polo (ativo OU passivo)
                 (SELECT COUNT(DISTINCT pp.processo_id)::int 
                  FROM partes_processo pp
@@ -65,34 +66,104 @@ async function criarCliente(req, res) {
     }
 }
 
-// 3. Editar Cliente (Sincronizado com Documento e Endereço)
+// 3. Editar Cliente (CORRIGIDO: retorna cliente atualizado)
 async function editarCliente(req, res) {
     const { id } = req.params;
-    const { nome, documento, email, telefone, endereco, cep, cidade, estado } = req.body;
+    const { nome, documento, email, telefone, endereco, cep, cidade, estado, data_nascimento } = req.body;
+    const escritorioId = req.user.escritorio_id;
+    
     try {
-        const query = `
+        // Primeiro: atualizar os dados
+        const updateQuery = `
             UPDATE clientes 
-            SET nome = $1, documento = $2, email = $3, telefone = $4, endereco = $5, cep = $6, cidade = $7, estado = $8 
-            WHERE id = $9 AND escritorio_id = $10
+            SET nome = $1, 
+                documento = $2, 
+                email = $3, 
+                telefone = $4, 
+                endereco = $5, 
+                cep = $6, 
+                cidade = $7, 
+                estado = $8,
+                data_nascimento = $9
+            WHERE id = $10 AND escritorio_id = $11
         `;
-        const values = [nome, documento, email, telefone, endereco, cep, cidade, estado, id, req.user.escritorio_id];
         
-        await pool.query(query, values);
-        res.json({ ok: true });
+        const updateValues = [
+            nome, 
+            documento, 
+            email, 
+            telefone, 
+            endereco, 
+            cep, 
+            cidade, 
+            estado, 
+            data_nascimento || null,
+            id, 
+            escritorioId
+        ];
+        
+        await pool.query(updateQuery, updateValues);
+        
+        // Segundo: buscar o cliente atualizado para retornar
+        const selectQuery = `
+            SELECT 
+                c.id, 
+                c.nome, 
+                c.documento, 
+                c.email, 
+                c.telefone, 
+                c.cep, 
+                c.endereco, 
+                c.cidade, 
+                c.estado,
+                c.data_nascimento,
+                (SELECT COUNT(DISTINCT pp.processo_id)::int 
+                 FROM partes_processo pp
+                 INNER JOIN processos p ON p.id = pp.processo_id
+                 WHERE pp.pessoa_id = c.id 
+                 AND p.escritorio_id = $2
+                 AND p.status != 'excluido'
+                ) as total_processos
+            FROM clientes c 
+            WHERE c.id = $1 AND c.escritorio_id = $2
+        `;
+        
+        const result = await pool.query(selectQuery, [id, escritorioId]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ erro: 'Cliente não encontrado' });
+        }
+        
+        console.log('✅ Cliente atualizado com sucesso:', result.rows[0].nome);
+        res.json(result.rows[0]); // ✅ RETORNA O CLIENTE COMPLETO ATUALIZADO
+        
     } catch (error) {
         console.error('❌ Erro ao editar cliente:', error.message);
-        res.status(500).json({ erro: 'Erro ao editar' });
+        res.status(500).json({ erro: 'Erro ao editar: ' + error.message });
     }
 }
 
 // 4. Excluir Cliente
 async function excluirCliente(req, res) {
     const { id } = req.params;
+    const escritorioId = req.user.escritorio_id;
+    
     try {
-        await pool.query('DELETE FROM clientes WHERE id = $1 AND escritorio_id = $2', [id, req.user.escritorio_id]);
+        const result = await pool.query(
+            'DELETE FROM clientes WHERE id = $1 AND escritorio_id = $2',
+            [id, escritorioId]
+        );
+        
+        if (result.rowCount === 0) {
+            return res.status(404).json({ erro: 'Cliente não encontrado' });
+        }
+        
+        console.log('✅ Cliente excluído com sucesso, ID:', id);
         res.json({ ok: true });
+        
     } catch (error) {
-        res.status(500).json({ erro: 'Erro ao excluir' });
+        console.error('❌ Erro ao excluir cliente:', error.message);
+        res.status(500).json({ erro: 'Erro ao excluir: ' + error.message });
     }
 }
 
