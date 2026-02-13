@@ -266,7 +266,7 @@
             background: white;
             border: 1.5px solid #e2e8f0; 
             padding: 10px 20px; 
-            border-radius: 20px; /* Pills arredondadas */
+            border-radius: 6px; /* Border-radius padrão */
             cursor: pointer; 
             font-size: 12px; 
             font-weight: 700; 
@@ -497,60 +497,75 @@
 }
 
 /* ÍCONES DAS ABAS */
-.aba-btn i {
+.aba-btn i,
+.aba-btn svg {
     opacity: 0.85;
     transition: all 0.3s;
 }
 
-.aba-btn.active i {
+.aba-btn.active i,
+.aba-btn.active svg {
     opacity: 1;
     filter: drop-shadow(0 0 4px rgba(255,255,255,0.3));
 }
 
-/* ABA LIXEIRA - Design especial com badge */
+.aba-btn.active svg {
+    stroke: white;
+}
+
+.aba-btn:hover:not(.active) svg {
+    stroke: #475569;
+}
+
+/* ABA LIXEIRA - Design especial */
 #btnTabExcluido {
     position: relative;
-    padding-right: 32px; /* Espaço extra para o badge */
+    display: inline-flex;
+    align-items: center;
 }
 
-#btnTabExcluido::after {
-    content: 'AUDITORIA';
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-    color: white;
-    font-size: 7px;
-    font-weight: 900;
-    padding: 4px 7px;
-    border-radius: 6px;
-    letter-spacing: 0.8px;
-    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.5);
-    white-space: nowrap;
-    z-index: 10;
+#btnTabExcluido svg {
+    margin-right: 6px;
+    transition: all var(--transition-base);
 }
 
-/* Quando lixeira está ativa - mantém design azul padrão */
+/* Quando lixeira NÃO está ativa - mostrar apenas ícone */
+#btnTabExcluido:not(.active)::after {
+    content: 'LIXEIRA';
+    margin-left: 0px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* Quando lixeira está ATIVA - vermelho com texto branco "LIXEIRA AUDITORIA" */
 #btnTabExcluido.active {
-    background: linear-gradient(135deg, #4A90E2 0%, #5BA4DB 100%);
-    border-color: #4A90E2;
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    border-color: #dc2626;
     color: white;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+#btnTabExcluido.active svg {
+    stroke: white;
 }
 
 #btnTabExcluido.active::after {
-    background: white;
-    color: #dc2626;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    content: 'LIXEIRA AUDITORIA';
+    margin-left: 0px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
 }
 
-/* Hover na lixeira - sutil */
+/* Hover na lixeira quando NÃO está ativa */
 #btnTabExcluido:hover:not(.active) {
     border-color: #fca5a5;
     color: #dc2626;
 }
 
-#btnTabExcluido:hover:not(.active) i {
-    color: #dc2626;
+#btnTabExcluido:hover:not(.active) svg {
+    stroke: #dc2626;
 }
 
 /* ============================================================
@@ -1545,22 +1560,34 @@ input, textarea, select {
                     <button id="btnTabAtivo" 
                             class="aba-btn ${abaAtual === 'ativo' ? 'active' : ''}" 
                             onclick="mudarAba('ativo')">
-                        <i class="lucide lucide-folder-open" style="width:18px; height:18px; margin-right:6px;"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                        </svg>
                         Processos Ativos
                     </button>
                     
                     <button id="btnTabArquivado" 
                             class="aba-btn ${abaAtual === 'arquivado' ? 'active' : ''}" 
                             onclick="mudarAba('arquivado')">
-                        <i class="lucide lucide-archive" style="width:18px; height:18px; margin-right:6px;"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
+                            <rect width="20" height="5" x="2" y="3" rx="1"/>
+                            <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/>
+                            <path d="M10 12h4"/>
+                        </svg>
                         Arquivados
                     </button>
                     
                     <button id="btnTabExcluido" 
                             class="aba-btn ${abaAtual === 'excluido' ? 'active' : ''}" 
                             onclick="mudarAba('excluido')">
-                        <i class="lucide lucide-trash-2" style="width:18px; height:18px; margin-right:6px;"></i>
-                        Lixeira
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;">
+                            <path d="M3 6h18"/>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                            <line x1="10" x2="10" y1="11" y2="17"/>
+                            <line x1="14" x2="14" y1="11" y2="17"/>
+                        </svg>
                     </button>
                 </div>
 

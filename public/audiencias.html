@@ -1,10 +1,16 @@
 <!DOCTYPE html>
+<!-- VERSÃO ATUALIZADA: 2026-02-13 11:15:00 - COM MODAL DE ATA FUNCIONANDO -->
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8" />
     <title>LawTech Pro — Agenda de Audiências</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- FORÇAR RELOAD SEM CACHE -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
 
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
@@ -496,7 +502,12 @@
             width: 24px;
             height: 24px;
             color: white;
+            stroke: white !important;
             stroke-width: 2;
+        }
+
+        .stat-card-icon svg {
+            stroke: white !important;
         }
 
         .stat-card-label {
@@ -1183,7 +1194,7 @@
             <div class="stats-container">
                 <div class="stat-card">
                     <div class="stat-card-icon">
-                        <i class="lucide lucide-calendar" style="width: 24px; height: 24px; stroke-width: 2.5;"></i>
+                        <i data-lucide="calendar" class="lucide lucide-calendar" style="width: 24px; height: 24px; stroke-width: 2.5;"></i>
                     </div>
                     <div class="stat-card-value" id="totalAudiencias">0</div>
                     <div class="stat-card-label">TOTAL DE AUDIÊNCIAS</div>
@@ -1191,7 +1202,7 @@
 
                 <div class="stat-card orange">
                     <div class="stat-card-icon">
-                        <i class="lucide lucide-calendar-clock" style="width: 24px; height: 24px; stroke-width: 2.5;"></i>
+                        <i data-lucide="calendar-clock" class="lucide lucide-calendar-clock" style="width: 24px; height: 24px; stroke-width: 2.5;"></i>
                     </div>
                     <div class="stat-card-value" id="audienciasAgendadas">0</div>
                     <div class="stat-card-label">AUDIÊNCIAS AGENDADAS</div>
@@ -1199,7 +1210,7 @@
 
                 <div class="stat-card green">
                     <div class="stat-card-icon">
-                        <i class="lucide lucide-calendar-check" style="width: 24px; height: 24px; stroke-width: 2.5;"></i>
+                        <i data-lucide="calendar-check" class="lucide lucide-calendar-check" style="width: 24px; height: 24px; stroke-width: 2.5;"></i>
                     </div>
                     <div class="stat-card-value" id="audienciasRealizadas">0</div>
                     <div class="stat-card-label">AUDIÊNCIAS REALIZADAS</div>
@@ -1359,9 +1370,38 @@
         </div>
     </div>
 
+    <!-- Modal ATA -->
+    <div class="modal" id="modalAta">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="lucide lucide-file-text"></i> <span id="tituloModalAta">ATA DA AUDIÊNCIA</span></h2>
+                <button class="close" onclick="fecharModalAta()">×</button>
+            </div>
+            <form id="formAta" onsubmit="salvarAta(event)">
+                <div class="modal-body">
+                    <div class="form-group full-width">
+                        <label>REGISTRE O QUE OCORREU NA AUDIÊNCIA *</label>
+                        <textarea id="ataTexto" style="min-height: 300px;" placeholder="Descreva os acontecimentos da audiência, acordos realizados, testemunhas ouvidas, documentos apresentados, próximos passos, etc." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="fecharModalAta()">CANCELAR</button>
+                    <button type="submit" class="btn-primary">
+                        <i class="lucide lucide-save"></i>
+                        <span id="textoSalvarAta">SALVAR ATA</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.451.0/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/imask@7.1.3/dist/imask.min.js"></script>
     <script>
+        // ========== VERSÃO ATUALIZADA - 13/02/2026 11:30 ==========
+        console.log('🎯 AUDIENCIAS.HTML CARREGADO - VERSÃO 13/02/2026 11:30');
+        console.log('✅ Função abrirModalRegistrarAta: ', typeof abrirModalRegistrarAta !== 'undefined' ? 'EXISTE' : 'NÃO EXISTE');
+        
         const token = localStorage.getItem('token');
         if (!token) window.location.href = '/login';
 
@@ -1536,7 +1576,7 @@
                                         <i class="lucide lucide-message-circle"></i>
                                         <span>WHATSAPP</span>
                                     </button>
-                                    <button class="btn-action btn-realizada" onclick="marcarComoRealizada(${a.id})">
+                                    <button class="btn-action btn-realizada" onclick="abrirModalRegistrarAta(${a.id})">
                                         <i class="lucide lucide-check"></i>
                                         <span>REALIZADA</span>
                                     </button>
@@ -1573,6 +1613,10 @@
                             <td style="font-size:12px; color:var(--muted); max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.local_virtual || a.local || '---'}</td>
                             <td>
                                 <div class="action-buttons">
+                                    <button class="btn-action btn-edit" data-ata-id="${a.id}" data-ata-texto="${(a.ata_audiencia || '').replace(/"/g, '&quot;').replace(/\n/g, '&#10;')}" onclick="abrirModalVerAtaSeguro(this)">
+                                        <i class="lucide lucide-file-text"></i>
+                                        <span>VER ATA</span>
+                                    </button>
                                     <button class="btn-action btn-delete" onclick="excluirAudiencia(${a.id})">
                                         <i class="lucide lucide-trash-2"></i>
                                         <span>EXCLUIR</span>
@@ -1727,28 +1771,115 @@
             }
         });
 
-        // Marcar como realizada
-        async function marcarComoRealizada(id) {
-            if (!confirm("CONFIRMAR QUE A AUDIÊNCIA FOI REALIZADA?")) return;
+        // ========== FUNÇÕES ATA ==========
+        let audienciaAtaId = null;
+        let modoRegistrarAta = false; // true = registrar (ao marcar realizada), false = visualizar/editar
+
+        // Abrir modal para REGISTRAR ATA (quando clica em REALIZADA)
+        function abrirModalRegistrarAta(id) {
+            console.log('🎯 Abrindo modal para REGISTRAR ATA, ID:', id);
+            audienciaAtaId = id;
+            modoRegistrarAta = true;
             
+            document.getElementById('tituloModalAta').textContent = 'REGISTRAR ATA DA AUDIÊNCIA';
+            document.getElementById('textoSalvarAta').textContent = 'SALVAR ATA E MARCAR COMO REALIZADA';
+            document.getElementById('ataTexto').value = '';
+            document.getElementById('ataTexto').required = true;
+            document.getElementById('modalAta').style.display = 'flex';
+            
+            setTimeout(() => lucide.createIcons(), 100);
+        }
+
+        // Abrir modal para VER/EDITAR ATA (audiências já realizadas)
+        function abrirModalVerAta(id, ataAtual) {
+            console.log('👁️ Abrindo modal para VER ATA, ID:', id);
+            audienciaAtaId = id;
+            modoRegistrarAta = false;
+            
+            document.getElementById('tituloModalAta').textContent = 'VER/EDITAR ATA DA AUDIÊNCIA';
+            document.getElementById('textoSalvarAta').textContent = 'SALVAR ALTERAÇÕES';
+            document.getElementById('ataTexto').value = ataAtual || '';
+            document.getElementById('ataTexto').required = false;
+            document.getElementById('modalAta').style.display = 'flex';
+            
+            setTimeout(() => lucide.createIcons(), 100);
+        }
+
+        // Versão segura que pega do data-attribute
+        function abrirModalVerAtaSeguro(button) {
+            const id = button.getAttribute('data-ata-id');
+            const ataTexto = button.getAttribute('data-ata-texto');
+            
+            // Decodificar entities HTML
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = ataTexto;
+            const ataDecodificada = textarea.value;
+            
+            abrirModalVerAta(id, ataDecodificada);
+        }
+
+        // Fechar modal de ATA
+        function fecharModalAta() {
+            document.getElementById('modalAta').style.display = 'none';
+            document.getElementById('ataTexto').value = '';
+            audienciaAtaId = null;
+            modoRegistrarAta = false;
+        }
+
+        // Salvar ATA
+        async function salvarAta(event) {
+            event.preventDefault();
+            
+            if (!audienciaAtaId) {
+                alert("❌ ERRO: ID DA AUDIÊNCIA NÃO ENCONTRADO!");
+                return;
+            }
+
+            const ataTexto = document.getElementById('ataTexto').value;
+
             try {
-                const res = await fetch(`/api/audiencias/${id}/realizada`, {
+                // 1. Salvar ATA
+                const resAta = await fetch(`/api/audiencias/${audienciaAtaId}/ata`, {
                     method: 'PUT',
                     headers: { 
+                        'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}` 
-                    }
+                    },
+                    body: JSON.stringify({ ata_audiencia: ataTexto })
                 });
 
-                if (res.ok) {
-                    alert("✅ AUDIÊNCIA MARCADA COMO REALIZADA!");
-                    await carregarAudiencias();
-                    trocarAba('realizadas');
+                if (!resAta.ok) {
+                    const erro = await resAta.json();
+                    alert("❌ ERRO AO SALVAR ATA: " + (erro.erro || erro.error || 'Erro desconhecido'));
+                    return;
+                }
+
+                // 2. Se estiver no modo REGISTRAR, marcar como realizada
+                if (modoRegistrarAta) {
+                    const resRealizada = await fetch(`/api/audiencias/${audienciaAtaId}/realizada`, {
+                        method: 'PUT',
+                        headers: { 
+                            'Authorization': `Bearer ${token}` 
+                        }
+                    });
+
+                    if (resRealizada.ok) {
+                        alert("✅ ATA REGISTRADA E AUDIÊNCIA MARCADA COMO REALIZADA!");
+                        fecharModalAta();
+                        await carregarAudiencias();
+                        trocarAba('realizadas');
+                    } else {
+                        alert("⚠️ ATA SALVA, MAS ERRO AO MARCAR COMO REALIZADA");
+                    }
                 } else {
-                    alert("❌ ERRO AO ATUALIZAR AUDIÊNCIA");
+                    // Modo VER/EDITAR - apenas salva as alterações
+                    alert("✅ ATA ATUALIZADA COM SUCESSO!");
+                    fecharModalAta();
+                    await carregarAudiencias();
                 }
             } catch (err) {
-                console.error("Erro:", err);
-                alert("❌ ERRO DE COMUNICAÇÃO COM SERVIDOR");
+                console.error("Erro ao salvar ATA:", err);
+                alert("❌ ERRO DE COMUNICAÇÃO COM SERVIDOR: " + err.message);
             }
         }
 
@@ -1801,9 +1932,17 @@
             await carregarInfoUsuario();
             await carregarPlano();
             await carregarAudiencias();
+            
+            // Garantir que os ícones sejam renderizados após tudo carregar
+            setTimeout(() => {
+                lucide.createIcons();
+                console.log('✅ Ícones Lucide renderizados');
+            }, 500);
+            
             setInterval(carregarAudiencias, 60000); // Atualiza a cada 1 minuto
         };
 
+        // Chamar também imediatamente para os elementos estáticos
         lucide.createIcons();
 
         function toggleIaMenu(event) {

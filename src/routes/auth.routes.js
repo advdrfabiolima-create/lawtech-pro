@@ -284,9 +284,9 @@ router.get('/me', async (req, res) => {
         const [, token] = authHeader.split(' ');
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'segredo_temporario');
 
-        // ADICIONADO: u.tour_desativado e u.data_criacao no SELECT
+        // ADICIONADO: u.tour_desativado, u.data_criacao e u.primeiro_acesso no SELECT
         const result = await pool.query(
-            `SELECT u.id, u.nome, u.email, u.role, u.escritorio_id, u.tour_desativado, u.data_criacao,
+            `SELECT u.id, u.nome, u.email, u.role, u.escritorio_id, u.tour_desativado, u.data_criacao, u.primeiro_acesso,
                     e.plano_id, e.trial_expira_em, e.plano_financeiro_status
              FROM usuarios u
              JOIN escritorios e ON u.escritorio_id = e.id
@@ -313,8 +313,9 @@ router.get('/me', async (req, res) => {
                 email: usuario.email,
                 role: usuario.role,
                 escritorio_id: usuario.escritorio_id,
-                tour_desativado: usuario.tour_desativado, // Agora o frontend recebe isso!
+                tour_desativado: usuario.tour_desativado,
                 data_criacao: usuario.data_criacao,
+                primeiro_acesso: usuario.primeiro_acesso, // ADICIONADO
                 plano_id: usuario.plano_id,
                 dias_restantes: diasRestantes
             }
@@ -343,6 +344,54 @@ router.post('/atualizar-tour', async (req, res) => {
         res.json({ ok: true, mensagem: 'Preferência de tour atualizada' });
     } catch (err) {
         res.status(500).json({ erro: 'Erro ao salvar preferência' });
+    }
+});
+
+/* ======================================================
+   ROTA PARA MARCAR BOAS-VINDAS COMO VISTAS
+===================================================== */
+router.put('/marcar-boas-vindas', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) return res.status(401).json({ erro: 'Token não fornecido' });
+
+        const [, token] = authHeader.split(' ');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'segredo_temporario');
+        
+        await pool.query(
+            'UPDATE usuarios SET primeiro_acesso = false WHERE id = $1',
+            [decoded.id]
+        );
+
+        console.log(`✅ [BOAS-VINDAS] Usuário ${decoded.id} marcado como não-primeiro-acesso`);
+        res.json({ ok: true, mensagem: 'Boas-vindas registradas' });
+    } catch (err) {
+        console.error('❌ [BOAS-VINDAS] Erro:', err);
+        res.status(500).json({ erro: 'Erro ao registrar boas-vindas' });
+    }
+});
+
+/* ======================================================
+   🧪 ROTA PARA RESETAR PRIMEIRO ACESSO (APENAS TESTES)
+===================================================== */
+router.put('/resetar-boas-vindas', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) return res.status(401).json({ erro: 'Token não fornecido' });
+
+        const [, token] = authHeader.split(' ');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'segredo_temporario');
+        
+        await pool.query(
+            'UPDATE usuarios SET primeiro_acesso = true WHERE id = $1',
+            [decoded.id]
+        );
+
+        console.log(`🔄 [TESTE] Usuário ${decoded.id} resetado para primeiro acesso`);
+        res.json({ ok: true, mensagem: 'Primeiro acesso resetado para teste' });
+    } catch (err) {
+        console.error('❌ [TESTE] Erro:', err);
+        res.status(500).json({ erro: 'Erro ao resetar' });
     }
 });
 

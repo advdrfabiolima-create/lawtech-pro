@@ -1883,31 +1883,99 @@ input, textarea, select {
 // ============================================================
 async function verificarPrimeiroAcesso() {
     try {
-        const primeiroAcesso = localStorage.getItem('lawtech_primeiro_acesso');
+        // Verificar no backend se é primeiro acesso
+        const res = await fetch('/api/auth/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         
-        if (!primeiroAcesso) {
-            // Primeira vez - mostrar modal de boas-vindas
-            setTimeout(() => {
-                document.getElementById('modalWelcome').classList.add('show');
-                // Inicializar ícones Lucide no modal
-                if (typeof lucide !== 'undefined') {
-                    lucide.createIcons();
-                }
-            }, 500);
+        const data = await res.json();
+        
+        console.log('🔍 [DEBUG PRIMEIRO ACESSO]', {
+            primeiroAcesso: data.usuario?.primeiro_acesso,
+            usuario: data.usuario?.nome,
+            email: data.usuario?.email
+        });
+        
+        if (data.ok && data.usuario) {
+            // Se primeiro_acesso for true no banco, mostrar modal
+            if (data.usuario.primeiro_acesso === true || data.usuario.primeiro_acesso === null) {
+                console.log('✅ [PRIMEIRO ACESSO] Mostrando modal de boas-vindas');
+                setTimeout(() => {
+                    document.getElementById('modalWelcome').classList.add('show');
+                    // Inicializar ícones Lucide no modal
+                    if (typeof lucide !== 'undefined') {
+                        lucide.createIcons();
+                    }
+                }, 500);
+            } else {
+                console.log('ℹ️ [PRIMEIRO ACESSO] Usuário já viu as boas-vindas');
+            }
         }
     } catch (err) {
-        console.error('Erro ao verificar primeiro acesso:', err);
+        console.error('❌ [ERRO] Erro ao verificar primeiro acesso:', err);
     }
 }
 
 // ============================================================
 // FECHAR MODAL DE BOAS-VINDAS
 // ============================================================
-function fecharModalBoasVindas() {
+async function fecharModalBoasVindas() {
     document.getElementById('modalWelcome').classList.remove('show');
-    localStorage.setItem('lawtech_primeiro_acesso', 'false');
-    console.log('✅ Modal de boas-vindas fechado');
+    
+    try {
+        console.log('📤 [BOAS-VINDAS] Enviando requisição para marcar como visto...');
+        
+        // Marcar no backend que o usuário já viu a tela de boas-vindas
+        const res = await fetch('/api/auth/marcar-boas-vindas', {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (res.ok) {
+            console.log('✅ [BOAS-VINDAS] Modal fechado e registrado no banco');
+        } else {
+            console.warn('⚠️ [BOAS-VINDAS] Endpoint retornou erro:', res.status);
+            console.warn('💡 Verifique se a rota /api/auth/marcar-boas-vindas existe no backend');
+        }
+    } catch (err) {
+        console.error('❌ [ERRO] Erro ao registrar fechamento de boas-vindas:', err);
+        console.warn('💡 A rota /api/auth/marcar-boas-vindas pode não estar implementada ainda');
+    }
 }
+
+// ============================================================
+// 🧪 FUNÇÃO DE TESTE - Resetar primeiro acesso (DEV ONLY)
+// ============================================================
+async function resetarPrimeiroAcesso() {
+    try {
+        console.log('🔄 [TESTE] Tentando resetar primeiro acesso...');
+        
+        const res = await fetch('/api/auth/resetar-boas-vindas', {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (res.ok) {
+            alert('✅ Primeiro acesso resetado! Recarregue a página para ver o modal novamente.');
+            console.log('✅ [TESTE] Primeiro acesso resetado com sucesso');
+        } else {
+            alert('⚠️ Endpoint de reset não implementado. Execute no banco:\nUPDATE usuarios SET primeiro_acesso = true WHERE email = \'seu@email.com\';');
+            console.warn('⚠️ [TESTE] Endpoint /api/auth/resetar-boas-vindas não existe');
+        }
+    } catch (err) {
+        console.error('❌ [TESTE] Erro ao resetar:', err);
+        alert('❌ Erro ao resetar. Execute manualmente no banco de dados.');
+    }
+}
+
+// Tornar função disponível globalmente para testes no console
+window.resetarPrimeiroAcesso = resetarPrimeiroAcesso;
 
 // ============================================================
 // INICIALIZAÇÃO
