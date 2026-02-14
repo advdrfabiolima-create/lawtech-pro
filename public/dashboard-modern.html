@@ -2153,7 +2153,7 @@ async function inicializarDashboard() {
         }
 
         // --- RENDERIZAÇÃO DE LIMITES ---
-        const planName = dataPlan.plano || 'Individual';
+        const planName = dataPlan.plano || dataPlan.nome || 'Básico';
         const footPlan = document.getElementById('planNameFooter');
         if (footPlan) footPlan.innerText = planName;
         
@@ -2523,7 +2523,7 @@ function iniciarContagemRegressiva() {
         .then(res => res.json())
         .then(dados => { 
             if (document.getElementById('totalAudiencias')) 
-                document.getElementById('totalAudiencias').innerText = dados.length; 
+                document.getElementById('totalAudiencias').innerText = Array.isArray(dados) ? dados.length : 0; 
         });
 
     // 🚀 COMANDO DE OURO: Renderiza a lupa especificamente
