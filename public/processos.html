@@ -8,6 +8,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/imask"></script>
        
     <style>
         :root {
@@ -1341,6 +1342,36 @@ input, textarea, select {
     opacity: 0.6;
 }
 
+/* Input moderno - sem setinha de dropdown */
+.input-moderno {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #2C3E50;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.input-moderno:hover {
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.input-moderno:focus {
+    outline: none;
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.input-moderno:disabled {
+    background-color: #f1f5f9;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 /* Label com estilo consistente */
 .label-moderno {
     display: block;
@@ -1646,8 +1677,11 @@ input, textarea, select {
     <input 
         type="text" 
         id="numero" 
-        class="select-moderno"
+        class="input-moderno"
         placeholder="0000000-00.0000.0.00.0000"
+        maxlength="25"
+        inputmode="numeric"
+        autocomplete="off"
         required
     >
 </div>
@@ -2078,8 +2112,7 @@ class GerenciadorPartes {
                     <div class="parte-nome">${parte.pessoa_nome}</div>
                     <div class="parte-tipo">${this.formatarTipoParte(parte.tipo_parte)}</div>
                 </div>
-                <button class="btn-remover" onclick="${this.instanceName}.removerParteAtivo(${parte.id})" 
-                        ${this.partesAtivo.length === 1 ? 'disabled' : ''}>
+                <button class="btn-remover" onclick="${this.instanceName}.removerParteAtivo(${parte.id})" title="Remover parte">
                     <i data-lucide="x" style="width: 14px; height: 14px;"></i>
                 </button>
             </div>
@@ -2117,8 +2150,7 @@ class GerenciadorPartes {
                     <div class="parte-nome">${parte.pessoa_nome}</div>
                     <div class="parte-tipo">${this.formatarTipoParte(parte.tipo_parte)}</div>
                 </div>
-                <button class="btn-remover" onclick="${this.instanceName}.removerPartePassivo(${parte.id})" 
-                        ${this.partesPassivo.length === 1 ? 'disabled' : ''}>
+                <button class="btn-remover" onclick="${this.instanceName}.removerPartePassivo(${parte.id})" title="Remover parte">
                     <i data-lucide="x" style="width: 14px; height: 14px;"></i>
                 </button>
             </div>
@@ -2281,13 +2313,13 @@ let gerenciadorPartesEdicao = null;
         }
     }
 
-    function renderizarTabela(lista) {
-        const tabela = document.getElementById('listaProcessos');
-        const listaFiltrada = lista.filter(p => (p.status || 'ativo').toLowerCase() === abaAtual);
-
-        // Atualizar cards de estatísticas
+    function atualizarMetricas() {
         const total = todosProcessos.length;
-        const ativos = todosProcessos.filter(p => p.status === 'ativo').length;
+        const ativos = todosProcessos.filter(p => {
+            const statusProcesso = (p.status || 'ativo').toLowerCase();
+            const statusAtividade = (p.status_atividade || p.status || 'ATIVO').toUpperCase();
+            return statusProcesso === 'ativo' && statusAtividade === 'ATIVO';
+        }).length;
         const arquivados = todosProcessos.filter(p => p.status === 'arquivado').length;
         const tribunais = new Set(todosProcessos.map(p => p.tribunal)).size;
         
@@ -2300,6 +2332,14 @@ let gerenciadorPartesEdicao = null;
         if (ativosCard) ativosCard.textContent = ativos;
         if (arquivadosCard) arquivadosCard.textContent = arquivados;
         if (tribunaisCard) tribunaisCard.textContent = tribunais;
+    }
+
+    function renderizarTabela(lista) {
+        const tabela = document.getElementById('listaProcessos');
+        const listaFiltrada = lista.filter(p => (p.status || 'ativo').toLowerCase() === abaAtual);
+
+        // Atualizar métricas
+        atualizarMetricas();
 
         if (listaFiltrada.length === 0) {
             tabela.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:50px; color:var(--muted);">Nenhum processo encontrado.</td></tr>`;
@@ -2323,9 +2363,32 @@ let gerenciadorPartesEdicao = null;
                 <td style="padding: 16px 12px; text-align: center; font-weight: 600;">${formatarInstancia(p.instancia)}</td>
                 <td style="padding: 16px 12px; text-align: center; font-weight: 700; color: #4A90E2;">${p.uf || '--'}</td>
                 <td style="padding: 16px 12px; text-align: center;">
-                    <span style="background: ${abaAtual === 'excluido' ? '#fee2e2' : '#ecfdf5'}; color: ${abaAtual === 'excluido' ? '#ef4444' : '#10b981'}; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 700;">
-                        ${(p.status || 'ATIVO').toUpperCase()}
-                    </span>
+                    ${abaAtual === 'ativo' ? `
+                        <span onclick="alternarStatusProcesso(${p.id}, '${p.status_atividade || 'ATIVO'}')" 
+                              style="background: ${(p.status_atividade || 'ATIVO') === 'ATIVO' ? '#ecfdf5' : '#fef2f2'}; 
+                                     color: ${(p.status_atividade || 'ATIVO') === 'ATIVO' ? '#10b981' : '#ef4444'}; 
+                                     padding: 6px 12px; 
+                                     border-radius: 4px; 
+                                     font-size: 11px; 
+                                     font-weight: 700; 
+                                     cursor: pointer; 
+                                     transition: all 0.2s;
+                                     display: inline-block;"
+                              onmouseover="this.style.opacity='0.7'"
+                              onmouseout="this.style.opacity='1'"
+                              title="Clique para alternar status">
+                            ${(p.status_atividade || 'ATIVO').toUpperCase()}
+                        </span>
+                    ` : `
+                        <span style="background: ${abaAtual === 'excluido' ? '#fee2e2' : '#ecfdf5'}; 
+                                     color: ${abaAtual === 'excluido' ? '#ef4444' : '#10b981'}; 
+                                     padding: 6px 12px; 
+                                     border-radius: 4px; 
+                                     font-size: 11px; 
+                                     font-weight: 700;">
+                            ${(p.status || 'ATIVO').toUpperCase()}
+                        </span>
+                    `}
                 </td>
                 <td style="padding: 16px 12px; text-align: right;">
                     <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
@@ -2432,6 +2495,113 @@ let gerenciadorPartesEdicao = null;
         carregarClientesNoSelect(); 
         document.getElementById('procEsfera').value = '';
         document.getElementById('procTribunal').innerHTML = '<option value="">Aguardando Esfera...</option>';
+        
+        // Aplicar máscara CNJ no campo número
+        setTimeout(() => {
+            const campoNumero = document.getElementById('numero');
+            if (!campoNumero) {
+                console.error('❌ Campo número não encontrado');
+                return;
+            }
+            
+            // Limpar campo ao abrir modal
+            campoNumero.value = '';
+            
+            // Remover listeners anteriores se existirem
+            if (campoNumero._listeners) {
+                campoNumero._listeners.forEach(obj => {
+                    campoNumero.removeEventListener(obj.event, obj.handler);
+                });
+            }
+            campoNumero._listeners = [];
+            
+            // Função para bloquear entrada de letras
+            const bloquearLetras = function(e) {
+                const teclasPermitidas = [8, 9, 27, 13, 46, 35, 36, 37, 39]; // backspace, tab, esc, enter, delete, home, end, arrows
+                
+                // Permitir Ctrl/Cmd + A, C, V, X
+                if ((e.ctrlKey || e.metaKey) && [65, 67, 86, 88].indexOf(e.keyCode) !== -1) {
+                    return true;
+                }
+                
+                // Se for tecla permitida, deixar passar
+                if (teclasPermitidas.indexOf(e.keyCode) !== -1) {
+                    return true;
+                }
+                
+                // Permitir apenas números (0-9)
+                const isNumber = (e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 96 && e.keyCode <= 105);
+                if (!isNumber) {
+                    e.preventDefault();
+                    return false;
+                }
+            };
+            
+            // Função de máscara CNJ
+            const aplicarMascaraCNJ = function(e) {
+                let valor = e.target.value;
+                
+                // Remove tudo que não é número
+                valor = valor.replace(/\D/g, '');
+                
+                // Limita a 20 dígitos
+                if (valor.length > 20) {
+                    valor = valor.substring(0, 20);
+                }
+                
+                // Aplica a máscara: NNNNNNN-DD.AAAA.J.TR.OOOO
+                let resultado = '';
+                
+                // Primeiros 7 dígitos (NNNNNNN)
+                if (valor.length > 0) {
+                    resultado = valor.substring(0, Math.min(7, valor.length));
+                }
+                
+                // Traço + 2 dígitos (-DD)
+                if (valor.length > 7) {
+                    resultado += '-' + valor.substring(7, Math.min(9, valor.length));
+                }
+                
+                // Ponto + 4 dígitos (.AAAA)
+                if (valor.length > 9) {
+                    resultado += '.' + valor.substring(9, Math.min(13, valor.length));
+                }
+                
+                // Ponto + 1 dígito (.J)
+                if (valor.length > 13) {
+                    resultado += '.' + valor.substring(13, Math.min(14, valor.length));
+                }
+                
+                // Ponto + 2 dígitos (.TR)
+                if (valor.length > 14) {
+                    resultado += '.' + valor.substring(14, Math.min(16, valor.length));
+                }
+                
+                // Ponto + 4 dígitos (.OOOO)
+                if (valor.length > 16) {
+                    resultado += '.' + valor.substring(16, Math.min(20, valor.length));
+                }
+                
+                e.target.value = resultado;
+                
+                console.log('Valor digitado:', valor, '→ Formatado:', resultado);
+            };
+            
+            // Adicionar listeners
+            campoNumero.addEventListener('keydown', bloquearLetras);
+            campoNumero.addEventListener('input', aplicarMascaraCNJ);
+            campoNumero.addEventListener('paste', function(e) {
+                setTimeout(() => aplicarMascaraCNJ({target: campoNumero}), 10);
+            });
+            
+            // Guardar referências para poder remover depois
+            campoNumero._listeners.push(
+                {event: 'keydown', handler: bloquearLetras},
+                {event: 'input', handler: aplicarMascaraCNJ}
+            );
+            
+            console.log('✅ Máscara CNJ aplicada ao campo número do processo');
+        }, 150);
     }
 
     function fecharModalProcesso() {
@@ -3160,6 +3330,30 @@ function obterTribunaisPorEsfera(esfera) {
         }
     }
 
+    async function alternarStatusProcesso(id, statusAtual) {
+        const novoStatus = statusAtual === 'ATIVO' ? 'INATIVO' : 'ATIVO';
+        const mensagem = novoStatus === 'INATIVO' 
+            ? 'Deseja marcar este processo como INATIVO? Ele ainda estará na aba Ativos mas será contado separadamente.' 
+            : 'Deseja reativar este processo?';
+        
+        if (!confirm(mensagem)) return;
+        
+        // Atualizar o processo localmente (front-end apenas)
+        const processoIndex = todosProcessos.findIndex(p => p.id === id);
+        if (processoIndex !== -1) {
+            // Adicionar propriedade temporária para controlar status de atividade
+            todosProcessos[processoIndex].status_atividade = novoStatus;
+            console.log(`✅ Processo ${id} atualizado para ${novoStatus}`, todosProcessos[processoIndex]);
+        }
+        
+        // Re-renderizar a tabela e atualizar métricas
+        renderizarTabela(todosProcessos);
+        atualizarMetricas();
+        
+        // TODO: Adicionar endpoint no backend para salvar status_atividade
+        console.log(`Processo ${id} marcado como ${novoStatus} (apenas front-end por enquanto)`);
+    }
+
     async function excluirProcesso(id) {
         if (!confirm("Deseja enviar para a Lixeira de Auditoria?")) return;
         try {
@@ -3283,6 +3477,14 @@ function obterTribunaisPorEsfera(esfera) {
     // ============================================
     document.addEventListener('DOMContentLoaded', () => {
         console.log('📄 DOM carregado');
+        
+        // Verificar se IMask foi carregado
+        if (typeof IMask !== 'undefined') {
+            console.log('✅ IMask carregado com sucesso');
+        } else {
+            console.error('❌ IMask não foi carregado!');
+        }
+        
         setTimeout(() => {
             inicializar();
             if (typeof lucide !== 'undefined') lucide.createIcons();

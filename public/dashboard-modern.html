@@ -1803,8 +1803,8 @@ input, textarea, select {
         </div>
         <div style="display: flex; gap: 10px; margin-top: 12px; background: #FFFFFF; padding: 12px; border-radius: 6px; border: 1px solid #D0E7F9;">
             <input type="text" id="linkCaptura" readonly style="flex: 1; background: #F8FAFB; border: 1px solid #D0E7F9; padding: 10px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #4A6B8A; font-family: 'JetBrains Mono', monospace;"/>
-            <button onclick="copiarLink()" class="btn-primary" style="background: #4A90E2; color: white; padding: 10px 18px; font-size: 12px; border: none; font-weight: 700; border-radius: 6px; box-shadow: 0 2px 8px rgba(74, 144, 226, 0.25); transition: all 0.3s;">
-                <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
+            <button onclick="copiarLink()" style="background: #4A90E2; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; flex-shrink: 0;" onmouseover="this.style.background='#5BA4DB'" onmouseout="this.style.background='#4A90E2'">
+                <i data-lucide="copy" style="width: 16px; height: 16px;"></i>
             </button>
         </div>
     </div>

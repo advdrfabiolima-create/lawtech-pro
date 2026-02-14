@@ -1052,6 +1052,26 @@
     margin-top: 4px;
 }
 
+/* Badge NOVO */
+.badge-novo {
+    display: none;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    margin-left: 8px;
+    animation: pulse 2s infinite;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+}
+
     </style>
 </head>
 <body>
@@ -1062,7 +1082,10 @@
     </div>
     <nav class="menu">
         <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
-        <a href="/clientes-page" class="active"><i class="lucide lucide-users"></i> Clientes</a>
+        <a href="/clientes-page" class="active">
+            <i class="lucide lucide-users"></i> Clientes
+            <span id="badgeClientes" style="display: none; background: #ef4444; color: white; font-size: 9px; font-weight: 800; padding: 3px 6px; border-radius: 4px; margin-left: auto; animation: pulse 2s ease-in-out infinite;">NOVO</span>
+        </a>
         <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
         <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
         <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
@@ -1197,14 +1220,20 @@
             <div class="main-content">
             <!-- Toolbar -->
             <div class="toolbar">
-                <div class="search-box">
+                <div class="search-box" style="max-width: 350px;">
                     <i class="lucide lucide-search"></i>
-                    <input type="text" id="searchClientes" placeholder="BUSCAR CLIENTE POR NOME..." onkeyup="filtrarClientes()" />
+                    <input type="text" id="searchClientes" placeholder="BUSCAR CLIENTE..." onkeyup="filtrarClientes()" />
                 </div>
-                <button class="btn-primary" onclick="abrirModal()">
-                    <i class="lucide lucide-user-plus"></i>
-                    NOVO CLIENTE
-                </button>
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn-secondary" onclick="exportarCSV()" title="Exportar clientes para CSV">
+                        <i class="lucide lucide-download"></i>
+                        BACKUP CSV
+                    </button>
+                    <button class="btn-primary" onclick="abrirModal()">
+                        <i class="lucide lucide-user-plus"></i>
+                        NOVO CLIENTE
+                    </button>
+                </div>
             </div>
 
             <!-- Tabela de Clientes -->
@@ -1249,11 +1278,11 @@
                             <label>TIPO DE PESSOA</label>
                             <div class="radio-group">
                                 <label>
-                                    <input type="radio" name="tipoPessoa" id="cliTipo" value="fisica" checked onchange="alternarCamposPessoa('fisica')" />
+                                    <input type="radio" name="tipoPessoa" id="cliTipoFisica" value="fisica" checked onchange="alternarCamposPessoa('fisica')" />
                                     <span>PESSOA FÍSICA</span>
                                 </label>
                                 <label>
-                                    <input type="radio" name="tipoPessoa" value="juridica" onchange="alternarCamposPessoa('juridica')" />
+                                    <input type="radio" name="tipoPessoa" id="cliTipoJuridica" value="juridica" onchange="alternarCamposPessoa('juridica')" />
                                     <span>PESSOA JURÍDICA</span>
                                 </label>
                             </div>
@@ -1364,7 +1393,12 @@
         const token = localStorage.getItem('token');
         if (!token) window.location.href = 'login.html';
 
-        const somNotificacao = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIFmm98OScTgwPUKjo8LVkGwU7k9r0ynouBR53yO/flUELEme58+mhWRIIRKDj9bpoJAUrgc7y2Yk3CBVpvfDjnE4MD1Co6PC1ZBsFO5Ha9Ml6LgUfd8jv35VAChJnufPpoVkSCESg4vW6aCQFKoHO8tmJNwgWab3w5JxODA9QqOjwtWQbBTqR2vTJey4EH3fI79+VQAoSZ7nz6aFZEghEoOL1umgkBSqBzvLZiTYIFmm98OOcTgwPUKjo8LVjGwU6kdr0yXouBB93yO/flUAKE2W58+mhWRIIRKDi9bpoJAUqgc7y2Yk2CBZpvfDjnE4MD1Co6PC1YxsFOpHa9Ml6LgQfd8jv35VACRNlufPpoVkSCESg4vW6aCQFKoHO8tmJNggWab3w45xODA9QqOjwtWMbBTqR2vTJei4EH3fI79+VQAkTZbnz6aFZEghEoOL1umgkBSqBzvLZiTYIFmm98OOcTgwPUKjo8LVjGwU6kdr0yXouBB93yO/flUAJE2W58+mhWRIIRKDi9bpoJAUqgc7y2Yk2CBZpvfDjnE4MD1Co6PC1YxsFOpHa9Ml6LgQfd8jv35VACRNlufPpoVkSCESg4vW6aCQFKoHO8tmJNggWab3w45xODA9QqOjwtWMbBTqR2vTJei4EH3fI79+VQAkTZbnz6aFZEghEoOL1umgkBSqBzvLZiTYIFmm98OOcTgwPUKjo8LVjGwU6kdr0yXouBB93yO/flUAJE2W58+mhWRIIRKDi9bpoJAUqgc7y2Yk2CBZpvfDjnE4MD1Co6PC1YxsFOpHa9Ml6LgQfd8jv35VACRNlufPpoVkSCESg4vW6aCQFKoHO8tmJNggWab3w45xODA9QqOjwtWMbBTqR2vTJei4EH3fI79+VQAkTZbnz6aFZEghEoOL1umgkBSqBzvLZiTYIFmm98OOcTgwPUKjo8LVjGwU6kdr0yXouBB93yO/flUAJE2W58+mhWRIIRKDi9bpoJAUqgc7y2Yk2CBZpvfDjnE4MD1Co6PC1YxsFOpHa9Ml6LgQfd8jv35VACRNlufPpoVkSCESg4vW6aCQFKoHO8tmJNggWab3w45xODA9QqOjwtWMbBTqR2vTJei4EH3fI79+VQAkTZbnz6aFZEghEoOL1umgkBSqBzvLZiTYIFmm98OOcTgwPUKjo8LVjGwU6kdr0yXouBB93yO/flUAJE2W58+mhWRIIRKDi9bpoJAUqgc7y2Yk2CBZpvfDjnE4MD1Co6PC1YxsFOpHa9Ml6LgQfd8jv35VACRNlufPpoVkSCESg4vW6aCQFKoHO8tmJNggWab3w45xODA9QqOjwtWMbBTqR2vTJei4EH3fI79+VQA==');
+        // Som de notificação - usando URL externa confiável
+        const somNotificacao = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        
+        // Som alternativo caso o primeiro falhe
+        const somAlternativo = new Audio('data:audio/wav;base64,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');
+
 
         // ============================================
         // CACHE DE CLIENTES EM MEMÓRIA
@@ -1538,7 +1572,7 @@
                                 <i class="lucide lucide-eye"></i>
                                 <span>VER</span>
                             </button>
-                            <button class="btn-action btn-edit" onclick="prepararEdicao(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${c.documento}', '${c.email}', '${c.telefone || ''}', '${c.cep || ''}', '${c.endereco || ''}', '${c.cidade || ''}', '${c.estado || ''}')" title="EDITAR">
+                            <button class="btn-action btn-edit" onclick="prepararEdicao(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${c.documento}', '${c.email}', '${c.telefone || ''}', '${c.cep || ''}', '${c.endereco || ''}', '${c.cidade || ''}', '${c.estado || ''}', '${c.tipo_pessoa || 'fisica'}', '${c.data_nascimento || ''}')" title="EDITAR">
                                 <i class="lucide lucide-pencil"></i>
                                 <span>EDITAR</span>
                             </button>
@@ -1589,7 +1623,7 @@
                             <i class="lucide lucide-eye"></i>
                             <span>VER</span>
                         </button>
-                        <button class="btn-action btn-edit" onclick="prepararEdicao(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}', '${cliente.documento}', '${cliente.email}', '${cliente.telefone || ''}', '${cliente.cep || ''}', '${cliente.endereco || ''}', '${cliente.cidade || ''}', '${cliente.estado || ''}')" title="EDITAR">
+                        <button class="btn-action btn-edit" onclick="prepararEdicao(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}', '${cliente.documento}', '${cliente.email}', '${cliente.telefone || ''}', '${cliente.cep || ''}', '${cliente.endereco || ''}', '${cliente.cidade || ''}', '${cliente.estado || ''}', '${cliente.tipo_pessoa || 'fisica'}', '${cliente.data_nascimento || ''}')" title="EDITAR">
                             <i class="lucide lucide-pencil"></i>
                             <span>EDITAR</span>
                         </button>
@@ -1639,7 +1673,7 @@
                             <i class="lucide lucide-eye"></i>
                             <span>VER</span>
                         </button>
-                        <button class="btn-action btn-edit" onclick="prepararEdicao(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}', '${cliente.documento}', '${cliente.email}', '${cliente.telefone || ''}', '${cliente.cep || ''}', '${cliente.endereco || ''}', '${cliente.cidade || ''}', '${cliente.estado || ''}')" title="EDITAR">
+                        <button class="btn-action btn-edit" onclick="prepararEdicao(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}', '${cliente.documento}', '${cliente.email}', '${cliente.telefone || ''}', '${cliente.cep || ''}', '${cliente.endereco || ''}', '${cliente.cidade || ''}', '${cliente.estado || ''}', '${cliente.tipo_pessoa || 'fisica'}', '${cliente.data_nascimento || ''}')" title="EDITAR">
                             <i class="lucide lucide-pencil"></i>
                             <span>EDITAR</span>
                         </button>
@@ -1750,7 +1784,7 @@
                 endereco: document.getElementById('cliEndereco').value,
                 cidade: document.getElementById('cliCidade').value,
                 estado: document.getElementById('cliUf').value,
-                tipo_pessoa: document.getElementById('cliTipo').value,
+                tipo_pessoa: document.querySelector('input[name="tipoPessoa"]:checked').value,
                 data_nascimento: document.getElementById('cliDataNascimento').value || null
             };
 
@@ -1766,6 +1800,35 @@
 
                 if (res.ok) {
                     const clienteSalvo = await res.json();
+                    
+                    // Se for NOVO cliente (não edição), tocar som e mostrar badge
+                    if (!editId) {
+                        // Tocar som de notificação
+                        try {
+                            const playPromise = somNotificacao.play();
+                            if (playPromise !== undefined) {
+                                playPromise.then(() => {
+                                    console.log('✅ Som reproduzido com sucesso');
+                                }).catch(error => {
+                                    console.log('⚠️ Navegador bloqueou reprodução automática de áudio:', error);
+                                    // Tenta tocar um beep alternativo do sistema
+                                    console.log('\x07'); // Beep do sistema (pode não funcionar em todos navegadores)
+                                });
+                            }
+                        } catch(e) {
+                            console.log('⚠️ Erro ao reproduzir som:', e);
+                        }
+                        
+                        // Mostrar badge NOVO por 5 segundos
+                        const badge = document.getElementById('badgeClientes');
+                        if (badge) {
+                            badge.style.display = 'inline-block';
+                            setTimeout(() => {
+                                badge.style.display = 'none';
+                            }, 5000);
+                        }
+                    }
+                    
                     alert("✅ CLIENTE SALVO COM SUCESSO!");
                     fecharModal();
                     
@@ -1813,7 +1876,7 @@
         // ============================================
         // PREPARAR EDIÇÃO
         // ============================================
-        function prepararEdicao(id, nome, documento, email, telefone, cep, endereco, cidade, estado) {
+        function prepararEdicao(id, nome, documento, email, telefone, cep, endereco, cidade, estado, tipo_pessoa, data_nascimento) {
             // Primeiro: preencher os campos
             document.getElementById('cliNome').value = nome;
             document.getElementById('cliDocumento').value = documento;
@@ -1823,7 +1886,28 @@
             document.getElementById('cliEndereco').value = endereco || '';
             document.getElementById('cliCidade').value = cidade || '';
             document.getElementById('cliUf').value = estado || '';
+            
+            // Selecionar o radio button correto
+            const tipoPessoaVal = tipo_pessoa || 'fisica';
+            if (tipoPessoaVal === 'fisica') {
+                document.getElementById('cliTipoFisica').checked = true;
+            } else {
+                document.getElementById('cliTipoJuridica').checked = true;
+            }
+            
+            // Formatar e preencher data de nascimento
+            if (data_nascimento) {
+                // Se vier no formato ISO completo (2024-01-15T00:00:00.000Z), extrair apenas a data
+                const dataFormatada = data_nascimento.split('T')[0];
+                document.getElementById('cliDataNascimento').value = dataFormatada;
+            } else {
+                document.getElementById('cliDataNascimento').value = '';
+            }
+            
             document.getElementById('formCliente').dataset.editId = id;
+            
+            // Ajustar visibilidade do campo data de nascimento
+            alternarCamposPessoa(tipoPessoaVal);
             
             // Depois: mudar título
             document.getElementById('modalTitle').innerHTML = '<i class="lucide lucide-pencil"></i> EDITAR CLIENTE';
@@ -1955,6 +2039,59 @@
             }
         `;
         document.head.appendChild(style);
+
+        // ============================================
+        // EXPORTAR CLIENTES PARA CSV
+        // ============================================
+        async function exportarCSV() {
+            try {
+                const res = await fetch('/api/clientes', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const clientes = await res.json();
+
+                if (!clientes || clientes.length === 0) {
+                    alert('⚠️ Nenhum cliente para exportar');
+                    return;
+                }
+
+                // Cabeçalhos do CSV
+                let csv = 'ID,Nome,Email,Telefone,CPF/CNPJ,CEP,Endereço,Cidade,Estado,Data Cadastro\n';
+
+                // Adicionar dados
+                clientes.forEach(c => {
+                    csv += `${c.id || ''},`;
+                    csv += `"${(c.nome || '').replace(/"/g, '""')}",`;
+                    csv += `"${(c.email || '').replace(/"/g, '""')}",`;
+                    csv += `"${(c.telefone || '').replace(/"/g, '""')}",`;
+                    csv += `"${(c.documento || '').replace(/"/g, '""')}",`;
+                    csv += `"${(c.cep || '').replace(/"/g, '""')}",`;
+                    csv += `"${(c.endereco || '').replace(/"/g, '""')}",`;
+                    csv += `"${(c.cidade || '').replace(/"/g, '""')}",`;
+                    csv += `"${(c.estado || '').replace(/"/g, '""')}",`;
+                    csv += `"${c.data_criacao ? new Date(c.data_criacao).toLocaleDateString('pt-BR') : ''}"\n`;
+                });
+
+                // Criar blob e download
+                const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                
+                link.setAttribute('href', url);
+                link.setAttribute('download', `clientes_backup_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                console.log('✅ CSV exportado com sucesso:', clientes.length, 'clientes');
+                alert(`✅ Backup realizado! ${clientes.length} clientes exportados.`);
+            } catch (err) {
+                console.error('❌ Erro ao exportar CSV:', err);
+                alert('❌ Erro ao exportar CSV. Tente novamente.');
+            }
+        }
 
         // ============================================
         // INICIALIZAÇÃO - SEM POLLING EXCESSIVO
