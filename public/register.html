@@ -592,20 +592,34 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Número do Cartão</label>
-                        <input type="text" id="card_numero" placeholder="0000 0000 0000 0000">
-                    </div>
+    <label>Dados do Cartão (Opcional)</label>
+    <div id="card-element" style="
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: white;
+        min-height: 45px;
+    "></div>
+    <div id="card-errors" style="
+        color: var(--warning);
+        font-size: 13px;
+        margin-top: 8px;
+        min-height: 20px;
+    "></div>
+</div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Validade</label>
-                            <input type="text" id="card_validade" placeholder="MM/AA">
-                        </div>
-                        <div class="form-group">
-                            <label>CVC</label>
-                            <input type="text" id="card_cvc" placeholder="123">
-                        </div>
-                    </div>
+<div style="
+    background: #dbeafe;
+    border: 1px solid #3b82f6;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 13px;
+    color: #1e40af;
+    margin-top: 12px;
+">
+    🔒 <strong>Segurança máxima:</strong> Seus dados são criptografados pelo Stripe. 
+    Nunca armazenamos o número completo do cartão.
+</div>
 
                     <div class="payment-disclaimer">
                         <strong>💳 Garantia de segurança:</strong> Seu cartão não será cobrado hoje. A primeira mensalidade será processada automaticamente após 7 dias, caso não cancele.
@@ -623,374 +637,313 @@
         </main>
     </div>
 
-    <script>
-        // Máscaras
-        const documentoMask = IMask(document.getElementById('documento'), { mask: '000.000.000-00' });
-        IMask(document.getElementById('cep'), { mask: '00000-000' });
-        
-        const cardNumeroMask = IMask(document.getElementById('card_numero'), { mask: '0000 0000 0000 0000' });
-        IMask(document.getElementById('card_validade'), { mask: '00/00' });
-        IMask(document.getElementById('card_cvc'), { mask: '000' });
+<script>
+    // Máscaras
+    const documentoMask = IMask(document.getElementById('documento'), { mask: '000.000.000-00' });
+    IMask(document.getElementById('cep'), { mask: '00000-000' });
 
-        // ✅ Adicionar indicador visual de validação do cartão
-        const cardNumeroInput = document.getElementById('card_numero');
-        const cardContainer = cardNumeroInput.parentElement;
-        
-        // Criar elemento de feedback
-        const feedbackElement = document.createElement('div');
-        feedbackElement.style.cssText = `
-            font-size: 12px;
-            margin-top: 6px;
-            font-weight: 600;
-            display: none;
-        `;
-        cardContainer.appendChild(feedbackElement);
-        
-        cardNumeroInput.addEventListener('input', function() {
-            const numero = this.value;
-            const numeroLimpo = numero.replace(/\D/g, '');
-            
-            // Só valida quando tiver pelo menos 13 dígitos
-            if (numeroLimpo.length >= 13) {
-                const valido = validarCartaoCredito(numero);
-                const bandeira = identificarBandeira(numero);
-                
-                if (valido) {
-                    feedbackElement.style.display = 'block';
-                    feedbackElement.style.color = '#10b981';
-                    feedbackElement.innerHTML = `✅ Cartão válido - ${bandeira}`;
-                    cardNumeroInput.style.borderColor = '#10b981';
-                } else {
-                    feedbackElement.style.display = 'block';
-                    feedbackElement.style.color = '#ef4444';
-                    feedbackElement.innerHTML = `❌ Número de cartão inválido`;
-                    cardNumeroInput.style.borderColor = '#ef4444';
+    // ============================================================
+    // ✅ INICIALIZAR STRIPE ELEMENTS
+    // ============================================================
+
+    const stripe = Stripe('pk_test_51T0o4eQyn7XA5V1cswOOpK4cYXOmSyQJQP4TfD7hs51vs95Wp29D4Zsb6Br2ATgSsDf7MVmI48TE5nhr4pFShugY00eS21OjGS');
+
+    const elements = stripe.elements();
+
+    const cardElement = elements.create('card', {
+        style: {
+            base: {
+                fontSize: '16px',
+                color: '#1e293b',
+                fontFamily: 'Inter, system-ui, sans-serif',
+                '::placeholder': {
+                    color: '#94a3b8'
                 }
-            } else {
-                feedbackElement.style.display = 'none';
-                cardNumeroInput.style.borderColor = '#e2e8f0';
+            },
+            invalid: {
+                color: '#f59e0b',
+                iconColor: '#f59e0b'
             }
-        });
+        },
+        hidePostalCode: true
+    });
 
-        const form = document.getElementById('formRegister');
-        const errorBox = document.getElementById('errorBox');
-        const btnSubmit = document.getElementById('btnSubmit');
+    cardElement.mount('#card-element');
 
-        /**
-         * ✅ Validação de Cartão de Crédito - Algoritmo de Luhn
-         * Este algoritmo é usado por TODAS as operadoras de cartão
-         */
-        function validarCartaoCredito(numero) {
-            // Remove espaços e caracteres não numéricos
-            const numeroLimpo = numero.replace(/\D/g, '');
-            
-            // Cartões devem ter entre 13 e 19 dígitos
-            if (numeroLimpo.length < 13 || numeroLimpo.length > 19) {
-                return false;
-            }
-            
-            // Algoritmo de Luhn
-            let soma = 0;
-            let dobrar = false;
-            
-            // Percorre do último para o primeiro dígito
-            for (let i = numeroLimpo.length - 1; i >= 0; i--) {
-                let digito = parseInt(numeroLimpo.charAt(i));
-                
-                if (dobrar) {
-                    digito *= 2;
-                    if (digito > 9) {
-                        digito -= 9;
-                    }
-                }
-                
-                soma += digito;
-                dobrar = !dobrar;
-            }
-            
-            // Se a soma é divisível por 10, o cartão é válido
-            return (soma % 10) === 0;
+    const cardErrors = document.getElementById('card-errors');
+    cardElement.on('change', (event) => {
+        if (event.error) {
+            cardErrors.textContent = event.error.message;
+        } else {
+            cardErrors.textContent = '';
         }
-        
-        /**
-         * ✅ Identificar bandeira do cartão
-         */
-        function identificarBandeira(numero) {
-            const numeroLimpo = numero.replace(/\D/g, '');
-            
-            // Visa: começa com 4
-            if (/^4/.test(numeroLimpo)) return 'Visa';
-            
-            // Mastercard: começa com 51-55 ou 2221-2720
-            if (/^5[1-5]/.test(numeroLimpo) || /^2[2-7]/.test(numeroLimpo)) return 'Mastercard';
-            
-            // Amex: começa com 34 ou 37
-            if (/^3[47]/.test(numeroLimpo)) return 'American Express';
-            
-            // Elo: começa com diversos prefixos
-            if (/^(4011|4312|4389|4514|4576|5041|5066|5090|6277|6362|6363|6504|6505|6516)/.test(numeroLimpo)) return 'Elo';
-            
-            // Hipercard: começa com 38 ou 60
-            if (/^(38|60)/.test(numeroLimpo)) return 'Hipercard';
-            
-            return 'Desconhecida';
-        }
+    });
 
-        window.onload = () => {
-            const params = new URLSearchParams(window.location.search);
-            const plano = params.get('plano');
-            const cobranca = params.get('cobranca');
+    console.log('✅ Stripe Elements inicializado!');
 
-            const planosMap = {
-                basico: { id: 1, nome: 'Básico', mensal: "49.90", anual: "499.00" },
-                intermediario: { id: 2, nome: 'Intermediário', mensal: "149.90", anual: "1499.00" },
-                avancado: { id: 3, nome: 'Avançado', mensal: "199.90", anual: "1999.00" },
-                premium: { id: 4, nome: 'Premium', mensal: "299.90", anual: "2999.00" }
-            };
+    // ============================================================
+    // CONFIGURAÇÕES INICIAIS
+    // ============================================================
 
-            if (plano && planosMap[plano]) {
-                const info = planosMap[plano];
-                const valorFinal = (cobranca === 'anual') ? info.anual : info.mensal;
+    const form = document.getElementById('formRegister');
+    const errorBox = document.getElementById('errorBox');
+    const btnSubmit = document.getElementById('btnSubmit');
 
-                document.getElementById('planoNome').textContent = info.nome;
-                document.getElementById('planoPeriodo').textContent = `Cobrança ${cobranca || 'mensal'}`;
+    window.onload = () => {
+        const params = new URLSearchParams(window.location.search);
+        const plano = params.get('plano');
+        const cobranca = params.get('cobranca');
 
-                localStorage.setItem('plano_escolhido_id', info.id);
-                localStorage.setItem('plano_escolhido_nome', info.nome);
-                localStorage.setItem('plano_escolhido_valor', valorFinal);
-                localStorage.setItem('plano_escolhido_cobranca', cobranca || 'mensal');
-            }
+        const planosMap = {
+            basico: { id: 1, nome: 'Básico', mensal: "49.90", anual: "499.00" },
+            intermediario: { id: 2, nome: 'Intermediário', mensal: "149.90", anual: "1499.00" },
+            avancado: { id: 3, nome: 'Avançado', mensal: "199.90", anual: "1999.00" },
+            premium: { id: 4, nome: 'Premium', mensal: "299.90", anual: "2999.00" }
         };
 
-        async function buscarEndereco(cep) {
-            const v = cep.replace(/\D/g, '');
-            if(v.length === 8) {
-                try {
-                    const res = await fetch(`https://viacep.com.br/ws/${v}/json/`);
-                    const data = await res.json();
-                    if(!data.erro) {
-                        document.getElementById('endereco').value = `${data.logradouro}, ${data.bairro}`;
-                        document.getElementById('cidade').value = data.localidade;
-                        document.getElementById('estado').value = data.uf;
-                    }
-                } catch (err) { console.error("Erro ao buscar CEP"); }
-            }
+        if (plano && planosMap[plano]) {
+            const info = planosMap[plano];
+            const valorFinal = (cobranca === 'anual') ? info.anual : info.mensal;
+
+            document.getElementById('planoNome').textContent = info.nome;
+            document.getElementById('planoPeriodo').textContent = `Cobrança ${cobranca || 'mensal'}`;
+
+            localStorage.setItem('plano_escolhido_id', info.id);
+            localStorage.setItem('plano_escolhido_nome', info.nome);
+            localStorage.setItem('plano_escolhido_valor', valorFinal);
+            localStorage.setItem('plano_escolhido_cobranca', cobranca || 'mensal');
         }
+    };
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            errorBox.style.display = 'none';
-            
-            const senha = document.getElementById('senha').value;
-            if (senha !== document.getElementById('confirmarSenha').value) return showError("Senhas não coincidem.");
-            if (senha.length < 6) return showError("A senha deve ter 6+ caracteres.");
-
-            // ✅ TOKENIZAÇÃO COM STRIPE
-            const numeroCartao = document.getElementById('card_numero').value;
-            const validadeCartao = document.getElementById('card_validade').value;
-            const cvcCartao = document.getElementById('card_cvc').value;
-            
-            let tokenCartao = null;
-            let last4 = null;
-            let brand = null;
-            let exp_month = null;
-            let exp_year = null;
-            
-            if (numeroCartao && numeroCartao.trim() !== '') {
-                console.log('🔍 Validando cartão de crédito...');
-                
-                // Validação de Luhn primeiro
-                if (!validarCartaoCredito(numeroCartao)) {
-                    const bandeira = identificarBandeira(numeroCartao);
-                    console.error('❌ Cartão inválido:', numeroCartao.replace(/\d(?=\d{4})/g, '*'));
-                    return showError(
-                        `❌ Número de cartão inválido!\n\n` +
-                        `O número informado não passou na validação de segurança.\n` +
-                        `${bandeira !== 'Desconhecida' ? `Bandeira detectada: ${bandeira}\n` : ''}` +
-                        `Por favor, verifique os dígitos e tente novamente.`
-                    );
-                }
-                
-                const bandeira = identificarBandeira(numeroCartao);
-                console.log('✅ Cartão válido (Luhn)! Bandeira:', bandeira);
-                
-                // ✅ TOKENIZAR COM STRIPE
-                btnSubmit.innerText = "🔐 Tokenizando cartão...";
-                btnSubmit.disabled = true;
-                
-                try {
-                    // Inicializar Stripe com sua chave pública
-                    const stripe = Stripe('pk_test_51QfUjpP4mlOaBaNiWkDqvTqQv3c7a5BtUn2l9xfRCIZMmGTlDJRwV6b6SiLY74Hxq8jqeWKgkd7ioNQM2Ey7Z1WN00xYzKRf8Q');
-                    
-                    // Extrair mês e ano da validade
-                    const [mes, ano] = validadeCartao.split('/');
-                    const anoCompleto = ano.length === 2 ? '20' + ano : ano;
-                    
-                    // Criar token via Stripe (número do cartão NUNCA toca o servidor!)
-                    console.log('🔐 Gerando token seguro via Stripe...');
-                    const { token, error } = await stripe.createToken('card', {
-                        number: numeroCartao.replace(/\s/g, ''),
-                        exp_month: mes,
-                        exp_year: anoCompleto,
-                        cvc: cvcCartao
-                    });
-                    
-                    if (error) {
-                        console.error('❌ Erro Stripe:', error);
-                        btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
-                        btnSubmit.disabled = false;
-                        return showError(`❌ Erro ao validar cartão: ${error.message}`);
-                    }
-                    
-                    // Sucesso! Token criado
-                    tokenCartao = token.id;
-                    last4 = token.card.last4;
-                    brand = token.card.brand;
-                    exp_month = token.card.exp_month;
-                    exp_year = token.card.exp_year;
-                    
-                    console.log('✅ Token gerado:', tokenCartao);
-                    console.log('   Bandeira:', brand);
-                    console.log('   Últimos 4:', last4);
-                    console.log('   Validade:', exp_month + '/' + exp_year);
-                    
-                } catch (stripeErr) {
-                    console.error('❌ Erro ao tokenizar:', stripeErr);
-                    btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
-                    btnSubmit.disabled = false;
-                    return showError('❌ Erro ao processar cartão. Tente novamente.');
-                }
-            }
-
-            btnSubmit.innerText = "Processando cadastro...";
-            btnSubmit.disabled = true;
-
+    async function buscarEndereco(cep) {
+        const v = cep.replace(/\D/g, '');
+        if(v.length === 8) {
             try {
-                // ✅ NÃO ENVIA MAIS O NÚMERO DO CARTÃO!
-                const payload = {
-                    nome: document.getElementById('nome').value,
-                    email: document.getElementById('email').value,
-                    senha: document.getElementById('senha').value,
-                    documento: document.getElementById('documento').value,
-                    tipoPessoa: document.getElementById('tipoPessoa').value,
-                    dataNascimento: document.getElementById('dataNascimento').value,
-                    cep: document.getElementById('cep').value,
-                    endereco: document.getElementById('endereco').value,
-                    cidade: document.getElementById('cidade').value,
-                    estado: document.getElementById('estado').value,
-                    planoId: localStorage.getItem('plano_escolhido_id') || 1
-                };
-
-                const response = await fetch('/api/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-const data = await response.json();
-
-if (response.ok) {
-    console.log('✅ [REGISTRO] Conta criada com sucesso:', data);
-    
-    // ✅ Salvar TOKEN do cartão (não o número!)
-    if (tokenCartao) {
-        try {
-            console.log('💳 [REGISTRO] Salvando TOKEN do cartão...');
-            
-            // Fazer login para obter token de autenticação
-            const loginRes = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: payload.email, senha: payload.senha })
-            });
-            
-            if (loginRes.ok) {
-                const loginData = await loginRes.json();
-                
-                // ✅ ENVIAR TOKEN (não o número!)
-                const cartaoRes = await fetch('/api/pagamentos/salvar-cartao', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${loginData.token}`
-                    },
-                    body: JSON.stringify({
-                        token: tokenCartao,      // ✅ Token seguro do Stripe
-                        last4: last4,            // ✅ Últimos 4 dígitos
-                        brand: brand,            // ✅ Bandeira (visa, mastercard)
-                        exp_month: exp_month,    // ✅ Mês validade
-                        exp_year: exp_year,      // ✅ Ano validade
-                        gateway: 'stripe'        // ✅ Gateway usado
-                    })
-                });
-
-                if (cartaoRes.ok) {
-                    console.log('✅ [REGISTRO] Token do cartão salvo com sucesso!');
-                    console.log('   ✅ Número do cartão NUNCA passou pelo servidor!');
-                    console.log('   ✅ PCI Compliance garantido!');
-                } else {
-                    console.warn('⚠️ [REGISTRO] Erro ao salvar token (não crítico)');
+                const res = await fetch(`https://viacep.com.br/ws/${v}/json/`);
+                const data = await res.json();
+                if(!data.erro) {
+                    document.getElementById('endereco').value = `${data.logradouro}, ${data.bairro}`;
+                    document.getElementById('cidade').value = data.localidade;
+                    document.getElementById('estado').value = data.uf;
                 }
+            } catch (err) { 
+                console.error("Erro ao buscar CEP"); 
             }
-        } catch (cartaoErr) {
-            console.error('❌ [REGISTRO] Erro ao salvar token:', cartaoErr);
-            // Não bloqueia o cadastro por erro no cartão
         }
     }
-    
-    // Limpar localStorage
-    localStorage.removeItem('plano_escolhido_id');
-    localStorage.removeItem('plano_escolhido_valor');
-    localStorage.removeItem('plano_escolhido_nome');
-    
-    // ✅ Mostrar mensagem de sucesso
-    alert(
-        '✅ Conta criada com sucesso!\n\n' +
-        '🎉 Você ganhou 7 dias de teste gratuito para explorar todos os recursos do LawTech Pro.\n\n' +
-        '💳 A cobrança no cartão cadastrado será realizada automaticamente após o período de teste.\n\n' +
-        '🔒 Seus dados de pagamento foram tokenizados com segurança máxima.\n\n' +
-        'Clique em OK para fazer login e começar!'
-    );
-    
-    // ✅ Redirecionar para login
-    window.location.href = '/login?registro=sucesso&trial=7';
-    
-} else {
-    showError(data.erro || "Falha ao criar conta.");
-}
-            } catch (err) {
-                console.error('❌ Erro:', err);
-                showError("Erro de conexão.");
-            } finally {
-                btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
-                btnSubmit.disabled = false;
-            }
-        });
 
-        function showError(msg) {
-            errorBox.innerText = msg;
-            errorBox.style.display = 'block';
-            errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // ============================================================
+    // EVENTO DE SUBMIT DO FORMULÁRIO
+    // ============================================================
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorBox.style.display = 'none';
+        
+        const nome = document.getElementById('nome').value;
+        const email = document.getElementById('email').value;
+        const senha = document.getElementById('senha').value;
+        
+        if (!nome || !email || !senha) {
+            return showError("Preencha todos os campos obrigatórios.");
+        }
+        
+        if (senha !== document.getElementById('confirmarSenha').value) {
+            return showError("Senhas não coincidem.");
+        }
+        
+        if (senha.length < 6) {
+            return showError("A senha deve ter 6+ caracteres.");
         }
 
-        function ajustarCamposDocumento(tipo) {
-            const label = document.getElementById('labelDocumento');
-            const input = document.getElementById('documento');
-            const groupNascimento = document.getElementById('groupNascimento');
+        // ============================================================
+        // ✅ CRIAR PAYMENT METHOD COM STRIPE ELEMENTS
+        // ============================================================
 
-            if (tipo === 'fisica') {
-                label.innerText = 'CPF (Para Faturamento)';
-                input.placeholder = '000.000.000-00';
-                groupNascimento.style.display = 'block';
-                documentoMask.updateOptions({ mask: '000.000.000-00' });
+        let paymentMethodId = null;
+        let cartaoInfo = null;
+
+        console.log('💳 Verificando se cartão foi preenchido...');
+
+        btnSubmit.innerText = "🔐 Validando cartão...";
+        btnSubmit.disabled = true;
+
+        try {
+            const { paymentMethod, error } = await stripe.createPaymentMethod({
+                type: 'card',
+                card: cardElement,
+                billing_details: {
+                    name: nome,
+                    email: email
+                }
+            });
+            
+            if (error) {
+                // Se erro é "campo vazio", permite cadastro sem cartão
+                if (error.code === 'incomplete_card' || error.code === 'incomplete_number') {
+                    console.log('⚠️ Cartão não preenchido - continuando sem cartão');
+                } else {
+                    btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
+                    btnSubmit.disabled = false;
+                    return showError(`❌ Erro no cartão: ${error.message}`);
+                }
             } else {
-                label.innerText = 'CNPJ (Para Faturamento)';
-                input.placeholder = '00.000.000/0000-00';
-                groupNascimento.style.display = 'none';
-                document.getElementById('dataNascimento').value = '';
-                documentoMask.updateOptions({ mask: '00.000.000/0000-00' });
+                // Sucesso! Payment Method criado
+                paymentMethodId = paymentMethod.id;
+                cartaoInfo = {
+                    last4: paymentMethod.card.last4,
+                    brand: paymentMethod.card.brand,
+                    exp_month: paymentMethod.card.exp_month,
+                    exp_year: paymentMethod.card.exp_year
+                };
+                
+                console.log('✅ Payment Method criado:', paymentMethodId);
+                console.log('   Bandeira:', cartaoInfo.brand);
+                console.log('   Últimos 4:', cartaoInfo.last4);
             }
+        } catch (stripeErr) {
+            console.error('❌ Erro ao processar cartão:', stripeErr);
+            btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
+            btnSubmit.disabled = false;
+            return showError('❌ Erro ao processar cartão. Tente novamente.');
         }
-    </script>
+
+        // ============================================================
+        // CRIAR CONTA NO BACKEND
+        // ============================================================
+
+        btnSubmit.innerText = "Processando cadastro...";
+
+        try {
+            const payload = {
+                nome: nome,
+                email: email,
+                senha: senha,
+                documento: document.getElementById('documento').value,
+                tipoPessoa: document.getElementById('tipoPessoa').value,
+                dataNascimento: document.getElementById('dataNascimento').value,
+                cep: document.getElementById('cep').value,
+                endereco: document.getElementById('endereco').value,
+                cidade: document.getElementById('cidade').value,
+                estado: document.getElementById('estado').value,
+                planoId: localStorage.getItem('plano_escolhido_id') || 1
+            };
+
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                console.log('✅ [REGISTRO] Conta criada com sucesso:', data);
+                
+                // ============================================================
+                // SALVAR PAYMENT METHOD (SE FOI CRIADO)
+                // ============================================================
+                
+                if (paymentMethodId && cartaoInfo) {
+                    try {
+                        console.log('💳 [REGISTRO] Salvando Payment Method...');
+                        
+                        // Fazer login para obter token de autenticação
+                        const loginRes = await fetch('/api/auth/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: email, senha: senha })
+                        });
+                        
+                        if (loginRes.ok) {
+                            const loginData = await loginRes.json();
+                            
+                            // Salvar Payment Method
+                            const cartaoRes = await fetch('/api/pagamentos/salvar-cartao', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${loginData.token}`
+                                },
+                                body: JSON.stringify({
+                                    token: paymentMethodId,
+                                    last4: cartaoInfo.last4,
+                                    brand: cartaoInfo.brand,
+                                    exp_month: cartaoInfo.exp_month,
+                                    exp_year: cartaoInfo.exp_year,
+                                    gateway: 'stripe'
+                                })
+                            });
+
+                            if (cartaoRes.ok) {
+                                console.log('✅ [REGISTRO] Payment Method salvo com sucesso!');
+                                console.log('   ✅ PCI Compliance garantido!');
+                            } else {
+                                console.warn('⚠️ [REGISTRO] Erro ao salvar Payment Method (não crítico)');
+                            }
+                        }
+                    } catch (cartaoErr) {
+                        console.error('❌ [REGISTRO] Erro ao salvar Payment Method:', cartaoErr);
+                        // Não bloqueia o cadastro por erro no cartão
+                    }
+                }
+                
+                // Limpar localStorage
+                localStorage.removeItem('plano_escolhido_id');
+                localStorage.removeItem('plano_escolhido_valor');
+                localStorage.removeItem('plano_escolhido_nome');
+                
+                // Mensagem de sucesso
+                const mensagemCartao = paymentMethodId 
+                    ? '\n\n💳 Cartão salvo com segurança! A cobrança será feita automaticamente após 7 dias.'
+                    : '\n\n⚠️ Você poderá cadastrar seu cartão depois no painel.';
+                
+                alert(
+                    '✅ Conta criada com sucesso!' +
+                    '\n\n🎉 Você ganhou 7 dias de teste gratuito!' +
+                    mensagemCartao +
+                    '\n\nClique em OK para fazer login e começar!'
+                );
+                
+                // Redirecionar para login
+                window.location.href = '/login?registro=sucesso&trial=7';
+                
+            } else {
+                showError(data.erro || "Falha ao criar conta.");
+            }
+        } catch (err) {
+            console.error('❌ Erro:', err);
+            showError("Erro de conexão.");
+        } finally {
+            btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
+            btnSubmit.disabled = false;
+        }
+    });
+
+    function showError(msg) {
+        errorBox.innerText = msg;
+        errorBox.style.display = 'block';
+        errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function ajustarCamposDocumento(tipo) {
+        const label = document.getElementById('labelDocumento');
+        const input = document.getElementById('documento');
+        const groupNascimento = document.getElementById('groupNascimento');
+
+        if (tipo === 'fisica') {
+            label.innerText = 'CPF (Para Faturamento)';
+            input.placeholder = '000.000.000-00';
+            groupNascimento.style.display = 'block';
+            documentoMask.updateOptions({ mask: '000.000.000-00' });
+        } else {
+            label.innerText = 'CNPJ (Para Faturamento)';
+            input.placeholder = '00.000.000/0000-00';
+            groupNascimento.style.display = 'none';
+            document.getElementById('dataNascimento').value = '';
+            documentoMask.updateOptions({ mask: '00.000.000/0000-00' });
+        }
+    }
+</script>
 </body>
 </html>

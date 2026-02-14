@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>✅ Teste CORRETO - Stripe Elements</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        #card-element {
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            margin-bottom: 10px;
+        }
+        #card-errors {
+            color: #ef4444;
+            font-size: 13px;
+            margin-bottom: 20px;
+            min-height: 20px;
+        }
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.4);
+        }
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+        .success {
+            background: #d1fae5;
+            border: 2px solid #10b981;
+            color: #065f46;
+        }
+        .error {
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+            color: #991b1b;
+        }
+        .info-box {
+            background: #dbeafe;
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #1e40af;
+        }
+        pre {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #10b981;
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>✅ Teste Stripe Elements <span class="badge">CORRETO</span></h1>
+        <p class="subtitle">Método aprovado pelo Stripe (PCI Compliant)</p>
+        
+        <div class="info-box">
+            <strong>🧪 Cartão de teste:</strong> 4242 4242 4242 4242<br>
+            <strong>📅 Validade:</strong> Qualquer data futura (ex: 12/25)<br>
+            <strong>🔒 CVC:</strong> Qualquer 3 dígitos (ex: 123)
+        </div>
+        
+        <form id="payment-form">
+            <label for="cardholder-name">Nome do Titular</label>
+            <input 
+                type="text" 
+                id="cardholder-name" 
+                placeholder="Maria Silva"
+                value="Teste da Silva"
+            >
+            
+            <label>Dados do Cartão</label>
+            <div id="card-element"></div>
+            <div id="card-errors"></div>
+            
+            <button type="submit" id="submit-button">
+                🔐 Tokenizar Cartão
+            </button>
+        </form>
+        
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        // ============================================================
+        // ✅ CONFIGURAÇÃO STRIPE ELEMENTS (MÉTODO CORRETO)
+        // ============================================================
+        
+        // ⚠️ TROCAR PELA SUA CHAVE PÚBLICA!
+        const stripe = Stripe('pk_test_51T0o4eQyn7XA5V1cswOOpK4cYXOmSyQJQP4TfD7hs51vs95Wp29D4Zsb6Br2ATgSsDf7MVmI48TE5nhr4pFShugY00eS21OjGS');
+        
+        // Criar instância Elements
+        const elements = stripe.elements();
+        
+        // Criar campo de cartão (tudo-em-um: número, validade, CVC)
+        const cardElement = elements.create('card', {
+            style: {
+                base: {
+                    fontSize: '16px',
+                    color: '#1e293b',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                    '::placeholder': {
+                        color: '#94a3b8'
+                    }
+                },
+                invalid: {
+                    color: '#ef4444',
+                    iconColor: '#ef4444'
+                }
+            },
+            hidePostalCode: true
+        });
+        
+        // Montar o campo no DOM
+        cardElement.mount('#card-element');
+        
+        // Exibir erros em tempo real
+        const cardErrors = document.getElementById('card-errors');
+        cardElement.on('change', (event) => {
+            if (event.error) {
+                cardErrors.textContent = event.error.message;
+            } else {
+                cardErrors.textContent = '';
+            }
+        });
+        
+        console.log('✅ Stripe Elements inicializado!');
+        console.log('📦 Stripe.js versão:', Stripe.version);
+        
+        // ============================================================
+        // PROCESSAR FORMULÁRIO
+        // ============================================================
+        
+        const form = document.getElementById('payment-form');
+        const submitButton = document.getElementById('submit-button');
+        const resultDiv = document.getElementById('result');
+        
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            submitButton.disabled = true;
+            submitButton.textContent = '⏳ Processando...';
+            resultDiv.style.display = 'none';
+            
+            try {
+                const cardholderName = document.getElementById('cardholder-name').value;
+                
+                console.log('🔐 Criando Payment Method...');
+                
+                // ✅ CRIAR PAYMENT METHOD (MÉTODO CORRETO)
+                const { paymentMethod, error } = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: cardElement,
+                    billing_details: {
+                        name: cardholderName
+                    }
+                });
+                
+                if (error) {
+                    throw new Error(error.message);
+                }
+                
+                // ✅ SUCESSO!
+                console.log('✅ Payment Method criado:', paymentMethod);
+                
+                resultDiv.className = 'result success';
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    <h3>✅ Tokenização bem-sucedida!</h3>
+                    <p><strong>Payment Method ID:</strong><br>${paymentMethod.id}</p>
+                    <p><strong>Bandeira:</strong> ${paymentMethod.card.brand.toUpperCase()}</p>
+                    <p><strong>Últimos 4 dígitos:</strong> **** ${paymentMethod.card.last4}</p>
+                    <p><strong>Validade:</strong> ${paymentMethod.card.exp_month}/${paymentMethod.card.exp_year}</p>
+                    <p><strong>País:</strong> ${paymentMethod.card.country || 'N/A'}</p>
+                    <p><strong>Funding:</strong> ${paymentMethod.card.funding}</p>
+                    
+                    <details style="margin-top: 15px;">
+                        <summary style="cursor: pointer; font-weight: bold;">📋 Ver JSON completo</summary>
+                        <pre>${JSON.stringify(paymentMethod, null, 2)}</pre>
+                    </details>
+                    
+                    <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 12px; margin-top: 15px; font-size: 13px; color: #92400e;">
+                        <strong>💡 Próximo passo:</strong> Enviar este <code>paymentMethod.id</code> 
+                        para o backend e salvar na tabela <code>cartoes</code>.
+                    </div>
+                `;
+                
+                // Limpar o formulário
+                cardElement.clear();
+                document.getElementById('cardholder-name').value = '';
+                
+            } catch (err) {
+                console.error('❌ Erro:', err);
+                
+                resultDiv.className = 'result error';
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    <h3>❌ Erro na tokenização</h3>
+                    <p><strong>Mensagem:</strong> ${err.message}</p>
+                    <p style="font-size: 13px; margin-top: 10px;">
+                        <strong>Verifique:</strong><br>
+                        • Cartão de teste válido: 4242 4242 4242 4242<br>
+                        • Validade futura (ex: 12/25)<br>
+                        • CVC com 3 dígitos (ex: 123)<br>
+                        • Chave Stripe está correta
+                    </p>
+                `;
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = '🔐 Tokenizar Cartão';
+            }
+        });
+    </script>
+</body>
+</html>
