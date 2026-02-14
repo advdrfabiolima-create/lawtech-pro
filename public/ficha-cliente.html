@@ -700,14 +700,17 @@
                 leadId: parseInt(leadIdCapturado),  // ✅ CORRIGIDO
                 nome: document.getElementById('nome').value.trim(),
                 tipoPessoa: document.querySelector('input[name="tipoPessoa"]:checked').value,
-                documento: document.getElementById('documento').value,
+                documento: document.getElementById('documento').value.replace(/\D/g, ''), // ✅ REMOVE MÁSCARA DO CPF/CNPJ
                 email: document.getElementById('email').value.trim() || null,
-                telefone: document.getElementById('telefone').value.trim(), // ✅ AQUI
+                telefone: document.getElementById('telefone').value.trim(),
                 nascimento: document.getElementById('nascimento').value || null,
-                cep: document.getElementById('cep').value,
+                cep: document.getElementById('cep').value.replace(/\D/g, ''), // ✅ REMOVE MÁSCARA DO CEP
                 cidade: cidade,
                 uf: uf,
-                endereco: document.getElementById('endereco').value.trim()
+                endereco: document.getElementById('endereco').value.trim(),
+                numero: null, // Campo adicional esperado pelo backend
+                complemento: null, // Campo adicional esperado pelo backend
+                bairro: null // Campo adicional esperado pelo backend
             };
 
             console.log('📦 Payload enviado:', payload);
