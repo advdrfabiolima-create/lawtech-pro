@@ -24,30 +24,30 @@ router.post('/register', async (req, res) => {
             planoId
         } = req.body;
 
-        console.log('ðŸ“ [REGISTRO] Nova solicitaÃ§Ã£o de cadastro:', email);
+        console.log('🔍 [REGISTRO] Nova solicitação de cadastro:', email);
 
-        // âœ… ValidaÃ§Ãµes de entrada
+        // ✅ Validações de entrada
         if (!nome || !email || !senha) {
             return res.status(400).json({ 
-                erro: 'Nome, email e senha sÃ£o obrigatÃ³rios' 
+                erro: 'Nome, email e senha são obrigatórios' 
             });
         }
 
         if (senha.length < 6) {
             return res.status(400).json({ 
-                erro: 'A senha deve ter no mÃ­nimo 6 caracteres' 
+                erro: 'A senha deve ter no mínimo 6 caracteres' 
             });
         }
 
-        // âœ… ValidaÃ§Ã£o de email
+        // ✅ Validação de email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             return res.status(400).json({ 
-                erro: 'Email invÃ¡lido' 
+                erro: 'Email inválido' 
             });
         }
 
-        // âœ… Verifica se email jÃ¡ existe
+        // ✅ Verifica se email já existe
         const emailCheck = await pool.query(
             'SELECT id FROM usuarios WHERE email = $1',
             [email.toLowerCase().trim()]
@@ -55,27 +55,27 @@ router.post('/register', async (req, res) => {
 
         if (emailCheck.rows.length > 0) {
             return res.status(400).json({ 
-                erro: 'Este email jÃ¡ estÃ¡ cadastrado. FaÃ§a login ou use outro email.' 
+                erro: 'Este email já está cadastrado. Faça login ou use outro email.' 
             });
         }
 
-        // âœ… Hash da senha
+        // ✅ Hash da senha
         const hashedPassword = await bcrypt.hash(senha, 10);
 
-        // âœ… Preparar dados do documento
+        // ✅ Preparar dados do documento
         const documentoLimpo = documento ? documento.replace(/\D/g, '') : null;
 
-        // âœ… Calcular data de expiraÃ§Ã£o do trial (7 dias)
+        // ✅ Calcular data de expiração do trial (7 dias)
         const dataExpiracao = new Date();
         dataExpiracao.setDate(dataExpiracao.getDate() + 7);
 
-        // âœ… TRANSAÃ‡ÃƒO: Criar escritÃ³rio e usuÃ¡rio
+        // ✅ TRANSAÇÃO: Criar escritório e usuário
         const client = await pool.connect();
         
         try {
             await client.query('BEGIN');
 
-            // 1ï¸âƒ£ Criar escritÃ³rio
+            // 1️⃣ Criar escritório
             const escritorioResult = await client.query(
                 `INSERT INTO escritorios 
                  (nome, documento, data_nascimento, cep, endereco, cidade, estado, 
@@ -88,9 +88,9 @@ router.post('/register', async (req, res) => {
                     dataNascimento || null,
                     cep || null,
                     endereco || null,
-                    cidade || 'NÃ£o informado',
+                    cidade || 'Não informado',
                     estado || 'BA',
-                    planoId || 1, // Plano BÃ¡sico por padrÃ£o
+                    planoId || 1, // Plano Básico por padrão
                     dataExpiracao,
                     'trial' // Status inicial
                 ]
@@ -98,9 +98,9 @@ router.post('/register', async (req, res) => {
 
             const escritorioId = escritorioResult.rows[0].id;
 
-            console.log(`âœ… [REGISTRO] EscritÃ³rio criado: ID ${escritorioId}`);
+            console.log(`✅ [REGISTRO] Escritório criado: ID ${escritorioId}`);
 
-            // 2ï¸âƒ£ Criar usuÃ¡rio (administrador do escritÃ³rio)
+            // 2️⃣ Criar usuário (administrador do escritório)
             const usuarioResult = await client.query(
                 `INSERT INTO usuarios 
                  (nome, email, senha, role, escritorio_id) 
@@ -110,18 +110,18 @@ router.post('/register', async (req, res) => {
                     nome,
                     email.toLowerCase().trim(),
                     hashedPassword,
-                    'admin', // Primeiro usuÃ¡rio Ã© sempre admin
+                    'admin', // Primeiro usuário é sempre admin
                     escritorioId
                 ]
             );
 
             const usuario = usuarioResult.rows[0];
 
-            console.log(`âœ… [REGISTRO] UsuÃ¡rio criado: ${usuario.email} (ID: ${usuario.id})`);
+            console.log(`✅ [REGISTRO] Usuário criado: ${usuario.email} (ID: ${usuario.id})`);
 
             await client.query('COMMIT');
 
-            // âœ… Gerar token JWT
+            // ✅ Gerar token JWT
             const token = jwt.sign(
                 { 
                     id: usuario.id,
@@ -133,9 +133,9 @@ router.post('/register', async (req, res) => {
                 { expiresIn: '7d' }
             );
 
-            console.log(`ðŸŽ‰ [REGISTRO] Cadastro concluÃ­do com sucesso: ${usuario.email}`);
+            console.log(`🎉 [REGISTRO] Cadastro concluído com sucesso: ${usuario.email}`);
 
-            // âœ… Retorna sucesso
+            // ✅ Retorna sucesso
             res.status(201).json({
                 ok: true,
                 mensagem: 'Cadastro realizado com sucesso!',
@@ -161,19 +161,19 @@ router.post('/register', async (req, res) => {
         }
 
     } catch (err) {
-        console.error('âŒ [REGISTRO] Erro ao processar cadastro:', err.message);
+        console.error('❌ [REGISTRO] Erro ao processar cadastro:', err.message);
         console.error('Stack:', err.stack);
         
-        // Mensagens de erro especÃ­ficas
+        // Mensagens de erro específicas
         if (err.message.includes('unique')) {
             return res.status(400).json({ 
-                erro: 'Email jÃ¡ cadastrado no sistema' 
+                erro: 'Email já cadastrado no sistema' 
             });
         }
         
         if (err.message.includes('escritorios')) {
             return res.status(500).json({ 
-                erro: 'Erro ao criar escritÃ³rio. Verifique os dados e tente novamente.' 
+                erro: 'Erro ao criar escritório. Verifique os dados e tente novamente.' 
             });
         }
 
@@ -185,25 +185,26 @@ router.post('/register', async (req, res) => {
 });
 
 /* ======================================================
-   ROTA DE LOGIN
+   ROTA DE LOGIN - ✅ CORRIGIDA COM VALIDAÇÃO DE TRIAL
 ===================================================== */
 
 router.post('/login', async (req, res) => {
     try {
         const { email, senha } = req.body;
 
-        console.log('ðŸ” [LOGIN] Tentativa de login:', email);
+        console.log('🔍 [LOGIN] Tentativa de login:', email);
 
         if (!email || !senha) {
             return res.status(400).json({ 
-                erro: 'Email e senha sÃ£o obrigatÃ³rios' 
+                erro: 'Email e senha são obrigatórios' 
             });
         }
 
-        // Busca usuÃ¡rio
+        // Busca usuário
         const result = await pool.query(
             `SELECT u.id, u.nome, u.email, u.senha, u.role, u.escritorio_id,
-                    e.plano_id, e.trial_expira_em, e.plano_financeiro_status
+                    e.plano_id, e.trial_expira_em, e.plano_financeiro_status,
+                    e.ultimo_pagamento, e.proxima_cobranca
              FROM usuarios u
              JOIN escritorios e ON u.escritorio_id = e.id
              WHERE u.email = $1`,
@@ -227,6 +228,43 @@ router.post('/login', async (req, res) => {
             });
         }
 
+        console.log('📊 [LOGIN] Usuário:', usuario.email, '| Escritório:', usuario.escritorio_id);
+        console.log('📊 [LOGIN] Status:', usuario.plano_financeiro_status, '| Trial expira em:', usuario.trial_expira_em);
+
+        // ✅ VALIDAÇÃO DE TRIAL EXPIRADO (CORRIGIDO)
+        const ehMaster = usuario.email === 'adv.limaesilva@hotmail.com';
+
+        // ✅ MELHORIA: Calcula dias restantes APENAS se status for 'trial'
+        let diasRestantes = null;
+        if (usuario.plano_financeiro_status === 'trial' && usuario.trial_expira_em) {
+            const hoje = new Date();
+            const expiracao = new Date(usuario.trial_expira_em);
+            diasRestantes = Math.ceil((expiracao - hoje) / (1000 * 60 * 60 * 24));
+            
+            console.log('📊 [LOGIN] Dias restantes do trial:', diasRestantes);
+        }
+
+        // ⚠️ BLOQUEIA LOGIN SE TRIAL EXPIROU E NÃO PAGOU
+        if (!ehMaster) {
+            // Se trial expirou e não é plano pago/ativo
+            if (diasRestantes !== null && diasRestantes <= 0 && 
+                usuario.plano_financeiro_status !== 'pago' && 
+                usuario.plano_financeiro_status !== 'ativo') {
+                
+                console.log('⚠️ [LOGIN BLOQUEADO] Trial expirado:', usuario.email);
+                console.log('⚠️ [LOGIN BLOQUEADO] Status:', usuario.plano_financeiro_status);
+                console.log('⚠️ [LOGIN BLOQUEADO] Dias restantes:', diasRestantes);
+                
+                return res.status(402).json({ 
+                    erro: 'Período de teste expirado', 
+                    detalhe: 'Seu trial de 7 dias chegou ao fim. Realize o pagamento para liberar o acesso total.',
+                    dias_restantes: diasRestantes,
+                    status: usuario.plano_financeiro_status,
+                    redirect: '/planos-page?action=pay'
+                });
+            }
+        }
+
         // Gera token
         const token = jwt.sign(
             { 
@@ -239,15 +277,7 @@ router.post('/login', async (req, res) => {
             { expiresIn: '7d' }
         );
 
-        console.log(`âœ… [LOGIN] Login bem-sucedido: ${usuario.email}`);
-
-        // Calcula dias restantes do trial
-        let diasRestantes = null;
-        if (usuario.trial_expira_em) {
-            const hoje = new Date();
-            const expiracao = new Date(usuario.trial_expira_em);
-            diasRestantes = Math.ceil((expiracao - hoje) / (1000 * 60 * 60 * 24));
-        }
+        console.log(`✅ [LOGIN] Login bem-sucedido: ${usuario.email}`);
 
         res.json({
             ok: true,
@@ -260,12 +290,14 @@ router.post('/login', async (req, res) => {
                 escritorio_id: usuario.escritorio_id,
                 plano_id: usuario.plano_id,
                 plano_financeiro_status: usuario.plano_financeiro_status,
+                ultimo_pagamento: usuario.ultimo_pagamento,        // ✅ ADICIONADO
+                proxima_cobranca: usuario.proxima_cobranca,        // ✅ ADICIONADO
                 dias_restantes: diasRestantes
             }
         });
 
     } catch (err) {
-        console.error('âŒ [LOGIN] Erro:', err.message);
+        console.error('❌ [LOGIN] Erro:', err.message);
         res.status(500).json({ 
             erro: 'Erro ao processar login' 
         });
@@ -287,7 +319,8 @@ router.get('/me', async (req, res) => {
         // ADICIONADO: u.tour_desativado, u.data_criacao e u.primeiro_acesso no SELECT
         const result = await pool.query(
             `SELECT u.id, u.nome, u.email, u.role, u.escritorio_id, u.tour_desativado, u.data_criacao, u.primeiro_acesso,
-                    e.plano_id, e.trial_expira_em, e.plano_financeiro_status
+                    e.plano_id, e.trial_expira_em, e.plano_financeiro_status,
+                    e.ultimo_pagamento, e.proxima_cobranca
              FROM usuarios u
              JOIN escritorios e ON u.escritorio_id = e.id
              WHERE u.id = $1`,
@@ -299,7 +332,10 @@ router.get('/me', async (req, res) => {
         const usuario = result.rows[0];
 
         let diasRestantes = null;
-        if (usuario.trial_expira_em) {
+        
+        // ✅ MELHORIA: Só calcula dias restantes se status for 'trial'
+        // Evita calcular dias quando usuário já pagou
+        if (usuario.plano_financeiro_status === 'trial' && usuario.trial_expira_em) {
             const hoje = new Date();
             const expiracao = new Date(usuario.trial_expira_em);
             diasRestantes = Math.ceil((expiracao - hoje) / (1000 * 60 * 60 * 24));
@@ -315,8 +351,11 @@ router.get('/me', async (req, res) => {
                 escritorio_id: usuario.escritorio_id,
                 tour_desativado: usuario.tour_desativado,
                 data_criacao: usuario.data_criacao,
-                primeiro_acesso: usuario.primeiro_acesso, // ADICIONADO
+                primeiro_acesso: usuario.primeiro_acesso,
                 plano_id: usuario.plano_id,
+                plano_financeiro_status: usuario.plano_financeiro_status,
+                ultimo_pagamento: usuario.ultimo_pagamento,        // ✅ ADICIONADO
+                proxima_cobranca: usuario.proxima_cobranca,        // ✅ ADICIONADO
                 dias_restantes: diasRestantes
             }
         });
@@ -396,6 +435,102 @@ router.put('/resetar-boas-vindas', async (req, res) => {
 });
 
 /* ======================================================
+   🧪 ROTA PARA EXPIRAR TRIAL (APENAS DESENVOLVIMENTO)
+===================================================== */
+router.post('/expirar-trial-teste', async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({ erro: 'Email é obrigatório' });
+        }
+
+        // Busca escritório do usuário
+        const result = await pool.query(
+            `SELECT escritorio_id FROM usuarios WHERE email = $1`,
+            [email.toLowerCase().trim()]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ erro: 'Usuário não encontrado' });
+        }
+
+        const escritorioId = result.rows[0].escritorio_id;
+
+        // Expira o trial
+        await pool.query(
+            `UPDATE escritorios 
+             SET trial_expira_em = NOW() - INTERVAL '1 day',
+                 plano_financeiro_status = 'trial'
+             WHERE id = $1`,
+            [escritorioId]
+        );
+
+        console.log(`🧪 [TESTE] Trial expirado para: ${email}`);
+
+        res.json({ 
+            ok: true, 
+            mensagem: `Trial do usuário ${email} foi expirado para testes` 
+        });
+
+    } catch (err) {
+        console.error('❌ [TESTE] Erro ao expirar trial:', err);
+        res.status(500).json({ erro: 'Erro ao processar' });
+    }
+});
+
+/* ======================================================
+   🧪 ROTA PARA VERIFICAR STATUS DO TRIAL (APENAS DESENVOLVIMENTO)
+===================================================== */
+router.post('/verificar-status-trial', async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({ erro: 'Email é obrigatório' });
+        }
+
+        // Busca informações completas
+        const result = await pool.query(
+            `SELECT 
+                u.email,
+                u.nome,
+                e.plano_financeiro_status,
+                e.trial_expira_em,
+                EXTRACT(DAY FROM (e.trial_expira_em - NOW())) as dias_restantes,
+                CASE 
+                    WHEN e.trial_expira_em < NOW() THEN 'EXPIRADO'
+                    ELSE 'ATIVO'
+                END as status_trial
+             FROM usuarios u
+             JOIN escritorios e ON u.escritorio_id = e.id
+             WHERE u.email = $1`,
+            [email.toLowerCase().trim()]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ erro: 'Usuário não encontrado' });
+        }
+
+        const info = result.rows[0];
+
+        res.json({ 
+            ok: true,
+            email: info.email,
+            nome: info.nome,
+            status_financeiro: info.plano_financeiro_status,
+            trial_expira_em: info.trial_expira_em,
+            dias_restantes: Math.ceil(parseFloat(info.dias_restantes)),
+            status_trial: info.status_trial
+        });
+
+    } catch (err) {
+        console.error('❌ [TESTE] Erro ao verificar status:', err);
+        res.status(500).json({ erro: 'Erro ao processar' });
+    }
+});
+
+/* ======================================================
    ROTA PARA RECUPERAR SENHA (BONUS)
 ===================================================== */
 
@@ -404,7 +539,7 @@ router.post('/recuperar-senha', async (req, res) => {
         const { email } = req.body;
 
         if (!email) {
-            return res.status(400).json({ erro: 'Email Ã© obrigatÃ³rio' });
+            return res.status(400).json({ erro: 'Email é obrigatório' });
         }
 
         // Verifica se email existe
@@ -414,27 +549,27 @@ router.post('/recuperar-senha', async (req, res) => {
         );
 
         if (result.rows.length === 0) {
-            // Por seguranÃ§a, nÃ£o informa se email existe ou nÃ£o
+            // Por segurança, não informa se email existe ou não
             return res.json({ 
                 ok: true, 
-                mensagem: 'Se o email existir, vocÃª receberÃ¡ instruÃ§Ãµes de recuperaÃ§Ã£o.' 
+                mensagem: 'Se o email existir, você receberá instruções de recuperação.' 
             });
         }
 
-        // TODO: Implementar envio de email com link de recuperaÃ§Ã£o
+        // TODO: Implementar envio de email com link de recuperação
         // Por enquanto, apenas confirma
-        console.log(`ðŸ“§ [RECUPERAR SENHA] SolicitaÃ§Ã£o para: ${email}`);
+        console.log(`📧 [RECUPERAR SENHA] Solicitação para: ${email}`);
 
         res.json({ 
             ok: true, 
-            mensagem: 'Se o email existir, vocÃª receberÃ¡ instruÃ§Ãµes de recuperaÃ§Ã£o.',
+            mensagem: 'Se o email existir, você receberá instruções de recuperação.',
             // Em desenvolvimento, retorna um aviso
-            aviso: 'Funcionalidade de email ainda nÃ£o implementada. Contate o suporte.'
+            aviso: 'Funcionalidade de email ainda não implementada. Contate o suporte.'
         });
 
     } catch (err) {
-        console.error('âŒ [RECUPERAR SENHA] Erro:', err.message);
-        res.status(500).json({ erro: 'Erro ao processar solicitaÃ§Ã£o' });
+        console.error('❌ [RECUPERAR SENHA] Erro:', err.message);
+        res.status(500).json({ erro: 'Erro ao processar solicitação' });
     }
 });
 

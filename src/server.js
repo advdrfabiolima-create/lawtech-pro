@@ -27,10 +27,13 @@ const adminRoutes = require('./routes/admin.routes');
 const partesProcessoRoutes = require('./routes/partesProcesso.routes');
 const peticoesRoutes = require('./routes/peticoes.routes');
 const syncRoutes = require('./routes/sync.routes');
+const assinaturaRoutes = require('./routes/assinatura_routes');
+const stripeWebhookRoutes = require('./routes/stripe.webhook.routes');
 
 // --- 2. MIDDLEWARES DE AUTENTICAÇÃO ---
 const authMiddleware = require('./middlewares/authMiddleware');
 const roleMiddleware = require('./middlewares/roleMiddleware');
+const verificarPagamento = require('./middlewares/financeiroMiddleware');
 
 // 🚀 3. INICIALIZAÇÃO DO APP
 const app = express();
@@ -59,13 +62,13 @@ app.use('/api', iaRoutes);
 app.use('/api/crm/public', crmPublicRoutes); // 🔓 público
 app.use('/api/crm', authMiddleware, crmRoutes);
 console.log('✅ Rotas CRM registradas no servidor principal');
-app.use('/api', prazosRoutes);
-app.use('/api', processosRoutes);
+app.use('/api', authMiddleware, verificarPagamento, prazosRoutes);
+app.use('/api', authMiddleware, verificarPagamento, processosRoutes);
 app.use('/api', calculosRoutes);
 app.use('/api', audienciasRoutes);
 app.use('/api', planosRoutes);
-app.use('/api', financeiroRoutes);
-app.use('/api', clientesRoutes);
+app.use('/api', authMiddleware, verificarPagamento, financeiroRoutes);
+app.use('/api', authMiddleware, verificarPagamento, clientesRoutes);
 app.use('/api', configRoutes);
 app.use('/api', usuariosRoutes);
 app.use('/api/pagamentos', pagamentosRoutes);
@@ -74,6 +77,8 @@ app.use('/api', recibosRoutes);
 app.use('/api', partesProcessoRoutes);
 app.use('/api/peticoes', authMiddleware, peticoesRoutes);
 app.use('/api', syncRoutes);
+app.use('/api/pagamentos', assinaturaRoutes);
+app.use('/webhook', stripeWebhookRoutes);
 
 // ✅ Rota do monitor admin
 app.get('/systems/monitor', (req, res) => {
@@ -190,7 +195,9 @@ app.listen(PORT, '0.0.0.0', () => {
 // --- 12. INICIALIZAÇÃO E AUTOMAÇÃO (BACKGROUND) ---
 const { iniciarAgendamentos } = require('./cron/prazosCron');
 require('./cron/cobrancasTrial');
+require('./cron/cobrancasRecorrentes');
 require('./cron/djen_scraper_cron');
+require('./cron/auditoriaStripeCron');
 
 (async function iniciarSistema() {
     try {

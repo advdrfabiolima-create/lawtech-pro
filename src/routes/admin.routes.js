@@ -3,14 +3,19 @@ const router = express.Router();
 const pool = require('../config/db');
 
 /**
- * 📊 ESTATÍSTICAS GERAIS DO SISTEMA
+ * 📊 ESTATÍSTICAS GERAIS - COMPATÍVEL
  */
 router.get('/stats', async (req, res) => {
     try {
-        // 1. Contagem de Escritórios por Plano
-        const planosCount = await pool.query(`
+        // Status por plano financeiro
+        const statusCount = await pool.query(`
             SELECT 
                 COUNT(*) as total,
+                COUNT(*) FILTER (WHERE plano_financeiro_status = 'trial') as em_trial,
+                COUNT(*) FILTER (WHERE plano_financeiro_status = 'pago') as pagos,
+                COUNT(*) FILTER (WHERE plano_financeiro_status = 'ativo') as ativos,
+                COUNT(*) FILTER (WHERE plano_financeiro_status = 'inadimplente') as inadimplentes,
+                COUNT(*) FILTER (WHERE renovacao_automatica = false) as cancelados,
                 COUNT(*) FILTER (WHERE plano_id = 1) as basico,
                 COUNT(*) FILTER (WHERE plano_id = 2) as intermediario,
                 COUNT(*) FILTER (WHERE plano_id = 3) as avancado,
@@ -18,71 +23,123 @@ router.get('/stats', async (req, res) => {
             FROM escritorios
         `);
 
-        // 2. Contagem de Processos Totais
         const procCount = await pool.query("SELECT COUNT(*) as total FROM processos");
 
-        // 3. Estatísticas de Inadimplência
-        const inadimplenciaCount = await pool.query(`
+        // MRR Real
+        const mrrResult = await pool.query(`
             SELECT 
-                COUNT(*) FILTER (WHERE status_pagamento = 'em_dia') as em_dia,
-                COUNT(*) FILTER (WHERE status_pagamento = 'pendente') as pendente,
-                COUNT(*) FILTER (WHERE status_pagamento = 'inadimplente') as inadimplente
-            FROM escritorios
+                COALESCE(SUM(p.preco_mensal), 0) as mrr_total,
+                COUNT(*) as total_pagantes
+            FROM escritorios e
+            JOIN planos p ON p.id = e.plano_id
+            WHERE e.plano_financeiro_status IN ('pago', 'ativo')
+            AND (e.renovacao_automatica IS NULL OR e.renovacao_automatica = true)
         `);
 
-        // 4. Escritórios no limite (próximos de upgrade)
-        // ✅ EXCLUINDO planos ilimitados (-1, 999, 9999)
+        // Churn (com proteção contra divisão por zero)
+        const churnResult = await pool.query(`
+            SELECT COUNT(*) as total
+            FROM escritorios 
+            WHERE renovacao_automatica = false
+            AND plano_financeiro_status IN ('pago', 'ativo', 'trial')
+        `);
+
+        // Cobranças
+        const cobrancasProximas = await pool.query(`
+            SELECT 
+                COUNT(*) FILTER (WHERE proxima_cobranca = CURRENT_DATE) as hoje,
+                COUNT(*) FILTER (WHERE proxima_cobranca BETWEEN CURRENT_DATE + 1 AND CURRENT_DATE + 7) as proximos_7_dias
+            FROM escritorios
+            WHERE proxima_cobranca IS NOT NULL
+            AND plano_financeiro_status = 'pago'
+            AND (renovacao_automatica IS NULL OR renovacao_automatica = true)
+        `);
+
+        // Taxa de Sucesso
+        const taxaSucesso = await pool.query(`
+            SELECT 
+                COALESCE(COUNT(*) FILTER (WHERE status = 'aprovada'), 0) as aprovadas,
+                COALESCE(COUNT(*) FILTER (WHERE status = 'recusada'), 0) as recusadas,
+                COUNT(*) as total
+            FROM transacoes
+            WHERE created_at >= date_trunc('month', current_date)
+        `);
+
+        // Falhas recentes
+        const falhasPagamento = await pool.query(`
+            SELECT COUNT(*) as total
+            FROM transacoes
+            WHERE status = 'recusada'
+            AND created_at >= CURRENT_DATE - INTERVAL '7 days'
+        `);
+
+        // No limite
         const noLimiteCount = await pool.query(`
             SELECT COUNT(*) as total
             FROM escritorios e
             WHERE (
-                -- ✅ Apenas escritórios com limites definidos (não ilimitados)
                 e.limite_usuarios NOT IN (-1, 999, 9999) 
                 AND e.limite_prazos NOT IN (-1, 999, 9999)
                 AND e.limite_usuarios > 0 
                 AND e.limite_prazos > 0
             )
             AND (
-                -- ✅ E que estejam >= 90% do limite
                 (SELECT COUNT(*) FROM prazos WHERE escritorio_id = e.id) >= (e.limite_prazos * 0.9)
                 OR
                 (SELECT COUNT(*) FROM usuarios WHERE escritorio_id = e.id) >= (e.limite_usuarios * 0.9)
             )
         `);
 
-        // ✅ 5. CÁLCULO REAL DO MRR (Faturamento Mensal)
-        // Somamos a coluna valor_mensalidade apenas de quem está ativo/em dia
-        const mrrResult = await pool.query(`
-            SELECT SUM(valor_mensalidade) as total 
-            FROM escritorios 
-            WHERE status_pagamento = 'em_dia'
-        `);
-
-        // ✅ 6. CÁLCULO DE CHURN (Cancelamentos do mês atual)
-        const churnResult = await pool.query(`
-            SELECT COUNT(*) as total 
-            FROM escritorios 
-            WHERE status_pagamento = 'cancelado' 
-            AND criado_em >= date_trunc('month', current_date)
-        `);
-
-        const stats = planosCount.rows[0];
-        const inadimplencia = inadimplenciaCount.rows[0];
+        const stats = statusCount.rows[0];
+        const mrr = mrrResult.rows[0];
+        const cobrancas = cobrancasProximas.rows[0];
+        const taxas = taxaSucesso.rows[0];
+        
+        // ✅ CÁLCULO SEGURO DO CHURN
+        const totalEscritorios = parseInt(stats.total || 0);
+        const totalCancelados = parseInt(churnResult.rows[0]?.total || 0);
+        const churnRate = totalEscritorios > 0 
+            ? ((totalCancelados / totalEscritorios) * 100).toFixed(1)
+            : '0.0';
         
         res.json({
             ok: true,
             stats: {
-                total_escritorios: parseInt(stats.total || 0),
+                total_escritorios: totalEscritorios,
+                total_processos: parseInt(procCount.rows[0].total || 0),
+                
+                // Status
+                em_trial: parseInt(stats.em_trial || 0),
+                pagos: parseInt(stats.pagos || 0),
+                ativos: parseInt(stats.ativos || 0),
+                inadimplentes: parseInt(stats.inadimplentes || 0),
+                cancelados: totalCancelados,
+                
+                // Planos
                 plano_basico: parseInt(stats.basico || 0),
                 plano_intermediario: parseInt(stats.intermediario || 0),
                 plano_avancado: parseInt(stats.avancado || 0),
                 plano_premium: parseInt(stats.premium || 0),
-                total_processos: parseInt(procCount.rows[0].total || 0),
-                mrr: parseFloat(mrrResult.rows[0].total || 0), // ✅ Agora dinâmico
-                churn: parseInt(churnResult.rows[0].total || 0), // ✅ Agora dinâmico
-                em_dia: parseInt(inadimplencia.em_dia || 0),
-                pendente: parseInt(inadimplencia.pendente || 0),
-                inadimplente: parseInt(inadimplencia.inadimplente || 0),
+                
+                // Financeiro
+                mrr: parseFloat(mrr.mrr_total || 0),
+                churn: totalCancelados,  // Quantidade
+                churn_rate: churnRate,   // Percentual
+                
+                // Cobranças
+                cobrancas_hoje: parseInt(cobrancas?.hoje || 0),
+                cobrancas_proximos_7dias: parseInt(cobrancas?.proximos_7_dias || 0),
+                
+                // Taxa - null se não houver transações (evita métrica enganosa)
+                taxa_aprovacao: taxas.total > 0
+                    ? parseFloat(((taxas.aprovadas / taxas.total) * 100).toFixed(1))
+                    : null,
+                falhas_7dias: parseInt(falhasPagamento.rows[0].total || 0),
+                
+                // Compatibilidade
+                em_dia: parseInt(stats.pagos || 0) + parseInt(stats.ativos || 0),
+                pendente: 0,
+                inadimplente: parseInt(stats.inadimplentes || 0),
                 no_limite: parseInt(noLimiteCount.rows[0].total || 0)
             }
         });
@@ -93,7 +150,7 @@ router.get('/stats', async (req, res) => {
 });
 
 /**
- * 🏢 LISTA DETALHADA DE ESCRITÓRIOS COM STATUS DE PAGAMENTO E LIMITES
+ * 🏢 LISTA DE ESCRITÓRIOS - COMPATÍVEL
  */
 router.get('/escritorios', async (req, res) => {
     try {
@@ -102,28 +159,55 @@ router.get('/escritorios', async (req, res) => {
                 e.id, 
                 e.nome, 
                 e.oab, 
-                e.advogado_responsavel, -- ✅ Adicionado para aparecer no dashboard
-                e.criado_em AS data_criacao,
+                e.advogado_responsavel,
+                e.data_criacao AS data_criacao, -- ✅ Usa data atual como fallback
                 e.renovacao_automatica,
-                COALESCE(e.status_pagamento, 'em_dia') as status_pagamento,
-                COALESCE(e.data_vencimento, CURRENT_DATE + INTERVAL '30 days') as data_vencimento,
-                COALESCE(e.plano_ativo, 'Individual') as plano_ativo, -- ✅ Agora pega o plano real
+                
+                -- ✅ NOVOS CAMPOS
+                e.plano_financeiro_status,
+                e.trial_expira_em,
+                e.ultimo_pagamento,
+                e.proxima_cobranca,
+                
+                -- Plano (mantém compatibilidade)
+                p.nome as plano_ativo,  -- ✅ CAMPO ESPERADO PELO FRONTEND
+                p.preco_mensal,
+                
+                -- Status Pagamento (compatibilidade)
+                CASE 
+                    WHEN e.plano_financeiro_status = 'pago' THEN 'em_dia'
+                    WHEN e.plano_financeiro_status = 'ativo' THEN 'em_dia'
+                    WHEN e.plano_financeiro_status = 'inadimplente' THEN 'inadimplente'
+                    WHEN e.plano_financeiro_status = 'trial' THEN 'trial'
+                    ELSE 'em_dia'
+                END as status_pagamento,
+                
+                -- Data vencimento (compatibilidade)
+                COALESCE(e.proxima_cobranca, e.trial_expira_em, CURRENT_DATE + INTERVAL '30 days') as data_vencimento,
+                
+                -- Limites
                 COALESCE(e.limite_usuarios, 999) as limite_usuarios,
                 COALESCE(e.limite_prazos, 999) as limite_prazos,
+                
+                -- Contadores
                 (SELECT COUNT(*) FROM usuarios WHERE escritorio_id = e.id) as total_usuarios,
                 (SELECT COUNT(*) FROM processos WHERE escritorio_id = e.id) as total_processos,
                 (SELECT COUNT(*) FROM prazos WHERE escritorio_id = e.id) as total_prazos,
-                -- Cálculo de percentual de uso
+                
+                -- Percentuais
                 ROUND(((SELECT COUNT(*) FROM usuarios WHERE escritorio_id = e.id)::numeric / NULLIF(COALESCE(e.limite_usuarios, 999), 0) * 100), 1) as percentual_usuarios,
                 ROUND(((SELECT COUNT(*) FROM prazos WHERE escritorio_id = e.id)::numeric / NULLIF(COALESCE(e.limite_prazos, 999), 0) * 100), 1) as percentual_prazos,
-                -- Flag de "no limite" (>=90%)
+                
+                -- Flag no limite
                 CASE 
                     WHEN (SELECT COUNT(*) FROM usuarios WHERE escritorio_id = e.id) >= (COALESCE(e.limite_usuarios, 999) * 0.9) 
                         OR (SELECT COUNT(*) FROM prazos WHERE escritorio_id = e.id) >= (COALESCE(e.limite_prazos, 999) * 0.9)
                     THEN true
                     ELSE false
                 END as no_limite_upgrade
+                
             FROM escritorios e
+            JOIN planos p ON p.id = e.plano_id
             ORDER BY e.id DESC
         `);
 
@@ -139,7 +223,7 @@ router.get('/escritorios', async (req, res) => {
 });
 
 /**
- * 🛡️ ROTA DE MONITORAMENTO DE ERROS (LOGS_SISTEMA)
+ * 🛡️ MONITORAMENTO
  */
 router.get('/monitoramento', async (req, res) => {
     try {
@@ -176,7 +260,7 @@ router.get('/monitoramento', async (req, res) => {
 });
 
 /**
- * 📋 NOVA ROTA: AUDIT LOG (LOG DE EVENTOS IMPORTANTES)
+ * 📋 AUDIT LOG
  */
 router.get('/audit-log', async (req, res) => {
     try {
@@ -218,50 +302,95 @@ router.get('/audit-log', async (req, res) => {
 });
 
 /**
- * 🚨 NOVA ROTA: ESCRITÓRIOS NO LIMITE (OPORTUNIDADE DE UPGRADE)
+ * 🚨 NO LIMITE
  */
 router.get('/no-limite', async (req, res) => {
     try {
+        // ✅ Limites definidos diretamente (não depende de arquivo externo)
+        const planLimits = {
+            'basico': {
+                usuarios: { max: 3, ilimitado: false },
+                prazos: { max: 10, ilimitado: false }
+            },
+            'intermediario': {
+                usuarios: { max: 15, ilimitado: false },
+                prazos: { max: 100, ilimitado: false }
+            },
+            'avancado': {
+                usuarios: { max: -1, ilimitado: true },
+                prazos: { max: 500, ilimitado: false }
+            },
+            'premium': {
+                usuarios: { max: -1, ilimitado: true },
+                prazos: { max: -1, ilimitado: true }
+            }
+        };
+        
+        // ✅ OTIMIZADO: 1 única query com subqueries (escalável para 1000+ escritórios)
         const result = await pool.query(`
             SELECT 
                 e.id,
                 e.nome,
                 e.oab,
-                e.plano_ativo,
-                e.limite_usuarios,
-                e.limite_prazos,
+                p.nome as plano_ativo,
+                p.slug as plano_slug,
                 (SELECT COUNT(*) FROM usuarios WHERE escritorio_id = e.id) as total_usuarios,
-                (SELECT COUNT(*) FROM prazos WHERE escritorio_id = e.id) as total_prazos,
-                ROUND(((SELECT COUNT(*) FROM usuarios WHERE escritorio_id = e.id)::numeric / NULLIF(e.limite_usuarios, 0) * 100), 1) as percentual_usuarios,
-                ROUND(((SELECT COUNT(*) FROM prazos WHERE escritorio_id = e.id)::numeric / NULLIF(e.limite_prazos, 0) * 100), 1) as percentual_prazos,
-                CASE 
-                    WHEN (SELECT COUNT(*) FROM usuarios WHERE escritorio_id = e.id) >= (e.limite_usuarios * 0.9) THEN 'usuarios'
-                    WHEN (SELECT COUNT(*) FROM prazos WHERE escritorio_id = e.id) >= (e.limite_prazos * 0.9) THEN 'prazos'
-                    ELSE 'ambos'
-                END as recurso_limite
+                (SELECT COUNT(*) FROM prazos WHERE escritorio_id = e.id) as total_prazos
             FROM escritorios e
-            WHERE (
-                -- ✅ EXCLUIR escritórios com recursos ilimitados
-                -- Valores -1, 999, ou 9999 indicam "ilimitado"
-                e.limite_usuarios NOT IN (-1, 999, 9999) 
-                AND e.limite_prazos NOT IN (-1, 999, 9999)
-                AND e.limite_usuarios > 0 
-                AND e.limite_prazos > 0
-            )
-            AND (
-                -- ✅ Apenas os que estão >= 90% do limite
-                (SELECT COUNT(*) FROM usuarios WHERE escritorio_id = e.id) >= (e.limite_usuarios * 0.9)
-                OR
-                (SELECT COUNT(*) FROM prazos WHERE escritorio_id = e.id) >= (e.limite_prazos * 0.9)
-            )
-            ORDER BY 
-                GREATEST(
-                    (SELECT COUNT(*) FROM usuarios WHERE escritorio_id = e.id)::numeric / NULLIF(e.limite_usuarios, 1),
-                    (SELECT COUNT(*) FROM prazos WHERE escritorio_id = e.id)::numeric / NULLIF(e.limite_prazos, 1)
-                ) DESC
+            JOIN planos p ON p.id = e.plano_id
+            WHERE p.slug != 'premium'
+            ORDER BY e.id DESC
         `);
 
-        res.json({ ok: true, total: result.rowCount, escritorios: result.rows });
+        // Processar cada escritório com os limites corretos
+        const escritoriosComLimites = result.rows.map(esc => {
+            const planoSlug = esc.plano_slug || 'basico';
+            const limites = planLimits[planoSlug] || planLimits['basico'];
+            
+            const total_usuarios = parseInt(esc.total_usuarios);
+            const total_prazos = parseInt(esc.total_prazos);
+            
+            // Definir limites baseados no JSON
+            const limiteUsuarios = limites.usuarios.ilimitado ? -1 : limites.usuarios.max;
+            const limitePrazos = limites.prazos.ilimitado ? -1 : limites.prazos.max;
+            
+            // Calcular percentuais
+            const percUsuarios = limiteUsuarios === -1 
+                ? 0 
+                : Math.round((total_usuarios / limiteUsuarios) * 100 * 10) / 10;
+                
+            const percPrazos = limitePrazos === -1 
+                ? 0 
+                : Math.round((total_prazos / limitePrazos) * 100 * 10) / 10;
+            
+            // Determinar recurso crítico
+            let recursoLimite = 'ok';
+            if (limiteUsuarios > 0 && percUsuarios >= 90) recursoLimite = 'usuarios';
+            else if (limitePrazos > 0 && percPrazos >= 90) recursoLimite = 'prazos';
+            
+            return {
+                id: esc.id,
+                nome: esc.nome,
+                oab: esc.oab,
+                plano_ativo: esc.plano_ativo,
+                limite_usuarios: limiteUsuarios,
+                limite_prazos: limitePrazos,
+                total_usuarios: total_usuarios,
+                total_prazos: total_prazos,
+                percentual_usuarios: percUsuarios,
+                percentual_prazos: percPrazos,
+                recurso_limite: recursoLimite
+            };
+        });
+
+        // Ordenar por maior uso
+        escritoriosComLimites.sort((a, b) => {
+            const maxA = Math.max(a.percentual_usuarios, a.percentual_prazos);
+            const maxB = Math.max(b.percentual_usuarios, b.percentual_prazos);
+            return maxB - maxA;
+        });
+
+        res.json({ ok: true, total: escritoriosComLimites.length, escritorios: escritoriosComLimites });
     } catch (err) {
         console.error('❌ Erro ao buscar escritórios no limite:', err.message);
         res.status(500).json({ ok: false, error: err.message });
@@ -269,7 +398,7 @@ router.get('/no-limite', async (req, res) => {
 });
 
 /**
- * 💳 NOVA ROTA: INADIMPLENTES E STATUS DE PAGAMENTO
+ * 💳 INADIMPLENTES
  */
 router.get('/inadimplencia', async (req, res) => {
     try {
@@ -278,26 +407,26 @@ router.get('/inadimplencia', async (req, res) => {
                 e.id,
                 e.nome,
                 e.oab,
-                e.plano_ativo,
-                COALESCE(e.status_pagamento, 'em_dia') as status_pagamento,
-                COALESCE(e.data_vencimento, CURRENT_DATE + INTERVAL '30 days') as data_vencimento,
-                COALESCE(e.valor_mensalidade, 0) as valor_mensalidade,
+                p.nome as plano_ativo,
+                p.preco_mensal as valor_mensalidade,
+                e.plano_financeiro_status as status_pagamento,
+                COALESCE(e.proxima_cobranca, e.trial_expira_em, CURRENT_DATE + INTERVAL '30 days') as data_vencimento,
                 CASE 
-                    WHEN COALESCE(e.data_vencimento, CURRENT_DATE + INTERVAL '30 days') < CURRENT_DATE 
-                    THEN CURRENT_DATE - COALESCE(e.data_vencimento, CURRENT_DATE)
+                    WHEN e.proxima_cobranca IS NOT NULL AND e.proxima_cobranca < CURRENT_DATE 
+                    THEN EXTRACT(day FROM (CURRENT_DATE - e.proxima_cobranca))::integer
                     ELSE 0
                 END as dias_atraso,
                 (SELECT COUNT(*) FROM processos WHERE escritorio_id = e.id) as total_processos,
                 (SELECT COUNT(*) FROM usuarios WHERE escritorio_id = e.id) as total_usuarios
             FROM escritorios e
-            WHERE COALESCE(e.status_pagamento, 'em_dia') != 'em_dia'
+            JOIN planos p ON p.id = e.plano_id
             ORDER BY 
                 CASE 
-                    WHEN e.status_pagamento = 'inadimplente' THEN 1
-                    WHEN e.status_pagamento = 'pendente' THEN 2
+                    WHEN e.plano_financeiro_status = 'inadimplente' THEN 1
+                    WHEN e.proxima_cobranca < CURRENT_DATE + INTERVAL '7 days' THEN 2
                     ELSE 3
                 END,
-                e.data_vencimento ASC
+                e.proxima_cobranca ASC NULLS LAST
         `);
 
         res.json({ ok: true, total: result.rowCount, inadimplentes: result.rows });
@@ -308,7 +437,7 @@ router.get('/inadimplencia', async (req, res) => {
 });
 
 /**
- * 📈 DADOS PARA O GRÁFICO DE CRESCIMENTO SEMANAL
+ * 📈 CRESCIMENTO
  */
 router.get('/crescimento', async (req, res) => {
     try {
@@ -319,7 +448,7 @@ router.get('/crescimento', async (req, res) => {
             FROM (
                 SELECT generate_series(CURRENT_DATE - INTERVAL '6 days', CURRENT_DATE, '1 day')::date as dia
             ) d
-            LEFT JOIN escritorios e ON DATE(e.criado_em) = d.dia
+            LEFT JOIN escritorios e ON DATE(e.data_criacao) = d.dia
             GROUP BY d.dia
             ORDER BY d.dia ASC
         `);
@@ -334,5 +463,6 @@ router.get('/crescimento', async (req, res) => {
         res.status(500).json({ ok: false, error: err.message });
     }
 });
+
 
 module.exports = router;

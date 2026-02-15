@@ -658,13 +658,8 @@
             </div>
 
             <div class="filter-group">
-                <label>Data Início</label>
-                <input type="date" id="dataInicio">
-            </div>
-
-            <div class="filter-group">
-                <label>Data Fim</label>
-                <input type="date" id="dataFim">
+                <label>Selecione a Data</label>
+                <input type="date" id="dataBusca">
             </div>
 
             <button class="btn btn-primary" onclick="sincronizar()">
@@ -759,15 +754,8 @@ async function carregarDadosUsuario() {
 
 // DEFINIR DATAS PADRÃO
 function definirDatasDefault() {
-    const hoje = new Date();
-    const dataFim = hoje.toISOString().split('T')[0];
-    
-    const dataInicio = new Date(hoje);
-    dataInicio.setDate(hoje.getDate() - 30);
-    const dataInicioStr = dataInicio.toISOString().split('T')[0];
-    
-    document.getElementById('dataInicio').value = dataInicioStr;
-    document.getElementById('dataFim').value = dataFim;
+    const hoje = new Date().toISOString().split('T')[0];
+    document.getElementById('dataBusca').value = hoje;
 }
 
 // CARREGAR PUBLICAÇÕES
@@ -892,11 +880,10 @@ function atualizarMetricas() {
 
 // SINCRONIZAR
 async function sincronizar() {
-    const dataInicio = document.getElementById('dataInicio').value;
-    const dataFim = document.getElementById('dataFim').value;
+    const dataBusca = document.getElementById('dataBusca').value;
     
-    if (!dataInicio || !dataFim) {
-        alert('Selecione o período!');
+    if (!dataBusca) {
+        alert('Selecione a data!');
         return;
     }
     
@@ -910,7 +897,7 @@ async function sincronizar() {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ dataInicio, dataFim })
+            body: JSON.stringify({ dataInicio: dataBusca, dataFim: dataBusca })
         });
         
         const data = await res.json();

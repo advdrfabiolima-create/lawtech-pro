@@ -17,24 +17,25 @@ const getAsaasHeaders = () => ({
 });
 
 /* ======================================================
-   💳 CRON JOB: Cobrar trials que vão expirar AMANHÃ às 6h
+   💳 CRON JOB: Cobranças Recorrentes Mensais
    
-   ✅ CORRIGIDO: Agora cobra 1 dia ANTES de expirar
-   (melhor experiência para o usuário)
+   Executa todo dia às 8h da manhã
+   Cobra assinaturas que vencem hoje
 ===================================================== */
 
-cron.schedule('0 6 * * *', async () => {
-    console.log('\n🔔 [CRON] Verificando trials para cobrança...');
+cron.schedule('0 8 * * *', async () => {
+    console.log('\n💰 [CRON RECORRENTE] Verificando cobranças mensais...');
     console.log('📅 Data/Hora:', new Date().toLocaleString('pt-BR'));
     
     try {
-        // ✅ QUERY CORRIGIDA: Cobra 1 DIA ANTES de expirar
+        // Buscar assinaturas que vencem hoje
         const result = await pool.query(`
             SELECT 
                 e.id,
                 e.nome,
                 e.plano_id,
-                e.trial_expira_em,
+                e.proxima_cobranca,
+                e.renovacao_automatica,
                 p.preco_mensal,
                 p.nome as plano_nome,
                 u.email as email_responsavel,
@@ -47,18 +48,18 @@ cron.schedule('0 6 * * *', async () => {
             JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
             JOIN cartoes c ON c.escritorio_id = e.id
             WHERE 
-                e.plano_financeiro_status = 'trial'
-                AND e.trial_expira_em IS NOT NULL
-                AND e.trial_expira_em <= CURRENT_DATE + INTERVAL '1 days'
-                AND e.trial_expira_em > CURRENT_DATE
+                e.plano_financeiro_status = 'pago'
+                AND e.proxima_cobranca IS NOT NULL
+                AND e.proxima_cobranca <= CURRENT_DATE
+                AND (e.renovacao_automatica IS NULL OR e.renovacao_automatica = true)
                 AND u.email != 'adv.limaesilva@hotmail.com'
-            ORDER BY e.trial_expira_em ASC
+            ORDER BY e.proxima_cobranca ASC
         `);
 
-        console.log(`📊 [CRON] Encontrados: ${result.rowCount} escritório(s) para cobrar`);
+        console.log(`📊 [CRON RECORRENTE] Encontrados: ${result.rowCount} assinatura(s) para renovar`);
 
         if (result.rowCount === 0) {
-            console.log('   ✅ Nenhum trial para cobrar hoje\n');
+            console.log('   ✅ Nenhuma cobrança agendada para hoje\n');
             return;
         }
 
@@ -70,29 +71,27 @@ cron.schedule('0 6 * * *', async () => {
                 // Calcular valor em centavos
                 const valorEmCentavos = Math.round(parseFloat(escritorio.preco_mensal) * 100);
                 
-                console.log(`\n💳 [CRON] Cobrando: ${escritorio.nome}`);
+                console.log(`\n💳 [CRON RECORRENTE] Cobrando renovação: ${escritorio.nome}`);
                 console.log(`   Email: ${escritorio.email_responsavel}`);
                 console.log(`   Plano: ${escritorio.plano_nome}`);
                 console.log(`   Valor: R$ ${escritorio.preco_mensal}`);
                 console.log(`   Cartão: **** ${escritorio.last4} (${escritorio.brand})`);
-                console.log(`   Trial expira em: ${new Date(escritorio.trial_expira_em).toLocaleDateString('pt-BR')}`);
+                console.log(`   Vencimento: ${new Date(escritorio.proxima_cobranca).toLocaleDateString('pt-BR')}`);
                 
                 const cobranca = await processarCobrancaCartao({
                     escritorioId: escritorio.id,
                     valor: valorEmCentavos,
                     cartaoToken: escritorio.cartao_token,
                     gateway: escritorio.gateway,
-                    descricao: `Assinatura ${escritorio.plano_nome} - LawTech Pro`
+                    descricao: `Renovação ${escritorio.plano_nome} - LawTech Pro`
                 });
 
                 if (cobranca.sucesso) {
-                    // ✅ Atualizar para PAGO
+                    // ✅ Renovação aprovada
                     await pool.query(`
                         UPDATE escritorios 
-                        SET plano_financeiro_status = 'pago',
-                            ultimo_pagamento = NOW(),
-                            proxima_cobranca = NOW() + INTERVAL '1 month',
-                            trial_expira_em = NULL
+                        SET ultimo_pagamento = NOW(),
+                            proxima_cobranca = NOW() + INTERVAL '1 month'
                         WHERE id = $1
                     `, [escritorio.id]);
 
@@ -106,19 +105,24 @@ cron.schedule('0 6 * * *', async () => {
                         cobranca.transacaoId,
                         escritorio.gateway,
                         valorEmCentavos,
-                        `Primeira cobrança - ${escritorio.plano_nome}`
+                        `Renovação mensal - ${escritorio.plano_nome}`
                     ]);
 
-                    console.log(`   ✅ APROVADO! ID: ${cobranca.transacaoId}`);
-                    console.log(`   ✅ Status atualizado para: PAGO`);
+                    console.log(`   ✅ RENOVAÇÃO APROVADA! ID: ${cobranca.transacaoId}`);
                     console.log(`   ✅ Próxima cobrança: ${new Date(Date.now() + 30*24*60*60*1000).toLocaleDateString('pt-BR')}`);
+                    
+                    // TODO: Enviar email de confirmação
                     sucessos++;
                     
                 } else {
-                    // ❌ Marcar como inadimplente
+                    // ❌ Cobrança recusada - marcar como inadimplente
+                    console.log(`   ❌ COBRANÇA RECUSADA: ${cobranca.erro}`);
+                    console.log(`   ⚠️ Marcando como INADIMPLENTE`);
+                    
                     await pool.query(`
                         UPDATE escritorios 
-                        SET plano_financeiro_status = 'inadimplente'
+                        SET plano_financeiro_status = 'inadimplente',
+                            proxima_cobranca = NOW() + INTERVAL '3 days'
                         WHERE id = $1
                     `, [escritorio.id]);
 
@@ -133,11 +137,12 @@ cron.schedule('0 6 * * *', async () => {
                         escritorio.gateway,
                         valorEmCentavos,
                         cobranca.erro,
-                        `Tentativa de cobrança - ${escritorio.plano_nome}`
+                        `Tentativa de renovação - ${escritorio.plano_nome}`
                     ]);
 
-                    console.log(`   ❌ RECUSADO: ${cobranca.erro}`);
-                    // TODO: Enviar email notificando erro
+                    // TODO: Enviar email notificando falha
+                    console.log(`   📧 Email de falha deveria ser enviado`);
+                    
                     falhas++;
                 }
 
@@ -147,61 +152,141 @@ cron.schedule('0 6 * * *', async () => {
             }
         }
 
-        console.log(`\n📊 [CRON] Resultado Final:`);
-        console.log(`   ✅ Aprovados: ${sucessos}`);
-        console.log(`   ❌ Falhas: ${falhas}`);
+        console.log(`\n📊 [CRON RECORRENTE] Resultado Final:`);
+        console.log(`   ✅ Aprovadas: ${sucessos}`);
+        console.log(`   ❌ Recusadas: ${falhas}`);
         console.log(`   📊 Total: ${result.rowCount}\n`);
 
     } catch (err) {
-        console.error('❌ [CRON] Erro geral ao processar cobranças:', err);
+        console.error('❌ [CRON RECORRENTE] Erro geral:', err);
     }
 });
 
 /* ======================================================
-   ⚠️ CRON: Avisar trials próximos às 9h
-   
-   Envia avisos 2 dias antes do trial expirar
+   ⚠️ CRON: Lembrete 3 dias antes do vencimento
 ===================================================== */
 
-cron.schedule('0 9 * * *', async () => {
-    console.log('\n⚠️ [CRON] Enviando avisos de trial expirando...');
+cron.schedule('0 10 * * *', async () => {
+    console.log('\n📧 [CRON LEMBRETE] Enviando lembretes de cobrança...');
     
     try {
         const result = await pool.query(`
             SELECT 
                 e.id, 
                 e.nome, 
-                e.trial_expira_em, 
-                u.email, 
+                e.proxima_cobranca,
+                u.email,
                 p.nome as plano_nome,
-                EXTRACT(DAY FROM (e.trial_expira_em - CURRENT_DATE)) as dias_restantes
+                p.preco_mensal,
+                DATE_PART('day', e.proxima_cobranca - CURRENT_DATE) as dias_ate_vencimento
             FROM escritorios e
             JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
             JOIN planos p ON e.plano_id = p.id
-            WHERE e.plano_financeiro_status = 'trial'
-            AND e.trial_expira_em = CURRENT_DATE + INTERVAL '2 days'
+            WHERE e.plano_financeiro_status = 'pago'
+            AND e.proxima_cobranca = CURRENT_DATE + INTERVAL '3 days'
+            AND (e.renovacao_automatica IS NULL OR e.renovacao_automatica = true)
         `);
 
-        console.log(`📊 [CRON] ${result.rowCount} aviso(s) para enviar`);
+        console.log(`📊 [CRON LEMBRETE] ${result.rowCount} lembrete(s) para enviar`);
 
         for (const escritorio of result.rows) {
-            console.log(`📧 Aviso: ${escritorio.email}`);
-            console.log(`   Trial expira em: ${escritorio.dias_restantes} dias`);
-            console.log(`   Data: ${new Date(escritorio.trial_expira_em).toLocaleDateString('pt-BR')}`);
+            console.log(`📧 Lembrete: ${escritorio.email}`);
+            console.log(`   Cobrança em: ${new Date(escritorio.proxima_cobranca).toLocaleDateString('pt-BR')}`);
+            console.log(`   Valor: R$ ${escritorio.preco_mensal}`);
             
-            // TODO: Implementar envio de email
-            // await enviarEmailAviso({
+            // TODO: Enviar email de lembrete
+            // await enviarEmailLembrete({
             //     email: escritorio.email,
             //     nome: escritorio.nome,
             //     plano: escritorio.plano_nome,
-            //     dias_restantes: escritorio.dias_restantes
+            //     valor: escritorio.preco_mensal,
+            //     data_cobranca: escritorio.proxima_cobranca
             // });
         }
 
-        console.log('✅ [CRON] Avisos processados\n');
+        console.log('✅ [CRON LEMBRETE] Lembretes processados\n');
 
     } catch (err) {
-        console.error('❌ [CRON] Erro ao enviar avisos:', err);
+        console.error('❌ [CRON LEMBRETE] Erro:', err);
+    }
+});
+
+/* ======================================================
+   🔄 CRON: Retry de cobranças inadimplentes
+===================================================== */
+
+cron.schedule('0 14 * * *', async () => {
+    console.log('\n🔄 [CRON RETRY] Tentando reprocessar inadimplentes...');
+    
+    try {
+        const result = await pool.query(`
+            SELECT 
+                e.id,
+                e.nome,
+                p.preco_mensal,
+                p.nome as plano_nome,
+                u.email,
+                c.token as cartao_token,
+                c.gateway,
+                c.last4
+            FROM escritorios e
+            JOIN planos p ON e.plano_id = p.id
+            JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
+            JOIN cartoes c ON c.escritorio_id = e.id
+            WHERE 
+                e.plano_financeiro_status = 'inadimplente'
+                AND e.proxima_cobranca <= CURRENT_DATE
+                AND (e.renovacao_automatica IS NULL OR e.renovacao_automatica = true)
+        `);
+
+        console.log(`📊 [CRON RETRY] ${result.rowCount} inadimplente(s) para tentar novamente`);
+
+        for (const esc of result.rows) {
+            console.log(`🔄 Tentando: ${esc.email}`);
+            
+            const valorEmCentavos = Math.round(parseFloat(esc.preco_mensal) * 100);
+            
+            const cobranca = await processarCobrancaCartao({
+                escritorioId: esc.id,
+                valor: valorEmCentavos,
+                cartaoToken: esc.cartao_token,
+                gateway: esc.gateway,
+                descricao: `Retry - ${esc.plano_nome}`
+            });
+
+            if (cobranca.sucesso) {
+                console.log(`   ✅ APROVADO no retry!`);
+                
+                await pool.query(`
+                    UPDATE escritorios 
+                    SET plano_financeiro_status = 'pago',
+                        ultimo_pagamento = NOW(),
+                        proxima_cobranca = NOW() + INTERVAL '1 month'
+                    WHERE id = $1
+                `, [esc.id]);
+                
+                await pool.query(`
+                    INSERT INTO transacoes 
+                    (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
+                    VALUES ($1, $2, $3, $4, 'aprovada', $5, NOW())
+                `, [esc.id, cobranca.transacaoId, esc.gateway, valorEmCentavos, `Retry bem-sucedido - ${esc.plano_nome}`]);
+                
+            } else {
+                console.log(`   ❌ Ainda recusado: ${cobranca.erro}`);
+                
+                // Agenda próxima tentativa para daqui 3 dias
+                await pool.query(`
+                    UPDATE escritorios 
+                    SET proxima_cobranca = NOW() + INTERVAL '3 days'
+                    WHERE id = $1
+                `, [esc.id]);
+            }
+        }
+
+        console.log('✅ [CRON RETRY] Retries processados\n');
+
+    } catch (err) {
+        console.error('❌ [CRON RETRY] Erro:', err);
     }
 });
 
@@ -238,9 +323,8 @@ async function cobrarViaStripe(paymentMethodId, valor, descricao) {
 
         const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-        // Usar Payment Intent (recomendado) ao invés de Charge
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: valor, // Já em centavos
+            amount: valor,
             currency: 'brl',
             payment_method: paymentMethodId,
             confirm: true,
@@ -279,7 +363,7 @@ async function cobrarViaAsaas(customerId, valor, descricao, escritorioId) {
             {
                 customer: customerId,
                 billingType: 'CREDIT_CARD',
-                value: valor / 100, // ASAAS recebe em reais
+                value: valor / 100,
                 dueDate: new Date().toISOString().split('T')[0],
                 description: descricao,
                 externalReference: String(escritorioId)
@@ -309,9 +393,10 @@ async function cobrarViaAsaas(customerId, valor, descricao, escritorioId) {
    LOGS DE INICIALIZAÇÃO
 ===================================================== */
 
-console.log('\n✅ [CRON] Sistema de cobranças automáticas iniciado');
-console.log('   ⏰ 06:00 - Cobrar trials que expiram amanhã (1 dia antes)');
-console.log('   ⏰ 09:00 - Avisar trials próximos (2 dias antes)');
+console.log('\n✅ [CRON] Sistema de cobranças recorrentes iniciado');
+console.log('   ⏰ 08:00 - Processar renovações mensais');
+console.log('   ⏰ 10:00 - Enviar lembretes (3 dias antes)');
+console.log('   ⏰ 14:00 - Retry de inadimplentes');
 console.log('   🌍 Ambiente:', ASAAS_ENV);
 console.log('   📅 Data atual:', new Date().toLocaleDateString('pt-BR'));
 console.log('');

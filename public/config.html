@@ -899,13 +899,23 @@ async function carregarInfoRodape() {
             if(document.getElementById('perfilEmail')) document.getElementById('perfilEmail').value = user.email;
             if(document.getElementById('perfilNome')) document.getElementById('perfilNome').value = nomeReal;
 
-            // --- LÓGICA DO CÁLCULO DE VENCIMENTO DO TRIAL (7 DIAS) ---
-            // Agora usando dias_restantes que vem do backend
-            if (user.dias_restantes !== undefined && user.dias_restantes !== null) {
+            // ✅ LÓGICA CORRIGIDA: Verificar STATUS antes de mostrar card de trial
+            // Aceita tanto 'status' quanto 'plano_financeiro_status' (compatibilidade)
+            const status = user.plano_financeiro_status || user.status;
+            const diasRestantes = user.dias_restantes !== undefined ? parseInt(user.dias_restantes) : null;
+            
+            console.log('📊 [CONFIG] Status:', status, '| Dias restantes:', diasRestantes, '| User:', user);
+            
+            // Se status é PAGO ou ATIVO - Mostrar card de assinatura ativa
+            if (status === 'pago' || status === 'ativo') {
+                exibirAssinaturaAtiva(user);
+                
+            // Se status é TRIAL e ainda tem dias - Mostrar card de trial
+            } else if (status === 'trial' && diasRestantes !== null && diasRestantes > 0) {
                 // Calcula a data de expiração baseada nos dias restantes
                 const hoje = new Date();
                 const dataExpiracao = new Date(hoje);
-                dataExpiracao.setDate(dataExpiracao.getDate() + parseInt(user.dias_restantes));
+                dataExpiracao.setDate(dataExpiracao.getDate() + diasRestantes);
                 
                 const dataFormatada = dataExpiracao.toLocaleDateString('pt-BR');
                 const elementoData = document.getElementById('dataExpiracaoTrial');
@@ -913,12 +923,19 @@ async function carregarInfoRodape() {
                 
                 // Atualiza o texto para mostrar quantos dias faltam
                 const textoTrial = document.getElementById('textoTrial');
-                if (textoTrial && user.dias_restantes !== null) {
-                    const diasRestantes = parseInt(user.dias_restantes);
+                if (textoTrial) {
                     const textoPlural = diasRestantes === 1 ? 'dia' : 'dias';
                     textoTrial.innerHTML = `Seu teste vence em <strong style="font-weight: 800; color: #92400e;">${diasRestantes} ${textoPlural}</strong> (<strong style="font-weight: 800; color: #92400e;">${dataFormatada}</strong>)<br>
                     <span id="subtextoTrial" style="font-size: 12px;">Após esta data, a mensalidade será processada automaticamente no cartão cadastrado.</span>`;
                 }
+                
+            // Se trial expirou mas ainda não pagou - Mostrar aviso
+            } else if (status === 'trial' && diasRestantes !== null && diasRestantes <= 0) {
+                exibirTrialExpirado();
+                
+            // Se inadimplente - Mostrar aviso
+            } else if (status === 'inadimplente') {
+                exibirInadimplente();
             }
         }
 
@@ -1389,6 +1406,43 @@ async function solicitarCancelamento() { // 🚀 Nome deve ser igual ao do 'oncl
     }
 }
 
+// ✅ NOVA FUNÇÃO: Cancelar assinatura paga
+async function cancelarAssinatura() {
+    const confirmacao = confirm(
+        "⚠️ Tem certeza que deseja cancelar sua assinatura?\n\n" +
+        "• Você continuará com acesso até o fim do período já pago\n" +
+        "• Não haverá novas cobranças automáticas\n" +
+        "• Você pode reativar a qualquer momento"
+    );
+    
+    if (!confirmacao) return;
+
+    try {
+        const res = await fetch('/api/pagamentos/cancelar-assinatura', {
+            method: 'POST',
+            headers: { 
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await res.json();
+        
+        if (data.ok) {
+            alert(
+                "✅ Assinatura cancelada com sucesso!\n\n" +
+                data.detalhes
+            );
+            window.location.reload();
+        } else {
+            alert("❌ Erro ao cancelar: " + (data.erro || "Tente novamente mais tarde."));
+        }
+    } catch (err) {
+        console.error('Erro ao cancelar:', err);
+        alert("❌ Erro de conexão com o servidor.");
+    }
+}
+
 async function reativarAssinatura() {
     if (!confirm("Deseja reativar a renovação automática e garantir a continuidade do seu acesso?")) return;
 
@@ -1586,6 +1640,179 @@ window.addEventListener('DOMContentLoaded', () => {
     event.preventDefault(); // impede navegação imediata
     const submenu = document.getElementById('submenu-ia');
     submenu.classList.toggle('open');
+}
+
+// ============================================================
+// FUNÇÕES DE EXIBIÇÃO DO CARD DE ASSINATURA
+// ============================================================
+
+function exibirAssinaturaAtiva(user) {
+    const container = document.getElementById('containerTrial');
+    const footer = document.getElementById('footerAvisoAssinatura');
+    const btnContainer = document.getElementById('containerAcaoAssinatura');
+    
+    if (!container) return;
+    
+    // Formatar datas
+    const ultimoPgto = user.ultimo_pagamento 
+        ? new Date(user.ultimo_pagamento).toLocaleDateString('pt-BR')
+        : 'N/A';
+    
+    const proximaCobranca = user.proxima_cobranca
+        ? new Date(user.proxima_cobranca).toLocaleDateString('pt-BR')
+        : 'N/A';
+    
+    // Atualizar card para verde (ativo/pago)
+    container.style.background = 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)';
+    container.style.borderColor = '#6ee7b7';
+    container.innerHTML = `
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <div style="background: #10b981; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i data-lucide="check-circle" style="color: #fff; width: 18px; height: 18px;"></i>
+            </div>
+            <div style="flex: 1;">
+                <div style="font-size: 11px; font-weight: 700; color: #065f46; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                    ASSINATURA ATIVA
+                </div>
+                <p style="font-size: 14px; color: #047857; line-height: 1.6; margin: 0 0 12px 0;">
+                    Seu plano está <strong style="font-weight: 800;">pago e ativo</strong>
+                </p>
+                <div style="background: rgba(255,255,255,0.5); padding: 12px; border-radius: 8px; font-size: 13px; color: #065f46;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <div style="font-size: 11px; opacity: 0.8; margin-bottom: 2px;">Último Pagamento</div>
+                            <div style="font-weight: 700;">${ultimoPgto}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; opacity: 0.8; margin-bottom: 2px;">Próxima Cobrança</div>
+                            <div style="font-weight: 700;">${proximaCobranca}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // ✅ ADICIONAR botão de cancelamento
+    if (btnContainer) {
+        btnContainer.style.display = 'block';
+        btnContainer.innerHTML = `
+            <button onclick="cancelarAssinatura()" 
+                    style="width: 100%; background: #fef2f2; border: 2px solid #fecaca; color: #991b1b; 
+                           padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; 
+                           font-weight: 700; transition: all 0.3s; display: flex; align-items: center; 
+                           justify-content: center; gap: 8px;">
+                <i class="lucide lucide-x-circle" style="width: 18px; height: 18px;"></i>
+                Cancelar Renovação Automática
+            </button>
+        `;
+    }
+    
+    // Atualizar footer
+    if (footer) {
+        footer.innerHTML = '<i class="lucide lucide-shield-check" style="width: 14px; height: 14px; vertical-align: middle;"></i> Seus dados estão protegidos. Você pode cancelar a qualquer momento.';
+        footer.style.color = '#047857';
+        footer.style.display = 'block';
+    }
+    
+    // Reinicializar ícones
+    if (window.lucide) lucide.createIcons();
+}
+
+function exibirTrialExpirado() {
+    const container = document.getElementById('containerTrial');
+    const footer = document.getElementById('footerAvisoAssinatura');
+    const btnContainer = document.getElementById('containerAcaoAssinatura');
+    
+    if (!container) return;
+    
+    // Atualizar card para vermelho (expirado)
+    container.style.background = 'linear-gradient(135deg, #fecaca 0%, #fca5a5 100%)';
+    container.style.borderColor = '#f87171';
+    container.innerHTML = `
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <div style="background: #dc2626; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i data-lucide="alert-circle" style="color: #fff; width: 18px; height: 18px;"></i>
+            </div>
+            <div style="flex: 1;">
+                <div style="font-size: 11px; font-weight: 700; color: #7f1d1d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                    PERÍODO DE TESTE EXPIRADO
+                </div>
+                <p style="font-size: 14px; color: #991b1b; line-height: 1.6; margin: 0;">
+                    Seu período de teste gratuito chegou ao fim. <br>
+                    <span style="font-size: 12px;">Para continuar usando o sistema, é necessário ativar seu plano.</span>
+                </p>
+            </div>
+        </div>
+    `;
+    
+    // Substituir botão por "Ativar Plano"
+    if (btnContainer) {
+        btnContainer.innerHTML = `
+            <button onclick="window.location.href='/planos-page'" 
+                    style="width: 100%; background: #dc2626; border: 2px solid #b91c1c; color: white; 
+                           padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; 
+                           font-weight: 700; transition: all 0.3s; display: flex; align-items: center; 
+                           justify-content: center; gap: 8px;">
+                <i class="lucide lucide-credit-card" style="width: 18px; height: 18px;"></i>
+                Ativar Meu Plano Agora
+            </button>
+        `;
+    }
+    
+    // Esconder footer
+    if (footer) footer.style.display = 'none';
+    
+    // Reinicializar ícones
+    if (window.lucide) lucide.createIcons();
+}
+
+function exibirInadimplente() {
+    const container = document.getElementById('containerTrial');
+    const footer = document.getElementById('footerAvisoAssinatura');
+    const btnContainer = document.getElementById('containerAcaoAssinatura');
+    
+    if (!container) return;
+    
+    // Atualizar card para laranja (inadimplente)
+    container.style.background = 'linear-gradient(135deg, #fed7aa 0%, #fdba74 100%)';
+    container.style.borderColor = '#fb923c';
+    container.innerHTML = `
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <div style="background: #f97316; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i data-lucide="alert-triangle" style="color: #fff; width: 18px; height: 18px;"></i>
+            </div>
+            <div style="flex: 1;">
+                <div style="font-size: 11px; font-weight: 700; color: #7c2d12; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                    PAGAMENTO PENDENTE
+                </div>
+                <p style="font-size: 14px; color: #9a3412; line-height: 1.6; margin: 0;">
+                    Houve um problema com seu pagamento. <br>
+                    <span style="font-size: 12px;">Por favor, atualize seus dados de pagamento para continuar.</span>
+                </p>
+            </div>
+        </div>
+    `;
+    
+    // Substituir botão por "Regularizar"
+    if (btnContainer) {
+        btnContainer.innerHTML = `
+            <button onclick="window.location.href='/planos-page?action=pay'" 
+                    style="width: 100%; background: #f97316; border: 2px solid #ea580c; color: white; 
+                           padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; 
+                           font-weight: 700; transition: all 0.3s; display: flex; align-items: center; 
+                           justify-content: center; gap: 8px;">
+                <i class="lucide lucide-credit-card" style="width: 18px; height: 18px;"></i>
+                Regularizar Pagamento
+            </button>
+        `;
+    }
+    
+    // Esconder footer
+    if (footer) footer.style.display = 'none';
+    
+    // Reinicializar ícones
+    if (window.lucide) lucide.createIcons();
 }
     </script>
 </body>

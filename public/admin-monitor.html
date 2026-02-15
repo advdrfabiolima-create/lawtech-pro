@@ -773,6 +773,30 @@
             border: 1px solid rgba(148, 163, 184, 0.3);
         }
 
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .badge-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
         /* Escritorio Info */
         .escritorio-info {
             display: flex;
@@ -1118,56 +1142,61 @@
         <!-- Content Wrapper -->
         <div class="content-wrapper">
             <!-- TAB: Escritórios -->
-            <div id="secao-overview" class="tab-content active">
-                <!-- Error Alert -->
-                <div id="errorAlertOverview" class="error-alert">
-                    <div class="error-icon">⚠️</div>
-                    <div class="error-content">
-                        <h4>ERRO AO CARREGAR DADOS</h4>
-                        <p id="errorMessageOverview"></p>
-                    </div>
+ <div id="secao-overview" class="tab-content active">
+    <!-- Error Alert -->
+    <div id="errorAlertOverview" class="error-alert">
+        <div class="error-icon">⚠️</div>
+        <div class="error-content">
+            <h4>ERRO AO CARREGAR DADOS</h4>
+            <p id="errorMessageOverview"></p>
+        </div>
+    </div>
+
+    <!-- ✅ Linha 1: Cards de Planos + Total Processos (6 cards gerados por JS) -->
+    <div id="stats-overview-cards" class="stats-grid"></div>
+
+    <!-- ✅ Linha 2: MRR, Churn, APIs (3 cards fixos) -->
+    <div class="stats-grid" style="margin-top: -16px;">
+        <!-- MRR -->
+        <div class="stat-card" style="border-top: 3px solid var(--accent-orange);">
+            <div class="stat-header">
+                <div class="stat-title">Faturamento Mensal (MRR)</div>
+                <div class="stat-icon" style="color: var(--accent-orange); background: rgba(245, 158, 11, 0.1);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                 </div>
+            </div>
+            <div class="stat-value" id="mrrValueOverview" style="color: var(--accent-orange);">R$ 0,00</div>
+            <div class="stat-label">Previsão de recebimento</div>
+        </div>
 
-                <!-- Stats Grid -->
-                <div id="stats-overview-cards" class="stats-grid"></div>
-
-                <div class="stats-grid" style="margin-top: -16px;">
-                    <div class="stat-card" style="border-top: 3px solid var(--accent-orange);">
-                        <div class="stat-header">
-                            <div class="stat-title">Faturamento Mensal (MRR)</div>
-                            <div class="stat-icon" style="color: var(--accent-orange); background: rgba(245, 158, 11, 0.1);">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                            </div>
-                        </div>
-                        <div class="stat-value" id="mrrValueOverview" style="color: var(--accent-orange);">R$ 0,00</div>
-                        <div class="stat-label">Previsão de recebimento</div>
-                    </div>
-
-                    <div class="stat-card" style="border-top: 3px solid var(--accent-red);">
-                        <div class="stat-header">
-                            <div class="stat-title">Taxa de Churn</div>
-                            <div class="stat-icon" style="color: var(--accent-red); background: rgba(239, 68, 68, 0.1);">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>
-                            </div>
-                        </div>
-                        <div class="stat-value" id="churnRateOverview" style="color: var(--accent-red);">0%</div>
-                        <div class="stat-label">Cancelamentos no mês</div>
-                    </div>
-
-                    <div class="stat-card" style="border-top: 3px solid var(--accent-blue);">
-                        <div class="stat-header">
-                            <div class="stat-title">Status das APIs</div>
-                            <div class="stat-icon" style="color: var(--accent-blue); background: rgba(59, 130, 246, 0.1);">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                            </div>
-                        </div>
-                        <div class="stat-value" id="apiStatusOverview" style="font-size: 24px; margin-top: 15px;">ESTÁVEL</div>
-                        <div class="stat-label">Monitoramento 24/7</div>
-                    </div>
+        <!-- Churn -->
+        <div class="stat-card" style="border-top: 3px solid var(--accent-red);">
+            <div class="stat-header">
+                <div class="stat-title">Taxa de Churn</div>
+                <div class="stat-icon" style="color: var(--accent-red); background: rgba(239, 68, 68, 0.1);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>
                 </div>
+            </div>
+            <div class="stat-value" id="churnRateOverview" style="color: var(--accent-red);">0%</div>
+            <div class="stat-label">Cancelamentos no mês</div>
+        </div>
 
-                <div class="row mb-4">
-    <div class="col-md-3">
+        <!-- APIs -->
+        <div class="stat-card" style="border-top: 3px solid var(--accent-blue);">
+            <div class="stat-header">
+                <div class="stat-title">Status das APIs</div>
+                <div class="stat-icon" style="color: var(--accent-blue); background: rgba(59, 130, 246, 0.1);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                </div>
+            </div>
+            <div class="stat-value" id="apiStatusOverview" style="font-size: 24px; margin-top: 15px;">ESTÁVEL</div>
+            <div class="stat-label">Monitoramento 24/7</div>
+        </div>
+    </div>
+
+    <!-- ✅ Linha 3: Inadimplentes e Upgrade (2 cards lado a lado) -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+        <!-- Inadimplentes -->
         <div class="stat-card" style="border-left: 4px solid #ef4444;">
             <div class="stat-header d-flex justify-content-between">
                 <div class="stat-title text-uppercase small" style="letter-spacing: 1px;">Inadimplentes</div>
@@ -1176,20 +1205,106 @@
             <div class="stat-value h2 mt-2" id="totalInadimplentesOverview">0</div>
             <div class="stat-label small text-muted">Precisam de atenção</div>
         </div>
-    </div>
 
-    <div class="col-md-3">
-        <div class="stat-card" style="border-left: 4px solid #f39e0b;">
+        <!-- Oportunidade Upgrade -->
+        <div class="stat-card" style="border-left: 4px solid #f59e0b;">
             <div class="stat-header d-flex justify-content-between">
                 <div class="stat-title text-uppercase small" style="letter-spacing: 1px;">Oportunidade Upgrade</div>
-                <i class="bi bi-arrow-up-circle text-warning"></i>
+                <i class="bi bi-rocket-takeoff text-warning"></i>
             </div>
-            <div class="stat-value h2 mt-2" id="totalNoLimiteOverview">0</div>
+            <div class="stat-value h2 mt-2" id="totalUpgradeOverview">0</div>
             <div class="stat-label small text-muted">Próximos do limite</div>
         </div>
     </div>
 </div>
+
+    <div class="tab-section" id="tab-cobrancas" style="display: none;">
+    <div class="section-header">
+        <div>
+            <h2 class="section-title">💳 Cobranças Agendadas</h2>
+            <p class="section-subtitle">Renovações próximas e histórico de transações</p>
+        </div>
+    </div>
+
+    <!-- Cards de Resumo -->
+    <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 30px;">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: var(--accent-blue);"><i>📅</i></div>
+            <div>
+                <div class="stat-value" id="cobrancasHoje">0</div>
+                <div class="stat-title">Hoje</div>
             </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: var(--accent-orange);"><i>⏰</i></div>
+            <div>
+                <div class="stat-value" id="cobrancasProximas">0</div>
+                <div class="stat-title">Próximos 7 Dias</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: var(--accent-green);"><i>✅</i></div>
+            <div>
+                <div class="stat-value" id="taxaSucessoMes">0%</div>
+                <div class="stat-title">Taxa de Sucesso (Mês)</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: var(--accent-red);"><i>❌</i></div>
+            <div>
+                <div class="stat-value" id="falhas7Dias">0</div>
+                <div class="stat-title">Falhas (7 dias)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Cobranças Agendadas -->
+    <div class="table-container">
+        <div class="table-header">
+            <h3>Cobranças Agendadas</h3>
+            <div class="table-count" id="count-cobrancas">0 REGISTROS</div>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Escritório</th>
+                    <th>Plano</th>
+                    <th>Valor</th>
+                    <th>Data Cobrança</th>
+                    <th>Dias</th>
+                    <th>Cartão</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="body-cobrancas">
+                <!-- Preenchido via JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Histórico de Transações -->
+    <div class="table-container" style="margin-top: 30px;">
+        <div class="table-header">
+            <h3>Transações Recentes</h3>
+            <div class="table-count" id="count-transacoes">0 REGISTROS</div>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Data/Hora</th>
+                    <th>Escritório</th>
+                    <th>Gateway</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                    <th>ID Transação</th>
+                </tr>
+            </thead>
+            <tbody id="body-transacoes">
+                <!-- Preenchido via JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
 
             <!-- TAB: Escritórios -->
             <div id="secao-escritorios" class="tab-content">
@@ -1573,7 +1688,7 @@
                         <th>TIPO</th>
                         <th>DESCRIÇÃO</th>
                         <th>ESCRITÓRIO</th>
-                        <th>USUÁRIO</th>
+                        <th>GRAVIDADE</th>
                     </tr>
                 </thead>
                 <tbody id="body-audit">
@@ -1581,10 +1696,13 @@
                         <td colspan="5">
                             <div class="empty-state">
                                 <div class="empty-icon">
-                                    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8m8 4H8m2-8H8"/></svg>
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                        <path d="m2 17 10 5 10-5"/>
+                                    </svg>
                                 </div>
-                                <div class="empty-title">Nenhum evento registrado</div>
-                                <div class="empty-text">Os eventos serão listados aqui</div>
+                                <div class="empty-title">Carregando auditoria financeira...</div>
+                                <div class="empty-text">Os eventos Stripe aparecerão aqui</div>
                             </div>
                         </td>
                     </tr>
@@ -1678,6 +1796,8 @@
                         </button>
                     </div>
                 </div>
+
+                
 
                 <!-- Table -->
                 <div class="table-card">
@@ -1819,93 +1939,94 @@ async function carregarDadosEscritorios() {
     }
 }
 
-        function renderizarStatsEscritorios(stats) {
-            // Popular cards da seção Overview
-            const containerOverview = document.getElementById('stats-overview-cards');
-            if (containerOverview) {
-                containerOverview.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-title">Total Escritórios</div>
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24"><path d="M3 21h18M9 8h1m-1 4h1m-1 4h1M15 8h1m-1 4h1m-1 4h1M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>
-                        </div>
-                    </div>
-                    <div class="stat-value">${stats.total_escritorios || 0}</div>
-                    <div class="stat-label">Cadastrados</div>
+function renderizarStatsEscritorios(stats) {
+    // Popular cards da seção Overview
+    const containerOverview = document.getElementById('stats-overview-cards');
+    if (containerOverview) {
+        containerOverview.innerHTML = `
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-title">Total Escritórios</div>
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24"><path d="M3 21h18M9 8h1m-1 4h1m-1 4h1M15 8h1m-1 4h1m-1 4h1M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-title">Básico</div>
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-                        </div>
-                    </div>
-                    <div class="stat-value">${stats.plano_basico || 0}</div>
-                    <div class="stat-label">Assinantes</div>
+            </div>
+            <div class="stat-value">${stats.total_escritorios || 0}</div>
+            <div class="stat-label">Cadastrados</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-title">Básico</div>
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-title">Intermediário</div>
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
-                        </div>
-                    </div>
-                    <div class="stat-value">${stats.plano_intermediario || 0}</div>
-                    <div class="stat-label">Assinantes</div>
+            </div>
+            <div class="stat-value">${stats.plano_basico || 0}</div>
+            <div class="stat-label">Assinantes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-title">Intermediário</div>
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-title">Avançado</div>
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/></svg>
-                        </div>
-                    </div>
-                    <div class="stat-value">${stats.plano_avancado || 0}</div>
-                    <div class="stat-label">Assinantes</div>
+            </div>
+            <div class="stat-value">${stats.plano_intermediario || 0}</div>
+            <div class="stat-label">Assinantes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-title">Avançado</div>
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/></svg>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-title">Premium</div>
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/><path d="M3 16h18v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2z"/></svg>
-                        </div>
-                    </div>
-                    <div class="stat-value">${stats.plano_premium || 0}</div>
-                    <div class="stat-label">Assinantes</div>
+            </div>
+            <div class="stat-value">${stats.plano_avancado || 0}</div>
+            <div class="stat-label">Assinantes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-title">Premium</div>
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/><path d="M3 16h18v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2z"/></svg>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-title">Total Processos</div>
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8m8 4H8m2-8H8"/></svg>
-                        </div>
-                    </div>
-                    <div class="stat-value">${stats.total_processos || 0}</div>
-                    <div class="stat-label">No sistema</div>
+            </div>
+            <div class="stat-value">${stats.plano_premium || 0}</div>
+            <div class="stat-label">Assinantes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-title">Total Processos</div>
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8m8 4H8m2-8H8"/></svg>
                 </div>
-            `;
-            }
-            
-            // Popular valores do Overview (MRR, Churn, Inadimplentes, No Limite)
-            const mrrElOverview = document.getElementById('mrrValueOverview');
-            if (mrrElOverview) mrrElOverview.innerText = stats.mrr.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            </div>
+            <div class="stat-value">${stats.total_processos || 0}</div>
+            <div class="stat-label">No sistema</div>
+        </div>
+    `;
+    }
+    
+    // Popular valores dos outros cards
+    const mrrElOverview = document.getElementById('mrrValueOverview');
+    if (mrrElOverview) mrrElOverview.innerText = stats.mrr.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-            const churnElOverview = document.getElementById('churnRateOverview');
-            if (churnElOverview) {
-                const taxa = stats.total_escritorios > 0 ? ((stats.churn / stats.total_escritorios) * 100).toFixed(1) : 0;
-                churnElOverview.innerText = `${taxa}%`;
-            }
-            
-            const inadimplentesOverview = document.getElementById('totalInadimplentesOverview');
-            if (inadimplentesOverview) {
-                inadimplentesOverview.textContent = (stats.pendente || 0) + (stats.inadimplente || 0);
-            }
-            
-            const noLimiteOverview = document.getElementById('totalNoLimiteOverview');
-            if (noLimiteOverview) {
-                noLimiteOverview.textContent = stats.no_limite || 0;
-            }
+    const churnElOverview = document.getElementById('churnRateOverview');
+    if (churnElOverview) {
+        const taxa = stats.total_escritorios > 0 ? ((stats.churn / stats.total_escritorios) * 100).toFixed(1) : 0;
+        churnElOverview.innerText = `${taxa}%`;
+    }
+    
+    const inadimplentesOverview = document.getElementById('totalInadimplentesOverview');
+    if (inadimplentesOverview) {
+        inadimplentesOverview.textContent = (stats.pendente || 0) + (stats.inadimplente || 0);
+    }
+    
+    // ✅ UPGRADE - Popular o card
+    const totalUpgradeOverview = document.getElementById('totalUpgradeOverview');
+    if (totalUpgradeOverview) {
+        totalUpgradeOverview.textContent = stats.no_limite || 0;
+    }
 }
         
 function renderizarTabelaEscritorios(lista) {
@@ -1918,7 +2039,12 @@ function renderizarTabelaEscritorios(lista) {
     }
     
     lista.forEach(esc => {
-        const plano = (esc.plano_ativo || 'INDIVIDUAL').toLowerCase();
+        // Normalizar nome do plano (remover acentos e converter para lowercase)
+        const planoRaw = (esc.plano_ativo || 'INDIVIDUAL');
+        const plano = planoRaw
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, ''); // Remove acentos
         
         // 🚦 Lógica de Saúde (Health Score)
         const totalProcessos = parseInt(esc.total_processos || 0);
@@ -2079,7 +2205,12 @@ function renderizarTabelaEscritorios(lista) {
             const filtrados = escritoriosData.filter(esc => {
                 const nome = (esc.nome || esc.advogado_responsavel || '').toLowerCase();
                 const oab = (esc.oab || '').toLowerCase();
-                const planoEsc = esc.plano_ativo || '';
+                
+                // Normalizar plano do escritório (remover acentos e maiúsculas)
+                const planoEsc = (esc.plano_ativo || '')
+                    .toUpperCase()
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, ''); // Remove acentos
                 
                 const matchBusca = nome.includes(busca) || oab.includes(busca);
                 const matchPlano = plano === '' || planoEsc === plano;
@@ -2215,21 +2346,27 @@ let inadimplentesData = [];
 async function carregarInadimplentes() {
     try {
         mostrarLoading();
+        console.log('🔄 Carregando inadimplentes...');
         const res = await fetch('/systems/inadimplencia', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        if (!res.ok) {
+            console.error('❌ Erro HTTP:', res.status);
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
         const data = await res.json();
+        console.log('📊 Dados recebidos:', data);
 
         if (data.ok) {
             inadimplentesData = data.inadimplentes || [];
+            console.log(`✅ ${inadimplentesData.length} inadimplentes encontrados`);
             renderizarTabelaInadimplentes(inadimplentesData);
             document.getElementById('count-inadimplentes').textContent = 
                 `${inadimplentesData.length} REGISTROS`;
         }
     } catch (err) {
-        console.error('Erro ao carregar inadimplentes:', err);
+        console.error('❌ Erro ao carregar inadimplentes:', err);
         renderizarTabelaInadimplentes([]);
     } finally {
         esconderLoading();
@@ -2258,9 +2395,26 @@ function renderizarTabelaInadimplentes(lista) {
     }
     
     lista.forEach(item => {
-        const statusClass = item.status_pagamento === 'inadimplente' ? 'danger' : 'warning';
-        const statusIcon = item.status_pagamento === 'inadimplente' ? '🔴' : '🟡';
-        const statusTexto = item.status_pagamento === 'inadimplente' ? 'INADIMPLENTE' : 'PENDENTE';
+        // Lógica de status melhorada
+        let statusClass, statusIcon, statusTexto;
+        
+        if (item.status_pagamento === 'inadimplente') {
+            statusClass = 'danger';
+            statusIcon = '🔴';
+            statusTexto = 'INADIMPLENTE';
+        } else if (item.status_pagamento === 'trial') {
+            statusClass = 'info';
+            statusIcon = '🔵';
+            statusTexto = 'TRIAL';
+        } else if (item.status_pagamento === 'pago' || item.status_pagamento === 'ativo') {
+            statusClass = 'success';
+            statusIcon = '🟢';
+            statusTexto = 'EM DIA';
+        } else {
+            statusClass = 'warning';
+            statusIcon = '🟡';
+            statusTexto = 'PENDENTE';
+        }
         
         tbody.innerHTML += `
             <tr>
@@ -2273,7 +2427,7 @@ function renderizarTabelaInadimplentes(lista) {
                 <td><span class="badge badge-status">${item.oab}</span></td>
                 <td><span class="badge badge-plan">${item.plano_ativo}</span></td>
                 <td>${new Date(item.data_vencimento).toLocaleDateString('pt-BR')}</td>
-                <td><strong style="color: ${item.dias_atraso > 10 ? '#ef4444' : '#f59e0b'}">${item.dias_atraso} dias</strong></td>
+                <td><strong style="color: ${item.dias_atraso > 10 ? '#ef4444' : item.dias_atraso > 0 ? '#f59e0b' : '#10b981'}">${item.dias_atraso} dias</strong></td>
                 <td>R$ ${parseFloat(item.valor_mensalidade || 0).toFixed(2)}</td>
                 <td>${item.total_processos}</td>
                 <td>
@@ -2327,21 +2481,27 @@ let upgradeData = [];
 async function carregarUpgrade() {
     try {
         mostrarLoading();
+        console.log('🔄 Carregando oportunidades de upgrade...');
         const res = await fetch('/systems/no-limite', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        if (!res.ok) {
+            console.error('❌ Erro HTTP:', res.status);
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
         const data = await res.json();
+        console.log('📊 Dados recebidos:', data);
 
         if (data.ok) {
             upgradeData = data.escritorios || [];
+            console.log(`✅ ${upgradeData.length} escritórios no limite encontrados`);
             renderizarTabelaUpgrade(upgradeData);
             document.getElementById('count-upgrade').textContent = 
                 `${upgradeData.length} REGISTROS`;
         }
     } catch (err) {
-        console.error('Erro ao carregar oportunidades de upgrade:', err);
+        console.error('❌ Erro ao carregar oportunidades de upgrade:', err);
         renderizarTabelaUpgrade([]);
     } finally {
         esconderLoading();
@@ -2376,17 +2536,25 @@ function renderizarTabelaUpgrade(lista) {
         const corUsuarios = percUsuarios >= 95 ? '#ef4444' : percUsuarios >= 90 ? '#f59e0b' : '#10b981';
         const corPrazos = percPrazos >= 95 ? '#ef4444' : percPrazos >= 90 ? '#f59e0b' : '#10b981';
         
+        // Formatar limites - mostrar ILIMITADO se -1
+        const limiteUsuariosText = item.limite_usuarios === -1 ? '∞' : item.limite_usuarios;
+        const limitePrazosText = item.limite_prazos === -1 ? '∞' : item.limite_prazos;
+        
+        // Formatar percentuais - 0% se ilimitado
+        const percUsuariosText = item.limite_usuarios === -1 ? '0.0%' : `${percUsuarios.toFixed(1)}%`;
+        const percPrazosText = item.limite_prazos === -1 ? '0.0%' : `${percPrazos.toFixed(1)}%`;
+        
         tbody.innerHTML += `
             <tr>
                 <td><strong>${item.nome}</strong></td>
-                <td><span class="badge badge-status">${item.oab}</span></td>
+                <td><span class="badge badge-status">${item.oab || 'N/A'}</span></td>
                 <td><span class="badge badge-plan">${item.plano_ativo}</span></td>
-                <td>${item.total_usuarios} / ${item.limite_usuarios}</td>
-                <td><strong style="color: ${corUsuarios}">${percUsuarios.toFixed(1)}%</strong></td>
-                <td>${item.total_prazos} / ${item.limite_prazos}</td>
-                <td><strong style="color: ${corPrazos}">${percPrazos.toFixed(1)}%</strong></td>
+                <td>${item.total_usuarios} / ${limiteUsuariosText}</td>
+                <td><strong style="color: ${corUsuarios}">${percUsuariosText}</strong></td>
+                <td>${item.total_prazos} / ${limitePrazosText}</td>
+                <td><strong style="color: ${corPrazos}">${percPrazosText}</strong></td>
                 <td>
-                    <span class="badge badge-${item.recurso_limite === 'usuarios' ? 'danger' : 'warning'}">
+                    <span class="badge badge-${item.recurso_limite === 'usuarios' ? 'danger' : item.recurso_limite === 'prazos' ? 'warning' : 'success'}">
                         ${item.recurso_limite.toUpperCase()}
                     </span>
                 </td>
@@ -2409,105 +2577,6 @@ function oferecerUpgrade(id) {
 // ==========================================
 
 let auditData = [];
-
-async function carregarAudit() {
-    try {
-        mostrarLoading();
-        const res = await fetch('/systems/audit-log', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const data = await res.json();
-
-        if (data.ok) {
-            auditData = data.eventos || [];
-            renderizarTabelaAudit(auditData);
-            document.getElementById('count-audit').textContent = 
-                `${auditData.length} REGISTROS`;
-        }
-    } catch (err) {
-        console.error('Erro ao carregar audit log:', err);
-        renderizarTabelaAudit([]);
-    } finally {
-        esconderLoading();
-    }
-}
-
-function renderizarTabelaAudit(lista) {
-    const tbody = document.getElementById('body-audit');
-    tbody.innerHTML = '';
-    
-    if (lista.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="5">
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8m8 4H8m2-8H8"/></svg>
-                        </div>
-                        <div class="empty-title">Nenhum evento registrado</div>
-                        <div class="empty-text">Os eventos serão listados aqui</div>
-                    </div>
-                </td>
-            </tr>
-        `;
-        return;
-    }
-    
-    lista.forEach(event => {
-        const iconeTipo = {
-            'novo_cadastro': '🎉',
-            'upgrade': '🚀',
-            'milestone': '🏆',
-            'status_pagamento': '💳'
-        }[event.tipo_evento] || '📌';
-        
-        const corTipo = {
-            'novo_cadastro': '#10b981',
-            'upgrade': '#8b5cf6',
-            'milestone': '#f59e0b',
-            'status_pagamento': '#3b82f6'
-        }[event.tipo_evento] || '#6b7280';
-        
-        // ✅ GERAR DESCRIÇÃO AUTOMÁTICA quando for null
-        let descricao = event.descricao;
-        if (!descricao || descricao === 'null' || descricao === null) {
-            const descricaoAuto = {
-                'novo_cadastro': `Novo escritório cadastrado: ${event.escritorio}`,
-                'upgrade': `Upgrade de plano realizado por ${event.escritorio}`,
-                'milestone': `Marco importante atingido por ${event.escritorio}`,
-                'status_pagamento': `Alteração de status de pagamento - ${event.escritorio}`
-            }[event.tipo_evento] || `Evento do sistema registrado`;
-            descricao = descricaoAuto;
-        }
-        
-        tbody.innerHTML += `
-            <tr>
-                <td style="font-size:12px">${new Date(event.criado_em).toLocaleString('pt-BR')}</td>
-                <td>
-                    <span class="badge" style="background: ${corTipo}20; color: ${corTipo}; border-color: ${corTipo}50">
-                        ${iconeTipo} ${event.tipo_evento.replace('_', ' ').toUpperCase()}
-                    </span>
-                </td>
-                <td style="font-size:13px">${descricao}</td>
-                <td>${event.escritorio}</td>
-                <td>${event.usuario}</td>
-            </tr>
-        `;
-    });
-}
-
-function filtrarAudit() {
-    const tipo = document.getElementById('filtroTipoEvento').value;
-    
-    const filtrados = tipo 
-        ? auditData.filter(e => e.tipo_evento === tipo)
-        : auditData;
-    
-    renderizarTabelaAudit(filtrados);
-    document.getElementById('count-audit').textContent = `${filtrados.length} REGISTROS`;
-}
 
 // ==========================================
 // ATUALIZAR FUNÇÃO trocarAba
@@ -2555,10 +2624,10 @@ function trocarAba(aba, botaoClicado) {
     }
     if (aba === 'inadimplencia') carregarInadimplentes();
     if (aba === 'upgrade') carregarUpgrade();
-    if (aba === 'audit') carregarAudit();
     if (aba === 'logs') carregarLogs();
+    if (aba === 'audit') { carregarAuditoriaFinanceira();
+    }
 }
-
 
 // ==========================================
 // ATUALIZAR atualizarDados PARA INCLUIR NOVAS ESTATÍSTICAS
@@ -2722,10 +2791,9 @@ async function gerarRelatorioMensal() {
     doc.text("1. RESUMO DE OPERAÇÕES", 20, 45);
     
     const stats = [
-        ["Total de Escritórios", document.getElementById('totalEscritorios').textContent],
-        ["Total de Processos", document.getElementById('totalProcessos').textContent],
-        ["Inadimplentes Ativos", document.getElementById('totalInadimplentes').textContent],
-        ["Oportunidades de Upgrade", document.getElementById('totalNoLimite').textContent]
+    ["Total de Escritórios", escritoriosData.length],
+    ["Inadimplentes", document.getElementById('totalInadimplentesOverview')?.textContent || 0],
+    ["Oportunidades de Upgrade", document.getElementById('totalNoLimiteOverview')?.textContent || 0]
     ];
 
     doc.autoTable({
@@ -2763,6 +2831,53 @@ async function gerarRelatorioMensal() {
 
         // Inicializar
         carregarDadosEscritorios();
+
+        async function carregarAuditoriaFinanceira() {
+    try {
+        const res = await fetch('/systems/audit-log', {
+            headers: {
+                Authorization: 'Bearer ' + localStorage.getItem('token')
+            }
+        });
+
+        const data = await res.json();
+        auditData = data;
+
+        const tbody = document.getElementById('body-audit');
+        tbody.innerHTML = '';
+
+        if (!data.length) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align:center;padding:40px;">
+                        Nenhum evento registrado.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        data.forEach(log => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${new Date(log.criado_em).toLocaleString()}</td>
+                        <td><span class="badge badge-info">${log.evento}</span></td>
+                        <td>${log.descricao}</td>
+                        <td>${log.nome}</td>
+                        <td><span class="badge badge-${log.gravidade === 'critica' ? 'danger' : 
+                        log.gravidade === 'alta' ? 'warning' : 'success'}">
+                        ${log.gravidade.toUpperCase()}
+                        </span>
+                    </td>
+                </tr>
+            `;
+        });
+
+    } catch (error) {
+        console.error('Erro ao carregar auditoria:', error);
+    }
+}
+
     </script>
 </body>
 </html>
