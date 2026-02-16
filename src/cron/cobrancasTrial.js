@@ -2,10 +2,6 @@ const cron = require('node-cron');
 const pool = require('../config/db');
 const axios = require('axios');
 
-/* ======================================================
-   CONFIGURAÇÃO ASAAS
-===================================================== */
-
 const ASAAS_ENV = process.env.ASAAS_ENV || 'production';
 const ASAAS_BASE_URL = ASAAS_ENV === 'sandbox' 
   ? 'https://sandbox.asaas.com/api/v3'
@@ -16,77 +12,55 @@ const getAsaasHeaders = () => ({
   'Content-Type': 'application/json'
 });
 
-/* ======================================================
-   💳 CRON JOB: Cobrar trials que vão expirar AMANHÃ às 6h
-   
-   ✅ CORRIGIDO: Agora cobra 1 dia ANTES de expirar
-   (melhor experiência para o usuário)
-===================================================== */
-
+/* ✅ CORREÇÃO 1: Cobra NO DIA que expira (não 1 dia antes) */
 cron.schedule('0 6 * * *', async () => {
-    console.log('\n🔔 [CRON] Verificando trials para cobrança...');
-    console.log('📅 Data/Hora:', new Date().toLocaleString('pt-BR'));
+    console.log('\n🔔 [CRON TRIAL] Verificando cobranças...');
     
     try {
-        // ✅ QUERY CORRIGIDA: Cobra 1 DIA ANTES de expirar
         const result = await pool.query(`
             SELECT 
-                e.id,
-                e.nome,
-                e.plano_id,
-                e.trial_expira_em,
-                p.preco_mensal,
-                p.nome as plano_nome,
+                e.id, e.nome, e.plano_id, e.trial_expira_em,
+                p.preco_mensal, p.nome as plano_nome,
                 u.email as email_responsavel,
                 c.token as cartao_token,
-                c.gateway,
-                c.last4,
-                c.brand
+                c.asaas_card_token,
+                c.gateway, c.last4, c.brand
             FROM escritorios e
             JOIN planos p ON e.plano_id = p.id
             JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
             JOIN cartoes c ON c.escritorio_id = e.id
-            WHERE 
-                e.plano_financeiro_status = 'trial'
-                AND e.trial_expira_em IS NOT NULL
-                AND e.trial_expira_em <= CURRENT_DATE + INTERVAL '1 days'
-                AND e.trial_expira_em > CURRENT_DATE
-                AND u.email != 'adv.limaesilva@hotmail.com'
-            ORDER BY e.trial_expira_em ASC
+            WHERE e.plano_financeiro_status = 'trial'
+            AND e.trial_expira_em = CURRENT_DATE
+            AND u.email != 'adv.limaesilva@hotmail.com'
         `);
 
-        console.log(`📊 [CRON] Encontrados: ${result.rowCount} escritório(s) para cobrar`);
+        console.log(`📊 Encontrados: ${result.rowCount} escritório(s)`);
 
         if (result.rowCount === 0) {
-            console.log('   ✅ Nenhum trial para cobrar hoje\n');
+            console.log('✅ Nenhum trial para cobrar hoje\n');
             return;
         }
 
-        let sucessos = 0;
-        let falhas = 0;
+        let sucessos = 0, falhas = 0;
 
-        for (const escritorio of result.rows) {
+        for (const esc of result.rows) {
             try {
-                // Calcular valor em centavos
-                const valorEmCentavos = Math.round(parseFloat(escritorio.preco_mensal) * 100);
+                const valorCentavos = Math.round(parseFloat(esc.preco_mensal) * 100);
                 
-                console.log(`\n💳 [CRON] Cobrando: ${escritorio.nome}`);
-                console.log(`   Email: ${escritorio.email_responsavel}`);
-                console.log(`   Plano: ${escritorio.plano_nome}`);
-                console.log(`   Valor: R$ ${escritorio.preco_mensal}`);
-                console.log(`   Cartão: **** ${escritorio.last4} (${escritorio.brand})`);
-                console.log(`   Trial expira em: ${new Date(escritorio.trial_expira_em).toLocaleDateString('pt-BR')}`);
+                console.log(`\n💳 Cobrando: ${esc.nome} - R$ ${esc.preco_mensal}`);
                 
                 const cobranca = await processarCobrancaCartao({
-                    escritorioId: escritorio.id,
-                    valor: valorEmCentavos,
-                    cartaoToken: escritorio.cartao_token,
-                    gateway: escritorio.gateway,
-                    descricao: `Assinatura ${escritorio.plano_nome} - LawTech Pro`
+                    escritorioId: esc.id,
+                    valor: valorCentavos,
+                    cartaoToken: esc.cartao_token,
+                    asaasCardToken: esc.asaas_card_token,
+                    gateway: esc.gateway,
+                    descricao: `Assinatura ${esc.plano_nome}`,
+                    emailResponsavel: esc.email_responsavel,
+                    planoNome: esc.plano_nome
                 });
 
                 if (cobranca.sucesso) {
-                    // ✅ Atualizar para PAGO
                     await pool.query(`
                         UPDATE escritorios 
                         SET plano_financeiro_status = 'pago',
@@ -94,87 +68,41 @@ cron.schedule('0 6 * * *', async () => {
                             proxima_cobranca = NOW() + INTERVAL '1 month',
                             trial_expira_em = NULL
                         WHERE id = $1
-                    `, [escritorio.id]);
+                    `, [esc.id]);
 
-                    // Registrar transação
                     await pool.query(`
                         INSERT INTO transacoes 
                         (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
                         VALUES ($1, $2, $3, $4, 'aprovada', $5, NOW())
-                    `, [
-                        escritorio.id,
-                        cobranca.transacaoId,
-                        escritorio.gateway,
-                        valorEmCentavos,
-                        `Primeira cobrança - ${escritorio.plano_nome}`
-                    ]);
+                    `, [esc.id, cobranca.transacaoId, esc.gateway, valorCentavos, `Primeira cobrança - ${esc.plano_nome}`]);
 
-                    console.log(`   ✅ APROVADO! ID: ${cobranca.transacaoId}`);
-                    console.log(`   ✅ Status atualizado para: PAGO`);
-                    console.log(`   ✅ Próxima cobrança: ${new Date(Date.now() + 30*24*60*60*1000).toLocaleDateString('pt-BR')}`);
+                    console.log(`✅ APROVADO! ID: ${cobranca.transacaoId}`);
                     sucessos++;
-                    
                 } else {
-                    // ❌ Marcar como inadimplente
-                    await pool.query(`
-                        UPDATE escritorios 
-                        SET plano_financeiro_status = 'inadimplente'
-                        WHERE id = $1
-                    `, [escritorio.id]);
-
-                    // Registrar falha
-                    await pool.query(`
-                        INSERT INTO transacoes 
-                        (escritorio_id, gateway_id, gateway, valor, status, mensagem_erro, descricao, created_at)
-                        VALUES ($1, $2, $3, $4, 'recusada', $5, $6, NOW())
-                    `, [
-                        escritorio.id,
-                        cobranca.transacaoId || null,
-                        escritorio.gateway,
-                        valorEmCentavos,
-                        cobranca.erro,
-                        `Tentativa de cobrança - ${escritorio.plano_nome}`
-                    ]);
-
-                    console.log(`   ❌ RECUSADO: ${cobranca.erro}`);
-                    // TODO: Enviar email notificando erro
+                    await pool.query(`UPDATE escritorios SET plano_financeiro_status = 'inadimplente' WHERE id = $1`, [esc.id]);
+                    console.log(`❌ RECUSADO: ${cobranca.erro}`);
                     falhas++;
                 }
 
             } catch (err) {
-                console.error(`   ❌ ERRO ao processar escritório ${escritorio.id}:`, err.message);
+                console.error(`❌ Erro: ${err.message}`);
                 falhas++;
             }
         }
 
-        console.log(`\n📊 [CRON] Resultado Final:`);
-        console.log(`   ✅ Aprovados: ${sucessos}`);
-        console.log(`   ❌ Falhas: ${falhas}`);
-        console.log(`   📊 Total: ${result.rowCount}\n`);
+        console.log(`\n📊 Resultado: ✅ ${sucessos} aprovados | ❌ ${falhas} falhas\n`);
 
     } catch (err) {
-        console.error('❌ [CRON] Erro geral ao processar cobranças:', err);
+        console.error('❌ [CRON] Erro:', err);
     }
 });
 
-/* ======================================================
-   ⚠️ CRON: Avisar trials próximos às 9h
-   
-   Envia avisos 2 dias antes do trial expirar
-===================================================== */
-
 cron.schedule('0 9 * * *', async () => {
-    console.log('\n⚠️ [CRON] Enviando avisos de trial expirando...');
+    console.log('\n⚠️ [CRON] Enviando avisos (2 dias antes)...');
     
     try {
         const result = await pool.query(`
-            SELECT 
-                e.id, 
-                e.nome, 
-                e.trial_expira_em, 
-                u.email, 
-                p.nome as plano_nome,
-                EXTRACT(DAY FROM (e.trial_expira_em - CURRENT_DATE)) as dias_restantes
+            SELECT e.nome, u.email, p.nome as plano_nome
             FROM escritorios e
             JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
             JOIN planos p ON e.plano_id = p.id
@@ -182,69 +110,49 @@ cron.schedule('0 9 * * *', async () => {
             AND e.trial_expira_em = CURRENT_DATE + INTERVAL '2 days'
         `);
 
-        console.log(`📊 [CRON] ${result.rowCount} aviso(s) para enviar`);
-
-        for (const escritorio of result.rows) {
-            console.log(`📧 Aviso: ${escritorio.email}`);
-            console.log(`   Trial expira em: ${escritorio.dias_restantes} dias`);
-            console.log(`   Data: ${new Date(escritorio.trial_expira_em).toLocaleDateString('pt-BR')}`);
-            
-            // TODO: Implementar envio de email
-            // await enviarEmailAviso({
-            //     email: escritorio.email,
-            //     nome: escritorio.nome,
-            //     plano: escritorio.plano_nome,
-            //     dias_restantes: escritorio.dias_restantes
-            // });
+        console.log(`📧 ${result.rowCount} aviso(s) para enviar`);
+        for (const esc of result.rows) {
+            console.log(`📧 Aviso: ${esc.email}`);
+            // TODO: Implementar email
         }
-
-        console.log('✅ [CRON] Avisos processados\n');
-
+        console.log('✅ Avisos processados\n');
     } catch (err) {
-        console.error('❌ [CRON] Erro ao enviar avisos:', err);
+        console.error('❌ Erro:', err);
     }
 });
 
-/* ======================================================
-   FUNÇÃO: Processar cobrança
-===================================================== */
-
-async function processarCobrancaCartao({ escritorioId, valor, cartaoToken, gateway, descricao }) {
-    console.log(`   🔄 Processando via ${gateway.toUpperCase()}...`);
-
+/* ✅ CORREÇÃO CRÍTICA: Stripe Payment Method */
+async function cobrarViaStripe(cardToken, valor, descricao, metadata) {
     try {
-        if (gateway === 'stripe') {
-            return await cobrarViaStripe(cartaoToken, valor, descricao);
-        } else if (gateway === 'asaas') {
-            return await cobrarViaAsaas(cartaoToken, valor, descricao, escritorioId);
-        } else {
-            throw new Error('Gateway não suportado: ' + gateway);
-        }
-    } catch (err) {
-        console.error(`   ❌ Erro na cobrança:`, err.message);
-        return { sucesso: false, transacaoId: null, erro: err.message };
-    }
-}
-
-/* ======================================================
-   INTEGRAÇÃO STRIPE
-===================================================== */
-
-async function cobrarViaStripe(paymentMethodId, valor, descricao) {
-    try {
-        if (!process.env.STRIPE_SECRET_KEY) {
-            throw new Error('STRIPE_SECRET_KEY não configurado');
-        }
+        if (!process.env.STRIPE_SECRET_KEY) throw new Error('STRIPE_SECRET_KEY não configurado');
 
         const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-        // Usar Payment Intent (recomendado) ao invés de Charge
+        // ✅ PASSO 1: Criar PaymentMethod a partir do token
+        let paymentMethodId;
+        
+        if (cardToken.startsWith('tok_')) {
+            const paymentMethod = await stripe.paymentMethods.create({
+                type: 'card',
+                card: { token: cardToken }
+            });
+            paymentMethodId = paymentMethod.id;
+        } else {
+            paymentMethodId = cardToken;
+        }
+
+        // ✅ PASSO 2: Criar PaymentIntent
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: valor, // Já em centavos
+            amount: valor,
             currency: 'brl',
             payment_method: paymentMethodId,
             confirm: true,
             description: descricao,
+            metadata: {
+                escritorio_id: String(metadata.escritorioId),
+                plano: metadata.planoNome,
+                email: metadata.emailResponsavel
+            },
             automatic_payment_methods: {
                 enabled: true,
                 allow_redirects: 'never'
@@ -260,29 +168,40 @@ async function cobrarViaStripe(paymentMethodId, valor, descricao) {
         };
 
     } catch (err) {
-        return { 
-            sucesso: false, 
-            transacaoId: null, 
-            erro: err.message 
-        };
+        return { sucesso: false, transacaoId: null, erro: err.message };
     }
 }
 
-/* ======================================================
-   INTEGRAÇÃO ASAAS
-===================================================== */
-
-async function cobrarViaAsaas(customerId, valor, descricao, escritorioId) {
+/* ✅ CORREÇÃO CRÍTICA: Asaas creditCard/creditCardToken */
+async function cobrarViaAsaas(customerId, cardToken, valor, descricao, escritorioId) {
     try {
+        // ✅ PASSO 1: Buscar token do cartão
+        const cartaoResult = await pool.query(
+            'SELECT asaas_card_token FROM cartoes WHERE escritorio_id = $1',
+            [escritorioId]
+        );
+
+        if (cartaoResult.rows.length === 0) {
+            throw new Error('Nenhum cartão cadastrado');
+        }
+
+        const creditCardToken = cartaoResult.rows[0].asaas_card_token || cardToken;
+
+        if (!creditCardToken) {
+            throw new Error('Token do cartão não encontrado');
+        }
+
+        // ✅ PASSO 2: Criar cobrança com creditCardToken
         const response = await axios.post(
             `${ASAAS_BASE_URL}/payments`,
             {
                 customer: customerId,
                 billingType: 'CREDIT_CARD',
-                value: valor / 100, // ASAAS recebe em reais
+                value: valor / 100,
                 dueDate: new Date().toISOString().split('T')[0],
                 description: descricao,
-                externalReference: String(escritorioId)
+                externalReference: String(escritorioId),
+                creditCardToken: creditCardToken // ✅ ADICIONADO
             },
             { headers: getAsaasHeaders() }
         );
@@ -297,27 +216,35 @@ async function cobrarViaAsaas(customerId, valor, descricao, escritorioId) {
 
     } catch (err) {
         const msgErro = err.response?.data?.errors?.[0]?.description || err.message;
-        return { 
-            sucesso: false, 
-            transacaoId: null, 
-            erro: msgErro 
-        };
+        return { sucesso: false, transacaoId: null, erro: msgErro };
     }
 }
 
-/* ======================================================
-   LOGS DE INICIALIZAÇÃO
-===================================================== */
+async function processarCobrancaCartao({ 
+    escritorioId, valor, cartaoToken, asaasCardToken, gateway, descricao, emailResponsavel, planoNome 
+}) {
+    console.log(`   🔄 Processando via ${gateway.toUpperCase()}...`);
 
-console.log('\n✅ [CRON] Sistema de cobranças automáticas iniciado');
-console.log('   ⏰ 06:00 - Cobrar trials que expiram amanhã (1 dia antes)');
-console.log('   ⏰ 09:00 - Avisar trials próximos (2 dias antes)');
+    try {
+        if (gateway === 'stripe') {
+            return await cobrarViaStripe(cartaoToken, valor, descricao, {
+                escritorioId, emailResponsavel, planoNome
+            });
+        } else if (gateway === 'asaas') {
+            return await cobrarViaAsaas(cartaoToken, asaasCardToken, valor, descricao, escritorioId);
+        } else {
+            throw new Error('Gateway não suportado: ' + gateway);
+        }
+    } catch (err) {
+        console.error(`   ❌ Erro:`, err.message);
+        return { sucesso: false, transacaoId: null, erro: err.message };
+    }
+}
+
+console.log('\n✅ [CRON TRIAL] Sistema iniciado (CORRIGIDO)');
+console.log('   ⏰ 06:00 - Cobrar trials que expiram HOJE');
+console.log('   ⏰ 09:00 - Avisar trials (2 dias antes)');
 console.log('   🌍 Ambiente:', ASAAS_ENV);
-console.log('   📅 Data atual:', new Date().toLocaleDateString('pt-BR'));
 console.log('');
 
-module.exports = { 
-    processarCobrancaCartao,
-    cobrarViaStripe,
-    cobrarViaAsaas
-};
+module.exports = { processarCobrancaCartao, cobrarViaStripe, cobrarViaAsaas };

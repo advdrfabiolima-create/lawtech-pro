@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 const pool = require('./config/db');
 const recibosRoutes = require('./routes/recibos.routes');
 
-// --- 1. IMPORTAÇÃO DE ROTAS ---
+// --- 1. IMPORTAÃ‡ÃƒO DE ROTAS ---
 const authRoutes = require('./routes/auth.routes');
 const prazosRoutes = require('./routes/prazos.routes');
 const planosRoutes = require('./routes/planos.routes');
@@ -30,38 +30,42 @@ const syncRoutes = require('./routes/sync.routes');
 const assinaturaRoutes = require('./routes/assinatura_routes');
 const stripeWebhookRoutes = require('./routes/stripe.webhook.routes');
 
-// --- 2. MIDDLEWARES DE AUTENTICAÇÃO ---
+// --- 2. MIDDLEWARES DE AUTENTICAÃ‡ÃƒO ---
 const authMiddleware = require('./middlewares/authMiddleware');
 const roleMiddleware = require('./middlewares/roleMiddleware');
 const verificarPagamento = require('./middlewares/financeiroMiddleware');
 
-// 🚀 3. INICIALIZAÇÃO DO APP
+// ðŸš€ 3. INICIALIZAÃ‡ÃƒO DO APP
 const app = express();
 
-// --- 4. MIDDLEWARE DE SEGURANÇA MÁXIMA (MASTER ADMIN) ---
+// --- 4. 🔴 WEBHOOK DO STRIPE (ANTES DOS MIDDLEWARES DE PARSING) ---
+// CRÍTICO: Esta rota DEVE vir ANTES do express.json() para receber raw body
+app.use('/webhook', stripeWebhookRoutes);
+
+// --- 5. MIDDLEWARE DE SEGURANÃ‡A MÃXIMA (MASTER ADMIN) ---
 const masterAdminOnly = (req, res, next) => {
     if (req.user && req.user.email === 'adv.limaesilva@hotmail.com') {
         return next();
     }
-    console.warn(`[SEGURANÇA] Acesso não autorizado ao Monitor por: ${req.user?.email || 'Desconhecido'}`);
-    return res.status(403).json({ error: "Acesso restrito ao proprietário do sistema." });
+    console.warn(`[SEGURANÃ‡A] Acesso nÃ£o autorizado ao Monitor por: ${req.user?.email || 'Desconhecido'}`);
+    return res.status(403).json({ error: "Acesso restrito ao proprietÃ¡rio do sistema." });
 };
 
-// --- 5. CONFIGURAÇÕES GLOBAIS ---
+// --- 6. CONFIGURAÃ‡Ã•ES GLOBAIS ---
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
 app.use(cors());
 
-// --- 6. SERVIR ARQUIVOS ESTÁTICOS ---
+// --- 7. SERVIR ARQUIVOS ESTÃTICOS ---
 const publicPath = path.join(__dirname, '..', 'public');
 app.use(express.static(publicPath));
 
-// --- 7. APIs (ROTAS DE DADOS) ---
+// --- 8. APIs (ROTAS DE DADOS) ---
 app.use('/api/auth', authRoutes);
 app.use('/api', iaRoutes);
-app.use('/api/crm/public', crmPublicRoutes); // 🔓 público
+app.use('/api/crm/public', crmPublicRoutes); // ðŸ"" pÃºblico
 app.use('/api/crm', authMiddleware, crmRoutes);
-console.log('✅ Rotas CRM registradas no servidor principal');
+console.log('âœ… Rotas CRM registradas no servidor principal');
 app.use('/api', authMiddleware, verificarPagamento, prazosRoutes);
 app.use('/api', authMiddleware, verificarPagamento, processosRoutes);
 app.use('/api', calculosRoutes);
@@ -78,23 +82,22 @@ app.use('/api', partesProcessoRoutes);
 app.use('/api/peticoes', authMiddleware, peticoesRoutes);
 app.use('/api', syncRoutes);
 app.use('/api/pagamentos', assinaturaRoutes);
-app.use('/webhook', stripeWebhookRoutes);
 
-// ✅ Rota do monitor admin
+// âœ… Rota do monitor admin
 app.get('/systems/monitor', (req, res) => {
     res.sendFile(path.join(publicPath, 'admin-monitor.html'));
 });
 
-// ✅ Proteção das rotas de dados do admin
+// âœ… ProteÃ§Ã£o das rotas de dados do admin
 app.use('/systems', authMiddleware, masterAdminOnly, adminRoutes);
 
 
 if (process.env.NODE_ENV === 'production') {
 require('./cron/djen_scraper_cron');
-//console.log('✅ Cron DJEN ativado');
+//console.log('âœ… Cron DJEN ativado');
 }
 
-// --- 9. PÁGINAS FRONTEND ---
+// --- 9. PÃGINAS FRONTEND ---
 app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(publicPath, 'login.html')));
 app.get('/register', (req, res) => res.sendFile(path.join(publicPath, 'register.html')));
@@ -124,7 +127,7 @@ app.get('/pagamento-pendente', (req, res) => {
     res.sendFile(filePath);
 });
 
-// --- 10. CONFIGURAÇÕES ESPECÍFICAS ---
+// --- 10. CONFIGURAÃ‡Ã•ES ESPECÃFICAS ---
 app.get('/api/config/meu-escritorio', authMiddleware, async (req, res) => {
     try {
         const result = await pool.query(
@@ -175,24 +178,25 @@ app.use((err, req, res, next) => {
 });
 
 // ============================
-// 🚀 START DO SERVIDOR (IMEDIATO)
+// ðŸš€ START DO SERVIDOR (IMEDIATO)
 // ============================
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`
-╔══════════════════════════════════════════════════════╗
-║                                                      ║
-║           🚀 LAWTECH PRO - SISTEMA ATIVO            ║
-║                                                      ║
-║  Ambiente: ${process.env.NODE_ENV || 'development'}
-║  Porta: ${PORT}
-║                                                      ║
-╚══════════════════════════════════════════════════════╝
+â•"â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
+â•'                                                      â•'
+â•'           ðŸš€ LAWTECH PRO - SISTEMA ATIVO            â•'
+â•'                                                      â•'
+â•'  Ambiente: ${process.env.NODE_ENV || 'development'}
+â•'  Porta: ${PORT}
+â•'  âœ… Webhook Stripe: ATIVO e CONFIGURADO            â•'
+â•'                                                      â•'
+â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     `);
 });
 
-// --- 12. INICIALIZAÇÃO E AUTOMAÇÃO (BACKGROUND) ---
+// --- 12. INICIALIZAÃ‡ÃƒO E AUTOMAÃ‡ÃƒO (BACKGROUND) ---
 const { iniciarAgendamentos } = require('./cron/prazosCron');
 require('./cron/cobrancasTrial');
 require('./cron/cobrancasRecorrentes');
@@ -201,21 +205,21 @@ require('./cron/auditoriaStripeCron');
 
 (async function iniciarSistema() {
     try {
-        console.log("⏳ Conectando ao Neon e validando acesso master...");
+        console.log("â³ Conectando ao Neon e validando acesso master...");
 
         const hash = await bcrypt.hash('Lei@2026', 10);
         await pool.query(`
             INSERT INTO usuarios (nome, email, senha, role, escritorio_id)
-            VALUES ('Dr. Fábio Lima', 'adv.limaesilva@hotmail.com', $1, 'admin', 1)
+            VALUES ('Dr. FÃ¡bio Lima', 'adv.limaesilva@hotmail.com', $1, 'admin', 1)
             ON CONFLICT (email) DO NOTHING
         `, [hash]);
 
-        console.log("✅ [SISTEMA] Verificação de Acesso Master concluída.");
+        console.log("âœ… [SISTEMA] VerificaÃ§Ã£o de Acesso Master concluÃ­da.");
 
         iniciarAgendamentos();
 
     } catch (err) {
-        console.error("⚠️ [BOOTSTRAP] Erro na inicialização:", err.message);
-        // NÃO derruba o servidor no Railway
+        console.error("âš ï¸ [BOOTSTRAP] Erro na inicializaÃ§Ã£o:", err.message);
+        // NÃƒO derruba o servidor no Railway
     }
 })();
