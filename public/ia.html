@@ -544,10 +544,30 @@ input, textarea, select {
     margin-top: 4px;
 }
 
+.submenu a.active {
+    background: rgba(37, 99, 235, 0.15);
+    color: #60a5fa;
+    border: 1px solid rgba(96, 165, 250, 0.4);
+    border-radius: 8px;
+    font-weight: 700;
+    pointer-events: none;
+}
+
 .menu-item-with-submenu > a {
     background: rgba(37, 99, 235, 0.08);
     border: 1px solid rgba(37, 99, 235, 0.25);
 }
+
+        /* Responsividade Notebook */
+        @media (max-width: 1280px) {
+            .sidebar { width: 220px; padding: 24px 16px; }
+            .sidebar-header img { max-width: 150px; }
+            .menu a { padding: 12px 14px; font-size: 13px; }
+            .main { margin-left: 220px; }
+            .header { padding: 16px 24px; }
+            .content { padding: 24px; }
+        }
+
     </style>
 </head>
 <body>
@@ -567,8 +587,8 @@ input, textarea, select {
         <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
 <div class="menu-item-with-submenu">
 
-    <!-- LINK PRINCIPAL (IA PAGE) -->
-    <a href="/ia-page" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
+    <!-- LINK PRINCIPAL (apenas abre/fecha submenu) -->
+    <a href="#" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
         <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
         IA Jurídica
         <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">
@@ -576,14 +596,14 @@ input, textarea, select {
         </span>
     </a>
 
-    <!-- SUBMENU -->
-    <div class="submenu" id="submenu-ia">
+    <!-- SUBMENU (aberto por padrão nesta página) -->
+    <div class="submenu open" id="submenu-ia">
         <a href="/peticoes.html">
             <i class="lucide lucide-file-text"></i>
             Petições IA
         </a>
 
-        <a href="/ia-page" class="active"><i class="lucide lucide-bot"></i>Assistente IA</a>
+        <a href="#" onclick="event.preventDefault()" class="active"><i class="lucide lucide-bot"></i>Assistente IA</a>
     </div>
 
 </div>

@@ -546,6 +546,26 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* DROPDOWN IA JURÍDICA */
+        .menu-item-with-submenu { cursor: pointer; }
+        .submenu { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; padding-left: 30px; }
+        .submenu.open { max-height: 200px; }
+        .submenu a { padding: 10px 16px; font-size: 13px; margin-top: 4px; }
+        .menu-item-with-submenu > a { background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.25); }
+
+        /* Responsividade Notebook */
+        @media (max-width: 1280px) {
+            .sidebar { width: 220px; padding: 24px 16px; }
+            .sidebar-header img { max-width: 150px; }
+            .menu a { padding: 12px 14px; font-size: 13px; }
+            .main { margin-left: 220px; }
+            .header { padding: 16px 24px; }
+            .content { padding: 24px; }
+            .metrics-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+            .modal-content { max-width: 700px; width: 90%; }
+        }
+
     </style>
 </head>
 <body>
@@ -563,10 +583,17 @@
         <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
         <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
         <a href="/publicacoes-page" class="active"><i class="lucide lucide-bell"></i> Publicações DJEN</a>
-        <a href="/ia-page" style="display:flex; align-items:center; gap:10px;">
-            <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i> IA Jurídica
-            <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">PREMIUM</span>
-        </a>
+        <div class="menu-item-with-submenu">
+            <a href="#" id="iaMenuToggle" style="display:flex; align-items:center; gap:10px;">
+                <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
+                IA Jurídica
+                <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">PREMIUM</span>
+            </a>
+            <div class="submenu" id="submenu-ia">
+                <a href="/peticoes.html"><i class="lucide lucide-file-text"></i> Petições IA</a>
+                <a href="/ia-page"><i class="lucide lucide-bot"></i> Assistente IA</a>
+            </div>
+        </div>
         <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
         <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
         <a href="/crm-page" class="btn-crm-gold-nav">
@@ -1081,12 +1108,25 @@ window.onload = () => {
     carregarDadosUsuario();
     definirDatasDefault();
     carregarPublicacoes();
-    
+
     // Inicializar ícones Lucide
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+
+    // Toggle submenu IA Jurídica
+    const iaToggle = document.getElementById('iaMenuToggle');
+    const iaSubmenu = document.getElementById('submenu-ia');
+    if (iaToggle && iaSubmenu) {
+        iaToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            iaSubmenu.classList.toggle('open');
+            console.log('[DEBUG] submenu toggled, classes:', iaSubmenu.className);
+        });
+    }
 };
+
 </script>
 
 </body>

@@ -1020,6 +1020,16 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Responsividade - Notebook */
+        @media (max-width: 1280px) {
+            .sidebar { width: 220px; padding: 24px 16px; }
+            .sidebar-header img { max-width: 150px; }
+            .menu a { padding: 12px 14px; font-size: 13px; }
+            .main { margin-left: 220px; }
+            .header { padding: 16px 24px; }
+            .content { padding: 24px; }
+        }
+
         @media (max-width: 1024px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -1033,7 +1043,7 @@
             .main {
                 margin-left: 0;
             }
-            
+
             .content {
                 padding: 24px 20px;
             }

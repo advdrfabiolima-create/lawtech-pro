@@ -1039,7 +1039,17 @@
             color: var(--text-primary);
         }
 
-        /* Responsive */
+        /* Responsive - Notebook */
+        @media (max-width: 1280px) {
+            .sidebar { width: 220px; padding: 24px 16px; }
+            .sidebar-header img { max-width: 150px; }
+            .menu a { padding: 12px 14px; font-size: 13px; }
+            .main { margin-left: 220px; }
+            .header { padding: 16px 24px; }
+            .content { padding: 24px; }
+            .cards { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+        }
+
         @media (max-width: 1024px) {
             .sidebar {
                 width: 240px;
@@ -1560,8 +1570,8 @@ input, textarea, select {
             <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
 <div class="menu-item-with-submenu">
 
-    <!-- LINK PRINCIPAL (IA PAGE) -->
-    <a href="/ia-page" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
+    <!-- LINK PRINCIPAL (apenas abre/fecha submenu) -->
+    <a href="#" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
         <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
         IA Jurídica
         <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">
@@ -1900,6 +1910,7 @@ async function verificarPrimeiroAcesso() {
             // Se primeiro_acesso for true no banco, mostrar modal
             if (data.usuario.primeiro_acesso === true || data.usuario.primeiro_acesso === null) {
                 console.log('✅ [PRIMEIRO ACESSO] Mostrando modal de boas-vindas');
+                window._modalBoasVindasAberto = true;
                 setTimeout(() => {
                     document.getElementById('modalWelcome').classList.add('show');
                     // Inicializar ícones Lucide no modal
@@ -1921,19 +1932,20 @@ async function verificarPrimeiroAcesso() {
 // ============================================================
 async function fecharModalBoasVindas() {
     document.getElementById('modalWelcome').classList.remove('show');
-    
+    window._modalBoasVindasAberto = false;
+
     try {
         console.log('📤 [BOAS-VINDAS] Enviando requisição para marcar como visto...');
-        
+
         // Marcar no backend que o usuário já viu a tela de boas-vindas
         const res = await fetch('/api/auth/marcar-boas-vindas', {
             method: 'PUT',
-            headers: { 
+            headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
         });
-        
+
         if (res.ok) {
             console.log('✅ [BOAS-VINDAS] Modal fechado e registrado no banco');
         } else {
@@ -1943,6 +1955,12 @@ async function fecharModalBoasVindas() {
     } catch (err) {
         console.error('❌ [ERRO] Erro ao registrar fechamento de boas-vindas:', err);
         console.warn('💡 A rota /api/auth/marcar-boas-vindas pode não estar implementada ainda');
+    }
+
+    // Iniciar tour guiado após fechar o modal (se não estiver desativado)
+    if (localStorage.getItem('tour_concluido') !== 'true') {
+        console.log('🎯 [TOUR] Iniciando tour após fechamento do modal de boas-vindas');
+        setTimeout(() => iniciarTour(), 600);
     }
 }
 
@@ -2068,8 +2086,8 @@ async function inicializarDashboard() {
 
                 if (!jaTerminouNestaSessao) {
                     setTimeout(() => {
-                        // Só inicia se, após 2 segundos, ninguém tiver marcado como concluído
-                        if (localStorage.getItem('tour_concluido') !== 'true') {
+                        // Só inicia se o modal de boas-vindas não estiver aberto
+                        if (localStorage.getItem('tour_concluido') !== 'true' && !window._modalBoasVindasAberto) {
                             iniciarTour();
                         }
                     }, 2000);
@@ -2537,6 +2555,25 @@ function toggleIaMenu(event) {
     const submenu = document.getElementById('submenu-ia');
     submenu.classList.toggle('open');
 }
+
+// Auto-abrir submenu IA se a página atual for uma das sub-rotas
+(function() {
+    const path = window.location.pathname;
+    if (path === '/ia-page' || path === '/peticoes.html') {
+        const submenu = document.getElementById('submenu-ia');
+        if (submenu) submenu.classList.add('open');
+
+        // Destacar o link ativo dentro do submenu
+        const links = submenu ? submenu.querySelectorAll('a') : [];
+        links.forEach(link => {
+            if (link.getAttribute('href') === path) {
+                link.style.background = 'rgba(251, 191, 36, 0.15)';
+                link.style.borderRadius = '8px';
+                link.style.fontWeight = '700';
+            }
+        });
+    }
+})();
     </script>
 <script>
 function iniciarTour() {
@@ -2613,7 +2650,7 @@ window.addEventListener('load', () => {
     // Pequeno delay para dar tempo da função inicializarDashboard buscar os dados do banco
     setTimeout(() => {
         const travaBanco = localStorage.getItem('tour_concluido') === 'true';
-        if (!travaBanco) {
+        if (!travaBanco && !window._modalBoasVindasAberto) {
             iniciarTour();
         }
     }, 3000); // 3 segundos é o tempo de segurança
