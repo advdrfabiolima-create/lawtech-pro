@@ -86,64 +86,79 @@ cron.schedule('0 8 * * *', async () => {
                     descricao: `Renovação ${escritorio.plano_nome} - LawTech Pro`
                 });
 
-                if (cobranca.sucesso) {
-                    // ✅ Renovação aprovada
-                    await pool.query(`
-                        UPDATE escritorios 
-                        SET ultimo_pagamento = NOW(),
-                            proxima_cobranca = NOW() + INTERVAL '1 month'
-                        WHERE id = $1
-                    `, [escritorio.id]);
+                const client = await pool.connect();
+                try {
+                    if (cobranca.sucesso) {
+                        await client.query('BEGIN');
 
-                    // Registrar transação
-                    await pool.query(`
-                        INSERT INTO transacoes 
-                        (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
-                        VALUES ($1, $2, $3, $4, 'aprovada', $5, NOW())
-                    `, [
-                        escritorio.id,
-                        cobranca.transacaoId,
-                        escritorio.gateway,
-                        valorEmCentavos,
-                        `Renovação mensal - ${escritorio.plano_nome}`
-                    ]);
+                        // Verificação de idempotência
+                        const jaExiste = await client.query(
+                            'SELECT id FROM transacoes WHERE gateway_id = $1',
+                            [cobranca.transacaoId]
+                        );
+                        if (jaExiste.rows.length > 0) {
+                            await client.query('ROLLBACK');
+                            console.log(`   ℹ️ Transação já registrada: ${cobranca.transacaoId}`);
+                            sucessos++;
+                            continue;
+                        }
 
-                    console.log(`   ✅ RENOVAÇÃO APROVADA! ID: ${cobranca.transacaoId}`);
-                    console.log(`   ✅ Próxima cobrança: ${new Date(Date.now() + 30*24*60*60*1000).toLocaleDateString('pt-BR')}`);
-                    
-                    // TODO: Enviar email de confirmação
-                    sucessos++;
-                    
-                } else {
-                    // ❌ Cobrança recusada - marcar como inadimplente
-                    console.log(`   ❌ COBRANÇA RECUSADA: ${cobranca.erro}`);
-                    console.log(`   ⚠️ Marcando como INADIMPLENTE`);
-                    
-                    await pool.query(`
-                        UPDATE escritorios 
-                        SET plano_financeiro_status = 'inadimplente',
-                            proxima_cobranca = NOW() + INTERVAL '3 days'
-                        WHERE id = $1
-                    `, [escritorio.id]);
+                        await client.query(`
+                            UPDATE escritorios
+                            SET ultimo_pagamento = NOW(),
+                                proxima_cobranca = NOW() + INTERVAL '1 month'
+                            WHERE id = $1
+                        `, [escritorio.id]);
 
-                    // Registrar falha
-                    await pool.query(`
-                        INSERT INTO transacoes 
-                        (escritorio_id, gateway_id, gateway, valor, status, mensagem_erro, descricao, created_at)
-                        VALUES ($1, $2, $3, $4, 'recusada', $5, $6, NOW())
-                    `, [
-                        escritorio.id,
-                        cobranca.transacaoId || null,
-                        escritorio.gateway,
-                        valorEmCentavos,
-                        cobranca.erro,
-                        `Tentativa de renovação - ${escritorio.plano_nome}`
-                    ]);
+                        await client.query(`
+                            INSERT INTO transacoes
+                            (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
+                            VALUES ($1, $2, $3, $4, 'aprovada', $5, NOW())
+                        `, [
+                            escritorio.id,
+                            cobranca.transacaoId,
+                            escritorio.gateway,
+                            valorEmCentavos,
+                            `Renovação mensal - ${escritorio.plano_nome}`
+                        ]);
 
-                    // TODO: Enviar email notificando falha
-                    console.log(`   📧 Email de falha deveria ser enviado`);
-                    
+                        await client.query('COMMIT');
+                        console.log(`   ✅ RENOVAÇÃO APROVADA! ID: ${cobranca.transacaoId}`);
+                        sucessos++;
+
+                    } else {
+                        await client.query('BEGIN');
+
+                        await client.query(`
+                            UPDATE escritorios
+                            SET plano_financeiro_status = 'inadimplente',
+                                proxima_cobranca = NOW() + INTERVAL '3 days'
+                            WHERE id = $1
+                        `, [escritorio.id]);
+
+                        await client.query(`
+                            INSERT INTO transacoes
+                            (escritorio_id, gateway_id, gateway, valor, status, mensagem_erro, descricao, created_at)
+                            VALUES ($1, $2, $3, $4, 'recusada', $5, $6, NOW())
+                        `, [
+                            escritorio.id,
+                            cobranca.transacaoId || null,
+                            escritorio.gateway,
+                            valorEmCentavos,
+                            cobranca.erro,
+                            `Tentativa de renovação - ${escritorio.plano_nome}`
+                        ]);
+
+                        await client.query('COMMIT');
+                        console.log(`   ❌ COBRANÇA RECUSADA: ${cobranca.erro}`);
+                        falhas++;
+                    }
+                } catch (txErr) {
+                    await client.query('ROLLBACK');
+                    console.error(`   ❌ Erro na transação: ${txErr.message}`);
                     falhas++;
+                } finally {
+                    client.release();
                 }
 
             } catch (err) {
@@ -254,32 +269,51 @@ cron.schedule('0 14 * * *', async () => {
                 descricao: `Retry - ${esc.plano_nome}`
             });
 
-            if (cobranca.sucesso) {
-                console.log(`   ✅ APROVADO no retry!`);
-                
-                await pool.query(`
-                    UPDATE escritorios 
-                    SET plano_financeiro_status = 'pago',
-                        ultimo_pagamento = NOW(),
-                        proxima_cobranca = NOW() + INTERVAL '1 month'
-                    WHERE id = $1
-                `, [esc.id]);
-                
-                await pool.query(`
-                    INSERT INTO transacoes 
-                    (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
-                    VALUES ($1, $2, $3, $4, 'aprovada', $5, NOW())
-                `, [esc.id, cobranca.transacaoId, esc.gateway, valorEmCentavos, `Retry bem-sucedido - ${esc.plano_nome}`]);
-                
-            } else {
-                console.log(`   ❌ Ainda recusado: ${cobranca.erro}`);
-                
-                // Agenda próxima tentativa para daqui 3 dias
-                await pool.query(`
-                    UPDATE escritorios 
-                    SET proxima_cobranca = NOW() + INTERVAL '3 days'
-                    WHERE id = $1
-                `, [esc.id]);
+            const client = await pool.connect();
+            try {
+                if (cobranca.sucesso) {
+                    await client.query('BEGIN');
+
+                    const jaExiste = await client.query(
+                        'SELECT id FROM transacoes WHERE gateway_id = $1',
+                        [cobranca.transacaoId]
+                    );
+                    if (jaExiste.rows.length > 0) {
+                        await client.query('ROLLBACK');
+                        console.log(`   ℹ️ Transação já registrada: ${cobranca.transacaoId}`);
+                        continue;
+                    }
+
+                    await client.query(`
+                        UPDATE escritorios
+                        SET plano_financeiro_status = 'pago',
+                            ultimo_pagamento = NOW(),
+                            proxima_cobranca = NOW() + INTERVAL '1 month'
+                        WHERE id = $1
+                    `, [esc.id]);
+
+                    await client.query(`
+                        INSERT INTO transacoes
+                        (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
+                        VALUES ($1, $2, $3, $4, 'aprovada', $5, NOW())
+                    `, [esc.id, cobranca.transacaoId, esc.gateway, valorEmCentavos, `Retry bem-sucedido - ${esc.plano_nome}`]);
+
+                    await client.query('COMMIT');
+                    console.log(`   ✅ APROVADO no retry!`);
+
+                } else {
+                    console.log(`   ❌ Ainda recusado: ${cobranca.erro}`);
+                    await client.query(`
+                        UPDATE escritorios
+                        SET proxima_cobranca = NOW() + INTERVAL '3 days'
+                        WHERE id = $1
+                    `, [esc.id]);
+                }
+            } catch (txErr) {
+                await client.query('ROLLBACK');
+                console.error(`   ❌ Erro na transação retry: ${txErr.message}`);
+            } finally {
+                client.release();
             }
         }
 

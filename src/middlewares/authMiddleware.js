@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+const { verify: jwtVerify } = require('../config/jwt');
 const pool = require('../config/db');
 
 const authMiddleware = async (req, res, next) => {
@@ -12,7 +12,7 @@ const authMiddleware = async (req, res, next) => {
   const [, token] = authHeader.split(' ');
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'segredo_temporario');
+    const decoded = jwtVerify(token);
 
     const result = await pool.query(
       `SELECT u.id, u.nome, u.email, u.role, u.escritorio_id, 

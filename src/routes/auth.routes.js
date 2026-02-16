@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const { sign: jwtSign, verify: jwtVerify } = require('../config/jwt');
 const pool = require('../config/db');
 
 /* ======================================================
@@ -122,16 +122,12 @@ router.post('/register', async (req, res) => {
             await client.query('COMMIT');
 
             // ✅ Gerar token JWT
-            const token = jwt.sign(
-                { 
+            const token = jwtSign({
                     id: usuario.id,
                     email: usuario.email,
                     escritorio_id: escritorioId,
                     role: usuario.role
-                },
-                process.env.JWT_SECRET || 'segredo_temporario',
-                { expiresIn: '7d' }
-            );
+                });
 
             console.log(`🎉 [REGISTRO] Cadastro concluído com sucesso: ${usuario.email}`);
 
@@ -266,16 +262,12 @@ router.post('/login', async (req, res) => {
         }
 
         // Gera token
-        const token = jwt.sign(
-            { 
+        const token = jwtSign({
                 id: usuario.id,
                 email: usuario.email,
                 escritorio_id: usuario.escritorio_id,
                 role: usuario.role
-            },
-            process.env.JWT_SECRET || 'segredo_temporario',
-            { expiresIn: '7d' }
-        );
+            });
 
         console.log(`✅ [LOGIN] Login bem-sucedido: ${usuario.email}`);
 
@@ -314,7 +306,7 @@ router.get('/me', async (req, res) => {
         if (!authHeader) return res.status(401).json({ erro: 'Token não fornecido' });
 
         const [, token] = authHeader.split(' ');
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'segredo_temporario');
+        const decoded = jwtVerify(token);
 
         // ADICIONADO: u.tour_desativado, u.data_criacao e u.primeiro_acesso no SELECT
         const result = await pool.query(
@@ -371,7 +363,7 @@ router.post('/atualizar-tour', async (req, res) => {
     try {
         const authHeader = req.headers.authorization;
         const [, token] = authHeader.split(' ');
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'segredo_temporario');
+        const decoded = jwtVerify(token);
         
         const { desativar } = req.body; // true ou false
 
@@ -395,7 +387,7 @@ router.put('/marcar-boas-vindas', async (req, res) => {
         if (!authHeader) return res.status(401).json({ erro: 'Token não fornecido' });
 
         const [, token] = authHeader.split(' ');
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'segredo_temporario');
+        const decoded = jwtVerify(token);
         
         await pool.query(
             'UPDATE usuarios SET primeiro_acesso = false WHERE id = $1',
@@ -419,7 +411,7 @@ router.put('/resetar-boas-vindas', async (req, res) => {
         if (!authHeader) return res.status(401).json({ erro: 'Token não fornecido' });
 
         const [, token] = authHeader.split(' ');
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'segredo_temporario');
+        const decoded = jwtVerify(token);
         
         await pool.query(
             'UPDATE usuarios SET primeiro_acesso = true WHERE id = $1',

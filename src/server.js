@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -54,7 +56,62 @@ const masterAdminOnly = (req, res, next) => {
 // --- 6. CONFIGURAÃ‡Ã•ES GLOBAIS ---
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
-app.use(cors());
+
+// CORS restritivo - apenas domínios autorizados
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean);
+app.use(cors({
+    origin: function (origin, callback) {
+        // Permitir requests sem origin (mobile apps, curl, server-to-server)
+        if (!origin) return callback(null, true);
+        // Em desenvolvimento, permitir localhost
+        if (!allowedOrigins.length || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+            return callback(null, true);
+        }
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error('Bloqueado por CORS'));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Headers de segurança
+app.use(helmet({
+    contentSecurityPolicy: false, // Desabilitado para não quebrar scripts inline do frontend
+    crossOriginEmbedderPolicy: false
+}));
+
+// Rate limiting global
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 500, // 500 requests por IP a cada 15 min
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { erro: 'Muitas requisições. Tente novamente em alguns minutos.' }
+});
+app.use('/api', globalLimiter);
+
+// Rate limiting rigoroso para autenticação
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 15, // 15 tentativas a cada 15 min
+    message: { erro: 'Muitas tentativas de login. Aguarde 15 minutos.' }
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/recuperar-senha', authLimiter);
+
+// Rate limiting para endpoints de pagamento
+const paymentLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minuto
+    max: 5, // 5 tentativas por minuto
+    message: { erro: 'Muitas tentativas de pagamento. Aguarde um momento.' }
+});
+app.use('/api/pagamentos/assinar-plano', paymentLimiter);
+app.use('/api/pagamentos/cobrar-renovacao', paymentLimiter);
+app.use('/api/pagamentos/salvar-cartao', paymentLimiter);
 
 // --- 7. SERVIR ARQUIVOS ESTÃTICOS ---
 const publicPath = path.join(__dirname, '..', 'public');
@@ -215,6 +272,17 @@ require('./cron/auditoriaStripeCron');
         `, [hash]);
 
         console.log("âœ… [SISTEMA] VerificaÃ§Ã£o de Acesso Master concluÃ­da.");
+
+        // Criar tabela de controle de idempotência de webhooks
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS webhook_events (
+                id SERIAL PRIMARY KEY,
+                event_id VARCHAR(255) UNIQUE NOT NULL,
+                source VARCHAR(50) NOT NULL,
+                processed_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
+        console.log("✅ [SISTEMA] Tabela webhook_events verificada.");
 
         iniciarAgendamentos();
 

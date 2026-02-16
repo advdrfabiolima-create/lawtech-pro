@@ -590,14 +590,36 @@ router.post('/financeiro/gerar-boleto-honorarios',
 // ==========================================
 
 router.post('/webhook/financeiro', async (req, res) => {
-    // ✅ Responde imediatamente para o Asaas
-    res.status(200).json({ received: true }); 
+    // Verificação de token de acesso do webhook Asaas
+    const webhookToken = process.env.ASAAS_WEBHOOK_TOKEN;
+    if (webhookToken) {
+        const tokenRecebido = req.headers['asaas-access-token'] || req.query.token;
+        if (tokenRecebido !== webhookToken) {
+            console.error('❌ [WEBHOOK] Token de acesso inválido');
+            return res.status(401).json({ error: 'Token inválido' });
+        }
+    }
 
     try {
         const { event, payment } = req.body;
 
         console.log(`🔔 [WEBHOOK] Evento recebido: ${event}`);
-        console.log(`💳 Pagamento ID: ${payment?.id} | Valor: R$ ${payment?.value}`);
+
+        // Verificação de idempotência - evita processar mesmo evento duas vezes
+        if (payment?.id) {
+            const jaProcessado = await pool.query(
+                'SELECT id FROM webhook_events WHERE event_id = $1 AND source = $2',
+                [`${event}_${payment.id}`, 'asaas_financeiro']
+            );
+
+            if (jaProcessado.rows.length > 0) {
+                console.log(`ℹ️ [WEBHOOK] Evento já processado: ${event}_${payment.id}`);
+                return res.status(200).json({ received: true });
+            }
+        }
+
+        // Responde OK após validações
+        res.status(200).json({ received: true });
 
         // Eventos que confirmam pagamento
         const eventosPagamento = [
@@ -609,33 +631,46 @@ router.post('/webhook/financeiro', async (req, res) => {
         if (eventosPagamento.includes(event) && payment?.id) {
             console.log(`💰 Processando confirmação de pagamento...`);
 
-            // Atualiza o status do lançamento usando o asaas_payment_id
-            const result = await pool.query(
-                `UPDATE financeiro 
-                 SET status = 'Pago', 
-                     data_pagamento = NOW()
-                 WHERE asaas_payment_id = $1 
-                   AND status != 'Pago'
-                 RETURNING *`, 
-                [payment.id]
-            );
-            
-            if (result.rowCount > 0) {
-                const lancamento = result.rows[0];
-                console.log(`✅ Baixa automática realizada!`);
-                console.log(`   📋 Lançamento: ${lancamento.descricao}`);
-                console.log(`   💵 Valor: R$ ${lancamento.valor}`);
-                console.log(`   📅 Data pagamento: ${new Date().toLocaleDateString('pt-BR')}`);
-            } else {
-                console.log(`⚠️ Lançamento não encontrado para payment_id: ${payment.id}`);
-                console.log(`   Isso pode acontecer se o boleto foi gerado fora do sistema.`);
+            const client = await pool.connect();
+            try {
+                await client.query('BEGIN');
+
+                // Atualiza o status do lançamento usando o asaas_payment_id
+                const result = await client.query(
+                    `UPDATE financeiro
+                     SET status = 'Pago',
+                         data_pagamento = NOW()
+                     WHERE asaas_payment_id = $1
+                       AND status != 'Pago'
+                     RETURNING *`,
+                    [payment.id]
+                );
+
+                // Registra evento processado
+                await client.query(
+                    'INSERT INTO webhook_events (event_id, source, processed_at) VALUES ($1, $2, NOW())',
+                    [`${event}_${payment.id}`, 'asaas_financeiro']
+                );
+
+                await client.query('COMMIT');
+
+                if (result.rowCount > 0) {
+                    const lancamento = result.rows[0];
+                    console.log(`✅ Baixa automática realizada! Lançamento: ${lancamento.descricao}`);
+                } else {
+                    console.log(`⚠️ Lançamento não encontrado para payment_id: ${payment.id}`);
+                }
+            } catch (txErr) {
+                await client.query('ROLLBACK');
+                console.error('❌ Erro na transação do webhook:', txErr.message);
+            } finally {
+                client.release();
             }
         } else {
             console.log(`ℹ️ Evento ${event} não é de confirmação de pagamento - ignorando`);
         }
     } catch (err) {
         console.error('❌ Erro no processamento do Webhook:', err.message);
-        console.error('Stack:', err.stack);
     }
 });
 

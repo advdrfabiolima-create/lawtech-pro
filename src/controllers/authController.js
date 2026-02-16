@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const { sign: jwtSign } = require('../config/jwt');
 const pool = require('../config/db');
 
 /* ======================================================
@@ -99,16 +99,12 @@ const register = async (req, res) => {
             await client.query('COMMIT');
 
             // ✅ Gerar token JWT
-            const token = jwt.sign(
-                { 
+            const token = jwtSign({
                     id: usuario.id,
                     email: usuario.email,
                     role: usuario.role,
                     escritorio_id: escritorioId
-                },
-                process.env.JWT_SECRET || 'segredo_temporario',
-                { expiresIn: '7d' }
-            );
+                });
 
             console.log(`🎉 [REGISTRO] Cadastro concluído com sucesso: ${usuario.email}`);
 
@@ -223,16 +219,12 @@ const login = async (req, res) => {
         }
 
         // ✅ Gerar token
-        const token = jwt.sign(
-            { 
-                id: usuario.id, 
-                email: usuario.email, 
-                role: usuario.role, 
-                escritorio_id: usuario.escritorio_id 
-            },
-            process.env.JWT_SECRET || 'segredo_temporario',
-            { expiresIn: '7d' }
-        );
+        const token = jwtSign({
+                id: usuario.id,
+                email: usuario.email,
+                role: usuario.role,
+                escritorio_id: usuario.escritorio_id
+            });
 
         console.log('✅ [LOGIN] Login bem-sucedido:', usuario.email);
 

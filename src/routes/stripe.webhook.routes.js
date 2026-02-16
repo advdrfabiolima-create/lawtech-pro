@@ -22,7 +22,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
 
     try {
         switch (event.type) {
-            // ✅ NOVO: Confirmar pagamento aprovado
+            // ✅ Confirmar pagamento aprovado (com idempotência e transação)
             case 'payment_intent.succeeded': {
                 const paymentIntent = event.data.object;
                 const escritorioId = paymentIntent.metadata?.escritorio_id;
@@ -30,21 +30,42 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                 console.log('✅ Pagamento aprovado:', paymentIntent.id);
 
                 if (escritorioId) {
-                    await pool.query(`
-                        UPDATE escritorios 
-                        SET plano_financeiro_status = 'pago',
-                            ultimo_pagamento = NOW(),
-                            proxima_cobranca = NOW() + INTERVAL '1 month'
-                        WHERE id = $1
-                    `, [escritorioId]);
+                    // Verificação de idempotência
+                    const jaExiste = await pool.query(
+                        'SELECT id FROM transacoes WHERE gateway_id = $1',
+                        [paymentIntent.id]
+                    );
+                    if (jaExiste.rows.length > 0) {
+                        console.log(`ℹ️ Transação já registrada: ${paymentIntent.id}`);
+                        break;
+                    }
 
-                    await pool.query(`
-                        INSERT INTO transacoes 
-                        (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
-                        VALUES ($1, $2, 'stripe', $3, 'aprovada', 'Pagamento aprovado', NOW())
-                    `, [escritorioId, paymentIntent.id, paymentIntent.amount]);
+                    const client = await pool.connect();
+                    try {
+                        await client.query('BEGIN');
 
-                    console.log(`✅ Escritório ${escritorioId} atualizado para PAGO`);
+                        await client.query(`
+                            UPDATE escritorios
+                            SET plano_financeiro_status = 'pago',
+                                ultimo_pagamento = NOW(),
+                                proxima_cobranca = NOW() + INTERVAL '1 month'
+                            WHERE id = $1
+                        `, [escritorioId]);
+
+                        await client.query(`
+                            INSERT INTO transacoes
+                            (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
+                            VALUES ($1, $2, 'stripe', $3, 'aprovada', 'Pagamento aprovado', NOW())
+                        `, [escritorioId, paymentIntent.id, paymentIntent.amount]);
+
+                        await client.query('COMMIT');
+                        console.log(`✅ Escritório ${escritorioId} atualizado para PAGO`);
+                    } catch (txErr) {
+                        await client.query('ROLLBACK');
+                        console.error('❌ Erro na transação webhook:', txErr.message);
+                    } finally {
+                        client.release();
+                    }
                 }
                 break;
             }
@@ -114,9 +135,9 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                     SET plano_financeiro_status = 'suspenso',
                         renovacao_automatica = false
                     FROM transacoes t
-                    WHERE t.gateway_id LIKE $1
+                    WHERE t.gateway_id = $1
                     AND t.escritorio_id = e.id
-                `, [`%${chargeId}%`]);
+                `, [chargeId]);
 
                 break;
             }

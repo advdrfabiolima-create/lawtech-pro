@@ -91,9 +91,26 @@ router.post('/assinar-plano', authMiddleware, async (req, res) => {
   const escritorioId = req.user.escritorio_id;
 
   if (!planoId || !escritorioId || !valor) {
-    return res.status(400).json({ 
-      erro: 'Dados inválidos. Necessário: planoId, valor e escritorioId' 
+    return res.status(400).json({
+      erro: 'Dados inválidos. Necessário: planoId, valor e escritorioId'
     });
+  }
+
+  // Validar que o valor corresponde ao preço real do plano
+  try {
+    const planoResult = await pool.query('SELECT preco_mensal FROM planos WHERE id = $1', [planoId]);
+    if (planoResult.rows.length === 0) {
+      return res.status(400).json({ erro: 'Plano não encontrado' });
+    }
+    const precoReal = parseFloat(planoResult.rows[0].preco_mensal);
+    const valorEnviado = parseFloat(valor);
+    if (Math.abs(precoReal - valorEnviado) > 0.01) {
+      console.error(`⚠️ [SEGURANÇA] Valor adulterado! Esperado: ${precoReal}, Recebido: ${valorEnviado}, Escritório: ${escritorioId}`);
+      return res.status(400).json({ erro: 'Valor não corresponde ao plano selecionado' });
+    }
+  } catch (err) {
+    console.error('❌ Erro ao validar plano:', err.message);
+    return res.status(500).json({ erro: 'Erro ao validar plano' });
   }
 
   // Modo desenvolvedor (sem cobrança real)
@@ -200,9 +217,36 @@ router.post('/assinar-plano', authMiddleware, async (req, res) => {
 ===================================================== */
 
 router.post('/webhook', async (req, res) => {
-  const { event, payment } = req.body;
+  // Verificação de token de acesso do webhook Asaas
+  const webhookToken = process.env.ASAAS_WEBHOOK_TOKEN;
+  if (webhookToken) {
+    const tokenRecebido = req.headers['asaas-access-token'] || req.query.token;
+    if (tokenRecebido !== webhookToken) {
+      console.error('❌ [WEBHOOK] Token de acesso inválido');
+      return res.status(401).json({ error: 'Token inválido' });
+    }
+  }
 
+  const { event, payment } = req.body;
   console.log(`📢 [WEBHOOK] Evento recebido: ${event}`);
+
+  // Verificação de idempotência
+  if (payment?.id) {
+    try {
+      const jaProcessado = await pool.query(
+        'SELECT id FROM webhook_events WHERE event_id = $1 AND source = $2',
+        [`${event}_${payment.id}`, 'asaas_pagamentos']
+      );
+
+      if (jaProcessado.rows.length > 0) {
+        console.log(`ℹ️ [WEBHOOK] Evento já processado: ${event}_${payment.id}`);
+        return res.status(200).json({ received: true });
+      }
+    } catch (err) {
+      console.error('❌ [WEBHOOK] Erro ao verificar idempotência:', err.message);
+    }
+  }
+
   res.status(200).send('OK');
 
   const eventosPagamento = [
@@ -211,7 +255,7 @@ router.post('/webhook', async (req, res) => {
     'PAYMENT_RECEIVED_IN_CASH'
   ];
 
-  if (eventosPagamento.includes(event)) {
+  if (eventosPagamento.includes(event) && payment?.externalReference) {
     const escritorioId = payment.externalReference;
     const descricao = payment.description || '';
 
@@ -220,23 +264,36 @@ router.post('/webhook', async (req, res) => {
     if (descricao.includes('Avançado')) novoPlanoId = 3;
     if (descricao.includes('Premium')) novoPlanoId = 4;
 
+    const client = await pool.connect();
     try {
-      await pool.query(
-        `UPDATE escritorios 
-         SET plano_id = $1, 
+      await client.query('BEGIN');
+
+      await client.query(
+        `UPDATE escritorios
+         SET plano_id = $1,
              plano_financeiro_status = 'pago',
              trial_expira_em = NULL
          WHERE id = $2`,
         [novoPlanoId, escritorioId]
       );
-      
+
+      // Registra evento processado
+      await client.query(
+        'INSERT INTO webhook_events (event_id, source, processed_at) VALUES ($1, $2, NOW())',
+        [`${event}_${payment.id}`, 'asaas_pagamentos']
+      );
+
+      await client.query('COMMIT');
       console.log(`💰 [WEBHOOK] Pagamento confirmado! Escritório ${escritorioId} → Plano ${novoPlanoId}`);
     } catch (err) {
+      await client.query('ROLLBACK');
       console.error('❌ [WEBHOOK] Erro ao atualizar plano:', err.message);
+    } finally {
+      client.release();
     }
   }
 
-  if (event === 'PAYMENT_OVERDUE') {
+  if (event === 'PAYMENT_OVERDUE' && payment?.externalReference) {
     const escritorioId = payment.externalReference;
     console.log(`⚠️ [WEBHOOK] Pagamento vencido - Escritório ${escritorioId}`);
   }
@@ -460,6 +517,22 @@ router.post('/cobrar-renovacao', authMiddleware, async (req, res) => {
     try {
         const { valor, descricao } = req.body;
         const escritorioId = req.user.escritorio_id;
+
+        // Validar valor contra o plano real do escritório
+        const planoCheck = await pool.query(
+            `SELECT p.preco_mensal FROM escritorios e
+             JOIN planos p ON e.plano_id = p.id
+             WHERE e.id = $1`,
+            [escritorioId]
+        );
+        if (planoCheck.rows.length > 0) {
+            const precoReal = parseFloat(planoCheck.rows[0].preco_mensal);
+            const valorEnviado = parseFloat(valor);
+            if (valorEnviado > 0 && Math.abs(precoReal - valorEnviado / 100) > 0.01 && Math.abs(precoReal - valorEnviado) > 0.01) {
+                console.error(`⚠️ [SEGURANÇA] Valor adulterado na renovação! Esperado: ${precoReal}, Recebido: ${valorEnviado}, Escritório: ${escritorioId}`);
+                return res.status(400).json({ erro: 'Valor não corresponde ao plano' });
+            }
+        }
 
         console.log('💰 [COBRANÇA] Processando renovação:', escritorioId);
 

@@ -61,23 +61,47 @@ cron.schedule('0 6 * * *', async () => {
                 });
 
                 if (cobranca.sucesso) {
-                    await pool.query(`
-                        UPDATE escritorios 
-                        SET plano_financeiro_status = 'pago',
-                            ultimo_pagamento = NOW(),
-                            proxima_cobranca = NOW() + INTERVAL '1 month',
-                            trial_expira_em = NULL
-                        WHERE id = $1
-                    `, [esc.id]);
+                    const client = await pool.connect();
+                    try {
+                        await client.query('BEGIN');
 
-                    await pool.query(`
-                        INSERT INTO transacoes 
-                        (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
-                        VALUES ($1, $2, $3, $4, 'aprovada', $5, NOW())
-                    `, [esc.id, cobranca.transacaoId, esc.gateway, valorCentavos, `Primeira cobrança - ${esc.plano_nome}`]);
+                        // Verificação de idempotência
+                        const jaExiste = await client.query(
+                            'SELECT id FROM transacoes WHERE gateway_id = $1',
+                            [cobranca.transacaoId]
+                        );
+                        if (jaExiste.rows.length > 0) {
+                            await client.query('ROLLBACK');
+                            console.log(`ℹ️ Transação já registrada: ${cobranca.transacaoId}`);
+                            sucessos++;
+                            continue;
+                        }
 
-                    console.log(`✅ APROVADO! ID: ${cobranca.transacaoId}`);
-                    sucessos++;
+                        await client.query(`
+                            UPDATE escritorios
+                            SET plano_financeiro_status = 'pago',
+                                ultimo_pagamento = NOW(),
+                                proxima_cobranca = NOW() + INTERVAL '1 month',
+                                trial_expira_em = NULL
+                            WHERE id = $1
+                        `, [esc.id]);
+
+                        await client.query(`
+                            INSERT INTO transacoes
+                            (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
+                            VALUES ($1, $2, $3, $4, 'aprovada', $5, NOW())
+                        `, [esc.id, cobranca.transacaoId, esc.gateway, valorCentavos, `Primeira cobrança - ${esc.plano_nome}`]);
+
+                        await client.query('COMMIT');
+                        console.log(`✅ APROVADO! ID: ${cobranca.transacaoId}`);
+                        sucessos++;
+                    } catch (txErr) {
+                        await client.query('ROLLBACK');
+                        console.error(`❌ Erro na transação: ${txErr.message}`);
+                        falhas++;
+                    } finally {
+                        client.release();
+                    }
                 } else {
                     await pool.query(`UPDATE escritorios SET plano_financeiro_status = 'inadimplente' WHERE id = $1`, [esc.id]);
                     console.log(`❌ RECUSADO: ${cobranca.erro}`);
