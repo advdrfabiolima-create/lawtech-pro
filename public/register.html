@@ -451,6 +451,277 @@
                 width: 140px;
             }
         }
+
+        /* ========== 3D Credit Card ========== */
+        .credit-card-container {
+            perspective: 1000px;
+            width: 380px;
+            height: 230px;
+            margin: 0 auto 16px;
+        }
+
+        .credit-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .credit-card-inner.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .credit-card-front,
+        .credit-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            padding: 24px;
+            color: #fff;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.25), 0 4px 12px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .credit-card-front::before,
+        .credit-card-back::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        /* Default gradient (unknown brand) */
+        .credit-card-front,
+        .credit-card-back {
+            background: linear-gradient(135deg, #374151 0%, #6b7280 50%, #374151 100%);
+        }
+
+        /* Brand gradients */
+        .credit-card-front.brand-visa,
+        .credit-card-back.brand-visa {
+            background: linear-gradient(135deg, #1a1f71 0%, #2563eb 50%, #1e40af 100%);
+        }
+
+        .credit-card-front.brand-mastercard,
+        .credit-card-back.brand-mastercard {
+            background: linear-gradient(135deg, #eb001b 0%, #f79e1b 100%);
+        }
+
+        .credit-card-front.brand-amex,
+        .credit-card-back.brand-amex {
+            background: linear-gradient(135deg, #006fcf 0%, #1da1f2 50%, #00a86b 100%);
+        }
+
+        .credit-card-front.brand-elo,
+        .credit-card-back.brand-elo {
+            background: linear-gradient(135deg, #d4a017 0%, #f7c948 50%, #d4a017 100%);
+        }
+
+        .credit-card-front.brand-discover,
+        .credit-card-back.brand-discover {
+            background: linear-gradient(135deg, #ff6000 0%, #f7941d 100%);
+        }
+
+        .credit-card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* Front layout */
+        .card-chip-brand {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+        }
+
+        .card-chip {
+            width: 45px;
+            height: 34px;
+        }
+
+        .card-brand-logo {
+            font-size: 14px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.9;
+        }
+
+        .card-number-display {
+            margin-bottom: 24px;
+        }
+
+        #cardNumber-element {
+            background: rgba(255,255,255,0.15);
+            border-radius: 8px;
+            padding: 10px 12px;
+            min-height: 40px;
+        }
+
+        #cardExpiry-element {
+            background: rgba(255,255,255,0.15);
+            border-radius: 6px;
+            padding: 6px 8px;
+            min-height: 30px;
+        }
+
+        #cardCvc-element {
+            width: 70px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 4px;
+            padding: 6px 8px;
+            min-height: 32px;
+        }
+
+        .card-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .card-holder-name {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            opacity: 0.85;
+            max-width: 250px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .card-holder-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.6;
+            margin-bottom: 4px;
+        }
+
+        /* Back layout */
+        .card-magnetic-stripe {
+            background: #1a1a2e;
+            height: 42px;
+            margin: -24px -24px 20px -24px;
+            margin-top: 10px;
+        }
+
+        .card-back-content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .card-back-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-back-row label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+            min-width: 58px;
+        }
+
+        .card-back-row .stripe-field-wrapper {
+            flex: 1;
+            background: rgba(255,255,255,0.15);
+            border-radius: 6px;
+            padding: 8px 10px;
+            min-height: 36px;
+        }
+
+        .card-cvv-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-cvv-box .stripe-field-wrapper {
+            width: 70px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 4px;
+            padding: 6px 8px;
+            min-height: 32px;
+        }
+
+        .card-cvv-box label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        .card-flip-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: transparent;
+            border: 1.5px solid rgba(120, 53, 15, 0.3);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #78350f;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 8px auto 0;
+        }
+
+        .card-flip-btn:hover {
+            background: rgba(120, 53, 15, 0.08);
+            border-color: rgba(120, 53, 15, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .credit-card-container {
+                width: 300px;
+                height: 190px;
+            }
+
+            .credit-card-front,
+            .credit-card-back {
+                padding: 18px;
+                border-radius: 12px;
+            }
+
+            .card-chip-brand {
+                margin-bottom: 18px;
+            }
+
+            .card-chip {
+                width: 36px;
+                height: 28px;
+            }
+
+            #cardNumber-element {
+                padding: 8px 10px;
+                min-height: 34px;
+            }
+
+            .card-holder-name {
+                font-size: 11px;
+                max-width: 180px;
+            }
+
+            .card-magnetic-stripe {
+                height: 34px;
+                margin: -18px -18px 14px -18px;
+                margin-top: 6px;
+            }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/imask"></script>
      <!-- Meta Pixel Code -->
@@ -608,35 +879,64 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
                         </div>
                     </div>
 
-                    <div class="form-group">
-    <label>Dados do Cartão (Opcional)</label>
-    <div id="card-element" style="
-        padding: 14px;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        background: white;
-        min-height: 45px;
-    "></div>
-    <div id="card-errors" style="
-        color: var(--warning);
-        font-size: 13px;
-        margin-top: 8px;
-        min-height: 20px;
-    "></div>
-</div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.3px;">Nome do Titular do Cartão</label>
+                        <input type="text" id="nomeTitularCartao" placeholder="Nome impresso no cartão" style="width:100%; padding:12px 16px; border:2px solid var(--border); border-radius:10px; font-size:15px; transition:all 0.2s ease; outline:none; background:var(--white);">
+                    </div>
 
-<div style="
-    background: #dbeafe;
-    border: 1px solid #3b82f6;
-    border-radius: 8px;
-    padding: 12px;
-    font-size: 13px;
-    color: #1e40af;
-    margin-top: 12px;
-">
-    🔒 <strong>Segurança máxima:</strong> Seus dados são criptografados pelo Stripe. 
-    Nunca armazenamos o número completo do cartão.
-</div>
+                    <!-- 3D Credit Card Interactive -->
+                    <div class="credit-card-container">
+                        <div class="credit-card-inner" id="creditCardInner">
+                            <!-- FRENTE DO CARTÃO -->
+                            <div class="credit-card-front" id="cardFront">
+                                <div class="card-chip-brand">
+                                    <svg class="card-chip" viewBox="0 0 50 40" fill="none">
+                                        <rect x="2" y="2" width="46" height="36" rx="6" fill="#d4a017" stroke="#b8860b" stroke-width="1.5"/>
+                                        <line x1="2" y1="14" x2="48" y2="14" stroke="#b8860b" stroke-width="1"/>
+                                        <line x1="2" y1="26" x2="48" y2="26" stroke="#b8860b" stroke-width="1"/>
+                                        <line x1="18" y1="2" x2="18" y2="40" stroke="#b8860b" stroke-width="1"/>
+                                        <line x1="32" y1="2" x2="32" y2="40" stroke="#b8860b" stroke-width="1"/>
+                                    </svg>
+                                    <div class="card-brand-logo" id="cardBrandLogo">CREDIT</div>
+                                </div>
+                                <div class="card-number-display">
+                                    <div id="cardNumber-element"></div>
+                                </div>
+                                <div class="card-bottom">
+                                    <div>
+                                        <div class="card-holder-label">TITULAR DO CARTÃO</div>
+                                        <div class="card-holder-name" id="cardHolderDisplay">SEU NOME AQUI</div>
+                                    </div>
+                                    <div>
+                                        <div class="card-holder-label">VALIDADE</div>
+                                        <div id="cardExpiry-element" style="min-width: 80px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- VERSO DO CARTÃO -->
+                            <div class="credit-card-back" id="cardBack">
+                                <div class="card-magnetic-stripe"></div>
+                                <div class="card-back-content">
+                                    <div class="card-back-row">
+                                        <label>ASSINATURA</label>
+                                        <div class="stripe-field-wrapper" style="background: rgba(255,255,255,0.85); min-height: 36px; border-radius: 4px;"></div>
+                                    </div>
+                                    <div class="card-cvv-box">
+                                        <label>CVV</label>
+                                        <div class="stripe-field-wrapper" id="cardCvc-element"></div>
+                                    </div>
+                                    <div style="font-size: 9px; opacity: 0.6; text-align: center; margin-top: 8px; letter-spacing: 0.5px;">
+                                        Seus dados são protegidos com criptografia Stripe
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="card-flip-btn" id="cardFlipBtn" onclick="toggleCardFlip()">
+                        <i class="lucide lucide-rotate-cw" style="font-size: 14px;"></i>
+                        <span id="flipBtnText">Ver verso do cartão</span>
+                    </button>
+                    <div id="card-errors" style="color: var(--warning); font-size: 13px; margin-top: 8px; min-height: 20px; text-align: center;"></div>
 
                     <div class="payment-disclaimer">
                         <strong>💳 Garantia de segurança:</strong> Seu cartão não será cobrado hoje. A primeira mensalidade será processada automaticamente após 7 dias, caso não cancele.
@@ -667,36 +967,119 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
 
     const elements = stripe.elements();
 
-    const cardElement = elements.create('card', {
-        style: {
-            base: {
-                fontSize: '16px',
-                color: '#1e293b',
-                fontFamily: 'Inter, system-ui, sans-serif',
-                '::placeholder': {
-                    color: '#94a3b8'
-                }
-            },
-            invalid: {
-                color: '#f59e0b',
-                iconColor: '#f59e0b'
-            }
+    // Estilo comum para os elementos Stripe no cartão 3D
+    const stripeStyle = {
+        base: {
+            fontSize: '16px',
+            color: '#ffffff',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            '::placeholder': { color: 'rgba(255,255,255,0.5)' }
         },
-        hidePostalCode: true
+        invalid: { color: '#fca5a5', iconColor: '#fca5a5' }
+    };
+
+    const stripeStyleDark = {
+        base: {
+            fontSize: '14px',
+            color: '#1e293b',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            '::placeholder': { color: '#94a3b8' }
+        },
+        invalid: { color: '#f59e0b', iconColor: '#f59e0b' }
+    };
+
+    // Elementos separados: Número, Validade, CVC
+    const cardNumberElement = elements.create('cardNumber', {
+        style: stripeStyle,
+        placeholder: '0000 0000 0000 0000'
     });
 
-    cardElement.mount('#card-element');
+    const cardExpiryElement = elements.create('cardExpiry', {
+        style: stripeStyle,
+        placeholder: 'MM/AA'
+    });
+
+    const cardCvcElement = elements.create('cardCvc', {
+        style: stripeStyleDark,
+        placeholder: '***'
+    });
+
+    cardNumberElement.mount('#cardNumber-element');
+    cardExpiryElement.mount('#cardExpiry-element');
+    cardCvcElement.mount('#cardCvc-element');
 
     const cardErrors = document.getElementById('card-errors');
-    cardElement.on('change', (event) => {
+    const creditCardInner = document.getElementById('creditCardInner');
+    const cardFront = document.getElementById('cardFront');
+    const cardBack = document.getElementById('cardBack');
+    let isFlipped = false;
+
+    // Detectar bandeira do cartão e atualizar visual
+    cardNumberElement.on('change', (event) => {
         if (event.error) {
             cardErrors.textContent = event.error.message;
         } else {
             cardErrors.textContent = '';
         }
+
+        // Atualizar bandeira
+        const brand = event.brand || 'unknown';
+        const brandNames = {
+            visa: 'VISA',
+            mastercard: 'MASTERCARD',
+            amex: 'AMEX',
+            elo: 'ELO',
+            discover: 'DISCOVER',
+            unknown: 'CREDIT'
+        };
+
+        document.getElementById('cardBrandLogo').textContent = brandNames[brand] || 'CREDIT';
+
+        // Atualizar cores do cartão
+        const brandClass = brand !== 'unknown' ? `brand-${brand}` : '';
+        cardFront.className = 'credit-card-front ' + brandClass;
+        cardBack.className = 'credit-card-back ' + brandClass;
     });
 
-    console.log('✅ Stripe Elements inicializado!');
+    cardExpiryElement.on('change', (event) => {
+        if (event.error) cardErrors.textContent = event.error.message;
+        else cardErrors.textContent = '';
+    });
+
+    cardCvcElement.on('change', (event) => {
+        if (event.error) cardErrors.textContent = event.error.message;
+        else cardErrors.textContent = '';
+    });
+
+    // Auto-flip: virar para verso ao focar no CVC
+    cardCvcElement.on('focus', () => {
+        if (!isFlipped) toggleCardFlip();
+    });
+
+    // Auto-flip: voltar para frente ao focar no número ou validade
+    cardNumberElement.on('focus', () => {
+        if (isFlipped) toggleCardFlip();
+    });
+    cardExpiryElement.on('focus', () => {
+        if (isFlipped) toggleCardFlip();
+    });
+
+    // Atualizar nome do titular em tempo real (campo dedicado do cartão)
+    document.getElementById('nomeTitularCartao').addEventListener('input', (e) => {
+        const display = document.getElementById('cardHolderDisplay');
+        display.textContent = e.target.value.toUpperCase() || 'SEU NOME AQUI';
+    });
+
+    // Função para virar o cartão
+    function toggleCardFlip() {
+        isFlipped = !isFlipped;
+        creditCardInner.classList.toggle('flipped', isFlipped);
+        document.getElementById('flipBtnText').textContent = isFlipped
+            ? 'Ver frente do cartão'
+            : 'Ver verso do cartão';
+    }
+
+    console.log('✅ Stripe Elements (separados) inicializado!');
 
     // ============================================================
     // CONFIGURAÇÕES INICIAIS
@@ -788,9 +1171,9 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
         try {
             const { paymentMethod, error } = await stripe.createPaymentMethod({
                 type: 'card',
-                card: cardElement,
+                card: cardNumberElement,
                 billing_details: {
-                    name: nome,
+                    name: document.getElementById('nomeTitularCartao').value || nome,
                     email: email
                 }
             });
