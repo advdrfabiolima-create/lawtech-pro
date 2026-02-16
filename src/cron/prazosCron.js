@@ -106,7 +106,7 @@ cron.schedule('0 0 * * *', async () => {  // Todo dia à meia-noite
         }
     });
 
-    console.log('🚀 Motor LawTech Pro Ativado (Escavador Monitoramento OK)');
+    console.log('🚀 Motor LawTech Pro Ativado');
 };
 
 module.exports = { iniciarAgendamentos };
