@@ -31,6 +31,7 @@ router.get('/leads',
                 FROM leads
                 WHERE escritorio_id = $1
                 ORDER BY data_criacao DESC
+                LIMIT 500
             `;
 
             const resultado = await pool.query(query, [escritorioId]);
@@ -40,7 +41,7 @@ router.get('/leads',
 
         } catch (err) {
             console.error('[GET /leads] Erro:', err);
-            res.status(500).json({ ok: false, erro: err.message });
+            res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
         }
     }
 );
@@ -86,7 +87,7 @@ router.post('/leads',
 
         } catch (err) {
             console.error('[POST /leads] ERRO:', err);
-            res.status(500).json({ ok: false, error: err.message });
+            res.status(500).json({ ok: false, error: 'Erro interno do servidor' });
         }
     }
 );
@@ -116,7 +117,7 @@ router.get('/metricas',
             res.json(result.rows[0]);
         } catch (err) {
             console.error('[GET /metricas] Erro:', err);
-            res.status(500).json({ erro: err.message });
+            res.status(500).json({ erro: 'Erro interno do servidor' });
         }
     }
 );
@@ -142,7 +143,7 @@ router.patch('/lead/:id/status',
             res.json({ ok: true });
         } catch (err) {
             console.error('[PATCH /lead/:id/status] Erro:', err);
-            res.status(500).json({ error: err.message });
+            res.status(500).json({ error: 'Erro interno do servidor' });
         }
     }
 );
@@ -168,7 +169,7 @@ router.put('/leads/:id/notas',
             res.json({ ok: true });
         } catch (err) {
             console.error('[PUT /leads/:id/notas] Erro:', err);
-            res.status(500).json({ error: err.message });
+            res.status(500).json({ error: 'Erro interno do servidor' });
         }
     }
 );
@@ -198,7 +199,7 @@ router.delete('/leads/:id',
             res.json({ ok: true });
         } catch (err) {
             console.error('[DELETE /leads/:id] Erro:', err);
-            res.status(500).json({ error: err.message });
+            res.status(500).json({ error: 'Erro interno do servidor' });
         }
     }
 );

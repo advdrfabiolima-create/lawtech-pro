@@ -69,6 +69,10 @@ const masterAdminOnly = (req, res, next) => {
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
 
+// Sanitização XSS global em todos os inputs
+const { sanitizeBody } = require('./middlewares/sanitizeMiddleware');
+app.use(sanitizeBody);
+
 // CORS restritivo - apenas domínios autorizados
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean);
 app.use(cors({
@@ -201,7 +205,11 @@ app.get('/pagamento-pendente', (req, res) => {
 app.get('/api/config/meu-escritorio', authMiddleware, async (req, res) => {
     try {
         const result = await pool.query(
-            'SELECT e.* FROM escritorios e JOIN usuarios u ON u.escritorio_id = e.id WHERE u.id = $1',
+            `SELECT e.id, e.nome, e.advogado_responsavel, e.oab, e.documento, e.data_nascimento,
+                    e.email, e.endereco, e.cidade, e.estado, e.cep, e.banco_codigo,
+                    e.agencia, e.conta, e.conta_digito, e.pix_chave, e.renda_mensal,
+                    e.plano_id, e.plano_financeiro_status, e.trial_expira_em, e.proxima_cobranca
+             FROM escritorios e JOIN usuarios u ON u.escritorio_id = e.id WHERE u.id = $1`,
             [req.user.id]
         );
         res.json({ ok: true, dados: result.rows[0] || {} });
@@ -343,6 +351,13 @@ require('./cron/auditoriaStripeCron');
         `);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_consentimentos_usuario ON consentimentos(usuario_id)`);
         console.log("✅ [SISTEMA] Tabela consentimentos LGPD verificada.");
+
+        // Unique constraint em gateway_id para idempotência atômica
+        await pool.query(`
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_transacoes_gateway_id_unique
+            ON transacoes(gateway_id) WHERE gateway_id IS NOT NULL
+        `);
+        console.log("✅ [SISTEMA] Índice único gateway_id verificado.");
 
         iniciarAgendamentos();
 

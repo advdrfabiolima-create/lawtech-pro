@@ -187,6 +187,7 @@ router.get('/processos', authMiddleware, async (req, res) => {
       FROM processos p
       WHERE p.escritorio_id = $1
       ORDER BY p.id DESC
+      LIMIT 500
     `;
 
     const result = await pool.query(query, [req.user.escritorio_id]);

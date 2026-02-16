@@ -145,7 +145,7 @@ router.get('/stats', async (req, res) => {
         });
     } catch (err) {
         console.error('❌ Erro nas estatísticas admin:', err.message);
-        res.status(500).json({ ok: false, error: err.message });
+        res.status(500).json({ ok: false, error: 'Erro interno do servidor' });
     }
 });
 
@@ -218,7 +218,7 @@ router.get('/escritorios', async (req, res) => {
         });
     } catch (err) {
         console.error('❌ Erro na lista de escritórios:', err.message);
-        res.status(500).json({ ok: false, error: err.message });
+        res.status(500).json({ ok: false, error: 'Erro interno do servidor' });
     }
 });
 
@@ -393,7 +393,7 @@ router.get('/no-limite', async (req, res) => {
         res.json({ ok: true, total: escritoriosComLimites.length, escritorios: escritoriosComLimites });
     } catch (err) {
         console.error('❌ Erro ao buscar escritórios no limite:', err.message);
-        res.status(500).json({ ok: false, error: err.message });
+        res.status(500).json({ ok: false, error: 'Erro interno do servidor' });
     }
 });
 
@@ -432,7 +432,7 @@ router.get('/inadimplencia', async (req, res) => {
         res.json({ ok: true, total: result.rowCount, inadimplentes: result.rows });
     } catch (err) {
         console.error('❌ Erro ao buscar inadimplentes:', err.message);
-        res.status(500).json({ ok: false, error: err.message });
+        res.status(500).json({ ok: false, error: 'Erro interno do servidor' });
     }
 });
 
@@ -460,7 +460,7 @@ router.get('/crescimento', async (req, res) => {
         });
     } catch (err) {
         console.error('❌ Erro no gráfico:', err.message);
-        res.status(500).json({ ok: false, error: err.message });
+        res.status(500).json({ ok: false, error: 'Erro interno do servidor' });
     }
 });
 

@@ -4,35 +4,37 @@ const pool = require('../config/db');
 async function listarClientes(req, res) {
     try {
         const escritorioId = req.user.escritorio_id;
-        
-        // ✅ CORREÇÃO: Agora conta processos onde o cliente está em QUALQUER polo
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 100));
+        const offset = (page - 1) * limit;
+
         const query = `
-            SELECT 
-                c.id, 
-                c.nome, 
-                c.documento, 
-                c.email, 
-                c.telefone, 
-                c.cep, 
-                c.endereco, 
-                c.cidade, 
+            SELECT
+                c.id,
+                c.nome,
+                c.documento,
+                c.email,
+                c.telefone,
+                c.cep,
+                c.endereco,
+                c.cidade,
                 c.estado,
                 c.data_nascimento,
-                -- Contar processos onde este cliente está em qualquer polo (ativo OU passivo)
-                (SELECT COUNT(DISTINCT pp.processo_id)::int 
+                (SELECT COUNT(DISTINCT pp.processo_id)::int
                  FROM partes_processo pp
                  INNER JOIN processos p ON p.id = pp.processo_id
-                 WHERE pp.pessoa_id = c.id 
+                 WHERE pp.pessoa_id = c.id
                  AND p.escritorio_id = $1
                  AND p.status != 'excluido'
                 ) as total_processos
-            FROM clientes c 
-            WHERE c.escritorio_id = $1 
+            FROM clientes c
+            WHERE c.escritorio_id = $1
             ORDER BY c.nome ASC
+            LIMIT $2 OFFSET $3
         `;
-        
-        const result = await pool.query(query, [escritorioId]);
-        res.json(result.rows || []); 
+
+        const result = await pool.query(query, [escritorioId, limit, offset]);
+        res.json(result.rows || []);
     } catch (error) {
         console.error('❌ Erro ao listar clientes:', error.message);
         res.status(500).json({ erro: 'Erro ao carregar lista de clientes' });
@@ -62,7 +64,7 @@ async function criarCliente(req, res) {
 
     } catch (err) {
         console.error("❌ Erro ao criar cliente:", err.message);
-        res.status(500).json({ erro: "Erro ao salvar: " + err.message });
+        res.status(500).json({ erro: 'Erro ao salvar cliente' });
     }
 }
 
@@ -139,7 +141,7 @@ async function editarCliente(req, res) {
         
     } catch (error) {
         console.error('❌ Erro ao editar cliente:', error.message);
-        res.status(500).json({ erro: 'Erro ao editar: ' + error.message });
+        res.status(500).json({ erro: 'Erro ao editar cliente' });
     }
 }
 
@@ -163,7 +165,7 @@ async function excluirCliente(req, res) {
         
     } catch (error) {
         console.error('❌ Erro ao excluir cliente:', error.message);
-        res.status(500).json({ erro: 'Erro ao excluir: ' + error.message });
+        res.status(500).json({ erro: 'Erro ao excluir cliente' });
     }
 }
 

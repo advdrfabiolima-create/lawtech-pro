@@ -142,7 +142,7 @@ if (oabApenasNumeros) {
 
     } catch (err) {
         console.error("❌ ERRO SQL NO SALVAMENTO:", err.message);
-        res.status(500).json({ erro: 'Erro ao salvar no banco: ' + err.message });
+        res.status(500).json({ erro: 'Erro ao salvar configurações' });
     }
 });
 
@@ -152,7 +152,13 @@ if (oabApenasNumeros) {
 router.get('/meu-escritorio', authMiddleware, async (req, res) => {
     try {
         const escritorioId = req.user.escritorio_id;
-        const resultado = await pool.query("SELECT * FROM escritorios WHERE id = $1", [escritorioId]);
+        const resultado = await pool.query(
+            `SELECT id, nome, advogado_responsavel, oab, documento, data_nascimento, email,
+                    endereco, cidade, estado, cep, banco_codigo, agencia, conta, conta_digito,
+                    pix_chave, renda_mensal, plano_id, plano_financeiro_status
+             FROM escritorios WHERE id = $1`,
+            [escritorioId]
+        );
 
         if (resultado.rowCount > 0) {
             res.json({ ok: true, dados: resultado.rows[0] });
@@ -160,7 +166,8 @@ router.get('/meu-escritorio', authMiddleware, async (req, res) => {
             res.json({ ok: false, mensagem: "Escritório não encontrado." });
         }
     } catch (err) {
-        res.status(500).json({ ok: false, erro: err.message });
+        console.error('Erro ao buscar escritório:', err.message);
+        res.status(500).json({ ok: false, erro: 'Erro ao carregar configurações' });
     }
 });
 

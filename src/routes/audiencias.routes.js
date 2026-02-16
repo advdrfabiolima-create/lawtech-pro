@@ -11,11 +11,12 @@ router.get('/audiencias', authMiddleware, async (req, res) => {
         console.log('🔍 [GET AUDIENCIAS] Buscando para escritorio_id:', req.user.escritorio_id);
         
         // ✅ MUDANÇA: Busca por escritorio_id em vez de usuario_id
+        const limit = Math.min(500, Math.max(1, parseInt(req.query.limit) || 200));
         const result = await pool.query(`
-            SELECT a.*, 
-                   p.numero as processo_numero, 
-                   COALESCE(c.nome, p.cliente) as cliente, 
-                   c.telefone, 
+            SELECT a.*,
+                   p.numero as processo_numero,
+                   COALESCE(c.nome, p.cliente) as cliente,
+                   c.telefone,
                    a.ata_audiencia,
                    u.nome as cadastrado_por
             FROM audiencias a
@@ -23,8 +24,9 @@ router.get('/audiencias', authMiddleware, async (req, res) => {
             LEFT JOIN clientes c ON p.cliente_id = c.id
             LEFT JOIN usuarios u ON a.usuario_id = u.id
             WHERE p.escritorio_id = $1
-            ORDER BY a.data_audiencia ASC`, 
-            [req.user.escritorio_id]  // ✅ USA escritorio_id
+            ORDER BY a.data_audiencia ASC
+            LIMIT $2`,
+            [req.user.escritorio_id, limit]
         );
         
         console.log('📊 [GET AUDIENCIAS] Total encontrado:', result.rows.length);
@@ -32,7 +34,7 @@ router.get('/audiencias', authMiddleware, async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('❌ [GET AUDIENCIAS] Erro:', err.message);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 });
 
@@ -55,7 +57,7 @@ router.post('/audiencias', authMiddleware, async (req, res) => {
         res.status(201).json({ ok: true, audiencia: result.rows[0] });
     } catch (err) {
         console.error('❌ [POST AUDIENCIA] Erro:', err.message);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 });
 
@@ -115,7 +117,7 @@ router.put('/audiencias/:id/ata', authMiddleware, async (req, res) => {
         res.json({ ok: true, mensagem: 'ATA registrada!' });
     } catch (err) {
         console.error('❌ [ATA]:', err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 });
 

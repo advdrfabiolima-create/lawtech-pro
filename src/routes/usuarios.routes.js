@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
+const { validarSenha } = require('../utils/validators');
 
 // Carregar limites dos planos
 const planLimits = require('../config/planLimits.json');
@@ -19,8 +20,9 @@ router.post('/auth/convidar-funcionario', authMiddleware, async (req, res) => {
         return res.status(400).json({ erro: 'Nome, e-mail e senha são obrigatórios' });
     }
 
-    if (senha.length < 6) {
-        return res.status(400).json({ erro: 'A senha deve ter pelo menos 6 caracteres' });
+    const senhaCheck = validarSenha(senha);
+    if (!senhaCheck.valida) {
+        return res.status(400).json({ erro: senhaCheck.mensagem });
     }
 
     try {

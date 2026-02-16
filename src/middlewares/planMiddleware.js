@@ -133,8 +133,12 @@ const checkLimit = (resourceType) => {
                     return next();
             }
 
-            const queryDebug = `SELECT COUNT(*) as total FROM ${tableName} ${queryCondition}`;
-            console.log(`[PLAN MIDDLEWARE] Verificando limite de ${resourceType}:`, queryDebug);
+            // Validação extra: garantir que tableName é um dos valores esperados
+            const tabelasPermitidas = ['prazos', 'usuarios', 'processos'];
+            if (!tabelasPermitidas.includes(tableName)) {
+                console.error(`[PLAN MIDDLEWARE] Tabela não permitida: ${tableName}`);
+                return res.status(500).json({ error: 'Erro interno na verificação de limites' });
+            }
 
             const countResult = await pool.query(
                 `SELECT COUNT(*) as total FROM ${tableName} ${queryCondition}`,
@@ -172,9 +176,8 @@ const checkLimit = (resourceType) => {
 
         } catch (err) {
             console.error('[PLAN MIDDLEWARE] Erro ao verificar limite:', err);
-            return res.status(500).json({ 
-                error: 'Erro ao verificar limite de recursos',
-                details: err.message
+            return res.status(500).json({
+                error: 'Erro ao verificar limite de recursos'
             });
         }
     };

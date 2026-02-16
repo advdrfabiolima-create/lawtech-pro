@@ -119,7 +119,7 @@ router.post('/financeiro',
             res.status(201).json(resultado.rows[0]);
         } catch (err) {
             console.error('ERRO AO SALVAR LANÇAMENTO:', err.message);
-            res.status(500).json({ erro: 'Erro ao salvar lançamento: ' + err.message });
+            res.status(500).json({ erro: 'Erro ao salvar lançamento' });
         }
     }
 );
@@ -140,7 +140,8 @@ router.put('/financeiro/:id',
             const resultado = await pool.query(query, values);
             res.json(resultado.rows[0]);
         } catch (err) {
-            res.status(500).json({ erro: 'Erro ao atualizar: ' + err.message });
+            console.error('Erro ao atualizar:', err.message);
+            res.status(500).json({ erro: 'Erro ao atualizar' });
         }
     }
 );
@@ -178,7 +179,8 @@ router.delete('/financeiro/:id',
             await pool.query('DELETE FROM financeiro WHERE id = $1 AND usuario_id = $2', [id, req.user.id]);
             res.json({ mensagem: 'Excluído com sucesso' });
         } catch (err) {
-            res.status(500).json({ erro: 'Erro ao excluir: ' + err.message });
+            console.error('Erro ao excluir:', err.message);
+            res.status(500).json({ erro: 'Erro ao excluir' });
         }
     }
 );
@@ -206,7 +208,8 @@ router.get('/financeiro/saldo-real',
                 saldoLiquido: row.receitas_reais - row.despesas_pagas
             });
         } catch (err) {
-            res.status(500).json({ erro: 'Erro ao calcular saldo: ' + err.message });
+            console.error('Erro ao calcular saldo:', err.message);
+            res.status(500).json({ erro: 'Erro ao calcular saldo' });
         }
     }
 );
@@ -702,7 +705,8 @@ router.get('/adm/reset-asaas-escritorio',
                 mensagem: '✅ Configuração Asaas resetada. Ative novamente em Configurações.' 
             });
         } catch (err) {
-            res.status(500).json({ erro: err.message });
+            console.error('Erro ao resetar Asaas:', err.message);
+            res.status(500).json({ erro: 'Erro interno do servidor' });
         }
     }
 );

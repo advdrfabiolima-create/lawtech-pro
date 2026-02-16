@@ -265,7 +265,7 @@ router.post('/converter-publicacao', authMiddleware, async (req, res) => {
 
     } catch (err) {
         console.error('❌ Erro ao converter publicação:', err.message);
-        res.status(500).json({ erro: 'Erro ao criar prazo', detalhes: err.message });
+        res.status(500).json({ erro: 'Erro ao criar prazo' });
     }
 });
 
