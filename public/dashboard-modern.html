@@ -1649,7 +1649,7 @@ input, textarea, select {
     <a href="/config-page"><i class="lucide lucide-user" style="width:16px;"></i> Meus Dados</a>
     <a href="/planos-page"><i class="lucide lucide-award" style="width:16px;"></i> Meu Plano</a>
     
-    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; transition: background 0.2s; background: transparent;">
+    <div id="guia-tour-switch" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; transition: background 0.2s; background: transparent;">
         <a href="javascript:void(0)" onclick="resetarTour()" style="padding: 0; margin: 0; flex-grow: 1; display: flex; align-items: center; border:none; background:none; color: var(--text-secondary);">
             <i class="lucide lucide-help-circle" style="width:16px; margin-right: 8px; color: var(--text-secondary);"></i> Ver Tour
         </a>
@@ -2608,9 +2608,26 @@ function iniciarTour() {
                 element: '#guia-crm', 
                 popover: { title: 'Gestão de Prospecção', description: 'Acompanhe seus leads e novos contratos de forma organizada.', side: "top", align: 'center' } 
             },
-            { 
-                element: '#guia-prazos', 
-                popover: { title: '🚨 Alerta de Prazos', description: 'Este é o coração da sua segurança. O sistema monitora e avisa sobre prazos fatais aqui.', side: "top", align: 'center' } 
+            {
+                element: '#guia-prazos',
+                popover: { title: '🚨 Alerta de Prazos', description: 'Este é o coração da sua segurança. O sistema monitora e avisa sobre prazos fatais aqui.', side: "top", align: 'center' }
+            },
+            {
+                element: '#guia-tour-switch',
+                popover: {
+                    title: '🎓 Tour Guiado',
+                    description: 'Este tour aparece sempre que você faz login ou acessa o Dashboard. Para desativá-lo, clique no seu avatar no canto superior direito e desligue o switch ao lado de "Ver Tour". Você pode reativá-lo a qualquer momento no mesmo local.',
+                    side: "bottom",
+                    align: 'end'
+                },
+                onHighlightStarted: () => {
+                    const dropdown = document.getElementById('userDropdown');
+                    if (dropdown) dropdown.style.display = 'block';
+                },
+                onDeselected: () => {
+                    const dropdown = document.getElementById('userDropdown');
+                    if (dropdown) dropdown.style.display = 'none';
+                }
             }
         ]
     });
