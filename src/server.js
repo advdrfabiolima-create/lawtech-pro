@@ -44,10 +44,14 @@ const app = express();
 // --- 4a. HTTPS ENFORCEMENT EM PRODUÇÃO ---
 if (process.env.NODE_ENV === 'production') {
     app.use((req, res, next) => {
-        if (req.header('x-forwarded-proto') !== 'https') {
+        const proto = req.header('x-forwarded-proto');
+        // Só redireciona quando atrás de proxy (header presente) e não é HTTPS
+        if (proto && proto !== 'https') {
             return res.redirect(301, `https://${req.header('host')}${req.url}`);
         }
-        res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+        if (proto === 'https') {
+            res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+        }
         next();
     });
 }

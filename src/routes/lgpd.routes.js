@@ -16,7 +16,7 @@ router.get('/meus-dados', authMiddleware, async (req, res) => {
 
         // Dados do usuário
         const usuario = await pool.query(
-            `SELECT id, nome, email, role, created_at, updated_at
+            `SELECT id, nome, email, role, data_criacao
              FROM usuarios WHERE id = $1`,
             [userId]
         );
@@ -25,21 +25,21 @@ router.get('/meus-dados', authMiddleware, async (req, res) => {
         const escritorio = await pool.query(
             `SELECT id, nome, advogado_responsavel, oab, documento, email,
                     endereco, cidade, estado, cep, plano_id,
-                    plano_financeiro_status, created_at
+                    plano_financeiro_status, data_criacao
              FROM escritorios WHERE id = $1`,
             [escritorioId]
         );
 
-        // Processos (sem dados sensíveis de terceiros)
+        // Processos
         const processos = await pool.query(
-            `SELECT id, numero_processo, tipo, status, created_at
+            `SELECT id, numero, status
              FROM processos WHERE escritorio_id = $1`,
             [escritorioId]
         );
 
         // Clientes cadastrados
         const clientes = await pool.query(
-            `SELECT id, nome, email, telefone, created_at
+            `SELECT id, nome, email, telefone
              FROM clientes WHERE escritorio_id = $1`,
             [escritorioId]
         );
