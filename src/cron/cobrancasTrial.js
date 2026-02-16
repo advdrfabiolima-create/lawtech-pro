@@ -2,6 +2,8 @@ const cron = require('node-cron');
 const pool = require('../config/db');
 const axios = require('axios');
 const { decrypt } = require('../utils/crypto');
+const { withRetry } = require('../utils/retry');
+const { tentarGatewayAlternativo } = require('../utils/gatewayFailover');
 
 const ASAAS_ENV = process.env.ASAAS_ENV || 'production';
 const ASAAS_BASE_URL = ASAAS_ENV === 'sandbox' 
@@ -50,7 +52,7 @@ cron.schedule('0 6 * * *', async () => {
                 
                 console.log(`\n💳 Cobrando: ${esc.nome} - R$ ${esc.preco_mensal}`);
                 
-                const cobranca = await processarCobrancaCartao({
+                let cobranca = await processarCobrancaCartao({
                     escritorioId: esc.id,
                     valor: valorCentavos,
                     cartaoToken: decrypt(esc.cartao_token),
@@ -60,6 +62,26 @@ cron.schedule('0 6 * * *', async () => {
                     emailResponsavel: esc.email_responsavel,
                     planoNome: esc.plano_nome
                 });
+
+                // Failover: se falhou por erro de rede, tenta gateway alternativo
+                if (!cobranca.sucesso && cobranca.erro) {
+                    const alt = await tentarGatewayAlternativo({
+                        escritorioId: esc.id,
+                        gateway: esc.gateway,
+                        erro: cobranca.erro
+                    });
+                    if (alt) {
+                        cobranca = await processarCobrancaCartao({
+                            escritorioId: esc.id,
+                            valor: valorCentavos,
+                            cartaoToken: alt.cartaoToken,
+                            gateway: alt.gateway,
+                            descricao: `Assinatura ${esc.plano_nome} (failover)`,
+                            emailResponsavel: esc.email_responsavel,
+                            planoNome: esc.plano_nome
+                        });
+                    }
+                }
 
                 if (cobranca.sucesso) {
                     const client = await pool.connect();
@@ -245,21 +267,23 @@ async function cobrarViaAsaas(customerId, cardToken, valor, descricao, escritori
     }
 }
 
-async function processarCobrancaCartao({ 
-    escritorioId, valor, cartaoToken, asaasCardToken, gateway, descricao, emailResponsavel, planoNome 
+async function processarCobrancaCartao({
+    escritorioId, valor, cartaoToken, asaasCardToken, gateway, descricao, emailResponsavel, planoNome
 }) {
     console.log(`   🔄 Processando via ${gateway.toUpperCase()}...`);
 
     try {
-        if (gateway === 'stripe') {
-            return await cobrarViaStripe(cartaoToken, valor, descricao, {
-                escritorioId, emailResponsavel, planoNome
-            });
-        } else if (gateway === 'asaas') {
-            return await cobrarViaAsaas(cartaoToken, asaasCardToken, valor, descricao, escritorioId);
-        } else {
-            throw new Error('Gateway não suportado: ' + gateway);
-        }
+        return await withRetry(async () => {
+            if (gateway === 'stripe') {
+                return await cobrarViaStripe(cartaoToken, valor, descricao, {
+                    escritorioId, emailResponsavel, planoNome
+                });
+            } else if (gateway === 'asaas') {
+                return await cobrarViaAsaas(cartaoToken, asaasCardToken, valor, descricao, escritorioId);
+            } else {
+                throw new Error('Gateway não suportado: ' + gateway);
+            }
+        }, { maxRetries: 2, baseDelay: 2000 });
     } catch (err) {
         console.error(`   ❌ Erro:`, err.message);
         return { sucesso: false, transacaoId: null, erro: err.message };

@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const { sign: jwtSign, verify: jwtVerify } = require('../config/jwt');
 const pool = require('../config/db');
 const { validarSenha, validarDocumento } = require('../utils/validators');
+const { registrarAudit, dadosReq } = require('../utils/auditLog');
 
 /* ======================================================
    ROTA DE REGISTRO - CORRIGIDA E COMPLETA
@@ -130,6 +131,7 @@ router.post('/register', async (req, res) => {
                 });
 
             console.log(`🎉 [REGISTRO] Cadastro concluído com sucesso: ${usuario.email}`);
+            registrarAudit({ usuario_id: usuario.id, email: usuario.email, escritorio_id: escritorioId, acao: 'REGISTRO', descricao: 'Nova conta criada', ...dadosReq(req) });
 
             // ✅ Retorna sucesso
             res.status(201).json({
@@ -248,8 +250,7 @@ router.post('/login', async (req, res) => {
                 usuario.plano_financeiro_status !== 'ativo') {
                 
                 console.log('⚠️ [LOGIN BLOQUEADO] Trial expirado:', usuario.email);
-                console.log('⚠️ [LOGIN BLOQUEADO] Status:', usuario.plano_financeiro_status);
-                console.log('⚠️ [LOGIN BLOQUEADO] Dias restantes:', diasRestantes);
+                registrarAudit({ usuario_id: usuario.id, email: usuario.email, escritorio_id: usuario.escritorio_id, acao: 'LOGIN_BLOQUEADO', descricao: 'Trial expirado', metadata: { dias_restantes: diasRestantes, status: usuario.plano_financeiro_status }, ...dadosReq(req) });
                 
                 return res.status(402).json({ 
                     erro: 'Período de teste expirado', 
@@ -270,6 +271,7 @@ router.post('/login', async (req, res) => {
             });
 
         console.log(`✅ [LOGIN] Login bem-sucedido: ${usuario.email}`);
+        registrarAudit({ usuario_id: usuario.id, email: usuario.email, escritorio_id: usuario.escritorio_id, acao: 'LOGIN', descricao: 'Login bem-sucedido', ...dadosReq(req) });
 
         res.json({
             ok: true,

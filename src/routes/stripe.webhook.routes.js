@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const pool = require('../config/db');
+const { registrarAudit } = require('../utils/auditLog');
 
 /* ✅ CORREÇÃO 3: Webhook Stripe Completo */
 
@@ -60,6 +61,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
 
                         await client.query('COMMIT');
                         console.log(`✅ Escritório ${escritorioId} atualizado para PAGO`);
+                        registrarAudit({ escritorio_id: parseInt(escritorioId), acao: 'PAGAMENTO_APROVADO', descricao: `Pagamento Stripe aprovado: ${paymentIntent.id}`, metadata: { gateway: 'stripe', valor: paymentIntent.amount, gateway_id: paymentIntent.id } });
                     } catch (txErr) {
                         await client.query('ROLLBACK');
                         console.error('❌ Erro na transação webhook:', txErr.message);
@@ -93,6 +95,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                     `, [escritorioId, paymentIntent.id, paymentIntent.amount, erro]);
 
                     console.log(`❌ Escritório ${escritorioId} marcado como INADIMPLENTE`);
+                    registrarAudit({ escritorio_id: parseInt(escritorioId), acao: 'PAGAMENTO_RECUSADO', descricao: `Pagamento Stripe recusado: ${paymentIntent.id}`, metadata: { gateway: 'stripe', erro: paymentIntent.last_payment_error?.message } });
                 }
                 break;
             }
@@ -129,6 +132,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                 const chargeId = dispute.charge;
 
                 console.log('🚨 Chargeback detectado:', chargeId);
+                registrarAudit({ acao: 'CHARGEBACK', descricao: `Chargeback Stripe detectado: ${chargeId}`, metadata: { gateway: 'stripe', charge_id: chargeId } });
 
                 await pool.query(`
                     UPDATE escritorios e

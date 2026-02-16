@@ -31,6 +31,7 @@ const peticoesRoutes = require('./routes/peticoes.routes');
 const syncRoutes = require('./routes/sync.routes');
 const assinaturaRoutes = require('./routes/assinatura_routes');
 const stripeWebhookRoutes = require('./routes/stripe.webhook.routes');
+const lgpdRoutes = require('./routes/lgpd.routes');
 
 // --- 2. MIDDLEWARES DE AUTENTICAÃ‡ÃƒO ---
 const authMiddleware = require('./middlewares/authMiddleware');
@@ -150,6 +151,7 @@ app.use('/api', partesProcessoRoutes);
 app.use('/api/peticoes', authMiddleware, peticoesRoutes);
 app.use('/api', syncRoutes);
 app.use('/api/pagamentos', assinaturaRoutes);
+app.use('/api/lgpd', lgpdRoutes);
 
 // âœ… Rota do monitor admin
 app.get('/systems/monitor', (req, res) => {
@@ -300,6 +302,47 @@ require('./cron/auditoriaStripeCron');
             )
         `);
         console.log("✅ [SISTEMA] Tabela webhook_events verificada.");
+
+        // Criar tabela de audit log
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS audit_log (
+                id SERIAL PRIMARY KEY,
+                usuario_id INTEGER,
+                email VARCHAR(255),
+                escritorio_id INTEGER,
+                acao VARCHAR(100) NOT NULL,
+                descricao TEXT,
+                metadata JSONB,
+                ip VARCHAR(45),
+                user_agent TEXT,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
+        // Índices para consultas frequentes
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_acao ON audit_log(acao)`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_usuario ON audit_log(usuario_id)`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at)`);
+        console.log("✅ [SISTEMA] Tabela audit_log verificada.");
+
+        // Coluna retry_count para controle de retentativas de cobrança
+        await pool.query(`
+            ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS retry_count INTEGER DEFAULT 0
+        `);
+        console.log("✅ [SISTEMA] Coluna retry_count verificada.");
+
+        // Tabela de consentimentos LGPD
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS consentimentos (
+                id SERIAL PRIMARY KEY,
+                usuario_id INTEGER NOT NULL,
+                tipo VARCHAR(50) NOT NULL,
+                aceito BOOLEAN NOT NULL,
+                ip VARCHAR(45),
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_consentimentos_usuario ON consentimentos(usuario_id)`);
+        console.log("✅ [SISTEMA] Tabela consentimentos LGPD verificada.");
 
         iniciarAgendamentos();
 

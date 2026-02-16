@@ -5,6 +5,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
 const pool = require('../config/db');
 const { validarDocumento } = require('../utils/validators');
 const { encrypt, decrypt } = require('../utils/crypto');
+const { registrarAudit, dadosReq } = require('../utils/auditLog');
 
 /* ======================================================
    CONFIGURAÇÃO ASAAS (BOLETOS) - MANTIDO
@@ -421,6 +422,7 @@ router.post('/salvar-cartao', authMiddleware, async (req, res) => {
             );
 
             console.log('✅ [CARTÃO] Token atualizado (encriptado)');
+            registrarAudit({ usuario_id: req.user.id, email: req.user.email, escritorio_id: escritorioId, acao: 'CARTAO_ATUALIZADO', descricao: `Cartão ${brand} **** ${last4} atualizado`, ...dadosReq(req) });
 
             return res.json({
                 ok: true,
@@ -438,6 +440,7 @@ router.post('/salvar-cartao', authMiddleware, async (req, res) => {
             );
 
             console.log('✅ [CARTÃO] Novo token salvo');
+            registrarAudit({ usuario_id: req.user.id, email: req.user.email, escritorio_id: escritorioId, acao: 'CARTAO_SALVO', descricao: `Cartão ${brand} **** ${last4} cadastrado via ${gateway}`, ...dadosReq(req) });
 
             return res.json({ 
                 ok: true, 

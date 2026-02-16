@@ -2,6 +2,8 @@ const cron = require('node-cron');
 const pool = require('../config/db');
 const axios = require('axios');
 const { decrypt } = require('../utils/crypto');
+const { withRetry } = require('../utils/retry');
+const { tentarGatewayAlternativo } = require('../utils/gatewayFailover');
 
 /* ======================================================
    CONFIGURAÇÃO ASAAS
@@ -79,13 +81,31 @@ cron.schedule('0 8 * * *', async () => {
                 console.log(`   Cartão: **** ${escritorio.last4} (${escritorio.brand})`);
                 console.log(`   Vencimento: ${new Date(escritorio.proxima_cobranca).toLocaleDateString('pt-BR')}`);
                 
-                const cobranca = await processarCobrancaCartao({
+                let cobranca = await processarCobrancaCartao({
                     escritorioId: escritorio.id,
                     valor: valorEmCentavos,
                     cartaoToken: decrypt(escritorio.cartao_token),
                     gateway: escritorio.gateway,
                     descricao: `Renovação ${escritorio.plano_nome} - LawTech Pro`
                 });
+
+                // Failover: se falhou por erro de rede, tenta gateway alternativo
+                if (!cobranca.sucesso && cobranca.erro) {
+                    const alt = await tentarGatewayAlternativo({
+                        escritorioId: escritorio.id,
+                        gateway: escritorio.gateway,
+                        erro: cobranca.erro
+                    });
+                    if (alt) {
+                        cobranca = await processarCobrancaCartao({
+                            escritorioId: escritorio.id,
+                            valor: valorEmCentavos,
+                            cartaoToken: alt.cartaoToken,
+                            gateway: alt.gateway,
+                            descricao: `Renovação ${escritorio.plano_nome} - LawTech Pro (failover)`
+                        });
+                    }
+                }
 
                 const client = await pool.connect();
                 try {
@@ -249,10 +269,11 @@ cron.schedule('0 14 * * *', async () => {
             JOIN planos p ON e.plano_id = p.id
             JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
             JOIN cartoes c ON c.escritorio_id = e.id
-            WHERE 
+            WHERE
                 e.plano_financeiro_status = 'inadimplente'
                 AND e.proxima_cobranca <= CURRENT_DATE
                 AND (e.renovacao_automatica IS NULL OR e.renovacao_automatica = true)
+                AND COALESCE(e.retry_count, 0) < 3
         `);
 
         console.log(`📊 [CRON RETRY] ${result.rowCount} inadimplente(s) para tentar novamente`);
@@ -289,7 +310,8 @@ cron.schedule('0 14 * * *', async () => {
                         UPDATE escritorios
                         SET plano_financeiro_status = 'pago',
                             ultimo_pagamento = NOW(),
-                            proxima_cobranca = NOW() + INTERVAL '1 month'
+                            proxima_cobranca = NOW() + INTERVAL '1 month',
+                            retry_count = 0
                         WHERE id = $1
                     `, [esc.id]);
 
@@ -304,11 +326,27 @@ cron.schedule('0 14 * * *', async () => {
 
                 } else {
                     console.log(`   ❌ Ainda recusado: ${cobranca.erro}`);
+                    await client.query('BEGIN');
                     await client.query(`
                         UPDATE escritorios
-                        SET proxima_cobranca = NOW() + INTERVAL '3 days'
+                        SET proxima_cobranca = NOW() + INTERVAL '3 days',
+                            retry_count = COALESCE(retry_count, 0) + 1
                         WHERE id = $1
                     `, [esc.id]);
+
+                    await client.query(`
+                        INSERT INTO transacoes
+                        (escritorio_id, gateway_id, gateway, valor, status, mensagem_erro, descricao, created_at)
+                        VALUES ($1, $2, $3, $4, 'recusada', $5, $6, NOW())
+                    `, [
+                        esc.id,
+                        cobranca.transacaoId || null,
+                        esc.gateway,
+                        valorEmCentavos,
+                        cobranca.erro,
+                        `Retry inadimplente - ${esc.plano_nome}`
+                    ]);
+                    await client.query('COMMIT');
                 }
             } catch (txErr) {
                 await client.query('ROLLBACK');
@@ -333,13 +371,15 @@ async function processarCobrancaCartao({ escritorioId, valor, cartaoToken, gatew
     console.log(`   🔄 Processando via ${gateway.toUpperCase()}...`);
 
     try {
-        if (gateway === 'stripe') {
-            return await cobrarViaStripe(cartaoToken, valor, descricao);
-        } else if (gateway === 'asaas') {
-            return await cobrarViaAsaas(cartaoToken, valor, descricao, escritorioId);
-        } else {
-            throw new Error('Gateway não suportado: ' + gateway);
-        }
+        return await withRetry(async () => {
+            if (gateway === 'stripe') {
+                return await cobrarViaStripe(cartaoToken, valor, descricao);
+            } else if (gateway === 'asaas') {
+                return await cobrarViaAsaas(cartaoToken, valor, descricao, escritorioId);
+            } else {
+                throw new Error('Gateway não suportado: ' + gateway);
+            }
+        }, { maxRetries: 2, baseDelay: 2000 });
     } catch (err) {
         console.error(`   ❌ Erro na cobrança:`, err.message);
         return { sucesso: false, transacaoId: null, erro: err.message };
