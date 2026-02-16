@@ -3,6 +3,8 @@ const router = express.Router();
 const axios = require('axios');
 const authMiddleware = require('../middlewares/authMiddleware');
 const pool = require('../config/db');
+const { validarDocumento } = require('../utils/validators');
+const { encrypt, decrypt } = require('../utils/crypto');
 
 /* ======================================================
    CONFIGURAÇÃO ASAAS (BOLETOS) - MANTIDO
@@ -26,8 +28,9 @@ async function obterOuCriarCliente(dadosUsuario) {
     const { nome, email, cpfCnpj } = dadosUsuario;
     const documentoLimpo = cpfCnpj.replace(/\D/g, '');
     
-    if (documentoLimpo.length !== 11 && documentoLimpo.length !== 14) {
-      throw new Error('CPF/CNPJ inválido. Use 11 dígitos (CPF) ou 14 dígitos (CNPJ)');
+    const docCheck = validarDocumento(documentoLimpo);
+    if (!docCheck.valido) {
+      throw new Error(`${docCheck.tipo || 'CPF/CNPJ'} inválido. Verifique os dígitos informados.`);
     }
 
     // Buscar cliente existente
@@ -136,9 +139,10 @@ router.post('/assinar-plano', authMiddleware, async (req, res) => {
 
   // Modo produção (ASAAS)
   try {
-    if (!cpfUsuario || cpfUsuario.length < 11) {
-      return res.status(400).json({ 
-        erro: 'CPF/CNPJ é obrigatório para gerar boleto' 
+    const cpfCheck = validarDocumento(cpfUsuario);
+    if (!cpfCheck.valido) {
+      return res.status(400).json({
+        erro: `${cpfCheck.tipo || 'CPF/CNPJ'} inválido. Verifique os dígitos informados.`
       });
     }
 
@@ -398,25 +402,28 @@ router.post('/salvar-cartao', authMiddleware, async (req, res) => {
             [escritorioId]
         );
 
+        // Encriptar token antes de salvar
+        const tokenEncriptado = encrypt(token);
+
         if (existente.rows.length > 0) {
             // Atualizar cartão existente
             await pool.query(
-                `UPDATE cartoes 
-                 SET token = $1, 
-                     last4 = $2, 
-                     brand = $3, 
-                     exp_month = $4, 
+                `UPDATE cartoes
+                 SET token = $1,
+                     last4 = $2,
+                     brand = $3,
+                     exp_month = $4,
                      exp_year = $5,
                      gateway = $6,
                      updated_at = NOW()
                  WHERE escritorio_id = $7`,
-                [token, last4, brand, exp_month, exp_year, gateway, escritorioId]
+                [tokenEncriptado, last4, brand, exp_month, exp_year, gateway, escritorioId]
             );
 
-            console.log('✅ [CARTÃO] Token atualizado');
+            console.log('✅ [CARTÃO] Token atualizado (encriptado)');
 
-            return res.json({ 
-                ok: true, 
+            return res.json({
+                ok: true,
                 mensagem: 'Cartão atualizado com sucesso!',
                 ultimos_digitos: last4,
                 bandeira: brand
@@ -424,10 +431,10 @@ router.post('/salvar-cartao', authMiddleware, async (req, res) => {
         } else {
             // Inserir novo cartão
             await pool.query(
-                `INSERT INTO cartoes 
+                `INSERT INTO cartoes
                  (escritorio_id, token, last4, brand, exp_month, exp_year, gateway, created_at, updated_at)
                  VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())`,
-                [escritorioId, token, last4, brand, exp_month, exp_year, gateway]
+                [escritorioId, tokenEncriptado, last4, brand, exp_month, exp_year, gateway]
             );
 
             console.log('✅ [CARTÃO] Novo token salvo');
@@ -548,7 +555,8 @@ router.post('/cobrar-renovacao', authMiddleware, async (req, res) => {
             });
         }
 
-        const { token, gateway } = cartaoResult.rows[0];
+        const { token: tokenEncrypted, gateway } = cartaoResult.rows[0];
+        const token = decrypt(tokenEncrypted);
 
         // Processar cobrança conforme gateway
         let cobranca;

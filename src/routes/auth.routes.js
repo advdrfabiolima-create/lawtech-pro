@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const { sign: jwtSign, verify: jwtVerify } = require('../config/jwt');
 const pool = require('../config/db');
+const { validarSenha, validarDocumento } = require('../utils/validators');
 
 /* ======================================================
    ROTA DE REGISTRO - CORRIGIDA E COMPLETA
@@ -33,10 +34,9 @@ router.post('/register', async (req, res) => {
             });
         }
 
-        if (senha.length < 6) {
-            return res.status(400).json({ 
-                erro: 'A senha deve ter no mínimo 6 caracteres' 
-            });
+        const senhaCheck = validarSenha(senha);
+        if (!senhaCheck.valida) {
+            return res.status(400).json({ erro: senhaCheck.erro });
         }
 
         // ✅ Validação de email
@@ -198,7 +198,7 @@ router.post('/login', async (req, res) => {
 
         // Busca usuário
         const result = await pool.query(
-            `SELECT u.id, u.nome, u.email, u.senha, u.role, u.escritorio_id,
+            `SELECT u.id, u.nome, u.email, u.senha, u.role, u.escritorio_id, u.is_master,
                     e.plano_id, e.trial_expira_em, e.plano_financeiro_status,
                     e.ultimo_pagamento, e.proxima_cobranca
              FROM usuarios u
@@ -228,7 +228,7 @@ router.post('/login', async (req, res) => {
         console.log('📊 [LOGIN] Status:', usuario.plano_financeiro_status, '| Trial expira em:', usuario.trial_expira_em);
 
         // ✅ VALIDAÇÃO DE TRIAL EXPIRADO (CORRIGIDO)
-        const ehMaster = usuario.email === 'adv.limaesilva@hotmail.com';
+        const ehMaster = usuario.is_master === true || usuario.email === process.env.MASTER_EMAIL;
 
         // ✅ MELHORIA: Calcula dias restantes APENAS se status for 'trial'
         let diasRestantes = null;

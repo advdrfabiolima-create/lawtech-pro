@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const { sign: jwtSign } = require('../config/jwt');
 const pool = require('../config/db');
+const { validarSenha } = require('../utils/validators');
 
 /* ======================================================
    1. FUNÇÃO DE REGISTRO - CORRIGIDA
@@ -20,8 +21,9 @@ const register = async (req, res) => {
         return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' });
     }
 
-    if (senha.length < 6) {
-        return res.status(400).json({ erro: 'A senha deve ter no mínimo 6 caracteres' });
+    const senhaCheck = validarSenha(senha);
+    if (!senhaCheck.valida) {
+        return res.status(400).json({ erro: senhaCheck.erro });
     }
 
     try {
@@ -195,7 +197,7 @@ const login = async (req, res) => {
         console.log('📊 [LOGIN] Usuário:', usuario.email, '| Escritório:', usuario.escritorio_id);
 
         // ✅ Verificação de Trial/Pagamento
-        const ehMaster = usuario.email === 'adv.limaesilva@hotmail.com';
+        const ehMaster = usuario.is_master === true || usuario.email === process.env.MASTER_EMAIL;
 
         if (!ehMaster) {
             // Calcula dias restantes do trial
@@ -264,8 +266,9 @@ async function alterarSenha(req, res) {
             return res.status(400).json({ erro: 'Nova senha é obrigatória' });
         }
 
-        if (novaSenha.length < 6) {
-            return res.status(400).json({ erro: 'A nova senha deve ter no mínimo 6 caracteres' });
+        const senhaCheck2 = validarSenha(novaSenha);
+        if (!senhaCheck2.valida) {
+            return res.status(400).json({ erro: senhaCheck2.erro });
         }
 
         // ✅ Se tem senha atual, valida (mudança manual)

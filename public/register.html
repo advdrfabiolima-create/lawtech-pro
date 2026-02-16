@@ -453,6 +453,23 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/imask"></script>
+     <!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '4408320902783347');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 </head>
 <body>
 
@@ -838,75 +855,75 @@
             const data = await response.json();
 
             if (response.ok) {
-                console.log('✅ [REGISTRO] Conta criada com sucesso:', data);
-                
-                // ============================================================
-                // SALVAR PAYMENT METHOD (SE FOI CRIADO)
-                // ============================================================
-                
-                if (paymentMethodId && cartaoInfo) {
-                    try {
-                        console.log('💳 [REGISTRO] Salvando Payment Method...');
-                        
-                        // Fazer login para obter token de autenticação
-                        const loginRes = await fetch('/api/auth/login', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: email, senha: senha })
-                        });
-                        
-                        if (loginRes.ok) {
-                            const loginData = await loginRes.json();
-                            
-                            // Salvar Payment Method
-                            const cartaoRes = await fetch('/api/pagamentos/salvar-cartao', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${loginData.token}`
-                                },
-                                body: JSON.stringify({
-                                    token: paymentMethodId,
-                                    last4: cartaoInfo.last4,
-                                    brand: cartaoInfo.brand,
-                                    exp_month: cartaoInfo.exp_month,
-                                    exp_year: cartaoInfo.exp_year,
-                                    gateway: 'stripe'
-                                })
-                            });
+            console.log('✅ [REGISTRO] Conta criada com sucesso:', data);
 
-                            if (cartaoRes.ok) {
-                                console.log('✅ [REGISTRO] Payment Method salvo com sucesso!');
-                                console.log('   ✅ PCI Compliance garantido!');
-                            } else {
-                                console.warn('⚠️ [REGISTRO] Erro ao salvar Payment Method (não crítico)');
-                            }
-                        }
-                    } catch (cartaoErr) {
-                        console.error('❌ [REGISTRO] Erro ao salvar Payment Method:', cartaoErr);
-                        // Não bloqueia o cadastro por erro no cartão
-                    }
+            // 🔥 EVENTO META PIXEL - CONVERSÃO REAL
+            if (typeof fbq !== 'undefined') {
+                fbq('track', 'CompleteRegistration', {
+                    content_name: localStorage.getItem('plano_escolhido_nome') || 'Plano',
+                    content_category: 'Trial SaaS Jurídico',
+                    status: 'sucesso'
+            });
+        }
+
+    // ============================================================
+    // SALVAR PAYMENT METHOD (SE FOI CRIADO)
+    // ============================================================
+
+    if (paymentMethodId && cartaoInfo) {
+        try {
+            console.log('💳 [REGISTRO] Salvando Payment Method...');
+            
+            const loginRes = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, senha: senha })
+            });
+            
+            if (loginRes.ok) {
+                const loginData = await loginRes.json();
+                
+                const cartaoRes = await fetch('/api/pagamentos/salvar-cartao', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${loginData.token}`
+                    },
+                    body: JSON.stringify({
+                        token: paymentMethodId,
+                        last4: cartaoInfo.last4,
+                        brand: cartaoInfo.brand,
+                        exp_month: cartaoInfo.exp_month,
+                        exp_year: cartaoInfo.exp_year,
+                        gateway: 'stripe'
+                    })
+                });
+
+                if (cartaoRes.ok) {
+                    console.log('✅ [REGISTRO] Payment Method salvo com sucesso!');
                 }
-                
-                // Limpar localStorage
-                localStorage.removeItem('plano_escolhido_id');
-                localStorage.removeItem('plano_escolhido_valor');
-                localStorage.removeItem('plano_escolhido_nome');
-                
-                // Mensagem de sucesso
-                const mensagemCartao = paymentMethodId 
-                    ? '\n\n💳 Cartão salvo com segurança! A cobrança será feita automaticamente após 7 dias.'
-                    : '\n\n⚠️ Você poderá cadastrar seu cartão depois no painel.';
-                
-                alert(
-                    '✅ Conta criada com sucesso!' +
-                    '\n\n🎉 Você ganhou 7 dias de teste gratuito!' +
-                    mensagemCartao +
-                    '\n\nClique em OK para fazer login e começar!'
-                );
-                
-                // Redirecionar para login
-                window.location.href = '/login?registro=sucesso&trial=7';
+            }
+        } catch (cartaoErr) {
+            console.error('❌ [REGISTRO] Erro ao salvar Payment Method:', cartaoErr);
+        }
+    }
+
+    localStorage.removeItem('plano_escolhido_id');
+    localStorage.removeItem('plano_escolhido_valor');
+    localStorage.removeItem('plano_escolhido_nome');
+
+    alert(
+        '✅ Conta criada com sucesso!' +
+        '\n\n🎉 Você ganhou 7 dias de teste gratuito!' +
+        '\n\nClique em OK para fazer login e começar!'
+    );
+
+    // Pequeno delay para garantir envio do evento ao Meta
+    setTimeout(() => {
+        window.location.href = '/login?registro=sucesso&trial=7';
+    }, 500);
+
+
                 
             } else {
                 showError(data.erro || "Falha ao criar conta.");

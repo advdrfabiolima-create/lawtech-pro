@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const pool = require('../config/db');
 const axios = require('axios');
+const { decrypt } = require('../utils/crypto');
 
 const ASAAS_ENV = process.env.ASAAS_ENV || 'production';
 const ASAAS_BASE_URL = ASAAS_ENV === 'sandbox' 
@@ -31,7 +32,7 @@ cron.schedule('0 6 * * *', async () => {
             JOIN cartoes c ON c.escritorio_id = e.id
             WHERE e.plano_financeiro_status = 'trial'
             AND e.trial_expira_em = CURRENT_DATE
-            AND u.email != 'adv.limaesilva@hotmail.com'
+            AND COALESCE(u.is_master, false) = false
         `);
 
         console.log(`📊 Encontrados: ${result.rowCount} escritório(s)`);
@@ -52,8 +53,8 @@ cron.schedule('0 6 * * *', async () => {
                 const cobranca = await processarCobrancaCartao({
                     escritorioId: esc.id,
                     valor: valorCentavos,
-                    cartaoToken: esc.cartao_token,
-                    asaasCardToken: esc.asaas_card_token,
+                    cartaoToken: decrypt(esc.cartao_token),
+                    asaasCardToken: esc.asaas_card_token ? decrypt(esc.asaas_card_token) : null,
                     gateway: esc.gateway,
                     descricao: `Assinatura ${esc.plano_nome}`,
                     emailResponsavel: esc.email_responsavel,

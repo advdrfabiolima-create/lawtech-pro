@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const pool = require('../config/db');
 const axios = require('axios');
+const { decrypt } = require('../utils/crypto');
 
 /* ======================================================
    CONFIGURAÇÃO ASAAS
@@ -52,7 +53,7 @@ cron.schedule('0 8 * * *', async () => {
                 AND e.proxima_cobranca IS NOT NULL
                 AND e.proxima_cobranca <= CURRENT_DATE
                 AND (e.renovacao_automatica IS NULL OR e.renovacao_automatica = true)
-                AND u.email != 'adv.limaesilva@hotmail.com'
+                AND COALESCE(u.is_master, false) = false
             ORDER BY e.proxima_cobranca ASC
         `);
 
@@ -81,7 +82,7 @@ cron.schedule('0 8 * * *', async () => {
                 const cobranca = await processarCobrancaCartao({
                     escritorioId: escritorio.id,
                     valor: valorEmCentavos,
-                    cartaoToken: escritorio.cartao_token,
+                    cartaoToken: decrypt(escritorio.cartao_token),
                     gateway: escritorio.gateway,
                     descricao: `Renovação ${escritorio.plano_nome} - LawTech Pro`
                 });
@@ -264,7 +265,7 @@ cron.schedule('0 14 * * *', async () => {
             const cobranca = await processarCobrancaCartao({
                 escritorioId: esc.id,
                 valor: valorEmCentavos,
-                cartaoToken: esc.cartao_token,
+                cartaoToken: decrypt(esc.cartao_token),
                 gateway: esc.gateway,
                 descricao: `Retry - ${esc.plano_nome}`
             });

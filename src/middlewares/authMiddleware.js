@@ -15,7 +15,7 @@ const authMiddleware = async (req, res, next) => {
     const decoded = jwtVerify(token);
 
     const result = await pool.query(
-      `SELECT u.id, u.nome, u.email, u.role, u.escritorio_id, 
+      `SELECT u.id, u.nome, u.email, u.role, u.escritorio_id, u.is_master,
               e.plano_financeiro_status, e.plano_id, e.trial_expira_em
        FROM usuarios u
        JOIN escritorios e ON u.escritorio_id = e.id
@@ -41,8 +41,8 @@ const authMiddleware = async (req, res, next) => {
       diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
     }
 
-    // 🛡️ REGRA DE IMUNIDADE MASTER
-    const ehMaster = usuario.email === 'adv.limaesilva@hotmail.com';
+    // 🛡️ REGRA DE IMUNIDADE MASTER (via banco de dados)
+    const ehMaster = usuario.is_master === true || usuario.email === process.env.MASTER_EMAIL;
 
     console.log('📊 [AUTH] Dados do usuário:', {
       email: usuario.email,

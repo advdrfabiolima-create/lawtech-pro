@@ -4,6 +4,8 @@ const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
 const planMiddleware = require('../middlewares/planMiddleware');
 const axios = require('axios');
+const { validarDocumento } = require('../utils/validators');
+const { encrypt, decrypt } = require('../utils/crypto');
 
 // ============================================================
 // ✅ CONFIGURAÇÃO ASAAS - CORRIGIDA
@@ -274,10 +276,11 @@ router.post('/financeiro/ativar-subconta',
 
             const documentoLimpo = String(e.documento).replace(/\D/g, '');
             
-            // ✅ Validação de CPF/CNPJ
-            if (documentoLimpo.length !== 11 && documentoLimpo.length !== 14) {
-                return res.status(400).json({ 
-                    erro: 'CPF deve ter 11 dígitos ou CNPJ 14 dígitos' 
+            // ✅ Validação de CPF/CNPJ com dígitos verificadores
+            const docCheck = validarDocumento(documentoLimpo);
+            if (!docCheck.valido) {
+                return res.status(400).json({
+                    erro: `${docCheck.tipo || 'CPF/CNPJ'} inválido. Verifique os dígitos informados.`
                 });
             }
 
@@ -320,7 +323,7 @@ router.post('/financeiro/ativar-subconta',
                      asaas_api_key = $2, 
                      plano_financeiro_status = 'ativo' 
                  WHERE id = $3`,
-                [response.data.id, response.data.apiKey, escritorioId]
+                [response.data.id, encrypt(response.data.apiKey), escritorioId]
             );
 
             console.log(`✅ [ASAAS] Subconta criada com sucesso! ID: ${response.data.id}`);
@@ -380,7 +383,7 @@ router.post('/financeiro/ativar-subconta',
                                  asaas_api_key = $2, 
                                  plano_financeiro_status = 'ativo' 
                              WHERE id = $3`,
-                            [subcontaExistente.id, subcontaExistente.apiKey, escritorioId]
+                            [subcontaExistente.id, encrypt(subcontaExistente.apiKey), escritorioId]
                         );
                         
                         console.log('✅ Dados da subconta existente salvos no banco!');
@@ -445,7 +448,8 @@ router.post('/financeiro/gerar-boleto-honorarios',
                 [req.user.escritorio_id]
             );
             
-            const tokenCliente = escRes.rows[0]?.asaas_api_key?.trim();
+            const apiKeyRaw = escRes.rows[0]?.asaas_api_key;
+            const tokenCliente = apiKeyRaw ? decrypt(apiKeyRaw).trim() : null;
 
             if (!tokenCliente) {
                 return res.status(400).json({ 
@@ -469,10 +473,11 @@ router.post('/financeiro/gerar-boleto-honorarios',
 
             const documentoLimpo = cliente.documento ? cliente.documento.replace(/\D/g, '') : '';
 
-            // ✅ Validação de CPF/CNPJ do cliente
-            if (!documentoLimpo || (documentoLimpo.length !== 11 && documentoLimpo.length !== 14)) {
-                return res.status(400).json({ 
-                    erro: 'Cliente sem CPF/CNPJ válido. Atualize o cadastro do cliente primeiro.' 
+            // ✅ Validação de CPF/CNPJ do cliente com dígitos verificadores
+            const docCliente = validarDocumento(documentoLimpo);
+            if (!docCliente.valido) {
+                return res.status(400).json({
+                    erro: 'Cliente sem CPF/CNPJ válido. Atualize o cadastro do cliente primeiro.'
                 });
             }
 
@@ -712,7 +717,8 @@ router.get('/financeiro/testar-subconta',
                 [req.user.escritorio_id]
             );
 
-            const token = escRes.rows[0]?.asaas_api_key;
+            const apiKeyRaw2 = escRes.rows[0]?.asaas_api_key;
+            const token = apiKeyRaw2 ? decrypt(apiKeyRaw2) : null;
             const asaasId = escRes.rows[0]?.asaas_id;
 
             if (!token) {

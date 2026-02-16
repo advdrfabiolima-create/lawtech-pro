@@ -1579,6 +1579,23 @@
             }
         }
     </style>
+    <!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '4408320902783347');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 </head>
 <body>
     <nav>
@@ -2088,11 +2105,24 @@
         });
 
         function iniciarTeste(plano) {
-            const isAnnual = document.getElementById('billingToggle').checked;
-            const cobranca = isAnnual ? 'anual' : 'mensal';
-            window.location.href = `/register.html?plano=${plano}&cobranca=${cobranca}&trial=7d`;
-        }
+    const isAnnual = document.getElementById('billingToggle').checked;
+    const cobranca = isAnnual ? 'anual' : 'mensal';
 
+    // 🔵 Evento Meta Pixel - Clique no botão de teste
+    if (typeof fbq !== 'undefined') {
+        fbq('track', 'InitiateCheckout', {
+            content_name: plano,
+            content_category: 'Plano SaaS Jurídico',
+            trial: '7 dias'
+        });
+    }
+
+    // Pequeno delay para garantir envio do evento antes do redirect
+    setTimeout(function() {
+        window.location.href = `/register.html?plano=${plano}&cobranca=${cobranca}&trial=7d`;
+    }, 300);
+}
+        
         // Inicializa com mensal ativo
         document.getElementById('label-mensal').classList.add('active');
 
@@ -2103,7 +2133,7 @@
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
+                }                
             });
         });
     </script>

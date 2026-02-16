@@ -40,13 +40,24 @@ const verificarPagamento = require('./middlewares/financeiroMiddleware');
 // ðŸš€ 3. INICIALIZAÃ‡ÃƒO DO APP
 const app = express();
 
-// --- 4. 🔴 WEBHOOK DO STRIPE (ANTES DOS MIDDLEWARES DE PARSING) ---
+// --- 4a. HTTPS ENFORCEMENT EM PRODUÇÃO ---
+if (process.env.NODE_ENV === 'production') {
+    app.use((req, res, next) => {
+        if (req.header('x-forwarded-proto') !== 'https') {
+            return res.redirect(301, `https://${req.header('host')}${req.url}`);
+        }
+        res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+        next();
+    });
+}
+
+// --- 4b. 🔴 WEBHOOK DO STRIPE (ANTES DOS MIDDLEWARES DE PARSING) ---
 // CRÍTICO: Esta rota DEVE vir ANTES do express.json() para receber raw body
 app.use('/webhook', stripeWebhookRoutes);
 
 // --- 5. MIDDLEWARE DE SEGURANÃ‡A MÃXIMA (MASTER ADMIN) ---
 const masterAdminOnly = (req, res, next) => {
-    if (req.user && req.user.email === 'adv.limaesilva@hotmail.com') {
+    if (req.user && req.user.eh_master) {
         return next();
     }
     console.warn(`[SEGURANÃ‡A] Acesso nÃ£o autorizado ao Monitor por: ${req.user?.email || 'Desconhecido'}`);
@@ -264,12 +275,18 @@ require('./cron/auditoriaStripeCron');
     try {
         console.log("â³ Conectando ao Neon e validando acesso master...");
 
-        const hash = await bcrypt.hash('Lei@2026', 10);
+        // Garantir que a coluna is_master exista
         await pool.query(`
-            INSERT INTO usuarios (nome, email, senha, role, escritorio_id)
-            VALUES ('Dr. FÃ¡bio Lima', 'adv.limaesilva@hotmail.com', $1, 'admin', 1)
-            ON CONFLICT (email) DO NOTHING
-        `, [hash]);
+            ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS is_master BOOLEAN DEFAULT false
+        `);
+
+        const masterEmail = process.env.MASTER_EMAIL || 'adv.limaesilva@hotmail.com';
+        const hash = await bcrypt.hash(process.env.MASTER_PASSWORD || 'Lei@2026', 10);
+        await pool.query(`
+            INSERT INTO usuarios (nome, email, senha, role, escritorio_id, is_master)
+            VALUES ('Dr. Fábio Lima', $2, $1, 'admin', 1, true)
+            ON CONFLICT (email) DO UPDATE SET is_master = true
+        `, [hash, masterEmail]);
 
         console.log("âœ… [SISTEMA] VerificaÃ§Ã£o de Acesso Master concluÃ­da.");
 
