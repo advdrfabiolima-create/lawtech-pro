@@ -53,7 +53,7 @@ const authMiddleware = async (req, res, next) => {
     });
 
     // 🚨 REGRA DE BLOQUEIO
-    if (!ehMaster && diasRestantes <= 0 && usuario.plano_financeiro_status !== 'pago') {
+    if (!ehMaster && diasRestantes <= 0 && !['pago', 'ativo'].includes(usuario.plano_financeiro_status)) {
       console.log(`❌ [BLOQUEIO ATIVADO] Trial Expirado para: ${usuario.email}`);
       console.log(`   Dias restantes: ${diasRestantes}`);
       console.log(`   Status: ${usuario.plano_financeiro_status}`);
