@@ -452,6 +452,96 @@
             transform: scaleX(1);
         }
 
+        /* ========= CALENDÁRIO JURÍDICO ========= */
+        .calendario-container { display: none; }
+        .calendario-container.ativo { display: flex; gap: 24px; }
+
+        .calendario-grid-wrapper { flex: 1; }
+        .calendario-nav {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 16px; padding: 12px 0;
+        }
+        .calendario-nav h3 { font-size: 18px; font-weight: 700; color: var(--text-primary); text-transform: capitalize; }
+        .calendario-nav button {
+            background: var(--accent-blue); color: white; border: none; border-radius: 6px;
+            padding: 8px 14px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s;
+        }
+        .calendario-nav button:hover { opacity: 0.85; }
+
+        .calendario-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+            background: var(--border-subtle); border-radius: 8px; overflow: hidden;
+        }
+        .calendario-weekday {
+            background: var(--bg-secondary); color: white; text-align: center;
+            padding: 10px 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .calendario-dia {
+            background: white; min-height: 80px; padding: 6px;
+            position: relative; cursor: default; transition: background 0.2s;
+        }
+        .calendario-dia:hover { background: #f0f7ff; }
+        .calendario-dia.vazio { background: #f8fafb; }
+        .calendario-dia.hoje { border: 2px solid var(--accent-blue); }
+        .calendario-dia.feriado { background: #fff5f5; }
+        .calendario-dia .dia-num {
+            font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;
+        }
+        .calendario-dia.feriado .dia-num { color: var(--accent-red); }
+        .calendario-dia .dia-eventos { display: flex; flex-direction: column; gap: 2px; }
+        .dia-evento-prazo {
+            background: var(--accent-blue); color: white; font-size: 9px; padding: 2px 4px;
+            border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
+        }
+        .dia-evento-feriado {
+            background: var(--accent-red); color: white; font-size: 9px; padding: 2px 4px;
+            border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .dia-evento-suspensao {
+            background: var(--accent-orange); color: white; font-size: 9px; padding: 2px 4px;
+            border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .calendario-sidebar-panel {
+            width: 280px; flex-shrink: 0; background: white; border: 1px solid var(--border);
+            border-radius: 12px; padding: 20px; max-height: 600px; overflow-y: auto;
+        }
+        .calendario-sidebar-panel h4 { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; }
+        .feriado-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 0; border-bottom: 1px solid var(--border-subtle); font-size: 13px;
+        }
+        .feriado-item:last-child { border-bottom: none; }
+        .feriado-item .feriado-data { color: var(--accent-red); font-weight: 700; font-size: 12px; }
+        .feriado-item .feriado-titulo { color: var(--text-primary); flex: 1; margin: 0 8px; }
+        .feriado-item .feriado-del {
+            background: none; border: none; color: var(--accent-red); cursor: pointer; font-size: 14px; opacity: 0.5;
+        }
+        .feriado-item .feriado-del:hover { opacity: 1; }
+
+        .btn-add-feriado {
+            width: 100%; margin-top: 12px; padding: 10px; background: var(--accent-blue); color: white;
+            border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;
+        }
+        .btn-add-feriado:hover { opacity: 0.85; }
+        .btn-carregar-nacionais {
+            width: 100%; margin-top: 8px; padding: 8px; background: transparent; color: var(--accent-blue);
+            border: 1px dashed var(--accent-blue); border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;
+        }
+        .btn-carregar-nacionais:hover { background: rgba(74,144,226,0.05); }
+
+        /* Modal Feriado */
+        .modal-feriado .modal-content { max-width: 420px; }
+        .modal-feriado label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 4px; margin-top: 12px; }
+        .modal-feriado input, .modal-feriado select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+        .modal-feriado .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+        .modal-feriado .checkbox-row input[type="checkbox"] { width: auto; }
+
+        @media (max-width: 900px) {
+            .calendario-container.ativo { flex-direction: column; }
+            .calendario-sidebar-panel { width: 100%; }
+        }
+
         .filters-actions {
             padding: 20px 24px;
             display: flex;
@@ -736,6 +826,8 @@
 
 </div>
 
+        <a href="/chat-page"><i class="lucide lucide-message-circle"></i> 💬 Chat</a>
+        <a href="/relatorios-page"><i class="lucide lucide-bar-chart-3"></i> Relatórios</a>
         <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
         <a href="/config-page" id="guia-config" onclick="limparBolinha()">
             <i class="lucide lucide-settings"></i> Configurações
@@ -822,6 +914,7 @@
                     <button class="filter-tab" data-filter="hoje" onclick="filtrarPrazos('hoje', this)">Hoje</button>
                     <button class="filter-tab" data-filter="esta-semana" onclick="filtrarPrazos('esta-semana', this)">Esta Semana</button>
                     <button class="filter-tab" data-filter="concluidos" onclick="filtrarPrazos('concluidos', this)">Concluídos</button>
+                    <button class="filter-tab" data-filter="calendario" onclick="filtrarPrazos('calendario', this)">📅 Calendário</button>
                 </div>
                 <div class="filters-actions">
                     <button class="btn-primary" onclick="abrirModalPrazo()">
@@ -832,9 +925,27 @@
             </div>
 
             <!-- Lista de Prazos -->
-            <div class="section">
+            <div class="section" id="secao-prazos">
                 <div id="lista-futuros"></div>
                 <div id="lista-concluidos"></div>
+            </div>
+
+            <!-- Calendário Jurídico -->
+            <div class="calendario-container" id="secao-calendario">
+                <div class="calendario-grid-wrapper">
+                    <div class="calendario-nav">
+                        <button onclick="calMesAnterior()">◀ Anterior</button>
+                        <h3 id="cal-mes-titulo">Fevereiro 2026</h3>
+                        <button onclick="calMesProximo()">Próximo ▶</button>
+                    </div>
+                    <div class="calendario-grid" id="cal-grid"></div>
+                </div>
+                <div class="calendario-sidebar-panel">
+                    <h4>📌 Feriados e Suspensões do Mês</h4>
+                    <div id="cal-feriados-lista"><p style="color:var(--muted); font-size:13px;">Nenhum feriado neste mês.</p></div>
+                    <button class="btn-add-feriado" onclick="abrirModalFeriado()">+ Adicionar Feriado</button>
+                    <button class="btn-carregar-nacionais" onclick="carregarFeriadosNacionais()">🇧🇷 Carregar Feriados Nacionais</button>
+                </div>
             </div>
         </div>
     </main>
@@ -941,6 +1052,36 @@
             <div id="aiResponseContent" style="white-space: pre-wrap; line-height: 1.8; color: #334155; font-size: 15px;"></div>
             <div style="margin-top: 20px; text-align: right;">
                 <button class="btn-secondary" onclick="document.getElementById('modalIA').style.display='none'">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Feriado -->
+    <div id="modalFeriado" class="modal modal-feriado" style="display:none;">
+        <div class="modal-content">
+            <h3 style="margin-bottom:16px; color:var(--sidebar);">📅 Novo Feriado / Suspensão</h3>
+            <label>TÍTULO</label>
+            <input id="feriadoTitulo" placeholder="Ex: Feriado Municipal">
+            <label>DATA</label>
+            <input type="date" id="feriadoData">
+            <label>TIPO</label>
+            <select id="feriadoTipo">
+                <option value="feriado">Feriado</option>
+                <option value="suspensao">Suspensão</option>
+            </select>
+            <label>ABRANGÊNCIA</label>
+            <select id="feriadoAbrangencia">
+                <option value="local">Local</option>
+                <option value="estadual">Estadual</option>
+                <option value="nacional">Nacional</option>
+            </select>
+            <div class="checkbox-row">
+                <input type="checkbox" id="feriadoRecorrente">
+                <label style="margin:0; font-size:13px;">Recorrente (todo ano)</label>
+            </div>
+            <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn-primary" onclick="salvarFeriado()">Salvar</button>
+                <button class="btn-secondary" onclick="document.getElementById('modalFeriado').style.display='none'">Cancelar</button>
             </div>
         </div>
     </div>
@@ -1792,14 +1933,27 @@
         console.log('📋 [FILTRAR] Lista futuros:', listaFuturos ? 'OK' : 'NÃO ENCONTRADA');
         console.log('📋 [FILTRAR] Lista concluídos:', listaConcluidos ? 'OK' : 'NÃO ENCONTRADA');
         
+        const secaoPrazos = document.getElementById('secao-prazos');
+        const secaoCalendario = document.getElementById('secao-calendario');
+
+        if (filtro === 'calendario') {
+            secaoPrazos.style.display = 'none';
+            secaoCalendario.classList.add('ativo');
+            renderizarCalendario();
+            return;
+        }
+
+        secaoPrazos.style.display = 'block';
+        secaoCalendario.classList.remove('ativo');
+
         if (filtro === 'concluidos') {
             // Mostrar concluídos
             console.log('✅ [FILTRAR] Mudando para aba Concluídos');
             console.log('📊 [FILTRAR] Conteúdo do container:', listaConcluidos.innerHTML.length, 'caracteres');
-            
+
             listaFuturos.style.display = 'none';
             listaConcluidos.style.display = 'block';
-            
+
             if (listaConcluidos.innerHTML.trim() === '' || listaConcluidos.innerHTML.length < 100) {
                 console.warn('⚠️ [FILTRAR] Container de concluídos está VAZIO ou muito pequeno!');
                 console.warn('⚠️ [FILTRAR] Tentando recarregar...');
@@ -1877,6 +2031,165 @@
         event.preventDefault();
         const submenu = document.getElementById('submenu-ia');
         submenu.classList.toggle('open');
+    }
+
+    // =============================================
+    // CALENDÁRIO JURÍDICO
+    // =============================================
+    let calMes = new Date().getMonth() + 1;
+    let calAno = new Date().getFullYear();
+    let calDados = { prazos: [], feriados: [] };
+
+    function calMesAnterior() { calMes--; if (calMes < 1) { calMes = 12; calAno--; } renderizarCalendario(); }
+    function calMesProximo() { calMes++; if (calMes > 12) { calMes = 1; calAno++; } renderizarCalendario(); }
+
+    async function renderizarCalendario() {
+        const token = localStorage.getItem('token');
+        try {
+            const res = await fetch(`/api/calendario/mensal?mes=${calMes}&ano=${calAno}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            if (data.ok) {
+                calDados = data;
+                desenharGrid();
+                desenharFeriadosLista();
+            }
+        } catch (e) { console.error('Erro ao carregar calendário:', e); }
+    }
+
+    function desenharGrid() {
+        const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        document.getElementById('cal-mes-titulo').textContent = `${meses[calMes-1]} ${calAno}`;
+
+        const grid = document.getElementById('cal-grid');
+        const diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+        let html = diasSemana.map(d => `<div class="calendario-weekday">${d}</div>`).join('');
+
+        const primeiroDia = new Date(calAno, calMes - 1, 1).getDay();
+        const totalDias = new Date(calAno, calMes, 0).getDate();
+        const hoje = new Date();
+
+        // Index feriados e prazos por dia
+        const feriadosPorDia = {};
+        (calDados.feriados || []).forEach(f => {
+            const d = new Date(f.data).getUTCDate();
+            if (!feriadosPorDia[d]) feriadosPorDia[d] = [];
+            feriadosPorDia[d].push(f);
+        });
+        const prazosPorDia = {};
+        (calDados.prazos || []).forEach(p => {
+            const d = new Date(p.data_limite).getUTCDate();
+            if (!prazosPorDia[d]) prazosPorDia[d] = [];
+            prazosPorDia[d].push(p);
+        });
+
+        // Dias vazios antes
+        for (let i = 0; i < primeiroDia; i++) html += '<div class="calendario-dia vazio"></div>';
+
+        for (let dia = 1; dia <= totalDias; dia++) {
+            const ehHoje = dia === hoje.getDate() && calMes === (hoje.getMonth()+1) && calAno === hoje.getFullYear();
+            const temFeriado = feriadosPorDia[dia];
+            let classes = 'calendario-dia';
+            if (ehHoje) classes += ' hoje';
+            if (temFeriado) classes += ' feriado';
+
+            let eventosHtml = '';
+            if (temFeriado) {
+                temFeriado.forEach(f => {
+                    const cls = f.tipo === 'suspensao' ? 'dia-evento-suspensao' : 'dia-evento-feriado';
+                    eventosHtml += `<div class="${cls}" title="${f.titulo}">${f.titulo}</div>`;
+                });
+            }
+            if (prazosPorDia[dia]) {
+                prazosPorDia[dia].forEach(p => {
+                    eventosHtml += `<div class="dia-evento-prazo" title="${p.tipo} - ${p.cliente || ''}">${p.tipo || 'Prazo'}</div>`;
+                });
+            }
+
+            html += `<div class="${classes}"><div class="dia-num">${dia}</div><div class="dia-eventos">${eventosHtml}</div></div>`;
+        }
+
+        grid.innerHTML = html;
+    }
+
+    function desenharFeriadosLista() {
+        const container = document.getElementById('cal-feriados-lista');
+        const feriados = calDados.feriados || [];
+        if (feriados.length === 0) {
+            container.innerHTML = '<p style="color:var(--muted); font-size:13px;">Nenhum feriado neste mês.</p>';
+            return;
+        }
+        container.innerHTML = feriados.map(f => {
+            const dataFmt = new Date(f.data).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
+            const badge = f.tipo === 'suspensao' ? '⚠️' : '🔴';
+            return `<div class="feriado-item">
+                <span class="feriado-data">${dataFmt}</span>
+                <span class="feriado-titulo">${badge} ${f.titulo}</span>
+                <button class="feriado-del" onclick="deletarFeriado(${f.id})" title="Remover">✕</button>
+            </div>`;
+        }).join('');
+    }
+
+    function abrirModalFeriado() {
+        document.getElementById('feriadoTitulo').value = '';
+        document.getElementById('feriadoData').value = '';
+        document.getElementById('feriadoTipo').value = 'feriado';
+        document.getElementById('feriadoAbrangencia').value = 'local';
+        document.getElementById('feriadoRecorrente').checked = false;
+        document.getElementById('modalFeriado').style.display = 'flex';
+    }
+
+    async function salvarFeriado() {
+        const token = localStorage.getItem('token');
+        const body = {
+            titulo: document.getElementById('feriadoTitulo').value.trim(),
+            data: document.getElementById('feriadoData').value,
+            tipo: document.getElementById('feriadoTipo').value,
+            abrangencia: document.getElementById('feriadoAbrangencia').value,
+            recorrente: document.getElementById('feriadoRecorrente').checked
+        };
+        if (!body.titulo || !body.data) return alert('Preencha título e data.');
+        try {
+            const res = await fetch('/api/calendario/feriados', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (data.ok) {
+                document.getElementById('modalFeriado').style.display = 'none';
+                renderizarCalendario();
+            } else { alert(data.erro || 'Erro ao salvar'); }
+        } catch (e) { alert('Erro de conexão'); }
+    }
+
+    async function deletarFeriado(id) {
+        if (!confirm('Remover este feriado?')) return;
+        const token = localStorage.getItem('token');
+        try {
+            await fetch('/api/calendario/feriados/' + id, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            renderizarCalendario();
+        } catch (e) { console.error(e); }
+    }
+
+    async function carregarFeriadosNacionais() {
+        const token = localStorage.getItem('token');
+        try {
+            const res = await fetch('/api/calendario/feriados/inicializar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ ano: calAno })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                alert(data.mensagem);
+                renderizarCalendario();
+            } else { alert(data.erro || 'Erro'); }
+        } catch (e) { alert('Erro de conexão'); }
     }
 </script>
 </body>

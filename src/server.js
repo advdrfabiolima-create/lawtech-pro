@@ -32,6 +32,10 @@ const syncRoutes = require('./routes/sync.routes');
 const assinaturaRoutes = require('./routes/assinatura_routes');
 const stripeWebhookRoutes = require('./routes/stripe.webhook.routes');
 const lgpdRoutes = require('./routes/lgpd.routes');
+const calendarioRoutes = require('./routes/calendario.routes');
+const notificacoesRoutes = require('./routes/notificacoes.routes');
+const relatoriosRoutes = require('./routes/relatorios.routes');
+const chatRoutes = require('./routes/chat.routes');
 
 // --- 2. MIDDLEWARES DE AUTENTICAÃ‡ÃƒO ---
 const authMiddleware = require('./middlewares/authMiddleware');
@@ -160,6 +164,10 @@ app.use('/api/peticoes', authMiddleware, peticoesRoutes);
 app.use('/api', syncRoutes);
 app.use('/api/pagamentos', assinaturaRoutes);
 app.use('/api/lgpd', lgpdRoutes);
+app.use('/api', authMiddleware, verificarPagamento, calendarioRoutes);
+app.use('/api', notificacoesRoutes);
+app.use('/api', authMiddleware, verificarPagamento, relatoriosRoutes);
+app.use('/api', authMiddleware, verificarPagamento, chatRoutes);
 
 // âœ… Rota do monitor admin
 app.get('/systems/monitor', (req, res) => {
@@ -199,6 +207,8 @@ app.get('/tribunais-page', (req, res) => res.sendFile(path.join(publicPath, 'tri
 app.get('/blog', (req, res) => res.sendFile(path.join(publicPath, 'blog.html')));
 app.get('/sobre-nos', (req, res) => res.sendFile(path.join(publicPath, 'sobre-nos.html')));
 app.get('/lgpd', (req, res) => res.sendFile(path.join(publicPath, 'lgpd.html')));
+app.get('/relatorios-page', (req, res) => res.sendFile(path.join(publicPath, 'relatorios.html')));
+app.get('/chat-page', (req, res) => res.sendFile(path.join(publicPath, 'chat.html')));
 
 app.get('/pagamento-pendente', (req, res) => {
     const filePath = path.resolve(publicPath, 'pagamento-pendente.html');
@@ -362,6 +372,73 @@ require('./cron/auditoriaStripeCron');
             ON transacoes(gateway_id) WHERE gateway_id IS NOT NULL
         `);
         console.log("✅ [SISTEMA] Índice único gateway_id verificado.");
+
+        // Tabela de feriados e suspensões (Calendário Jurídico)
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS feriados_suspensoes (
+                id SERIAL PRIMARY KEY,
+                escritorio_id INTEGER NOT NULL,
+                titulo VARCHAR(200) NOT NULL,
+                data DATE NOT NULL,
+                tipo VARCHAR(20) NOT NULL,
+                abrangencia VARCHAR(20) DEFAULT 'local',
+                recorrente BOOLEAN DEFAULT false,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
+        console.log("✅ [SISTEMA] Tabela feriados_suspensoes verificada.");
+
+        // Tabela de configuração de alertas
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS config_alertas (
+                id SERIAL PRIMARY KEY,
+                escritorio_id INTEGER UNIQUE NOT NULL,
+                dias_alerta_1 INTEGER DEFAULT 7,
+                dias_alerta_2 INTEGER DEFAULT 3,
+                dias_alerta_3 INTEGER DEFAULT 1,
+                email_ativo BOOLEAN DEFAULT true,
+                inapp_ativo BOOLEAN DEFAULT true,
+                hora_envio VARCHAR(5) DEFAULT '08:00',
+                updated_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
+        console.log("✅ [SISTEMA] Tabela config_alertas verificada.");
+
+        // Tabela de notificações in-app
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS notificacoes (
+                id SERIAL PRIMARY KEY,
+                escritorio_id INTEGER NOT NULL,
+                usuario_id INTEGER NOT NULL,
+                prazo_id INTEGER NOT NULL,
+                tipo VARCHAR(20) NOT NULL,
+                titulo VARCHAR(300),
+                mensagem TEXT,
+                lida BOOLEAN DEFAULT false,
+                enviada_em TIMESTAMP DEFAULT NOW()
+            )
+        `);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_notificacoes_usuario ON notificacoes(usuario_id, lida)`);
+        console.log("✅ [SISTEMA] Tabela notificacoes verificada.");
+
+        // Tabela de chat interno do escritório
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS chat_mensagens (
+                id SERIAL PRIMARY KEY,
+                escritorio_id INTEGER NOT NULL,
+                remetente_id INTEGER NOT NULL,
+                destinatario_id INTEGER,
+                conteudo TEXT NOT NULL,
+                lida BOOLEAN DEFAULT false,
+                criado_em TIMESTAMP DEFAULT NOW()
+            )
+        `);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_chat_escritorio_criado ON chat_mensagens(escritorio_id, criado_em)`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_chat_remetente ON chat_mensagens(remetente_id)`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_chat_destinatario ON chat_mensagens(destinatario_id)`);
+        await pool.query(`ALTER TABLE chat_mensagens ADD COLUMN IF NOT EXISTS arquivo_nome VARCHAR(255)`);
+        await pool.query(`ALTER TABLE chat_mensagens ADD COLUMN IF NOT EXISTS arquivo_path VARCHAR(500)`);
+        console.log("✅ [SISTEMA] Tabela chat_mensagens verificada.");
 
         iniciarAgendamentos();
 

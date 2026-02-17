@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <title>LawTech Pro — Chat Interno</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --bg-primary: #F8FAFB;
+            --bg-secondary: #1E3A5F;
+            --bg-tertiary: #2A4A73;
+            --bg-elevated: #ffffff;
+            --text-primary: #2C3E50;
+            --text-secondary: #5A6C7D;
+            --text-tertiary: #7B8794;
+            --accent-blue: #4A90E2;
+            --accent-blue-light: #5BA4DB;
+            --accent-blue-glow: rgba(74, 144, 226, 0.2);
+            --accent-green: #52B788;
+            --accent-purple: #7E8CE0;
+            --accent-orange: #F2A65A;
+            --accent-red: #E76F51;
+            --accent-gold: #F4D06F;
+            --border-subtle: rgba(42, 74, 115, 0.08);
+            --border-medium: rgba(42, 74, 115, 0.12);
+            --radius-sm: 4px;
+            --radius-md: 6px;
+            --radius-lg: 8px;
+            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+            --bg: var(--bg-primary);
+            --sidebar: var(--bg-secondary);
+            --white: var(--bg-elevated);
+            --border: var(--border-medium);
+            --primary: var(--accent-blue);
+            --success: var(--accent-green);
+            --danger: var(--accent-red);
+            --warning: var(--accent-orange);
+            --muted: var(--text-tertiary);
+            --text-main: var(--text-primary);
+            --text-menu: var(--text-tertiary);
+            --sidebar-hover: var(--bg-tertiary);
+            --radius: var(--radius-md);
+        }
+
+        * { box-sizing: border-box; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; height: 100vh; overflow-x: auto; overflow-y: hidden; }
+
+        body::before {
+            content: "";
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.015;
+            background-image: linear-gradient(rgba(74, 144, 226, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(74, 144, 226, 0.08) 1px, transparent 1px);
+            background-size: 50px 50px; animation: patternMove 20s linear infinite; pointer-events: none;
+        }
+        @keyframes patternMove { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }
+
+        body::after {
+            content: ""; position: fixed; width: 600px; height: 600px;
+            background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%);
+            top: -300px; right: -300px; border-radius: 50%; filter: blur(100px); opacity: 0.08; z-index: 0;
+            animation: float 20s ease-in-out infinite; pointer-events: none;
+        }
+        @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-30px, 30px) scale(0.9); } }
+        @keyframes slideInLeft { from { opacity: 0; transform: translateX(-100%); } to { opacity: 1; transform: translateX(0); } }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px; background: var(--bg-secondary); backdrop-filter: blur(20px) saturate(180%);
+            border-right: 1px solid var(--border-subtle); padding: 32px 24px; display: flex; flex-direction: column;
+            height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .sidebar-header { text-align: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0; }
+        .sidebar-header img { width: 100%; max-width: 180px; height: auto; filter: drop-shadow(0 0 20px var(--accent-blue-glow)); transition: all var(--transition-base); }
+        .sidebar-header img:hover { filter: drop-shadow(0 0 30px var(--accent-blue-glow)); transform: scale(1.05); }
+
+        .menu { display: flex; flex-direction: column; gap: 6px; flex-grow: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; }
+        .menu a { display: flex; align-items: center; padding: 14px 16px; color: #94a3b8; text-decoration: none; border-radius: var(--radius-lg); font-size: 14px; font-weight: 600; transition: all var(--transition-base); position: relative; overflow: hidden; border: 1px solid transparent; }
+        .menu a::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent-blue); transform: scaleY(0); transition: transform var(--transition-base); }
+        .menu a:hover::before, .menu a.active::before { transform: scaleY(1); }
+        .menu a i { margin-right: 12px; font-size: 18px; transition: all var(--transition-base); }
+        .menu a:hover { background: rgba(255, 255, 255, 0.05); color: #e2e8f0; transform: translateX(4px); border: 1px solid transparent; }
+        .menu a.active { background: rgba(37, 99, 235, 0.15); color: #60a5fa; border: 1px solid rgba(37, 99, 235, 0.4); }
+        .menu a.active i { color: #60a5fa; }
+
+        .btn-crm-gold-nav { background: #fbbf24 !important; color: #000 !important; font-weight: 700 !important; margin-top: 8px !important; display: flex !important; align-items: center; justify-content: center; padding: 8px 12px !important; border-radius: 8px; text-decoration: none; font-size: 12px; transition: 0.3s; }
+        .btn-crm-gold-nav:hover { background: #facc15 !important; transform: scale(1.02); }
+        .btn-crm-gold-nav i { margin-right: 10px; }
+
+        .sidebar-footer { padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.1); font-size: 12px; margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+        .sidebar-footer span { color: #cbd5e1 !important; }
+        .footer-info-row { display: flex; justify-content: flex-start; align-items: center; gap: 5px; font-size: 12px; width: 100%; }
+        .footer-info-row span:first-child { text-transform: uppercase; color: var(--text-tertiary); font-weight: 700; min-width: 65px; }
+        .keep-lowercase { text-transform: lowercase !important; color: #cbd5e1; font-weight: 500; }
+
+        /* Main */
+        .main { margin-left: 280px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; z-index: 1; }
+        .header { background: var(--white); height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; flex-shrink: 0; }
+
+        /* Submenu IA */
+        .menu-item-with-submenu { position: relative; }
+        .submenu { display: none; flex-direction: column; gap: 2px; padding-left: 16px; margin-top: 4px; }
+        .submenu.open { display: flex; }
+        .submenu a { font-size: 13px !important; padding: 10px 16px !important; }
+
+        /* Chat Layout */
+        .chat-container {
+            display: flex; flex: 1; overflow: hidden;
+        }
+
+        /* Conversations Panel */
+        .conversations-panel {
+            width: 280px; min-width: 280px; background: var(--white);
+            border-right: 1px solid var(--border); display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+        .conversations-header {
+            padding: 20px; border-bottom: 1px solid var(--border);
+            font-size: 14px; font-weight: 700; color: var(--text-primary);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .conversations-list {
+            flex: 1; overflow-y: auto; padding: 8px;
+        }
+        .conversation-item {
+            display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+            border-radius: 10px; cursor: pointer; transition: all var(--transition-base);
+            margin-bottom: 4px; position: relative;
+        }
+        .conversation-item:hover { background: rgba(74, 144, 226, 0.06); }
+        .conversation-item.active { background: rgba(74, 144, 226, 0.1); border: 1px solid rgba(74, 144, 226, 0.2); }
+        .conversation-item .conv-icon {
+            width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; font-size: 16px; font-weight: 700; flex-shrink: 0;
+        }
+        .conv-icon.geral { background: linear-gradient(135deg, #4A90E2, #357ABD); color: white; }
+        .conv-icon.dm { background: linear-gradient(135deg, #7E8CE0, #6366f1); color: white; }
+        .conversation-item .conv-info { flex: 1; min-width: 0; }
+        .conversation-item .conv-name { font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .conversation-item .conv-preview { font-size: 11px; color: var(--text-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .badge-nao-lida {
+            background: var(--accent-red); color: white; font-size: 10px; font-weight: 700;
+            min-width: 20px; height: 20px; border-radius: 10px; display: flex;
+            align-items: center; justify-content: center; padding: 0 6px; flex-shrink: 0;
+        }
+        .badge-nao-lida.hidden { display: none; }
+
+        /* Messages Area */
+        .messages-area {
+            flex: 1; display: flex; flex-direction: column; overflow: hidden;
+        }
+        .messages-header {
+            padding: 16px 24px; border-bottom: 1px solid var(--border);
+            background: var(--white); display: flex; align-items: center; gap: 12px;
+            font-size: 15px; font-weight: 600; color: var(--text-primary); flex-shrink: 0;
+        }
+        .messages-header .header-icon {
+            width: 36px; height: 36px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
+        }
+        .messages-list {
+            flex: 1; overflow-y: auto; padding: 24px; display: flex;
+            flex-direction: column; gap: 12px;
+        }
+        .message-bubble {
+            max-width: 65%; padding: 12px 16px; border-radius: 16px;
+            font-size: 13px; line-height: 1.5; position: relative; word-wrap: break-word;
+        }
+        .message-bubble.mine {
+            align-self: flex-end; background: linear-gradient(135deg, #4A90E2, #357ABD);
+            color: white; border-bottom-right-radius: 4px;
+        }
+        .message-bubble.theirs {
+            align-self: flex-start; background: #f1f5f9;
+            color: var(--text-primary); border-bottom-left-radius: 4px;
+        }
+        .message-sender {
+            font-size: 11px; font-weight: 700; margin-bottom: 4px;
+        }
+        .message-bubble.mine .message-sender { color: rgba(255,255,255,0.8); }
+        .message-bubble.theirs .message-sender { color: var(--accent-blue); }
+        .message-time {
+            font-size: 10px; margin-top: 4px; opacity: 0.7;
+        }
+        .message-bubble.mine .message-time { text-align: right; color: rgba(255,255,255,0.7); }
+        .message-bubble.theirs .message-time { color: var(--text-tertiary); }
+        .message-text { white-space: pre-wrap; }
+
+        /* Input Area */
+        .input-area {
+            padding: 16px 24px; border-top: 1px solid var(--border);
+            background: var(--white); display: flex; gap: 12px; align-items: flex-end; flex-shrink: 0;
+        }
+        .input-area textarea {
+            flex: 1; padding: 12px 16px; border: 1px solid var(--border); border-radius: 12px;
+            font-size: 13px; resize: none; outline: none; background: var(--bg);
+            color: var(--text-main); font-family: 'Outfit', sans-serif; max-height: 120px;
+            min-height: 44px; line-height: 1.4;
+        }
+        .input-area textarea:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px var(--accent-blue-glow); }
+        .btn-enviar {
+            padding: 12px 20px; border-radius: 12px; border: none; cursor: pointer;
+            background: var(--accent-blue); color: white; font-weight: 700; font-size: 13px;
+            transition: all var(--transition-base); display: flex; align-items: center; gap: 6px;
+            height: 44px; font-family: 'Outfit', sans-serif;
+        }
+        .btn-enviar:hover { background: var(--accent-blue-light); transform: translateY(-1px); }
+        .btn-enviar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-anexo {
+            width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--border);
+            background: var(--bg); color: var(--text-tertiary); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all var(--transition-base);
+            flex-shrink: 0;
+        }
+        .btn-anexo:hover { background: var(--accent-blue); color: white; border-color: var(--accent-blue); }
+        .file-attachment {
+            display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px;
+            background: rgba(255,255,255,0.15); border-radius: 8px; text-decoration: none;
+            color: inherit; font-size: 12px; font-weight: 600; transition: all var(--transition-base);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .message-bubble.theirs .file-attachment { background: rgba(74,144,226,0.08); border-color: rgba(74,144,226,0.15); color: var(--accent-blue); }
+        .message-bubble.mine .file-attachment { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.2); color: white; }
+        .file-attachment:hover { opacity: 0.8; transform: translateY(-1px); }
+
+        /* Empty State */
+        .empty-chat {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            flex-direction: column; color: var(--text-tertiary); gap: 12px; padding: 40px;
+        }
+        .empty-chat i { font-size: 64px; opacity: 0.3; }
+        .empty-chat p { font-size: 14px; text-align: center; }
+
+        /* Padronizacao LawTech Pro - Caixa Alta Global */
+        body { text-transform: uppercase; }
+        input, textarea, select { text-transform: uppercase; }
+        .message-text { text-transform: none; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; }
+            .header { padding: 0 16px; }
+            .conversations-panel { width: 220px; min-width: 220px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+        </div>
+        <nav class="menu">
+            <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+            <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+            <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
+            <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+            <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiencias</a>
+            <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Calculos Juridicos</a>
+            <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+            <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicacoes DJEN</a>
+            <div class="menu-item-with-submenu">
+                <a href="/ia-page" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
+                    <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
+                    IA Juridica
+                    <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">PREMIUM</span>
+                </a>
+                <div class="submenu" id="submenu-ia">
+                    <a href="/peticoes.html"><i class="lucide lucide-file-text"></i> Peticoes IA</a>
+                    <a href="/ia-page"><i class="lucide lucide-bot"></i> Assistente IA</a>
+                </div>
+            </div>
+            <a href="/chat-page" class="active"><i class="lucide lucide-message-circle"></i> 💬 Chat</a>
+            <a href="/relatorios-page"><i class="lucide lucide-bar-chart-3"></i> Relatorios</a>
+            <a href="/planos-page"><i class="lucide lucide-award"></i> Gestao de Planos</a>
+            <a href="/config-page" id="guia-config" onclick="limparBolinha()">
+                <i class="lucide lucide-settings"></i> Configuracoes
+                <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
+            </a>
+            <a href="/crm-page" class="btn-crm-gold-nav">
+                <i class="lucide lucide-trending-up"></i> CRM PROSPECCAO
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="footer-info-row">
+                <span>Usuario:</span>
+                <span id="userEmail" class="keep-lowercase">...</span>
+            </div>
+            <div class="footer-info-row">
+                <span>Plano:</span>
+                <span id="planNameFooter" class="keep-lowercase">...</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+        <header class="header">
+            <h2 style="font-size: 18px; font-weight: 600;">💬 Chat Interno</h2>
+            <div style="display:flex; gap:20px; align-items:center;">
+                <div style="position: relative; display: flex; align-items: center; gap: 12px;">
+                    <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
+                    <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
+                        --
+                    </div>
+                    <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
+                        <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
+                        <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Chat Container -->
+        <div class="chat-container">
+            <!-- Conversations Panel -->
+            <div class="conversations-panel">
+                <div class="conversations-header">
+                    <i class="lucide lucide-message-square" style="width:18px; height:18px; color: var(--accent-blue);"></i>
+                    Conversas
+                </div>
+                <div class="conversations-list" id="conversationsList">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+
+            <!-- Messages Area -->
+            <div class="messages-area" id="messagesArea">
+                <div class="empty-chat" id="emptyChat">
+                    <i class="lucide lucide-message-circle"></i>
+                    <p>Selecione uma conversa para começar</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+<script>
+let token = localStorage.getItem('token');
+if (!token) window.location.href = '/login';
+
+let currentUserId = null;
+let currentUserNome = '';
+let conversaAtiva = null; // { tipo: 'geral' } ou { tipo: 'dm', usuario_id, nome }
+let ultimoTimestamp = '1970-01-01T00:00:00Z';
+let usuarios = [];
+let pollingInterval = null;
+let pollingNaoLidasInterval = null;
+
+// ========== INIT ==========
+document.addEventListener('DOMContentLoaded', async () => {
+    await carregarInfoRodape();
+    await carregarUsuarios();
+    renderConversas();
+    iniciarPollingNaoLidas();
+    lucide.createIcons();
+});
+
+// ========== AUTH / FOOTER ==========
+async function carregarInfoRodape() {
+    try {
+        const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        const dataUser = await resUser.json();
+
+        if (dataUser.ok) {
+            currentUserId = dataUser.usuario.id;
+            currentUserNome = dataUser.usuario.nome || 'Advogado';
+
+            const emailElement = document.getElementById('userEmail');
+            if (emailElement) emailElement.innerText = dataUser.usuario.email || '';
+
+            const primeiroNome = currentUserNome.trim().split(' ')[0];
+            const nameHeader = document.getElementById('userNameHeader');
+            if (nameHeader) nameHeader.innerText = primeiroNome;
+
+            const partes = currentUserNome.trim().split(' ').filter(n => n);
+            let iniciais = partes[0][0];
+            if (partes.length > 1) iniciais += partes[partes.length - 1][0];
+            const circulo = document.getElementById('userCircle');
+            if (circulo) circulo.innerText = iniciais.toUpperCase();
+        }
+
+        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+        const dataPlan = await resPlan.json();
+        const planoElement = document.getElementById('planNameFooter');
+        if (planoElement) planoElement.innerText = dataPlan.plano || 'Free';
+    } catch (e) { console.error('Erro rodapé:', e); }
+}
+
+function toggleUserMenu() {
+    const d = document.getElementById('userDropdown');
+    d.style.display = d.style.display === 'block' ? 'none' : 'block';
+}
+function logout() { localStorage.removeItem('token'); window.location.href = '/login'; }
+function toggleIaMenu(e) { e.preventDefault(); document.getElementById('submenu-ia').classList.toggle('open'); }
+function limparBolinha() { const dot = document.getElementById('dotNotificacao'); if (dot) dot.style.display = 'none'; }
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('userDropdown');
+    const circle = document.getElementById('userCircle');
+    if (menu && !menu.contains(e.target) && e.target !== circle) menu.style.display = 'none';
+});
+
+// ========== USUARIOS ==========
+async function carregarUsuarios() {
+    try {
+        const res = await fetch('/api/chat/usuarios', { headers: { Authorization: `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.ok) usuarios = data.usuarios;
+    } catch (e) { console.error('Erro ao carregar usuários:', e); }
+}
+
+// ========== CONVERSAS ==========
+let naoLidasMap = {};
+
+function renderConversas() {
+    const list = document.getElementById('conversationsList');
+    let html = '';
+
+    // Chat Geral
+    const geralActive = conversaAtiva && conversaAtiva.tipo === 'geral' ? 'active' : '';
+    const geralBadge = naoLidasMap.geral ? `<span class="badge-nao-lida">${naoLidasMap.geral}</span>` : '';
+    html += `
+        <div class="conversation-item ${geralActive}" onclick="abrirConversa('geral')">
+            <div class="conv-icon geral">🏢</div>
+            <div class="conv-info">
+                <div class="conv-name">Chat Geral</div>
+                <div class="conv-preview">Todos do escritório</div>
+            </div>
+            ${geralBadge}
+        </div>
+    `;
+
+    // DMs
+    usuarios.forEach(u => {
+        const dmActive = conversaAtiva && conversaAtiva.tipo === 'dm' && conversaAtiva.usuario_id === u.id ? 'active' : '';
+        const badge = naoLidasMap[u.id] ? `<span class="badge-nao-lida">${naoLidasMap[u.id]}</span>` : '';
+        const iniciais = getIniciais(u.nome);
+        html += `
+            <div class="conversation-item ${dmActive}" onclick="abrirConversa('dm', ${u.id}, '${escaparHtml(u.nome)}')">
+                <div class="conv-icon dm">${iniciais}</div>
+                <div class="conv-info">
+                    <div class="conv-name">${escaparHtml(u.nome)}</div>
+                    <div class="conv-preview">${escaparHtml(u.email)}</div>
+                </div>
+                ${badge}
+            </div>
+        `;
+    });
+
+    list.innerHTML = html;
+}
+
+function getIniciais(nome) {
+    const partes = nome.trim().split(' ').filter(n => n);
+    let iniciais = partes[0] ? partes[0][0] : '?';
+    if (partes.length > 1) iniciais += partes[partes.length - 1][0];
+    return iniciais.toUpperCase();
+}
+
+function escaparHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// ========== ABRIR CONVERSA ==========
+function abrirConversa(tipo, usuarioId, nome) {
+    // Parar polling anterior
+    if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
+
+    ultimoTimestamp = '1970-01-01T00:00:00Z';
+
+    if (tipo === 'geral') {
+        conversaAtiva = { tipo: 'geral' };
+    } else {
+        conversaAtiva = { tipo: 'dm', usuario_id: usuarioId, nome: nome };
+    }
+
+    renderConversas();
+    renderAreaMensagens();
+    carregarMensagens(true);
+
+    // Marcar como lidas
+    marcarComoLidas();
+
+    // Iniciar polling
+    pollingInterval = setInterval(() => carregarMensagens(false), 3000);
+}
+
+function renderAreaMensagens() {
+    const area = document.getElementById('messagesArea');
+    const emptyChat = document.getElementById('emptyChat');
+
+    if (!conversaAtiva) {
+        area.innerHTML = `<div class="empty-chat" id="emptyChat"><i class="lucide lucide-message-circle"></i><p>Selecione uma conversa para começar</p></div>`;
+        lucide.createIcons();
+        return;
+    }
+
+    let headerLabel = '';
+    let headerIconClass = '';
+    let headerIconContent = '';
+
+    if (conversaAtiva.tipo === 'geral') {
+        headerLabel = 'Chat Geral';
+        headerIconClass = 'geral';
+        headerIconContent = '🏢';
+    } else {
+        headerLabel = conversaAtiva.nome;
+        headerIconClass = 'dm';
+        headerIconContent = getIniciais(conversaAtiva.nome);
+    }
+
+    area.innerHTML = `
+        <div class="messages-header">
+            <div class="header-icon conv-icon ${headerIconClass}">${headerIconContent}</div>
+            <span>${escaparHtml(headerLabel)}</span>
+        </div>
+        <div class="messages-list" id="messagesList"></div>
+        <div class="input-area">
+            <button class="btn-anexo" onclick="document.getElementById('inputArquivo').click()" title="Enviar arquivo">
+                <i class="lucide lucide-paperclip" style="width:18px; height:18px;"></i>
+            </button>
+            <input type="file" id="inputArquivo" style="display:none"
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx"
+                onchange="enviarArquivo(this)">
+            <textarea id="inputMensagem" placeholder="Digite sua mensagem..." rows="1"
+                onkeydown="onKeyDown(event)" oninput="autoResize(this)"></textarea>
+            <button class="btn-enviar" onclick="enviarMensagem()">
+                <i class="lucide lucide-send" style="width:16px; height:16px;"></i> Enviar
+            </button>
+        </div>
+    `;
+    lucide.createIcons();
+    document.getElementById('inputMensagem').focus();
+}
+
+// ========== MENSAGENS ==========
+async function carregarMensagens(isInitial) {
+    if (!conversaAtiva) return;
+
+    try {
+        let url = `/api/chat/mensagens?tipo=${conversaAtiva.tipo}&desde=${encodeURIComponent(ultimoTimestamp)}`;
+        if (conversaAtiva.tipo === 'dm') url += `&usuario_id=${conversaAtiva.usuario_id}`;
+
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        const data = await res.json();
+
+        if (data.ok && data.mensagens.length > 0) {
+            const list = document.getElementById('messagesList');
+            if (!list) return;
+
+            data.mensagens.forEach(msg => {
+                const isMine = msg.remetente_id === currentUserId;
+                const bubble = document.createElement('div');
+                bubble.className = `message-bubble ${isMine ? 'mine' : 'theirs'}`;
+
+                const hora = new Date(msg.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                let conteudoHtml = '';
+                if (msg.arquivo_nome) {
+                    const icone = getFileIcon(msg.arquivo_nome);
+                    conteudoHtml = `<a href="/api/chat/arquivo/${msg.id}" target="_blank" class="file-attachment">${icone} ${escaparHtml(msg.arquivo_nome)}</a>`;
+                } else {
+                    conteudoHtml = `<div class="message-text">${escaparHtml(msg.conteudo)}</div>`;
+                }
+
+                bubble.innerHTML = `
+                    <div class="message-sender">${escaparHtml(isMine ? 'Você' : msg.remetente_nome)}</div>
+                    ${conteudoHtml}
+                    <div class="message-time">${hora}</div>
+                `;
+                list.appendChild(bubble);
+            });
+
+            // Atualizar ultimo timestamp
+            const last = data.mensagens[data.mensagens.length - 1];
+            ultimoTimestamp = last.criado_em;
+
+            // Auto-scroll
+            list.scrollTop = list.scrollHeight;
+        }
+    } catch (e) { console.error('Erro ao carregar mensagens:', e); }
+}
+
+async function enviarMensagem() {
+    const input = document.getElementById('inputMensagem');
+    if (!input) return;
+
+    const conteudo = input.value.trim();
+    if (!conteudo) return;
+
+    const body = { conteudo };
+    if (conversaAtiva.tipo === 'dm') body.destinatario_id = conversaAtiva.usuario_id;
+
+    try {
+        const res = await fetch('/api/chat/mensagens', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+            input.value = '';
+            autoResize(input);
+
+            // Adicionar mensagem na lista localmente
+            const list = document.getElementById('messagesList');
+            if (list) {
+                const hora = new Date(data.mensagem.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const bubble = document.createElement('div');
+                bubble.className = 'message-bubble mine';
+                bubble.innerHTML = `
+                    <div class="message-sender">${escaparHtml('Você')}</div>
+                    <div class="message-text">${escaparHtml(conteudo)}</div>
+                    <div class="message-time">${hora}</div>
+                `;
+                list.appendChild(bubble);
+                list.scrollTop = list.scrollHeight;
+
+                ultimoTimestamp = data.mensagem.criado_em;
+            }
+        }
+    } catch (e) { console.error('Erro ao enviar mensagem:', e); }
+}
+
+function onKeyDown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        enviarMensagem();
+    }
+}
+
+function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// ========== NAO LIDAS ==========
+async function carregarNaoLidas() {
+    try {
+        const res = await fetch('/api/chat/nao-lidas', { headers: { Authorization: `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.ok) {
+            naoLidasMap = data.naoLidas;
+            renderConversas();
+        }
+    } catch (e) { /* silencioso */ }
+}
+
+async function marcarComoLidas() {
+    if (!conversaAtiva) return;
+    try {
+        let url = `/api/chat/mensagens/ler?tipo=${conversaAtiva.tipo}`;
+        if (conversaAtiva.tipo === 'dm') url += `&usuario_id=${conversaAtiva.usuario_id}`;
+
+        await fetch(url, { method: 'PUT', headers: { Authorization: `Bearer ${token}` } });
+
+        // Limpar badge local
+        if (conversaAtiva.tipo === 'geral') {
+            delete naoLidasMap.geral;
+        } else {
+            delete naoLidasMap[conversaAtiva.usuario_id];
+        }
+        renderConversas();
+    } catch (e) { /* silencioso */ }
+}
+
+function iniciarPollingNaoLidas() {
+    carregarNaoLidas();
+    pollingNaoLidasInterval = setInterval(carregarNaoLidas, 5000);
+}
+
+// ========== ARQUIVOS ==========
+function getFileIcon(nome) {
+    const ext = nome.split('.').pop().toLowerCase();
+    if (ext === 'pdf') return '📄';
+    if (['doc', 'docx'].includes(ext)) return '📝';
+    if (['jpg', 'jpeg', 'png'].includes(ext)) return '🖼️';
+    if (['xls', 'xlsx'].includes(ext)) return '📊';
+    return '📎';
+}
+
+async function enviarArquivo(input) {
+    if (!input.files || !input.files[0] || !conversaAtiva) return;
+
+    const file = input.files[0];
+    if (file.size > 10 * 1024 * 1024) {
+        alert('Arquivo muito grande! Máximo 10MB.');
+        input.value = '';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('arquivo', file);
+    if (conversaAtiva.tipo === 'dm') {
+        formData.append('destinatario_id', conversaAtiva.usuario_id);
+    }
+
+    try {
+        const res = await fetch('/api/chat/mensagens/arquivo', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+            const list = document.getElementById('messagesList');
+            if (list) {
+                const hora = new Date(data.mensagem.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const icone = getFileIcon(data.mensagem.arquivo_nome);
+                const bubble = document.createElement('div');
+                bubble.className = 'message-bubble mine';
+                bubble.innerHTML = `
+                    <div class="message-sender">${escaparHtml('Você')}</div>
+                    <a href="/api/chat/arquivo/${data.mensagem.id}" target="_blank" class="file-attachment">${icone} ${escaparHtml(data.mensagem.arquivo_nome)}</a>
+                    <div class="message-time">${hora}</div>
+                `;
+                list.appendChild(bubble);
+                list.scrollTop = list.scrollHeight;
+                ultimoTimestamp = data.mensagem.criado_em;
+            }
+        } else {
+            alert('Erro ao enviar arquivo: ' + (data.erro || 'Erro desconhecido'));
+        }
+    } catch (e) {
+        console.error('Erro ao enviar arquivo:', e);
+        alert('Erro ao enviar arquivo.');
+    }
+
+    input.value = '';
+}
+</script>
+</body>
+</html>

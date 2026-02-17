@@ -1599,6 +1599,8 @@ input, textarea, select {
     </div>
 
 </div>
+            <a href="/chat-page"><i class="lucide lucide-message-circle"></i> 💬 Chat</a>
+            <a href="/relatorios-page"><i class="lucide lucide-bar-chart-3"></i> Relatórios</a>
             <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
             <a href="/config-page" id="guia-config" onclick="limparBolinha()">
                 <i class="lucide lucide-settings"></i> Configurações
@@ -1632,9 +1634,19 @@ input, textarea, select {
             </div>
             
             <div style="display:flex; gap:20px; align-items:center;">
-                <div id="notif-container" style="position:relative; cursor:pointer; padding:8px; border-radius:8px; transition:0.2s;">
+                <div id="notif-container" onclick="toggleNotifDropdown()" style="position:relative; cursor:pointer; padding:8px; border-radius:8px; transition:0.2s;">
                     <i class="lucide lucide-bell" style="width:20px; color:var(--muted);"></i>
                     <span id="notif-count" style="display:none; position:absolute; top:2px; right:2px; background:var(--danger); color:white; font-size:9px; font-weight:800; padding:2px 4px; border-radius:10px; border:2px solid white;">0</span>
+                    <!-- Dropdown de Notificações -->
+                    <div id="notif-dropdown" style="display:none; position:absolute; top:42px; right:0; width:360px; max-height:440px; background:white; border:1px solid var(--border); border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,0.12); z-index:2000; overflow:hidden;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-bottom:1px solid var(--border);">
+                            <span style="font-weight:700; font-size:14px; color:var(--text-primary);">Notificações</span>
+                            <button onclick="marcarTodasLidas(event)" style="background:none; border:none; color:var(--accent-blue); font-size:12px; font-weight:600; cursor:pointer;">Marcar todas como lidas</button>
+                        </div>
+                        <div id="notif-list" style="max-height:360px; overflow-y:auto; padding:4px 0;">
+                            <p style="text-align:center; color:var(--muted); padding:24px; font-size:13px;">Nenhuma notificação.</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="user-profile" style="position:relative;">
@@ -2678,6 +2690,101 @@ window.addEventListener('load', () => {
         }
     }, 3000); // 3 segundos é o tempo de segurança
 });
+
+// =============================================
+// SISTEMA DE NOTIFICAÇÕES IN-APP
+// =============================================
+let notifDropdownAberto = false;
+
+function toggleNotifDropdown() {
+    const dropdown = document.getElementById('notif-dropdown');
+    notifDropdownAberto = !notifDropdownAberto;
+    dropdown.style.display = notifDropdownAberto ? 'block' : 'none';
+    if (notifDropdownAberto) carregarNotificacoes();
+}
+
+async function carregarNotificacoes() {
+    const tk = localStorage.getItem('token');
+    if (!tk) return;
+    try {
+        const res = await fetch('/api/notificacoes', { headers: { 'Authorization': 'Bearer ' + tk } });
+        const data = await res.json();
+        const lista = document.getElementById('notif-list');
+        if (!data.ok || !data.notificacoes || data.notificacoes.length === 0) {
+            lista.innerHTML = '<p style="text-align:center; color:var(--muted); padding:24px; font-size:13px;">Nenhuma notificação.</p>';
+            return;
+        }
+        lista.innerHTML = data.notificacoes.map(n => {
+            const tempo = tempoRelativo(n.enviada_em);
+            const bgLida = n.lida ? '' : 'background:#f0f7ff;';
+            return `<div onclick="clicarNotificacao(${n.id}, event)" style="padding:12px 16px; border-bottom:1px solid var(--border-subtle); cursor:pointer; transition:background 0.2s; ${bgLida}" onmouseover="this.style.background='#f8fafb'" onmouseout="this.style.background='${n.lida ? '' : '#f0f7ff'}'">
+                <div style="font-size:13px; font-weight:${n.lida ? '400' : '600'}; color:var(--text-primary); margin-bottom:2px;">${n.titulo || 'Notificação'}</div>
+                <div style="font-size:12px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${n.mensagem || ''}</div>
+                <div style="font-size:11px; color:var(--muted); margin-top:4px;">${tempo}</div>
+            </div>`;
+        }).join('');
+    } catch (e) { console.error('Erro ao carregar notificações:', e); }
+}
+
+function tempoRelativo(dataStr) {
+    const agora = new Date();
+    const data = new Date(dataStr);
+    const diffMin = Math.floor((agora - data) / 60000);
+    if (diffMin < 1) return 'agora mesmo';
+    if (diffMin < 60) return `há ${diffMin}min`;
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) return `há ${diffH}h`;
+    const diffD = Math.floor(diffH / 24);
+    return `há ${diffD}d`;
+}
+
+async function clicarNotificacao(id, event) {
+    event.stopPropagation();
+    const tk = localStorage.getItem('token');
+    try {
+        await fetch(`/api/notificacoes/${id}/lida`, { method: 'PUT', headers: { 'Authorization': 'Bearer ' + tk } });
+    } catch (e) {}
+    window.location.href = '/prazos-page';
+}
+
+async function marcarTodasLidas(event) {
+    event.stopPropagation();
+    const tk = localStorage.getItem('token');
+    try {
+        await fetch('/api/notificacoes/ler-todas', { method: 'PUT', headers: { 'Authorization': 'Bearer ' + tk } });
+        atualizarBadgeNotif();
+        carregarNotificacoes();
+    } catch (e) {}
+}
+
+async function atualizarBadgeNotif() {
+    const tk = localStorage.getItem('token');
+    if (!tk) return;
+    try {
+        const res = await fetch('/api/notificacoes/count', { headers: { 'Authorization': 'Bearer ' + tk } });
+        const data = await res.json();
+        const badge = document.getElementById('notif-count');
+        if (data.ok && data.count > 0) {
+            badge.textContent = data.count > 99 ? '99+' : data.count;
+            badge.style.display = 'block';
+        } else {
+            badge.style.display = 'none';
+        }
+    } catch (e) {}
+}
+
+// Fechar dropdown ao clicar fora
+window.addEventListener('click', (e) => {
+    if (!e.target.closest('#notif-container')) {
+        const dropdown = document.getElementById('notif-dropdown');
+        if (dropdown) dropdown.style.display = 'none';
+        notifDropdownAberto = false;
+    }
+});
+
+// Atualizar badge a cada 60s
+atualizarBadgeNotif();
+setInterval(atualizarBadgeNotif, 60000);
 
 </script>
     <audio id="notificacaoSom" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>

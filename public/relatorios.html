@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <title>LawTech Pro — Relatórios e Dashboards</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        :root {
+            --bg-primary: #F8FAFB;
+            --bg-secondary: #1E3A5F;
+            --bg-tertiary: #2A4A73;
+            --bg-elevated: #ffffff;
+            --text-primary: #2C3E50;
+            --text-secondary: #5A6C7D;
+            --text-tertiary: #7B8794;
+            --accent-blue: #4A90E2;
+            --accent-blue-light: #5BA4DB;
+            --accent-blue-glow: rgba(74, 144, 226, 0.2);
+            --accent-green: #52B788;
+            --accent-purple: #7E8CE0;
+            --accent-orange: #F2A65A;
+            --accent-red: #E76F51;
+            --accent-gold: #F4D06F;
+            --border-subtle: rgba(42, 74, 115, 0.08);
+            --border-medium: rgba(42, 74, 115, 0.12);
+            --radius-sm: 4px;
+            --radius-md: 6px;
+            --radius-lg: 8px;
+            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+            --bg: var(--bg-primary);
+            --sidebar: var(--bg-secondary);
+            --white: var(--bg-elevated);
+            --border: var(--border-medium);
+            --primary: var(--accent-blue);
+            --success: var(--accent-green);
+            --danger: var(--accent-red);
+            --warning: var(--accent-orange);
+            --muted: var(--text-tertiary);
+            --text-main: var(--text-primary);
+            --text-menu: var(--text-tertiary);
+            --sidebar-hover: var(--bg-tertiary);
+            --radius: var(--radius-md);
+        }
+
+        * { box-sizing: border-box; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; height: 100vh; overflow-x: auto; overflow-y: hidden; }
+
+        body::before {
+            content: "";
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.015;
+            background-image: linear-gradient(rgba(74, 144, 226, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(74, 144, 226, 0.08) 1px, transparent 1px);
+            background-size: 50px 50px; animation: patternMove 20s linear infinite; pointer-events: none;
+        }
+        @keyframes patternMove { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }
+
+        body::after {
+            content: ""; position: fixed; width: 600px; height: 600px;
+            background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%);
+            top: -300px; right: -300px; border-radius: 50%; filter: blur(100px); opacity: 0.08; z-index: 0;
+            animation: float 20s ease-in-out infinite; pointer-events: none;
+        }
+        @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-30px, 30px) scale(0.9); } }
+
+        @keyframes slideInLeft { from { opacity: 0; transform: translateX(-100%); } to { opacity: 1; transform: translateX(0); } }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px; background: var(--bg-secondary); backdrop-filter: blur(20px) saturate(180%);
+            border-right: 1px solid var(--border-subtle); padding: 32px 24px; display: flex; flex-direction: column;
+            height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .sidebar-header { text-align: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0; }
+        .sidebar-header img { width: 100%; max-width: 180px; height: auto; filter: drop-shadow(0 0 20px var(--accent-blue-glow)); transition: all var(--transition-base); }
+        .sidebar-header img:hover { filter: drop-shadow(0 0 30px var(--accent-blue-glow)); transform: scale(1.05); }
+
+        .menu { display: flex; flex-direction: column; gap: 6px; flex-grow: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; }
+        .menu a { display: flex; align-items: center; padding: 14px 16px; color: #94a3b8; text-decoration: none; border-radius: var(--radius-lg); font-size: 14px; font-weight: 600; transition: all var(--transition-base); position: relative; overflow: hidden; border: 1px solid transparent; }
+        .menu a::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent-blue); transform: scaleY(0); transition: transform var(--transition-base); }
+        .menu a:hover::before, .menu a.active::before { transform: scaleY(1); }
+        .menu a i { margin-right: 12px; font-size: 18px; transition: all var(--transition-base); }
+        .menu a:hover { background: rgba(255, 255, 255, 0.05); color: #e2e8f0; transform: translateX(4px); border: 1px solid transparent; }
+        .menu a.active { background: rgba(37, 99, 235, 0.15); color: #60a5fa; border: 1px solid rgba(37, 99, 235, 0.4); }
+        .menu a.active i { color: #60a5fa; }
+
+        .btn-crm-gold-nav { background: #fbbf24 !important; color: #000 !important; font-weight: 700 !important; margin-top: 8px !important; display: flex !important; align-items: center; justify-content: center; padding: 8px 12px !important; border-radius: 8px; text-decoration: none; font-size: 12px; transition: 0.3s; }
+        .btn-crm-gold-nav:hover { background: #facc15 !important; transform: scale(1.02); }
+        .btn-crm-gold-nav i { margin-right: 10px; }
+
+        .sidebar-footer { padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.1); font-size: 12px; margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+        .sidebar-footer span { color: #cbd5e1 !important; }
+        .footer-info-row { display: flex; justify-content: flex-start; align-items: center; gap: 5px; font-size: 12px; width: 100%; }
+        .footer-info-row span:first-child { text-transform: uppercase; color: var(--text-tertiary); font-weight: 700; min-width: 65px; }
+        .keep-lowercase { text-transform: lowercase !important; color: #cbd5e1; font-weight: 500; }
+
+        /* Main */
+        .main { margin-left: 280px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; position: relative; z-index: 1; }
+        .header { background: var(--white); height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; }
+        .content { padding: 32px; }
+
+        /* Submenu IA */
+        .menu-item-with-submenu { position: relative; }
+        .submenu { display: none; flex-direction: column; gap: 2px; padding-left: 16px; margin-top: 4px; }
+        .submenu.open { display: flex; }
+        .submenu a { font-size: 13px !important; padding: 10px 16px !important; }
+
+        /* Filtro Bar */
+        .filter-bar {
+            display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+            background: var(--white); border-radius: 12px; padding: 16px 20px;
+            border: 1px solid var(--border); margin-bottom: 24px;
+        }
+        .filter-bar select, .filter-bar input[type="date"] {
+            padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
+            font-size: 13px; background: var(--bg); color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+        }
+        .filter-bar .btn {
+            padding: 8px 20px; border-radius: 8px; border: none; cursor: pointer;
+            font-weight: 600; font-size: 13px; transition: all var(--transition-base);
+            display: flex; align-items: center; gap: 6px; font-family: 'Outfit', sans-serif;
+        }
+        .btn-primary { background: var(--accent-blue); color: white; }
+        .btn-primary:hover { background: var(--accent-blue-light); }
+        .btn-success { background: var(--accent-green); color: white; }
+        .btn-success:hover { opacity: 0.9; }
+        .btn-secondary { background: var(--accent-purple); color: white; }
+        .btn-secondary:hover { opacity: 0.9; }
+        .date-custom { display: none; }
+        .date-custom.visible { display: flex; gap: 8px; align-items: center; }
+
+        /* Tabs */
+        .tabs {
+            display: flex; gap: 4px; margin-bottom: 24px; background: var(--white);
+            border-radius: 12px; padding: 6px; border: 1px solid var(--border);
+        }
+        .tab-btn {
+            padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer;
+            font-weight: 600; font-size: 13px; color: var(--text-secondary);
+            background: transparent; transition: all var(--transition-base);
+            font-family: 'Outfit', sans-serif;
+        }
+        .tab-btn:hover { background: rgba(74, 144, 226, 0.08); color: var(--text-primary); }
+        .tab-btn.active { background: var(--accent-blue); color: white; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Cards de Resumo */
+        .summary-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px; margin-bottom: 24px;
+        }
+        .summary-card {
+            background: var(--white); border-radius: 12px; padding: 20px;
+            border: 1px solid var(--border); transition: all var(--transition-base);
+        }
+        .summary-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+        .summary-card .label { font-size: 12px; color: var(--text-tertiary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .summary-card .value { font-size: 28px; font-weight: 800; margin-top: 4px; color: var(--text-primary); }
+        .summary-card .value.green { color: var(--accent-green); }
+        .summary-card .value.red { color: var(--accent-red); }
+        .summary-card .value.blue { color: var(--accent-blue); }
+        .summary-card .value.orange { color: var(--accent-orange); }
+        .summary-card .value.purple { color: var(--accent-purple); }
+
+        /* Charts Grid */
+        .charts-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 20px; margin-bottom: 24px;
+        }
+        .chart-card {
+            background: var(--white); border-radius: 12px; padding: 24px;
+            border: 1px solid var(--border);
+        }
+        .chart-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary); }
+        .chart-card canvas { max-height: 320px; }
+
+        /* Loading */
+        .loading-overlay {
+            display: flex; align-items: center; justify-content: center;
+            padding: 60px; color: var(--text-tertiary); font-size: 14px;
+        }
+        .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent-blue); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 12px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Empty */
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-tertiary); }
+        .empty-state i { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+
+        /* Padronização LawTech Pro - Caixa Alta Global */
+        body {
+            text-transform: uppercase;
+        }
+        input, textarea, select {
+            text-transform: uppercase;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; }
+            .header { padding: 0 16px; }
+            .content { padding: 16px; }
+            .charts-grid { grid-template-columns: 1fr; }
+            .tabs { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+        </div>
+        <nav class="menu">
+            <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+            <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+            <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
+            <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+            <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+            <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+            <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+            <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
+            <div class="menu-item-with-submenu">
+                <a href="/ia-page" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
+                    <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
+                    IA Jurídica
+                    <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">PREMIUM</span>
+                </a>
+                <div class="submenu" id="submenu-ia">
+                    <a href="/peticoes.html"><i class="lucide lucide-file-text"></i> Petições IA</a>
+                    <a href="/ia-page"><i class="lucide lucide-bot"></i> Assistente IA</a>
+                </div>
+            </div>
+            <a href="/chat-page"><i class="lucide lucide-message-circle"></i> 💬 Chat</a>
+            <a href="/relatorios-page" class="active"><i class="lucide lucide-bar-chart-3"></i> Relatórios</a>
+            <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+            <a href="/config-page" id="guia-config" onclick="limparBolinha()">
+                <i class="lucide lucide-settings"></i> Configurações
+                <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
+            </a>
+            <a href="/crm-page" class="btn-crm-gold-nav">
+                <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="footer-info-row">
+                <span>Usuário:</span>
+                <span id="userEmail" class="keep-lowercase">...</span>
+            </div>
+            <div class="footer-info-row">
+                <span>Plano:</span>
+                <span id="planNameFooter" class="keep-lowercase">...</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+        <header class="header">
+    <h2 style="font-size: 18px; font-weight: 600;">📊 Relatórios e Dashboards</h2>
+
+    <div style="display:flex; gap:20px; align-items:center;">
+        <div style="position: relative; display: flex; align-items: center; gap: 12px;">
+            <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
+            <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
+                --
+            </div>
+            <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
+                <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
+                <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+        <div class="content">
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <select id="selectPeriodo" onchange="onPeriodoChange()">
+                    <option value="30d">Últimos 30 dias</option>
+                    <option value="90d">Últimos 90 dias</option>
+                    <option value="6m">Últimos 6 meses</option>
+                    <option value="12m">Últimos 12 meses</option>
+                    <option value="custom">Personalizado</option>
+                </select>
+                <div class="date-custom" id="dateCustom">
+                    <input type="date" id="dataInicio">
+                    <span style="color:var(--text-tertiary);">até</span>
+                    <input type="date" id="dataFim">
+                </div>
+                <button class="btn btn-primary" onclick="carregarRelatorio()">
+                    <i class="lucide lucide-refresh-cw" style="width:14px;height:14px;"></i> Aplicar
+                </button>
+                <button class="btn btn-secondary" onclick="exportarPDF()">
+                    <i class="lucide lucide-file-down" style="width:14px;height:14px;"></i> PDF
+                </button>
+                <button class="btn btn-success" onclick="exportarCSV()">
+                    <i class="lucide lucide-table" style="width:14px;height:14px;"></i> CSV
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="trocarAba('financeiro', this)">Financeiro</button>
+                <button class="tab-btn" onclick="trocarAba('prazos', this)">Prazos</button>
+                <button class="tab-btn" onclick="trocarAba('processos', this)">Processos</button>
+                <button class="tab-btn" onclick="trocarAba('produtividade', this)">Produtividade</button>
+                <button class="tab-btn" onclick="trocarAba('crm', this)">CRM</button>
+            </div>
+
+            <!-- TAB: Financeiro -->
+            <div class="tab-content active" id="tab-financeiro">
+                <div class="summary-grid" id="summary-financeiro"></div>
+                <div class="charts-grid" id="charts-financeiro"></div>
+            </div>
+
+            <!-- TAB: Prazos -->
+            <div class="tab-content" id="tab-prazos">
+                <div class="summary-grid" id="summary-prazos"></div>
+                <div class="charts-grid" id="charts-prazos"></div>
+            </div>
+
+            <!-- TAB: Processos -->
+            <div class="tab-content" id="tab-processos">
+                <div class="summary-grid" id="summary-processos"></div>
+                <div class="charts-grid" id="charts-processos"></div>
+            </div>
+
+            <!-- TAB: Produtividade -->
+            <div class="tab-content" id="tab-produtividade">
+                <div class="summary-grid" id="summary-produtividade"></div>
+                <div class="charts-grid" id="charts-produtividade"></div>
+            </div>
+
+            <!-- TAB: CRM -->
+            <div class="tab-content" id="tab-crm">
+                <div class="summary-grid" id="summary-crm"></div>
+                <div class="charts-grid" id="charts-crm"></div>
+            </div>
+        </div>
+    </main>
+
+<script>
+// ========== AUTH & GLOBALS ==========
+const API = '';
+let token = localStorage.getItem('token');
+let abaAtual = 'financeiro';
+const chartInstances = {};
+
+if (!token) window.location.href = '/login';
+
+// ========== USER INFO ==========
+async function carregarInfoRodape() {
+    try {
+        const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        const dataUser = await resUser.json();
+
+        if (dataUser.ok) {
+            const emailElement = document.getElementById('userEmail');
+            if (emailElement) emailElement.innerText = dataUser.usuario.email || 'Não disponível';
+
+            const nomeCompleto = dataUser.usuario.nome || 'Advogado';
+            const primeiroNome = nomeCompleto.trim().split(' ')[0];
+            const nameHeader = document.getElementById('userNameHeader');
+            if (nameHeader) nameHeader.innerText = primeiroNome;
+
+            const partes = nomeCompleto.trim().split(' ').filter(n => n);
+            let iniciais = partes[0][0];
+            if (partes.length > 1) iniciais += partes[partes.length - 1][0];
+
+            const circulo = document.getElementById('userCircle');
+            if (circulo) circulo.innerText = iniciais.toUpperCase();
+        }
+
+        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+        const dataPlan = await resPlan.json();
+
+        const planoElement = document.getElementById('planNameFooter');
+        if (planoElement) planoElement.innerText = dataPlan.plano || 'Free';
+    } catch (err) {
+        console.error('Erro ao carregar rodapé:', err);
+    }
+}
+
+function toggleUserMenu() {
+    const d = document.getElementById('userDropdown');
+    d.style.display = d.style.display === 'block' ? 'none' : 'block';
+}
+function logout() {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+}
+function toggleIaMenu(e) {
+    e.preventDefault();
+    document.getElementById('submenu-ia').classList.toggle('open');
+}
+function limparBolinha() {
+    const dot = document.getElementById('dotNotificacao');
+    if (dot) dot.style.display = 'none';
+}
+
+// Close menu on outside click
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('userDropdown');
+    const circle = document.getElementById('userCircle');
+    if (menu && !menu.contains(e.target) && e.target !== circle) menu.style.display = 'none';
+});
+
+// ========== PERIODO ==========
+function onPeriodoChange() {
+    const v = document.getElementById('selectPeriodo').value;
+    document.getElementById('dateCustom').classList.toggle('visible', v === 'custom');
+}
+
+function getPeriodoParams() {
+    const periodo = document.getElementById('selectPeriodo').value;
+    let params = `periodo=${periodo}`;
+    if (periodo === 'custom') {
+        const ini = document.getElementById('dataInicio').value;
+        const fim = document.getElementById('dataFim').value;
+        if (ini) params += `&inicio=${ini}`;
+        if (fim) params += `&fim=${fim}`;
+    }
+    return params;
+}
+
+// ========== TABS ==========
+function trocarAba(aba, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`tab-${aba}`).classList.add('active');
+    abaAtual = aba;
+    carregarRelatorio();
+}
+
+// ========== FETCH HELPER ==========
+async function fetchRelatorio(endpoint) {
+    const params = getPeriodoParams();
+    const res = await fetch(`${API}/api/relatorios/${endpoint}?${params}`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+}
+
+// ========== CHART HELPERS ==========
+const CORES = ['#4A90E2', '#52B788', '#E76F51', '#F2A65A', '#7E8CE0', '#F4D06F', '#e879f9', '#38bdf8', '#fb923c', '#a78bfa'];
+
+function destroyChart(id) {
+    if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+}
+
+function criarChart(containerId, id, type, data, options = {}) {
+    const container = document.getElementById(containerId);
+    const card = document.createElement('div');
+    card.className = 'chart-card';
+    card.innerHTML = `<h3>${options.titulo || ''}</h3><canvas id="${id}"></canvas>`;
+    container.appendChild(card);
+
+    destroyChart(id);
+    const ctx = card.querySelector('canvas').getContext('2d');
+    chartInstances[id] = new Chart(ctx, {
+        type,
+        data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { position: options.legendPos || 'top', labels: { font: { family: 'Outfit', size: 12 } } }
+            },
+            scales: type === 'pie' || type === 'doughnut' ? {} : {
+                y: { beginAtZero: true, ticks: { font: { family: 'Outfit', size: 11 } } },
+                x: { ticks: { font: { family: 'Outfit', size: 11 } } }
+            },
+            indexAxis: options.horizontal ? 'y' : 'x',
+            ...options.extra
+        }
+    });
+}
+
+function formatMoney(v) {
+    return parseFloat(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function formatNum(v) {
+    return parseInt(v || 0).toLocaleString('pt-BR');
+}
+
+function showLoading(summaryId, chartsId) {
+    document.getElementById(summaryId).innerHTML = '';
+    document.getElementById(chartsId).innerHTML = '<div class="loading-overlay"><div class="spinner"></div> Carregando dados...</div>';
+}
+
+function showEmpty(chartsId, msg) {
+    document.getElementById(chartsId).innerHTML = `<div class="empty-state"><i class="lucide lucide-inbox"></i><p>${msg || 'Nenhum dado encontrado para o período selecionado.'}</p></div>`;
+}
+
+function renderSummaryCards(containerId, cards) {
+    const el = document.getElementById(containerId);
+    el.innerHTML = cards.map(c => `
+        <div class="summary-card">
+            <div class="label">${c.label}</div>
+            <div class="value ${c.color || ''}">${c.value}</div>
+        </div>
+    `).join('');
+}
+
+// ========== RENDER: FINANCEIRO ==========
+async function renderFinanceiro() {
+    showLoading('summary-financeiro', 'charts-financeiro');
+    try {
+        const data = await fetchRelatorio('financeiro');
+        if (!data.ok) throw new Error(data.erro);
+        const t = data.totais;
+        const saldo = parseFloat(t.recebido) - parseFloat(t.pago);
+
+        renderSummaryCards('summary-financeiro', [
+            { label: 'Recebido', value: formatMoney(t.recebido), color: 'green' },
+            { label: 'A Receber', value: formatMoney(t.a_receber), color: 'blue' },
+            { label: 'Pago', value: formatMoney(t.pago), color: 'red' },
+            { label: 'Saldo', value: formatMoney(saldo), color: saldo >= 0 ? 'green' : 'red' }
+        ]);
+
+        document.getElementById('charts-financeiro').innerHTML = '';
+
+        // Bar: receitas vs despesas mensal
+        if (data.mensal.length) {
+            criarChart('charts-financeiro', 'chart-fin-mensal', 'bar', {
+                labels: data.mensal.map(m => m.mes),
+                datasets: [
+                    { label: 'Receitas', data: data.mensal.map(m => parseFloat(m.receitas)), backgroundColor: '#52B788' },
+                    { label: 'Despesas', data: data.mensal.map(m => parseFloat(m.despesas)), backgroundColor: '#E76F51' }
+                ]
+            }, { titulo: 'Receitas vs Despesas (Mensal)' });
+        }
+
+        // Doughnut: recebido vs pendente
+        criarChart('charts-financeiro', 'chart-fin-status', 'doughnut', {
+            labels: ['Recebido', 'A Receber', 'Pago', 'A Pagar'],
+            datasets: [{ data: [t.recebido, t.a_receber, t.pago, t.a_pagar].map(Number), backgroundColor: ['#52B788', '#4A90E2', '#E76F51', '#F2A65A'] }]
+        }, { titulo: 'Distribuição por Status' });
+
+        // Horizontal bar: top categorias
+        if (data.categorias.length) {
+            criarChart('charts-financeiro', 'chart-fin-cat', 'bar', {
+                labels: data.categorias.map(c => c.categoria ? (c.categoria.length > 25 ? c.categoria.substring(0, 25) + '...' : c.categoria) : 'Sem desc.'),
+                datasets: [{ label: 'Valor Total', data: data.categorias.map(c => parseFloat(c.total)), backgroundColor: data.categorias.map((_, i) => CORES[i % CORES.length]) }]
+            }, { titulo: 'Top Categorias', horizontal: true });
+        }
+    } catch (e) {
+        console.error('Erro financeiro:', e);
+        showEmpty('charts-financeiro', 'Erro ao carregar dados financeiros.');
+    }
+}
+
+// ========== RENDER: PRAZOS ==========
+async function renderPrazos() {
+    showLoading('summary-prazos', 'charts-prazos');
+    try {
+        const data = await fetchRelatorio('prazos');
+        if (!data.ok) throw new Error(data.erro);
+        const c = data.cumprimento;
+        const taxa = c.total > 0 ? ((parseInt(c.concluidos) / parseInt(c.total)) * 100).toFixed(1) : '0.0';
+
+        renderSummaryCards('summary-prazos', [
+            { label: 'Total de Prazos', value: formatNum(c.total), color: 'blue' },
+            { label: 'Concluídos', value: formatNum(c.concluidos), color: 'green' },
+            { label: 'Atrasados', value: formatNum(c.atrasados), color: 'red' },
+            { label: 'Taxa Cumprimento', value: `${taxa}%`, color: parseFloat(taxa) >= 70 ? 'green' : 'orange' }
+        ]);
+
+        document.getElementById('charts-prazos').innerHTML = '';
+
+        // Doughnut: status
+        criarChart('charts-prazos', 'chart-prazos-status', 'doughnut', {
+            labels: ['Concluídos', 'Atrasados', 'Abertos'],
+            datasets: [{ data: [c.concluidos, c.atrasados, c.abertos].map(Number), backgroundColor: ['#52B788', '#E76F51', '#4A90E2'] }]
+        }, { titulo: 'Distribuição por Status' });
+
+        // Bar: por tipo
+        if (data.porTipo.length) {
+            criarChart('charts-prazos', 'chart-prazos-tipo', 'bar', {
+                labels: data.porTipo.map(t => t.tipo),
+                datasets: [{ label: 'Quantidade', data: data.porTipo.map(t => parseInt(t.total)), backgroundColor: data.porTipo.map((_, i) => CORES[i % CORES.length]) }]
+            }, { titulo: 'Por Tipo de Prazo' });
+        }
+
+        // Line: evolução mensal
+        if (data.evolucao.length) {
+            criarChart('charts-prazos', 'chart-prazos-evolucao', 'line', {
+                labels: data.evolucao.map(e => e.mes),
+                datasets: [
+                    { label: 'Concluídos', data: data.evolucao.map(e => parseInt(e.concluidos)), borderColor: '#52B788', backgroundColor: 'rgba(82,183,136,0.1)', fill: true, tension: 0.3 },
+                    { label: 'Atrasados', data: data.evolucao.map(e => parseInt(e.atrasados)), borderColor: '#E76F51', backgroundColor: 'rgba(231,111,81,0.1)', fill: true, tension: 0.3 },
+                    { label: 'Abertos', data: data.evolucao.map(e => parseInt(e.abertos)), borderColor: '#4A90E2', backgroundColor: 'rgba(74,144,226,0.1)', fill: true, tension: 0.3 }
+                ]
+            }, { titulo: 'Evolução Mensal' });
+        }
+    } catch (e) {
+        console.error('Erro prazos:', e);
+        showEmpty('charts-prazos', 'Erro ao carregar dados de prazos.');
+    }
+}
+
+// ========== RENDER: PROCESSOS ==========
+async function renderProcessos() {
+    showLoading('summary-processos', 'charts-processos');
+    try {
+        const data = await fetchRelatorio('processos');
+        if (!data.ok) throw new Error(data.erro);
+
+        const totalTribunais = data.porTribunal.length;
+        const totalEsferas = data.porEsfera.length;
+        const totalUfs = data.porUf.length;
+
+        renderSummaryCards('summary-processos', [
+            { label: 'Total de Processos', value: formatNum(data.total), color: 'blue' },
+            { label: 'Tribunais', value: formatNum(totalTribunais), color: 'purple' },
+            { label: 'Esferas', value: formatNum(totalEsferas), color: 'orange' },
+            { label: 'Estados', value: formatNum(totalUfs), color: 'green' }
+        ]);
+
+        document.getElementById('charts-processos').innerHTML = '';
+
+        // Horizontal bar: por tribunal
+        if (data.porTribunal.length) {
+            criarChart('charts-processos', 'chart-proc-tribunal', 'bar', {
+                labels: data.porTribunal.map(t => t.tribunal.length > 30 ? t.tribunal.substring(0, 30) + '...' : t.tribunal),
+                datasets: [{ label: 'Processos', data: data.porTribunal.map(t => parseInt(t.total)), backgroundColor: CORES.slice(0, data.porTribunal.length) }]
+            }, { titulo: 'Por Tribunal', horizontal: true });
+        }
+
+        // Pie: por esfera
+        if (data.porEsfera.length) {
+            criarChart('charts-processos', 'chart-proc-esfera', 'pie', {
+                labels: data.porEsfera.map(e => e.esfera),
+                datasets: [{ data: data.porEsfera.map(e => parseInt(e.total)), backgroundColor: CORES.slice(0, data.porEsfera.length) }]
+            }, { titulo: 'Por Esfera' });
+        }
+
+        // Bar: por UF
+        if (data.porUf.length) {
+            criarChart('charts-processos', 'chart-proc-uf', 'bar', {
+                labels: data.porUf.map(u => u.uf),
+                datasets: [{ label: 'Processos', data: data.porUf.map(u => parseInt(u.total)), backgroundColor: '#4A90E2' }]
+            }, { titulo: 'Por Estado (UF)' });
+        }
+    } catch (e) {
+        console.error('Erro processos:', e);
+        showEmpty('charts-processos', 'Erro ao carregar dados de processos.');
+    }
+}
+
+// ========== RENDER: PRODUTIVIDADE ==========
+async function renderProdutividade() {
+    showLoading('summary-produtividade', 'charts-produtividade');
+    try {
+        const data = await fetchRelatorio('produtividade');
+        if (!data.ok) throw new Error(data.erro);
+
+        const totalPrazos = data.prazosPorUsuario.reduce((s, u) => s + parseInt(u.total), 0);
+        const totalConcluidos = data.prazosPorUsuario.reduce((s, u) => s + parseInt(u.concluidos), 0);
+        const totalAudiencias = data.audienciasPorUsuario.reduce((s, u) => s + parseInt(u.total), 0);
+        const topUsuario = data.prazosPorUsuario.length ? data.prazosPorUsuario[0].usuario : 'N/A';
+
+        renderSummaryCards('summary-produtividade', [
+            { label: 'Total Prazos', value: formatNum(totalPrazos), color: 'blue' },
+            { label: 'Prazos Concluídos', value: formatNum(totalConcluidos), color: 'green' },
+            { label: 'Audiências', value: formatNum(totalAudiencias), color: 'purple' },
+            { label: 'Top Colaborador', value: topUsuario, color: '' }
+        ]);
+
+        document.getElementById('charts-produtividade').innerHTML = '';
+
+        // Horizontal bar: prazos por usuário
+        if (data.prazosPorUsuario.length) {
+            criarChart('charts-produtividade', 'chart-prod-prazos', 'bar', {
+                labels: data.prazosPorUsuario.map(u => u.usuario),
+                datasets: [
+                    { label: 'Concluídos', data: data.prazosPorUsuario.map(u => parseInt(u.concluidos)), backgroundColor: '#52B788' },
+                    { label: 'Atrasados', data: data.prazosPorUsuario.map(u => parseInt(u.atrasados)), backgroundColor: '#E76F51' },
+                    { label: 'Total', data: data.prazosPorUsuario.map(u => parseInt(u.total)), backgroundColor: '#4A90E2' }
+                ]
+            }, { titulo: 'Prazos por Colaborador', horizontal: true });
+        }
+
+        // Bar: audiências por usuário
+        if (data.audienciasPorUsuario.length) {
+            criarChart('charts-produtividade', 'chart-prod-audiencias', 'bar', {
+                labels: data.audienciasPorUsuario.map(u => u.usuario),
+                datasets: [{ label: 'Audiências', data: data.audienciasPorUsuario.map(u => parseInt(u.total)), backgroundColor: '#7E8CE0' }]
+            }, { titulo: 'Audiências por Colaborador' });
+        }
+    } catch (e) {
+        console.error('Erro produtividade:', e);
+        showEmpty('charts-produtividade', 'Erro ao carregar dados de produtividade.');
+    }
+}
+
+// ========== RENDER: CRM ==========
+async function renderCRM() {
+    showLoading('summary-crm', 'charts-crm');
+    try {
+        const data = await fetchRelatorio('crm');
+        if (!data.ok) throw new Error(data.erro);
+
+        const totalLeads = parseInt(data.conversao.total) || 0;
+        const ganhos = parseInt(data.conversao.ganhos) || 0;
+        const taxa = totalLeads > 0 ? ((ganhos / totalLeads) * 100).toFixed(1) : '0.0';
+        const totalOrigens = data.porOrigem.length;
+
+        renderSummaryCards('summary-crm', [
+            { label: 'Total de Leads', value: formatNum(totalLeads), color: 'blue' },
+            { label: 'Convertidos', value: formatNum(ganhos), color: 'green' },
+            { label: 'Taxa Conversão', value: `${taxa}%`, color: parseFloat(taxa) >= 20 ? 'green' : 'orange' },
+            { label: 'Origens', value: formatNum(totalOrigens), color: 'purple' }
+        ]);
+
+        document.getElementById('charts-crm').innerHTML = '';
+
+        // Bar: funil
+        if (data.funil.length) {
+            criarChart('charts-crm', 'chart-crm-funil', 'bar', {
+                labels: data.funil.map(f => f.status),
+                datasets: [{ label: 'Leads', data: data.funil.map(f => parseInt(f.total)), backgroundColor: data.funil.map((_, i) => CORES[i % CORES.length]) }]
+            }, { titulo: 'Funil de Vendas' });
+        }
+
+        // Pie: por origem
+        if (data.porOrigem.length) {
+            criarChart('charts-crm', 'chart-crm-origem', 'pie', {
+                labels: data.porOrigem.map(o => o.origem),
+                datasets: [{ data: data.porOrigem.map(o => parseInt(o.total)), backgroundColor: CORES.slice(0, data.porOrigem.length) }]
+            }, { titulo: 'Leads por Origem' });
+        }
+
+        // Line: evolução mensal
+        if (data.evolucao.length) {
+            criarChart('charts-crm', 'chart-crm-evolucao', 'line', {
+                labels: data.evolucao.map(e => e.mes),
+                datasets: [
+                    { label: 'Total Leads', data: data.evolucao.map(e => parseInt(e.total)), borderColor: '#4A90E2', backgroundColor: 'rgba(74,144,226,0.1)', fill: true, tension: 0.3 },
+                    { label: 'Convertidos', data: data.evolucao.map(e => parseInt(e.ganhos)), borderColor: '#52B788', backgroundColor: 'rgba(82,183,136,0.1)', fill: true, tension: 0.3 }
+                ]
+            }, { titulo: 'Evolução Mensal de Leads' });
+        }
+    } catch (e) {
+        console.error('Erro CRM:', e);
+        showEmpty('charts-crm', 'Erro ao carregar dados do CRM.');
+    }
+}
+
+// ========== CARREGAR ==========
+function carregarRelatorio() {
+    switch (abaAtual) {
+        case 'financeiro': renderFinanceiro(); break;
+        case 'prazos': renderPrazos(); break;
+        case 'processos': renderProcessos(); break;
+        case 'produtividade': renderProdutividade(); break;
+        case 'crm': renderCRM(); break;
+    }
+}
+
+// ========== EXPORTAR PDF ==========
+async function exportarPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pageW = doc.internal.pageSize.getWidth();
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.text('LawTech Pro - Relatório', pageW / 2, 20, { align: 'center' });
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    const abaLabel = abaAtual.charAt(0).toUpperCase() + abaAtual.slice(1);
+    doc.text(`Aba: ${abaLabel}  |  Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, pageW / 2, 30, { align: 'center' });
+
+    let yPos = 45;
+
+    // Render summary cards text
+    const summaryEl = document.getElementById(`summary-${abaAtual}`);
+    const cards = summaryEl.querySelectorAll('.summary-card');
+    cards.forEach(card => {
+        const label = card.querySelector('.label').textContent;
+        const value = card.querySelector('.value').textContent;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text(`${label}: `, 15, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(value, 60, yPos);
+        yPos += 7;
+    });
+
+    yPos += 5;
+
+    // Render charts as images
+    const canvases = document.querySelectorAll(`#charts-${abaAtual} canvas`);
+    for (const canvas of canvases) {
+        if (yPos > 240) { doc.addPage(); yPos = 20; }
+        const imgData = canvas.toDataURL('image/png');
+        const ratio = canvas.width / canvas.height;
+        const imgW = pageW - 30;
+        const imgH = imgW / ratio;
+        doc.addImage(imgData, 'PNG', 15, yPos, imgW, Math.min(imgH, 120));
+        yPos += Math.min(imgH, 120) + 10;
+    }
+
+    doc.save(`relatorio-${abaAtual}-${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+// ========== EXPORTAR CSV ==========
+function exportarCSV() {
+    let csvContent = '\uFEFF'; // BOM UTF-8 for Excel
+
+    const summaryEl = document.getElementById(`summary-${abaAtual}`);
+    const cards = summaryEl.querySelectorAll('.summary-card');
+
+    const abaLabel = abaAtual.charAt(0).toUpperCase() + abaAtual.slice(1);
+    csvContent += `Relatório ${abaLabel} - LawTech Pro\n`;
+    csvContent += `Gerado em: ${new Date().toLocaleDateString('pt-BR')}\n\n`;
+    csvContent += 'Indicador,Valor\n';
+
+    cards.forEach(card => {
+        const label = card.querySelector('.label').textContent.replace(/,/g, '');
+        const value = card.querySelector('.value').textContent.replace(/,/g, '.');
+        csvContent += `"${label}","${value}"\n`;
+    });
+
+    // Add chart data tables
+    csvContent += '\n';
+    for (const [key, chart] of Object.entries(chartInstances)) {
+        if (!key.startsWith(`chart-${abaAtual.substring(0, 3)}`)) continue;
+        const labels = chart.data.labels || [];
+        const datasets = chart.data.datasets || [];
+
+        csvContent += `\n${chart.options?.plugins?.title?.text || key}\n`;
+        csvContent += `Rótulo,${datasets.map(d => d.label || 'Valor').join(',')}\n`;
+        labels.forEach((label, i) => {
+            const values = datasets.map(d => d.data[i] || 0);
+            csvContent += `"${label}",${values.join(',')}\n`;
+        });
+    }
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `relatorio-${abaAtual}-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ========== INIT ==========
+document.addEventListener('DOMContentLoaded', () => {
+    carregarInfoRodape();
+    carregarRelatorio();
+    lucide.createIcons();
+});
+</script>
+</body>
+</html>

@@ -499,6 +499,8 @@ input, textarea, select {
 
 </div>
 
+            <a href="/chat-page"><i class="lucide lucide-message-circle"></i> 💬 Chat</a>
+            <a href="/relatorios-page"><i class="lucide lucide-bar-chart-3"></i> Relatórios</a>
             <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
             <a href="/config-page" class="active"><i class="lucide lucide-settings"></i> Configurações</a>
             <a href="/crm-page" class="btn-crm-gold-nav">
@@ -798,6 +800,52 @@ input, textarea, select {
     <p id="footerAvisoAssinatura" style="font-size: 11px; color: var(--muted); text-align: center; margin-top: 12px; margin-bottom: 0;">
         Ao cancelar, você manterá acesso completo até o final do período de teste.
     </p>
+</div>
+
+<!-- Seção: Configuração de Alertas de Prazos -->
+<div class="card" id="secao-alertas" style="margin-top: 24px;">
+    <div class="card-title">
+        <i data-lucide="bell-ring" style="width: 20px; height: 20px; color: var(--accent-blue);"></i>
+        Alertas de Prazos
+    </div>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px;">
+        Configure quando e como deseja receber alertas sobre prazos processuais.
+    </p>
+
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px;">
+        <div>
+            <label style="font-size: 12px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 4px;">1º ALERTA (dias antes)</label>
+            <input type="number" id="diasAlerta1" value="7" min="1" max="60" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+        </div>
+        <div>
+            <label style="font-size: 12px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 4px;">2º ALERTA (dias antes)</label>
+            <input type="number" id="diasAlerta2" value="3" min="1" max="60" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+        </div>
+        <div>
+            <label style="font-size: 12px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 4px;">3º ALERTA (dias antes)</label>
+            <input type="number" id="diasAlerta3" value="1" min="1" max="60" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 24px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
+            <input type="checkbox" id="emailAtivo" checked style="width: 18px; height: 18px; accent-color: var(--accent-blue);">
+            📧 Alertas por E-mail
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
+            <input type="checkbox" id="inappAtivo" checked style="width: 18px; height: 18px; accent-color: var(--accent-blue);">
+            🔔 Notificações In-App
+        </label>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 12px; font-weight: 700; color: var(--muted);">HORÁRIO DE ENVIO</label>
+            <input type="time" id="horaEnvio" value="08:00" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+        </div>
+    </div>
+
+    <button onclick="salvarConfigAlertas()" style="width: 100%; padding: 14px; background: var(--accent-blue); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+        💾 Salvar Configuração de Alertas
+    </button>
+    <p id="alertasSalvoMsg" style="display: none; text-align: center; color: var(--accent-green); font-size: 13px; font-weight: 600; margin-top: 8px;">✅ Configuração salva!</p>
 </div>
 
 <script>
@@ -1832,6 +1880,53 @@ function exibirInadimplente() {
     // Reinicializar ícones
     if (window.lucide) lucide.createIcons();
 }
+
+    // =============================================
+    // CONFIGURAÇÃO DE ALERTAS DE PRAZOS
+    // =============================================
+    async function carregarConfigAlertas() {
+        try {
+            const res = await fetch('/api/config/alertas', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            if (data.ok && data.config) {
+                document.getElementById('diasAlerta1').value = data.config.dias_alerta_1 ?? 7;
+                document.getElementById('diasAlerta2').value = data.config.dias_alerta_2 ?? 3;
+                document.getElementById('diasAlerta3').value = data.config.dias_alerta_3 ?? 1;
+                document.getElementById('emailAtivo').checked = data.config.email_ativo !== false;
+                document.getElementById('inappAtivo').checked = data.config.inapp_ativo !== false;
+                document.getElementById('horaEnvio').value = data.config.hora_envio || '08:00';
+            }
+        } catch (e) { console.error('Erro ao carregar config alertas:', e); }
+    }
+
+    async function salvarConfigAlertas() {
+        try {
+            const body = {
+                dias_alerta_1: parseInt(document.getElementById('diasAlerta1').value) || 7,
+                dias_alerta_2: parseInt(document.getElementById('diasAlerta2').value) || 3,
+                dias_alerta_3: parseInt(document.getElementById('diasAlerta3').value) || 1,
+                email_ativo: document.getElementById('emailAtivo').checked,
+                inapp_ativo: document.getElementById('inappAtivo').checked,
+                hora_envio: document.getElementById('horaEnvio').value || '08:00'
+            };
+            const res = await fetch('/api/config/alertas', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (data.ok) {
+                const msg = document.getElementById('alertasSalvoMsg');
+                msg.style.display = 'block';
+                setTimeout(() => msg.style.display = 'none', 3000);
+            } else { alert(data.erro || 'Erro ao salvar'); }
+        } catch (e) { alert('Erro de conexão'); }
+    }
+
+    // Carregar config ao abrir a página
+    carregarConfigAlertas();
     </script>
 </body>
 </html>

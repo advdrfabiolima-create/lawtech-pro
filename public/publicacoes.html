@@ -12,110 +12,90 @@
         :root {
             --bg-primary: #F8FAFB;
             --bg-secondary: #1E3A5F;
+            --bg-tertiary: #2A4A73;
             --bg-elevated: #ffffff;
             --text-primary: #2C3E50;
             --text-secondary: #5A6C7D;
             --text-tertiary: #7B8794;
             --accent-blue: #4A90E2;
+            --accent-blue-light: #5BA4DB;
+            --accent-blue-glow: rgba(74, 144, 226, 0.2);
             --accent-green: #52B788;
+            --accent-purple: #7E8CE0;
             --accent-orange: #F2A65A;
             --accent-red: #E76F51;
+            --accent-gold: #F4D06F;
             --border-subtle: rgba(42, 74, 115, 0.08);
             --border-medium: rgba(42, 74, 115, 0.12);
+            --radius-sm: 4px;
+            --radius-md: 6px;
             --radius-lg: 8px;
+            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+            --bg: var(--bg-primary);
+            --sidebar: var(--bg-secondary);
+            --white: var(--bg-elevated);
+            --border: var(--border-medium);
+            --primary: var(--accent-blue);
+            --success: var(--accent-green);
+            --danger: var(--accent-red);
+            --warning: var(--accent-orange);
+            --muted: var(--text-tertiary);
+            --text-main: var(--text-primary);
+            --text-menu: var(--text-tertiary);
+            --sidebar-hover: var(--bg-tertiary);
+            --radius: var(--radius-md);
             --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
-        body { background: var(--bg-primary); display: flex; }
+        * { box-sizing: border-box; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; height: 100vh; overflow-x: auto; overflow-y: hidden; }
+
+        body::before {
+            content: "";
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.015;
+            background-image: linear-gradient(rgba(74, 144, 226, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(74, 144, 226, 0.08) 1px, transparent 1px);
+            background-size: 50px 50px; animation: patternMove 20s linear infinite; pointer-events: none;
+        }
+        @keyframes patternMove { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }
+
+        body::after {
+            content: ""; position: fixed; width: 600px; height: 600px;
+            background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%);
+            top: -300px; right: -300px; border-radius: 50%; filter: blur(100px); opacity: 0.08; z-index: 0;
+            animation: float 20s ease-in-out infinite; pointer-events: none;
+        }
+        @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-30px, 30px) scale(0.9); } }
+
+        @keyframes slideInLeft { from { opacity: 0; transform: translateX(-100%); } to { opacity: 1; transform: translateX(0); } }
 
         /* SIDEBAR */
         .sidebar {
-            width: 280px;
-            background: var(--bg-secondary);
-            padding: 32px 24px;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            z-index: 1000;
-            border-right: 1px solid var(--border-subtle);
+            width: 280px; background: var(--bg-secondary); backdrop-filter: blur(20px) saturate(180%);
+            border-right: 1px solid var(--border-subtle); padding: 32px 24px; display: flex; flex-direction: column;
+            height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        .sidebar-header { text-align: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0; }
+        .sidebar-header img { width: 100%; max-width: 180px; height: auto; filter: drop-shadow(0 0 20px var(--accent-blue-glow)); transition: all var(--transition-base); }
+        .sidebar-header img:hover { filter: drop-shadow(0 0 30px var(--accent-blue-glow)); transform: scale(1.05); }
 
-        .sidebar-header {
-            text-align: center;
-            margin-bottom: 16px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            flex-shrink: 0;
-        }
+        .menu { display: flex; flex-direction: column; gap: 6px; flex-grow: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; }
+        .menu a { display: flex; align-items: center; padding: 14px 16px; color: #94a3b8; text-decoration: none; border-radius: var(--radius-lg); font-size: 14px; font-weight: 600; transition: all var(--transition-base); position: relative; overflow: hidden; border: 1px solid transparent; text-transform: uppercase; }
+        .menu a::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent-blue); transform: scaleY(0); transition: transform var(--transition-base); }
+        .menu a:hover::before, .menu a.active::before { transform: scaleY(1); }
+        .menu a i { margin-right: 12px; font-size: 18px; transition: all var(--transition-base); }
+        .menu a:hover { background: rgba(255, 255, 255, 0.05); color: #e2e8f0; transform: translateX(4px); border: 1px solid transparent; }
+        .menu a.active { background: rgba(37, 99, 235, 0.15); color: #60a5fa; border: 1px solid rgba(37, 99, 235, 0.4); }
+        .menu a.active i { color: #60a5fa; }
 
-        .sidebar-header img { width: 100%; max-width: 180px; }
+        .btn-crm-gold-nav { background: #fbbf24 !important; color: #000 !important; font-weight: 700 !important; margin-top: 8px !important; display: flex !important; align-items: center; justify-content: center; padding: 8px 12px !important; border-radius: 8px; text-decoration: none; font-size: 12px; transition: 0.3s; }
+        .btn-crm-gold-nav:hover { background: #facc15 !important; transform: scale(1.02); }
+        .btn-crm-gold-nav i { margin-right: 10px; }
 
-        .menu {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            flex-grow: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            min-height: 0;
-        }
-
-        .menu a {
-            display: flex;
-            align-items: center;
-            padding: 16px;
-            color: #94a3b8;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            transition: var(--transition);
-            text-transform: uppercase;
-        }
-
-        .menu a i { margin-right: 12px; font-size: 18px; }
-        .menu a:hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
-        .menu a.active { 
-            background: rgba(37,99,235,0.15); 
-            color: #60a5fa;
-            border-left: 4px solid #60a5fa;
-            padding-left: 12px;
-        }
-
-        .btn-crm-gold-nav {
-            background: #fbbf24 !important;
-            color: #000 !important;
-            font-weight: 700 !important;
-            margin-top: 8px !important;
-            justify-content: center;
-            padding: 8px 12px !important;
-            font-size: 12px;
-        }
-
-        .sidebar-footer {
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            font-size: 12px;
-        }
-
-        .footer-info-row {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 8px;
-        }
-
-        .footer-info-row span:first-child {
-            text-transform: uppercase;
-            color: #94a3b8;
-            font-weight: 700;
-            min-width: 65px;
-        }
-
-        .keep-lowercase { text-transform: lowercase !important; color: #cbd5e1; }
+        .sidebar-footer { padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.1); font-size: 12px; margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+        .sidebar-footer span { color: #cbd5e1 !important; }
+        .footer-info-row { display: flex; justify-content: flex-start; align-items: center; gap: 5px; font-size: 12px; width: 100%; }
+        .footer-info-row span:first-child { text-transform: uppercase; color: var(--text-tertiary); font-weight: 700; min-width: 65px; }
+        .keep-lowercase { text-transform: lowercase !important; color: #cbd5e1; font-weight: 500; }
 
         /* MAIN */
         .main {
@@ -123,6 +103,8 @@
             flex: 1;
             display: flex;
             flex-direction: column;
+            position: relative;
+            z-index: 1;
         }
 
         .header {
@@ -553,21 +535,16 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* DROPDOWN IA JURÍDICA */
-        .menu-item-with-submenu { cursor: pointer; }
-        .submenu { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; padding-left: 30px; }
-        .submenu.open { max-height: 200px; }
-        .submenu a { padding: 10px 16px; font-size: 13px; margin-top: 4px; }
-        .menu-item-with-submenu > a { background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.25); }
+        /* Submenu IA */
+        .menu-item-with-submenu { position: relative; }
+        .submenu { display: none; flex-direction: column; gap: 2px; padding-left: 16px; margin-top: 4px; }
+        .submenu.open { display: flex; }
+        .submenu a { font-size: 13px !important; padding: 10px 16px !important; }
 
-        /* Responsividade Notebook */
-        @media (max-width: 1280px) {
-            .sidebar { width: 220px; padding: 20px 16px; }
-            .sidebar-header { margin-bottom: 12px; }
-            .sidebar-header img { max-width: 150px; }
-            .menu { overflow-y: auto; }
-            .menu a { padding: 10px 14px; font-size: 13px; }
-            .main { margin-left: 220px; }
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; }
             .header { padding: 16px 24px; }
             .content { padding: 24px; }
             .metrics-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
@@ -592,7 +569,7 @@
         <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
         <a href="/publicacoes-page" class="active"><i class="lucide lucide-bell"></i> Publicações DJEN</a>
         <div class="menu-item-with-submenu">
-            <a href="#" id="iaMenuToggle" style="display:flex; align-items:center; gap:10px;">
+            <a href="/ia-page" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
                 <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
                 IA Jurídica
                 <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">PREMIUM</span>
@@ -602,6 +579,8 @@
                 <a href="/ia-page"><i class="lucide lucide-bot"></i> Assistente IA</a>
             </div>
         </div>
+        <a href="/chat-page"><i class="lucide lucide-message-circle"></i> 💬 Chat</a>
+        <a href="/relatorios-page"><i class="lucide lucide-bar-chart-3"></i> Relatórios</a>
         <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
         <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
         <a href="/crm-page" class="btn-crm-gold-nav">
@@ -1122,18 +1101,12 @@ window.onload = () => {
         lucide.createIcons();
     }
 
-    // Toggle submenu IA Jurídica
-    const iaToggle = document.getElementById('iaMenuToggle');
-    const iaSubmenu = document.getElementById('submenu-ia');
-    if (iaToggle && iaSubmenu) {
-        iaToggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            iaSubmenu.classList.toggle('open');
-            console.log('[DEBUG] submenu toggled, classes:', iaSubmenu.className);
-        });
-    }
 };
+
+function toggleIaMenu(e) {
+    e.preventDefault();
+    document.getElementById('submenu-ia').classList.toggle('open');
+}
 
 </script>
 
