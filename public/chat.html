@@ -210,11 +210,11 @@
         .btn-enviar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         .btn-anexo {
             width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--border);
-            background: var(--bg); color: var(--text-tertiary); cursor: pointer;
+            background: var(--bg); cursor: pointer;
             display: flex; align-items: center; justify-content: center; transition: all var(--transition-base);
-            flex-shrink: 0;
+            flex-shrink: 0; font-size: 20px;
         }
-        .btn-anexo:hover { background: var(--accent-blue); color: white; border-color: var(--accent-blue); }
+        .btn-anexo:hover { background: var(--accent-blue-glow); border-color: var(--accent-blue); transform: scale(1.05); }
         .file-attachment {
             display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px;
             background: rgba(255,255,255,0.15); border-radius: 8px; text-decoration: none;
@@ -348,6 +348,8 @@ let ultimoTimestamp = '1970-01-01T00:00:00Z';
 let usuarios = [];
 let pollingInterval = null;
 let pollingNaoLidasInterval = null;
+let mensagensExibidas = new Set(); // IDs das mensagens já exibidas (evita duplicatas)
+let pollingEmAndamento = false; // Guard para evitar chamadas concorrentes
 
 // ========== INIT ==========
 document.addEventListener('DOMContentLoaded', async () => {
@@ -471,6 +473,8 @@ function abrirConversa(tipo, usuarioId, nome) {
     if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
 
     ultimoTimestamp = '1970-01-01T00:00:00Z';
+    mensagensExibidas = new Set();
+    pollingEmAndamento = false;
 
     if (tipo === 'geral') {
         conversaAtiva = { tipo: 'geral' };
@@ -485,8 +489,8 @@ function abrirConversa(tipo, usuarioId, nome) {
     // Marcar como lidas
     marcarComoLidas();
 
-    // Iniciar polling
-    pollingInterval = setInterval(() => carregarMensagens(false), 3000);
+    // Iniciar polling a cada 2 segundos
+    pollingInterval = setInterval(() => carregarMensagens(false), 2000);
 }
 
 function renderAreaMensagens() {
@@ -521,7 +525,7 @@ function renderAreaMensagens() {
         <div class="messages-list" id="messagesList"></div>
         <div class="input-area">
             <button class="btn-anexo" onclick="document.getElementById('inputArquivo').click()" title="Enviar arquivo">
-                <i class="lucide lucide-paperclip" style="width:18px; height:18px;"></i>
+                📎
             </button>
             <input type="file" id="inputArquivo" style="display:none"
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx"
@@ -540,6 +544,8 @@ function renderAreaMensagens() {
 // ========== MENSAGENS ==========
 async function carregarMensagens(isInitial) {
     if (!conversaAtiva) return;
+    if (pollingEmAndamento && !isInitial) return; // Evita chamadas concorrentes
+    pollingEmAndamento = true;
 
     try {
         let url = `/api/chat/mensagens?tipo=${conversaAtiva.tipo}&desde=${encodeURIComponent(ultimoTimestamp)}`;
@@ -550,9 +556,15 @@ async function carregarMensagens(isInitial) {
 
         if (data.ok && data.mensagens.length > 0) {
             const list = document.getElementById('messagesList');
-            if (!list) return;
+            if (!list) { pollingEmAndamento = false; return; }
 
+            let adicionou = false;
             data.mensagens.forEach(msg => {
+                // Deduplicação: pula mensagens já exibidas
+                if (mensagensExibidas.has(msg.id)) return;
+                mensagensExibidas.add(msg.id);
+                adicionou = true;
+
                 const isMine = msg.remetente_id === currentUserId;
                 const bubble = document.createElement('div');
                 bubble.className = `message-bubble ${isMine ? 'mine' : 'theirs'}`;
@@ -562,7 +574,7 @@ async function carregarMensagens(isInitial) {
                 let conteudoHtml = '';
                 if (msg.arquivo_nome) {
                     const icone = getFileIcon(msg.arquivo_nome);
-                    conteudoHtml = `<a href="/api/chat/arquivo/${msg.id}" target="_blank" class="file-attachment">${icone} ${escaparHtml(msg.arquivo_nome)}</a>`;
+                    conteudoHtml = `<a href="#" onclick="baixarArquivoChat(${msg.id}, '${msg.arquivo_nome.replace(/'/g, "\\'")}'); return false;" class="file-attachment">${icone} ${escaparHtml(msg.arquivo_nome)}</a>`;
                 } else {
                     conteudoHtml = `<div class="message-text">${escaparHtml(msg.conteudo)}</div>`;
                 }
@@ -579,10 +591,11 @@ async function carregarMensagens(isInitial) {
             const last = data.mensagens[data.mensagens.length - 1];
             ultimoTimestamp = last.criado_em;
 
-            // Auto-scroll
-            list.scrollTop = list.scrollHeight;
+            // Auto-scroll se adicionou novas mensagens
+            if (adicionou) list.scrollTop = list.scrollHeight;
         }
     } catch (e) { console.error('Erro ao carregar mensagens:', e); }
+    pollingEmAndamento = false;
 }
 
 async function enviarMensagem() {
@@ -606,6 +619,9 @@ async function enviarMensagem() {
         if (data.ok) {
             input.value = '';
             autoResize(input);
+
+            // Marcar como exibida para evitar duplicata no polling
+            mensagensExibidas.add(data.mensagem.id);
 
             // Adicionar mensagem na lista localmente
             const list = document.getElementById('messagesList');
@@ -709,15 +725,17 @@ async function enviarArquivo(input) {
         const data = await res.json();
 
         if (data.ok) {
+            mensagensExibidas.add(data.mensagem.id);
             const list = document.getElementById('messagesList');
             if (list) {
                 const hora = new Date(data.mensagem.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                 const icone = getFileIcon(data.mensagem.arquivo_nome);
+                const nomeArq = data.mensagem.arquivo_nome.replace(/'/g, "\\'");
                 const bubble = document.createElement('div');
                 bubble.className = 'message-bubble mine';
                 bubble.innerHTML = `
                     <div class="message-sender">${escaparHtml('Você')}</div>
-                    <a href="/api/chat/arquivo/${data.mensagem.id}" target="_blank" class="file-attachment">${icone} ${escaparHtml(data.mensagem.arquivo_nome)}</a>
+                    <a href="#" onclick="baixarArquivoChat(${data.mensagem.id}, '${nomeArq}'); return false;" class="file-attachment">${icone} ${escaparHtml(data.mensagem.arquivo_nome)}</a>
                     <div class="message-time">${hora}</div>
                 `;
                 list.appendChild(bubble);
@@ -733,6 +751,31 @@ async function enviarArquivo(input) {
     }
 
     input.value = '';
+}
+
+// ========== DOWNLOAD DE ARQUIVO COM TOKEN ==========
+async function baixarArquivoChat(msgId, nomeArquivo) {
+    try {
+        const res = await fetch(`/api/chat/arquivo/${msgId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) {
+            alert('Erro ao baixar arquivo.');
+            return;
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = nomeArquivo;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (e) {
+        console.error('Erro ao baixar arquivo:', e);
+        alert('Erro ao baixar arquivo.');
+    }
 }
 </script>
 </body>
