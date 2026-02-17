@@ -117,6 +117,16 @@ const globalLimiter = rateLimit({
 });
 app.use('/api', globalLimiter);
 
+// Rate limiting mais permissivo para chat (polling frequente)
+const chatLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 1500, // 1500 requests por IP a cada 15 min (polling de chat)
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { erro: 'Muitas requisições de chat. Aguarde um momento.' }
+});
+app.use('/api/chat', chatLimiter);
+
 // Rate limiting rigoroso para autenticação
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,

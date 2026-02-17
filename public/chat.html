@@ -499,8 +499,8 @@ function abrirConversa(tipo, usuarioId, nome) {
     // Marcar como lidas
     marcarComoLidas();
 
-    // Iniciar polling a cada 2 segundos
-    pollingInterval = setInterval(() => carregarMensagens(false), 2000);
+    // Iniciar polling a cada 4 segundos
+    pollingInterval = setInterval(() => carregarMensagens(false), 4000);
 }
 
 function renderAreaMensagens() {
@@ -699,7 +699,7 @@ async function marcarComoLidas() {
 
 function iniciarPollingNaoLidas() {
     carregarNaoLidas();
-    pollingNaoLidasInterval = setInterval(carregarNaoLidas, 5000);
+    pollingNaoLidasInterval = setInterval(carregarNaoLidas, 15000);
 }
 
 // ========== HEARTBEAT (status online) ==========
@@ -718,10 +718,10 @@ async function atualizarStatusOnline() {
     } catch (e) { /* silencioso */ }
 }
 
-// Heartbeat a cada 30s + atualizar status online a cada 15s
+// Heartbeat a cada 60s + atualizar status online a cada 30s
 enviarHeartbeat();
-setInterval(enviarHeartbeat, 30000);
-setInterval(atualizarStatusOnline, 15000);
+setInterval(enviarHeartbeat, 60000);
+setInterval(atualizarStatusOnline, 30000);
 
 // ========== ARQUIVOS ==========
 function getFileIcon(nome) {
