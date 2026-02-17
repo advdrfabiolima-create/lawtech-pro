@@ -344,12 +344,12 @@ if (!token) window.location.href = '/login';
 let currentUserId = null;
 let currentUserNome = '';
 let conversaAtiva = null; // { tipo: 'geral' } ou { tipo: 'dm', usuario_id, nome }
-let ultimoTimestamp = '1970-01-01T00:00:00Z';
+let ultimoMsgId = 0; // ID da última mensagem carregada (polling por ID sequencial)
 let usuarios = [];
 let pollingInterval = null;
 let pollingNaoLidasInterval = null;
-let mensagensExibidas = new Set(); // IDs das mensagens já exibidas (evita duplicatas)
-let pollingEmAndamento = false; // Guard para evitar chamadas concorrentes
+let mensagensExibidas = new Set(); // IDs já exibidas (evita duplicatas)
+let pollingEmAndamento = false; // Guard contra chamadas concorrentes
 
 // ========== INIT ==========
 document.addEventListener('DOMContentLoaded', async () => {
@@ -472,7 +472,7 @@ function abrirConversa(tipo, usuarioId, nome) {
     // Parar polling anterior
     if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
 
-    ultimoTimestamp = '1970-01-01T00:00:00Z';
+    ultimoMsgId = 0;
     mensagensExibidas = new Set();
     pollingEmAndamento = false;
 
@@ -544,11 +544,11 @@ function renderAreaMensagens() {
 // ========== MENSAGENS ==========
 async function carregarMensagens(isInitial) {
     if (!conversaAtiva) return;
-    if (pollingEmAndamento && !isInitial) return; // Evita chamadas concorrentes
+    if (pollingEmAndamento && !isInitial) return;
     pollingEmAndamento = true;
 
     try {
-        let url = `/api/chat/mensagens?tipo=${conversaAtiva.tipo}&desde=${encodeURIComponent(ultimoTimestamp)}`;
+        let url = `/api/chat/mensagens?tipo=${conversaAtiva.tipo}&ultimo_id=${ultimoMsgId}`;
         if (conversaAtiva.tipo === 'dm') url += `&usuario_id=${conversaAtiva.usuario_id}`;
 
         const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
@@ -560,10 +560,12 @@ async function carregarMensagens(isInitial) {
 
             let adicionou = false;
             data.mensagens.forEach(msg => {
-                // Deduplicação: pula mensagens já exibidas
                 if (mensagensExibidas.has(msg.id)) return;
                 mensagensExibidas.add(msg.id);
                 adicionou = true;
+
+                // Atualizar último ID visto
+                if (msg.id > ultimoMsgId) ultimoMsgId = msg.id;
 
                 const isMine = msg.remetente_id === currentUserId;
                 const bubble = document.createElement('div');
@@ -586,10 +588,6 @@ async function carregarMensagens(isInitial) {
                 `;
                 list.appendChild(bubble);
             });
-
-            // Atualizar ultimo timestamp
-            const last = data.mensagens[data.mensagens.length - 1];
-            ultimoTimestamp = last.criado_em;
 
             // Auto-scroll se adicionou novas mensagens
             if (adicionou) list.scrollTop = list.scrollHeight;
@@ -622,6 +620,7 @@ async function enviarMensagem() {
 
             // Marcar como exibida para evitar duplicata no polling
             mensagensExibidas.add(data.mensagem.id);
+            if (data.mensagem.id > ultimoMsgId) ultimoMsgId = data.mensagem.id;
 
             // Adicionar mensagem na lista localmente
             const list = document.getElementById('messagesList');
@@ -636,8 +635,6 @@ async function enviarMensagem() {
                 `;
                 list.appendChild(bubble);
                 list.scrollTop = list.scrollHeight;
-
-                ultimoTimestamp = data.mensagem.criado_em;
             }
         }
     } catch (e) { console.error('Erro ao enviar mensagem:', e); }
@@ -740,7 +737,6 @@ async function enviarArquivo(input) {
                 `;
                 list.appendChild(bubble);
                 list.scrollTop = list.scrollHeight;
-                ultimoTimestamp = data.mensagem.criado_em;
             }
         } else {
             alert('Erro ao enviar arquivo: ' + (data.erro || 'Erro desconhecido'));

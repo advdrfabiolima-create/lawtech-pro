@@ -1,13 +1,13 @@
 const pool = require('../config/db');
 
-// GET /api/chat/mensagens?tipo=geral&desde=TIMESTAMP
-// GET /api/chat/mensagens?tipo=dm&usuario_id=X&desde=TIMESTAMP
+// GET /api/chat/mensagens?tipo=geral&ultimo_id=0
+// GET /api/chat/mensagens?tipo=dm&usuario_id=X&ultimo_id=0
 exports.listarMensagens = async (req, res) => {
     try {
         const escritorioId = req.user.escritorio_id;
         const userId = req.user.id;
-        const { tipo, usuario_id, desde } = req.query;
-        const timestamp = desde || '1970-01-01T00:00:00Z';
+        const { tipo, usuario_id, ultimo_id } = req.query;
+        const lastId = parseInt(ultimo_id) || 0;
 
         let result;
 
@@ -28,10 +28,10 @@ exports.listarMensagens = async (req, res) => {
                  JOIN usuarios u ON u.id = m.remetente_id
                  WHERE m.escritorio_id = $1
                    AND ((m.remetente_id = $2 AND m.destinatario_id = $3) OR (m.remetente_id = $3 AND m.destinatario_id = $2))
-                   AND m.criado_em > $4
-                 ORDER BY m.criado_em ASC
+                   AND m.id > $4
+                 ORDER BY m.id ASC
                  LIMIT 100`,
-                [escritorioId, userId, outroId, timestamp]
+                [escritorioId, userId, outroId, lastId]
             );
         } else {
             // Chat geral
@@ -47,10 +47,10 @@ exports.listarMensagens = async (req, res) => {
                         u.nome AS remetente_nome
                  FROM chat_mensagens m
                  JOIN usuarios u ON u.id = m.remetente_id
-                 WHERE m.escritorio_id = $1 AND m.destinatario_id IS NULL AND m.criado_em > $2
-                 ORDER BY m.criado_em ASC
+                 WHERE m.escritorio_id = $1 AND m.destinatario_id IS NULL AND m.id > $2
+                 ORDER BY m.id ASC
                  LIMIT 100`,
-                [escritorioId, timestamp]
+                [escritorioId, lastId]
             );
         }
 
