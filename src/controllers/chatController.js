@@ -106,13 +106,28 @@ exports.listarUsuarios = async (req, res) => {
         const userId = req.user.id;
 
         const result = await pool.query(
-            `SELECT id, nome, email FROM usuarios WHERE escritorio_id = $1 AND id != $2 ORDER BY nome`,
+            `SELECT id, nome, email,
+                    CASE WHEN ultimo_acesso > NOW() - INTERVAL '2 minutes' THEN true ELSE false END AS online
+             FROM usuarios WHERE escritorio_id = $1 AND id != $2 ORDER BY nome`,
             [escritorioId, userId]
         );
 
         res.json({ ok: true, usuarios: result.rows });
     } catch (err) {
         console.error('[CHAT] Erro ao listar usuários:', err.message);
+        res.status(500).json({ ok: false, erro: err.message });
+    }
+};
+
+// PUT /api/chat/heartbeat
+exports.heartbeat = async (req, res) => {
+    try {
+        await pool.query(
+            `UPDATE usuarios SET ultimo_acesso = NOW() WHERE id = $1`,
+            [req.user.id]
+        );
+        res.json({ ok: true });
+    } catch (err) {
         res.status(500).json({ ok: false, erro: err.message });
     }
 };

@@ -235,8 +235,17 @@
 
         /* Padronizacao LawTech Pro - Caixa Alta Global */
         body { text-transform: uppercase; }
-        input, textarea, select { text-transform: uppercase; }
+        input, select { text-transform: uppercase; }
+        textarea { text-transform: none; }
         .message-text { text-transform: none; }
+
+        /* Online badge */
+        .online-dot {
+            width: 10px; height: 10px; background: #22c55e; border-radius: 50%;
+            position: absolute; bottom: 2px; right: 2px; border: 2px solid var(--white);
+            box-shadow: 0 0 6px rgba(34,197,94,0.5);
+        }
+        .conv-icon { position: relative; }
 
         /* Responsive */
         @media (max-width: 768px) {
@@ -439,12 +448,13 @@ function renderConversas() {
         const dmActive = conversaAtiva && conversaAtiva.tipo === 'dm' && conversaAtiva.usuario_id === u.id ? 'active' : '';
         const badge = naoLidasMap[u.id] ? `<span class="badge-nao-lida">${naoLidasMap[u.id]}</span>` : '';
         const iniciais = getIniciais(u.nome);
+        const onlineDot = u.online ? '<span class="online-dot"></span>' : '';
         html += `
             <div class="conversation-item ${dmActive}" onclick="abrirConversa('dm', ${u.id}, '${escaparHtml(u.nome)}')">
-                <div class="conv-icon dm">${iniciais}</div>
+                <div class="conv-icon dm">${iniciais}${onlineDot}</div>
                 <div class="conv-info">
                     <div class="conv-name">${escaparHtml(u.nome)}</div>
-                    <div class="conv-preview">${escaparHtml(u.email)}</div>
+                    <div class="conv-preview">${u.online ? '🟢 Online' : escaparHtml(u.email)}</div>
                 </div>
                 ${badge}
             </div>
@@ -507,6 +517,7 @@ function renderAreaMensagens() {
     let headerIconClass = '';
     let headerIconContent = '';
 
+    let onlineStatus = '';
     if (conversaAtiva.tipo === 'geral') {
         headerLabel = 'Chat Geral';
         headerIconClass = 'geral';
@@ -515,12 +526,16 @@ function renderAreaMensagens() {
         headerLabel = conversaAtiva.nome;
         headerIconClass = 'dm';
         headerIconContent = getIniciais(conversaAtiva.nome);
+        const usr = usuarios.find(u => u.id === conversaAtiva.usuario_id);
+        if (usr && usr.online) {
+            onlineStatus = '<span style="font-size:11px; color:#22c55e; font-weight:500; margin-left:4px;">● Online</span>';
+        }
     }
 
     area.innerHTML = `
         <div class="messages-header">
             <div class="header-icon conv-icon ${headerIconClass}">${headerIconContent}</div>
-            <span>${escaparHtml(headerLabel)}</span>
+            <span>${escaparHtml(headerLabel)}${onlineStatus}</span>
         </div>
         <div class="messages-list" id="messagesList"></div>
         <div class="input-area">
@@ -686,6 +701,27 @@ function iniciarPollingNaoLidas() {
     carregarNaoLidas();
     pollingNaoLidasInterval = setInterval(carregarNaoLidas, 5000);
 }
+
+// ========== HEARTBEAT (status online) ==========
+function enviarHeartbeat() {
+    fetch('/api/chat/heartbeat', { method: 'PUT', headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+}
+
+async function atualizarStatusOnline() {
+    try {
+        const res = await fetch('/api/chat/usuarios', { headers: { Authorization: `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.ok) {
+            usuarios = data.usuarios;
+            renderConversas();
+        }
+    } catch (e) { /* silencioso */ }
+}
+
+// Heartbeat a cada 30s + atualizar status online a cada 15s
+enviarHeartbeat();
+setInterval(enviarHeartbeat, 30000);
+setInterval(atualizarStatusOnline, 15000);
 
 // ========== ARQUIVOS ==========
 function getFileIcon(nome) {

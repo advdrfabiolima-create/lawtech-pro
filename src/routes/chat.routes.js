@@ -53,6 +53,7 @@ router.post('/chat/mensagens', authMiddleware, controller.enviarMensagem);
 router.get('/chat/usuarios', authMiddleware, controller.listarUsuarios);
 router.get('/chat/nao-lidas', authMiddleware, controller.contarNaoLidas);
 router.put('/chat/mensagens/ler', authMiddleware, controller.marcarComoLidas);
+router.put('/chat/heartbeat', authMiddleware, controller.heartbeat);
 
 // Rotas de arquivo
 router.post('/chat/mensagens/arquivo', authMiddleware, upload.single('arquivo'), controller.enviarArquivo);

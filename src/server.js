@@ -440,6 +440,10 @@ require('./cron/auditoriaStripeCron');
         await pool.query(`ALTER TABLE chat_mensagens ADD COLUMN IF NOT EXISTS arquivo_path VARCHAR(500)`);
         console.log("✅ [SISTEMA] Tabela chat_mensagens verificada.");
 
+        // Coluna de último acesso para status online
+        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS ultimo_acesso TIMESTAMPTZ`);
+        console.log("✅ [SISTEMA] Coluna ultimo_acesso verificada.");
+
         iniciarAgendamentos();
 
     } catch (err) {
