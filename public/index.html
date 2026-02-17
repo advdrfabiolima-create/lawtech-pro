@@ -815,6 +815,36 @@
             line-height: 1.6;
         }
 
+        .benefit-item.benefit-highlight {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
+            border-left: 4px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .benefit-stamp {
+            position: absolute;
+            top: 14px;
+            right: 20px;
+            background: var(--primary);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 5px 14px;
+            border-radius: 4px;
+            transform: rotate(2deg);
+            box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+            animation: stampPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes stampPulse {
+            0%, 100% { box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
+            50% { box-shadow: 0 2px 16px rgba(37,99,235,0.55); }
+        }
+
         /* PRICING */
         .pricing-toggle {
             display: flex;
@@ -1835,6 +1865,14 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
                     <div class="benefit-content">
                         <h4>Gestão essencial incluída</h4>
                         <p>Todos os planos incluem acesso ao sistema completo de gestão, sem custos adicionais ou surpresas na fatura.</p>
+                    </div>
+                </div>
+                <div class="benefit-item benefit-highlight">
+                    <span class="benefit-stamp">Novidade</span>
+                    <div class="benefit-number">07</div>
+                    <div class="benefit-content">
+                        <h4>Chat Interno entre Colaboradores</h4>
+                        <p>Comunicação em tempo real entre os membros do escritório sem sair do sistema. Envie mensagens, compartilhe documentos e mantenha toda a equipe alinhada com chat geral e conversas privadas.</p>
                     </div>
                 </div>
             </div>
