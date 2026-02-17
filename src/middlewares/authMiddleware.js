@@ -2,7 +2,6 @@ const { verify: jwtVerify } = require('../config/jwt');
 const pool = require('../config/db');
 
 const authMiddleware = async (req, res, next) => {
-  console.log('🔐 [AUTH] Middleware chamado:', req.method, req.originalUrl);
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -44,14 +43,6 @@ const authMiddleware = async (req, res, next) => {
     // 🛡️ REGRA DE IMUNIDADE MASTER (via banco de dados)
     const ehMaster = usuario.is_master === true || usuario.email === process.env.MASTER_EMAIL;
 
-    console.log('📊 [AUTH] Dados do usuário:', {
-      email: usuario.email,
-      dias_restantes: diasRestantes,
-      status: usuario.plano_financeiro_status,
-      trial_expira_em: usuario.trial_expira_em,
-      eh_master: ehMaster
-    });
-
     // 🚨 REGRA DE BLOQUEIO
     if (!ehMaster && diasRestantes <= 0 && !['pago', 'ativo'].includes(usuario.plano_financeiro_status)) {
       console.log(`❌ [BLOQUEIO ATIVADO] Trial Expirado para: ${usuario.email}`);
@@ -79,8 +70,6 @@ const authMiddleware = async (req, res, next) => {
       eh_master: ehMaster
     };
 
-    console.log('✅ [AUTH] Usuário autenticado:', req.user.email);
-    console.log('   Dias restantes:', req.user.dias_restantes);
     next();
 
   } catch (err) {
