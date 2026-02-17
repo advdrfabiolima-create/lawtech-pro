@@ -7,8 +7,7 @@ const AUTH_TAG_LENGTH = 16;
 function getEncryptionKey() {
     const key = process.env.ENCRYPTION_KEY;
     if (!key) {
-        console.warn('⚠️ ENCRYPTION_KEY não configurada. Dados sensíveis não serão encriptados.');
-        return null;
+        throw new Error('ENCRYPTION_KEY não configurada. Dados sensíveis NÃO podem ser salvos sem criptografia. Configure a variável ENCRYPTION_KEY no .env');
     }
     // Aceita key em hex (64 chars) ou usa SHA-256 para derivar 32 bytes
     if (key.length === 64 && /^[0-9a-f]+$/i.test(key)) {
@@ -25,7 +24,6 @@ function encrypt(plaintext) {
     if (!plaintext) return null;
 
     const key = getEncryptionKey();
-    if (!key) return plaintext; // Sem chave, retorna sem encriptar
 
     const iv = crypto.randomBytes(IV_LENGTH);
     const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
@@ -44,7 +42,6 @@ function decrypt(encryptedText) {
     if (!encryptedText) return null;
 
     const key = getEncryptionKey();
-    if (!key) return encryptedText;
 
     // Se não está no formato encriptado (iv:authTag:ciphertext), retorna como está
     const parts = encryptedText.split(':');

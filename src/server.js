@@ -147,6 +147,16 @@ app.use('/api/pagamentos/assinar-plano', paymentLimiter);
 app.use('/api/pagamentos/cobrar-renovacao', paymentLimiter);
 app.use('/api/pagamentos/salvar-cartao', paymentLimiter);
 
+// Rate limiting para endpoints de IA (custo alto por request)
+const iaLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minuto
+    max: 10, // 10 requests por minuto
+    message: { erro: 'Limite de uso da IA atingido. Aguarde um momento.' }
+});
+app.use('/api/ia', iaLimiter);
+app.use('/api/peticoes/gerar', iaLimiter);
+app.use('/api/analisar-prazo', iaLimiter);
+
 // --- 7. SERVIR ARQUIVOS ESTÃTICOS ---
 const publicPath = path.join(__dirname, '..', 'public');
 app.use(express.static(publicPath));
@@ -314,13 +324,18 @@ require('./cron/auditoriaStripeCron');
             ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS is_master BOOLEAN DEFAULT false
         `);
 
-        const masterEmail = process.env.MASTER_EMAIL || 'adv.limaesilva@hotmail.com';
-        const hash = await bcrypt.hash(process.env.MASTER_PASSWORD || 'Lei@2026', 10);
-        await pool.query(`
-            INSERT INTO usuarios (nome, email, senha, role, escritorio_id, is_master)
-            VALUES ('Dr. Fábio Lima', $2, $1, 'admin', 1, true)
-            ON CONFLICT (email) DO UPDATE SET is_master = true
-        `, [hash, masterEmail]);
+        const masterEmail = process.env.MASTER_EMAIL;
+        const masterPassword = process.env.MASTER_PASSWORD;
+        if (!masterEmail || !masterPassword) {
+            console.warn("⚠️ [SISTEMA] MASTER_EMAIL ou MASTER_PASSWORD não configurados. Pulando criação de conta master.");
+        } else {
+            const hash = await bcrypt.hash(masterPassword, 10);
+            await pool.query(`
+                INSERT INTO usuarios (nome, email, senha, role, escritorio_id, is_master)
+                VALUES ('Dr. Fábio Lima', $2, $1, 'admin', 1, true)
+                ON CONFLICT (email) DO UPDATE SET is_master = true
+            `, [hash, masterEmail]);
+        }
 
         console.log("âœ… [SISTEMA] VerificaÃ§Ã£o de Acesso Master concluÃ­da.");
 

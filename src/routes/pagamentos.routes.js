@@ -222,14 +222,16 @@ router.post('/assinar-plano', authMiddleware, async (req, res) => {
 ===================================================== */
 
 router.post('/webhook', async (req, res) => {
-  // Verificação de token de acesso do webhook Asaas
+  // Verificação OBRIGATÓRIA de token de acesso do webhook Asaas
   const webhookToken = process.env.ASAAS_WEBHOOK_TOKEN;
-  if (webhookToken) {
-    const tokenRecebido = req.headers['asaas-access-token'] || req.query.token;
-    if (tokenRecebido !== webhookToken) {
-      console.error('❌ [WEBHOOK] Token de acesso inválido');
-      return res.status(401).json({ error: 'Token inválido' });
-    }
+  if (!webhookToken) {
+    console.error('❌ [WEBHOOK] ASAAS_WEBHOOK_TOKEN não configurado. Rejeitando request.');
+    return res.status(500).json({ error: 'Webhook não configurado' });
+  }
+  const tokenRecebido = req.headers['asaas-access-token'] || req.query.token;
+  if (tokenRecebido !== webhookToken) {
+    console.error('❌ [WEBHOOK] Token de acesso inválido');
+    return res.status(401).json({ error: 'Token inválido' });
   }
 
   const { event, payment } = req.body;
