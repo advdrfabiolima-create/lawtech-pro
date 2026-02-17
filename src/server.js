@@ -45,6 +45,9 @@ const verificarPagamento = require('./middlewares/financeiroMiddleware');
 // ðŸš€ 3. INICIALIZAÃ‡ÃƒO DO APP
 const app = express();
 
+// Confiar no proxy reverso (Railway, Heroku, etc.) para obter IP real dos usuários
+app.set('trust proxy', 1);
+
 // --- 4a. HTTPS ENFORCEMENT EM PRODUÇÃO ---
 if (process.env.NODE_ENV === 'production') {
     app.use((req, res, next) => {
