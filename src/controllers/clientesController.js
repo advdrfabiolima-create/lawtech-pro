@@ -5,7 +5,7 @@ async function listarClientes(req, res) {
     try {
         const escritorioId = req.user.escritorio_id;
         const page = Math.max(1, parseInt(req.query.page) || 1);
-        const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 100));
+        const limit = Math.min(1000, Math.max(1, parseInt(req.query.limit) || 500));
         const offset = (page - 1) * limit;
 
         const query = `
