@@ -910,7 +910,36 @@
 
             const resPlano = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
             const plano = await resPlano.json();
+            const planoNome = (plano.plano || 'free').toLowerCase();
             document.getElementById('planNameFooter').innerText = plano.plano || 'free';
+
+            // Verificar se é Premium - bloquear se não for
+            if (planoNome !== 'premium') {
+                const content = document.querySelector('.content');
+                if (content) {
+                    content.innerHTML = `
+                        <div style="display:flex; align-items:center; justify-content:center; min-height: 60vh;">
+                            <div style="text-align:center; background:var(--white); border-radius:16px; padding:48px 40px; border:1px solid var(--border); max-width:500px; box-shadow:0 8px 30px rgba(0,0,0,0.08);">
+                                <div style="width:72px; height:72px; background:#fef3c7; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:32px;">🔒</div>
+                                <h2 style="font-size:20px; font-weight:700; color:var(--text-primary); margin-bottom:12px;">Recurso Premium</h2>
+                                <p style="color:var(--text-secondary); font-size:14px; line-height:1.6; margin-bottom:24px;">
+                                    Você está no plano <strong style="text-transform:capitalize;">${plano.plano || 'Free'}</strong>.<br>
+                                    A geração de petições com IA está disponível apenas para assinantes do plano <strong>Premium</strong>.
+                                </p>
+                                <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+                                    <a href="/planos-page" style="display:inline-block; background:var(--accent-blue); color:white; padding:12px 28px; border-radius:10px; text-decoration:none; font-weight:700; font-size:14px; transition:all 0.2s;">
+                                        Fazer Upgrade
+                                    </a>
+                                    <a href="/dashboard" style="display:inline-block; background:var(--bg); color:var(--text-secondary); padding:12px 28px; border-radius:10px; text-decoration:none; font-weight:600; font-size:14px; border:1px solid var(--border);">
+                                        Voltar ao Dashboard
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                return;
+            }
         } catch (e) {
             console.error('Erro:', e);
         }

@@ -288,7 +288,7 @@ router.post('/recibos/gerar',
                .fontSize(9)
                .fillColor('#64748b')
                .text(
-                   `CNPJ: ${escritorio.documento || '00.000.000/0000-00'}`,
+                   `CPF/CNPJ: ${escritorio.documento || 'Não informado'}`,
                    infoX,
                    headerTop + 22,
                    { width: 395, align: 'right' }
