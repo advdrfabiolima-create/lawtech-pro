@@ -1,6 +1,6 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const pool = require('../config/db');
-const enviarEmail = require('./emailService');
+const { enviarEmail } = require('./emailService');
 
 async function registrarLog(escritorioId, evento, descricao, gravidade) {
     await pool.query(`
@@ -32,11 +32,11 @@ async function auditarEscritorio(escritorio) {
                 WHERE id = $1
             `, [id]);
 
-            await enviarEmail(
-                escritorio.email,
-                '⚠️ Problema na sua assinatura',
-                'Detectamos ausência de assinatura ativa. Regularize para evitar bloqueio.'
-            );
+            await enviarEmail({
+                para: escritorio.email,
+                assunto: '⚠️ Problema na sua assinatura',
+                texto: 'Detectamos ausência de assinatura ativa. Regularize para evitar bloqueio.'
+            });
 
             return;
         }
@@ -65,11 +65,11 @@ async function auditarEscritorio(escritorio) {
 
             await registrarLog(id, 'inadimplente', 'Assinatura inadimplente detectada', 'alta');
 
-            await enviarEmail(
-                escritorio.email,
-                '⚠️ Pagamento não aprovado',
-                'Seu pagamento não foi aprovado. Atualize seu cartão para continuar usando o sistema.'
-            );
+            await enviarEmail({
+                para: escritorio.email,
+                assunto: '⚠️ Pagamento não aprovado',
+                texto: 'Seu pagamento não foi aprovado. Atualize seu cartão para continuar usando o sistema.'
+            });
         }
 
     } catch (error) {
