@@ -4,9 +4,6 @@ const pool = require('../config/db');
 async function listarClientes(req, res) {
     try {
         const escritorioId = req.user.escritorio_id;
-        const page = Math.max(1, parseInt(req.query.page) || 1);
-        const limit = Math.min(1000, Math.max(1, parseInt(req.query.limit) || 500));
-        const offset = (page - 1) * limit;
 
         const query = `
             SELECT
@@ -30,10 +27,9 @@ async function listarClientes(req, res) {
             FROM clientes c
             WHERE c.escritorio_id = $1
             ORDER BY c.nome ASC
-            LIMIT $2 OFFSET $3
         `;
 
-        const result = await pool.query(query, [escritorioId, limit, offset]);
+        const result = await pool.query(query, [escritorioId]);
         res.json(result.rows || []);
     } catch (error) {
         console.error('❌ Erro ao listar clientes:', error.message);
