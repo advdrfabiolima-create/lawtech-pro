@@ -1090,10 +1090,38 @@
             const resP = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
             if (resP.ok) {
                 const dataP = await resP.json();
-                console.log('Dados do plano recebidos:', dataP);
+                const planoNome = (dataP.plano || '').toLowerCase();
                 const planNameEl = document.getElementById('planNameFooter');
                 if (planNameEl) {
                     planNameEl.innerText = dataP.plano || '---';
+                }
+
+                // CRM requer plano Avançado ou Premium
+                if (!['avançado', 'avancado', 'premium'].includes(planoNome)) {
+                    const content = document.querySelector('.content');
+                    if (content) {
+                        content.innerHTML = `
+                            <div style="display:flex; align-items:center; justify-content:center; min-height: 60vh;">
+                                <div style="text-align:center; background:var(--white); border-radius:16px; padding:48px 40px; border:1px solid var(--border); max-width:520px; box-shadow:0 8px 30px rgba(0,0,0,0.08);">
+                                    <div style="width:72px; height:72px; background:#fef3c7; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:32px;">📊</div>
+                                    <h2 style="font-size:20px; font-weight:700; color:var(--text-primary); margin-bottom:12px;">CRM Prospecção</h2>
+                                    <p style="color:var(--text-secondary); font-size:14px; line-height:1.6; margin-bottom:24px;">
+                                        Você está no plano <strong style="text-transform:capitalize;">${dataP.plano || 'Free'}</strong>.<br>
+                                        O módulo CRM de prospecção está disponível a partir do plano <strong>Avançado</strong>.
+                                    </p>
+                                    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+                                        <a href="/planos-page" style="display:inline-block; background:var(--accent-blue); color:white; padding:12px 28px; border-radius:10px; text-decoration:none; font-weight:700; font-size:14px;">
+                                            Fazer Upgrade
+                                        </a>
+                                        <a href="/dashboard" style="display:inline-block; background:var(--bg); color:var(--text-secondary); padding:12px 28px; border-radius:10px; text-decoration:none; font-weight:600; font-size:14px; border:1px solid var(--border);">
+                                            Voltar ao Dashboard
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    return;
                 }
             }
         } catch (e) {
