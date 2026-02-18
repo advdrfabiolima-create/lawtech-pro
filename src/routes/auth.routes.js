@@ -183,6 +183,41 @@ router.post('/register', async (req, res) => {
                 } catch (mailErr) {
                     console.warn(`⚠️ [REGISTRO] Falha ao enviar e-mail de boas-vindas: ${mailErr.message}`);
                 }
+
+                // 📧 Notificar admin sobre novo cadastro
+                try {
+                    await axios.post('https://api.brevo.com/v3/smtp/email', {
+                        sender: { name: 'LawTech Pro', email: process.env.BREVO_SENDER },
+                        to: [{ email: 'fabio@lawtechpro.com.br', name: 'Admin LawTech' }],
+                        subject: '🆕 Novo Cadastro no LawTech Pro!',
+                        htmlContent: `
+                        <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafb;">
+                            <div style="background:#1E3A5F;padding:24px;text-align:center;">
+                                <img src="https://www.lawtechpro.com.br/Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro" style="max-width:180px;height:auto;margin:0 auto 8px;" />
+                                <p style="color:rgba(255,255,255,0.8);margin:0;font-size:13px;">Notificação Administrativa</p>
+                            </div>
+                            <div style="padding:28px 24px;background:white;">
+                                <h2 style="color:#1E3A5F;margin:0 0 16px;font-size:18px;">🎉 Novo usuário cadastrado!</h2>
+                                <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                                    <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;width:120px;">Nome</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#2D3748;">${usuario.nome}</td></tr>
+                                    <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;">E-mail</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#2D3748;">${usuario.email}</td></tr>
+                                    <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;">OAB</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#2D3748;">${req.body.oab || '—'} / ${req.body.uf || '—'}</td></tr>
+                                    <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;">Data</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#2D3748;">${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</td></tr>
+                                    <tr><td style="padding:10px 12px;color:#7B8794;font-weight:600;">Plano</td><td style="padding:10px 12px;color:#2D3748;">Trial (7 dias)</td></tr>
+                                </table>
+                                <div style="text-align:center;margin:24px 0 0;">
+                                    <a href="https://www.lawtechpro.com.br/admin-monitor.html" style="display:inline-block;background:#4A90E2;color:white;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:700;font-size:14px;">Ver Painel Admin</a>
+                                </div>
+                            </div>
+                            <div style="padding:16px 24px;text-align:center;background:#f8fafb;border-top:1px solid #e2e8f0;">
+                                <p style="color:#A0AEC0;font-size:10px;margin:0;">Notificação automática — LawTech Pro</p>
+                            </div>
+                        </div>`
+                    }, { headers: { 'api-key': process.env.BREVO_API_KEY } });
+                    console.log(`📧 [ADMIN] Notificação de novo cadastro enviada`);
+                } catch (adminMailErr) {
+                    console.warn(`⚠️ [ADMIN] Falha ao notificar admin: ${adminMailErr.message}`);
+                }
             }
 
             // ✅ Retorna sucesso

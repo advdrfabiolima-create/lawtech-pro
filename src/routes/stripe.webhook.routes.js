@@ -3,6 +3,7 @@ const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const pool = require('../config/db');
 const { registrarAudit } = require('../utils/auditLog');
+const axios = require('axios');
 
 /* ✅ CORREÇÃO 3: Webhook Stripe Completo */
 
@@ -62,6 +63,56 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                         await client.query('COMMIT');
                         console.log(`✅ Escritório ${escritorioId} atualizado para PAGO`);
                         registrarAudit({ escritorio_id: parseInt(escritorioId), acao: 'PAGAMENTO_APROVADO', descricao: `Pagamento Stripe aprovado: ${paymentIntent.id}`, metadata: { gateway: 'stripe', valor: paymentIntent.amount, gateway_id: paymentIntent.id } });
+
+                        // 📧 Notificar admin sobre pagamento aprovado
+                        if (process.env.BREVO_API_KEY && process.env.BREVO_SENDER) {
+                            try {
+                                const escritorioInfo = await client.query(
+                                    `SELECT e.nome AS escritorio_nome, u.nome AS usuario_nome, u.email, e.plano
+                                     FROM escritorios e
+                                     LEFT JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
+                                     WHERE e.id = $1 LIMIT 1`,
+                                    [escritorioId]
+                                );
+                                const info = escritorioInfo.rows[0] || {};
+                                const valorFormatado = (paymentIntent.amount / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                                await axios.post('https://api.brevo.com/v3/smtp/email', {
+                                    sender: { name: 'LawTech Pro', email: process.env.BREVO_SENDER },
+                                    to: [{ email: 'fabio@lawtechpro.com.br', name: 'Admin LawTech' }],
+                                    subject: '💰 Pagamento Aprovado — LawTech Pro',
+                                    htmlContent: `
+                                    <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafb;">
+                                        <div style="background:#1E3A5F;padding:24px;text-align:center;">
+                                            <img src="https://www.lawtechpro.com.br/Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro" style="max-width:180px;height:auto;margin:0 auto 8px;" />
+                                            <p style="color:rgba(255,255,255,0.8);margin:0;font-size:13px;">Notificação Administrativa</p>
+                                        </div>
+                                        <div style="padding:28px 24px;background:white;">
+                                            <div style="text-align:center;margin-bottom:20px;">
+                                                <div style="display:inline-block;background:#D1FAE5;color:#065F46;padding:8px 20px;border-radius:20px;font-weight:700;font-size:14px;">PAGAMENTO APROVADO</div>
+                                            </div>
+                                            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                                                <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;width:120px;">Valor</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#065F46;font-weight:700;font-size:18px;">${valorFormatado}</td></tr>
+                                                <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;">Cliente</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#2D3748;">${info.usuario_nome || '—'}</td></tr>
+                                                <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;">E-mail</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#2D3748;">${info.email || '—'}</td></tr>
+                                                <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;">Plano</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#2D3748;">${info.plano || '—'}</td></tr>
+                                                <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;">Gateway ID</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#2D3748;font-family:monospace;font-size:12px;">${paymentIntent.id}</td></tr>
+                                                <tr><td style="padding:10px 12px;color:#7B8794;font-weight:600;">Data</td><td style="padding:10px 12px;color:#2D3748;">${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</td></tr>
+                                            </table>
+                                            <div style="text-align:center;margin:24px 0 0;">
+                                                <a href="https://www.lawtechpro.com.br/admin-monitor.html" style="display:inline-block;background:#4A90E2;color:white;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:700;font-size:14px;">Ver Painel Admin</a>
+                                            </div>
+                                        </div>
+                                        <div style="padding:16px 24px;text-align:center;background:#f8fafb;border-top:1px solid #e2e8f0;">
+                                            <p style="color:#A0AEC0;font-size:10px;margin:0;">Notificação automática — LawTech Pro</p>
+                                        </div>
+                                    </div>`
+                                }, { headers: { 'api-key': process.env.BREVO_API_KEY } });
+                                console.log(`📧 [ADMIN] Notificação de pagamento aprovado enviada`);
+                            } catch (adminMailErr) {
+                                console.warn(`⚠️ [ADMIN] Falha ao notificar pagamento: ${adminMailErr.message}`);
+                            }
+                        }
                     } catch (txErr) {
                         await client.query('ROLLBACK');
                         console.error('❌ Erro na transação webhook:', txErr.message);
