@@ -5,6 +5,7 @@ const { sign: jwtSign, verify: jwtVerify } = require('../config/jwt');
 const pool = require('../config/db');
 const { validarSenha, validarDocumento } = require('../utils/validators');
 const { registrarAudit, dadosReq } = require('../utils/auditLog');
+const axios = require('axios');
 
 /* ======================================================
    ROTA DE REGISTRO - CORRIGIDA E COMPLETA
@@ -132,6 +133,57 @@ router.post('/register', async (req, res) => {
 
             console.log(`🎉 [REGISTRO] Cadastro concluído com sucesso: ${usuario.email}`);
             registrarAudit({ usuario_id: usuario.id, email: usuario.email, escritorio_id: escritorioId, acao: 'REGISTRO', descricao: 'Nova conta criada', ...dadosReq(req) });
+
+            // 📧 Enviar e-mail de boas-vindas via Brevo
+            if (process.env.BREVO_API_KEY && process.env.BREVO_SENDER) {
+                try {
+                    await axios.post('https://api.brevo.com/v3/smtp/email', {
+                        sender: { name: 'LawTech Pro', email: process.env.BREVO_SENDER },
+                        to: [{ email: usuario.email, name: usuario.nome }],
+                        subject: '⚖️ Bem-vindo ao LawTech Pro!',
+                        htmlContent: `
+                        <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafb;">
+                            <div style="background:linear-gradient(135deg,#1E3A5F 0%,#2D5A8E 100%);padding:32px 24px;text-align:center;">
+                                <h1 style="color:white;margin:0;font-size:26px;">⚖️ LawTech Pro</h1>
+                                <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:14px;">Sistema Jurídico Inteligente</p>
+                            </div>
+                            <div style="padding:32px 24px;background:white;">
+                                <h2 style="color:#1E3A5F;margin:0 0 16px;font-size:20px;">Olá, Dr(a). ${usuario.nome}!</h2>
+                                <p style="color:#4A5568;font-size:15px;line-height:1.7;margin:0 0 20px;">
+                                    Seja bem-vindo(a) ao <strong>LawTech Pro</strong>! Sua conta foi criada com sucesso e você já pode começar a usar todas as funcionalidades do sistema.
+                                </p>
+                                <div style="background:#EBF5FF;border-left:4px solid #4A90E2;padding:16px;border-radius:0 8px 8px 0;margin:20px 0;">
+                                    <p style="margin:0;font-weight:700;color:#1E3A5F;font-size:14px;">🎁 Período de Teste Grátis: 7 dias</p>
+                                    <p style="margin:6px 0 0;color:#4A5568;font-size:13px;">Expira em: ${dataExpiracao.toLocaleDateString('pt-BR')}</p>
+                                </div>
+                                <p style="color:#4A5568;font-size:14px;line-height:1.6;margin:16px 0;">
+                                    Durante o período de teste, você terá acesso completo para explorar:
+                                </p>
+                                <ul style="color:#4A5568;font-size:14px;line-height:2;padding-left:20px;">
+                                    <li>📋 Gestão de Processos e Prazos</li>
+                                    <li>👥 Cadastro de Clientes</li>
+                                    <li>📅 Audiências e Calendário</li>
+                                    <li>💰 Controle Financeiro</li>
+                                    <li>📊 Relatórios e Dashboard</li>
+                                </ul>
+                                <div style="text-align:center;margin:28px 0;">
+                                    <a href="https://www.lawtechpro.com.br/login.html"
+                                       style="display:inline-block;background:linear-gradient(135deg,#4A90E2,#357ABD);color:white;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:700;font-size:15px;">
+                                        Acessar o Sistema →
+                                    </a>
+                                </div>
+                            </div>
+                            <div style="padding:20px 24px;text-align:center;background:#f8fafb;border-top:1px solid #e2e8f0;">
+                                <p style="color:#7B8794;font-size:11px;margin:0;">LawTech Pro — Sistema Jurídico Inteligente</p>
+                                <p style="color:#A0AEC0;font-size:10px;margin:4px 0 0;">Este é um e-mail automático. Não responda esta mensagem.</p>
+                            </div>
+                        </div>`
+                    }, { headers: { 'api-key': process.env.BREVO_API_KEY } });
+                    console.log(`📧 [REGISTRO] E-mail de boas-vindas enviado para ${usuario.email}`);
+                } catch (mailErr) {
+                    console.warn(`⚠️ [REGISTRO] Falha ao enviar e-mail de boas-vindas: ${mailErr.message}`);
+                }
+            }
 
             // ✅ Retorna sucesso
             res.status(201).json({
