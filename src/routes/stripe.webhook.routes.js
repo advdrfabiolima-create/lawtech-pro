@@ -79,7 +79,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
 
                                 await axios.post('https://api.brevo.com/v3/smtp/email', {
                                     sender: { name: 'LawTech Pro', email: process.env.BREVO_SENDER },
-                                    to: [{ email: 'fabio@lawtechpro.com.br', name: 'Admin LawTech' }],
+                                    to: [{ email: process.env.ADMIN_EMAIL || 'fabio@lawtechpro.com.br', name: 'Admin LawTech' }],
                                     subject: '💰 Pagamento Aprovado — LawTech Pro',
                                     htmlContent: `
                                     <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafb;">
