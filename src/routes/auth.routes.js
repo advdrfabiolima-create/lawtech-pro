@@ -143,9 +143,9 @@ router.post('/register', async (req, res) => {
                         subject: '⚖️ Bem-vindo ao LawTech Pro!',
                         htmlContent: `
                         <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafb;">
-                            <div style="background:linear-gradient(135deg,#1E3A5F 0%,#2D5A8E 100%);padding:32px 24px;text-align:center;">
-                                <h1 style="color:white;margin:0;font-size:26px;">⚖️ LawTech Pro</h1>
-                                <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:14px;">Sistema Jurídico Inteligente</p>
+                            <div style="background:#1E3A5F;padding:32px 24px;text-align:center;">
+                                <img src="https://www.lawtechpro.com.br/Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro" style="max-width:200px;height:auto;margin:0 auto 12px;" />
+                                <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px;">Sistema Jurídico Inteligente</p>
                             </div>
                             <div style="padding:32px 24px;background:white;">
                                 <h2 style="color:#1E3A5F;margin:0 0 16px;font-size:20px;">Olá, Dr(a). ${usuario.nome}!</h2>
