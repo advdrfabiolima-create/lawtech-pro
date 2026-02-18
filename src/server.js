@@ -353,6 +353,20 @@ require('./cron/auditoriaStripeCron');
         `);
         console.log("✅ [SISTEMA] Tabela webhook_events verificada.");
 
+        // Criar tabela de logs do sistema (monitoramento)
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS logs_sistema (
+                id SERIAL PRIMARY KEY,
+                escritorio_id INTEGER,
+                servico VARCHAR(100),
+                tipo_erro VARCHAR(100),
+                mensagem_erro TEXT,
+                criado_em TIMESTAMP DEFAULT NOW()
+            )
+        `);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_logs_sistema_criado ON logs_sistema(criado_em)`);
+        console.log("✅ [SISTEMA] Tabela logs_sistema verificada.");
+
         // Criar tabela de audit log
         await pool.query(`
             CREATE TABLE IF NOT EXISTS audit_log (
@@ -360,18 +374,22 @@ require('./cron/auditoriaStripeCron');
                 usuario_id INTEGER,
                 email VARCHAR(255),
                 escritorio_id INTEGER,
-                acao VARCHAR(100) NOT NULL,
+                tipo_evento VARCHAR(100),
+                acao VARCHAR(100),
                 descricao TEXT,
                 metadata JSONB,
                 ip VARCHAR(45),
                 user_agent TEXT,
-                created_at TIMESTAMP DEFAULT NOW()
+                criado_em TIMESTAMP DEFAULT NOW()
             )
         `);
+        // Colunas extras (caso tabela já exista sem elas)
+        await pool.query(`ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS tipo_evento VARCHAR(100)`);
+        await pool.query(`ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS criado_em TIMESTAMP DEFAULT NOW()`);
         // Índices para consultas frequentes
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_acao ON audit_log(acao)`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_usuario ON audit_log(usuario_id)`);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at)`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(criado_em)`);
         console.log("✅ [SISTEMA] Tabela audit_log verificada.");
 
         // Coluna retry_count para controle de retentativas de cobrança
@@ -394,12 +412,25 @@ require('./cron/auditoriaStripeCron');
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_consentimentos_usuario ON consentimentos(usuario_id)`);
         console.log("✅ [SISTEMA] Tabela consentimentos LGPD verificada.");
 
+        // Criar tabela de transações financeiras
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS transacoes (
+                id SERIAL PRIMARY KEY,
+                escritorio_id INTEGER,
+                gateway_id VARCHAR(255),
+                gateway VARCHAR(50),
+                valor NUMERIC(10,2),
+                status VARCHAR(50),
+                descricao TEXT,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
         // Unique constraint em gateway_id para idempotência atômica
         await pool.query(`
             CREATE UNIQUE INDEX IF NOT EXISTS idx_transacoes_gateway_id_unique
             ON transacoes(gateway_id) WHERE gateway_id IS NOT NULL
         `);
-        console.log("✅ [SISTEMA] Índice único gateway_id verificado.");
+        console.log("✅ [SISTEMA] Tabela transacoes verificada.");
 
         // Tabela de feriados e suspensões (Calendário Jurídico)
         await pool.query(`

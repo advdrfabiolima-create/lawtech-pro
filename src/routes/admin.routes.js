@@ -265,21 +265,21 @@ router.get('/monitoramento', async (req, res) => {
 router.get('/audit-log', async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT 
+            SELECT
                 a.id,
-                a.tipo_evento,
+                COALESCE(a.tipo_evento, a.acao) as tipo_evento,
                 a.descricao,
-                a.criado_em,
+                COALESCE(a.criado_em, a.created_at) as criado_em,
                 a.escritorio_id,
                 e.nome as escritorio_nome,
                 e.oab as escritorio_oab,
                 a.usuario_id,
                 u.nome as usuario_nome,
                 a.metadata
-            FROM audit_logs a
+            FROM audit_log a
             LEFT JOIN escritorios e ON e.id = a.escritorio_id
             LEFT JOIN usuarios u ON u.id = a.usuario_id
-            ORDER BY a.criado_em DESC 
+            ORDER BY COALESCE(a.criado_em, a.created_at) DESC
             LIMIT 200
         `);
 

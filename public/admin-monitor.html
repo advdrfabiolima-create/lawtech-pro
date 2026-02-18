@@ -1688,7 +1688,7 @@
                         <th>TIPO</th>
                         <th>DESCRIÇÃO</th>
                         <th>ESCRITÓRIO</th>
-                        <th>GRAVIDADE</th>
+                        <th>USUÁRIO</th>
                     </tr>
                 </thead>
                 <tbody id="body-audit">
@@ -2009,7 +2009,7 @@ function renderizarStatsEscritorios(stats) {
     
     // Popular valores dos outros cards
     const mrrElOverview = document.getElementById('mrrValueOverview');
-    if (mrrElOverview) mrrElOverview.innerText = stats.mrr.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    if (mrrElOverview) mrrElOverview.innerText = (stats.mrr || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
     const churnElOverview = document.getElementById('churnRateOverview');
     if (churnElOverview) {
@@ -2445,37 +2445,7 @@ function renderizarTabelaInadimplentes(lista) {
     });
 }
 
-function contatarEscritorio(id) {
-    // Busca o escritório na lista de inadimplentes carregada [cite: 107, 117]
-    const escritorio = inadimplentesData.find(e => e.id === id);
-    
-    if (!escritorio) {
-        alert("Dados do escritório não encontrados.");
-        return;
-    }
-
-    // Formatação de data e valor para o padrão brasileiro [cite: 161, 163]
-    const dataVenc = new Date(escritorio.data_vencimento).toLocaleDateString('pt-BR');
-    const valorMsg = parseFloat(escritorio.valor_mensalidade || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-    const saudacao = "Olá, Dr(a). " + (escritorio.advogado_responsavel || "Colega");
-    
-    // Mensagem estruturada e profissional 
-    const mensagem = `${saudacao}, aqui é do suporte da LawTech Systems.
-
-Identificamos uma pendência no sistema referente ao escritório ${escritorio.nome.toUpperCase()}.
-
-📌 Detalhes da fatura:
-- Vencimento: ${dataVenc}
-- Valor: ${valorMsg}
-- Atraso: ${escritorio.dias_atraso} dias
-
-Para evitar a suspensão do acesso aos seus ${escritorio.total_processos} processos cadastrados, podemos enviar uma nova via do boleto ou chave PIX?`;
-
-    // Abre o WhatsApp Web com a mensagem pronta [cite: 171]
-    const url = `https://web.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
-    window.open(url, '_blank');
-}
+// contatarEscritorio() definida mais abaixo (versão completa com WhatsApp)
 
 // ==========================================
 // NOVAS FUNÇÕES: UPGRADE
@@ -2578,9 +2548,7 @@ function renderizarTabelaUpgrade(lista) {
     });
 }
 
-function oferecerUpgrade(id) {
-    alert(`Funcionalidade de oferta de upgrade para escritório ID ${id}\nImplementar integração com sistema de vendas`);
-}
+// oferecerUpgrade() definida mais abaixo (versão completa com WhatsApp)
 
 // ==========================================
 // NOVAS FUNÇÕES: AUDIT LOG
@@ -2666,9 +2634,9 @@ async function atualizarEstatisticasCompletas() {
                     (data.stats.pendente || 0) + (data.stats.inadimplente || 0);
             }
             
-            // 3. Atualizar Oportunidades Upgrade - ID real: totalNoLimiteOverview
-            if (document.getElementById('totalNoLimiteOverview')) {
-                document.getElementById('totalNoLimiteOverview').textContent = data.stats.no_limite || 0;
+            // 3. Atualizar Oportunidades Upgrade - ID real: totalUpgradeOverview
+            if (document.getElementById('totalUpgradeOverview')) {
+                document.getElementById('totalUpgradeOverview').textContent = data.stats.no_limite || 0;
             }
 
             // 4. Atualizar Churn - ID real: churnRateOverview
@@ -2803,7 +2771,7 @@ async function gerarRelatorioMensal() {
     const stats = [
     ["Total de Escritórios", escritoriosData.length],
     ["Inadimplentes", document.getElementById('totalInadimplentesOverview')?.textContent || 0],
-    ["Oportunidades de Upgrade", document.getElementById('totalNoLimiteOverview')?.textContent || 0]
+    ["Oportunidades de Upgrade", document.getElementById('totalUpgradeOverview')?.textContent || 0]
     ];
 
     doc.autoTable({
@@ -2842,6 +2810,8 @@ async function gerarRelatorioMensal() {
         // Inicializar
         carregarDadosEscritorios();
 
+        let auditDataFull = [];
+
         async function carregarAuditoriaFinanceira() {
     try {
         const res = await fetch('/systems/audit-log', {
@@ -2851,40 +2821,52 @@ async function gerarRelatorioMensal() {
         });
 
         const data = await res.json();
-        auditData = data;
+        const eventos = data.eventos || [];
+        auditDataFull = eventos;
+        auditData = eventos;
 
-        const tbody = document.getElementById('body-audit');
-        tbody.innerHTML = '';
-
-        if (!data.length) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5" style="text-align:center;padding:40px;">
-                        Nenhum evento registrado.
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-
-        data.forEach(log => {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${new Date(log.criado_em).toLocaleString()}</td>
-                        <td><span class="badge badge-info">${log.evento}</span></td>
-                        <td>${log.descricao}</td>
-                        <td>${log.nome}</td>
-                        <td><span class="badge badge-${log.gravidade === 'critica' ? 'danger' : 
-                        log.gravidade === 'alta' ? 'warning' : 'success'}">
-                        ${log.gravidade.toUpperCase()}
-                        </span>
-                    </td>
-                </tr>
-            `;
-        });
+        renderizarTabelaAudit(eventos);
 
     } catch (error) {
         console.error('Erro ao carregar auditoria:', error);
+    }
+}
+
+function renderizarTabelaAudit(lista) {
+    const tbody = document.getElementById('body-audit');
+    tbody.innerHTML = '';
+
+    if (!lista || lista.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align:center;padding:40px;">
+                    Nenhum evento registrado.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    lista.forEach(log => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${new Date(log.criado_em).toLocaleString('pt-BR')}</td>
+                <td><span class="badge badge-info">${log.tipo_evento || '—'}</span></td>
+                <td>${log.descricao || '—'}</td>
+                <td>${log.escritorio || '—'}</td>
+                <td>${log.usuario || 'Sistema'}</td>
+            </tr>
+        `;
+    });
+}
+
+function filtrarAudit() {
+    const filtro = document.getElementById('filtroTipoEvento').value.toLowerCase();
+    if (!filtro) {
+        renderizarTabelaAudit(auditDataFull);
+    } else {
+        const filtrados = auditDataFull.filter(e => (e.tipo_evento || '').toLowerCase().includes(filtro));
+        renderizarTabelaAudit(filtrados);
     }
 }
 
