@@ -330,57 +330,126 @@
 
         .btn-secondary:hover { background: var(--bg-primary); }
 
-        /* TABELA */
-        .table-container {
+        /* CARDS GRID */
+        .cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .pub-card {
             background: white;
-            border-radius: var(--radius-lg);
+            border-radius: 12px;
             border: 1px solid var(--border-subtle);
+            border-left: 4px solid #f59e0b;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .pub-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
         }
 
-        thead {
-            background: var(--bg-primary);
-            border-bottom: 2px solid var(--border-medium);
-        }
+        .pub-card.status-convertida { border-left-color: #10b981; }
+        .pub-card.status-descartada { border-left-color: #ef4444; }
+        .pub-card.status-pendente { border-left-color: #f59e0b; }
 
-        thead th {
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding: 16px 20px;
-            text-align: left;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            letter-spacing: 0.5px;
-        }
-
-        tbody tr {
             border-bottom: 1px solid var(--border-subtle);
-            transition: var(--transition);
         }
 
-        tbody tr:hover {
+        .card-processo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border-subtle);
             background: var(--bg-primary);
         }
 
-        tbody td {
-            padding: 20px;
-            font-size: 14px;
-            color: var(--text-primary);
+        .card-processo-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            flex: 1;
         }
 
         .processo-numero {
             font-family: 'JetBrains Mono', monospace;
             font-weight: 600;
             color: var(--accent-blue);
+            font-size: 14px;
+        }
+
+        .processo-tribunal {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+        }
+
+        .btn-copiar {
+            background: none;
+            border: 1px solid var(--border-medium);
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-copiar:hover {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        .card-conteudo {
+            padding: 16px 20px;
+        }
+
+        .card-conteudo-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .card-conteudo-text {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            padding: 14px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .card-footer {
+            display: flex;
+            gap: 8px;
+            padding: 12px 20px;
+            border-top: 1px solid var(--border-subtle);
+            background: var(--bg-primary);
         }
 
         .badge {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             padding: 6px 12px;
             border-radius: 12px;
             font-size: 11px;
@@ -389,53 +458,47 @@
             letter-spacing: 0.3px;
         }
 
-        .badge-pendente {
-            background: #fef3c7;
-            color: #92400e;
-        }
+        .badge-pendente { background: #fef3c7; color: #92400e; }
+        .badge-convertida { background: #d1fae5; color: #065f46; }
+        .badge-descartada { background: #fee2e2; color: #991b1b; }
 
-        .badge-convertida {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .badge-descartada {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
+        .card-date {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-card {
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             transition: var(--transition);
-            border: none;
-            background: var(--bg-primary);
-            color: var(--text-secondary);
+            border: 1px solid var(--border-medium);
+            background: white;
+            color: var(--text-primary);
         }
 
-        .btn-icon:hover {
-            background: var(--accent-blue);
-            color: white;
-        }
-
-        .btn-icon.danger:hover {
-            background: var(--accent-red);
-        }
+        .btn-card:hover { background: var(--bg-primary); }
+        .btn-card.primary { background: var(--accent-blue); color: white; border-color: var(--accent-blue); }
+        .btn-card.primary:hover { background: #3a7fd1; }
+        .btn-card.danger { color: var(--accent-red); border-color: #fecaca; }
+        .btn-card.danger:hover { background: #fef2f2; }
 
         .empty-state {
             text-align: center;
             padding: 60px 20px;
             color: var(--text-tertiary);
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
         }
 
         .empty-state i {
@@ -448,6 +511,16 @@
             font-size: 16px;
             font-weight: 600;
         }
+
+        /* HIGHLIGHT TERMOS JURÍDICOS */
+        .hl-intimacao { background: #FEF3C7; color: #92400E; padding: 1px 4px; border-radius: 3px; }
+        .hl-citacao { background: #DBEAFE; color: #1E40AF; padding: 1px 4px; border-radius: 3px; }
+        .hl-prazo { background: #FEE2E2; color: #991B1B; padding: 1px 4px; border-radius: 3px; }
+        .hl-sentenca { background: #EDE9FE; color: #5B21B6; padding: 1px 4px; border-radius: 3px; }
+        .hl-audiencia { background: #D1FAE5; color: #065F46; padding: 1px 4px; border-radius: 3px; }
+        .hl-urgente { background: #FCA5A5; color: #7F1D1D; padding: 1px 4px; border-radius: 3px; font-weight: 700; }
+        .hl-parte-label { background: #E0E7FF; color: #3730A3; padding: 1px 4px; border-radius: 3px; font-weight: 700; }
+        .hl-parte-nome { background: #FEF9C3; color: #854D0E; padding: 1px 5px; border-radius: 3px; font-weight: 600; border-bottom: 2px solid #F59E0B; }
 
         /* MODAL */
         .modal {
@@ -470,6 +543,7 @@
             border-radius: 12px;
             padding: 32px;
             max-width: 800px;
+            width: 95%;
             max-height: 80vh;
             overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
@@ -546,9 +620,16 @@
             .sidebar { display: none; }
             .main { margin-left: 0; }
             .header { padding: 16px 24px; }
-            .content { padding: 24px; }
-            .metrics-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
-            .modal-content { max-width: 700px; width: 90%; }
+            .content { padding: 16px; }
+            .metrics-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+            .modal-content { max-width: 700px; width: 95%; padding: 20px; }
+            .card-header { padding: 12px 16px; }
+            .card-processo { padding: 10px 16px; flex-wrap: wrap; }
+            .card-conteudo { padding: 12px 16px; }
+            .card-footer { padding: 10px 16px; flex-wrap: wrap; }
+            .btn-card { font-size: 12px; padding: 6px 10px; }
+            .toolbar { flex-direction: column; }
+            .search-box { min-width: unset; }
         }
 
     </style>
@@ -689,23 +770,9 @@
             <p style="color:var(--text-secondary); font-size:13px;">Isso pode levar até 60 segundos</p>
         </div>
 
-        <!-- TABELA -->
-        <div class="table-container" id="tableContainer">
-            <table>
-                <thead>
-                    <tr>
-                        <th>DATA</th>
-                        <th>PROCESSO</th>
-                        <th>TIPO</th>
-                        <th>CONTEÚDO</th>
-                        <th>STATUS</th>
-                        <th style="text-align: center;">AÇÕES</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <!-- Preenchido via JavaScript -->
-                </tbody>
-            </table>
+        <!-- CARDS -->
+        <div id="cardsContainer" class="cards-container">
+            <!-- Preenchido via JavaScript -->
         </div>
     </main>
 </div>
@@ -728,6 +795,7 @@ const token = localStorage.getItem('token');
 if (!token) window.location.href = '/login.html';
 
 let publicacoes = [];
+let modalPubId = null;
 
 // USER MENU
 function toggleUserMenu() {
@@ -742,12 +810,116 @@ window.addEventListener('click', (e) => {
     }
 });
 
+// MAPEAMENTO DE TRIBUNAIS (código CNJ → sigla)
+const TRIBUNAIS_MAP = {
+    '01': 'TJAC', '02': 'TJAL', '03': 'TJAP', '04': 'TJAM', '05': 'TJBA',
+    '06': 'TJCE', '07': 'TJDF', '08': 'TJES', '09': 'TJGO', '10': 'TJMA',
+    '11': 'TJMT', '12': 'TJMS', '13': 'TJMG', '14': 'TJPA', '15': 'TJPB',
+    '16': 'TJPR', '17': 'TJPE', '18': 'TJPI', '19': 'TJRJ', '20': 'TJRN',
+    '21': 'TJRS', '22': 'TJRO', '23': 'TJRR', '24': 'TJSC', '25': 'TJSE',
+    '26': 'TJSP', '27': 'TJTO'
+};
+
+function mapearTribunal(valor) {
+    if (!valor) return 'DJEN';
+    // Se já é um nome conhecido (DJEN, TJRS, TRF-1...), manter
+    if (/^(DJEN|TJ[A-Z]{2}|TRF|TST|STJ|STF|TRT|TRE)/.test(valor)) return valor;
+    // Se é formato TJ + número (ex: TJ21), mapear
+    const match = valor.match(/^TJ(\d{2})$/i);
+    if (match) {
+        return TRIBUNAIS_MAP[match[1]] || valor;
+    }
+    return valor;
+}
+
+// HIGHLIGHT DE TERMOS JURÍDICOS
+function highlightTermos(texto) {
+    if (!texto) return '';
+    // Escape HTML first
+    let t = texto.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    // 1) Highlight partes processuais: rótulo + nome que segue
+    // Rótulos em CAIXA ALTA
+    const rotulosUpper = [
+        'AUTOR[A]?', 'R[ÉE]U', 'R[ÉE]',
+        'REQUERENTE', 'REQUERID[OA]',
+        'RECLAMANTE', 'RECLAMAD[OA]',
+        'APELANTE', 'APELAD[OA]',
+        'AGRAVANTE', 'AGRAVAD[OA]',
+        'IMPETRANTE', 'IMPETRAD[OA]',
+        'EXEQUENTE', 'EXECUTAD[OA]',
+        'EMBARGANTE', 'EMBARGAD[OA]',
+        'RECORRENTE', 'RECORRID[OA]',
+        'DENUNCIANTE', 'DENUNCIAD[OA]',
+        'LITISCONSORTE', 'INTERESSAD[OA]',
+        'TERCEIR[OA]', 'INVENTARIANTE', 'ESP[OÓ]LIO',
+        'POLO\\s+ATIVO', 'POLO\\s+PASSIVO',
+        'RECTE', 'RECDO', 'REQTE', 'REQDO',
+        'EXEQTE', 'EXECTD[OA]',
+        'IMPTE', 'IMPTD[OA]'
+    ].join('|');
+    // Rótulos em Title Case (formato DJEN comum)
+    const rotulosTitleCase = [
+        'Polo\\s+Ativo', 'Polo\\s+Passivo',
+        'Advogado\\(?s?\\)?', 'ADVOGADO\\(?S?\\)?'
+    ].join('|');
+    const todosRotulos = rotulosUpper + '|' + rotulosTitleCase;
+
+    const parteRegex = new RegExp(
+        '(?:^|[\\s,;])(' + todosRotulos + ')[\\s:\\-–\\.]*\\s+([A-ZÀ-Ü][A-ZÀ-Ü0-9\\.\\-\\/\\s]{3,})',
+        'g'
+    );
+    t = t.replace(parteRegex, (match, label, nomeRaw) => {
+        // Limpar: remover trailing whitespace e pontuação
+        let nome = nomeRaw.replace(/[\s,;:\.\-]+$/, '');
+        // Parar antes de palavras-chave jurídicas ou comuns em minúscula que indicam fim do nome
+        const corte = nome.search(/\b(INTIMA|CITA[ÇC]|PRAZO|SENTEN|DECIS|DESPACHO|AUDI[EÊ]|URGENTE|RECURSO|MANDADO|TUTELA|LIMINAR)\b/);
+        if (corte > 0) nome = nome.substring(0, corte).replace(/[\s,;:\.\-]+$/, '');
+        // Parar antes de "- OAB" (dados do advogado)
+        const corteOab = nome.search(/\s*-\s*OAB\b/);
+        if (corteOab > 0) nome = nome.substring(0, corteOab).replace(/[\s,;:\.\-]+$/, '');
+        if (nome.length < 4) return match;
+        // Preservar espaço/pontuação inicial do match
+        const prefix = match.charAt(0) !== label.charAt(0) ? match.charAt(0) : '';
+        return prefix + '<span class="hl-parte-label">' + label + '</span> <span class="hl-parte-nome">' + nome + '</span>';
+    });
+
+    // 2) Highlight termos jurídicos
+    const regras = [
+        { regex: /\b(URGENTE|URG[EÊ]NCIA)\b/gi, cls: 'hl-urgente' },
+        { regex: /\b(INTIMA[ÇC][ÃA]O|INTIMADO|INTIMAR)\b/gi, cls: 'hl-intimacao' },
+        { regex: /\b(CITA[ÇC][ÃA]O|CITADO|CITAR)\b/gi, cls: 'hl-citacao' },
+        { regex: /\b(PRAZO|DIAS)\b/gi, cls: 'hl-prazo' },
+        { regex: /\b(SENTEN[ÇC]A|DECIS[ÃA]O|DESPACHO)\b/gi, cls: 'hl-sentenca' },
+        { regex: /\b(AUDI[EÊ]NCIA)\b/gi, cls: 'hl-audiencia' },
+    ];
+    regras.forEach(r => {
+        t = t.replace(r.regex, (match, g1) => {
+            // Não aplicar se já está dentro de um <span>
+            return `<span class="${r.cls}">${g1}</span>`;
+        });
+    });
+    return t;
+}
+
+// COPIAR TEXTO
+async function copiarTexto(texto, btnEl) {
+    try {
+        await navigator.clipboard.writeText(texto);
+        const original = btnEl.innerHTML;
+        btnEl.innerHTML = '&#10003; Copiado';
+        setTimeout(() => { btnEl.innerHTML = original; }, 2000);
+    } catch (e) {
+        alert('Erro ao copiar');
+    }
+}
+
 // CARREGAR DADOS USUÁRIO
 async function carregarDadosUsuario() {
     try {
         const res = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
         const data = await res.json();
-        
+
         if (data.ok && data.usuario) {
             document.getElementById('userEmail').innerText = data.usuario.email || '---';
             const nome = data.usuario.nome || 'Advogado';
@@ -778,7 +950,7 @@ async function carregarPublicacoes() {
         const res = await fetch('/api/publicacoes-pendentes', {
             headers: { Authorization: `Bearer ${token}` }
         });
-        
+
         publicacoes = await res.json();
         renderizarTabela();
         atualizarMetricas();
@@ -787,105 +959,89 @@ async function carregarPublicacoes() {
     }
 }
 
-// RENDERIZAR TABELA
+// RENDERIZAR CARDS
 function renderizarTabela() {
-    const tbody = document.getElementById('tableBody');
+    const container = document.getElementById('cardsContainer');
     const search = document.getElementById('searchInput').value.toLowerCase();
-    
-    // Filtrar publicações
-    let filtradas = publicacoes.filter(p => 
-        !search || 
+
+    let filtradas = publicacoes.filter(p =>
+        !search ||
         p.numero_processo.toLowerCase().includes(search) ||
         p.conteudo.toLowerCase().includes(search)
     );
-    
-    // Por padrão, mostrar apenas pendentes e convertidas (não mostrar descartadas)
-    // Para ver descartadas, usuário pode buscar por "descartada"
+
     if (!search.includes('descartada') && !search.includes('desc')) {
-        filtradas = filtradas.filter(p => 
-            p.status !== 'descartada'
-        );
+        filtradas = filtradas.filter(p => p.status !== 'descartada');
     }
-    
+
     if (filtradas.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="6" class="empty-state">
-                    <i data-lucide="inbox" style="width:64px; height:64px;"></i>
-                    <p>Nenhuma publicação encontrada</p>
-                </td>
-            </tr>
+        container.innerHTML = `
+            <div class="empty-state">
+                <i data-lucide="inbox" style="width:64px; height:64px;"></i>
+                <p>Nenhuma publicação encontrada</p>
+            </div>
         `;
-        
-        // Re-inicializar ícones
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
+        if (typeof lucide !== 'undefined') lucide.createIcons();
         return;
     }
-    
-    tbody.innerHTML = filtradas.map(p => `
-        <tr>
-            <td style="white-space: nowrap;">
-                ${new Date(p.data_publicacao).toLocaleDateString('pt-BR')}
-            </td>
-            <td>
-                <div class="processo-numero">${p.numero_processo}</div>
-            </td>
-            <td>${p.tribunal || 'DJEN'}</td>
-            <td style="max-width: 400px;">
-                <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                    ${p.conteudo.substring(0, 80)}${p.conteudo.length > 80 ? '...' : ''}
+
+    container.innerHTML = filtradas.map(p => {
+        const status = p.status || 'pendente';
+        const statusIcon = status === 'pendente' ? '&#128313;' : status === 'convertida' ? '&#128994;' : '&#128308;';
+        const dataFormatada = new Date(p.data_publicacao).toLocaleDateString('pt-BR');
+        const conteudoPreview = p.conteudo.length > 300
+            ? p.conteudo.substring(0, 300) + '...'
+            : p.conteudo;
+
+        return `
+        <div class="pub-card status-${status}">
+            <div class="card-header">
+                <span class="badge badge-${status}">${statusIcon} ${status.toUpperCase()}</span>
+                <span class="card-date"><i data-lucide="calendar" style="width:14px;height:14px;"></i> ${dataFormatada}</span>
+            </div>
+            <div class="card-processo">
+                <div class="card-processo-info">
+                    <span style="font-size:12px;font-weight:600;color:var(--text-tertiary);">Processo:</span>
+                    <span class="processo-numero">${p.numero_processo}</span>
+                    <span class="processo-tribunal">${mapearTribunal(p.tribunal)}</span>
                 </div>
-            </td>
-            <td>
-                <span class="badge badge-${p.status || 'pendente'}">
-                    ${p.status || 'pendente'}
-                </span>
-            </td>
-            <td>
-                <div class="actions" style="justify-content: center;">
-                    <button class="btn-icon" onclick="verDetalhes(${p.id})" title="Ver detalhes">
-                        <i data-lucide="eye"></i>
-                    </button>
-                    <button class="btn-icon" onclick="converterPrazo(${p.id})" title="Converter em prazo">
-                        <i data-lucide="calendar"></i>
-                    </button>
-                    <button class="btn-icon danger" onclick="excluir(${p.id})" title="Excluir">
-                        <i data-lucide="trash-2"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
-    
-    // Re-inicializar ícones após atualizar HTML
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
+                <button class="btn-copiar" onclick="copiarTexto('${p.numero_processo}', this)" title="Copiar número">
+                    <i data-lucide="copy" style="width:12px;height:12px;"></i> Copiar
+                </button>
+            </div>
+            <div class="card-conteudo">
+                <div class="card-conteudo-label">Conteúdo</div>
+                <div class="card-conteudo-text">${highlightTermos(conteudoPreview)}</div>
+            </div>
+            <div class="card-footer">
+                <button class="btn-card" onclick="verDetalhes(${p.id})">
+                    <i data-lucide="eye" style="width:14px;height:14px;"></i> Ver Completo
+                </button>
+                <button class="btn-card primary" onclick="converterPrazo(${p.id})">
+                    <i data-lucide="calendar-plus" style="width:14px;height:14px;"></i> Converter Prazo
+                </button>
+                <button class="btn-card danger" onclick="excluir(${p.id})">
+                    <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Excluir
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 // ATUALIZAR MÉTRICAS
 function atualizarMetricas() {
     const hoje = new Date().toISOString().split('T')[0];
-    
-    // Total de publicações (qualquer data)
-    const totalPublicacoes = publicacoes.length;
-    
-    // Recebidas hoje (baseado na data_publicacao)
-    const recebidas = publicacoes.filter(p => 
+
+    const recebidas = publicacoes.filter(p =>
         p.data_publicacao && p.data_publicacao.startsWith(hoje)
     ).length;
-    
-    // Tratadas = status convertida (independente da data)
+
     const tratadas = publicacoes.filter(p => p.status === 'convertida').length;
-    
-    // Descartadas = status descartada (independente da data)
     const descartadas = publicacoes.filter(p => p.status === 'descartada').length;
-    
-    // Pendentes = status pendente
     const pendentes = publicacoes.filter(p => p.status === 'pendente' || !p.status).length;
-    
+
     document.getElementById('metricRecebidas').innerText = recebidas;
     document.getElementById('metricTratadas').innerText = tratadas;
     document.getElementById('metricDescartadas').innerText = descartadas;
@@ -895,15 +1051,15 @@ function atualizarMetricas() {
 // SINCRONIZAR
 async function sincronizar() {
     const dataBusca = document.getElementById('dataBusca').value;
-    
+
     if (!dataBusca) {
         alert('Selecione a data!');
         return;
     }
-    
-    document.getElementById('tableContainer').style.display = 'none';
+
+    document.getElementById('cardsContainer').style.display = 'none';
     document.getElementById('loading').classList.add('show');
-    
+
     try {
         const res = await fetch('/api/sincronizar', {
             method: 'POST',
@@ -913,58 +1069,84 @@ async function sincronizar() {
             },
             body: JSON.stringify({ dataInicio: dataBusca, dataFim: dataBusca })
         });
-        
+
         const data = await res.json();
-        
+
         document.getElementById('loading').classList.remove('show');
-        document.getElementById('tableContainer').style.display = 'block';
-        
+        document.getElementById('cardsContainer').style.display = 'flex';
+
         if (data.ok) {
             const novas = data.resultado_worker?.resultado?.novas || 0;
             if (novas > 0) {
-                alert(`✅ ${novas} novas publicações encontradas!`);
+                alert(`${novas} novas publicações encontradas!`);
                 await carregarPublicacoes();
             } else {
-                alert('ℹ️ Nenhuma publicação nova encontrada');
+                alert('Nenhuma publicação nova encontrada');
             }
         } else {
-            alert('⚠️ ' + (data.erro || 'Erro ao sincronizar'));
+            alert(data.erro || 'Erro ao sincronizar');
         }
     } catch (err) {
         console.error('Erro:', err);
         document.getElementById('loading').classList.remove('show');
-        document.getElementById('tableContainer').style.display = 'block';
-        alert('❌ Erro de conexão');
+        document.getElementById('cardsContainer').style.display = 'flex';
+        alert('Erro de conexão');
     }
 }
 
-// VER DETALHES
+// VER DETALHES (MODAL MELHORADO)
 function verDetalhes(id) {
     const pub = publicacoes.find(p => p.id === id);
     if (!pub) return;
-    
+    modalPubId = id;
+
+    const status = pub.status || 'pendente';
+    const statusIcon = status === 'pendente' ? '&#128313;' : status === 'convertida' ? '&#128994;' : '&#128308;';
+    const dataFormatada = new Date(pub.data_publicacao).toLocaleDateString('pt-BR');
+
     document.getElementById('modalBody').innerHTML = `
-        <div style="margin-bottom: 20px;">
-            <strong>Processo:</strong><br>
-            <span class="processo-numero">${pub.numero_processo}</span>
-        </div>
-        <div style="margin-bottom: 20px;">
-            <strong>Data de Publicação:</strong><br>
-            ${new Date(pub.data_publicacao).toLocaleDateString('pt-BR')}
-        </div>
-        <div style="margin-bottom: 20px;">
-            <strong>Tribunal:</strong><br>
-            ${pub.tribunal || 'DJEN'}
-        </div>
-        <div style="margin-bottom: 20px;">
-            <strong>Conteúdo:</strong><br>
-            <div style="background: var(--bg-primary); padding: 16px; border-radius: 8px; margin-top: 8px; line-height: 1.6;">
-                ${pub.conteudo}
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <span class="badge badge-${status}">${statusIcon} ${status.toUpperCase()}</span>
+                <span style="font-size:14px; color:var(--text-secondary);"><i data-lucide="calendar" style="width:14px;height:14px;display:inline;vertical-align:middle;"></i> ${dataFormatada}</span>
             </div>
         </div>
+        <div style="margin-bottom: 20px; display:flex; align-items:center; gap:12px;">
+            <div>
+                <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-tertiary);">Processo</span><br>
+                <span class="processo-numero" style="font-size:16px;">${pub.numero_processo}</span>
+                <span style="margin-left:12px; font-size:12px; color:var(--text-tertiary); font-weight:600;">${mapearTribunal(pub.tribunal)}</span>
+            </div>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-tertiary);">Conteúdo</span>
+                <button class="btn-copiar" id="btnCopiarConteudo" onclick="copiarConteudoModal(this)">
+                    <i data-lucide="copy" style="width:12px;height:12px;"></i> Copiar Conteúdo
+                </button>
+            </div>
+            <div style="background: var(--bg-primary); padding: 16px; border-radius: 8px; line-height: 1.7; border: 1px solid var(--border-subtle);">
+                ${highlightTermos(pub.conteudo)}
+            </div>
+        </div>
+        <div style="display:flex; gap:8px; padding-top:16px; border-top:1px solid var(--border-subtle);">
+            <button class="btn-card primary" onclick="fecharModal(); converterPrazo(${pub.id})">
+                <i data-lucide="calendar-plus" style="width:14px;height:14px;"></i> Converter Prazo
+            </button>
+            <button class="btn-card danger" onclick="fecharModal(); excluir(${pub.id})">
+                <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Excluir
+            </button>
+        </div>
     `;
-    
+
     document.getElementById('modalDetalhes').classList.add('show');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+// COPIAR CONTEÚDO DO MODAL
+function copiarConteudoModal(btnEl) {
+    const pub = publicacoes.find(p => p.id === modalPubId);
+    if (pub) copiarTexto(pub.conteudo, btnEl);
 }
 
 // FECHAR MODAL
@@ -976,37 +1158,34 @@ function fecharModal() {
 async function converterPrazo(id) {
     const pub = publicacoes.find(p => p.id === id);
     if (!pub) return;
-    
-    // Solicitar informações do prazo
+
     const tipo = prompt('Tipo de prazo (ex: Recurso, Contestação, Réplica):', 'Recurso');
     if (!tipo) return;
-    
+
     const dias = prompt('Quantidade de dias úteis:', '15');
     if (!dias || isNaN(dias)) {
-        alert('❌ Quantidade de dias inválida!');
+        alert('Quantidade de dias inválida!');
         return;
     }
-    
-    // Calcular data limite (aproximado - não conta feriados)
+
     const hoje = new Date();
     let diasAdicionados = 0;
     let dataLimite = new Date(hoje);
-    
+
     while (diasAdicionados < parseInt(dias)) {
         dataLimite.setDate(dataLimite.getDate() + 1);
         const diaSemana = dataLimite.getDay();
-        // Pula sábado (6) e domingo (0)
         if (diaSemana !== 0 && diaSemana !== 6) {
             diasAdicionados++;
         }
     }
-    
+
     const dataCalculada = dataLimite.toISOString().split('T')[0];
-    
+
     if (!confirm(`Criar prazo de ${tipo} com ${dias} dias úteis?\nData limite: ${new Date(dataCalculada).toLocaleDateString('pt-BR')}`)) {
         return;
     }
-    
+
     try {
         const res = await fetch('/api/converter-publicacao', {
             method: 'POST',
@@ -1021,37 +1200,29 @@ async function converterPrazo(id) {
                 dataCalculada
             })
         });
-        
+
         const data = await res.json();
-        
+
         if (data.ok) {
-            alert('✅ Prazo criado com sucesso!');
+            alert('Prazo criado com sucesso!');
             await carregarPublicacoes();
         } else {
-            alert('❌ Erro: ' + (data.erro || 'Erro ao criar prazo'));
+            alert('Erro: ' + (data.erro || 'Erro ao criar prazo'));
         }
     } catch (err) {
         console.error('Erro:', err);
-        alert('❌ Erro de conexão');
+        alert('Erro de conexão');
     }
 }
 
 // EXCLUIR
 async function excluir(id) {
     const pub = publicacoes.find(p => p.id === id);
-    if (!pub) {
-        console.error('❌ Publicação não encontrada:', id);
-        return;
-    }
-    
-    console.log('📦 Publicação antes:', pub);
-    
+    if (!pub) return;
+
     if (!confirm('Descartar esta publicação?')) return;
-    
+
     try {
-        console.log('🔄 Enviando PATCH para:', `/api/publicacoes/${id}/status`);
-        console.log('📦 Body:', { status: 'descartada' });
-        
         const res = await fetch(`/api/publicacoes/${id}/status`, {
             method: 'PATCH',
             headers: {
@@ -1060,24 +1231,18 @@ async function excluir(id) {
             },
             body: JSON.stringify({ status: 'descartada' })
         });
-        
-        console.log('📥 Status da resposta:', res.status);
-        
+
         const data = await res.json();
-        console.log('📦 Dados recebidos:', data);
-        
+
         if (data.ok || res.ok) {
-            alert('✅ Publicação descartada!');
-            console.log('🔄 Recarregando publicações...');
+            alert('Publicação descartada!');
             await carregarPublicacoes();
-            console.log('✅ Publicações recarregadas:', publicacoes.length);
         } else {
-            console.error('❌ Erro na resposta:', data);
-            alert('❌ Erro: ' + (data.erro || 'Erro ao descartar'));
+            alert('Erro: ' + (data.erro || 'Erro ao descartar'));
         }
     } catch (err) {
-        console.error('❌ Erro de rede:', err);
-        alert('❌ Erro de conexão: ' + err.message);
+        console.error('Erro:', err);
+        alert('Erro de conexão: ' + err.message);
     }
 }
 
@@ -1095,12 +1260,7 @@ window.onload = () => {
     carregarDadosUsuario();
     definirDatasDefault();
     carregarPublicacoes();
-
-    // Inicializar ícones Lucide
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
-
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 };
 
 function toggleIaMenu(e) {
