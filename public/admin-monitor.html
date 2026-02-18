@@ -2397,7 +2397,7 @@ function renderizarTabelaInadimplentes(lista) {
     lista.forEach(item => {
         // Lógica de status melhorada
         let statusClass, statusIcon, statusTexto;
-        
+
         if (item.status_pagamento === 'inadimplente') {
             statusClass = 'danger';
             statusIcon = '🔴';
@@ -2415,7 +2415,12 @@ function renderizarTabelaInadimplentes(lista) {
             statusIcon = '🟡';
             statusTexto = 'PENDENTE';
         }
-        
+
+        const planoInad = (item.plano_ativo || 'individual')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+
         tbody.innerHTML += `
             <tr>
                 <td>
@@ -2423,9 +2428,9 @@ function renderizarTabelaInadimplentes(lista) {
                         ${statusIcon} ${statusTexto}
                     </span>
                 </td>
-                <td><strong>${item.nome}</strong></td>
+                <td><strong style="text-transform: uppercase; letter-spacing: 0.5px;">${item.nome}</strong></td>
                 <td><span class="badge badge-status">${item.oab}</span></td>
-                <td><span class="badge badge-plan">${item.plano_ativo}</span></td>
+                <td><span class="badge badge-${planoInad}">${item.plano_ativo}</span></td>
                 <td>${new Date(item.data_vencimento).toLocaleDateString('pt-BR')}</td>
                 <td><strong style="color: ${item.dias_atraso > 10 ? '#ef4444' : item.dias_atraso > 0 ? '#f59e0b' : '#10b981'}">${item.dias_atraso} dias</strong></td>
                 <td>R$ ${parseFloat(item.valor_mensalidade || 0).toFixed(2)}</td>
@@ -2544,11 +2549,16 @@ function renderizarTabelaUpgrade(lista) {
         const percUsuariosText = item.limite_usuarios === -1 ? '0.0%' : `${percUsuarios.toFixed(1)}%`;
         const percPrazosText = item.limite_prazos === -1 ? '0.0%' : `${percPrazos.toFixed(1)}%`;
         
+        const planoUpg = (item.plano_ativo || 'individual')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+
         tbody.innerHTML += `
             <tr>
-                <td><strong>${item.nome}</strong></td>
+                <td><strong style="text-transform: uppercase; letter-spacing: 0.5px;">${item.nome}</strong></td>
                 <td><span class="badge badge-status">${item.oab || 'N/A'}</span></td>
-                <td><span class="badge badge-plan">${item.plano_ativo}</span></td>
+                <td><span class="badge badge-${planoUpg}">${item.plano_ativo}</span></td>
                 <td>${item.total_usuarios} / ${limiteUsuariosText}</td>
                 <td><strong style="color: ${corUsuarios}">${percUsuariosText}</strong></td>
                 <td>${item.total_prazos} / ${limitePrazosText}</td>
