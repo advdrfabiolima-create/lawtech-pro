@@ -212,7 +212,7 @@ class PeticoesController {
             const { status, tipo, limit = 50 } = req.query;
 
             let query = `
-                SELECT p.*, u.nome as usuario_nome, pr.numero_processo
+                SELECT p.*, u.nome as usuario_nome, pr.numero as numero_processo
                 FROM peticoes p
                 JOIN usuarios u ON p.usuario_id = u.id
                 LEFT JOIN processos pr ON p.processo_id = pr.id
@@ -420,14 +420,39 @@ Elabore uma petição intermediária clara, objetiva e fundamentada.`
      * Gerar título automático para a petição
      */
     static gerarTituloPeticao(tipo, autor, reu) {
-        const titulos = {
-            inicial: `PETIÇÃO INICIAL - ${autor.toUpperCase()} vs ${(reu || 'RÉU').toUpperCase()}`,
-            contestacao: `CONTESTAÇÃO - ${autor.toUpperCase()}`,
-            recurso: `RECURSO DE APELAÇÃO - ${autor.toUpperCase()}`,
-            intermediaria: `PETIÇÃO INTERMEDIÁRIA - ${autor.toUpperCase()}`
+        const tipoLabel = {
+            civel_inicial: 'PETIÇÃO INICIAL',
+            civel_intermediaria: 'PETIÇÃO INTERMEDIÁRIA',
+            civel_contestacao: 'CONTESTAÇÃO',
+            civel_replica: 'RÉPLICA',
+            civel_cumprimento: 'CUMPRIMENTO DE SENTENÇA',
+            civel_cautelar: 'TUTELA DE URGÊNCIA',
+            civel_juntada: 'PETIÇÃO DE JUNTADA',
+            civel_apelacao: 'APELAÇÃO',
+            civel_agravo: 'AGRAVO DE INSTRUMENTO',
+            civel_embargos_declaracao: 'EMBARGOS DE DECLARAÇÃO',
+            civel_embargos_execucao: 'EMBARGOS À EXECUÇÃO',
+            civel_impugnacao_calculos: 'IMPUGNAÇÃO AOS CÁLCULOS',
+            trab_reclamacao: 'RECLAMAÇÃO TRABALHISTA',
+            trab_contestacao: 'CONTESTAÇÃO TRABALHISTA',
+            trab_recurso_ordinario: 'RECURSO ORDINÁRIO',
+            trab_recurso_revista: 'RECURSO DE REVISTA',
+            penal_habeas_corpus: 'HABEAS CORPUS',
+            penal_apelacao: 'APELAÇÃO CRIMINAL',
+            inicial: 'PETIÇÃO INICIAL',
+            contestacao: 'CONTESTAÇÃO',
+            recurso: 'RECURSO DE APELAÇÃO',
+            intermediaria: 'PETIÇÃO INTERMEDIÁRIA'
         };
 
-        return titulos[tipo] || `PETIÇÃO - ${autor.toUpperCase()}`;
+        const label = tipoLabel[tipo] || 'PETIÇÃO';
+        let titulo = reu
+            ? `${label} - ${autor.toUpperCase()} vs ${reu.toUpperCase()}`
+            : `${label} - ${autor.toUpperCase()}`;
+
+        // Garantir que não exceda 255 caracteres (limite da coluna)
+        if (titulo.length > 255) titulo = titulo.substring(0, 252) + '...';
+        return titulo;
     }
 }
 
