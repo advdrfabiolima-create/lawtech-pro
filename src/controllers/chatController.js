@@ -23,7 +23,7 @@ exports.listarMensagens = async (req, res) => {
 
             result = await pool.query(
                 `SELECT m.id, m.conteudo,
-                        (m.criado_em AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo') AS criado_em,
+                        m.criado_em,
                         m.remetente_id, m.destinatario_id, m.lida, m.arquivo_nome,
                         u.nome AS remetente_nome
                  FROM chat_mensagens m
@@ -46,7 +46,7 @@ exports.listarMensagens = async (req, res) => {
 
             result = await pool.query(
                 `SELECT m.id, m.conteudo,
-                        (m.criado_em AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo') AS criado_em,
+                        m.criado_em,
                         m.remetente_id, m.destinatario_id, m.lida, m.arquivo_nome,
                         u.nome AS remetente_nome
                  FROM chat_mensagens m
@@ -81,7 +81,7 @@ exports.enviarMensagem = async (req, res) => {
         const result = await pool.query(
             `INSERT INTO chat_mensagens (escritorio_id, remetente_id, destinatario_id, conteudo)
              VALUES ($1, $2, $3, $4)
-             RETURNING id, (criado_em AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo') AS criado_em`,
+             RETURNING id, criado_em`,
             [escritorioId, remetenteId, destId, conteudo.trim()]
         );
 
@@ -184,7 +184,7 @@ exports.enviarArquivo = async (req, res) => {
         const result = await pool.query(
             `INSERT INTO chat_mensagens (escritorio_id, remetente_id, destinatario_id, conteudo, arquivo_nome, arquivo_path)
              VALUES ($1, $2, $3, $4, $5, $6)
-             RETURNING id, (criado_em AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo') AS criado_em`,
+             RETURNING id, criado_em`,
             [escritorioId, remetenteId, destId, `📎 ${req.file.originalname}`, req.file.originalname, req.file.path]
         );
 
