@@ -603,6 +603,130 @@
         .empty-state h4 { font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary); }
         .empty-state p { font-size: 13px; }
 
+        /* ==================== MODAL EDIÇÃO ==================== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal-edit {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 900px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .modal-edit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+        }
+
+        .modal-edit-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-edit-body { padding: 24px 28px; flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+
+        .modal-edit-body textarea {
+            width: 100%;
+            flex: 1;
+            min-height: 400px;
+            padding: 20px;
+            border: 1.5px solid var(--border-medium);
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.8;
+            font-family: 'Georgia', serif;
+            resize: none;
+            background: #fafbfc;
+            transition: all 0.2s;
+        }
+
+        .modal-edit-body textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            background: white;
+            box-shadow: 0 0 0 3px var(--accent-blue-glow);
+        }
+
+        .modal-edit-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 28px;
+            border-top: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+        }
+
+        .btn-success {
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            border: none;
+            background: #10b981;
+            color: white;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+        }
+
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35); }
+
+        .btn-danger {
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            border: none;
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover { background: #dc2626; }
+
+        .saved-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #86efac;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
         /* ==================== RESPONSIVE ==================== */
         @media (max-width: 1280px) {
             .sidebar { width: 220px; padding: 20px 16px; }
@@ -854,13 +978,19 @@
             </div>
             <div class="preview-content" id="previewConteudo"></div>
             <div class="preview-actions">
+                <span class="saved-badge" id="savedBadge">
+                    <i class="lucide lucide-check-circle" style="font-size:14px;"></i> Salvo no histórico
+                </span>
                 <button onclick="gerarPDF()" class="btn-primary">
                     <i class="lucide lucide-download"></i> Baixar PDF
                 </button>
                 <button onclick="editarPeticao()" class="btn-outline">
                     <i class="lucide lucide-edit"></i> Editar
                 </button>
-                <button onclick="novaPeticao()" class="btn-secondary">
+                <button onclick="deletarPeticao()" class="btn-danger" title="Excluir petição">
+                    <i class="lucide lucide-trash-2"></i> Excluir
+                </button>
+                <button onclick="novaPeticao()" class="btn-secondary" style="margin-left:auto;">
                     <i class="lucide lucide-plus"></i> Nova Petição
                 </button>
             </div>
@@ -871,6 +1001,27 @@
             <div class="peticoes-list" id="peticoesListContainer"></div>
         </div>
     </main>
+</div>
+
+<!-- MODAL DE EDIÇÃO -->
+<div class="modal-overlay" id="modalEdicao">
+    <div class="modal-edit">
+        <div class="modal-edit-header">
+            <h3><i class="lucide lucide-edit" style="font-size:20px; color:var(--accent-blue);"></i> Editar Petição</h3>
+            <button onclick="fecharModalEdicao()" class="btn-secondary" style="padding:8px 16px;">
+                <i class="lucide lucide-x"></i> Fechar
+            </button>
+        </div>
+        <div class="modal-edit-body">
+            <textarea id="editarConteudoTextarea"></textarea>
+        </div>
+        <div class="modal-edit-footer">
+            <button onclick="fecharModalEdicao()" class="btn-secondary">Cancelar</button>
+            <button onclick="salvarEdicao()" class="btn-success">
+                <i class="lucide lucide-check"></i> Salvar Alterações
+            </button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -1129,19 +1280,74 @@
     }
 
     function editarPeticao() {
+        if (!peticaoAtual) return;
+        const textarea = document.getElementById('editarConteudoTextarea');
+        textarea.value = document.getElementById('previewConteudo').innerText;
+        document.getElementById('modalEdicao').classList.add('show');
+        setTimeout(() => textarea.focus(), 100);
+    }
+
+    function fecharModalEdicao() {
+        document.getElementById('modalEdicao').classList.remove('show');
+    }
+
+    async function salvarEdicao() {
+        if (!peticaoAtual) return;
+        const novo = document.getElementById('editarConteudoTextarea').value;
         const atual = document.getElementById('previewConteudo').innerText;
-        const novo = prompt('Edite:', atual);
-        if (novo && novo !== atual) {
-            fetch(`/api/peticoes/${peticaoAtual.id}/conteudo`, {
+
+        if (novo.trim() === atual.trim()) {
+            fecharModalEdicao();
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/peticoes/${peticaoAtual.id}/conteudo`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({ conteudo: novo })
-            }).then(() => {
-                document.getElementById('previewConteudo').innerText = novo;
             });
+            const data = await res.json();
+            if (data.ok) {
+                document.getElementById('previewConteudo').innerText = novo;
+                peticaoAtual.conteudo = novo;
+                fecharModalEdicao();
+                // Feedback visual
+                const badge = document.getElementById('savedBadge');
+                badge.innerHTML = '<i class="lucide lucide-check-circle" style="font-size:14px;"></i> Alterações salvas!';
+                setTimeout(() => {
+                    badge.innerHTML = '<i class="lucide lucide-check-circle" style="font-size:14px;"></i> Salvo no histórico';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }, 2000);
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            } else {
+                alert('Erro ao salvar: ' + (data.erro || 'Tente novamente'));
+            }
+        } catch (error) {
+            alert('Erro ao salvar edição');
+        }
+    }
+
+    async function deletarPeticao() {
+        if (!peticaoAtual) return;
+        if (!confirm('Tem certeza que deseja excluir esta petição? Esta ação não pode ser desfeita.')) return;
+
+        try {
+            const res = await fetch(`/api/peticoes/${peticaoAtual.id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.ok) {
+                novaPeticao();
+            } else {
+                alert('Erro ao excluir: ' + (data.erro || 'Tente novamente'));
+            }
+        } catch (error) {
+            alert('Erro ao excluir petição');
         }
     }
 
@@ -1155,9 +1361,15 @@
         document.getElementById('btnHistorico').innerHTML = '<i class="lucide lucide-history"></i> Histórico';
     }
 
-    function fecharPreview() { novaPeticao(); }
+    function fecharPreview() {
+        // Apenas volta para o formulário, sem resetar a petição atual
+        document.getElementById('previewCard').classList.remove('show');
+        document.getElementById('formCard').style.display = 'block';
+    }
 
     // ==================== HISTÓRICO ====================
+    let voltarParaPreview = false; // Se o user estava no preview antes de ir pro histórico
+
     async function toggleHistorico() {
         const lista = document.getElementById('historicoList');
         const form = document.getElementById('formCard');
@@ -1165,6 +1377,8 @@
         const btn = document.getElementById('btnHistorico');
 
         if (lista.style.display === 'none') {
+            // Salvar se estava no preview
+            voltarParaPreview = preview.classList.contains('show');
             form.style.display = 'none';
             preview.classList.remove('show');
             lista.style.display = 'block';
@@ -1178,16 +1392,26 @@
                 const container = document.getElementById('peticoesListContainer');
 
                 if (data.ok && data.peticoes.length > 0) {
-                    container.innerHTML = data.peticoes.map(p => `
-                        <div class="peticao-item">
+                    container.innerHTML = data.peticoes.map(p => {
+                        const conteudo = p.conteudo_editado || p.conteudo_gerado || '';
+                        return `
+                        <div class="peticao-item" onclick='abrirPeticaoHistorico(${JSON.stringify({
+                            id: p.id,
+                            titulo: p.titulo,
+                            conteudo: '',
+                            status: p.status,
+                            autor: p.autor,
+                            reu: p.reu
+                        }).replace(/'/g, "&#39;")})' data-id="${p.id}">
                             <div class="peticao-icon"><i class="lucide lucide-file-text"></i></div>
                             <div class="peticao-info">
-                                <h4>${p.titulo}</h4>
-                                <p><strong>Autor:</strong> ${p.autor} ${p.reu ? '&middot; <strong>Réu:</strong> ' + p.reu : ''} &middot; ${new Date(p.created_at).toLocaleDateString('pt-BR')}</p>
+                                <h4>${escapeHtml(p.titulo)}</h4>
+                                <p><strong>Autor:</strong> ${escapeHtml(p.autor)} ${p.reu ? '&middot; <strong>Réu:</strong> ' + escapeHtml(p.reu) : ''} &middot; ${new Date(p.created_at).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</p>
                             </div>
                             <span class="badge badge-${p.status}">${p.status.toUpperCase()}</span>
-                        </div>
-                    `).join('');
+                        </div>`;
+                    }).join('');
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
                 } else {
                     container.innerHTML = `
                         <div class="empty-state">
@@ -1196,15 +1420,64 @@
                             <p>Suas petições geradas aparecerão aqui</p>
                         </div>
                     `;
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
                 }
             } catch (e) {
                 alert('Erro ao carregar histórico');
             }
         } else {
+            // Voltar do histórico
             lista.style.display = 'none';
-            form.style.display = 'block';
             btn.innerHTML = '<i class="lucide lucide-history"></i> Histórico';
+            if (voltarParaPreview && peticaoAtual) {
+                preview.classList.add('show');
+                form.style.display = 'none';
+            } else {
+                form.style.display = 'block';
+            }
+            voltarParaPreview = false;
         }
+    }
+
+    async function abrirPeticaoHistorico(peticaoBase) {
+        // Buscar conteúdo completo do servidor
+        try {
+            const res = await fetch(`/api/peticoes?limit=50`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.ok) {
+                const p = data.peticoes.find(pet => pet.id === peticaoBase.id);
+                if (p) {
+                    peticaoAtual = {
+                        id: p.id,
+                        titulo: p.titulo,
+                        conteudo: p.conteudo_editado || p.conteudo_gerado,
+                        status: p.status,
+                        autor: p.autor,
+                        reu: p.reu
+                    };
+                    document.getElementById('previewTitulo').innerText = p.titulo;
+                    document.getElementById('previewConteudo').innerText = p.conteudo_editado || p.conteudo_gerado;
+
+                    document.getElementById('historicoList').style.display = 'none';
+                    document.getElementById('formCard').style.display = 'none';
+                    document.getElementById('previewCard').classList.add('show');
+                    document.getElementById('btnHistorico').innerHTML = '<i class="lucide lucide-history"></i> Histórico';
+                    voltarParaPreview = false;
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
+            }
+        } catch (e) {
+            alert('Erro ao abrir petição');
+        }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     // ==================== UTILS ====================
@@ -1218,6 +1491,17 @@
         const submenu = document.getElementById('submenu-ia');
         submenu.classList.toggle('open');
     }
+
+    // ==================== MODAL EVENTS ====================
+    document.getElementById('modalEdicao').addEventListener('click', function(e) {
+        if (e.target === this) fecharModalEdicao();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && document.getElementById('modalEdicao').classList.contains('show')) {
+            fecharModalEdicao();
+        }
+    });
 
     // ==================== INIT ====================
     window.onload = () => {
