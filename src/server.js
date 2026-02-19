@@ -316,7 +316,7 @@ const { iniciarAgendamentos } = require('./cron/prazosCron');
 require('./cron/cobrancasTrial');
 require('./cron/cobrancasRecorrentes');
 require('./cron/djen_scraper_cron');
-require('./cron/auditoriaStripeCron');
+// require('./cron/auditoriaStripeCron'); // Desativado: coluna stripe_customer_id não existe ainda
 
 (async function iniciarSistema() {
     try {
