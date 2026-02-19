@@ -1835,6 +1835,16 @@
     </div>
 
     <script>
+        // Helper: formatar data/hora em fuso de Brasília
+        function formatarDataBR(dateStr) {
+            if (!dateStr) return '—';
+            return new Date(dateStr).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+        }
+        function formatarDataCurtaBR(dateStr) {
+            if (!dateStr) return '—';
+            return new Date(dateStr).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+        }
+
         // Variáveis globais
         let escritoriosData = [];
         let logsData = [];
@@ -2081,7 +2091,7 @@ function renderizarTabelaEscritorios(lista) {
                 <td class="text-center">${totalUsuarios}</td>
                 <td class="text-center">${totalProcessos}</td>
                 <td class="text-center">${esc.total_prazos || 0}</td>
-                <td><small>${esc.data_criacao ? new Date(esc.data_criacao).toLocaleDateString('pt-BR') : '—'}</small></td>
+                <td><small>${esc.data_criacao ? formatarDataCurtaBR(esc.data_criacao) : '—'}</small></td>
             </tr>
         `;
     });
@@ -2143,7 +2153,7 @@ function renderizarTabelaEscritorios(lista) {
             lista.forEach(log => {
                 tbody.innerHTML += `
                     <tr>
-                        <td style="font-size:13px">${new Date(log.criado_em).toLocaleString('pt-BR')}</td>
+                        <td style="font-size:13px">${formatarDataBR(log.criado_em)}</td>
                         <td>
                             <div class="escritorio-info">
                                 <div class="escritorio-name">${log.advogado_responsavel}</div>
@@ -2239,7 +2249,7 @@ function renderizarTabelaEscritorios(lista) {
                     csv += `${esc.total_usuarios || 0},`;
                     csv += `${esc.total_processos || 0},`;
                     csv += `${esc.total_prazos || 0},`;
-                    csv += `"${new Date(esc.data_criacao).toLocaleDateString('pt-BR')}"\n`;
+                    csv += `"${formatarDataCurtaBR(esc.data_criacao)}"\n`;
                 });
                 
                 baixarCSV(csv, 'escritorios-lawtech.csv');
@@ -2247,7 +2257,7 @@ function renderizarTabelaEscritorios(lista) {
                 let csv = 'Data/Hora,Escritório,OAB,UF,Serviço,Tipo Erro,Mensagem\n';
                 
                 logsData.forEach(log => {
-                    csv += `"${new Date(log.criado_em).toLocaleString('pt-BR')}",`;
+                    csv += `"${formatarDataBR(log.criado_em)}",`;
                     csv += `"${log.advogado_responsavel}",`;
                     csv += `"${log.oab}",`;
                     csv += `"${log.uf}",`;
@@ -2431,7 +2441,7 @@ function renderizarTabelaInadimplentes(lista) {
                 <td><strong style="text-transform: uppercase; letter-spacing: 0.5px;">${item.nome}</strong></td>
                 <td><span class="badge badge-status">${item.oab}</span></td>
                 <td><span class="badge badge-${planoInad}">${item.plano_ativo}</span></td>
-                <td>${new Date(item.data_vencimento).toLocaleDateString('pt-BR')}</td>
+                <td>${formatarDataCurtaBR(item.data_vencimento)}</td>
                 <td><strong style="color: ${item.dias_atraso > 10 ? '#ef4444' : item.dias_atraso > 0 ? '#f59e0b' : '#10b981'}">${item.dias_atraso} dias</strong></td>
                 <td>R$ ${parseFloat(item.valor_mensalidade || 0).toFixed(2)}</td>
                 <td>${item.total_processos}</td>
@@ -2664,7 +2674,7 @@ function exportarInadimplencia() {
         csv += `"${item.nome}",`;
         csv += `"${item.oab}",`;
         csv += `"${item.plano_ativo}",`;
-        csv += `"${new Date(item.data_vencimento).toLocaleDateString('pt-BR')}",`;
+        csv += `"${formatarDataCurtaBR(item.data_vencimento)}",`;
         csv += `${item.dias_atraso},`;
         csv += `${item.valor_mensalidade || 0},`;
         csv += `${item.total_processos}\n`;
@@ -2694,7 +2704,7 @@ function exportarAudit() {
     let csv = 'Data/Hora,Tipo,Descrição,Escritório,Usuário\n';
     
     auditData.forEach(event => {
-        csv += `"${new Date(event.criado_em).toLocaleString('pt-BR')}",`;
+        csv += `"${formatarDataBR(event.criado_em)}",`;
         csv += `"${event.tipo_evento}",`;
         csv += `"${event.descricao}",`;
         csv += `"${event.escritorio}",`;
@@ -2730,7 +2740,7 @@ function contatarEscritorio(id) {
     const escritorio = inadimplentesData.find(e => e.id === id);
     if (!escritorio) return;
 
-    const dataVenc = new Date(escritorio.data_vencimento).toLocaleDateString('pt-BR');
+    const dataVenc = formatarDataCurtaBR(escritorio.data_vencimento);
     const valorMsg = parseFloat(escritorio.valor_mensalidade || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
     const mensagem = `Olá, Dr(a). ${escritorio.advogado_responsavel || "Colega"}, tudo bem?
@@ -2787,7 +2797,7 @@ async function gerarRelatorioMensal() {
     
     const financeiro = inadimplentesData.map(e => [
         e.nome.toUpperCase(),
-        new Date(e.data_vencimento).toLocaleDateString('pt-BR'),
+        formatarDataCurtaBR(e.data_vencimento),
         `R$ ${parseFloat(e.valor_mensalidade).toFixed(2)}`,
         `${e.dias_atraso} dias`
     ]);
@@ -2850,7 +2860,7 @@ function renderizarTabelaAudit(lista) {
     lista.forEach(log => {
         tbody.innerHTML += `
             <tr>
-                <td>${new Date(log.criado_em).toLocaleString('pt-BR')}</td>
+                <td>${formatarDataBR(log.criado_em)}</td>
                 <td><span class="badge badge-info">${log.tipo_evento || '—'}</span></td>
                 <td>${log.descricao || '—'}</td>
                 <td>${log.escritorio || '—'}</td>
