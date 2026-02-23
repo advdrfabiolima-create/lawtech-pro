@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const axios = require('axios');
 const authMiddleware = require('../middlewares/authMiddleware');
+const roleMiddleware = require('../middlewares/roleMiddleware');
 
 /**
  * ============================================================
@@ -12,7 +13,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
  * ✅ Logs detalhados
  * ============================================================
  */
-router.post('/sincronizar', authMiddleware, async (req, res) => {
+router.post('/sincronizar', authMiddleware, roleMiddleware('admin', 'operador'), async (req, res) => {
   try {
     const escritorioId = req.user.escritorio_id;
     const { dataInicio, dataFim } = req.body;
@@ -166,7 +167,7 @@ router.get('/publicacoes-pendentes', authMiddleware, async (req, res) => {
  * 🗑️ EXCLUIR PUBLICAÇÃO
  * ============================================================
  */
-router.delete('/publicacoes/:id', authMiddleware, async (req, res) => {
+router.delete('/publicacoes/:id', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     try {
         const publicacaoId = req.params.id;
         const escritorioId = req.user.escritorio_id;
@@ -198,7 +199,7 @@ router.delete('/publicacoes/:id', authMiddleware, async (req, res) => {
  * ⚡ CONVERTER PUBLICAÇÃO EM PRAZO
  * ============================================================
  */
-router.post('/converter-publicacao', authMiddleware, async (req, res) => {
+router.post('/converter-publicacao', authMiddleware, roleMiddleware('admin', 'operador'), async (req, res) => {
     const { id_publicacao, tipo, dias, dataCalculada } = req.body;
     const escritorioId = req.user.escritorio_id;
     const usuarioId = req.user.id;
@@ -274,7 +275,7 @@ router.post('/converter-publicacao', authMiddleware, async (req, res) => {
  * 🧪 INSERIR PUBLICAÇÃO MANUAL
  * ============================================================
  */
-router.post('/publicacoes/manual', authMiddleware, async (req, res) => {
+router.post('/publicacoes/manual', authMiddleware, roleMiddleware('admin', 'operador'), async (req, res) => {
     try {
         const { numero_processo, conteudo, data_publicacao, tribunal } = req.body;
         const escritorioId = req.user.escritorio_id;
@@ -314,7 +315,7 @@ router.post('/publicacoes/manual', authMiddleware, async (req, res) => {
  * 🔄 ATUALIZAR STATUS DA PUBLICAÇÃO
  * ============================================================
  */
-router.patch('/publicacoes/:id/status', authMiddleware, async (req, res) => {
+router.patch('/publicacoes/:id/status', authMiddleware, roleMiddleware('admin', 'operador'), async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;

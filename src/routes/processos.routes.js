@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
+const roleMiddleware = require('../middlewares/roleMiddleware');
 
 /**
  * CADASTRAR NOVO PROCESSO (COM MÚLTIPLAS PARTES)
  * POST /api/processos
  */
-router.post('/processos', authMiddleware, async (req, res) => {
+router.post('/processos', authMiddleware, roleMiddleware('admin', 'operador'), async (req, res) => {
   const dadosRecebidos = req.body;
 
   console.log('🚀 POST /api/processos - Dados recebidos:', dadosRecebidos);
@@ -296,7 +297,7 @@ router.get('/processos/:processoId/partes', authMiddleware, async (req, res) => 
  * ATUALIZAR PROCESSO (COM PARTES)
  * PUT /api/processos/:id
  */
-router.put('/processos/:id', authMiddleware, async (req, res) => {
+router.put('/processos/:id', authMiddleware, roleMiddleware('admin', 'operador'), async (req, res) => {
     const { id } = req.params;
     const { esfera, tribunal, instancia, uf, partes_ativo, partes_passivo } = req.body;
     const escritorioId = req.user.escritorio_id;
@@ -447,7 +448,7 @@ router.get('/processos/existe/:numero', authMiddleware, async (req, res) => {
   }
 });
 
-router.patch('/processos/:id/excluir', authMiddleware, async (req, res) => {
+router.patch('/processos/:id/excluir', authMiddleware, roleMiddleware('admin'), async (req, res) => {
   const { id } = req.params;
   const escritorioId = req.user?.escritorio_id;
   const operador = req.user?.nome || req.user?.email || 'Usuário desconhecido';
@@ -503,7 +504,7 @@ router.patch('/processos/:id/excluir', authMiddleware, async (req, res) => {
   }
 });
 
-router.patch('/processos/:id/arquivar', authMiddleware, async (req, res) => {
+router.patch('/processos/:id/arquivar', authMiddleware, roleMiddleware('admin', 'operador'), async (req, res) => {
   try {
     await pool.query(
       'UPDATE processos SET status = $1 WHERE id = $2 AND escritorio_id = $3',
@@ -516,7 +517,7 @@ router.patch('/processos/:id/arquivar', authMiddleware, async (req, res) => {
   }
 });
 
-router.patch('/processos/:id/desarquivar', authMiddleware, async (req, res) => {
+router.patch('/processos/:id/desarquivar', authMiddleware, roleMiddleware('admin', 'operador'), async (req, res) => {
   try {
     await pool.query(
       'UPDATE processos SET status = $1 WHERE id = $2 AND escritorio_id = $3',

@@ -9,6 +9,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
+const roleMiddleware = require('../middlewares/roleMiddleware');
 
 /* ======================================================
    🗑️ CANCELAR RENOVAÇÃO AUTOMÁTICA
@@ -17,7 +18,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
    Mas não será cobrado novamente
 ===================================================== */
 
-router.post('/cancelar-assinatura', authMiddleware, async (req, res) => {
+router.post('/cancelar-assinatura', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     try {
         const escritorioId = req.user.escritorio_id;
         
@@ -80,7 +81,7 @@ router.post('/cancelar-assinatura', authMiddleware, async (req, res) => {
    Usuário volta a ser cobrado mensalmente
 ===================================================== */
 
-router.post('/reativar-assinatura', authMiddleware, async (req, res) => {
+router.post('/reativar-assinatura', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     try {
         const escritorioId = req.user.escritorio_id;
         

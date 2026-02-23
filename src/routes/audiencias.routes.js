@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
+const roleMiddleware = require('../middlewares/roleMiddleware');
 
 // ============================================================
 // 🔧 CORRIGIDO: Listar audiências DO ESCRITÓRIO (não só do usuário)
@@ -39,7 +40,7 @@ router.get('/audiencias', authMiddleware, async (req, res) => {
 });
 
 // Cadastrar nova audiência
-router.post('/audiencias', authMiddleware, async (req, res) => {
+router.post('/audiencias', authMiddleware, roleMiddleware('admin', 'operador'), async (req, res) => {
     const { processo_id, tipo_audiencia, data_audiencia, hora_audiencia, local_virtual } = req.body;
     
     console.log('🔍 [POST AUDIENCIA] Criando:', { processo_id, tipo_audiencia, data_audiencia });
@@ -64,7 +65,7 @@ router.post('/audiencias', authMiddleware, async (req, res) => {
 // ============================================================
 // 🔧 CORRIGIDO: Excluir audiência DO ESCRITÓRIO
 // ============================================================
-router.delete('/audiencias/:id', authMiddleware, async (req, res) => {
+router.delete('/audiencias/:id', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     const { id } = req.params;
     const escritorioId = req.user.escritorio_id;
 
@@ -92,7 +93,7 @@ router.delete('/audiencias/:id', authMiddleware, async (req, res) => {
 // ============================================================
 // 🔧 CORRIGIDO: Registrar ATA (qualquer usuário do escritório)
 // ============================================================
-router.put('/audiencias/:id/ata', authMiddleware, async (req, res) => {
+router.put('/audiencias/:id/ata', authMiddleware, roleMiddleware('admin', 'operador'), async (req, res) => {
     const { id } = req.params;
     const { ata_audiencia } = req.body;
     const escritorioId = req.user.escritorio_id;
@@ -124,7 +125,7 @@ router.put('/audiencias/:id/ata', authMiddleware, async (req, res) => {
 // ============================================================
 // 🔧 CORRIGIDO: Marcar como realizada (qualquer usuário do escritório)
 // ============================================================
-router.put('/audiencias/:id/realizada', authMiddleware, async (req, res) => {
+router.put('/audiencias/:id/realizada', authMiddleware, roleMiddleware('admin', 'operador'), async (req, res) => {
     const { id } = req.params;
     const escritorioId = req.user.escritorio_id;
 

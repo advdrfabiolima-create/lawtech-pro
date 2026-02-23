@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const planoController = require('../controllers/planoController'); 
+const planoController = require('../controllers/planoController');
 const authMiddleware = require('../middlewares/authMiddleware');
+const roleMiddleware = require('../middlewares/roleMiddleware');
 
 // ============================
 // ROTAS DE PLANOS
@@ -10,11 +11,10 @@ const authMiddleware = require('../middlewares/authMiddleware');
 // Usamos o objeto 'planoController' para chamar todas as funções
 router.get('/planos', authMiddleware, planoController.listarPlanos);
 router.get('/planos/meu-plano', authMiddleware, planoController.meuPlano);
-router.post('/planos/upgrade', authMiddleware, planoController.upgradePlano);
-
+router.post('/planos/upgrade', authMiddleware, roleMiddleware('admin'), planoController.upgradePlano);
 
 // Rota de cancelamento (agora devidamente conectada)
-router.post('/planos/cancelar-agendamento', authMiddleware, planoController.cancelarAgendamento);
+router.post('/planos/cancelar-agendamento', authMiddleware, roleMiddleware('admin'), planoController.cancelarAgendamento);
 
 // ============================
 // PLANO & CONSUMO (DASHBOARD)

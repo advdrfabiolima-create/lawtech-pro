@@ -2284,6 +2284,9 @@ let gerenciadorPartesEdicao = null;
                 
                 const circulo = document.getElementById('userCircle');
                 if (circulo) circulo.innerText = iniciais.toUpperCase();
+
+                window._userRole = dataUser.usuario.role || 'visualizador';
+                aplicarPermissoesRoleUI(window._userRole);
             }
 
             // 2. Busca plano
@@ -3519,6 +3522,17 @@ function obterTribunaisPorEsfera(esfera) {
     const submenu = document.getElementById('submenu-ia');
     submenu.classList.toggle('open');
 }
+
+        function aplicarPermissoesRoleUI(role) {
+            if (role === 'admin') return;
+            const s = document.createElement('style');
+            if (role === 'operador') {
+                s.textContent = 'button[onclick*="excluirProcesso"],button[onclick*="/excluir"] { display: none !important; }';
+            } else {
+                s.textContent = 'button[onclick*="abrirModalProcesso"], button[onclick*="excluirProcesso"], button[onclick*="/excluir"], .btn-arquivar, .btn-desarquivar { display: none !important; }';
+            }
+            document.head.appendChild(s);
+        }
 </script>
 
 <!-- ✅ MODAL DE EDIÇÃO DE PROCESSO -->

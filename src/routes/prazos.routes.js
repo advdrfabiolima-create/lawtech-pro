@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const authMiddleware = require('../middlewares/authMiddleware');
+const roleMiddleware = require('../middlewares/roleMiddleware');
 const planMiddleware = require('../middlewares/planMiddleware');
 const controller = require('../controllers/prazosController');
 
@@ -48,21 +49,22 @@ router.get('/dashboard/prazos-geral', authMiddleware, controller.listarPrazosDas
 
 // 🚨 PRIORIDADE MÁXIMA: Limpeza de lixeira (Deve vir antes de rotas com :id)
 // Resolve o erro 404 ao clicar em "Limpar Concluídos"
-router.delete('/prazos/concluidos/limpar', authMiddleware, controller.limparPrazosConcluidos);
+router.delete('/prazos/concluidos/limpar', authMiddleware, roleMiddleware('admin'), controller.limparPrazosConcluidos);
 
 // Concluir um prazo específico (Check verde)
-router.put('/prazos/:id/concluir', authMiddleware, controller.concluirPrazo);
+router.put('/prazos/:id/concluir', authMiddleware, roleMiddleware('admin', 'operador'), controller.concluirPrazo);
 
 // Operações Básicas (CRUD)
 // 🔒 TRAVA: Limite de prazos por mês aplicado aqui
-router.post('/prazos', 
-    authMiddleware, 
+router.post('/prazos',
+    authMiddleware,
+    roleMiddleware('admin', 'operador'),
     planMiddleware.checkLimit('prazos'),
     controller.criarPrazo
 );
 
-router.put('/prazos/:id', authMiddleware, controller.atualizarPrazo);
-router.delete('/prazos/:id', authMiddleware, controller.excluirPrazo);
+router.put('/prazos/:id', authMiddleware, roleMiddleware('admin', 'operador'), controller.atualizarPrazo);
+router.delete('/prazos/:id', authMiddleware, roleMiddleware('admin'), controller.excluirPrazo);
 
 /**
  * ============================================================
@@ -114,21 +116,23 @@ const upload = multer({
  */
 
 // Upload de PDF para um prazo
-router.post('/prazos/:id/anexo', 
-    authMiddleware, 
-    upload.single('pdf'), 
+router.post('/prazos/:id/anexo',
+    authMiddleware,
+    roleMiddleware('admin', 'operador'),
+    upload.single('pdf'),
     controller.uploadAnexo
 );
 
 // Visualizar/Baixar PDF de um prazo
-router.get('/prazos/:id/anexo', 
-    authMiddleware, 
+router.get('/prazos/:id/anexo',
+    authMiddleware,
     controller.visualizarAnexo
 );
 
 // Deletar PDF de um prazo
-router.delete('/prazos/:id/anexo', 
-    authMiddleware, 
+router.delete('/prazos/:id/anexo',
+    authMiddleware,
+    roleMiddleware('admin'),
     controller.deletarAnexo
 );
 

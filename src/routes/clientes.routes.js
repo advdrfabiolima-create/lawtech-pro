@@ -3,6 +3,7 @@ const router = express.Router();
 
 const clientesController = require('../controllers/clientesController');
 const authMiddleware = require('../middlewares/authMiddleware');
+const roleMiddleware = require('../middlewares/roleMiddleware');
 const verificarPagamento = require('../middlewares/financeiroMiddleware');
 
 // ================================
@@ -21,6 +22,7 @@ router.get(
 router.post(
     '/clientes',
     authMiddleware,
+    roleMiddleware('admin', 'operador'),
     verificarPagamento,
     clientesController.criarCliente
 );
@@ -29,6 +31,7 @@ router.post(
 router.put(
     '/clientes/:id',
     authMiddleware,
+    roleMiddleware('admin', 'operador'),
     verificarPagamento,
     clientesController.editarCliente
 );
@@ -37,6 +40,7 @@ router.put(
 router.delete(
     '/clientes/:id',
     authMiddleware,
+    roleMiddleware('admin'),
     verificarPagamento,
     clientesController.excluirCliente
 );

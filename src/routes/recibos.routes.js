@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
+const roleMiddleware = require('../middlewares/roleMiddleware');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
@@ -50,6 +51,7 @@ const upload = multer({
 
 router.post('/recibos/upload-logo',
     authMiddleware,
+    roleMiddleware('admin'),
     (req, res, next) => {
         upload.single('logo')(req, res, (err) => {
             if (err) {
@@ -163,6 +165,7 @@ router.get('/recibos/logo',
 router.post(
     '/recibos/upload-assinatura',
     authMiddleware,
+    roleMiddleware('admin'),
     uploadAssinatura.single('assinatura'),
     async (req, res) => {
         if (!req.file) {
@@ -195,6 +198,7 @@ router.post(
 
 router.post('/recibos/gerar',
     authMiddleware,
+    roleMiddleware('admin', 'operador'),
     async (req, res) => {
         try {
             const {

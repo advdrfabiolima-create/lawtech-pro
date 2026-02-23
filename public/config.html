@@ -501,7 +501,7 @@ input, textarea, select {
 
             <a href="/chat-page"><i class="lucide lucide-message-circle"></i> 💬 Chat <span id="chatBadge" style="display:none;background:#ef4444;color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 5px;margin-left:auto;box-shadow:0 0 8px rgba(239,68,68,0.5);"></span></a>
             <a href="/relatorios-page"><i class="lucide lucide-bar-chart-3"></i> Relatórios</a>
-            <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+            <a href="/planos-page" id="link-gestao-planos"><i class="lucide lucide-award"></i> Gestão de Planos</a>
             <a href="/config-page" class="active"><i class="lucide lucide-settings"></i> Configurações</a>
             <a href="/crm-page" class="btn-crm-gold-nav">
             <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
@@ -555,7 +555,7 @@ input, textarea, select {
     </div>
 
     <!-- Dados do Escritório e Faturamento -->
-    <div class="card">
+    <div class="card" id="card-dados-escritorio">
         <div class="card-title"><i data-lucide="building-2"></i> Dados do Escritório e Faturamento</div>
         
         <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
@@ -632,7 +632,7 @@ input, textarea, select {
     </div>
 
     <!-- Configuração de Repasse (Asaas) -->
-    <div class="card" style="border-top: 4px solid var(--success);">
+    <div class="card" id="card-repasse-asaas" style="border-top: 4px solid var(--success);">
         <div class="card-title">
             <i data-lucide="banknote"></i> Configuração de Repasse (Asaas)
         </div>
@@ -682,7 +682,7 @@ input, textarea, select {
     </div>
 
     <!-- Gestão de Equipe -->
-    <div class="card">
+    <div class="card" id="card-gestao-equipe">
         <div class="card-title">
             <i data-lucide="users"></i> Gestão de Equipe
         </div>
@@ -753,8 +753,8 @@ input, textarea, select {
 </div>
 
 
- <div style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid var(--border); padding: 32px; border-radius: 16px; margin-top: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-    
+ <div id="card-assinatura-pagamento" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid var(--border); padding: 32px; border-radius: 16px; margin-top: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+
     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
         <div style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(59,130,246,0.2);">
             <i data-lucide="credit-card" style="color: var(--primary); width: 24px; height: 24px;"></i>
@@ -964,6 +964,9 @@ async function carregarInfoRodape() {
             
             if(document.getElementById('perfilEmail')) document.getElementById('perfilEmail').value = user.email;
             if(document.getElementById('perfilNome')) document.getElementById('perfilNome').value = nomeReal;
+
+            // 🔒 RBAC: Aplicar restrições baseadas na role do usuário
+            aplicarRestricoesPorRole(user.role || 'visualizador');
 
             // ✅ LÓGICA CORRIGIDA: Verificar STATUS antes de mostrar card de trial
             // Aceita tanto 'status' quanto 'plano_financeiro_status' (compatibilidade)
@@ -1927,6 +1930,23 @@ function exibirInadimplente() {
 
     // Carregar config ao abrir a página
     carregarConfigAlertas();
+
+    // 🔒 RBAC: Ocultar seções admin-only para não-admins
+    function aplicarRestricoesPorRole(role) {
+        const idsAdminOnly = [
+            'card-dados-escritorio',
+            'card-repasse-asaas',
+            'card-gestao-equipe',
+            'card-assinatura-pagamento',
+            'link-gestao-planos'
+        ];
+        if (role !== 'admin') {
+            idsAdminOnly.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+        }
+    }
     </script>
 <script>
 (function(){var t=localStorage.getItem('token');if(!t)return;function checkChat(){fetch('/api/chat/nao-lidas',{headers:{Authorization:'Bearer '+t}}).then(function(r){return r.json()}).then(function(d){if(d.ok){var total=Object.values(d.naoLidas).reduce(function(a,b){return a+b},0);var b=document.getElementById('chatBadge');if(b){b.style.display=total>0?'inline-flex':'none';b.textContent=total>99?'99+':total}}}).catch(function(){})}checkChat();setInterval(checkChat,30000)})();

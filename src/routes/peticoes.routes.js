@@ -8,6 +8,7 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middlewares/authMiddleware');
+const roleMiddleware = require('../middlewares/roleMiddleware');
 const planMiddleware = require('../middlewares/planMiddleware');
 const PeticoesController = require('../controllers/peticoesController');
 
@@ -19,6 +20,7 @@ const PeticoesController = require('../controllers/peticoesController');
  */
 router.post('/gerar',
     authMiddleware,
+    roleMiddleware('admin', 'operador'),
     planMiddleware.checkFeature('ia_juridica'), // Requer plano Premium
     PeticoesController.gerarPeticaoComIA
 );
@@ -38,6 +40,7 @@ router.get('/',
  */
 router.post('/:id/pdf',
     authMiddleware,
+    roleMiddleware('admin', 'operador'),
     PeticoesController.gerarPDF
 );
 
@@ -47,6 +50,7 @@ router.post('/:id/pdf',
  */
 router.put('/:id/conteudo',
     authMiddleware,
+    roleMiddleware('admin', 'operador'),
     PeticoesController.editarConteudo
 );
 
@@ -56,6 +60,7 @@ router.put('/:id/conteudo',
  */
 router.delete('/:id',
     authMiddleware,
+    roleMiddleware('admin'),
     PeticoesController.deletarPeticao
 );
 

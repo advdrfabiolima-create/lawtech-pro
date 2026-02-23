@@ -1057,6 +1057,8 @@
                 let iniciais = partes[0][0];
                 if (partes.length > 1) iniciais += partes[partes.length - 1][0];
                 document.getElementById('userCircle').innerText = iniciais.toUpperCase();
+                window._userRole = data.usuario.role || 'visualizador';
+                aplicarPermissoesRoleUI(window._userRole);
             }
 
             const resPlano = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
@@ -1509,6 +1511,17 @@
         carregarClientes();
         if (typeof lucide !== 'undefined') lucide.createIcons();
     };
+
+    function aplicarPermissoesRoleUI(role) {
+        if (role === 'admin') return;
+        const s = document.createElement('style');
+        if (role === 'operador') {
+            s.textContent = `.btn-danger { display: none !important; }`;
+        } else {
+            s.textContent = `.btn-danger, button[onclick*='novaPeticao'] { display: none !important; }`;
+        }
+        document.head.appendChild(s);
+    }
 </script>
 
 <script>

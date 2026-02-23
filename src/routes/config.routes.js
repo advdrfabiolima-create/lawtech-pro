@@ -3,12 +3,13 @@ const router = express.Router();
 const pool = require('../config/db');
 const axios = require('axios'); // 🚀 Adicionado para falar com o Escavador
 const authMiddleware = require('../middlewares/authMiddleware');
+const roleMiddleware = require('../middlewares/roleMiddleware');
 const bcrypt = require('bcrypt');
 
 // ============================================================
 // ROTA 1: SALVAR/ATUALIZAR DADOS DO ESCRITÓRIO (PUT)
 // ============================================================
-router.put('/escritorio', authMiddleware, async (req, res) => {
+router.put('/escritorio', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     const { 
         nome, advogado_responsavel, oab, documento, dataNascimento, email, endereco, 
         cidade, estado, cep, banco_codigo, agencia, conta, conta_digito, pix_chave, renda_mensal 
@@ -235,7 +236,7 @@ router.put('/config/perfil', authMiddleware, async (req, res) => {
 /**
  * 🔌 SALVAR CHAVE API DO ESCAVADOR (CLIENTE PRÓPRIO)
  */
-router.put('/config/escavador-key', authMiddleware, async (req, res) => {
+router.put('/config/escavador-key', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     try {
         const { escavador_api_key } = req.body;
         const escritorioId = req.user.escritorio_id;
@@ -265,7 +266,7 @@ router.put('/config/escavador-key', authMiddleware, async (req, res) => {
 });
 
 // ROTA PARA REATIVAR ASSINATURA (DESFAZER CANCELAMENTO)
-router.put('/planos/reativar', authMiddleware, async (req, res) => {
+router.put('/planos/reativar', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     try {
         const escritorioId = req.user.escritorio_id;
         

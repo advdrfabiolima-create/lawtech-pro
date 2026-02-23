@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const authMiddleware = require('../middlewares/authMiddleware');
+const roleMiddleware = require('../middlewares/roleMiddleware');
 const pool = require('../config/db');
 const { validarDocumento } = require('../utils/validators');
 const { encrypt, decrypt } = require('../utils/crypto');
@@ -90,7 +91,7 @@ function obterDataVencimento(diasParaVencer = 3) {
    ASSINAR PLANO VIA BOLETO (ASAAS) - MANTIDO
 ===================================================== */
 
-router.post('/assinar-plano', authMiddleware, async (req, res) => {
+router.post('/assinar-plano', authMiddleware, roleMiddleware('admin'), async (req, res) => {
   const { planoId, nomePlano, valor, cpfUsuario } = req.body;
   const escritorioId = req.user.escritorio_id;
 
@@ -371,7 +372,7 @@ router.get('/testar-asaas', authMiddleware, async (req, res) => {
    ✅ NOVA IMPLEMENTAÇÃO (substituindo a temporária)
 ===================================================== */
 
-router.post('/salvar-cartao', authMiddleware, async (req, res) => {
+router.post('/salvar-cartao', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     try {
         const { 
             token,           // Token gerado no FRONTEND via Stripe.js
@@ -498,7 +499,7 @@ router.get('/cartao', authMiddleware, async (req, res) => {
    💳 REMOVER CARTÃO
 ===================================================== */
 
-router.delete('/cartao', authMiddleware, async (req, res) => {
+router.delete('/cartao', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     try {
         await pool.query(
             'DELETE FROM cartoes WHERE escritorio_id = $1',
@@ -525,7 +526,7 @@ router.delete('/cartao', authMiddleware, async (req, res) => {
    (para renovações automáticas após trial)
 ===================================================== */
 
-router.post('/cobrar-renovacao', authMiddleware, async (req, res) => {
+router.post('/cobrar-renovacao', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     try {
         const { valor, descricao } = req.body;
         const escritorioId = req.user.escritorio_id;

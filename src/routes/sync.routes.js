@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
+const roleMiddleware = require('../middlewares/roleMiddleware');
 
 // ============================================================
 // CONFIGURAÇÃO DE OAB
@@ -42,7 +43,7 @@ router.get('/oab-config', authMiddleware, async (req, res) => {
  * POST /api/oab-config
  * Salvar configuração de OAB
  */
-router.post('/oab-config', authMiddleware, async (req, res) => {
+router.post('/oab-config', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     try {
         const { numero_oab, uf_oab } = req.body;
         const { id: usuario_id, escritorio_id } = req.user;
@@ -87,7 +88,7 @@ router.post('/oab-config', authMiddleware, async (req, res) => {
  * POST /api/sync/processos
  * Iniciar sincronização de processos
  */
-router.post('/sync/processos', authMiddleware, async (req, res) => {
+router.post('/sync/processos', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     try {
         const { escritorio_id } = req.user;
         const { tipo = 'pje' } = req.body; // Tipo de tribunal

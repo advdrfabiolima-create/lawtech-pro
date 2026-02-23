@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
+const roleMiddleware = require('../middlewares/roleMiddleware');
 const planMiddleware = require('../middlewares/planMiddleware');
 const axios = require('axios');
 const { validarDocumento } = require('../utils/validators');
@@ -100,8 +101,9 @@ router.get('/financeiro',
     }
 );
 
-router.post('/financeiro', 
+router.post('/financeiro',
     authMiddleware,
+    roleMiddleware('admin', 'operador'),
     async (req, res) => {
         const { descricao, valor, tipo, data_vencimento } = req.body;
         try {
@@ -124,8 +126,9 @@ router.post('/financeiro',
     }
 );
 
-router.put('/financeiro/:id', 
+router.put('/financeiro/:id',
     authMiddleware,
+    roleMiddleware('admin', 'operador'),
     async (req, res) => {
         const { id } = req.params;
         const { descricao, valor, tipo, data_vencimento } = req.body;
@@ -146,8 +149,9 @@ router.put('/financeiro/:id',
     }
 );
 
-router.patch('/financeiro/:id/pagar', 
+router.patch('/financeiro/:id/pagar',
     authMiddleware,
+    roleMiddleware('admin', 'operador'),
     async (req, res) => {
         try {
             const { id } = req.params;
@@ -171,8 +175,9 @@ router.patch('/financeiro/:id/pagar',
     }
 );
 
-router.delete('/financeiro/:id', 
+router.delete('/financeiro/:id',
     authMiddleware,
+    roleMiddleware('admin'),
     async (req, res) => {
         const { id } = req.params;
         try {
@@ -256,8 +261,9 @@ router.get('/financeiro/relatorio',
 // 🔐 ATIVAR SUBCONTA ASAAS (FATURAMENTO PRÓPRIO)
 // ==========================================
 
-router.post('/financeiro/ativar-subconta', 
+router.post('/financeiro/ativar-subconta',
     authMiddleware,
+    roleMiddleware('admin'),
     async (req, res) => {
         try {
             const escritorioId = req.user.escritorio_id;
@@ -426,8 +432,9 @@ router.post('/financeiro/ativar-subconta',
 // 💰 GERAR BOLETO DE HONORÁRIOS - CORRIGIDO
 // ==========================================
 
-router.post('/financeiro/gerar-boleto-honorarios', 
-    authMiddleware, 
+router.post('/financeiro/gerar-boleto-honorarios',
+    authMiddleware,
+    roleMiddleware('admin', 'operador'),
     async (req, res) => {
         try {
             const { clienteId, valor, descricao, vencimento } = req.body;

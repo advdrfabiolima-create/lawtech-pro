@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
+const roleMiddleware = require('../middlewares/roleMiddleware');
 const { validarSenha } = require('../utils/validators');
 
 // Carregar limites dos planos
@@ -12,7 +13,7 @@ const planLimits = require('../config/planLimits.json');
  * 📌 ROTA: ADICIONAR MEMBRO À EQUIPE (CONVIDAR FUNCIONÁRIO)
  * POST /api/auth/convidar-funcionario
  */
-router.post('/auth/convidar-funcionario', authMiddleware, async (req, res) => {
+router.post('/auth/convidar-funcionario', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     const { nome, email, senha, role } = req.body;
 
     // Validação básica
@@ -159,7 +160,7 @@ router.get('/auth/equipe', authMiddleware, async (req, res) => {
  * 📌 ROTA: REMOVER MEMBRO DA EQUIPE
  * DELETE /api/auth/equipe/:id (compatível com o frontend)
  */
-router.delete('/auth/equipe/:id', authMiddleware, async (req, res) => {
+router.delete('/auth/equipe/:id', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     const { id } = req.params;
 
     try {
@@ -197,7 +198,7 @@ router.delete('/auth/equipe/:id', authMiddleware, async (req, res) => {
  * 📌 ROTA: ATUALIZAR PERMISSÃO DE MEMBRO
  * PUT /api/usuarios/:id/role
  */
-router.put('/usuarios/:id/role', authMiddleware, async (req, res) => {
+router.put('/usuarios/:id/role', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     const { id } = req.params;
     const { role } = req.body;
 

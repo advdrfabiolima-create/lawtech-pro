@@ -1127,6 +1127,9 @@
                 
                 const circulo = document.getElementById('userCircle');
                 if (circulo) circulo.innerText = iniciais.toUpperCase();
+
+                window._userRole = dataUser.usuario.role || 'visualizador';
+                aplicarPermissoesRoleUI(window._userRole);
             }
 
             const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
@@ -2191,6 +2194,17 @@
             } else { alert(data.erro || 'Erro'); }
         } catch (e) { alert('Erro de conexão'); }
     }
+
+        function aplicarPermissoesRoleUI(role) {
+            if (role === 'admin') return;
+            const s = document.createElement('style');
+            if (role === 'operador') {
+                s.textContent = '.btn-action.danger { display: none !important; }';
+            } else {
+                s.textContent = '.btn-action.danger, .btn-action.edit, button[onclick*="abrirModalPrazo"], .btn-add-feriado { display: none !important; }';
+            }
+            document.head.appendChild(s);
+        }
 </script>
 <script>
 (function(){var t=localStorage.getItem('token');if(!t)return;function checkChat(){fetch('/api/chat/nao-lidas',{headers:{Authorization:'Bearer '+t}}).then(function(r){return r.json()}).then(function(d){if(d.ok){var total=Object.values(d.naoLidas).reduce(function(a,b){return a+b},0);var b=document.getElementById('chatBadge');if(b){b.style.display=total>0?'inline-flex':'none';b.textContent=total>99?'99+':total}}}).catch(function(){})}checkChat();setInterval(checkChat,30000)})();
