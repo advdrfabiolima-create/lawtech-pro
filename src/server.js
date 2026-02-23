@@ -161,14 +161,22 @@ app.use('/api/ia', iaLimiter);
 app.use('/api/peticoes/gerar', iaLimiter);
 app.use('/api/analisar-prazo', iaLimiter);
 
+// Rate limiting para formulário de contato (anti-spam)
+const contatoLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hora
+    max: 5, // máximo 5 envios por hora por IP
+    message: { erro: 'Muitos envios de contato. Tente novamente em uma hora.' }
+});
+app.use('/api/contato', contatoLimiter);
+
 // --- 7. SERVIR ARQUIVOS ESTÃTICOS ---
 const publicPath = path.join(__dirname, '..', 'public');
 app.use(express.static(publicPath));
 
 // --- 8. APIs (ROTAS DE DADOS) ---
 app.use('/api/auth', authRoutes);
+app.use('/api/contato', contatoRoutes); // 📬 público — formulário de contato do site
 app.use('/api', iaRoutes);
-app.use('/api', contatoRoutes); // 📬 público — formulário de contato do site
 app.use('/api/crm/public', crmPublicRoutes); // ðŸ"" pÃºblico
 app.use('/api/crm', authMiddleware, crmRoutes);
 console.log('âœ… Rotas CRM registradas no servidor principal');

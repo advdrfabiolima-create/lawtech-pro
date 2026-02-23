@@ -6,7 +6,7 @@ const { enviarEmail } = require('../services/emailService');
  * POST /api/contato
  * Recebe o formulário de contato do site e envia para contato@lawtechpro.com.br
  */
-router.post('/contato', async (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const { nome, email, telefone, motivo, mensagem } = req.body;
 
