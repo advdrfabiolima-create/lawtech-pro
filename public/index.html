@@ -2288,9 +2288,16 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
             };
 
             try {
-                // Aqui você pode integrar com um backend ou serviço de e-mail
-                // Por enquanto, simula envio
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                const resp = await fetch('/api/contato', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
+
+                if (!resp.ok) {
+                    const err = await resp.json().catch(() => ({}));
+                    throw new Error(err.erro || 'Erro ao enviar mensagem');
+                }
 
                 // Mostra mensagem de sucesso
                 document.getElementById('formularioContato').style.display = 'none';
@@ -2301,11 +2308,8 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
                     fecharModalContato();
                 }, 3000);
 
-                // Log dos dados (em produção, enviar para backend)
-                console.log('Dados do contato:', dados);
-
             } catch (error) {
-                alert('Erro ao enviar mensagem. Tente novamente ou entre em contato por e-mail: contato@lawtechpro.com.br');
+                alert(error.message || 'Erro ao enviar mensagem. Tente novamente ou entre em contato por e-mail: contato@lawtechpro.com.br');
                 btn.disabled = false;
                 btn.textContent = originalText;
             }

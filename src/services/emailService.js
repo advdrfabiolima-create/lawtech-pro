@@ -56,9 +56,9 @@ async function enviarAlertaPrazo(email, dadosPrazo) {
 
         const html = `
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8fafb;">
-            <div style="background: linear-gradient(135deg, #1E3A5F 0%, #2D5A8E 100%); padding: 24px; text-align: center;">
-                <h1 style="color: white; margin: 0; font-size: 22px;">⚖️ LawTech Pro</h1>
-                <p style="color: rgba(255,255,255,0.7); margin: 4px 0 0; font-size: 13px;">${escritorio_nome || 'Seu Escritório'}</p>
+            <div style="background: #1E3A5F; padding: 32px 24px; text-align: center;">
+                <img src="https://www.lawtechpro.com.br/Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro" style="max-width: 200px; height: auto; margin: 0 auto 12px; display: block;" />
+                <p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 14px;">Sistema Jurídico Inteligente</p>
             </div>
             <div style="padding: 32px 24px; background: white;">
                 <div style="background: ${corUrgencia}15; border-left: 4px solid ${corUrgencia}; padding: 16px; border-radius: 0 8px 8px 0; margin-bottom: 24px;">

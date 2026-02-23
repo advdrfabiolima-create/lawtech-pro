@@ -36,6 +36,7 @@ const calendarioRoutes = require('./routes/calendario.routes');
 const notificacoesRoutes = require('./routes/notificacoes.routes');
 const relatoriosRoutes = require('./routes/relatorios.routes');
 const chatRoutes = require('./routes/chat.routes');
+const contatoRoutes = require('./routes/contato.routes');
 
 // --- 2. MIDDLEWARES DE AUTENTICAÃ‡ÃƒO ---
 const authMiddleware = require('./middlewares/authMiddleware');
@@ -167,6 +168,7 @@ app.use(express.static(publicPath));
 // --- 8. APIs (ROTAS DE DADOS) ---
 app.use('/api/auth', authRoutes);
 app.use('/api', iaRoutes);
+app.use('/api', contatoRoutes); // 📬 público — formulário de contato do site
 app.use('/api/crm/public', crmPublicRoutes); // ðŸ"" pÃºblico
 app.use('/api/crm', authMiddleware, crmRoutes);
 console.log('âœ… Rotas CRM registradas no servidor principal');
