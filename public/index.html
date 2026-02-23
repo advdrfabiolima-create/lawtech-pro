@@ -2167,11 +2167,13 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
         // Smooth scroll para âncoras
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (!href || href === '#') return;
                 e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
+                const target = document.querySelector(href);
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }                
+                }
             });
         });
     </script>
@@ -2288,7 +2290,7 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
             };
 
             try {
-                const resp = await fetch('/api/contato', {
+                const resp = await fetch('/api/auth/contato', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dados)
