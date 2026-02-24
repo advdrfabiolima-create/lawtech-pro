@@ -575,6 +575,7 @@ input, textarea, select {
         }
 
     </style>
+    <link rel="stylesheet" href="mobile.css">
 </head>
 <body>
 
@@ -1062,5 +1063,6 @@ input, textarea, select {
 <script>
 (function(){var t=localStorage.getItem('token');if(!t)return;function checkChat(){fetch('/api/chat/nao-lidas',{headers:{Authorization:'Bearer '+t}}).then(function(r){return r.json()}).then(function(d){if(d.ok){var total=Object.values(d.naoLidas).reduce(function(a,b){return a+b},0);var b=document.getElementById('chatBadge');if(b){b.style.display=total>0?'inline-flex':'none';b.textContent=total>99?'99+':total}}}).catch(function(){})}checkChat();setInterval(checkChat,30000)})();
 </script>
+    <script src="mobile.js"></script>
 </body>
 </html>
