@@ -529,9 +529,11 @@
         </main>
     </div>
 
-    <!-- MODAL: Trial Expirado -->
-    <div id="modalTrialExpirado" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
-        <div style="background:white;border-radius:16px;padding:40px 36px;max-width:460px;width:calc(100% - 40px);box-shadow:0 25px 50px rgba(0,0,0,0.25);text-align:center;position:relative;">
+    <!-- MODAL: Trial Expirado — multi-step -->
+    <div id="modalTrialExpirado" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+
+        <!-- Etapa 1: Escolher método -->
+        <div id="modalStep1" style="background:white;border-radius:16px;padding:40px 36px;max-width:460px;width:100%;box-shadow:0 25px 50px rgba(0,0,0,0.25);text-align:center;position:relative;">
             <button onclick="fecharModalTrial()" style="position:absolute;top:14px;right:18px;background:none;border:none;cursor:pointer;color:#94a3b8;font-size:22px;line-height:1;">✕</button>
             <div style="width:66px;height:66px;background:#fef3c7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:30px;">🔒</div>
             <h2 style="color:#0f172a;font-size:22px;font-weight:700;margin:0 0 10px;">Acesso Bloqueado</h2>
@@ -540,38 +542,339 @@
                 Escolha uma forma de pagamento para continuar usando o <strong style="color:#1e3a8a;">LawTech Pro</strong>.
             </p>
             <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:22px;">
-                <button onclick="pagarComPix()" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#059669;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">
+                <button onclick="iniciarPagamentoPix()" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#059669;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">
                     <span style="font-size:20px;">🏦</span> Pagar com PIX
                 </button>
-                <button onclick="pagarComCartao()" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#1e3a8a;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">
+                <button onclick="mostrarFormCartao()" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#1e3a8a;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">
                     <span style="font-size:20px;">💳</span> Pagar com Cartão de Crédito
                 </button>
             </div>
             <a href="/planos-page" style="display:inline-block;color:#64748b;font-size:13px;text-decoration:none;border-bottom:1px solid #e2e8f0;padding-bottom:2px;">Ver todos os planos →</a>
         </div>
+
+        <!-- Etapa 2a: PIX -->
+        <div id="modalStepPix" style="display:none;background:white;border-radius:16px;padding:36px;max-width:480px;width:100%;box-shadow:0 25px 50px rgba(0,0,0,0.25);text-align:center;position:relative;">
+            <button onclick="fecharModalTrial()" style="position:absolute;top:14px;right:18px;background:none;border:none;cursor:pointer;color:#94a3b8;font-size:22px;line-height:1;">✕</button>
+            <button onclick="voltarParaEtapa1()" style="position:absolute;top:16px;left:18px;background:none;border:none;cursor:pointer;color:#64748b;font-size:14px;font-weight:600;">← Voltar</button>
+
+            <div id="pixLoadingState">
+                <div style="font-size:40px;margin:20px 0 10px;">⏳</div>
+                <h3 style="color:#0f172a;font-size:18px;font-weight:700;margin:0 0 8px;">Gerando PIX...</h3>
+                <p style="color:#64748b;font-size:14px;">Aguarde um instante</p>
+            </div>
+
+            <div id="pixContent" style="display:none;">
+                <div style="font-size:32px;margin:8px 0 4px;">🏦</div>
+                <h3 style="color:#0f172a;font-size:18px;font-weight:700;margin:0 0 4px;">Pagamento via PIX</h3>
+                <p id="pixPlanInfo" style="color:#059669;font-size:14px;font-weight:600;margin:0 0 16px;"></p>
+                <img id="pixQrCodeImg" src="" alt="QR Code PIX" style="width:190px;height:190px;border:2px solid #e2e8f0;border-radius:10px;margin:0 auto 14px;display:block;">
+                <p style="color:#64748b;font-size:12px;margin:0 0 6px;font-weight:600;text-align:left;">Código PIX (Copia e Cola):</p>
+                <div style="display:flex;gap:8px;margin-bottom:16px;">
+                    <input id="pixPayloadInput" type="text" readonly style="flex:1;padding:9px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:11px;color:#334155;background:#f8fafc;font-family:monospace;min-width:0;">
+                    <button id="btnCopiarPix" onclick="copiarPix()" style="padding:9px 13px;background:#1e3a8a;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:12px;white-space:nowrap;">Copiar</button>
+                </div>
+                <div id="pixStatus" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:#fef3c7;border-radius:10px;color:#92400e;font-size:13px;font-weight:500;margin-bottom:8px;">
+                    <span>⏳</span> Aguardando confirmação do pagamento...
+                </div>
+                <div id="pixSucesso" style="display:none;padding:16px;background:#f0fdf4;border-radius:10px;margin-top:8px;">
+                    <p style="color:#059669;font-size:15px;font-weight:700;margin:0 0 12px;">✅ Pagamento confirmado!</p>
+                    <button onclick="window.location.reload()" style="width:100%;padding:12px;background:#059669;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;">Fazer login agora</button>
+                </div>
+            </div>
+
+            <div id="pixErro" style="display:none;">
+                <div style="font-size:36px;margin:20px 0 10px;">❌</div>
+                <p id="pixErroMsg" style="color:#dc2626;font-size:14px;font-weight:600;margin:0 0 16px;"></p>
+                <button onclick="voltarParaEtapa1()" style="width:100%;padding:12px;background:#dc2626;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">Tentar novamente</button>
+            </div>
+        </div>
+
+        <!-- Etapa 2b: Cartão -->
+        <div id="modalStepCartao" style="display:none;background:white;border-radius:16px;padding:36px 32px;max-width:480px;width:100%;box-shadow:0 25px 50px rgba(0,0,0,0.25);position:relative;max-height:92vh;overflow-y:auto;">
+            <button onclick="fecharModalTrial()" style="position:absolute;top:14px;right:18px;background:none;border:none;cursor:pointer;color:#94a3b8;font-size:22px;line-height:1;">✕</button>
+            <button onclick="voltarParaEtapa1()" style="position:absolute;top:16px;left:18px;background:none;border:none;cursor:pointer;color:#64748b;font-size:14px;font-weight:600;">← Voltar</button>
+
+            <div style="text-align:center;margin-bottom:20px;padding-top:8px;">
+                <div style="font-size:32px;margin-bottom:6px;">💳</div>
+                <h3 style="color:#0f172a;font-size:18px;font-weight:700;margin:0 0 4px;">Pagamento com Cartão</h3>
+                <p id="cartaoPlanInfo" style="color:#1e3a8a;font-size:14px;font-weight:600;margin:0;"></p>
+            </div>
+
+            <div id="cartaoSucesso" style="display:none;text-align:center;padding:20px 0;">
+                <div style="font-size:48px;margin-bottom:12px;">✅</div>
+                <h3 style="color:#059669;font-size:18px;font-weight:700;margin:0 0 8px;">Pagamento aprovado!</h3>
+                <p style="color:#64748b;font-size:14px;margin:0 0 20px;">Seu acesso foi liberado com sucesso.</p>
+                <button onclick="window.location.reload()" style="width:100%;padding:14px;background:#059669;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;">Fazer login agora</button>
+            </div>
+
+            <div id="cartaoFormWrapper">
+                <div id="cartaoErroMsg" style="display:none;padding:11px 14px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;color:#dc2626;font-size:13px;font-weight:500;margin-bottom:14px;"></div>
+                <form id="formCartao" onsubmit="pagarComCartao(event)">
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">Nome no cartão</label>
+                        <input type="text" id="cartaoNome" placeholder="NOME SOBRENOME" required style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+                    </div>
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">Número do cartão</label>
+                        <input type="text" id="cartaoNumero" placeholder="0000 0000 0000 0000" required maxlength="19" style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:monospace;" oninput="formatarCartao(this)">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">Validade (MM/AA)</label>
+                            <input type="text" id="cartaoValidade" placeholder="MM/AA" required maxlength="5" style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;" oninput="formatarValidade(this)">
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">CVV</label>
+                            <input type="text" id="cartaoCvv" placeholder="123" required maxlength="4" style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;" oninput="this.value=this.value.replace(/\D/g,'')">
+                        </div>
+                    </div>
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">CPF do titular</label>
+                        <input type="text" id="cartaoCpf" placeholder="000.000.000-00" required maxlength="14" style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;" oninput="formatarCpf(this)">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">CEP</label>
+                            <input type="text" id="cartaoCep" placeholder="00000-000" required maxlength="9" style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;" oninput="formatarCep(this)">
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">Número</label>
+                            <input type="text" id="cartaoNumeroEndereco" placeholder="123" required maxlength="10" style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;">
+                        </div>
+                    </div>
+                    <div style="margin-bottom:18px;">
+                        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">Telefone</label>
+                        <input type="text" id="cartaoTelefone" placeholder="(00) 00000-0000" maxlength="15" style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;" oninput="formatarTelefone(this)">
+                    </div>
+                    <button type="submit" id="btnPagarCartao" style="width:100%;padding:14px;background:#1e3a8a;color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;">
+                        💳 Pagar <span id="cartaoValorBtn"></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
     </div>
 
     <script>
+        /* ── Estado global do modal de trial ── */
+        let emailDigitado = '';
+        let trialPlanInfo = { nome: 'Básico', valor: 97 };
+        let pixPollingInterval = null;
+        let pixCobrancaId = null;
+
+        /* ── Helpers de navegação ── */
         function mostrarModalTrialExpirado() {
-            const modal = document.getElementById('modalTrialExpirado');
-            modal.style.display = 'flex';
-        }
-        function fecharModalTrial() {
-            document.getElementById('modalTrialExpirado').style.display = 'none';
-        }
-        function pagarComPix() {
-            window.location.href = '/planos-page?metodo=pix';
-        }
-        function pagarComCartao() {
-            window.location.href = '/planos-page?metodo=cartao';
+            document.getElementById('modalTrialExpirado').style.display = 'flex';
+            mostrarEtapa('step1');
         }
 
+        function fecharModalTrial() {
+            document.getElementById('modalTrialExpirado').style.display = 'none';
+            pararPollingPix();
+        }
+
+        function mostrarEtapa(etapa) {
+            document.getElementById('modalStep1').style.display      = etapa === 'step1'  ? 'block' : 'none';
+            document.getElementById('modalStepPix').style.display    = etapa === 'pix'    ? 'block' : 'none';
+            document.getElementById('modalStepCartao').style.display = etapa === 'cartao' ? 'block' : 'none';
+        }
+
+        function voltarParaEtapa1() {
+            pararPollingPix();
+            mostrarEtapa('step1');
+        }
+
+        function pararPollingPix() {
+            if (pixPollingInterval) {
+                clearInterval(pixPollingInterval);
+                pixPollingInterval = null;
+            }
+        }
+
+        /* ── Fluxo PIX ── */
+        async function iniciarPagamentoPix() {
+            mostrarEtapa('pix');
+            document.getElementById('pixLoadingState').style.display = 'block';
+            document.getElementById('pixContent').style.display      = 'none';
+            document.getElementById('pixErro').style.display         = 'none';
+            document.getElementById('pixSucesso').style.display      = 'none';
+            document.getElementById('pixStatus').style.display       = 'flex';
+
+            try {
+                const res = await fetch('/api/auth/pagar-trial-pix', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: emailDigitado })
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    document.getElementById('pixLoadingState').style.display = 'none';
+                    document.getElementById('pixErro').style.display = 'block';
+                    document.getElementById('pixErroMsg').textContent = data.erro || 'Erro ao gerar PIX';
+                    return;
+                }
+
+                pixCobrancaId = data.cobrancaId;
+                document.getElementById('pixLoadingState').style.display = 'none';
+                document.getElementById('pixContent').style.display = 'block';
+                document.getElementById('pixPlanInfo').textContent =
+                    `${data.planNome} — R$ ${data.valor.toFixed(2).replace('.', ',')}/mês`;
+                document.getElementById('pixQrCodeImg').src =
+                    `data:image/png;base64,${data.pixQrCodeBase64}`;
+                document.getElementById('pixPayloadInput').value = data.pixPayload || '';
+
+                pixPollingInterval = setInterval(verificarPagamentoPix, 5000);
+
+            } catch (err) {
+                document.getElementById('pixLoadingState').style.display = 'none';
+                document.getElementById('pixErro').style.display = 'block';
+                document.getElementById('pixErroMsg').textContent = 'Erro de conexão. Tente novamente.';
+            }
+        }
+
+        async function verificarPagamentoPix() {
+            if (!pixCobrancaId) return;
+            try {
+                const res = await fetch(`/api/auth/verificar-pix/${pixCobrancaId}`);
+                const data = await res.json();
+                if (data.pago) {
+                    pararPollingPix();
+                    document.getElementById('pixStatus').style.display  = 'none';
+                    document.getElementById('pixSucesso').style.display = 'block';
+                }
+            } catch (_) { /* silencioso — tenta no próximo ciclo */ }
+        }
+
+        function copiarPix() {
+            const payload = document.getElementById('pixPayloadInput').value;
+            const btn = document.getElementById('btnCopiarPix');
+            const restore = () => { btn.textContent = 'Copiar'; btn.style.background = '#1e3a8a'; };
+            navigator.clipboard.writeText(payload).then(() => {
+                btn.textContent = '✓ Copiado!';
+                btn.style.background = '#059669';
+                setTimeout(restore, 2000);
+            }).catch(() => {
+                document.getElementById('pixPayloadInput').select();
+                document.execCommand('copy');
+                btn.textContent = '✓ Copiado!';
+                btn.style.background = '#059669';
+                setTimeout(restore, 2000);
+            });
+        }
+
+        /* ── Fluxo Cartão ── */
+        function mostrarFormCartao() {
+            mostrarEtapa('cartao');
+            document.getElementById('cartaoSucesso').style.display    = 'none';
+            document.getElementById('cartaoFormWrapper').style.display = 'block';
+            document.getElementById('cartaoErroMsg').style.display    = 'none';
+            const valorFmt = `R$ ${trialPlanInfo.valor.toFixed(2).replace('.', ',')}`;
+            document.getElementById('cartaoValorBtn').textContent  = valorFmt;
+            document.getElementById('cartaoPlanInfo').textContent  = `${trialPlanInfo.nome} — ${valorFmt}/mês`;
+        }
+
+        async function pagarComCartao(event) {
+            event.preventDefault();
+            const btn    = document.getElementById('btnPagarCartao');
+            const erroDiv = document.getElementById('cartaoErroMsg');
+            erroDiv.style.display = 'none';
+
+            const validade = document.getElementById('cartaoValidade').value.split('/');
+            if (validade.length !== 2) {
+                erroDiv.textContent = 'Validade inválida. Use o formato MM/AA.';
+                erroDiv.style.display = 'block';
+                return;
+            }
+
+            const expiryMonth = validade[0].trim();
+            let expiryYear = validade[1].trim();
+            if (expiryYear.length === 2) expiryYear = '20' + expiryYear;
+
+            const valorLabel = document.getElementById('cartaoValorBtn').textContent;
+            btn.textContent = 'Processando...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/auth/pagar-trial-cartao', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email:         emailDigitado,
+                        holderName:    document.getElementById('cartaoNome').value.trim(),
+                        number:        document.getElementById('cartaoNumero').value.replace(/\s/g, ''),
+                        expiryMonth,
+                        expiryYear,
+                        ccv:           document.getElementById('cartaoCvv').value.trim(),
+                        cpfCnpj:       document.getElementById('cartaoCpf').value.replace(/\D/g, ''),
+                        postalCode:    document.getElementById('cartaoCep').value.replace(/\D/g, ''),
+                        addressNumber: document.getElementById('cartaoNumeroEndereco').value.trim(),
+                        phone:         document.getElementById('cartaoTelefone').value.replace(/\D/g, '')
+                    })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.ok) {
+                    document.getElementById('cartaoFormWrapper').style.display = 'none';
+                    document.getElementById('cartaoSucesso').style.display     = 'block';
+                    return;
+                }
+
+                erroDiv.textContent   = data.erro || 'Erro ao processar pagamento. Tente novamente.';
+                erroDiv.style.display = 'block';
+                btn.disabled    = false;
+                btn.textContent = `💳 Pagar ${valorLabel}`;
+
+            } catch (err) {
+                erroDiv.textContent   = 'Erro de conexão. Tente novamente.';
+                erroDiv.style.display = 'block';
+                btn.disabled    = false;
+                btn.textContent = `💳 Pagar ${valorLabel}`;
+            }
+        }
+
+        /* ── Formatadores de input ── */
+        function formatarCartao(input) {
+            let v = input.value.replace(/\D/g, '').substring(0, 16);
+            input.value = v.replace(/(.{4})/g, '$1 ').trim();
+        }
+
+        function formatarValidade(input) {
+            let v = input.value.replace(/\D/g, '').substring(0, 4);
+            if (v.length > 2) v = v.substring(0, 2) + '/' + v.substring(2);
+            input.value = v;
+        }
+
+        function formatarCpf(input) {
+            let v = input.value.replace(/\D/g, '').substring(0, 11);
+            v = v.replace(/(\d{3})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            input.value = v;
+        }
+
+        function formatarCep(input) {
+            let v = input.value.replace(/\D/g, '').substring(0, 8);
+            if (v.length > 5) v = v.substring(0, 5) + '-' + v.substring(5);
+            input.value = v;
+        }
+
+        function formatarTelefone(input) {
+            let v = input.value.replace(/\D/g, '').substring(0, 11);
+            if (v.length > 10)     v = v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+            else if (v.length > 6) v = v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+            else if (v.length > 2) v = v.replace(/(\d{2})(\d{0,5})/, '($1) $2');
+            else if (v.length > 0) v = '(' + v;
+            input.value = v;
+        }
+
+        /* ── Login ── */
         async function handleLogin(event) {
             event.preventDefault();
-            
-            const email = document.getElementById('email').value;
+
+            const email    = document.getElementById('email').value;
             const password = document.getElementById('senha').value;
-            const btn = event.target.querySelector('.btn-primary');
+            const btn      = event.target.querySelector('.btn-primary');
 
             if (!email || !password) {
                 alert('Preencha todos os campos');
@@ -580,39 +883,45 @@
 
             try {
                 btn.innerText = 'Autenticando...';
-                btn.disabled = true;
+                btn.disabled  = true;
 
-                const res = await fetch('/api/auth/login', {
+                const res  = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, senha: password })
                 });
-
                 const data = await res.json();
 
                 if (res.ok) {
-                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('token',   data.token);
                     localStorage.setItem('usuario', JSON.stringify(data.usuario));
                     window.location.href = '/dashboard-modern.html';
                     return;
-                } 
-                
+                }
+
                 if (res.status === 402) {
+                    emailDigitado = email;
+                    if (data.plano) {
+                        trialPlanInfo = {
+                            nome:  data.plano.nome  || 'Básico',
+                            valor: data.plano.valor || 97
+                        };
+                    }
                     btn.innerText = 'Entrar no sistema';
-                    btn.disabled = false;
+                    btn.disabled  = false;
                     mostrarModalTrialExpirado();
                     return;
                 }
 
                 alert(data.erro || 'E-mail ou senha incorretos');
                 btn.innerText = 'Entrar no sistema';
-                btn.disabled = false;
+                btn.disabled  = false;
 
             } catch (err) {
-                console.error("Erro na requisição:", err);
+                console.error('Erro na requisição:', err);
                 alert('Erro de conexão com o servidor');
                 btn.innerText = 'Entrar no sistema';
-                btn.disabled = false;
+                btn.disabled  = false;
             }
         }
     </script>

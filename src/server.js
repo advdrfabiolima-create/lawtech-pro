@@ -152,6 +152,16 @@ app.use('/api/pagamentos/assinar-plano', paymentLimiter);
 app.use('/api/pagamentos/cobrar-renovacao', paymentLimiter);
 app.use('/api/pagamentos/salvar-cartao', paymentLimiter);
 
+// Rate limiting para pagamento de trial expirado (permite polling PIX a cada 5s)
+const trialPaymentLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 150, // generoso para cobrir polling de ~12 minutos + tentativas de pagamento
+    message: { erro: 'Muitas tentativas. Aguarde alguns minutos.' }
+});
+app.use('/api/auth/pagar-trial-pix', trialPaymentLimiter);
+app.use('/api/auth/verificar-pix', trialPaymentLimiter);
+app.use('/api/auth/pagar-trial-cartao', trialPaymentLimiter);
+
 // Rate limiting para endpoints de IA (custo alto por request)
 const iaLimiter = rateLimit({
     windowMs: 60 * 1000, // 1 minuto
