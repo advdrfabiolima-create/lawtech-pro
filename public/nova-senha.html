@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Senha — LawTech Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); width: 100%; max-width: 380px; text-align: center; }
+        h2 { color: #0f172a; margin-bottom: 10px; }
+        p { color: #64748b; font-size: 14px; margin-bottom: 25px; }
+        input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 14px; outline: none; box-sizing: border-box; font-size: 14px; }
+        input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .btn { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; }
+        .btn:disabled { background: #93c5fd; cursor: not-allowed; }
+        .back-link { display: block; margin-top: 20px; color: #64748b; text-decoration: none; font-size: 13px; }
+        .erro { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🔑 Nova Senha</h2>
+        <p id="msg">Crie uma nova senha para acessar o LawTech Pro.</p>
+        <div id="formArea">
+            <div id="erroMsg" class="erro"></div>
+            <input type="password" id="novaSenha" placeholder="Nova senha" autocomplete="new-password">
+            <input type="password" id="confirmarSenha" placeholder="Confirmar nova senha" autocomplete="new-password">
+            <button class="btn" id="btnSalvar" onclick="salvarSenha()">Salvar Nova Senha</button>
+        </div>
+        <a href="/login.html" class="back-link">← Voltar para o Login</a>
+    </div>
+
+    <script>
+        // Extrair token da URL
+        const token = new URLSearchParams(window.location.search).get('token');
+
+        if (!token) {
+            document.getElementById('formArea').style.display = 'none';
+            document.getElementById('msg').innerHTML =
+                '❌ Link inválido ou expirado.<br><br>' +
+                '<a href="/recuperar-senha.html" style="color:#2563eb;font-weight:600;">Solicitar novo link</a>';
+        }
+
+        async function salvarSenha() {
+            const novaSenha = document.getElementById('novaSenha').value;
+            const confirmar = document.getElementById('confirmarSenha').value;
+            const erroDiv = document.getElementById('erroMsg');
+
+            erroDiv.style.display = 'none';
+
+            if (!novaSenha || !confirmar) {
+                erroDiv.textContent = 'Preencha os dois campos.';
+                erroDiv.style.display = 'block';
+                return;
+            }
+            if (novaSenha !== confirmar) {
+                erroDiv.textContent = 'As senhas não coincidem.';
+                erroDiv.style.display = 'block';
+                return;
+            }
+
+            const btn = document.getElementById('btnSalvar');
+            btn.disabled = true;
+            btn.textContent = 'Salvando...';
+
+            try {
+                const res = await fetch('/api/auth/nova-senha', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, novaSenha })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.ok) {
+                    document.getElementById('formArea').style.display = 'none';
+                    document.getElementById('msg').innerHTML =
+                        '✅ Senha alterada com sucesso!<br><br>' +
+                        '<a href="/login.html" style="color:#2563eb;font-weight:700;">Clique aqui para fazer login →</a>';
+                } else {
+                    erroDiv.textContent = data.erro || 'Erro ao alterar senha.';
+                    erroDiv.style.display = 'block';
+                    btn.disabled = false;
+                    btn.textContent = 'Salvar Nova Senha';
+                }
+            } catch (e) {
+                erroDiv.textContent = 'Erro de conexão. Tente novamente.';
+                erroDiv.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Salvar Nova Senha';
+            }
+        }
+    </script>
+</body>
+</html>

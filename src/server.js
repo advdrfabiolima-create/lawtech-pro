@@ -140,6 +140,7 @@ const authLimiter = rateLimit({
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/recuperar-senha', authLimiter);
+app.use('/api/auth/nova-senha', authLimiter);
 
 // Rate limiting para endpoints de pagamento
 const paymentLimiter = rateLimit({
@@ -234,6 +235,7 @@ app.get('/config-page', (req, res) => res.sendFile(path.join(publicPath, 'config
 app.get('/ia-page', (req, res) => res.sendFile(path.join(publicPath, 'ia.html')));
 app.get('/crm-page', (req, res) => res.sendFile(path.join(publicPath, 'crm.html')));
 app.get('/recuperar-senha', (req, res) => res.sendFile(path.join(publicPath, 'recuperar-senha.html')));
+app.get('/nova-senha', (req, res) => res.sendFile(path.join(publicPath, 'nova-senha.html')));
 app.get('/termos', (req, res) => res.sendFile(path.join(publicPath, 'termos.html')));
 app.get('/privacidade', (req, res) => res.sendFile(path.join(publicPath, 'privacidade.html')));
 app.get('/tribunais-page', (req, res) => res.sendFile(path.join(publicPath, 'tribunais.html')));
@@ -512,6 +514,11 @@ require('./cron/djen_scraper_cron');
         // Coluna de último acesso para status online
         await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS ultimo_acesso TIMESTAMPTZ`);
         console.log("✅ [SISTEMA] Coluna ultimo_acesso verificada.");
+
+        // Colunas para recuperação de senha
+        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255)`);
+        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS reset_token_expira TIMESTAMPTZ`);
+        console.log("✅ [SISTEMA] Colunas de reset de senha verificadas.");
 
         iniciarAgendamentos();
 
