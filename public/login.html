@@ -529,7 +529,43 @@
         </main>
     </div>
 
+    <!-- MODAL: Trial Expirado -->
+    <div id="modalTrialExpirado" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
+        <div style="background:white;border-radius:16px;padding:40px 36px;max-width:460px;width:calc(100% - 40px);box-shadow:0 25px 50px rgba(0,0,0,0.25);text-align:center;position:relative;">
+            <button onclick="fecharModalTrial()" style="position:absolute;top:14px;right:18px;background:none;border:none;cursor:pointer;color:#94a3b8;font-size:22px;line-height:1;">✕</button>
+            <div style="width:66px;height:66px;background:#fef3c7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:30px;">🔒</div>
+            <h2 style="color:#0f172a;font-size:22px;font-weight:700;margin:0 0 10px;">Acesso Bloqueado</h2>
+            <p style="color:#64748b;font-size:15px;line-height:1.65;margin:0 0 28px;">
+                Seu período de teste de <strong style="color:#0f172a;">7 dias</strong> chegou ao fim.<br>
+                Escolha uma forma de pagamento para continuar usando o <strong style="color:#1e3a8a;">LawTech Pro</strong>.
+            </p>
+            <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:22px;">
+                <button onclick="pagarComPix()" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#059669;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">
+                    <span style="font-size:20px;">🏦</span> Pagar com PIX
+                </button>
+                <button onclick="pagarComCartao()" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#1e3a8a;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">
+                    <span style="font-size:20px;">💳</span> Pagar com Cartão de Crédito
+                </button>
+            </div>
+            <a href="/planos-page" style="display:inline-block;color:#64748b;font-size:13px;text-decoration:none;border-bottom:1px solid #e2e8f0;padding-bottom:2px;">Ver todos os planos →</a>
+        </div>
+    </div>
+
     <script>
+        function mostrarModalTrialExpirado() {
+            const modal = document.getElementById('modalTrialExpirado');
+            modal.style.display = 'flex';
+        }
+        function fecharModalTrial() {
+            document.getElementById('modalTrialExpirado').style.display = 'none';
+        }
+        function pagarComPix() {
+            window.location.href = '/planos-page?metodo=pix';
+        }
+        function pagarComCartao() {
+            window.location.href = '/planos-page?metodo=cartao';
+        }
+
         async function handleLogin(event) {
             event.preventDefault();
             
@@ -562,11 +598,11 @@
                 } 
                 
                 if (res.status === 402) {
-                    alert(`🔒 Acesso Bloqueado: ${data.detalhe || 'Seu período de teste expirou.'}`);
                     btn.innerText = 'Entrar no sistema';
                     btn.disabled = false;
+                    mostrarModalTrialExpirado();
                     return;
-                } 
+                }
 
                 alert(data.erro || 'E-mail ou senha incorretos');
                 btn.innerText = 'Entrar no sistema';

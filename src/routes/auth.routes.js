@@ -670,9 +670,13 @@ router.post('/recuperar-senha', async (req, res) => {
                             </p>
                             <div style="text-align:center;margin:28px 0;">
                                 <a href="${link}"
-                                   style="display:inline-block;background:linear-gradient(135deg,#4A90E2,#357ABD);color:white;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:700;font-size:15px;">
-                                    🔑 Redefinir Minha Senha
+                                   style="display:inline-block;background-color:#1e3a8a;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:700;font-size:15px;border:2px solid #1e3a8a;letter-spacing:0.3px;">
+                                    Redefinir Minha Senha
                                 </a>
+                                <p style="margin:16px 0 0;font-size:12px;color:#718096;">
+                                    Se o botão não funcionar, copie e cole o link abaixo no navegador:<br>
+                                    <a href="${link}" style="color:#2563eb;word-break:break-all;">${link}</a>
+                                </p>
                             </div>
                             <div style="background:#FEF3C7;border-left:4px solid #F59E0B;padding:14px 16px;border-radius:0 8px 8px 0;margin:20px 0;">
                                 <p style="margin:0;font-size:13px;color:#92400E;">
