@@ -332,29 +332,74 @@
 
         /* CARDS GRID */
         .cards-container {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            gap: 12px;
         }
 
         .pub-card {
             background: white;
-            border-radius: 12px;
+            border-radius: 10px;
             border: 1px solid var(--border-subtle);
-            border-left: 4px solid #f59e0b;
+            border-top: 3px solid #f59e0b;
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
         }
 
         .pub-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
         }
 
-        .pub-card.status-convertida { border-left-color: #10b981; }
-        .pub-card.status-descartada { border-left-color: #ef4444; }
-        .pub-card.status-pendente { border-left-color: #f59e0b; }
+        .pub-card.status-convertida { border-top-color: #10b981; }
+        .pub-card.status-descartada { border-top-color: #ef4444; }
+        .pub-card.status-pendente { border-top-color: #f59e0b; }
+
+        /* SEÇÕES DO CARD COMPACTO */
+        .card-mini-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px 6px;
+        }
+
+        .card-mini-processo {
+            padding: 2px 14px 10px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .card-mini-partes {
+            padding: 10px 14px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-height: 68px;
+        }
+
+        .card-mini-footer {
+            padding: 8px 10px;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            gap: 6px;
+            background: var(--bg-primary);
+        }
+
+        .card-mini-footer .btn-card {
+            flex: 1;
+            padding: 6px 8px;
+            font-size: 12px;
+            justify-content: center;
+        }
+
+        .card-mini-footer .btn-card.danger {
+            flex: 0 0 auto;
+            padding: 6px 10px;
+        }
 
         .card-header {
             display: flex;
@@ -623,11 +668,7 @@
             .content { padding: 16px; }
             .metrics-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
             .modal-content { max-width: 700px; width: 95%; padding: 20px; }
-            .card-header { padding: 12px 16px; }
-            .card-processo { padding: 10px 16px; flex-wrap: wrap; }
-            .card-conteudo { padding: 12px 16px; }
-            .card-footer { padding: 10px 16px; flex-wrap: wrap; }
-            .btn-card { font-size: 12px; padding: 6px 10px; }
+            .cards-container { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
             .toolbar { flex-direction: column; }
             .search-box { min-width: unset; }
         }
@@ -943,8 +984,66 @@ async function carregarDadosUsuario() {
 
 // DEFINIR DATAS PADRÃO
 function definirDatasDefault() {
-    const hoje = new Date().toISOString().split('T')[0];
-    document.getElementById('dataBusca').value = hoje;
+    const hoje = new Date();
+    const year = hoje.getFullYear();
+    const month = String(hoje.getMonth() + 1).padStart(2, '0');
+    const day = String(hoje.getDate()).padStart(2, '0');
+    document.getElementById('dataBusca').value = `${year}-${month}-${day}`;
+}
+
+// EXTRAIR PARTES PROCESSUAIS DO TEXTO
+function extrairPartes(texto) {
+    if (!texto) return [];
+    const partes = [];
+    const seen = new Set();
+    const padroes = [
+        { regex: /\bAUTOR(?:A)?[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'AUTOR' },
+        { regex: /\bR[ÉE](?:U)?[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'RÉU' },
+        { regex: /\bREQUERENTE[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'REQUERENTE' },
+        { regex: /\bREQUERID[OA][:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'REQUERIDO' },
+        { regex: /\bRECLAMANTE[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'RECLAMANTE' },
+        { regex: /\bRECLAMAD[OA][:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'RECLAMADO' },
+        { regex: /\bEXEQUENTE[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'EXEQUENTE' },
+        { regex: /\bEXECUTAD[OA][:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'EXECUTADO' },
+        { regex: /\bAPELANTE[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'APELANTE' },
+        { regex: /\bAPELAD[OA][:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'APELADO' },
+        { regex: /\bAGRAVANTE[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'AGRAVANTE' },
+        { regex: /\bAGRAVAD[OA][:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'AGRAVADO' },
+        { regex: /\bIMPETRANTE[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'IMPETRANTE' },
+        { regex: /\bIMPETRAD[OA][:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'IMPETRADO' },
+        { regex: /\bPOLO\s+ATIVO[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'POLO ATIVO' },
+        { regex: /\bPOLO\s+PASSIVO[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'POLO PASSIVO' },
+    ];
+    const stopPattern = /\s+(E\b|X\b|VS\.?|CONTRA|CPF|CNPJ|OAB|ADVOGAD|PROC\.|INTIM|CITA[ÇC]|PRAZO|SENTEN|DECIS|DESPACHO|AUDI[EÊ]|RECURSO).*/i;
+    for (const { regex, tipo } of padroes) {
+        let match;
+        regex.lastIndex = 0;
+        while ((match = regex.exec(texto)) !== null) {
+            let nome = match[1].trim();
+            const stop = nome.search(stopPattern);
+            if (stop > 0) nome = nome.substring(0, stop);
+            nome = nome.replace(/[,;:\.\-\s]+$/, '').trim();
+            if (nome.length >= 3 && nome.length <= 55 && !seen.has(nome)) {
+                seen.add(nome);
+                partes.push({ tipo, nome });
+            }
+            if (partes.length >= 4) break;
+        }
+        if (partes.length >= 4) break;
+    }
+    return partes;
+}
+
+// RENDERIZAR PARTES NO CARD
+function renderPartes(partes) {
+    if (!partes || partes.length === 0) {
+        return '<span style="font-size:11px;color:var(--text-tertiary);font-style:italic;">Partes não identificadas</span>';
+    }
+    return partes.map(p => `
+        <div style="display:flex;gap:5px;align-items:center;overflow:hidden;">
+            <span style="font-size:9px;font-weight:700;color:#3730A3;background:#E0E7FF;padding:2px 5px;border-radius:3px;white-space:nowrap;flex-shrink:0;text-transform:uppercase;">${p.tipo}</span>
+            <span style="font-size:11px;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.nome}</span>
+        </div>`).join('');
 }
 
 // CARREGAR PUBLICAÇÕES
@@ -992,39 +1091,30 @@ function renderizarTabela() {
         const status = p.status || 'pendente';
         const statusIcon = status === 'pendente' ? '&#128313;' : status === 'convertida' ? '&#128994;' : '&#128308;';
         const dataFormatada = new Date(p.data_publicacao).toLocaleDateString('pt-BR');
-        const conteudoPreview = p.conteudo.length > 300
-            ? p.conteudo.substring(0, 300) + '...'
-            : p.conteudo;
+        const partes = extrairPartes(p.conteudo);
 
         return `
-        <div class="pub-card status-${status}">
-            <div class="card-header">
-                <span class="badge badge-${status}">${statusIcon} ${status.toUpperCase()}</span>
-                <span class="card-date"><i data-lucide="calendar" style="width:14px;height:14px;"></i> ${dataFormatada}</span>
+        <div class="pub-card status-${status}" onclick="verDetalhes(${p.id})" title="Clique para ver o conteúdo completo">
+            <div class="card-mini-header">
+                <span class="badge badge-${status}" style="font-size:9px;padding:3px 8px;">${statusIcon} ${status.toUpperCase()}</span>
+                <span class="card-date" style="font-size:11px;"><i data-lucide="calendar" style="width:11px;height:11px;"></i> ${dataFormatada}</span>
             </div>
-            <div class="card-processo">
-                <div class="card-processo-info">
-                    <span style="font-size:12px;font-weight:600;color:var(--text-tertiary);">Processo:</span>
-                    <span class="processo-numero">${p.numero_processo}</span>
-                    <span class="processo-tribunal">${mapearTribunal(p.tribunal)}</span>
-                </div>
-                <button class="btn-copiar" onclick="copiarTexto('${p.numero_processo}', this)" title="Copiar número">
-                    <i data-lucide="copy" style="width:12px;height:12px;"></i> Copiar
-                </button>
+            <div class="card-mini-processo">
+                <div class="processo-numero" style="font-size:13px;">${p.numero_processo}</div>
+                <span class="processo-tribunal">${mapearTribunal(p.tribunal)}</span>
             </div>
-            <div class="card-conteudo">
-                <div class="card-conteudo-label">Conteúdo</div>
-                <div class="card-conteudo-text">${highlightTermos(conteudoPreview)}</div>
+            <div class="card-mini-partes">
+                ${renderPartes(partes)}
             </div>
-            <div class="card-footer">
-                <button class="btn-card" onclick="verDetalhes(${p.id})">
-                    <i data-lucide="eye" style="width:14px;height:14px;"></i> Ver Completo
+            <div class="card-mini-footer">
+                <button class="btn-card" onclick="event.stopPropagation();verDetalhes(${p.id})" title="Ver conteúdo completo">
+                    <i data-lucide="eye" style="width:13px;height:13px;"></i> Ver
                 </button>
-                <button class="btn-card primary" onclick="converterPrazo(${p.id})">
-                    <i data-lucide="calendar-plus" style="width:14px;height:14px;"></i> Converter Prazo
+                <button class="btn-card primary" onclick="event.stopPropagation();converterPrazo(${p.id})" title="Converter em prazo">
+                    <i data-lucide="calendar-plus" style="width:13px;height:13px;"></i> Prazo
                 </button>
-                <button class="btn-card danger" onclick="excluir(${p.id})">
-                    <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Excluir
+                <button class="btn-card danger" onclick="event.stopPropagation();excluir(${p.id})" title="Descartar publicação">
+                    <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
                 </button>
             </div>
         </div>`;
