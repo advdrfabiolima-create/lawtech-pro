@@ -1096,6 +1096,22 @@
             .cards {
                 grid-template-columns: 1fr;
             }
+
+            /* Grids inline do dashboard → coluna única ou 2 colunas compactas */
+            .dash-grid-2col {
+                grid-template-columns: 1fr !important;
+            }
+            .dash-grid-crm {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 12px !important;
+            }
+            .dash-grid-tribunais {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 10px !important;
+            }
+            .form-grid {
+                grid-template-columns: 1fr !important;
+            }
         }
 
         /* SaaS Professional - Prazos List Style */
@@ -1700,7 +1716,7 @@ input, textarea, select {
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+    <div class="dash-grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
         <!-- CARD CÁLCULOS - AZUL DESTAQUE -->
         <div class="card card-blue-highlight" onclick="window.location.href='/calculos-page'" style="cursor:pointer;">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
@@ -1733,7 +1749,7 @@ input, textarea, select {
     </div>
 
     <!-- SEÇÃO CRM - 4 CARDS AZUIS CLAROS -->
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+    <div class="dash-grid-crm" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
         <div class="card card-stat-blue" id="guia-crm" onclick="window.location.href='/crm-page'" style="cursor:pointer;">
             <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">
                 <small style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Novos Leads</small>
@@ -1786,7 +1802,7 @@ input, textarea, select {
         </div>
 
         <!-- Categorias de Tribunais em 4 colunas -->
-        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px;">
+        <div class="dash-grid-tribunais" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px;">
             <div style="background:#F8FAFB; padding:14px; border-radius:6px; border-left:3px solid #4A90E2;">
                 <div style="font-size:10px; font-weight:700; color:#4A6B8A; margin-bottom:6px;">SUPERIORES</div>
                 <div style="font-size:24px; font-weight:800; color:#2A5A8F;">5</div>
@@ -1817,7 +1833,7 @@ input, textarea, select {
     </div>
 
     <!-- GRID 2 COLUNAS: LINK CAPTAÇÃO + PESQUISA JUSBRASIL -->
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-bottom:24px;">
+    <div class="dash-grid-2col" style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-bottom:24px;">
 
     <!-- CARD LINK DE FORMULÁRIO -->
     <div id="premiumLinkCard" class="card" style="background: #E8F4FD; border: 1px solid #B8DCFA; border-left: 4px solid #4A90E2;">
