@@ -567,8 +567,8 @@ async function planoEConsumo(req, res) {
       data_vencimento: planoResult.rows[0].data_vencimento,
       status_pagamento: planoResult.rows[0].status_pagamento,
       dias_restantes: diasRestantes,
-      em_tolerancia: (diasRestantes !== null && diasRestantes < 0 && diasRestantes >= -5),
-      dias_para_bloqueio: vencimento ? diasRestantes + 5 : null,
+      em_tolerancia: false,
+      dias_para_bloqueio: null,
       
       // Estrutura nova
       plano_detalhado: {

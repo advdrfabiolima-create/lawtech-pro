@@ -93,7 +93,7 @@ exports.prazos = async (req, res) => {
                 COUNT(*) as total
             FROM prazos
             WHERE escritorio_id = $1 AND deletado = false
-              AND created_at BETWEEN $2 AND $3
+              AND created_at::date BETWEEN $2::date AND $3::date
         `, [escritorioId, inicio, fim]);
 
         // Por tipo
@@ -101,7 +101,7 @@ exports.prazos = async (req, res) => {
             SELECT COALESCE(tipo, 'Outros') as tipo, COUNT(*) as total
             FROM prazos
             WHERE escritorio_id = $1 AND deletado = false
-              AND created_at BETWEEN $2 AND $3
+              AND created_at::date BETWEEN $2::date AND $3::date
             GROUP BY tipo ORDER BY total DESC
         `, [escritorioId, inicio, fim]);
 
@@ -113,7 +113,7 @@ exports.prazos = async (req, res) => {
                    COUNT(*) FILTER (WHERE status IN ('aberto', 'hoje', 'pendente')) as abertos
             FROM prazos
             WHERE escritorio_id = $1 AND deletado = false
-              AND created_at BETWEEN $2 AND $3
+              AND created_at::date BETWEEN $2::date AND $3::date
             GROUP BY mes ORDER BY mes
         `, [escritorioId, inicio, fim]);
 
@@ -191,7 +191,7 @@ exports.produtividade = async (req, res) => {
             FROM prazos p
             JOIN usuarios u ON u.id = p.usuario_id
             WHERE p.escritorio_id = $1 AND p.deletado = false
-              AND p.created_at BETWEEN $2 AND $3
+              AND p.created_at::date BETWEEN $2::date AND $3::date
             GROUP BY u.nome ORDER BY total DESC
         `, [escritorioId, inicio, fim]);
 
@@ -202,7 +202,7 @@ exports.produtividade = async (req, res) => {
             JOIN processos pr ON pr.id = a.processo_id
             JOIN usuarios u ON u.id = a.usuario_id
             WHERE pr.escritorio_id = $1
-              AND a.data_audiencia BETWEEN $2 AND $3
+              AND a.data_audiencia::date BETWEEN $2::date AND $3::date
             GROUP BY u.nome ORDER BY total DESC
         `, [escritorioId, inicio, fim]);
 
@@ -228,7 +228,7 @@ exports.crm = async (req, res) => {
             SELECT status, COUNT(*) as total
             FROM leads
             WHERE escritorio_id = $1
-              AND data_criacao BETWEEN $2 AND $3
+              AND data_criacao::date BETWEEN $2::date AND $3::date
             GROUP BY status
             ORDER BY CASE status
                 WHEN 'Novo' THEN 1
@@ -246,7 +246,7 @@ exports.crm = async (req, res) => {
             SELECT COALESCE(origem, 'Não informada') as origem, COUNT(*) as total
             FROM leads
             WHERE escritorio_id = $1
-              AND data_criacao BETWEEN $2 AND $3
+              AND data_criacao::date BETWEEN $2::date AND $3::date
             GROUP BY origem ORDER BY total DESC
         `, [escritorioId, inicio, fim]);
 
@@ -257,7 +257,7 @@ exports.crm = async (req, res) => {
                 COUNT(*) FILTER (WHERE status = 'Ganho') as ganhos
             FROM leads
             WHERE escritorio_id = $1
-              AND data_criacao BETWEEN $2 AND $3
+              AND data_criacao::date BETWEEN $2::date AND $3::date
         `, [escritorioId, inicio, fim]);
 
         // Evolução mensal
@@ -267,7 +267,7 @@ exports.crm = async (req, res) => {
                    COUNT(*) FILTER (WHERE status = 'Ganho') as ganhos
             FROM leads
             WHERE escritorio_id = $1
-              AND data_criacao BETWEEN $2 AND $3
+              AND data_criacao::date BETWEEN $2::date AND $3::date
             GROUP BY mes ORDER BY mes
         `, [escritorioId, inicio, fim]);
 

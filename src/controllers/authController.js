@@ -200,20 +200,20 @@ const login = async (req, res) => {
         const ehMaster = usuario.is_master === true || usuario.email === process.env.MASTER_EMAIL;
 
         if (!ehMaster) {
-            // Calcula dias restantes do trial
-            let diasRestantes = null;
+            // Padrão 0: sem data de expiração + status trial = expirado
+            let diasRestantes = 0;
             if (usuario.trial_expira_em) {
                 const hoje = new Date();
                 const expiracao = new Date(usuario.trial_expira_em);
                 diasRestantes = Math.ceil((expiracao - hoje) / (1000 * 60 * 60 * 24));
             }
 
-            // Se trial expirou e não pagou
-            if (usuario.plano_id > 1 && diasRestantes !== null && diasRestantes <= 0 && usuario.plano_financeiro_status !== 'pago') {
-                console.log('⚠️ [LOGIN] Trial expirado:', usuario.email);
-                
-                return res.status(402).json({ 
-                    erro: 'Período de teste expirado', 
+            // Bloqueia login se trial expirou (sem tolerância)
+            if (diasRestantes <= 0 && !['pago', 'ativo'].includes(usuario.plano_financeiro_status)) {
+                console.log('⚠️ [LOGIN] Trial expirado:', usuario.email, '| Dias:', diasRestantes, '| Status:', usuario.plano_financeiro_status);
+
+                return res.status(402).json({
+                    erro: 'Período de teste expirado',
                     detalhe: 'Seu trial de 7 dias chegou ao fim. Realize o pagamento para liberar o acesso total.',
                     dias_restantes: diasRestantes
                 });

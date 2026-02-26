@@ -319,25 +319,23 @@ router.post('/login', async (req, res) => {
         console.log('📊 [LOGIN] Usuário:', usuario.email, '| Escritório:', usuario.escritorio_id);
         console.log('📊 [LOGIN] Status:', usuario.plano_financeiro_status, '| Trial expira em:', usuario.trial_expira_em);
 
-        // ✅ VALIDAÇÃO DE TRIAL EXPIRADO (CORRIGIDO)
+        // ✅ VALIDAÇÃO DE TRIAL EXPIRADO
         const ehMaster = usuario.is_master === true || usuario.email === process.env.MASTER_EMAIL;
 
-        // ✅ MELHORIA: Calcula dias restantes APENAS se status for 'trial'
-        let diasRestantes = null;
-        if (usuario.plano_financeiro_status === 'trial' && usuario.trial_expira_em) {
+        // Padrão 0: sem data de expiração + status não-pago = expirado
+        let diasRestantes = 0;
+        if (usuario.trial_expira_em) {
             const hoje = new Date();
             const expiracao = new Date(usuario.trial_expira_em);
             diasRestantes = Math.ceil((expiracao - hoje) / (1000 * 60 * 60 * 24));
-            
+
             console.log('📊 [LOGIN] Dias restantes do trial:', diasRestantes);
         }
 
-        // ⚠️ BLOQUEIA LOGIN SE TRIAL EXPIROU E NÃO PAGOU
+        // ⚠️ BLOQUEIA LOGIN SE TRIAL EXPIROU (qualquer status não-pago/ativo)
         if (!ehMaster) {
-            // Se trial expirou e não é plano pago/ativo
-            if (diasRestantes !== null && diasRestantes <= 0 && 
-                usuario.plano_financeiro_status !== 'pago' && 
-                usuario.plano_financeiro_status !== 'ativo') {
+            if (diasRestantes <= 0 &&
+                !['pago', 'ativo'].includes(usuario.plano_financeiro_status)) {
                 
                 console.log('⚠️ [LOGIN BLOQUEADO] Trial expirado:', usuario.email);
                 registrarAudit({ usuario_id: usuario.id, email: usuario.email, escritorio_id: usuario.escritorio_id, acao: 'LOGIN_BLOQUEADO', descricao: 'Trial expirado', metadata: { dias_restantes: diasRestantes, status: usuario.plano_financeiro_status }, ...dadosReq(req) });
@@ -404,9 +402,9 @@ router.get('/me', async (req, res) => {
         const [, token] = authHeader.split(' ');
         const decoded = jwtVerify(token);
 
-        // ADICIONADO: u.tour_desativado, u.data_criacao e u.primeiro_acesso no SELECT
         const result = await pool.query(
-            `SELECT u.id, u.nome, u.email, u.role, u.escritorio_id, u.tour_desativado, u.data_criacao, u.primeiro_acesso,
+            `SELECT u.id, u.nome, u.email, u.role, u.escritorio_id, u.is_master,
+                    u.tour_desativado, u.data_criacao, u.primeiro_acesso,
                     e.plano_id, e.trial_expira_em, e.plano_financeiro_status,
                     e.ultimo_pagamento, e.proxima_cobranca
              FROM usuarios u
@@ -419,14 +417,22 @@ router.get('/me', async (req, res) => {
 
         const usuario = result.rows[0];
 
-        let diasRestantes = null;
-        
-        // ✅ MELHORIA: Só calcula dias restantes se status for 'trial'
-        // Evita calcular dias quando usuário já pagou
-        if (usuario.plano_financeiro_status === 'trial' && usuario.trial_expira_em) {
+        // Calcular dias restantes (padrão 0: sem data = expirado)
+        let diasRestantes = 0;
+        if (usuario.trial_expira_em) {
             const hoje = new Date();
             const expiracao = new Date(usuario.trial_expira_em);
             diasRestantes = Math.ceil((expiracao - hoje) / (1000 * 60 * 60 * 24));
+        }
+
+        // Bloquear acesso se trial expirado (sem tolerância)
+        const ehMaster = usuario.is_master === true || usuario.email === process.env.MASTER_EMAIL;
+        if (!ehMaster && diasRestantes <= 0 && !['pago', 'ativo'].includes(usuario.plano_financeiro_status)) {
+            return res.status(402).json({
+                error: 'Trial expirado',
+                dias_restantes: diasRestantes,
+                trial_expira_em: usuario.trial_expira_em
+            });
         }
 
         res.json({

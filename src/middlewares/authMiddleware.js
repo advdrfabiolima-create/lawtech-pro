@@ -29,7 +29,8 @@ const authMiddleware = async (req, res, next) => {
     const usuario = result.rows[0];
 
     // ✅ CALCULAR DIAS RESTANTES CORRETAMENTE
-    let diasRestantes = 7; // padrão se não houver data
+    // Padrão 0: sem data de expiração + status trial = expirado imediatamente
+    let diasRestantes = 0;
 
     if (usuario.trial_expira_em) {
       const hoje = new Date();
@@ -43,7 +44,7 @@ const authMiddleware = async (req, res, next) => {
     // 🛡️ REGRA DE IMUNIDADE MASTER (via banco de dados)
     const ehMaster = usuario.is_master === true || usuario.email === process.env.MASTER_EMAIL;
 
-    // 🚨 REGRA DE BLOQUEIO
+    // 🚨 REGRA DE BLOQUEIO — sem tolerância/grace period
     if (!ehMaster && diasRestantes <= 0 && !['pago', 'ativo'].includes(usuario.plano_financeiro_status)) {
       console.log(`❌ [BLOQUEIO ATIVADO] Trial Expirado para: ${usuario.email}`);
       console.log(`   Dias restantes: ${diasRestantes}`);

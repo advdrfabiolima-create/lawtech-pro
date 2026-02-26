@@ -272,20 +272,11 @@ async function planoEConsumo(req, res) {
 
     // ✅ Calcular dias restantes para vencimento
     let diasRestantes = null;
-    let diasParaBloqueio = null;
-    let emTolerancia = false;
 
     if (dadosBase.data_vencimento) {
       const hoje = new Date();
       const vencimento = new Date(dadosBase.data_vencimento);
-      const diff = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
-      
-      diasRestantes = diff;
-      
-      if (diff < 0) {
-        emTolerancia = true;
-        diasParaBloqueio = 7 + diff;
-      }
+      diasRestantes = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
     }
 
     console.log(`[PLANO CONSUMO] Escritório: ${req.user.escritorio_id}`);
@@ -299,8 +290,8 @@ async function planoEConsumo(req, res) {
       ciclo: dadosBase.ciclo || 'mensal',
       data_vencimento: dadosBase.data_vencimento,
       dias_restantes: diasRestantes,
-      dias_para_bloqueio: diasParaBloqueio,
-      em_tolerancia: emTolerancia
+      dias_para_bloqueio: null,
+      em_tolerancia: false
     });
 
   } catch (err) {
