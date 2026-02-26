@@ -134,6 +134,13 @@ nav.pub-menu-open .nav-mobile-pub { display: flex; }
 /* ================================================================
    BREAKPOINT 768px
    ================================================================ */
+/* ====== LANDSCAPE PHONES (769px–1024px): só o botão hamburger ====== */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .mobile-menu-btn {
+        display: flex;
+    }
+}
+
 @media (max-width: 768px) {
 
     /* --- SIDEBAR: slide fora da tela --- */
