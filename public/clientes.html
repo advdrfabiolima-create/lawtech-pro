@@ -994,22 +994,11 @@
         }
 
         @media (max-width: 1024px) {
-            .sidebar {
-                animation: none !important;
-                transform: translateX(-100%);
-                transition: transform var(--transition-base);
-            }
-
-            .sidebar.active,
-            .sidebar.mobile-open {
-                transform: translateX(0);
-            }
-
             .main {
-                margin-left: 0;
-                width: 100%;
+                margin-left: 220px;
+                width: calc(100% - 220px);
             }
-            
+
             .content {
                 padding: 24px 20px;
             }
