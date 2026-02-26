@@ -1166,7 +1166,7 @@ async function sincronizar() {
         const data = await res.json();
 
         document.getElementById('loading').classList.remove('show');
-        document.getElementById('cardsContainer').style.display = 'flex';
+        document.getElementById('cardsContainer').style.display = '';
 
         if (data.ok) {
             const novas = data.resultado_worker?.resultado?.novas || 0;
@@ -1182,7 +1182,7 @@ async function sincronizar() {
     } catch (err) {
         console.error('Erro:', err);
         document.getElementById('loading').classList.remove('show');
-        document.getElementById('cardsContainer').style.display = 'flex';
+        document.getElementById('cardsContainer').style.display = '';
         alert('Erro de conexão');
     }
 }
