@@ -138,6 +138,8 @@ nav.pub-menu-open .nav-mobile-pub { display: flex; }
 
     /* --- SIDEBAR: slide fora da tela --- */
     .sidebar {
+        display: flex !important;        /* override: pages que têm display:none no próprio @media */
+        animation: none !important;      /* override: remove animações de entrada que conflitam com transform */
         transform: translateX(-100%);
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         z-index: 1100 !important;
