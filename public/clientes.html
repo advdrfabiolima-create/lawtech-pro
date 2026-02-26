@@ -79,6 +79,9 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             overflow-x: hidden;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
         }
 
         /* Animated Background */
@@ -321,11 +324,13 @@
         /* Main Content */
         .main {
             margin-left: 280px;
+            width: calc(100% - 280px);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             position: relative;
             z-index: 1;
+            overflow-y: auto;
         }
 
         /* Header Premium */
@@ -983,7 +988,7 @@
             .sidebar-header img { max-width: 150px; }
             .menu { overflow-y: auto; }
             .menu a { padding: 10px 14px; font-size: 13px; }
-            .main { margin-left: 220px; }
+            .main { margin-left: 220px; width: calc(100% - 220px); }
             .header { padding: 16px 24px; }
             .content { padding: 24px; }
         }
@@ -994,12 +999,14 @@
                 transition: transform var(--transition-base);
             }
 
-            .sidebar.active {
+            .sidebar.active,
+            .sidebar.mobile-open {
                 transform: translateX(0);
             }
 
             .main {
                 margin-left: 0;
+                width: 100%;
             }
             
             .content {
