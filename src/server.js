@@ -338,6 +338,7 @@ const { iniciarAgendamentos } = require('./cron/prazosCron');
 require('./cron/cobrancasTrial');
 require('./cron/cobrancasRecorrentes');
 require('./cron/djen_scraper_cron');
+require('./cron/crmFollowup');
 // require('./cron/auditoriaStripeCron'); // Desativado: coluna stripe_customer_id não existe ainda
 
 (async function iniciarSistema() {
@@ -529,6 +530,25 @@ require('./cron/djen_scraper_cron');
         await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255)`);
         await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS reset_token_expira TIMESTAMPTZ`);
         console.log("✅ [SISTEMA] Colunas de reset de senha verificadas.");
+
+        // CRM Automation — colunas e tabelas
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS score INTEGER DEFAULT 0`);
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS ultima_movimentacao TIMESTAMP DEFAULT NOW()`);
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS email_boas_vindas_enviado BOOLEAN DEFAULT FALSE`);
+        await pool.query(`ALTER TABLE notificacoes ALTER COLUMN prazo_id DROP NOT NULL`);
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS lead_atividades (
+                id SERIAL PRIMARY KEY,
+                lead_id INTEGER NOT NULL,
+                escritorio_id INTEGER NOT NULL,
+                tipo VARCHAR(50) NOT NULL,
+                descricao TEXT,
+                criado_em TIMESTAMP DEFAULT NOW()
+            )
+        `);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_lead_ativ_lead ON lead_atividades(lead_id)`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_lead_ativ_escritorio ON lead_atividades(escritorio_id, criado_em DESC)`);
+        console.log('✅ [SISTEMA] Tabelas CRM automação verificadas.');
 
         iniciarAgendamentos();
 

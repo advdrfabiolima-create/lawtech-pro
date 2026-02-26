@@ -751,6 +751,96 @@
             height: 14px;
         }
 
+        /* Lead Score Badge */
+        .score-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 10px;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        .score-frio  { background: rgba(231,111,81,0.25); color: #fff; }
+        .score-morno { background: rgba(242,166,90,0.30); color: #fff; }
+        .score-quente{ background: rgba(82,183,136,0.30); color: #fff; }
+
+        /* Activity Timeline */
+        .timeline-section {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-medium);
+        }
+        .timeline-section h4 {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 10px;
+        }
+        .timeline-list {
+            max-height: 170px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .timeline-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 7px 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .timeline-item:last-child { border-bottom: none; }
+        .timeline-icon { font-size: 13px; flex-shrink: 0; width: 18px; text-align: center; margin-top: 1px; }
+        .timeline-body { flex: 1; min-width: 0; }
+        .timeline-desc { color: var(--text-primary); font-size: 12px; line-height: 1.4; }
+        .timeline-time { color: var(--text-tertiary); font-size: 11px; margin-top: 2px; }
+        .timeline-empty { color: var(--text-tertiary); font-size: 12px; font-style: italic; padding: 8px 0; }
+
+        /* WhatsApp Quick Messages */
+        .whatsapp-section {
+            margin-top: 16px;
+            padding: 12px 14px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+        }
+        .whatsapp-section h4 {
+            font-size: 11px;
+            font-weight: 700;
+            color: #15803d;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            margin-bottom: 8px;
+        }
+        .whatsapp-btns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+        .btn-wpp-etapa {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 10px;
+            background: white;
+            border: 1px solid #bbf7d0;
+            border-radius: 6px;
+            color: #15803d;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 150ms;
+            text-align: left;
+            font-family: inherit;
+        }
+        .btn-wpp-etapa:hover { background: #dcfce7; }
+
         /* Detalhes do Lead no Modal */
         .lead-detail-header {
             display: flex;
@@ -1044,9 +1134,28 @@
         <label>Anotações e Observações</label>
         <textarea id="detalheNotas" placeholder="Adicione observações sobre este lead..."></textarea>
 
-        <div class="modal-actions">
+        <!-- Mensagens Rápidas WhatsApp -->
+        <div class="whatsapp-section">
+            <h4>💬 Mensagens Rápidas</h4>
+            <div class="whatsapp-btns">
+                <button class="btn-wpp-etapa" onclick="abrirWhatsAppEtapa('lead')">📅 Agendar Reunião</button>
+                <button class="btn-wpp-etapa" onclick="abrirWhatsAppEtapa('triagem')">🔍 Analisar Caso</button>
+                <button class="btn-wpp-etapa" onclick="abrirWhatsAppEtapa('proposta')">📋 Apresentar Proposta</button>
+                <button class="btn-wpp-etapa" onclick="abrirWhatsAppEtapa('ganho')">🎉 Boas-vindas ao Escritório</button>
+                <button class="btn-wpp-etapa" id="btnFichaWpp" style="display:none;background:#dcfce7;border-color:#16a34a;color:#15803d;" onclick="enviarFichaWhatsApp()">📋 Enviar Ficha de Cadastro</button>
+            </div>
+        </div>
+
+        <!-- Histórico de Atividades -->
+        <div class="timeline-section">
+            <h4>📋 Histórico</h4>
+            <div class="timeline-list" id="timelineLista">
+                <span class="timeline-empty">Carregando...</span>
+            </div>
+        </div>
+
+        <div class="modal-actions" style="margin-top:18px;">
             <button onclick="salvarNotas()" class="btn-primary">Salvar Notas</button>
-            <button onclick="enviarLinkFicha()" class="btn-primary">Enviar Ficha Cliente</button>
             <button onclick="excluirLead()" class="btn-danger">Excluir Lead</button>
             <button onclick="fecharModalDetalhes()" class="btn-secondary">Fechar</button>
         </div>
@@ -1058,6 +1167,7 @@
     if (!token) window.location.href = '/login.html';
 
     let leadSelecionadoId = null;
+    let leadSelecionadoStatus = 'Novo';
     let nomeAdvogado = '';
     let nomeEscritorio = '';
 
@@ -1198,15 +1308,23 @@
             card.dataset.telefone = lead.telefone || '';
             card.dataset.interesse = lead.assunto || 'Não informado';
             card.dataset.notas = lead.mensagem || '';
+            card.dataset.status = lead.status || 'Novo';
+            card.dataset.score = lead.score || 0;
+
+            const s = parseInt(lead.score) || 0;
+            const badgeCls = s >= 66 ? 'score-quente' : s >= 31 ? 'score-morno' : 'score-frio';
+            const badgeLbl = s >= 66 ? '🟢 Quente' : s >= 31 ? '🟡 Morno' : '🔴 Frio';
 
             card.innerHTML = `
                 <div class="lead-card-header-${statusKey}"
                      style="padding:12px; margin:-20px -20px 12px -20px; border-radius:8px 8px 0 0; display:flex; justify-content:space-between; align-items:center;">
                     <strong style="color:white; font-size:14px;">${lead.nome}</strong>
-
-                    <i class="lucide lucide-message-circle"
-                       style="width:16px; height:16px; color:white; cursor:pointer;"
-                       title="Chamar no WhatsApp"></i>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span class="score-badge ${badgeCls}" title="Score: ${s}">${badgeLbl}</span>
+                        <i class="lucide lucide-message-circle"
+                           style="width:16px; height:16px; color:white; cursor:pointer;"
+                           title="Chamar no WhatsApp"></i>
+                    </div>
                 </div>
 
                 <span>
@@ -1227,7 +1345,8 @@
                     card.dataset.nome,
                     card.dataset.telefone,
                     card.dataset.interesse,
-                    card.dataset.notas
+                    card.dataset.notas,
+                    card.dataset.status
                 );
             });
 
@@ -1410,14 +1529,18 @@
         document.getElementById('formNovoLead')?.reset(); 
     }
 
-    function abrirDetalhes(id, nome, tel, int, notas) {
-        console.log('Abrindo detalhes:', { id, nome, tel, interesse: int, notas });
+    function abrirDetalhes(id, nome, tel, int, notas, status) {
+        console.log('Abrindo detalhes:', { id, nome, tel, interesse: int, notas, status });
         leadSelecionadoId = id;
+        leadSelecionadoStatus = status || 'Novo';
         document.getElementById('detalheNome').innerText = nome;
         document.getElementById('detalheTelefone').innerText = tel;
         document.getElementById('detalheInteresse').innerText = int;
         document.getElementById('detalheNotas').value = (notas === 'null' || !notas) ? '' : notas;
+        document.getElementById('btnFichaWpp').style.display =
+            (status === 'Ganho') ? 'block' : 'none';
         document.getElementById('modalDetalhes').style.display = 'flex';
+        carregarAtividades(id);
     }
 
     function fecharModalDetalhes() { 
@@ -1519,6 +1642,16 @@
         }
     }
 
+    function gerarMsgWhatsApp(etapa, nome, area) {
+        const msgs = {
+            lead:     `Olá ${nome}, recebemos seu contato sobre ${area}. Podemos conversar para entender melhor sua situação?`,
+            triagem:  `Olá ${nome}, estamos analisando seu caso de ${area}. Quando você está disponível para uma conversa?`,
+            proposta: `Olá ${nome}, preparamos uma proposta para seu caso de ${area}. Posso apresentar os detalhes agora?`,
+            ganho:    `Olá ${nome}, seja bem-vindo ao escritório! Estamos muito felizes em tê-lo como cliente. Em breve entraremos em contato para dar início ao seu atendimento.`
+        };
+        return msgs[etapa] || msgs.lead;
+    }
+
     function abrirWhatsApp(event, telefone, nome) {
         event.stopPropagation();
         if (!telefone || telefone === '---') {
@@ -1526,8 +1659,77 @@
             return;
         }
         const foneLimpo = telefone.replace(/\D/g, '');
-        const mensagem = window.encodeURIComponent(`Olá, ${nome}! Sou ${nomeAdvogado}, do ${nomeEscritorio}. Recebi seu interesse em nosso escritório. Como posso lhe ajudar hoje?`);
+        const area = document.getElementById('detalheInteresse')?.innerText || 'questão jurídica';
+        const mensagem = window.encodeURIComponent(gerarMsgWhatsApp('lead', nome, area));
         window.open(`https://wa.me/55${foneLimpo}?text=${mensagem}`, '_blank');
+    }
+
+    function abrirWhatsAppEtapa(etapa) {
+        const telefone = document.getElementById('detalheTelefone').innerText;
+        const nome = document.getElementById('detalheNome').innerText;
+        const area = document.getElementById('detalheInteresse').innerText || 'questão jurídica';
+        if (!telefone || telefone === '---' || telefone.trim() === '') {
+            alert("Este lead não possui telefone cadastrado.");
+            return;
+        }
+        const foneLimpo = telefone.replace(/\D/g, '');
+        const mensagem = window.encodeURIComponent(gerarMsgWhatsApp(etapa, nome, area));
+        window.open(`https://wa.me/55${foneLimpo}?text=${mensagem}`, '_blank');
+    }
+
+    function enviarFichaWhatsApp() {
+        const telefone = document.getElementById('detalheTelefone').innerText;
+        const nome = document.getElementById('detalheNome').innerText;
+        if (!telefone || telefone === '---' || telefone.trim() === '') {
+            alert("Este lead não possui telefone cadastrado.");
+            return;
+        }
+        const foneLimpo = telefone.replace(/\D/g, '');
+        const linkFicha = `https://lawtechpro.com.br/ficha-cliente.html?leadId=${leadSelecionadoId}`;
+        const mensagem = window.encodeURIComponent(
+            `Olá ${nome}, seja bem-vindo ao escritório! Para darmos início ao seu atendimento, por favor preencha sua ficha de cadastro: ${linkFicha}`
+        );
+        window.open(`https://wa.me/55${foneLimpo}?text=${mensagem}`, '_blank');
+    }
+
+    const tipoIcone = {
+        criado:            '👤',
+        status_alterado:   '↗',
+        email_enviado:     '✉',
+        nota_salva:        '📝',
+        reativacao_enviada:'🔄',
+        lembrete:          '⏰'
+    };
+
+    async function carregarAtividades(leadId) {
+        const lista = document.getElementById('timelineLista');
+        if (!lista) return;
+        lista.innerHTML = '<span class="timeline-empty">Carregando...</span>';
+        try {
+            const res = await fetch(`/api/crm/leads/${leadId}/atividades`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Falha');
+            const atividades = await res.json();
+            if (!atividades.length) {
+                lista.innerHTML = '<span class="timeline-empty">Nenhuma atividade registrada.</span>';
+                return;
+            }
+            lista.innerHTML = atividades.map(a => {
+                const icone = tipoIcone[a.tipo] || '●';
+                const dt = new Date(a.criado_em);
+                const hora = dt.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                return `<div class="timeline-item">
+                    <span class="timeline-icon">${icone}</span>
+                    <div class="timeline-body">
+                        <div class="timeline-desc">${a.descricao || a.tipo}</div>
+                        <div class="timeline-time">${hora}</div>
+                    </div>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            lista.innerHTML = '<span class="timeline-empty">Erro ao carregar histórico.</span>';
+        }
     }
 
     function enviarLinkFicha() {
