@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GED — Documentos | LawTech Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-elevated: #ffffff;
+            --bg-tertiary: #334155;
+            --border-medium: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-tertiary: #64748b;
+            --accent-blue: #3b82f6;
+            --accent-blue-glow: rgba(59,130,246,0.4);
+            --radius-md: 8px;
+            --bg: var(--bg-primary);
+            --sidebar: var(--bg-secondary);
+            --white: var(--bg-elevated);
+            --border: var(--border-medium);
+            --text-main: var(--text-primary);
+            --text-menu: var(--text-tertiary);
+            --sidebar-hover: var(--bg-tertiary);
+            --radius: var(--radius-md);
+            --primary: #3b82f6;
+            --danger: #ef4444;
+            --muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text-main); display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { width: 280px; background: var(--sidebar); padding: 24px 20px; display: flex; flex-direction: column; border-right: 1px solid var(--border); flex-shrink: 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .sidebar-header { text-align: center; margin-bottom: 16px; }
+        .sidebar-header img { width: 100%; max-width: 180px; }
+        .menu { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .menu a { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: var(--radius); color: #cbd5e1; text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+        .menu a:hover, .menu a.active { background: var(--sidebar-hover); color: #f1f5f9; }
+        .menu a.active { background: rgba(59,130,246,0.15); color: #3b82f6; }
+        .menu a i, .menu a .lucide { width: 18px; height: 18px; flex-shrink: 0; }
+        .menu-item-with-submenu { position: relative; }
+        .submenu { display: none; flex-direction: column; gap: 2px; padding-left: 28px; margin-top: 2px; }
+        .submenu a { font-size: 13px; padding: 8px 12px; }
+        .btn-crm-gold-nav { background: linear-gradient(135deg, #d4a017, #f0c040) !important; color: #1a1a0e !important; font-weight: 700 !important; border-radius: 8px !important; margin-top: 4px; }
+        .sidebar-footer { padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; color: #94a3b8; }
+        .footer-info-row { display: flex; justify-content: flex-start; gap: 6px; margin-bottom: 4px; }
+
+        /* Main */
+        .main { flex: 1; display: flex; flex-direction: column; min-height: 100vh; overflow: hidden; }
+        .header { background: var(--white); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e2e8f0; color: #1e293b; flex-shrink: 0; }
+        .content { padding: 24px; flex: 1; overflow-y: auto; }
+
+        /* Cards */
+        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: var(--white); border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; color: #1e293b; }
+        .stat-card .label { font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .stat-card .value { font-size: 28px; font-weight: 700; color: #1e293b; }
+
+        /* Filtros */
+        .filters-row { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+        .filters-row input, .filters-row select {
+            padding: 9px 14px; border: 1px solid #e2e8f0; border-radius: 8px;
+            font-size: 14px; background: var(--white); color: #1e293b; outline: none;
+        }
+        .filters-row input:focus, .filters-row select:focus { border-color: var(--primary); }
+        .filters-row input[type="text"] { flex: 1; min-width: 200px; }
+        .toggle-label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #64748b; cursor: pointer; white-space: nowrap; }
+        .toggle-label input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+
+        /* Tabela */
+        .table-wrap { background: var(--white); border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        thead th { padding: 12px 14px; text-align: left; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+        tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.15s; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: #f8fafc; }
+        tbody td { padding: 13px 14px; font-size: 13px; color: #1e293b; vertical-align: middle; }
+
+        /* Badges */
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+        .badge-peticao   { background:#dbeafe; color:#1e40af; }
+        .badge-contrato  { background:#d1fae5; color:#065f46; }
+        .badge-procuracao{ background:#fef3c7; color:#92400e; }
+        .badge-decisao   { background:#ede9fe; color:#5b21b6; }
+        .badge-citacao   { background:#fee2e2; color:#991b1b; }
+        .badge-recurso   { background:#fce7f3; color:#9d174d; }
+        .badge-laudo     { background:#e0f2fe; color:#075985; }
+        .badge-acordo    { background:#ecfdf5; color:#14532d; }
+        .badge-comprovante{background:#f5f3ff; color:#4c1d95;}
+        .badge-modelo    { background:#fef9c3; color:#713f12; }
+        .badge-outros    { background:#f1f5f9; color:#475569; }
+        .badge-modelo-tag{ background:#0f172a; color:#fbbf24; border:1px solid #fbbf24; }
+
+        /* Ações */
+        .btn-icon { background: none; border: none; cursor: pointer; padding: 5px; border-radius: 5px; color: #64748b; transition: background 0.15s, color 0.15s; }
+        .btn-icon:hover { background: #f1f5f9; color: #1e293b; }
+        .btn-icon.danger:hover { background: #fee2e2; color: #ef4444; }
+        .btn-primary { background: var(--primary); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; padding: 9px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .btn-secondary:hover { background: #e2e8f0; }
+
+        /* Modais */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-overlay.open { display: flex; }
+        .modal { background: var(--white); border-radius: 14px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.25); color: #1e293b; }
+        .modal-header { padding: 20px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--white); z-index: 1; }
+        .modal-header h3 { font-size: 17px; font-weight: 700; }
+        .modal-body { padding: 24px; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 12px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px;
+            font-size: 14px; color: #1e293b; outline: none;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+
+        /* Drop zone */
+        .drop-zone {
+            border: 2px dashed #cbd5e1; border-radius: 10px; padding: 32px; text-align: center;
+            cursor: pointer; transition: all 0.2s; margin-bottom: 16px;
+        }
+        .drop-zone:hover, .drop-zone.over { border-color: var(--primary); background: rgba(59,130,246,0.05); }
+        .drop-zone .dz-icon { font-size: 40px; margin-bottom: 8px; color: #94a3b8; }
+        .drop-zone .dz-text { font-size: 14px; color: #64748b; }
+        .drop-zone .dz-file { font-size: 13px; font-weight: 600; color: #1e293b; margin-top: 6px; }
+        input[type="file"].hidden-input { display: none; }
+
+        /* Progress */
+        .progress-bar-wrap { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-top: 10px; display: none; }
+        .progress-bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.2s; border-radius: 4px; }
+
+        /* Versões modal */
+        .version-item { padding: 12px 0; border-bottom: 1px solid #f1f5f9; display: flex; align-items: flex-start; gap: 12px; }
+        .version-item:last-child { border-bottom: none; }
+        .version-badge { background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 5px; white-space: nowrap; }
+
+        /* Empty state */
+        .empty-state { text-align: center; padding: 60px 20px; color: #94a3b8; }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; display: block; }
+
+        /* Badge processo no header */
+        #processBadge { display: none; background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+
+        /* User dropdown */
+        #userDropdown { display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 4px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001; }
+        #userDropdown a { display: block; padding: 10px 16px; color: #1e293b; text-decoration: none; font-size: 13px; }
+        #userDropdown a:hover { background: #f8fafc; }
+
+        @media (max-width: 1280px) {
+            .sidebar { width: 220px; padding: 20px 16px; }
+            .stats-row { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .stats-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+    </div>
+    <nav class="menu">
+        <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+        <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+        <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
+        <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+        <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+        <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+        <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+        <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
+        <div class="menu-item-with-submenu">
+            <a href="/ia-page" onclick="toggleIaMenu(event)" style="display:flex;align-items:center;gap:10px;">
+                <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
+                IA Jurídica
+                <span style="font-size:9px;background:#fbbf24;color:#000;padding:2px 5px;border-radius:4px;font-weight:bold;margin-left:auto;">PREMIUM</span>
+            </a>
+            <div class="submenu" id="submenu-ia">
+                <a href="/peticoes.html"><i class="lucide lucide-file-text"></i> Petições IA</a>
+                <a href="/ia-page"><i class="lucide lucide-bot"></i> Assistente IA</a>
+            </div>
+        </div>
+        <a href="/chat-page"><i class="lucide lucide-message-circle"></i> 💬 Chat</a>
+        <a href="/relatorios-page"><i class="lucide lucide-bar-chart-3"></i> Relatórios</a>
+        <a href="/documentos-page" class="active"><i class="lucide lucide-folder-open"></i> Documentos (GED)</a>
+        <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+        <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
+        <a href="/crm-page" class="btn-crm-gold-nav">
+            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="footer-info-row"><span>Usuário:</span><span id="footerEmail">...</span></div>
+        <div class="footer-info-row"><span>Plano:</span><span id="footerPlano">...</span></div>
+    </div>
+</aside>
+
+<div class="main">
+    <header class="header">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <h2 style="font-size:18px;font-weight:700;">📁 Documentos (GED)</h2>
+            <span id="processBadge"></span>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;">
+            <button class="btn-primary" onclick="abrirModalUpload()">+ Novo Documento</button>
+            <div style="position:relative;">
+                <span id="userNameHeader" style="font-size:13px;font-weight:600;color:#64748b;margin-right:6px;"></span>
+                <div onclick="document.getElementById('userDropdown').style.display = document.getElementById('userDropdown').style.display === 'block' ? 'none' : 'block'"
+                     id="userCircle"
+                     style="width:38px;height:38px;background:var(--primary);color:white;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700;font-size:13px;text-transform:uppercase;">--</div>
+                <div id="userDropdown">
+                    <a href="/config-page">👤 Meus Dados</a>
+                    <a href="#" onclick="logout()" style="color:#ef4444;font-weight:600;">🚪 Sair</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="content">
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="label">Total de Documentos</div>
+                <div class="value" id="statTotal">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Modelos Salvos</div>
+                <div class="value" id="statModelos">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Último Upload</div>
+                <div class="value" id="statUltimo" style="font-size:15px;padding-top:6px;">—</div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filters-row">
+            <input type="text" id="busca" placeholder="Buscar por nome, descrição ou tag…" oninput="filtrar()">
+            <select id="filtroCategoria" onchange="filtrar()">
+                <option value="">Todas as categorias</option>
+                <option value="peticao">Petição</option>
+                <option value="contrato">Contrato</option>
+                <option value="procuracao">Procuração</option>
+                <option value="decisao">Decisão</option>
+                <option value="citacao">Citação</option>
+                <option value="recurso">Recurso</option>
+                <option value="laudo">Laudo</option>
+                <option value="acordo">Acordo</option>
+                <option value="comprovante">Comprovante</option>
+                <option value="modelo">Modelo</option>
+                <option value="outros">Outros</option>
+            </select>
+            <label class="toggle-label">
+                <input type="checkbox" id="filtroModelo" onchange="filtrar()"> Apenas Modelos
+            </label>
+        </div>
+
+        <!-- Tabela -->
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Categoria</th>
+                        <th>Processo</th>
+                        <th>Tipo</th>
+                        <th>Tamanho</th>
+                        <th>Versão</th>
+                        <th>Data</th>
+                        <th style="text-align:right;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="listaDocumentos">
+                    <tr><td colspan="8" style="text-align:center;padding:50px;color:#94a3b8;">Carregando…</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ─── MODAL UPLOAD ──────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modalUpload">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="modalUploadTitulo">Novo Documento</h3>
+            <button class="btn-icon" onclick="fecharModal('modalUpload')"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()"
+                 ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+                <div class="dz-icon">📎</div>
+                <div class="dz-text">Arraste o arquivo aqui ou clique para selecionar</div>
+                <div class="dz-text" style="font-size:12px;margin-top:4px;color:#94a3b8;">PDF, DOC, DOCX, JPG, PNG — até 20 MB</div>
+                <div class="dz-file" id="dzFileName"></div>
+            </div>
+            <input type="file" id="fileInput" class="hidden-input"
+                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/jpeg,image/png"
+                   onchange="onFileSelect(this)">
+            <div class="progress-bar-wrap" id="progressWrap">
+                <div class="progress-bar-fill" id="progressFill"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Nome do documento *</label>
+                <input type="text" id="uploadNome" placeholder="Ex: Petição Inicial - João Silva">
+            </div>
+            <div class="form-group">
+                <label>Categoria *</label>
+                <select id="uploadCategoria">
+                    <option value="outros">Outros</option>
+                    <option value="peticao">Petição</option>
+                    <option value="contrato">Contrato</option>
+                    <option value="procuracao">Procuração</option>
+                    <option value="decisao">Decisão</option>
+                    <option value="citacao">Citação</option>
+                    <option value="recurso">Recurso</option>
+                    <option value="laudo">Laudo</option>
+                    <option value="acordo">Acordo</option>
+                    <option value="comprovante">Comprovante</option>
+                    <option value="modelo">Modelo</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Descrição</label>
+                <textarea id="uploadDescricao" placeholder="Descrição opcional…"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Tags <span style="font-weight:400;color:#94a3b8;">(separadas por vírgula)</span></label>
+                <input type="text" id="uploadTags" placeholder="Ex: urgente, 1ª vara, recurso">
+            </div>
+            <div class="form-group" id="uploadProcessoGrupo">
+                <label>Processo <span style="font-weight:400;color:#94a3b8;">(opcional)</span></label>
+                <select id="uploadProcesso">
+                    <option value="">— Sem vínculo com processo —</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                    <input type="checkbox" id="uploadModelo" style="width:16px;height:16px;">
+                    Salvar como modelo reutilizável
+                </label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="fecharModal('modalUpload')">Cancelar</button>
+            <button class="btn-primary" id="btnEnviar" onclick="enviarUpload()">Enviar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── MODAL EDITAR ──────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modalEditar">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Editar Documento</h3>
+            <button class="btn-icon" onclick="fecharModal('modalEditar')"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="editId">
+            <div class="form-group">
+                <label>Nome *</label>
+                <input type="text" id="editNome">
+            </div>
+            <div class="form-group">
+                <label>Categoria</label>
+                <select id="editCategoria">
+                    <option value="outros">Outros</option>
+                    <option value="peticao">Petição</option>
+                    <option value="contrato">Contrato</option>
+                    <option value="procuracao">Procuração</option>
+                    <option value="decisao">Decisão</option>
+                    <option value="citacao">Citação</option>
+                    <option value="recurso">Recurso</option>
+                    <option value="laudo">Laudo</option>
+                    <option value="acordo">Acordo</option>
+                    <option value="comprovante">Comprovante</option>
+                    <option value="modelo">Modelo</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Descrição</label>
+                <textarea id="editDescricao"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Tags</label>
+                <input type="text" id="editTags">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="fecharModal('modalEditar')">Cancelar</button>
+            <button class="btn-primary" onclick="salvarEdicao()">Salvar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── MODAL VERSOES ─────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modalVersoes">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Histórico de Versões</h3>
+            <button class="btn-icon" onclick="fecharModal('modalVersoes')"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body" id="versoesBody">
+            <div style="text-align:center;padding:30px;color:#94a3b8;">Carregando…</div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── MODAL NOVA VERSÃO ─────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modalNovaVersao">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Upload — Nova Versão</h3>
+            <button class="btn-icon" onclick="fecharModal('modalNovaVersao')"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="nvDocId">
+            <div class="drop-zone" id="dropZoneNV" onclick="document.getElementById('fileInputNV').click()"
+                 ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDropNV(event)">
+                <div class="dz-icon">📎</div>
+                <div class="dz-text">Selecione ou arraste o novo arquivo</div>
+                <div class="dz-file" id="dzFileNameNV"></div>
+            </div>
+            <input type="file" id="fileInputNV" class="hidden-input"
+                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/jpeg,image/png"
+                   onchange="onFileSelectNV(this)">
+            <div class="progress-bar-wrap" id="progressWrapNV">
+                <div class="progress-bar-fill" id="progressFillNV"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="fecharModal('modalNovaVersao')">Cancelar</button>
+            <button class="btn-primary" onclick="enviarNovaVersao()">Enviar Versão</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ─── Estado ───────────────────────────────────────────────────────────────────
+const token = localStorage.getItem('token');
+let userRole = '';
+let processoId = new URLSearchParams(window.location.search).get('processo_id');
+let todosDocumentos = [];
+let selectedFile = null;
+let selectedFileNV = null;
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+function verificarAuth() {
+    if (!token) { window.location.href = '/login'; return; }
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        userRole = payload.role || '';
+        const nome = payload.nome || payload.email || 'Usuário';
+        document.getElementById('userCircle').textContent = nome.charAt(0).toUpperCase();
+        document.getElementById('userNameHeader').textContent = nome.split(' ')[0];
+        document.getElementById('footerEmail').textContent = payload.email || nome;
+
+        const plano = payload.plano || 'Básico';
+        document.getElementById('footerPlano').textContent = plano;
+    } catch { window.location.href = '/login'; }
+}
+
+function logout() {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+}
+
+function toggleIaMenu(e) {
+    e.preventDefault();
+    const s = document.getElementById('submenu-ia');
+    s.style.display = s.style.display === 'flex' ? 'none' : 'flex';
+    s.style.flexDirection = 'column';
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+window.onload = () => {
+    verificarAuth();
+    if (processoId) carregarInfoProcesso(processoId);
+    carregarDocumentos();
+    carregarProcessos();
+    lucide.createIcons();
+};
+
+// ─── Info do processo ─────────────────────────────────────────────────────────
+async function carregarInfoProcesso(id) {
+    try {
+        const res = await fetch(`/api/processos/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) return;
+        const p = await res.json();
+        const badge = document.getElementById('processBadge');
+        badge.textContent = `Processo: ${p.numero || id}`;
+        badge.style.display = 'inline-block';
+        // Ocultar select de processo no modal de upload quando veio por URL
+        document.getElementById('uploadProcessoGrupo').style.display = 'none';
+    } catch { /* ignora */ }
+}
+
+// ─── Carregar documentos ──────────────────────────────────────────────────────
+async function carregarDocumentos() {
+    try {
+        let url = '/api/documentos?';
+        if (processoId) url += `processo_id=${processoId}&`;
+
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) throw new Error(await res.text());
+
+        todosDocumentos = await res.json();
+        atualizarStats();
+        renderizarTabela(todosDocumentos);
+    } catch (err) {
+        console.error('Erro ao carregar documentos:', err);
+        document.getElementById('listaDocumentos').innerHTML =
+            `<tr><td colspan="8" style="text-align:center;padding:40px;color:#ef4444;">Erro ao carregar documentos.</td></tr>`;
+    }
+}
+
+// ─── Stats ────────────────────────────────────────────────────────────────────
+function atualizarStats() {
+    document.getElementById('statTotal').textContent = todosDocumentos.length;
+    document.getElementById('statModelos').textContent = todosDocumentos.filter(d => d.eh_modelo).length;
+    if (todosDocumentos.length > 0) {
+        const d = todosDocumentos[0];
+        document.getElementById('statUltimo').textContent = formatarData(d.criado_em);
+    } else {
+        document.getElementById('statUltimo').textContent = '—';
+    }
+}
+
+// ─── Filtros ──────────────────────────────────────────────────────────────────
+function filtrar() {
+    const q = document.getElementById('busca').value.toLowerCase();
+    const cat = document.getElementById('filtroCategoria').value;
+    const apenasModelo = document.getElementById('filtroModelo').checked;
+
+    const filtrado = todosDocumentos.filter(d => {
+        const textoMatch = !q || (d.nome || '').toLowerCase().includes(q) ||
+            (d.descricao || '').toLowerCase().includes(q) ||
+            (d.tags || '').toLowerCase().includes(q);
+        const catMatch = !cat || d.categoria === cat;
+        const modeloMatch = !apenasModelo || d.eh_modelo;
+        return textoMatch && catMatch && modeloMatch;
+    });
+
+    renderizarTabela(filtrado);
+}
+
+// ─── Renderizar tabela ────────────────────────────────────────────────────────
+function renderizarTabela(lista) {
+    const tbody = document.getElementById('listaDocumentos');
+
+    if (lista.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8">
+            <div class="empty-state">
+                <i class="lucide lucide-folder-open" style="width:48px;height:48px;color:#94a3b8;display:block;margin:0 auto 12px;"></i>
+                <div>Nenhum documento encontrado.</div>
+            </div>
+        </td></tr>`;
+        lucide.createIcons();
+        return;
+    }
+
+    tbody.innerHTML = lista.map(d => {
+        const icone = iconeArquivo(d.mimetype);
+        const ext = (d.arquivo_original || '').split('.').pop().toLowerCase();
+        const tamanho = formatarTamanho(d.tamanho);
+        const data = formatarData(d.criado_em);
+        const totalV = parseInt(d.total_versoes) || 1;
+        const versaoExibida = `v${d.versao}`;
+        const btnMaisVersoes = totalV > 1
+            ? `<button class="btn-icon" onclick="abrirVersoes(${d.id})" title="Ver ${totalV} versão(ões)" style="font-size:11px;font-weight:700;color:var(--primary);">(+${totalV - 1})</button>`
+            : '';
+
+        const processoCol = d.eh_modelo
+            ? `<span class="badge badge-modelo-tag">MODELO</span>`
+            : (d.processo_numero
+                ? `<a href="/processos-page" style="color:var(--primary);font-weight:600;text-decoration:none;">${d.processo_numero}</a>`
+                : '<span style="color:#94a3b8;">—</span>');
+
+        const excluirBtn = userRole === 'admin'
+            ? `<button class="btn-icon danger" onclick="excluirDocumento(${d.id})" title="Excluir"><i data-lucide="trash-2" style="width:15px;height:15px;"></i></button>`
+            : '';
+
+        return `<tr>
+            <td style="max-width:220px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="font-size:18px;">${icone}</span>
+                    <span title="${d.nome}" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;font-weight:500;">${d.nome.length > 40 ? d.nome.slice(0, 40) + '…' : d.nome}</span>
+                </div>
+            </td>
+            <td><span class="badge badge-${d.categoria || 'outros'}">${labelCategoria(d.categoria)}</span></td>
+            <td>${processoCol}</td>
+            <td style="font-family:monospace;font-size:12px;color:#64748b;">.${ext}</td>
+            <td style="white-space:nowrap;">${tamanho}</td>
+            <td style="white-space:nowrap;">
+                <span style="font-weight:600;color:var(--primary);">${versaoExibida}</span>
+                ${btnMaisVersoes}
+            </td>
+            <td style="white-space:nowrap;color:#64748b;">${data}</td>
+            <td>
+                <div style="display:flex;gap:4px;justify-content:flex-end;align-items:center;">
+                    <button class="btn-icon" onclick="baixarDoc(${d.id}, '${escAtr(d.arquivo_original)}')" title="Download / Visualizar"><i data-lucide="download" style="width:15px;height:15px;"></i></button>
+                    <button class="btn-icon" onclick="abrirEditar(${d.id})" title="Editar metadados"><i data-lucide="edit" style="width:15px;height:15px;"></i></button>
+                    <button class="btn-icon" onclick="abrirNovaVersao(${d.id})" title="Upload nova versão"><i data-lucide="upload" style="width:15px;height:15px;"></i></button>
+                    ${excluirBtn}
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+
+    lucide.createIcons();
+}
+
+// ─── Helpers visuais ──────────────────────────────────────────────────────────
+function iconeArquivo(mime) {
+    if (mime === 'application/pdf') return '🔴';
+    if (mime && mime.includes('word')) return '🔵';
+    if (mime && mime.startsWith('image/')) return '🟢';
+    return '📄';
+}
+
+function labelCategoria(cat) {
+    const m = { peticao:'Petição', contrato:'Contrato', procuracao:'Procuração', decisao:'Decisão',
+                citacao:'Citação', recurso:'Recurso', laudo:'Laudo', acordo:'Acordo',
+                comprovante:'Comprovante', modelo:'Modelo', outros:'Outros' };
+    return m[cat] || 'Outros';
+}
+
+function formatarTamanho(bytes) {
+    if (!bytes) return '—';
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function formatarData(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+function escAtr(str) {
+    return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+// ─── Download ─────────────────────────────────────────────────────────────────
+async function baixarDoc(id, nomeOriginal) {
+    try {
+        const res = await fetch(`/api/documentos/${id}/arquivo`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) { alert('Arquivo não encontrado no servidor.'); return; }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = nomeOriginal;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        alert('Erro ao baixar arquivo.');
+    }
+}
+
+// ─── Carregar processos para o select ────────────────────────────────────────
+async function carregarProcessos() {
+    try {
+        const res = await fetch('/api/processos', { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) return;
+        const lista = await res.json();
+        const sel = document.getElementById('uploadProcesso');
+        lista.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = `${p.numero || p.id} — ${p.cliente || ''}`;
+            if (processoId && p.id == processoId) opt.selected = true;
+            sel.appendChild(opt);
+        });
+    } catch { /* ignora */ }
+}
+
+// ─── Modal Upload ─────────────────────────────────────────────────────────────
+function abrirModalUpload() {
+    selectedFile = null;
+    document.getElementById('dzFileName').textContent = '';
+    document.getElementById('fileInput').value = '';
+    document.getElementById('uploadNome').value = '';
+    document.getElementById('uploadCategoria').value = 'outros';
+    document.getElementById('uploadDescricao').value = '';
+    document.getElementById('uploadTags').value = '';
+    document.getElementById('uploadModelo').checked = false;
+    document.getElementById('progressWrap').style.display = 'none';
+    document.getElementById('progressFill').style.width = '0%';
+    document.getElementById('btnEnviar').disabled = false;
+    document.getElementById('btnEnviar').textContent = 'Enviar';
+    document.getElementById('modalUploadTitulo').textContent = 'Novo Documento';
+    abrirModal('modalUpload');
+}
+
+function onFileSelect(input) {
+    if (input.files && input.files[0]) {
+        selectedFile = input.files[0];
+        document.getElementById('dzFileName').textContent = selectedFile.name;
+        if (!document.getElementById('uploadNome').value) {
+            document.getElementById('uploadNome').value = selectedFile.name.replace(/\.[^/.]+$/, '');
+        }
+    }
+}
+
+function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('over'); }
+function onDragLeave(e) { e.currentTarget.classList.remove('over'); }
+function onDrop(e) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('over');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        selectedFile = file;
+        document.getElementById('dzFileName').textContent = file.name;
+        if (!document.getElementById('uploadNome').value) {
+            document.getElementById('uploadNome').value = file.name.replace(/\.[^/.]+$/, '');
+        }
+    }
+}
+
+async function enviarUpload() {
+    if (!selectedFile) { alert('Selecione um arquivo.'); return; }
+    const nome = document.getElementById('uploadNome').value.trim();
+    if (!nome) { alert('Informe o nome do documento.'); return; }
+
+    const formData = new FormData();
+    formData.append('arquivo', selectedFile);
+    formData.append('nome', nome);
+    formData.append('categoria', document.getElementById('uploadCategoria').value);
+    formData.append('descricao', document.getElementById('uploadDescricao').value);
+    formData.append('tags', document.getElementById('uploadTags').value);
+    formData.append('eh_modelo', document.getElementById('uploadModelo').checked ? 'true' : 'false');
+    if (processoId) {
+        formData.append('processo_id', processoId);
+    } else {
+        const sel = document.getElementById('uploadProcesso').value;
+        if (sel) formData.append('processo_id', sel);
+    }
+
+    document.getElementById('progressWrap').style.display = 'block';
+    document.getElementById('btnEnviar').disabled = true;
+    document.getElementById('btnEnviar').textContent = 'Enviando…';
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/documentos');
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+
+    xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+            const pct = Math.round(e.loaded / e.total * 100);
+            document.getElementById('progressFill').style.width = pct + '%';
+        }
+    };
+
+    xhr.onload = () => {
+        document.getElementById('btnEnviar').disabled = false;
+        document.getElementById('btnEnviar').textContent = 'Enviar';
+        if (xhr.status === 201) {
+            fecharModal('modalUpload');
+            carregarDocumentos();
+        } else {
+            let msg = 'Erro ao enviar documento.';
+            try { msg = JSON.parse(xhr.responseText).erro || msg; } catch { }
+            alert(msg);
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('progressWrap').style.display = 'none';
+        }
+    };
+
+    xhr.onerror = () => {
+        document.getElementById('btnEnviar').disabled = false;
+        document.getElementById('btnEnviar').textContent = 'Enviar';
+        alert('Erro de rede ao enviar arquivo.');
+    };
+
+    xhr.send(formData);
+}
+
+// ─── Modal Editar ─────────────────────────────────────────────────────────────
+function abrirEditar(id) {
+    const doc = todosDocumentos.find(d => d.id === id);
+    if (!doc) return;
+    document.getElementById('editId').value = id;
+    document.getElementById('editNome').value = doc.nome;
+    document.getElementById('editCategoria').value = doc.categoria || 'outros';
+    document.getElementById('editDescricao').value = doc.descricao || '';
+    document.getElementById('editTags').value = doc.tags || '';
+    abrirModal('modalEditar');
+}
+
+async function salvarEdicao() {
+    const id = document.getElementById('editId').value;
+    const nome = document.getElementById('editNome').value.trim();
+    if (!nome) { alert('Nome obrigatório.'); return; }
+
+    try {
+        const res = await fetch(`/api/documentos/${id}`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                nome,
+                categoria: document.getElementById('editCategoria').value,
+                descricao: document.getElementById('editDescricao').value,
+                tags: document.getElementById('editTags').value
+            })
+        });
+        if (!res.ok) {
+            const e = await res.json();
+            alert(e.erro || 'Erro ao salvar.');
+            return;
+        }
+        fecharModal('modalEditar');
+        carregarDocumentos();
+    } catch (err) {
+        alert('Erro ao salvar edição.');
+    }
+}
+
+// ─── Modal Versões ────────────────────────────────────────────────────────────
+async function abrirVersoes(id) {
+    abrirModal('modalVersoes');
+    document.getElementById('versoesBody').innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;">Carregando…</div>';
+
+    try {
+        const res = await fetch(`/api/documentos/${id}/versoes`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const lista = await res.json();
+
+        if (!lista.length) {
+            document.getElementById('versoesBody').innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;">Nenhuma versão encontrada.</div>';
+            return;
+        }
+
+        document.getElementById('versoesBody').innerHTML = lista.map(v => `
+            <div class="version-item">
+                <span class="version-badge">v${v.versao}</span>
+                <div style="flex:1;">
+                    <div style="font-weight:600;font-size:14px;">${v.arquivo_original}</div>
+                    <div style="font-size:12px;color:#64748b;margin-top:2px;">
+                        ${formatarData(v.criado_em)} &nbsp;·&nbsp;
+                        ${formatarTamanho(v.tamanho)} &nbsp;·&nbsp;
+                        ${v.usuario_nome || '—'}
+                    </div>
+                </div>
+                <button class="btn-icon" onclick="baixarDoc(${v.id}, '${escAtr(v.arquivo_original)}')" title="Download">
+                    <i data-lucide="download" style="width:15px;height:15px;"></i>
+                </button>
+            </div>
+        `).join('');
+        lucide.createIcons();
+    } catch {
+        document.getElementById('versoesBody').innerHTML = '<div style="color:#ef4444;text-align:center;padding:20px;">Erro ao carregar versões.</div>';
+    }
+}
+
+// ─── Modal Nova Versão ────────────────────────────────────────────────────────
+function abrirNovaVersao(id) {
+    selectedFileNV = null;
+    document.getElementById('dzFileNameNV').textContent = '';
+    document.getElementById('fileInputNV').value = '';
+    document.getElementById('nvDocId').value = id;
+    document.getElementById('progressWrapNV').style.display = 'none';
+    document.getElementById('progressFillNV').style.width = '0%';
+    abrirModal('modalNovaVersao');
+}
+
+function onFileSelectNV(input) {
+    if (input.files && input.files[0]) {
+        selectedFileNV = input.files[0];
+        document.getElementById('dzFileNameNV').textContent = selectedFileNV.name;
+    }
+}
+
+function onDropNV(e) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('over');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        selectedFileNV = file;
+        document.getElementById('dzFileNameNV').textContent = file.name;
+    }
+}
+
+async function enviarNovaVersao() {
+    if (!selectedFileNV) { alert('Selecione um arquivo.'); return; }
+    const id = document.getElementById('nvDocId').value;
+
+    const formData = new FormData();
+    formData.append('arquivo', selectedFileNV);
+
+    document.getElementById('progressWrapNV').style.display = 'block';
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `/api/documentos/${id}/versao`);
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+
+    xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+            document.getElementById('progressFillNV').style.width =
+                Math.round(e.loaded / e.total * 100) + '%';
+        }
+    };
+
+    xhr.onload = () => {
+        if (xhr.status === 201) {
+            fecharModal('modalNovaVersao');
+            carregarDocumentos();
+        } else {
+            let msg = 'Erro ao enviar versão.';
+            try { msg = JSON.parse(xhr.responseText).erro || msg; } catch { }
+            alert(msg);
+            document.getElementById('progressFillNV').style.width = '0%';
+            document.getElementById('progressWrapNV').style.display = 'none';
+        }
+    };
+
+    xhr.onerror = () => alert('Erro de rede.');
+    xhr.send(formData);
+}
+
+// ─── Excluir ──────────────────────────────────────────────────────────────────
+async function excluirDocumento(id) {
+    const doc = todosDocumentos.find(d => d.id === id);
+    const nome = doc ? doc.nome : `#${id}`;
+    if (!confirm(`Excluir "${nome}" e TODAS as suas versões? Esta ação não pode ser desfeita.`)) return;
+
+    try {
+        const res = await fetch(`/api/documentos/${id}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) {
+            const e = await res.json();
+            alert(e.erro || 'Erro ao excluir.');
+            return;
+        }
+        carregarDocumentos();
+    } catch {
+        alert('Erro ao excluir documento.');
+    }
+}
+
+// ─── Modal helpers ────────────────────────────────────────────────────────────
+function abrirModal(id) {
+    document.getElementById(id).classList.add('open');
+}
+function fecharModal(id) {
+    document.getElementById(id).classList.remove('open');
+}
+
+// Fechar modal ao clicar no overlay
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('open');
+    });
+});
+</script>
+</body>
+</html>

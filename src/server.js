@@ -37,6 +37,7 @@ const notificacoesRoutes = require('./routes/notificacoes.routes');
 const relatoriosRoutes = require('./routes/relatorios.routes');
 const chatRoutes = require('./routes/chat.routes');
 const contatoRoutes = require('./routes/contato.routes');
+const documentosRoutes = require('./routes/documentos.routes');
 
 // --- 2. MIDDLEWARES DE AUTENTICAÃ‡ÃƒO ---
 const authMiddleware = require('./middlewares/authMiddleware');
@@ -212,6 +213,7 @@ app.use('/api', authMiddleware, verificarPagamento, calendarioRoutes);
 app.use('/api', notificacoesRoutes);
 app.use('/api', authMiddleware, verificarPagamento, relatoriosRoutes);
 app.use('/api', authMiddleware, verificarPagamento, chatRoutes);
+app.use('/api', authMiddleware, verificarPagamento, documentosRoutes);
 
 // âœ… Rota do monitor admin
 app.get('/systems/monitor', (req, res) => {
@@ -244,6 +246,7 @@ app.get('/clientes-page', (req, res) => res.sendFile(path.join(publicPath, 'clie
 app.get('/config-page', (req, res) => res.sendFile(path.join(publicPath, 'config.html')));
 app.get('/ia-page', (req, res) => res.sendFile(path.join(publicPath, 'ia.html')));
 app.get('/crm-page', (req, res) => res.sendFile(path.join(publicPath, 'crm.html')));
+app.get('/documentos-page', (req, res) => res.sendFile(path.join(publicPath, 'documentos.html')));
 app.get('/recuperar-senha', (req, res) => res.sendFile(path.join(publicPath, 'recuperar-senha.html')));
 app.get('/nova-senha', (req, res) => res.sendFile(path.join(publicPath, 'nova-senha.html')));
 app.get('/termos', (req, res) => res.sendFile(path.join(publicPath, 'termos.html')));
@@ -556,6 +559,34 @@ require('./cron/crmFollowup');
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_lead_ativ_lead ON lead_atividades(lead_id)`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_lead_ativ_escritorio ON lead_atividades(escritorio_id, criado_em DESC)`);
         console.log('✅ [SISTEMA] Tabelas CRM automação verificadas.');
+
+        // GED — Gestão Eletrônica de Documentos
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS documentos (
+                id               SERIAL PRIMARY KEY,
+                escritorio_id    INTEGER NOT NULL,
+                processo_id      INTEGER,
+                usuario_id       INTEGER NOT NULL,
+                nome             VARCHAR(300) NOT NULL,
+                descricao        TEXT,
+                categoria        VARCHAR(80) NOT NULL DEFAULT 'outros',
+                tags             TEXT,
+                arquivo_nome     VARCHAR(300) NOT NULL,
+                arquivo_original VARCHAR(300) NOT NULL,
+                mimetype         VARCHAR(100) NOT NULL,
+                tamanho          INTEGER NOT NULL,
+                versao           INTEGER NOT NULL DEFAULT 1,
+                documento_pai_id INTEGER,
+                eh_modelo        BOOLEAN NOT NULL DEFAULT false,
+                criado_em        TIMESTAMP DEFAULT NOW(),
+                atualizado_em    TIMESTAMP DEFAULT NOW()
+            )
+        `);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_doc_escritorio ON documentos(escritorio_id)`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_doc_processo   ON documentos(processo_id, escritorio_id)`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_doc_modelo     ON documentos(escritorio_id, eh_modelo) WHERE eh_modelo = true`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_doc_pai        ON documentos(documento_pai_id)`);
+        console.log('✅ [SISTEMA] Tabela documentos (GED) verificada.');
 
         iniciarAgendamentos();
 
