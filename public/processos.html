@@ -2328,6 +2328,13 @@ let gerenciadorPartesEdicao = null;
                 todosProcessos = await response.json();
                 console.log('JSON RAW recebido:', JSON.stringify(todosProcessos[0], null, 2));
                 renderizarTabela(todosProcessos);
+
+                // Pré-filtrar se veio de /documentos-page com ?busca=NUMERO
+                const buscaParam = new URLSearchParams(window.location.search).get('busca');
+                if (buscaParam) {
+                    const input = document.getElementById('searchProcessos');
+                    if (input) { input.value = buscaParam; filtrarProcessosTabela(); }
+                }
             } else {
                 console.error('Erro na resposta:', response.status);
             }
