@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(cd C:/Projeto/Juridico_app && node -e \"\nconst express = require\\('express'\\);\n// Just test if the files load without syntax errors\ntry {\n  require\\('./src/services/crmEmailService.js'\\);\n  console.log\\('✅ crmEmailService.js OK'\\);\n} catch\\(e\\) { console.error\\('❌ crmEmailService.js:', e.message\\); }\ntry {\n  require\\('./src/cron/crmFollowup.js'\\);\n  console.log\\('✅ crmFollowup.js OK'\\);\n} catch\\(e\\) { console.error\\('❌ crmFollowup.js:', e.message\\); }\ntry {\n  require\\('./src/routes/crm.routes.js'\\);\n  console.log\\('✅ crm.routes.js OK'\\);\n} catch\\(e\\) { console.error\\('❌ crm.routes.js:', e.message\\); }\nsetTimeout\\(\\(\\) => process.exit\\(0\\), 500\\);\n\" 2>&1)",
+      "Bash(node:*)",
+      "Bash(ls:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git:*)"
+    ]
+  }
+}

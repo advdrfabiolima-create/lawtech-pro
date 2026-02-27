@@ -38,6 +38,7 @@ const relatoriosRoutes = require('./routes/relatorios.routes');
 const chatRoutes = require('./routes/chat.routes');
 const contatoRoutes = require('./routes/contato.routes');
 const documentosRoutes = require('./routes/documentos.routes');
+const assinaturaDigitalRoutes = require('./routes/assinaturaDigital.routes');
 
 // --- 2. MIDDLEWARES DE AUTENTICAÃ‡ÃƒO ---
 const authMiddleware = require('./middlewares/authMiddleware');
@@ -214,6 +215,8 @@ app.use('/api', notificacoesRoutes);
 app.use('/api', authMiddleware, verificarPagamento, relatoriosRoutes);
 app.use('/api', authMiddleware, verificarPagamento, chatRoutes);
 app.use('/api', authMiddleware, verificarPagamento, documentosRoutes);
+app.use('/webhook', assinaturaDigitalRoutes); // ClickSign webhook — público (APÓS express.json)
+app.use('/api', authMiddleware, verificarPagamento, assinaturaDigitalRoutes);
 
 // âœ… Rota do monitor admin
 app.get('/systems/monitor', (req, res) => {
@@ -587,6 +590,28 @@ require('./cron/crmFollowup');
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_doc_modelo     ON documentos(escritorio_id, eh_modelo) WHERE eh_modelo = true`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_doc_pai        ON documentos(documento_pai_id)`);
         console.log('✅ [SISTEMA] Tabela documentos (GED) verificada.');
+
+        // Assinaturas Digitais (ClickSign)
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS assinaturas_digitais (
+                id                     SERIAL PRIMARY KEY,
+                documento_id           INTEGER NOT NULL,
+                escritorio_id          INTEGER NOT NULL,
+                usuario_id             INTEGER NOT NULL,
+                clicksign_document_key VARCHAR(200),
+                status                 VARCHAR(50) NOT NULL DEFAULT 'criando',
+                signatarios            JSONB DEFAULT '[]'::jsonb,
+                mensagem               TEXT,
+                deadline               DATE,
+                criado_em              TIMESTAMP DEFAULT NOW(),
+                atualizado_em          TIMESTAMP DEFAULT NOW(),
+                concluido_em           TIMESTAMP
+            )
+        `);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_assdig_doc ON assinaturas_digitais(documento_id)`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_assdig_esc ON assinaturas_digitais(escritorio_id)`);
+        await pool.query(`ALTER TABLE assinaturas_digitais ADD COLUMN IF NOT EXISTS link_assinatura TEXT`);
+        console.log('✅ [SISTEMA] Tabela assinaturas_digitais verificada.');
 
         iniciarAgendamentos();
 

@@ -200,6 +200,8 @@
         .badge-modelo    { background:#fef9c3; color:#713f12; }
         .badge-outros    { background:#f1f5f9; color:#475569; }
         .badge-modelo-tag{ background:#0f172a; color:#fbbf24; border:1px solid #fbbf24; }
+        .badge-assinatura-aguardando { background:#fef9c3; color:#92400e; border:1px solid #fcd34d; font-size:11px; padding:2px 7px; border-radius:20px; font-weight:700; white-space:nowrap; }
+        .badge-assinatura-concluido  { background:#dcfce7; color:#14532d; border:1px solid #86efac; font-size:11px; padding:2px 7px; border-radius:20px; font-weight:700; white-space:nowrap; }
 
         /* Ações */
         .btn-icon { background: none; border: none; cursor: pointer; padding: 5px; border-radius: 5px; color: #64748b; transition: background 0.15s, color 0.15s; }
@@ -554,6 +556,48 @@
     </div>
 </div>
 
+<!-- ─── MODAL ASSINATURA DIGITAL ─────────────────────────────────────────── -->
+<div class="modal-overlay" id="modalAssinar">
+    <div class="modal" style="max-width:480px;">
+        <div class="modal-header">
+            <h3>Assinatura Digital</h3>
+            <button class="btn-icon" onclick="fecharModal('modalAssinar')"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+            <div id="assinarDocNome" style="font-weight:600;color:var(--text-primary);margin-bottom:16px;padding:10px 12px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;"></div>
+
+            <div style="margin-bottom:14px;">
+                <label style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Signatário (polo ativo do processo)</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <div>
+                        <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">Nome</div>
+                        <div id="assinarSignNome" style="font-weight:600;padding:8px 10px;background:#f1f5f9;border-radius:6px;font-size:13px;min-height:32px;"></div>
+                    </div>
+                    <div>
+                        <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">E-mail</div>
+                        <div id="assinarSignEmail" style="font-weight:500;padding:8px 10px;background:#f1f5f9;border-radius:6px;font-size:13px;min-height:32px;word-break:break-all;"></div>
+                    </div>
+                </div>
+                <div id="assinarSignAviso" style="display:none;color:#ef4444;font-size:12px;margin-top:6px;"></div>
+            </div>
+
+            <div style="margin-bottom:14px;">
+                <label for="assinarDeadline" style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Prazo para assinatura</label>
+                <input type="date" id="assinarDeadline" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:14px;background:#f8fafc;">
+            </div>
+
+            <div>
+                <label for="assinarMensagem" style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Mensagem para o signatário (opcional)</label>
+                <textarea id="assinarMensagem" rows="3" placeholder="Ex: Por favor, assine o contrato referente ao processo…" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:14px;resize:vertical;background:#f8fafc;"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="fecharModal('modalAssinar')">Cancelar</button>
+            <button class="btn-primary" id="btnEnviarAssinatura" onclick="enviarAssinatura()" style="background:#7c3aed;">🔏 Enviar para Assinatura</button>
+        </div>
+    </div>
+</div>
+
 <script>
 // ─── Estado ───────────────────────────────────────────────────────────────────
 const token = localStorage.getItem('token');
@@ -722,6 +766,20 @@ function renderizarTabela(lista) {
             ? `<button class="btn-icon danger" onclick="excluirDocumento(${d.id})" title="Excluir"><i data-lucide="trash-2" style="width:15px;height:15px;"></i></button>`
             : '';
 
+        const btnAssinar = (d.mimetype === 'application/pdf' && d.processo_id)
+            ? `<button class="btn-icon" onclick="abrirModalAssinar(${d.id}, ${d.processo_id})" title="Assinatura Digital" style="color:#7c3aed;"><i data-lucide="pen-line" style="width:15px;height:15px;"></i></button>`
+            : '';
+
+        const btnVerificarStatus = (d.assinatura_id && (d.assinatura_status === 'enviado' || d.assinatura_status === 'em_assinatura'))
+            ? `<button class="btn-icon" onclick="verificarStatusAssinatura(${d.assinatura_id}, ${d.id})" title="Verificar status da assinatura" style="color:#d97706;"><i data-lucide="refresh-cw" style="width:14px;height:14px;"></i></button>`
+            : '';
+
+        const assinaturaBadge = d.assinatura_status === 'concluido'
+            ? `<span class="badge-assinatura-concluido" title="Documento assinado">✅ Assinado</span>`
+            : (d.assinatura_status === 'enviado' || d.assinatura_status === 'em_assinatura')
+            ? `<span class="badge-assinatura-aguardando" title="Aguardando assinatura">🔏 Aguardando</span>`
+            : '';
+
         return `<tr>
             <td style="max-width:220px;">
                 <div style="display:flex;align-items:center;gap:8px;">
@@ -736,6 +794,7 @@ function renderizarTabela(lista) {
             <td style="white-space:nowrap;">
                 <span style="font-weight:600;color:var(--primary);">${versaoExibida}</span>
                 ${btnMaisVersoes}
+                ${assinaturaBadge ? `<br><span style="margin-top:2px;display:inline-block;">${assinaturaBadge}</span>` : ''}
             </td>
             <td style="white-space:nowrap;color:#64748b;">${data}</td>
             <td>
@@ -743,6 +802,8 @@ function renderizarTabela(lista) {
                     <button class="btn-icon" onclick="baixarDoc(${d.id}, '${escAtr(d.arquivo_original)}')" title="Download / Visualizar"><i data-lucide="download" style="width:15px;height:15px;"></i></button>
                     <button class="btn-icon" onclick="abrirEditar(${d.id})" title="Editar metadados"><i data-lucide="edit" style="width:15px;height:15px;"></i></button>
                     <button class="btn-icon" onclick="abrirNovaVersao(${d.id})" title="Upload nova versão"><i data-lucide="upload" style="width:15px;height:15px;"></i></button>
+                    ${btnAssinar}
+                    ${btnVerificarStatus}
                     ${excluirBtn}
                 </div>
             </td>
@@ -1084,6 +1145,122 @@ async function excluirDocumento(id) {
         carregarDocumentos();
     } catch {
         alert('Erro ao excluir documento.');
+    }
+}
+
+// ─── Assinatura Digital ────────────────────────────────────────────────────────
+let assinarDocIdAtual = null;
+
+async function verificarStatusAssinatura(assId, docId) {
+    try {
+        const res = await fetch(`/api/assinaturas/${assId}/verificar`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!res.ok) { alert(data.erro || 'Erro ao verificar status.'); return; }
+
+        if (data.atualizado) {
+            const msg = data.status === 'concluido'
+                ? '✅ Documento assinado! Badge atualizado.'
+                : `Status atualizado para: ${data.status}`;
+            alert(msg);
+            carregarDocumentos();
+        } else {
+            alert(`Status atual: ${data.status === 'enviado' ? '🔏 Aguardando assinatura' : data.status} (sem alteração)`);
+        }
+    } catch (err) {
+        alert('Erro ao verificar status da assinatura.');
+    }
+}
+
+async function abrirModalAssinar(docId, processoId) {
+    assinarDocIdAtual = docId;
+    const doc = todosDocumentos.find(d => d.id === docId);
+
+    // Preencher nome do documento
+    document.getElementById('assinarDocNome').textContent = doc ? doc.nome : `Documento #${docId}`;
+
+    // Limpar campos
+    document.getElementById('assinarSignNome').textContent = '…';
+    document.getElementById('assinarSignEmail').textContent = '…';
+    document.getElementById('assinarSignAviso').style.display = 'none';
+    document.getElementById('assinarMensagem').value = '';
+
+    // Deadline padrão: +30 dias
+    const d30 = new Date();
+    d30.setDate(d30.getDate() + 30);
+    document.getElementById('assinarDeadline').value = d30.toISOString().split('T')[0];
+
+    abrirModal('modalAssinar');
+
+    // Buscar partes do processo
+    try {
+        const res = await fetch(`/api/processos/${processoId}/partes`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Erro ao buscar partes');
+        const data = await res.json();
+        const partes = data.partes || [];
+        // Polo ativo — prioriza eh_principal=true
+        const ativo = partes
+            .filter(p => p.polo === 'ativo')
+            .sort((a, b) => (b.eh_principal ? 1 : 0) - (a.eh_principal ? 1 : 0));
+
+        if (ativo.length === 0) {
+            document.getElementById('assinarSignNome').textContent = '—';
+            document.getElementById('assinarSignEmail').textContent = '—';
+            const aviso = document.getElementById('assinarSignAviso');
+            aviso.textContent = 'Nenhuma parte no polo ativo encontrada para este processo.';
+            aviso.style.display = 'block';
+        } else {
+            const parte = ativo[0];
+            document.getElementById('assinarSignNome').textContent = parte.pessoa_nome || '—';
+            document.getElementById('assinarSignEmail').textContent = parte.pessoa_email || '—';
+            if (!parte.pessoa_email) {
+                const aviso = document.getElementById('assinarSignAviso');
+                aviso.textContent = 'O signatário não possui e-mail cadastrado. Cadastre o e-mail antes de enviar.';
+                aviso.style.display = 'block';
+            }
+        }
+    } catch (err) {
+        document.getElementById('assinarSignNome').textContent = '—';
+        document.getElementById('assinarSignEmail').textContent = '—';
+    }
+}
+
+async function enviarAssinatura() {
+    if (!assinarDocIdAtual) return;
+
+    const mensagem = document.getElementById('assinarMensagem').value.trim() || null;
+    const deadline = document.getElementById('assinarDeadline').value || null;
+
+    const btn = document.getElementById('btnEnviarAssinatura');
+    btn.disabled = true;
+    btn.textContent = 'Enviando…';
+
+    try {
+        const res = await fetch(`/api/documentos/${assinarDocIdAtual}/assinar`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ mensagem, deadline })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            alert(data.erro || 'Erro ao enviar para assinatura.');
+            return;
+        }
+        fecharModal('modalAssinar');
+        alert('Documento enviado para assinatura! O signatário receberá um e-mail com o link para assinar.');
+        carregarDocumentos();
+    } catch (err) {
+        alert('Erro ao enviar para assinatura.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🔏 Enviar para Assinatura';
     }
 }
 

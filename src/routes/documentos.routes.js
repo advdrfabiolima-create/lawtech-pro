@@ -108,10 +108,18 @@ async function listarDocumentos(req, res) {
                    (SELECT COUNT(*) FROM documentos v
                     WHERE v.id = COALESCE(d.documento_pai_id, d.id)
                        OR v.documento_pai_id = COALESCE(d.documento_pai_id, d.id)
-                   ) AS total_versoes
+                   ) AS total_versoes,
+                   a.assinatura_id,
+                   a.assinatura_status
             FROM documentos d
             LEFT JOIN processos  p ON p.id = d.processo_id
             LEFT JOIN usuarios   u ON u.id = d.usuario_id
+            LEFT JOIN (
+                SELECT DISTINCT ON (documento_id) documento_id, id AS assinatura_id, status AS assinatura_status
+                FROM assinaturas_digitais
+                WHERE status NOT IN ('cancelado', 'erro')
+                ORDER BY documento_id, criado_em DESC
+            ) a ON a.documento_id = d.id
             WHERE d.escritorio_id = $1
               AND NOT EXISTS (
                   SELECT 1 FROM documentos newer
