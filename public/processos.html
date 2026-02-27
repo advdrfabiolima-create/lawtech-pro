@@ -2887,7 +2887,7 @@ let gerenciadorPartesEdicao = null;
         document.getElementById('parteNome').value = option.dataset.nome;
     }
 
-    function adicionarParte() {
+    async function adicionarParte() {
         const nome = document.getElementById('parteNome').value.trim();
         const tipo = document.getElementById('parteTipo').value;
         const clienteId = document.getElementById('clienteSelect').value;
