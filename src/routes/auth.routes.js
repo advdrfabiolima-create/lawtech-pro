@@ -7,7 +7,7 @@ const pool = require('../config/db');
 const { validarSenha, validarDocumento } = require('../utils/validators');
 const { registrarAudit, dadosReq } = require('../utils/auditLog');
 const axios = require('axios');
-const { totp } = require('otplib');
+const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
 const { encrypt, decrypt } = require('../utils/crypto');
 const authMiddleware = require('../middlewares/authMiddleware');
@@ -1145,7 +1145,8 @@ router.post('/pagar-trial-cartao', async (req, res) => {
 ===================================================== */
 router.get('/2fa/configurar', authMiddleware, async (req, res) => {
     try {
-        const secret = totp.generateSecret();
+        const secretObj = speakeasy.generateSecret({ name: `LawTechPro:${req.user.email}` });
+        const secret = secretObj.base32;
         const encryptedSecret = encrypt(secret);
 
         await pool.query(
@@ -1154,7 +1155,7 @@ router.get('/2fa/configurar', authMiddleware, async (req, res) => {
         );
 
         const email = req.user.email;
-        const otpauthUrl = `otpauth://totp/LawTechPro:${encodeURIComponent(email)}?secret=${secret}&issuer=LawTechPro`;
+        const otpauthUrl = speakeasy.otpauthURL({ secret, label: email, issuer: 'LawTechPro', encoding: 'base32' });
         const qrcode = await QRCode.toDataURL(otpauthUrl);
 
         res.json({ qrcode, secret, email });
@@ -1183,8 +1184,7 @@ router.post('/2fa/ativar', authMiddleware, async (req, res) => {
         if (!encryptedSecret) return res.status(400).json({ error: 'Configure o 2FA primeiro' });
 
         const secret = decrypt(encryptedSecret);
-        totp.options = { window: 1 };
-        const valido = totp.check(codigo, secret);
+        const valido = speakeasy.totp.verify({ secret, encoding: 'base32', token: codigo, window: 1 });
         if (!valido) return res.status(400).json({ error: 'Código inválido' });
 
         // Gerar 8 backup codes
@@ -1302,9 +1302,7 @@ router.post('/2fa/verificar', limiter2FA, async (req, res) => {
 
         const usuario = result.rows[0];
         const secret = decrypt(usuario.totp_secret);
-
-        totp.options = { window: 1 };
-        const valido = totp.check(codigo, secret);
+        const valido = speakeasy.totp.verify({ secret, encoding: 'base32', token: codigo, window: 1 });
         if (!valido) return res.status(401).json({ error: 'Código inválido. Tente novamente.' });
 
         const token = jwtSign({
