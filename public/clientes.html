@@ -1805,12 +1805,32 @@
                 data_nascimento: document.getElementById('cliDataNascimento').value || null
             };
 
+            // Verificar conflito de interesses apenas em novos cadastros
+            if (!editId && (dados.nome || dados.documento)) {
+                try {
+                    const resConflito = await fetch('/api/processos/verificar-conflito', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ nome: dados.nome, documento: dados.documento, polo_verificar: 'ativo' })
+                    });
+                    const conflitoData = await resConflito.json();
+                    if (conflitoData.conflito) {
+                        const processos = conflitoData.processos;
+                        const lista = processos.map(p => `• Proc. ${p.numero || 'S/N'}${p.esfera ? ` (${p.esfera})` : ''}`).join('\n');
+                        const prosseguir = confirm(
+                            `⚠️ POSSÍVEL CONFLITO DE INTERESSES\n\n"${dados.nome}" aparece como parte contrária (polo passivo) em:\n\n${lista}\n\nO Art. 20 do CED/OAB veda a representação de interesses conflitantes.\n\nDeseja cadastrar mesmo assim?`
+                        );
+                        if (!prosseguir) return;
+                    }
+                } catch (_) { /* não bloquear em caso de erro de rede */ }
+            }
+
             try {
                 const res = await fetch(url, {
                     method: metodo,
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        'Authorization': `Bearer ${token}` 
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify(dados)
                 });

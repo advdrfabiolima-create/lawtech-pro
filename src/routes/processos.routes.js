@@ -583,4 +583,78 @@ router.get('/por-cliente/:clienteId', authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * VERIFICAR CONFLITO DE INTERESSES
+ * POST /api/processos/verificar-conflito
+ *
+ * Verifica nos dois sentidos:
+ *  - "polo_verificar: passivo" → a pessoa que vai entrar como réu já é cliente ativo em outro processo?
+ *  - "polo_verificar: ativo"  → a pessoa que vai virar cliente já é parte adversa em algum processo ativo?
+ */
+router.post('/verificar-conflito', authMiddleware, async (req, res) => {
+    try {
+        const { nome, documento, polo_verificar = 'passivo' } = req.body;
+        const escritorioId = req.user.escritorio_id;
+
+        if (!nome && !documento) {
+            return res.status(400).json({ erro: 'Informe nome ou documento' });
+        }
+
+        // polo que queremos encontrar nos processos existentes
+        const poloExistente = polo_verificar === 'passivo' ? 'ativo' : 'passivo';
+
+        const result = await pool.query(
+            `SELECT DISTINCT
+                p.id,
+                p.numero,
+                p.status,
+                p.esfera,
+                pp_match.pessoa_nome  AS nome_encontrado,
+                pp_match.polo         AS polo_encontrado,
+                -- cliente principal do processo
+                (SELECT pessoa_nome FROM partes_processo
+                 WHERE processo_id = p.id AND polo = 'ativo' AND eh_principal = TRUE LIMIT 1
+                ) AS cliente_processo
+             FROM partes_processo pp_match
+             JOIN processos p ON p.id = pp_match.processo_id
+             WHERE p.escritorio_id = $1
+               AND p.status NOT IN ('encerrado', 'excluido', 'arquivado')
+               AND pp_match.polo = $2
+               AND (
+                   ($3::text IS NOT NULL AND pp_match.pessoa_nome ILIKE $3)
+                   OR
+                   ($4::text IS NOT NULL AND pp_match.pessoa_id IN (
+                       SELECT id FROM clientes
+                       WHERE documento = $4 AND escritorio_id = $1
+                   ))
+               )
+             ORDER BY p.id DESC
+             LIMIT 5`,
+            [
+                escritorioId,
+                poloExistente,
+                nome   ? `%${nome.trim()}%` : null,
+                documento ? documento.replace(/\D/g, '') || null : null
+            ]
+        );
+
+        const conflitos = result.rows;
+        res.json({
+            conflito: conflitos.length > 0,
+            processos: conflitos.map(c => ({
+                id:              c.id,
+                numero:          c.numero,
+                status:          c.status,
+                esfera:          c.esfera,
+                nome_encontrado: c.nome_encontrado,
+                cliente:         c.cliente_processo
+            }))
+        });
+
+    } catch (err) {
+        console.error('❌ [CONFLITO] Erro:', err.message);
+        res.status(500).json({ erro: 'Erro ao verificar conflito de interesses' });
+    }
+});
+
 module.exports = router;
