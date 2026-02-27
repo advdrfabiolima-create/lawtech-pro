@@ -13,6 +13,10 @@ const authMiddleware = async (req, res, next) => {
   try {
     const decoded = jwtVerify(token);
 
+    if (decoded.scope === '2fa') {
+      return res.status(401).json({ error: 'Token temporário. Complete a verificação 2FA.' });
+    }
+
     const result = await pool.query(
       `SELECT u.id, u.nome, u.email, u.role, u.escritorio_id, u.is_master,
               e.plano_financeiro_status, e.plano_id, e.trial_expira_em

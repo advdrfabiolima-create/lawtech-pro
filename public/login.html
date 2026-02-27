@@ -408,6 +408,143 @@
                 gap: 12px;
             }
         }
+
+        /* 2FA STEP */
+        #step2fa {
+            display: none;
+        }
+
+        .twofa-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .twofa-icon svg {
+            width: 32px;
+            height: 32px;
+            stroke: var(--primary);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .twofa-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .twofa-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .twofa-header p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .totp-input {
+            width: 100%;
+            padding: 18px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 12px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            transition: all 0.2s ease;
+            color: var(--text-dark);
+            margin-bottom: 24px;
+        }
+
+        .totp-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
+        }
+
+        .totp-input.shake {
+            animation: shake 0.4s ease;
+            border-color: var(--error);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-6px); }
+            80% { transform: translateX(6px); }
+        }
+
+        .twofa-links {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .twofa-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            font-family: inherit;
+            transition: color 0.2s;
+        }
+
+        .twofa-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        .twofa-error {
+            display: none;
+            color: var(--error);
+            font-size: 13px;
+            text-align: center;
+            margin-top: -16px;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        /* Backup code mode */
+        #backupCodeSection {
+            display: none;
+        }
+
+        .backup-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            letter-spacing: 3px;
+            transition: all 0.2s ease;
+            color: var(--text-dark);
+            margin-bottom: 24px;
+        }
+
+        .backup-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -526,8 +663,57 @@
                     <a href="/privacidade" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 600;">Política de Privacidade</a>.
                 </div>
             </div>
+
+            <!-- PASSO 2: Verificação 2FA -->
+            <div id="step2fa" style="width:100%;max-width:440px;">
+        <div class="twofa-header">
+            <div class="twofa-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <h2>Verificação em Dois Fatores</h2>
+            <p>Abra seu app autenticador e digite o código de 6 dígitos</p>
+        </div>
+
+        <!-- TOTP code section -->
+        <div id="totpSection">
+            <input
+                type="text"
+                id="totpCodigo"
+                class="totp-input"
+                inputmode="numeric"
+                maxlength="6"
+                autocomplete="one-time-code"
+                placeholder="000000"
+                oninput="this.value=this.value.replace(/\D/g,'')"
+            >
+            <p id="totpError" class="twofa-error"></p>
+            <button class="btn-primary" id="btnVerificar2fa" onclick="verificar2FA()">Verificar</button>
+        </div>
+
+        <!-- Backup code section -->
+        <div id="backupCodeSection">
+            <p style="color:var(--text-muted);font-size:14px;text-align:center;margin-bottom:16px;">
+                Digite um dos seus códigos de backup
+            </p>
+            <input
+                type="text"
+                id="backupCodigo"
+                class="backup-input"
+                placeholder="xxxxxxxxxx"
+                maxlength="10"
+                autocomplete="off"
+            >
+            <p id="backupError" class="twofa-error"></p>
+            <button class="btn-primary" id="btnUsarBackup" onclick="usarBackup2FA()">Usar Código de Backup</button>
+        </div>
+
+        <div class="twofa-links">
+            <button class="twofa-link" id="linkUsarBackup" onclick="alternarModo2FA()">Usar código de backup</button>
+            <button class="twofa-link" onclick="voltarLogin()">← Voltar ao login</button>
+        </div>
+            </div><!-- /#step2fa -->
         </main>
-    </div>
+    </div><!-- /.container -->
 
     <!-- MODAL: Trial Expirado — multi-step -->
     <div id="modalTrialExpirado" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:16px;">
@@ -661,6 +847,7 @@
         let trialPlanInfo = { nome: 'Básico', valor: 97 };
         let pixPollingInterval = null;
         let pixCobrancaId = null;
+        let modoBackup2FA = false;
 
         /* ── Helpers de navegação ── */
         function mostrarModalTrialExpirado() {
@@ -893,6 +1080,16 @@
                 const data = await res.json();
 
                 if (res.ok) {
+                    if (data.requer_2fa) {
+                        window._tempToken = data.temp_token;
+                        document.querySelector('.login-container').style.display = 'none';
+                        document.getElementById('step2fa').style.display = 'flex';
+                        document.getElementById('step2fa').style.flexDirection = 'column';
+                        document.getElementById('totpCodigo').focus();
+                        btn.innerText = 'Entrar no sistema';
+                        btn.disabled  = false;
+                        return;
+                    }
                     localStorage.setItem('token',   data.token);
                     localStorage.setItem('usuario', JSON.stringify(data.usuario));
                     window.location.href = '/dashboard-modern.html';
@@ -924,6 +1121,134 @@
                 btn.disabled  = false;
             }
         }
+        /* ── Funções 2FA ── */
+        function voltarLogin() {
+            window._tempToken = null;
+            modoBackup2FA = false;
+            document.getElementById('step2fa').style.display = 'none';
+            document.querySelector('.login-container').style.display = 'block';
+            document.getElementById('totpCodigo').value = '';
+            document.getElementById('backupCodigo').value = '';
+            document.getElementById('totpError').style.display = 'none';
+            document.getElementById('backupError').style.display = 'none';
+            document.getElementById('totpSection').style.display = 'block';
+            document.getElementById('backupCodeSection').style.display = 'none';
+            document.getElementById('linkUsarBackup').textContent = 'Usar código de backup';
+        }
+
+        function alternarModo2FA() {
+            modoBackup2FA = !modoBackup2FA;
+            document.getElementById('totpSection').style.display    = modoBackup2FA ? 'none'  : 'block';
+            document.getElementById('backupCodeSection').style.display = modoBackup2FA ? 'block' : 'none';
+            document.getElementById('linkUsarBackup').textContent   = modoBackup2FA ? 'Usar código do app' : 'Usar código de backup';
+            document.getElementById('totpError').style.display   = 'none';
+            document.getElementById('backupError').style.display = 'none';
+            if (modoBackup2FA) document.getElementById('backupCodigo').focus();
+            else document.getElementById('totpCodigo').focus();
+        }
+
+        function mostrarErro2FA(campo, msg) {
+            const el = document.getElementById(campo);
+            el.textContent = msg;
+            el.style.display = 'block';
+            const input = campo === 'totpError'
+                ? document.getElementById('totpCodigo')
+                : document.getElementById('backupCodigo');
+            input.classList.add('shake');
+            setTimeout(() => input.classList.remove('shake'), 500);
+        }
+
+        function finalizarLogin2FA(data) {
+            localStorage.setItem('token',   data.token);
+            localStorage.setItem('usuario', JSON.stringify(data.usuario));
+            window.location.href = '/dashboard-modern.html';
+        }
+
+        async function verificar2FA() {
+            const codigo = document.getElementById('totpCodigo').value.trim();
+            const btn    = document.getElementById('btnVerificar2fa');
+            document.getElementById('totpError').style.display = 'none';
+
+            if (codigo.length !== 6) {
+                mostrarErro2FA('totpError', 'Digite os 6 dígitos do código');
+                return;
+            }
+
+            btn.textContent = 'Verificando...';
+            btn.disabled    = true;
+
+            try {
+                const res  = await fetch('/api/auth/2fa/verificar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ temp_token: window._tempToken, codigo })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    finalizarLogin2FA(data);
+                    return;
+                }
+
+                mostrarErro2FA('totpError', data.error || 'Código inválido. Tente novamente.');
+                document.getElementById('totpCodigo').value = '';
+            } catch (_) {
+                mostrarErro2FA('totpError', 'Erro de conexão. Tente novamente.');
+            } finally {
+                btn.textContent = 'Verificar';
+                btn.disabled    = false;
+            }
+        }
+
+        async function usarBackup2FA() {
+            const codigo = document.getElementById('backupCodigo').value.trim();
+            const btn    = document.getElementById('btnUsarBackup');
+            document.getElementById('backupError').style.display = 'none';
+
+            if (!codigo) {
+                mostrarErro2FA('backupError', 'Digite o código de backup');
+                return;
+            }
+
+            btn.textContent = 'Verificando...';
+            btn.disabled    = true;
+
+            try {
+                const res  = await fetch('/api/auth/2fa/usar-backup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ temp_token: window._tempToken, codigo_backup: codigo })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    finalizarLogin2FA(data);
+                    return;
+                }
+
+                mostrarErro2FA('backupError', data.error || 'Código de backup inválido.');
+                document.getElementById('backupCodigo').value = '';
+            } catch (_) {
+                mostrarErro2FA('backupError', 'Erro de conexão. Tente novamente.');
+            } finally {
+                btn.textContent = 'Usar Código de Backup';
+                btn.disabled    = false;
+            }
+        }
+
+        // Submit com Enter no campo TOTP
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('totpCodigo').addEventListener('keydown', e => {
+                if (e.key === 'Enter') verificar2FA();
+            });
+            document.getElementById('backupCodigo').addEventListener('keydown', e => {
+                if (e.key === 'Enter') usarBackup2FA();
+            });
+            // Auto-submit quando 6 dígitos preenchidos
+            document.getElementById('totpCodigo').addEventListener('input', e => {
+                if (e.target.value.length === 6) verificar2FA();
+            });
+        });
     </script>
 </body>
 </html>

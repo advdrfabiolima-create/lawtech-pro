@@ -741,6 +741,126 @@ input, textarea, select {
     </div>
    
 
+    <!-- Autenticação de Dois Fatores (2FA) -->
+    <div class="card" id="card-2fa">
+        <div class="card-title">
+            <i data-lucide="shield"></i> Autenticação de Dois Fatores (2FA)
+        </div>
+
+        <div id="twofa-desativado" style="display:none;">
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                <div style="flex:1;">
+                    <p style="font-size:14px;color:var(--text-secondary);margin:0 0 8px;">
+                        Adicione uma camada extra de segurança à sua conta com TOTP (Google Authenticator, Authy, etc.).
+                    </p>
+                    <span style="display:inline-block;padding:3px 10px;background:#fef3c7;color:#92400e;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;">DESATIVADO</span>
+                </div>
+                <button onclick="iniciarAtivacao2FA()" style="padding:10px 20px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;">
+                    Ativar 2FA
+                </button>
+            </div>
+        </div>
+
+        <div id="twofa-ativado" style="display:none;">
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                <div style="flex:1;">
+                    <p style="font-size:14px;color:var(--text-secondary);margin:0 0 8px;">
+                        Sua conta está protegida com autenticação de dois fatores.
+                    </p>
+                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                        <span style="display:inline-block;padding:3px 10px;background:#d1fae5;color:#065f46;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;">ATIVO</span>
+                        <span id="twofa-ativado-em" style="font-size:12px;color:var(--muted);"></span>
+                    </div>
+                </div>
+                <button onclick="abrirModalDesativar2FA()" style="padding:10px 20px;background:#fef2f2;color:#991b1b;border:2px solid #fecaca;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;">
+                    Desativar
+                </button>
+            </div>
+        </div>
+
+        <div id="twofa-loading" style="color:var(--muted);font-size:14px;">Carregando...</div>
+    </div>
+
+    <!-- MODAL: Ativar 2FA (3 etapas) -->
+    <div id="modal2faAtivar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+        <!-- Etapa 1: QR Code -->
+        <div id="modal2faStep1" style="background:#fff;border-radius:16px;padding:36px 32px;max-width:460px;width:100%;box-shadow:0 25px 50px rgba(0,0,0,0.25);text-align:center;position:relative;">
+            <button onclick="fecharModal2faAtivar()" style="position:absolute;top:14px;right:18px;background:none;border:none;cursor:pointer;color:#94a3b8;font-size:22px;line-height:1;">✕</button>
+            <div style="width:56px;height:56px;background:#dbeafe;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;">🔐</div>
+            <h3 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 8px;">Configurar 2FA</h3>
+            <p style="font-size:14px;color:#64748b;margin:0 0 20px;line-height:1.6;">
+                Escaneie o QR code com seu app autenticador<br>(Google Authenticator, Authy, Microsoft Authenticator)
+            </p>
+            <div id="twofaQrLoading" style="padding:40px 0;color:#64748b;font-size:14px;">Gerando QR code...</div>
+            <div id="twofaQrContent" style="display:none;">
+                <img id="twofaQrImg" src="" alt="QR Code 2FA" style="width:200px;height:200px;border:2px solid #e2e8f0;border-radius:12px;margin-bottom:16px;">
+                <p style="font-size:12px;color:#64748b;margin:0 0 6px;">Ou insira manualmente:</p>
+                <code id="twofaSecret" style="display:block;background:#f1f5f9;padding:8px 12px;border-radius:6px;font-size:13px;letter-spacing:2px;word-break:break-all;margin-bottom:20px;"></code>
+                <button onclick="avancarParaEtapa2()" style="width:100%;padding:13px;background:#1e3a8a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">
+                    Já escaneei → Continuar
+                </button>
+            </div>
+        </div>
+
+        <!-- Etapa 2: Verificar código -->
+        <div id="modal2faStep2" style="display:none;background:#fff;border-radius:16px;padding:36px 32px;max-width:420px;width:100%;box-shadow:0 25px 50px rgba(0,0,0,0.25);text-align:center;position:relative;">
+            <button onclick="fecharModal2faAtivar()" style="position:absolute;top:14px;right:18px;background:none;border:none;cursor:pointer;color:#94a3b8;font-size:22px;line-height:1;">✕</button>
+            <button onclick="voltarEtapa1()" style="position:absolute;top:16px;left:18px;background:none;border:none;cursor:pointer;color:#64748b;font-size:14px;font-weight:600;">← Voltar</button>
+            <div style="width:56px;height:56px;background:#dbeafe;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;">🔢</div>
+            <h3 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 8px;">Confirmar Código</h3>
+            <p style="font-size:14px;color:#64748b;margin:0 0 24px;">Digite o código de 6 dígitos do seu app para confirmar a ativação</p>
+            <input type="text" id="twofaCodigoAtivacao" inputmode="numeric" maxlength="6"
+                style="width:100%;padding:16px;border:2px solid #e2e8f0;border-radius:10px;font-size:28px;font-weight:700;letter-spacing:12px;text-align:center;font-family:monospace;margin-bottom:8px;"
+                placeholder="000000" oninput="this.value=this.value.replace(/\D/g,'')">
+            <p id="twofaErroAtivacao" style="display:none;color:#dc2626;font-size:13px;font-weight:500;margin:0 0 16px;">Código inválido. Tente novamente.</p>
+            <p style="margin-bottom:20px;"></p>
+            <button onclick="confirmarAtivacao2FA()" id="btnConfirmarAtivacao" style="width:100%;padding:13px;background:#059669;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">
+                Confirmar e Ativar
+            </button>
+        </div>
+
+        <!-- Etapa 3: Backup codes -->
+        <div id="modal2faStep3" style="display:none;background:#fff;border-radius:16px;padding:36px 32px;max-width:480px;width:100%;box-shadow:0 25px 50px rgba(0,0,0,0.25);position:relative;max-height:90vh;overflow-y:auto;">
+            <div style="text-align:center;margin-bottom:20px;">
+                <div style="width:56px;height:56px;background:#d1fae5;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;">✅</div>
+                <h3 style="font-size:20px;font-weight:700;color:#059669;margin:0 0 8px;">2FA Ativado com Sucesso!</h3>
+                <p style="font-size:14px;color:#64748b;line-height:1.6;">
+                    Guarde os códigos de backup abaixo em um local seguro.<br>
+                    <strong style="color:#dc2626;">Cada código só pode ser usado uma vez.</strong>
+                </p>
+            </div>
+            <div id="backupCodesGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;"></div>
+            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#92400e;line-height:1.5;">
+                ⚠️ Esses códigos não serão mostrados novamente. Copie e guarde em local seguro.
+            </div>
+            <div style="display:flex;gap:10px;">
+                <button onclick="copiarBackupCodes()" style="flex:1;padding:11px;background:#f1f5f9;color:#334155;border:2px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;" id="btnCopiarBackup">
+                    Copiar todos
+                </button>
+                <button onclick="concluirAtivacao2FA()" style="flex:1;padding:11px;background:#1e3a8a;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">
+                    Concluído
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Desativar 2FA -->
+    <div id="modal2faDesativar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+        <div style="background:#fff;border-radius:16px;padding:36px 32px;max-width:420px;width:100%;box-shadow:0 25px 50px rgba(0,0,0,0.25);text-align:center;position:relative;">
+            <button onclick="fecharModal2faDesativar()" style="position:absolute;top:14px;right:18px;background:none;border:none;cursor:pointer;color:#94a3b8;font-size:22px;line-height:1;">✕</button>
+            <div style="width:56px;height:56px;background:#fee2e2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;">🔓</div>
+            <h3 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 8px;">Desativar 2FA</h3>
+            <p style="font-size:14px;color:#64748b;margin:0 0 24px;">Digite sua senha atual para confirmar a desativação do 2FA.</p>
+            <input type="password" id="senhaDesativar2fa" placeholder="Senha atual"
+                style="width:100%;padding:13px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:15px;margin-bottom:8px;text-align:left;">
+            <p id="erroDesativar2fa" style="display:none;color:#dc2626;font-size:13px;font-weight:500;margin:0 0 16px;"></p>
+            <p style="margin-bottom:20px;"></p>
+            <button onclick="confirmarDesativacao2FA()" id="btnDesativar2fa" style="width:100%;padding:13px;background:#dc2626;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">
+                Desativar 2FA
+            </button>
+        </div>
+    </div>
+
 <!-- INFORMAÇÃO SYNC -->
 <div class="info-box" style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0;">
     <h4 style="margin: 0 0 10px 0; color: #1976d2;">
@@ -1431,6 +1551,193 @@ async function carregarDataTrial() {
     console.log('✅ Verificação de trial - data já configurada por carregarInfoRodape()');
 }
 
+/* ===================================================
+   2FA — Gerenciamento
+=================================================== */
+let _twofaBackupCodes = [];
+
+async function carregarStatus2FA() {
+    try {
+        const res = await fetch('/api/auth/2fa/status', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        document.getElementById('twofa-loading').style.display = 'none';
+        if (data.ativo) {
+            document.getElementById('twofa-ativado').style.display = 'block';
+            if (data.ativado_em) {
+                const d = new Date(data.ativado_em);
+                document.getElementById('twofa-ativado-em').textContent =
+                    'Ativado em ' + d.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+            }
+        } else {
+            document.getElementById('twofa-desativado').style.display = 'block';
+        }
+    } catch (e) {
+        document.getElementById('twofa-loading').textContent = 'Erro ao carregar status 2FA.';
+    }
+}
+
+async function iniciarAtivacao2FA() {
+    document.getElementById('modal2faAtivar').style.display = 'flex';
+    document.getElementById('modal2faStep1').style.display = 'block';
+    document.getElementById('modal2faStep2').style.display = 'none';
+    document.getElementById('modal2faStep3').style.display = 'none';
+    document.getElementById('twofaQrLoading').style.display = 'block';
+    document.getElementById('twofaQrContent').style.display = 'none';
+
+    try {
+        const res = await fetch('/api/auth/2fa/configurar', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!res.ok) { alert(data.error || 'Erro ao gerar QR code'); fecharModal2faAtivar(); return; }
+        document.getElementById('twofaQrImg').src = data.qrcode;
+        document.getElementById('twofaSecret').textContent = data.secret;
+        document.getElementById('twofaQrLoading').style.display = 'none';
+        document.getElementById('twofaQrContent').style.display = 'block';
+    } catch (e) {
+        alert('Erro de conexão ao gerar QR code.');
+        fecharModal2faAtivar();
+    }
+}
+
+function fecharModal2faAtivar() {
+    document.getElementById('modal2faAtivar').style.display = 'none';
+    document.getElementById('twofaCodigoAtivacao').value = '';
+    document.getElementById('twofaErroAtivacao').style.display = 'none';
+}
+
+function avancarParaEtapa2() {
+    document.getElementById('modal2faStep1').style.display = 'none';
+    document.getElementById('modal2faStep2').style.display = 'block';
+    document.getElementById('twofaCodigoAtivacao').focus();
+}
+
+function voltarEtapa1() {
+    document.getElementById('modal2faStep2').style.display = 'none';
+    document.getElementById('modal2faStep1').style.display = 'block';
+}
+
+async function confirmarAtivacao2FA() {
+    const codigo = document.getElementById('twofaCodigoAtivacao').value.trim();
+    const btn    = document.getElementById('btnConfirmarAtivacao');
+    const erro   = document.getElementById('twofaErroAtivacao');
+    erro.style.display = 'none';
+
+    if (codigo.length !== 6) { erro.textContent = 'Digite os 6 dígitos do código.'; erro.style.display = 'block'; return; }
+
+    btn.textContent = 'Verificando...';
+    btn.disabled    = true;
+
+    try {
+        const res = await fetch('/api/auth/2fa/ativar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ codigo })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            erro.textContent = data.error || 'Código inválido. Tente novamente.';
+            erro.style.display = 'block';
+            document.getElementById('twofaCodigoAtivacao').value = '';
+            btn.textContent = 'Confirmar e Ativar';
+            btn.disabled    = false;
+            return;
+        }
+
+        _twofaBackupCodes = data.backup_codes;
+        const grid = document.getElementById('backupCodesGrid');
+        grid.innerHTML = _twofaBackupCodes.map(c =>
+            `<div style="background:#f1f5f9;padding:8px 12px;border-radius:6px;font-size:13px;font-family:monospace;text-align:center;letter-spacing:2px;">${c}</div>`
+        ).join('');
+
+        document.getElementById('modal2faStep2').style.display = 'none';
+        document.getElementById('modal2faStep3').style.display = 'block';
+
+    } catch (e) {
+        erro.textContent = 'Erro de conexão. Tente novamente.';
+        erro.style.display = 'block';
+        btn.textContent = 'Confirmar e Ativar';
+        btn.disabled    = false;
+    }
+}
+
+function copiarBackupCodes() {
+    const texto = _twofaBackupCodes.join('\n');
+    const btn   = document.getElementById('btnCopiarBackup');
+    navigator.clipboard.writeText(texto).then(() => {
+        btn.textContent = '✓ Copiado!';
+        setTimeout(() => { btn.textContent = 'Copiar todos'; }, 2000);
+    }).catch(() => {
+        btn.textContent = '✓ Copiado!';
+        setTimeout(() => { btn.textContent = 'Copiar todos'; }, 2000);
+    });
+}
+
+function concluirAtivacao2FA() {
+    fecharModal2faAtivar();
+    _twofaBackupCodes = [];
+    // Atualizar UI
+    document.getElementById('twofa-desativado').style.display = 'none';
+    document.getElementById('twofa-ativado').style.display = 'block';
+    const agora = new Date();
+    document.getElementById('twofa-ativado-em').textContent =
+        'Ativado em ' + agora.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+}
+
+function abrirModalDesativar2FA() {
+    document.getElementById('senhaDesativar2fa').value = '';
+    document.getElementById('erroDesativar2fa').style.display = 'none';
+    document.getElementById('modal2faDesativar').style.display = 'flex';
+    setTimeout(() => document.getElementById('senhaDesativar2fa').focus(), 100);
+}
+
+function fecharModal2faDesativar() {
+    document.getElementById('modal2faDesativar').style.display = 'none';
+}
+
+async function confirmarDesativacao2FA() {
+    const senha = document.getElementById('senhaDesativar2fa').value;
+    const btn   = document.getElementById('btnDesativar2fa');
+    const erro  = document.getElementById('erroDesativar2fa');
+    erro.style.display = 'none';
+
+    if (!senha) { erro.textContent = 'Digite sua senha atual.'; erro.style.display = 'block'; return; }
+
+    btn.textContent = 'Desativando...';
+    btn.disabled    = true;
+
+    try {
+        const res = await fetch('/api/auth/2fa/desativar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ senha })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            erro.textContent = data.error || 'Erro ao desativar 2FA.';
+            erro.style.display = 'block';
+            btn.textContent = 'Desativar 2FA';
+            btn.disabled    = false;
+            return;
+        }
+
+        fecharModal2faDesativar();
+        document.getElementById('twofa-ativado').style.display   = 'none';
+        document.getElementById('twofa-desativado').style.display = 'block';
+        document.getElementById('twofa-ativado-em').textContent  = '';
+
+    } catch (e) {
+        erro.textContent = 'Erro de conexão. Tente novamente.';
+        erro.style.display = 'block';
+        btn.textContent = 'Desativar 2FA';
+        btn.disabled    = false;
+    }
+}
+
 window.onload = () => {
     carregarBancos();
     carregarInfoRodape();
@@ -1438,6 +1745,7 @@ window.onload = () => {
     carregarEquipe();
     carregarChaveEscavador();
     carregarDataTrial(); // 🆕 NOVA LINHA
+    carregarStatus2FA();
 
     const elemento = document.getElementById('ID_DO_ELEMENTO');
     if (elemento) {

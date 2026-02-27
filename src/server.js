@@ -531,6 +531,13 @@ require('./cron/crmFollowup');
         await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS reset_token_expira TIMESTAMPTZ`);
         console.log("✅ [SISTEMA] Colunas de reset de senha verificadas.");
 
+        // 2FA (TOTP)
+        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS totp_secret TEXT`);
+        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS totp_ativo BOOLEAN DEFAULT false`);
+        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS totp_backup_codes TEXT`);
+        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS totp_ativado_em TIMESTAMPTZ`);
+        console.log('✅ [SISTEMA] Colunas 2FA verificadas.');
+
         // CRM Automation — colunas e tabelas
         await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS score INTEGER DEFAULT 0`);
         await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS ultima_movimentacao TIMESTAMP DEFAULT NOW()`);
