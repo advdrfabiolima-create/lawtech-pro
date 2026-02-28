@@ -104,7 +104,7 @@ router.get('/meus-processos', portalMiddleware, async (req, res) => {
 
     try {
         const result = await pool.query(
-            `SELECT DISTINCT p.id, p.numero, p.tribunal, p.esfera, p.instancia, p.status, p.uf, p.polo_cliente
+            `SELECT DISTINCT ON (p.id) p.id, p.numero, p.tribunal, p.esfera, p.instancia, p.status, p.uf
              FROM processos p
              JOIN partes_processo pp ON pp.processo_id = p.id
              WHERE pp.pessoa_id = $1
