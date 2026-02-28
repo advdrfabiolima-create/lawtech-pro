@@ -3921,8 +3921,9 @@ function obterTribunaisPorEsfera(esfera) {
             }
             container.innerHTML = lista.map(a => {
                 const meta = tipoMeta(a.tipo);
-                const dataFmt = a.data_andamento
-                    ? new Date(a.data_andamento + 'T12:00:00').toLocaleDateString('pt-BR')
+                const _dataStr = a.data_andamento ? String(a.data_andamento).slice(0, 10) : null;
+                const dataFmt = _dataStr
+                    ? new Date(_dataStr + 'T12:00:00').toLocaleDateString('pt-BR')
                     : '—';
                 const podeExcluir = (role === 'admin');
                 return `
