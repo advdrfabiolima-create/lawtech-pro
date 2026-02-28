@@ -313,7 +313,7 @@ router.put('/planos/reativar', authMiddleware, roleMiddleware('admin'), async (r
 // ============================================================
 // UPLOAD DE LOGO DO ESCRITÓRIO (POST /config/logo)
 // ============================================================
-router.post('/logo', authMiddleware, (req, res, next) => {
+router.post('/config/logo', authMiddleware, (req, res, next) => {
     logoUpload.single('logo')(req, res, (err) => {
         if (err) return res.status(400).json({ ok: false, erro: err.message });
         next();
@@ -337,7 +337,7 @@ router.post('/logo', authMiddleware, (req, res, next) => {
 // ============================================================
 // REMOVER LOGO DO ESCRITÓRIO (DELETE /config/logo)
 // ============================================================
-router.delete('/logo', authMiddleware, async (req, res) => {
+router.delete('/config/logo', authMiddleware, async (req, res) => {
     try {
         const result = await pool.query(
             'SELECT logo_arquivo FROM escritorios WHERE id = $1',
