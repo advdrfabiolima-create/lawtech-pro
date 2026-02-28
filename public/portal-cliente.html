@@ -255,16 +255,7 @@
             margin-bottom: 6px;
         }
 
-        /* Tipo colors */
-        .tipo-despacho    { background: rgba(59,130,246,0.15);  color: #3b82f6; }
-        .tipo-decisao     { background: rgba(99,102,241,0.15);  color: #818cf8; }
-        .tipo-sentenca    { background: rgba(168,85,247,0.15);  color: #a855f7; }
-        .tipo-acordao     { background: rgba(236,72,153,0.15);  color: #ec4899; }
-        .tipo-peticao     { background: rgba(20,184,166,0.15);  color: #14b8a6; }
-        .tipo-audiencia   { background: rgba(245,158,11,0.15);  color: #f59e0b; }
-        .tipo-recurso     { background: rgba(239,68,68,0.15);   color: #ef4444; }
-        .tipo-citacao     { background: rgba(34,197,94,0.15);   color: #22c55e; }
-        .tipo-outros      { background: rgba(148,163,184,0.15); color: #94a3b8; }
+        /* Tipo badge — styled via inline style in JS */
 
         .timeline-titulo {
             font-size: 14px;
@@ -429,17 +420,27 @@
 </footer>
 
 <script>
-    const TIPO_LABELS = {
-        despacho: 'Despacho',
-        decisao: 'Decisão',
-        sentenca: 'Sentença',
-        acordao: 'Acórdão',
-        peticao: 'Petição',
-        audiencia: 'Audiência',
-        recurso: 'Recurso',
-        citacao: 'Citação',
-        outros: 'Outros'
+    const TIPO_META = {
+        distribuicao: { label: 'Distribuição',      cor: '#0ea5e9' },
+        despacho:     { label: 'Despacho',          cor: '#64748b' },
+        decisao:      { label: 'Decisão',           cor: '#3b82f6' },
+        sentenca:     { label: 'Sentença',          cor: '#7c3aed' },
+        acordao:      { label: 'Acórdão',           cor: '#6366f1' },
+        peticao:      { label: 'Petição',           cor: '#16a34a' },
+        audiencia:    { label: 'Audiência',         cor: '#f97316' },
+        recurso:      { label: 'Recurso',           cor: '#ca8a04' },
+        citacao:      { label: 'Citação/Intimação', cor: '#0d9488' },
+        certidao:     { label: 'Certidão',          cor: '#a855f7' },
+        contestacao:  { label: 'Contestação',       cor: '#f43f5e' },
+        alvara:       { label: 'Alvará',            cor: '#10b981' },
+        arquivamento: { label: 'Arquivamento',      cor: '#78716c' },
+        outros:       { label: 'Outros',            cor: '#94a3b8' }
     };
+
+    function tipoMeta(tipo) {
+        if (!tipo) return TIPO_META.outros;
+        return TIPO_META[tipo] || { label: tipo, cor: '#94a3b8' };
+    }
 
     const STATUS_LABELS = {
         ativo: 'Ativo',
@@ -625,15 +626,19 @@
 
             const html = `
                 <div class="timeline">
-                    ${andamentos.map(a => `
+                    ${andamentos.map(a => {
+                        const meta = tipoMeta(a.tipo);
+                        const cor = meta.cor;
+                        const bg = cor + '22'; // ~13% opacity hex suffix
+                        return `
                         <div class="timeline-item">
-                            <div class="timeline-dot"></div>
+                            <div class="timeline-dot" style="background:${cor};"></div>
                             <div class="timeline-date">${formatarData(a.data_andamento)}</div>
-                            <span class="timeline-tipo tipo-${a.tipo || 'outros'}">${TIPO_LABELS[a.tipo] || 'Outros'}</span>
+                            <span class="timeline-tipo" style="background:${bg};color:${cor};">${meta.label}</span>
                             <div class="timeline-titulo">${escapeHtml(a.titulo)}</div>
                             ${a.descricao ? `<div class="timeline-descricao">${escapeHtml(a.descricao)}</div>` : ''}
-                        </div>
-                    `).join('')}
+                        </div>`;
+                    }).join('')}
                 </div>`;
 
             container.innerHTML = html;

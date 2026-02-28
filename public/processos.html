@@ -3790,6 +3790,10 @@ function obterTribunaisPorEsfera(esfera) {
                                 <option value="audiencia">Audiência</option>
                                 <option value="recurso">Recurso</option>
                                 <option value="citacao">Citação/Intimação</option>
+                                <option value="certidao">Certidão</option>
+                                <option value="contestacao">Contestação</option>
+                                <option value="alvara">Alvará</option>
+                                <option value="arquivamento">Arquivamento</option>
                                 <option value="outros">Outros</option>
                                 <option value="__custom__">Outro (digitar)...</option>
                             </select>
@@ -3832,16 +3836,20 @@ function obterTribunaisPorEsfera(esfera) {
     // ── Andamentos Processuais ───────────────────────────────────────────────────
     (function() {
         const TIPO_META = {
-            distribuicao:{ label: 'Distribuição',      cor: '#0ea5e9' },
-            despacho:    { label: 'Despacho',          cor: '#64748b' },
-            decisao:     { label: 'Decisão',           cor: '#3b82f6' },
-            sentenca:    { label: 'Sentença',          cor: '#7c3aed' },
-            acordao:     { label: 'Acórdão',           cor: '#6366f1' },
-            peticao:     { label: 'Petição',           cor: '#16a34a' },
-            audiencia:   { label: 'Audiência',         cor: '#f97316' },
-            recurso:     { label: 'Recurso',           cor: '#ca8a04' },
-            citacao:     { label: 'Citação/Intimação', cor: '#0d9488' },
-            outros:      { label: 'Outros',            cor: '#94a3b8' }
+            distribuicao: { label: 'Distribuição',      cor: '#0ea5e9' },
+            despacho:     { label: 'Despacho',          cor: '#64748b' },
+            decisao:      { label: 'Decisão',           cor: '#3b82f6' },
+            sentenca:     { label: 'Sentença',          cor: '#7c3aed' },
+            acordao:      { label: 'Acórdão',           cor: '#6366f1' },
+            peticao:      { label: 'Petição',           cor: '#16a34a' },
+            audiencia:    { label: 'Audiência',         cor: '#f97316' },
+            recurso:      { label: 'Recurso',           cor: '#ca8a04' },
+            citacao:      { label: 'Citação/Intimação', cor: '#0d9488' },
+            certidao:     { label: 'Certidão',          cor: '#a855f7' },
+            contestacao:  { label: 'Contestação',       cor: '#f43f5e' },
+            alvara:       { label: 'Alvará',            cor: '#10b981' },
+            arquivamento: { label: 'Arquivamento',      cor: '#78716c' },
+            outros:       { label: 'Outros',            cor: '#94a3b8' }
         };
         function tipoMeta(tipo) {
             if (!tipo) return TIPO_META.outros;
