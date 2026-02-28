@@ -255,20 +255,18 @@ router.get('/documentos/:id/assinatura', async (req, res) => {
 //                   cancel/canceled (cancelado), deadline (expirado)
 router.post('/clicksign', async (req, res) => {
     try {
-        // 1. Verificar assinatura HMAC (se CLICKSIGN_WEBHOOK_SECRET estiver configurado)
+        // 1. Verificar token do ClickSign (se CLICKSIGN_WEBHOOK_SECRET estiver configurado)
+        // O ClickSign envia o authenticity_token como plain text no header
+        // X-Clicksign-Hmac-SHA256 — NÃO é um HMAC, é comparação direta.
         const webhookSecret = process.env.CLICKSIGN_WEBHOOK_SECRET;
         if (webhookSecret) {
-            const signature = req.headers['x-clicksign-hmac-sha256'];
-            if (!signature) {
-                console.warn('[WEBHOOK/ClickSign] Requisição rejeitada: sem header HMAC');
+            const receivedToken = req.headers['x-clicksign-hmac-sha256'];
+            if (!receivedToken) {
+                console.warn('[WEBHOOK/ClickSign] Requisição rejeitada: sem header de autenticação');
                 return res.sendStatus(401);
             }
-            const expected = crypto
-                .createHmac('sha256', webhookSecret)
-                .update(req.rawBody || JSON.stringify(req.body))
-                .digest('hex');
-            if (signature !== expected) {
-                console.warn('[WEBHOOK/ClickSign] Requisição rejeitada: assinatura HMAC inválida');
+            if (receivedToken !== webhookSecret) {
+                console.warn('[WEBHOOK/ClickSign] Requisição rejeitada: token inválido');
                 return res.sendStatus(401);
             }
         }
@@ -299,7 +297,7 @@ router.post('/clicksign', async (req, res) => {
         }
         const ass = assRes.rows[0];
 
-        // 3. Evento "sign": alguém assinou (pode haver mais signatários pendentes)
+        // 3. Evento "sign": alguém assinou (pode ser o último — documento fecha automaticamente)
         if (eventName === 'sign') {
             const signerData = event.data?.signer;
             if (signerData?.key) {
@@ -309,14 +307,46 @@ router.post('/clicksign', async (req, res) => {
                         ? { ...s, assinado: true, assinado_em: signerData.signed_at || new Date().toISOString() }
                         : s
                 );
+
+                // Com auto_close:true e único signatário, o ClickSign envia "sign"
+                // com document.status="closed" — já é a conclusão definitiva.
+                const statusFinal = csStatus === 'closed' ? 'concluido' : 'em_assinatura';
+
                 await pool.query(`
                     UPDATE assinaturas_digitais
                     SET signatarios   = $1::jsonb,
-                        status        = 'em_assinatura',
-                        atualizado_em = NOW()
+                        status        = $3,
+                        atualizado_em = NOW(),
+                        concluido_em  = $4
                     WHERE id = $2 AND status NOT IN ('concluido', 'cancelado')
-                `, [JSON.stringify(signatariosAtualizados), ass.id]);
-                console.log(`[WEBHOOK/ClickSign] Signer ${signerData.key} (${signerData.email || '?'}) assinou — doc ${documentKey} em_assinatura`);
+                `, [
+                    JSON.stringify(signatariosAtualizados),
+                    ass.id,
+                    statusFinal,
+                    statusFinal === 'concluido' ? new Date() : ass.concluido_em
+                ]);
+
+                console.log(`[WEBHOOK/ClickSign] Signer ${signerData.key} (${signerData.email || '?'}) assinou — doc ${documentKey} → ${statusFinal}`);
+
+                // Notificação interna quando a assinatura for concluída via evento sign
+                if (statusFinal === 'concluido') {
+                    try {
+                        const docRes = await pool.query('SELECT nome FROM documentos WHERE id = $1', [ass.documento_id]);
+                        const nomeDoc = docRes.rows[0]?.nome || 'Documento';
+                        await pool.query(`
+                            INSERT INTO notificacoes
+                                (escritorio_id, usuario_id, prazo_id, tipo, titulo, mensagem)
+                            VALUES ($1, $2, NULL, 'inapp', $3, $4)
+                        `, [
+                            ass.escritorio_id,
+                            ass.usuario_id,
+                            '✅ Documento assinado com sucesso',
+                            `O documento "${nomeDoc}" foi assinado por todos os signatários.`
+                        ]);
+                    } catch (notifErr) {
+                        console.warn('[WEBHOOK/ClickSign] Falha ao criar notificação (sign+closed):', notifErr.message);
+                    }
+                }
             }
             return res.sendStatus(200);
         }
