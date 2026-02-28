@@ -647,8 +647,9 @@ input, textarea, select {
             </span>
         </div>
 
-        <div style="display: flex; gap: 15px; margin-top: 25px;">
-            <button class="btn-save" onclick="salvarDadosJuridicos()">Salvar Dados do Escritório</button>
+        <div style="display: flex; gap: 10px; margin-top: 25px; align-items: center; flex-wrap: wrap;">
+            <button id="btnSalvarEscritorio" class="btn-save" style="width:auto;padding:10px 24px;" onclick="salvarDadosJuridicos()">💾 Salvar Dados do Escritório</button>
+            <button id="btnEditarEscritorio" style="display:none;padding:10px 20px;background:#f1f5f9;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;" onclick="habilitarEdicaoEscritorio()">✏️ Editar</button>
         </div>
     </div>
 
@@ -1297,6 +1298,14 @@ async function carregarInfoRodape() {
                 if (el) el.value = campos[id] || '';
             });
 
+            // Restaurar tipo CPF/CNPJ pelo número de dígitos (sem limpar o campo)
+            const docDigits = (d.documento || '').replace(/\D/g, '').length;
+            const tipoDoc = docDigits === 14 ? 'CNPJ' : 'CPF';
+            const radioTipo = document.querySelector(`input[name="tipoDoc"][value="${tipoDoc}"]`);
+            if (radioTipo) radioTipo.checked = true;
+            const groupData = document.getElementById('groupDataNascimento');
+            if (groupData) groupData.style.display = tipoDoc === 'CPF' ? 'block' : 'none';
+
             if(d.renda_mensal && document.getElementById('confRendaMensal')) {
                 document.getElementById('confRendaMensal').value = 'R$ ' + parseFloat(d.renda_mensal).toLocaleString('pt-BR', {minimumFractionDigits: 2});
             }
@@ -1476,9 +1485,23 @@ async function carregarInfoRodape() {
                 body: JSON.stringify(dados)
             });
 
-            if (res.ok) alert("✅ Dados salvos com sucesso!");
-            else alert("❌ Erro ao salvar dados.");
+            if (res.ok) {
+                alert("✅ Dados salvos com sucesso!");
+                const btnSalvar = document.getElementById('btnSalvarEscritorio');
+                const btnEditar = document.getElementById('btnEditarEscritorio');
+                if (btnSalvar) { btnSalvar.disabled = true; btnSalvar.innerHTML = '✅ Dados Salvos'; }
+                if (btnEditar) btnEditar.style.display = 'inline-block';
+            } else {
+                alert("❌ Erro ao salvar dados.");
+            }
         } catch (e) { console.error(e); alert("Erro ao processar salvamento."); }
+    }
+
+    function habilitarEdicaoEscritorio() {
+        const btnSalvar = document.getElementById('btnSalvarEscritorio');
+        const btnEditar = document.getElementById('btnEditarEscritorio');
+        if (btnSalvar) { btnSalvar.disabled = false; btnSalvar.innerHTML = '💾 Salvar Dados do Escritório'; }
+        if (btnEditar) btnEditar.style.display = 'none';
     }
 
     async function salvarDadosBancarios() {
@@ -2095,6 +2118,29 @@ window.onload = () => {
     carregarBancos();
     carregarInfoRodape();
     ajustarMascaraDoc();
+
+    // Reabilitar botão salvar ao detectar qualquer alteração no card de dados do escritório
+    const cardEscritorio = document.getElementById('card-dados-escritorio');
+    if (cardEscritorio) {
+        cardEscritorio.addEventListener('input', () => {
+            const btnSalvar = document.getElementById('btnSalvarEscritorio');
+            const btnEditar = document.getElementById('btnEditarEscritorio');
+            if (btnSalvar && btnSalvar.disabled) {
+                btnSalvar.disabled = false;
+                btnSalvar.innerHTML = '💾 Salvar Dados do Escritório';
+                if (btnEditar) btnEditar.style.display = 'none';
+            }
+        });
+        cardEscritorio.addEventListener('change', () => {
+            const btnSalvar = document.getElementById('btnSalvarEscritorio');
+            const btnEditar = document.getElementById('btnEditarEscritorio');
+            if (btnSalvar && btnSalvar.disabled) {
+                btnSalvar.disabled = false;
+                btnSalvar.innerHTML = '💾 Salvar Dados do Escritório';
+                if (btnEditar) btnEditar.style.display = 'none';
+            }
+        });
+    }
     carregarEquipe();
     carregarChaveEscavador();
     carregarDataTrial(); // 🆕 NOVA LINHA
