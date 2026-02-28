@@ -4,6 +4,7 @@ const axios = require('axios');
 const { decrypt } = require('../utils/crypto');
 const { withRetry } = require('../utils/retry');
 const { tentarGatewayAlternativo } = require('../utils/gatewayFailover');
+const { enviarEmailCobrancaPix } = require('../services/emailService');
 
 const ASAAS_ENV = process.env.ASAAS_ENV || 'production';
 const ASAAS_BASE_URL = ASAAS_ENV === 'sandbox' 
@@ -18,10 +19,11 @@ const getAsaasHeaders = () => ({
 /* ✅ CORREÇÃO 1: Cobra NO DIA que expira (não 1 dia antes) */
 cron.schedule('0 6 * * *', async () => {
     console.log('\n🔔 [CRON TRIAL] Verificando cobranças...');
-    
+
     try {
-        const result = await pool.query(`
-            SELECT 
+        // ─── Escritórios com preferência CARTÃO que têm cartão salvo ───
+        const resultCartao = await pool.query(`
+            SELECT
                 e.id, e.nome, e.plano_id, e.trial_expira_em,
                 p.preco_mensal, p.nome as plano_nome,
                 u.email as email_responsavel,
@@ -34,24 +36,37 @@ cron.schedule('0 6 * * *', async () => {
             JOIN cartoes c ON c.escritorio_id = e.id
             WHERE e.plano_financeiro_status = 'trial'
             AND e.trial_expira_em = CURRENT_DATE
+            AND COALESCE(e.preferencia_pagamento, 'cartao') = 'cartao'
             AND COALESCE(u.is_master, false) = false
         `);
 
-        console.log(`📊 Encontrados: ${result.rowCount} escritório(s)`);
+        // ─── Escritórios com preferência PIX (sem necessidade de cartão) ───
+        const resultPix = await pool.query(`
+            SELECT
+                e.id, e.nome, e.plano_id, e.trial_expira_em, e.documento,
+                p.preco_mensal, p.nome as plano_nome,
+                u.email as email_responsavel
+            FROM escritorios e
+            JOIN planos p ON e.plano_id = p.id
+            JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
+            WHERE e.plano_financeiro_status = 'trial'
+            AND e.trial_expira_em = CURRENT_DATE
+            AND COALESCE(e.preferencia_pagamento, 'cartao') = 'pix'
+            AND COALESCE(u.is_master, false) = false
+        `);
 
-        if (result.rowCount === 0) {
-            console.log('✅ Nenhum trial para cobrar hoje\n');
-            return;
-        }
+        console.log(`📊 Cartão: ${resultCartao.rowCount} | PIX: ${resultPix.rowCount}`);
 
+        // ══════════════════════════════════════════
+        // FLUXO CARTÃO — cobrança automática
+        // ══════════════════════════════════════════
         let sucessos = 0, falhas = 0;
 
-        for (const esc of result.rows) {
+        for (const esc of resultCartao.rows) {
             try {
                 const valorCentavos = Math.round(parseFloat(esc.preco_mensal) * 100);
-                
-                console.log(`\n💳 Cobrando: ${esc.nome} - R$ ${esc.preco_mensal}`);
-                
+                console.log(`\n💳 [CARTÃO] Cobrando: ${esc.nome} - R$ ${esc.preco_mensal}`);
+
                 let cobranca = await processarCobrancaCartao({
                     escritorioId: esc.id,
                     valor: valorCentavos,
@@ -63,7 +78,6 @@ cron.schedule('0 6 * * *', async () => {
                     planoNome: esc.plano_nome
                 });
 
-                // Failover: se falhou por erro de rede, tenta gateway alternativo
                 if (!cobranca.sucesso && cobranca.erro) {
                     const alt = await tentarGatewayAlternativo({
                         escritorioId: esc.id,
@@ -87,8 +101,6 @@ cron.schedule('0 6 * * *', async () => {
                     const client = await pool.connect();
                     try {
                         await client.query('BEGIN');
-
-                        // Verificação de idempotência
                         const jaExiste = await client.query(
                             'SELECT id FROM transacoes WHERE gateway_id = $1',
                             [cobranca.transacaoId]
@@ -99,7 +111,6 @@ cron.schedule('0 6 * * *', async () => {
                             sucessos++;
                             continue;
                         }
-
                         await client.query(`
                             UPDATE escritorios
                             SET plano_financeiro_status = 'pago',
@@ -108,13 +119,11 @@ cron.schedule('0 6 * * *', async () => {
                                 trial_expira_em = NULL
                             WHERE id = $1
                         `, [esc.id]);
-
                         await client.query(`
                             INSERT INTO transacoes
                             (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
                             VALUES ($1, $2, $3, $4, 'aprovada', $5, NOW())
                         `, [esc.id, cobranca.transacaoId, esc.gateway, valorCentavos, `Primeira cobrança - ${esc.plano_nome}`]);
-
                         await client.query('COMMIT');
                         console.log(`✅ APROVADO! ID: ${cobranca.transacaoId}`);
                         sucessos++;
@@ -130,14 +139,101 @@ cron.schedule('0 6 * * *', async () => {
                     console.log(`❌ RECUSADO: ${cobranca.erro}`);
                     falhas++;
                 }
-
             } catch (err) {
-                console.error(`❌ Erro: ${err.message}`);
+                console.error(`❌ Erro cartão: ${err.message}`);
                 falhas++;
             }
         }
 
-        console.log(`\n📊 Resultado: ✅ ${sucessos} aprovados | ❌ ${falhas} falhas\n`);
+        // ══════════════════════════════════════════
+        // FLUXO PIX — gera QR e envia e-mail
+        // ══════════════════════════════════════════
+        const DIAS_PARA_SUSPENSAO = 3;
+
+        for (const esc of resultPix.rows) {
+            try {
+                console.log(`\n🔵 [PIX] Gerando cobrança: ${esc.nome}`);
+
+                if (!esc.documento) {
+                    console.warn(`⚠️ [PIX] ${esc.nome} sem CPF/CNPJ — pulando`);
+                    continue;
+                }
+
+                // Criar/buscar cliente ASAAS
+                const docLimpo = esc.documento.replace(/\D/g, '');
+                const buscaCliente = await axios.get(`${ASAAS_BASE_URL}/customers`, {
+                    headers: getAsaasHeaders(),
+                    params: { cpfCnpj: docLimpo }
+                });
+                let customerId;
+                if (buscaCliente.data.data && buscaCliente.data.data.length > 0) {
+                    customerId = buscaCliente.data.data[0].id;
+                } else {
+                    const novoCliente = await axios.post(`${ASAAS_BASE_URL}/customers`, {
+                        name: esc.nome,
+                        email: esc.email_responsavel,
+                        cpfCnpj: docLimpo,
+                        notificationDisabled: true
+                    }, { headers: getAsaasHeaders() });
+                    customerId = novoCliente.data.id;
+                }
+
+                // Data de vencimento = hoje + DIAS_PARA_SUSPENSAO
+                const vencimento = new Date();
+                vencimento.setDate(vencimento.getDate() + DIAS_PARA_SUSPENSAO);
+                const vencimentoStr = vencimento.toISOString().split('T')[0];
+
+                // Criar cobrança PIX
+                const pagRes = await axios.post(`${ASAAS_BASE_URL}/payments`, {
+                    customer: customerId,
+                    billingType: 'PIX',
+                    value: parseFloat(esc.preco_mensal),
+                    dueDate: vencimentoStr,
+                    description: `${esc.plano_nome} - LawTech Pro`,
+                    externalReference: String(esc.id)
+                }, { headers: getAsaasHeaders() });
+
+                const cobrancaId = pagRes.data.id;
+
+                // Buscar QR Code
+                const qrRes = await axios.get(
+                    `${ASAAS_BASE_URL}/payments/${cobrancaId}/pixQrCode`,
+                    { headers: getAsaasHeaders() }
+                );
+
+                // Enviar e-mail com QR Code
+                await enviarEmailCobrancaPix(esc.email_responsavel, {
+                    nomeEscritorio: esc.nome,
+                    planoNome: esc.plano_nome,
+                    valor: esc.preco_mensal,
+                    pixQrCodeBase64: qrRes.data.encodedImage,
+                    pixPayload: qrRes.data.payload,
+                    diasParaSuspensao: DIAS_PARA_SUSPENSAO
+                });
+
+                // Marca como inadimplente para deixar de renovar trial
+                // Conta continua acessível por DIAS_PARA_SUSPENSAO dias via verificação de cobrança
+                await pool.query(`
+                    UPDATE escritorios
+                    SET plano_financeiro_status = 'inadimplente',
+                        trial_expira_em = NULL
+                    WHERE id = $1
+                `, [esc.id]);
+
+                console.log(`✅ [PIX] Cobrança ${cobrancaId} gerada e e-mail enviado para ${esc.email_responsavel}`);
+                sucessos++;
+            } catch (err) {
+                console.error(`❌ Erro PIX ${esc.nome}: ${err.response?.data?.errors?.[0]?.description || err.message}`);
+                falhas++;
+            }
+        }
+
+        if (resultCartao.rowCount + resultPix.rowCount === 0) {
+            console.log('✅ Nenhum trial para processar hoje\n');
+            return;
+        }
+
+        console.log(`\n📊 Resultado: ✅ ${sucessos} processados | ❌ ${falhas} falhas\n`);
 
     } catch (err) {
         console.error('❌ [CRON] Erro:', err);

@@ -77,7 +77,7 @@ router.post('/documentos/:id/assinar', async (req, res) => {
     const escritorioId = req.user.escritorio_id;
     const usuarioId = req.user.id;
     const docId = parseInt(req.params.id);
-    const { mensagem, deadline } = req.body;
+    const { mensagem, deadline, signatarioNome, signatarioEmail } = req.body;
 
     try {
         // 0. Verificar acesso ao ClickSign (plano + addon + chave API)
@@ -89,19 +89,9 @@ router.post('/documentos/:id/assinar', async (req, res) => {
             WHERE e.id = $1
         `, [escritorioId]);
         const esc = escritorioRes.rows[0];
-        const planoSlug = esc?.plano_slug || 'basico';
-        const planosGratis = ['intermediario', 'avancado', 'premium'];
-        const acesso = planosGratis.includes(planoSlug) || esc?.clicksign_addon_ativo;
 
         if (!esc?.clicksign_api_key) {
             return res.status(403).json({ erro: 'clicksign_key_ausente' });
-        }
-        if (!acesso) {
-            return res.status(403).json({ erro: 'addon_inativo' });
-        }
-        // Quota só se aplica ao plano básico
-        if (planoSlug === 'basico' && esc.clicksign_addon_usado >= esc.clicksign_addon_limite) {
-            return res.status(403).json({ erro: 'addon_limite' });
         }
 
         const clicksignApiKey = esc.clicksign_api_key;
@@ -121,12 +111,7 @@ router.post('/documentos/:id/assinar', async (req, res) => {
             return res.status(400).json({ erro: 'Apenas documentos PDF podem ser enviados para assinatura digital' });
         }
 
-        // 3. Deve ter processo vinculado
-        if (!doc.processo_id) {
-            return res.status(400).json({ erro: 'O documento deve estar vinculado a um processo para ser enviado para assinatura' });
-        }
-
-        // 4. Verificar assinatura ativa (não cancelada, não com erro, não concluída)
+        // 3. Verificar assinatura ativa (não cancelada, não com erro, não concluída)
         const assAtiva = await pool.query(
             `SELECT id FROM assinaturas_digitais
              WHERE documento_id = $1 AND status NOT IN ('cancelado', 'erro', 'concluido')`,
@@ -136,22 +121,40 @@ router.post('/documentos/:id/assinar', async (req, res) => {
             return res.status(400).json({ erro: 'Já existe uma assinatura ativa para este documento. Cancele-a antes de iniciar uma nova.' });
         }
 
-        // 5. Buscar signatário — polo ativo principal (ou primeiro do polo ativo)
-        const parteRes = await pool.query(
-            `SELECT pp.pessoa_nome, c.email AS pessoa_email
-             FROM partes_processo pp
-             LEFT JOIN clientes c ON pp.pessoa_id = c.id
-             WHERE pp.processo_id = $1 AND pp.polo = 'ativo'
-             ORDER BY pp.eh_principal DESC, pp.id ASC
-             LIMIT 1`,
-            [doc.processo_id]
-        );
-        if (parteRes.rows.length === 0) {
-            return res.status(400).json({ erro: 'Nenhuma parte no polo ativo encontrada para este processo' });
-        }
-        const parte = parteRes.rows[0];
-        if (!parte.pessoa_email) {
-            return res.status(400).json({ erro: 'O signatário (polo ativo) não possui e-mail cadastrado no sistema' });
+        // 4. Resolver signatário — processo vinculado OU informado manualmente
+        let parteNome, parteEmail;
+
+        if (doc.processo_id) {
+            // Busca polo ativo do processo
+            const parteRes = await pool.query(
+                `SELECT pp.pessoa_nome, c.email AS pessoa_email
+                 FROM partes_processo pp
+                 LEFT JOIN clientes c ON pp.pessoa_id = c.id
+                 WHERE pp.processo_id = $1 AND pp.polo = 'ativo'
+                 ORDER BY pp.eh_principal DESC, pp.id ASC
+                 LIMIT 1`,
+                [doc.processo_id]
+            );
+            if (parteRes.rows.length === 0) {
+                return res.status(400).json({ erro: 'Nenhuma parte no polo ativo encontrada para este processo' });
+            }
+            const parte = parteRes.rows[0];
+            if (!parte.pessoa_email) {
+                return res.status(400).json({ erro: 'O signatário (polo ativo) não possui e-mail cadastrado no sistema' });
+            }
+            parteNome  = parte.pessoa_nome;
+            parteEmail = parte.pessoa_email;
+        } else {
+            // Documento sem processo — signatário informado manualmente
+            if (!signatarioEmail || !signatarioNome) {
+                return res.status(400).json({ erro: 'Informe o nome e e-mail do signatário para documentos sem processo vinculado' });
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(signatarioEmail)) {
+                return res.status(400).json({ erro: 'E-mail do signatário inválido' });
+            }
+            parteNome  = signatarioNome.trim();
+            parteEmail = signatarioEmail.trim().toLowerCase();
         }
 
         // 6. Verificar arquivo físico
@@ -171,8 +174,8 @@ router.post('/documentos/:id/assinar', async (req, res) => {
         );
         console.log('[ClickSign] Etapa 1 OK — document_key:', documentKey);
 
-        console.log('[ClickSign] Etapa 2: criar signatário:', parte.pessoa_email);
-        const signerKey = await clicksignService.criarSignatario(parte.pessoa_email, parte.pessoa_nome, clicksignApiKey);
+        console.log('[ClickSign] Etapa 2: criar signatário:', parteEmail);
+        const signerKey = await clicksignService.criarSignatario(parteEmail, parteNome, clicksignApiKey);
         console.log('[ClickSign] Etapa 2 OK — signer_key:', signerKey);
 
         console.log('[ClickSign] Etapa 3: adicionar signatário ao documento...');
@@ -182,8 +185,8 @@ router.post('/documentos/:id/assinar', async (req, res) => {
 
         // 10. Registrar na base
         const signatarios = JSON.stringify([{
-            nome: parte.pessoa_nome,
-            email: parte.pessoa_email,
+            nome: parteNome,
+            email: parteEmail,
             signer_key: signerKey,
             request_signature_key: requestSignatureKey,
             signing_url: signingUrl
@@ -203,8 +206,8 @@ router.post('/documentos/:id/assinar', async (req, res) => {
 
         // 11. Enviar e-mail via Brevo com o link de assinatura
         const emailEnviado = await enviarEmailAssinatura({
-            para: parte.pessoa_email,
-            nomeSignatario: parte.pessoa_nome,
+            para: parteEmail,
+            nomeSignatario: parteNome,
             nomeDocumento: doc.nome,
             signingUrl,
             mensagemAdvogado: mensagem || null

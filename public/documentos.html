@@ -376,6 +376,35 @@
             </label>
         </div>
 
+        <!-- Legenda dos ícones de Assinatura Digital -->
+        <div id="legendaAssinatura" style="display:none;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:12px;color:#475569;">
+            <span style="font-weight:700;color:#334155;margin-right:12px;">Assinatura Digital:</span>
+            <span style="display:inline-flex;align-items:center;gap:5px;margin-right:16px;">
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#ede9fe;border-radius:6px;color:#7c3aed;">
+                    <i data-lucide="settings" style="width:13px;height:13px;"></i>
+                </span>
+                Configurar API Key
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:5px;margin-right:16px;">
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#ede9fe;border-radius:6px;color:#7c3aed;">
+                    <i data-lucide="pen-line" style="width:13px;height:13px;"></i>
+                </span>
+                Enviar para assinatura
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:5px;margin-right:16px;">
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#fef3c7;border-radius:6px;color:#d97706;">
+                    <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>
+                </span>
+                Verificar status
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:5px;">
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#dcfce7;border-radius:6px;color:#16a34a;">
+                    <i data-lucide="file-check" style="width:13px;height:13px;"></i>
+                </span>
+                Baixar documento assinado
+            </span>
+        </div>
+
         <!-- Tabela -->
         <div class="table-wrap">
             <table>
@@ -567,18 +596,41 @@
             <div id="assinarDocNome" style="font-weight:600;color:var(--text-primary);margin-bottom:16px;padding:10px 12px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;"></div>
 
             <div style="margin-bottom:14px;">
-                <label style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Signatário (polo ativo do processo)</label>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                    <div>
-                        <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">Nome</div>
-                        <div id="assinarSignNome" style="font-weight:600;padding:8px 10px;background:#f1f5f9;border-radius:6px;font-size:13px;min-height:32px;"></div>
+                <label id="assinarSignLabel" style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Signatário</label>
+
+                <!-- Modo automático: busca polo ativo do processo -->
+                <div id="assinarSignAuto">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <div>
+                            <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">Nome</div>
+                            <div id="assinarSignNome" style="font-weight:600;padding:8px 10px;background:#f1f5f9;border-radius:6px;font-size:13px;min-height:32px;"></div>
+                        </div>
+                        <div>
+                            <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">E-mail</div>
+                            <div id="assinarSignEmail" style="font-weight:500;padding:8px 10px;background:#f1f5f9;border-radius:6px;font-size:13px;min-height:32px;word-break:break-all;"></div>
+                        </div>
                     </div>
-                    <div>
-                        <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">E-mail</div>
-                        <div id="assinarSignEmail" style="font-weight:500;padding:8px 10px;background:#f1f5f9;border-radius:6px;font-size:13px;min-height:32px;word-break:break-all;"></div>
+                    <div id="assinarSignAviso" style="display:none;color:#ef4444;font-size:12px;margin-top:6px;"></div>
+                </div>
+
+                <!-- Modo manual: documento sem processo vinculado -->
+                <div id="assinarSignManual" style="display:none;">
+                    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:8px 10px;margin-bottom:8px;font-size:12px;color:#1e40af;">
+                        Documento sem processo vinculado. Informe o signatário manualmente.
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <div>
+                            <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">Nome *</div>
+                            <input type="text" id="assinarSignNomeInput" placeholder="Nome completo"
+                                style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;background:#f8fafc;box-sizing:border-box;">
+                        </div>
+                        <div>
+                            <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">E-mail *</div>
+                            <input type="email" id="assinarSignEmailInput" placeholder="email@exemplo.com"
+                                style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;background:#f8fafc;box-sizing:border-box;">
+                        </div>
                     </div>
                 </div>
-                <div id="assinarSignAviso" style="display:none;color:#ef4444;font-size:12px;margin-top:6px;"></div>
             </div>
 
             <div style="margin-bottom:14px;">
@@ -778,21 +830,14 @@ function renderizarTabela(lista) {
             : '';
 
         let btnAssinar = '';
-        if (d.mimetype === 'application/pdf' && d.processo_id) {
+        if (d.mimetype === 'application/pdf') {
             if (!addonClicksign.api_key_configurada) {
-                // Sem chave: ícone de engrenagem se plano gratuito, cadeado se básico sem addon
-                const semChaveIcon = addonClicksign.plano_tem_acesso_gratis ? 'settings' : 'lock';
-                const semChaveTip = addonClicksign.plano_tem_acesso_gratis
-                    ? 'Configure sua chave ClickSign em Configurações'
-                    : 'Ativar Assinatura Digital';
-                btnAssinar = `<button class="btn-icon" onclick="abrirModalAddon()" title="${semChaveTip}" style="color:#7c3aed;"><i data-lucide="${semChaveIcon}" style="width:15px;height:15px;"></i></button>`;
-            } else if (!addonClicksign.ativo) {
-                btnAssinar = `<button class="btn-icon" onclick="abrirModalAddon()" title="Ativar Assinatura Digital" style="color:#7c3aed;"><i data-lucide="lock" style="width:15px;height:15px;"></i></button>`;
-            } else if (addonClicksign.ativo && !addonClicksign.disponivel) {
-                btnAssinar = `<button class="btn-icon" disabled title="Limite mensal atingido (${addonClicksign.usado}/${addonClicksign.limite})" style="color:#94a3b8;cursor:not-allowed;"><i data-lucide="ban" style="width:15px;height:15px;"></i></button>`;
+                // Sem chave: direciona para Configurações
+                btnAssinar = `<button class="btn-icon" onclick="abrirModalAddon()" title="Configure sua chave ClickSign em Configurações" style="color:#7c3aed;"><i data-lucide="settings" style="width:15px;height:15px;"></i></button>`;
             } else {
-                const quota = addonClicksign.plano_tem_acesso_gratis ? 'ilimitadas' : `${addonClicksign.usado}/${addonClicksign.limite} usadas`;
-                btnAssinar = `<button class="btn-icon" onclick="abrirModalAssinar(${d.id}, ${d.processo_id})" title="Assinatura Digital (${quota})" style="color:#7c3aed;"><i data-lucide="pen-line" style="width:15px;height:15px;"></i></button>`;
+                // Chave configurada: botão disponível para qualquer PDF
+                const tip = d.processo_id ? 'Assinatura Digital' : 'Assinatura Digital (signatário manual)';
+                btnAssinar = `<button class="btn-icon" onclick="abrirModalAssinar(${d.id}, ${d.processo_id || 'null'})" title="${tip}" style="color:#7c3aed;"><i data-lucide="pen-line" style="width:15px;height:15px;"></i></button>`;
             }
         }
 
@@ -1234,13 +1279,7 @@ async function abrirModalAssinar(docId, processoId) {
     assinarDocIdAtual = docId;
     const doc = todosDocumentos.find(d => d.id === docId);
 
-    // Preencher nome do documento
     document.getElementById('assinarDocNome').textContent = doc ? doc.nome : `Documento #${docId}`;
-
-    // Limpar campos
-    document.getElementById('assinarSignNome').textContent = '…';
-    document.getElementById('assinarSignEmail').textContent = '…';
-    document.getElementById('assinarSignAviso').style.display = 'none';
     document.getElementById('assinarMensagem').value = '';
 
     // Deadline padrão: +30 dias
@@ -1248,40 +1287,63 @@ async function abrirModalAssinar(docId, processoId) {
     d30.setDate(d30.getDate() + 30);
     document.getElementById('assinarDeadline').value = d30.toISOString().split('T')[0];
 
-    abrirModal('modalAssinar');
+    const modoAuto   = document.getElementById('assinarSignAuto');
+    const modoManual = document.getElementById('assinarSignManual');
+    const label      = document.getElementById('assinarSignLabel');
 
-    // Buscar partes do processo
-    try {
-        const res = await fetch(`/api/processos/${processoId}/partes`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error('Erro ao buscar partes');
-        const data = await res.json();
-        const partes = data.partes || [];
-        // Polo ativo — prioriza eh_principal=true
-        const ativo = partes
-            .filter(p => p.polo === 'ativo')
-            .sort((a, b) => (b.eh_principal ? 1 : 0) - (a.eh_principal ? 1 : 0));
+    if (processoId && processoId !== 'null') {
+        // ── Modo automático: busca polo ativo do processo ──
+        modoAuto.style.display   = 'block';
+        modoManual.style.display = 'none';
+        label.textContent = 'Signatário (polo ativo do processo)';
 
-        if (ativo.length === 0) {
+        document.getElementById('assinarSignNome').textContent = '…';
+        document.getElementById('assinarSignEmail').textContent = '…';
+        document.getElementById('assinarSignAviso').style.display = 'none';
+
+        abrirModal('modalAssinar');
+
+        try {
+            const res = await fetch(`/api/processos/${processoId}/partes`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Erro ao buscar partes');
+            const data = await res.json();
+            const partes = data.partes || [];
+            const ativo = partes
+                .filter(p => p.polo === 'ativo')
+                .sort((a, b) => (b.eh_principal ? 1 : 0) - (a.eh_principal ? 1 : 0));
+
+            if (ativo.length === 0) {
+                document.getElementById('assinarSignNome').textContent = '—';
+                document.getElementById('assinarSignEmail').textContent = '—';
+                const aviso = document.getElementById('assinarSignAviso');
+                aviso.textContent = 'Nenhuma parte no polo ativo encontrada para este processo.';
+                aviso.style.display = 'block';
+            } else {
+                const parte = ativo[0];
+                document.getElementById('assinarSignNome').textContent = parte.pessoa_nome || '—';
+                document.getElementById('assinarSignEmail').textContent = parte.pessoa_email || '—';
+                if (!parte.pessoa_email) {
+                    const aviso = document.getElementById('assinarSignAviso');
+                    aviso.textContent = 'O signatário não possui e-mail cadastrado. Cadastre o e-mail antes de enviar.';
+                    aviso.style.display = 'block';
+                }
+            }
+        } catch {
             document.getElementById('assinarSignNome').textContent = '—';
             document.getElementById('assinarSignEmail').textContent = '—';
-            const aviso = document.getElementById('assinarSignAviso');
-            aviso.textContent = 'Nenhuma parte no polo ativo encontrada para este processo.';
-            aviso.style.display = 'block';
-        } else {
-            const parte = ativo[0];
-            document.getElementById('assinarSignNome').textContent = parte.pessoa_nome || '—';
-            document.getElementById('assinarSignEmail').textContent = parte.pessoa_email || '—';
-            if (!parte.pessoa_email) {
-                const aviso = document.getElementById('assinarSignAviso');
-                aviso.textContent = 'O signatário não possui e-mail cadastrado. Cadastre o e-mail antes de enviar.';
-                aviso.style.display = 'block';
-            }
         }
-    } catch (err) {
-        document.getElementById('assinarSignNome').textContent = '—';
-        document.getElementById('assinarSignEmail').textContent = '—';
+    } else {
+        // ── Modo manual: documento sem processo vinculado ──
+        modoAuto.style.display   = 'none';
+        modoManual.style.display = 'block';
+        label.textContent = 'Signatário';
+
+        document.getElementById('assinarSignNomeInput').value  = '';
+        document.getElementById('assinarSignEmailInput').value = '';
+
+        abrirModal('modalAssinar');
     }
 }
 
@@ -1290,6 +1352,19 @@ async function enviarAssinatura() {
 
     const mensagem = document.getElementById('assinarMensagem').value.trim() || null;
     const deadline = document.getElementById('assinarDeadline').value || null;
+
+    // Modo manual: coleta signatário dos inputs
+    const modoManualVisivel = document.getElementById('assinarSignManual').style.display !== 'none';
+    let signatarioNome  = null;
+    let signatarioEmail = null;
+    if (modoManualVisivel) {
+        signatarioNome  = document.getElementById('assinarSignNomeInput').value.trim();
+        signatarioEmail = document.getElementById('assinarSignEmailInput').value.trim();
+        if (!signatarioNome || !signatarioEmail) {
+            alert('Preencha o nome e o e-mail do signatário.');
+            return;
+        }
+    }
 
     const btn = document.getElementById('btnEnviarAssinatura');
     btn.disabled = true;
@@ -1302,7 +1377,7 @@ async function enviarAssinatura() {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ mensagem, deadline })
+            body: JSON.stringify({ mensagem, deadline, signatarioNome, signatarioEmail })
         });
         const data = await res.json();
         if (!res.ok) {
@@ -1324,65 +1399,35 @@ async function enviarAssinatura() {
 async function carregarAddonStatus() {
     try {
         const res = await fetch('/api/addon/clicksign/status', { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) addonClicksign = await res.json();
+        if (res.ok) {
+            addonClicksign = await res.json();
+            // Mostra legenda de ícones apenas quando a API Key estiver configurada
+            const legenda = document.getElementById('legendaAssinatura');
+            if (legenda) legenda.style.display = addonClicksign.api_key_configurada ? 'flex' : 'none';
+            if (legenda && addonClicksign.api_key_configurada) legenda.style.flexWrap = 'wrap';
+        }
     } catch { /* silencioso */ }
 }
 
 function abrirModalAddon() {
-    const { ativo, addon_ativo, plano_tem_acesso_gratis, usado, limite, periodo_inicio, api_key_configurada } = addonClicksign;
-
-    // Modo A: plano gratuito (intermediário/avançado/premium) sem chave configurada
-    if (plano_tem_acesso_gratis && !api_key_configurada) {
-        document.getElementById('addonModalTitulo').textContent = '🔑 Configure sua Chave ClickSign';
-        document.getElementById('addonModalDescricao').style.display = 'none';
-        document.getElementById('addonModalFeatures').style.display = 'none';
-        document.getElementById('addonModalPreco').style.display = 'none';
-        document.getElementById('addonAvisoLimite').innerHTML = `
-            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:18px;text-align:center;margin-bottom:8px;">
-                <div style="font-size:36px;margin-bottom:10px;">🔑</div>
-                <p style="font-size:15px;font-weight:700;color:#1e40af;margin:0 0 8px;">Assinatura Digital inclusa no seu plano</p>
-                <p style="font-size:13px;color:#3b82f6;margin:0 0 16px;line-height:1.5;">
-                    Configure sua API Key do ClickSign em <strong>Configurações</strong> para começar a usar.
-                </p>
-                <a href="/config-page" style="display:inline-block;background:#7c3aed;color:#fff;text-decoration:none;padding:10px 24px;border-radius:8px;font-weight:700;font-size:14px;">
-                    Ir para Configurações →
-                </a>
-            </div>`;
-        document.getElementById('btnAtivarAddon').style.display = 'none';
-        abrirModal('modalAddonClickSign');
-        return;
-    }
-
-    // Modo B: plano básico sem addon (cobrança)
-    document.getElementById('addonModalTitulo').textContent = '🔏 Assinatura Digital via ClickSign';
-    document.getElementById('addonModalDescricao').style.display = 'block';
-    document.getElementById('addonModalFeatures').style.display = 'flex';
-    document.getElementById('addonModalPreco').style.display = 'block';
-    document.getElementById('btnAtivarAddon').style.display = 'inline-block';
-
-    let avisoHtml = '';
-    if (!api_key_configurada) {
-        avisoHtml = `
-        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 14px;margin-bottom:16px;color:#1e40af;font-size:13px;">
-            🔑 Após ativar, configure também sua API Key do ClickSign em
-            <a href="/config-page" style="color:#7c3aed;font-weight:700;text-decoration:none;">Configurações</a>.
+    // Chamado apenas quando a chave API não está configurada
+    document.getElementById('addonModalTitulo').textContent = '🔑 Configure sua Chave ClickSign';
+    document.getElementById('addonModalDescricao').style.display = 'none';
+    document.getElementById('addonModalFeatures').style.display = 'none';
+    document.getElementById('addonModalPreco').style.display = 'none';
+    document.getElementById('btnAtivarAddon').style.display = 'none';
+    document.getElementById('addonAvisoLimite').innerHTML = `
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:18px;text-align:center;margin-bottom:8px;">
+            <div style="font-size:36px;margin-bottom:10px;">🔑</div>
+            <p style="font-size:15px;font-weight:700;color:#1e40af;margin:0 0 8px;">Assinatura Digital disponível no seu plano</p>
+            <p style="font-size:13px;color:#3b82f6;margin:0 0 16px;line-height:1.5;">
+                Configure sua API Key do ClickSign em <strong>Configurações</strong> para começar a usar.
+                Você precisará de uma conta ativa no ClickSign.
+            </p>
+            <a href="/config-page" style="display:inline-block;background:#7c3aed;color:#fff;text-decoration:none;padding:10px 24px;border-radius:8px;font-weight:700;font-size:14px;">
+                Ir para Configurações →
+            </a>
         </div>`;
-    } else if (!plano_tem_acesso_gratis && !addon_ativo) {
-        // sem aviso extra — o modal já deixa claro
-    } else if (ativo && !plano_tem_acesso_gratis && usado >= limite) {
-        let renovaTexto = '';
-        if (periodo_inicio) {
-            const proxRenova = new Date(periodo_inicio);
-            proxRenova.setMonth(proxRenova.getMonth() + 1);
-            renovaTexto = ` Renova automaticamente em ${proxRenova.toLocaleDateString('pt-BR')}.`;
-        }
-        avisoHtml = `
-        <div style="background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:12px 14px;margin-bottom:16px;color:#713f12;font-size:13px;">
-            ⚠️ Você usou <strong>${usado}/${limite}</strong> assinaturas este mês.${renovaTexto}
-        </div>`;
-    }
-
-    document.getElementById('addonAvisoLimite').innerHTML = avisoHtml;
     abrirModal('modalAddonClickSign');
 }
 

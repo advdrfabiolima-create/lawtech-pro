@@ -634,6 +634,12 @@ require('./cron/crmFollowup');
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_api_key TEXT DEFAULT NULL`);
         console.log('✅ [SISTEMA] Colunas ClickSign add-on e BYOK verificadas.');
 
+        // Preferência de pagamento: 'cartao' | 'pix'
+        await pool.query(`
+            ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS preferencia_pagamento VARCHAR(10) DEFAULT 'cartao'
+        `);
+        console.log('✅ [SISTEMA] Coluna preferencia_pagamento verificada.');
+
         iniciarAgendamentos();
 
     } catch (err) {

@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const pool = require('../config/db');
+const axios = require('axios');
 
-const PLANOS_GRATIS = ['intermediario', 'avancado', 'premium'];
+const PLANOS_GRATIS = ['basico', 'intermediario', 'avancado', 'premium'];
 
 // ─── GET /api/addon/clicksign/status ─────────────────────────────────────────
 router.get('/addon/clicksign/status', async (req, res) => {
@@ -68,7 +69,33 @@ router.patch('/addon/clicksign/chave', async (req, res) => {
             [chave, escritorioId]
         );
         console.log(`[ADDON/ClickSign] Chave API ${chave ? 'configurada' : 'removida'} para escritório ${escritorioId}`);
-        res.json({ ok: true, api_key_configurada: !!chave });
+
+        // ── Auto-registrar webhook no ClickSign ao salvar nova chave ──
+        let webhookRegistrado = false;
+        if (chave) {
+            try {
+                const csBase = process.env.CLICKSIGN_ENV === 'production'
+                    ? 'https://app.clicksign.com'
+                    : 'https://sandbox.clicksign.com';
+                const appUrl = process.env.APP_URL || 'https://app.lawtechpro.com.br';
+                const webhookUrl = `${appUrl}/webhook/clicksign`;
+                const webhookToken = process.env.CLICKSIGN_WEBHOOK_SECRET || '';
+
+                await axios.post(
+                    `${csBase}/api/v1/hooks?access_token=${chave}`,
+                    { hook: { url: webhookUrl, authenticity_token: webhookToken || undefined } },
+                    { headers: { 'Content-Type': 'application/json' }, timeout: 10000 }
+                );
+                webhookRegistrado = true;
+                console.log(`[ADDON/ClickSign] Webhook registrado automaticamente para escritório ${escritorioId}: ${webhookUrl}`);
+            } catch (whErr) {
+                // Não crítico: chave salva com sucesso mesmo se webhook falhar
+                console.warn('[ADDON/ClickSign] Não foi possível registrar webhook automaticamente:',
+                    whErr.response?.data || whErr.message);
+            }
+        }
+
+        res.json({ ok: true, api_key_configurada: !!chave, webhook_registrado: webhookRegistrado });
     } catch (err) {
         console.error('[ADDON/ClickSign] Erro ao salvar chave:', err.message);
         res.status(500).json({ erro: 'Erro ao salvar chave ClickSign' });

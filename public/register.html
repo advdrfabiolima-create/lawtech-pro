@@ -271,6 +271,288 @@
             border-color: var(--primary-light);
         }
 
+        /* ---- Validação de senha em tempo real ---- */
+        .senha-requisitos {
+            display: none;
+            margin-top: 10px;
+            padding: 12px 14px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .req-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #94a3b8;
+            transition: color 0.2s ease;
+        }
+
+        .req-item .req-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 9px;
+            font-weight: 800;
+            transition: all 0.2s ease;
+        }
+
+        .req-item.ok { color: #059669; }
+        .req-item.ok .req-icon {
+            background: #059669;
+            border-color: #059669;
+            color: white;
+        }
+
+        .req-item.erro { color: #ef4444; }
+        .req-item.erro .req-icon {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+        }
+
+        /* Borda verde/vermelha nos inputs de senha */
+        #senha.input-ok     { border-color: #10b981 !important; box-shadow: 0 0 0 4px rgba(16,185,129,0.1) !important; }
+        #senha.input-erro   { border-color: #ef4444 !important; box-shadow: 0 0 0 4px rgba(239,68,68,0.1)  !important; }
+        #confirmarSenha.input-ok   { border-color: #10b981 !important; box-shadow: 0 0 0 4px rgba(16,185,129,0.1) !important; }
+        #confirmarSenha.input-erro { border-color: #ef4444 !important; box-shadow: 0 0 0 4px rgba(239,68,68,0.1)  !important; }
+
+        /* Mensagem de confirmação de senha */
+        .senha-match-msg {
+            margin-top: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+        }
+        .senha-match-msg.ok   { color: #059669; }
+        .senha-match-msg.erro { color: #ef4444; }
+
+        /* ---- Tabs de método de pagamento ---- */
+        .payment-method-tabs {
+            display: flex;
+            gap: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid var(--border);
+            margin-bottom: 20px;
+        }
+        .payment-tab {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            background: var(--white);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        .payment-tab:first-child { border-right: 1px solid var(--border); }
+        .payment-tab.active-tab-card {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+        }
+        .payment-tab.active-tab-pix {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+        }
+        .payment-tab:not([class*="active"]):hover { background: #f8fafc; color: var(--text-main); }
+
+        /* ---- PIX info box ---- */
+        .pix-info-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 2px solid #10b981;
+            border-radius: 12px;
+            padding: 28px;
+            text-align: center;
+            display: none;
+        }
+        .pix-logo {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 16px;
+            background: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pix-logo svg { width: 40px; height: 40px; fill: white; }
+        .pix-info-box h4 {
+            font-size: 17px;
+            font-weight: 800;
+            color: #064e3b;
+            margin-bottom: 8px;
+        }
+        .pix-info-box p {
+            font-size: 14px;
+            color: #065f46;
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+        .pix-info-box .pix-valor {
+            font-size: 22px;
+            font-weight: 800;
+            color: #059669;
+            margin: 12px 0 4px;
+        }
+        .pix-disclaimer {
+            background: rgba(255,255,255,0.7);
+            border-left: 3px solid #10b981;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #065f46;
+            text-align: left;
+            margin-top: 16px;
+            line-height: 1.5;
+        }
+
+        /* ---- Modal PIX ---- */
+        .pix-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .pix-modal-overlay.visible { display: flex; }
+        .pix-modal {
+            background: white;
+            border-radius: 20px;
+            padding: 36px 32px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+        .pix-modal h3 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+        .pix-modal .pix-modal-sub {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+        .pix-qr-wrapper {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 16px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .pix-qr-wrapper img {
+            width: 200px;
+            height: 200px;
+            display: block;
+        }
+        .pix-copy-box {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .pix-copy-input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 12px;
+            color: #475569;
+            background: #f8fafc;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .pix-copy-btn {
+            padding: 10px 16px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .pix-copy-btn:hover { background: #059669; }
+        .pix-valor-modal {
+            font-size: 28px;
+            font-weight: 800;
+            color: #059669;
+            margin-bottom: 4px;
+        }
+        .pix-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 16px;
+        }
+        .pix-status-badge.paid {
+            background: #dcfce7;
+            border-color: #10b981;
+            color: #065f46;
+        }
+        .pix-spinner {
+            width: 12px;
+            height: 12px;
+            border: 2px solid #f59e0b;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .pix-modal-footer {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 12px;
+        }
+        .pix-modal-footer a {
+            color: #2563eb;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .pix-modal-footer a:hover { text-decoration: underline; }
+
         .payment-section {
             background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
             border: 2px solid var(--warning);
@@ -860,16 +1142,56 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
                     <div class="form-row">
                         <div class="form-group">
                             <label>Senha de Acesso</label>
-                            <input type="password" id="senha" placeholder="Mínimo 6 caracteres" required>
+                            <input type="password" id="senha" placeholder="Mínimo 8 caracteres" required>
+                            <div class="senha-requisitos" id="senhaRequisitos">
+                                <div class="req-item" id="req-min">
+                                    <span class="req-icon">—</span> Mínimo 8 caracteres
+                                </div>
+                                <div class="req-item" id="req-upper">
+                                    <span class="req-icon">—</span> Uma letra maiúscula (A–Z)
+                                </div>
+                                <div class="req-item" id="req-lower">
+                                    <span class="req-icon">—</span> Uma letra minúscula (a–z)
+                                </div>
+                                <div class="req-item" id="req-num">
+                                    <span class="req-icon">—</span> Um número (0–9)
+                                </div>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>Confirmar Senha</label>
                             <input type="password" id="confirmarSenha" placeholder="Repita a senha" required>
+                            <div class="senha-match-msg" id="senhaMatchMsg" style="display:none;"></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="payment-section">
+                <!-- Tabs de método de pagamento -->
+                <div class="payment-method-tabs">
+                    <button type="button" id="tabCartao" class="payment-tab active-tab-card" onclick="selecionarMetodoPagamento('cartao')">
+                        <i class="lucide lucide-credit-card" style="font-size:16px;"></i>
+                        Cartão de Crédito
+                    </button>
+                    <button type="button" id="tabPix" class="payment-tab" onclick="selecionarMetodoPagamento('pix')">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="flex-shrink:0"><path d="M6.09 13.28l2.12 2.12a5.34 5.34 0 0 0 7.55 0l2.12-2.12 1.42 1.42-2.12 2.12a7.34 7.34 0 0 1-10.38 0L4.67 14.7l1.42-1.42zm4.24-4.24A5.34 5.34 0 0 1 17.88 9l2.12 2.13-1.42 1.42L16.46 10.4a3.34 3.34 0 0 0-4.72 0L9.62 12.52 8.2 11.1l2.13-2.06zm-3.2-3.2 1.42 1.42-1.41 1.41-1.42-1.41 1.41-1.42zm9.9 9.9 1.41 1.42-1.41 1.41-1.42-1.41 1.42-1.42z"/></svg>
+                        PIX
+                    </button>
+                </div>
+
+                <!-- Seção PIX (oculta por padrão) -->
+                <div id="pixInfoSection" class="pix-info-box">
+                    <div class="pix-logo">
+                        <svg viewBox="0 0 24 24"><path d="M6.09 13.28l2.12 2.12a5.34 5.34 0 0 0 7.55 0l2.12-2.12 1.42 1.42-2.12 2.12a7.34 7.34 0 0 1-10.38 0L4.67 14.7l1.42-1.42zm4.24-4.24A5.34 5.34 0 0 1 17.88 9l2.12 2.13-1.42 1.42L16.46 10.4a3.34 3.34 0 0 0-4.72 0L9.62 12.52 8.2 11.1l2.13-2.06zm-3.2-3.2 1.42 1.42-1.41 1.41-1.42-1.41 1.41-1.42zm9.9 9.9 1.41 1.42-1.41 1.41-1.42-1.41 1.42-1.42z"/></svg>
+                    </div>
+                    <h4>7 dias grátis, depois pague via PIX</h4>
+                    <p>Aproveite o período de teste sem precisar cadastrar cartão.<br>
+                    Ao final dos 7 dias, enviaremos um <strong>QR Code PIX</strong> direto no seu e-mail para continuar com o acesso.</p>
+                    <div class="pix-disclaimer">
+                        <strong>Sem compromisso agora.</strong> Você só paga se quiser continuar após o teste gratuito. Sem cartão, sem cobrança automática.
+                    </div>
+                </div>
+
+                <div class="payment-section" id="cardSection">
                     <div class="payment-header">
                         <div class="payment-icon">
                             <i class="lucide lucide-credit-card"></i>
@@ -942,7 +1264,7 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
                     <div class="payment-disclaimer">
                         <strong>💳 Garantia de segurança:</strong> Seu cartão não será cobrado hoje. A primeira mensalidade será processada automaticamente após 7 dias, caso não cancele.
                     </div>
-                </div>
+                </div> <!-- /#cardSection -->
 
                 <button type="submit" class="btn-register" id="btnSubmit">
                     Criar Conta e Iniciar Teste Gratuito
@@ -959,6 +1281,81 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
     // Máscaras
     const documentoMask = IMask(document.getElementById('documento'), { mask: '000.000.000-00' });
     IMask(document.getElementById('cep'), { mask: '00000-000' });
+
+    // ============================================================
+    // VALIDAÇÃO DE SENHA EM TEMPO REAL
+    // ============================================================
+
+    const senhaInput        = document.getElementById('senha');
+    const confirmarInput    = document.getElementById('confirmarSenha');
+    const senhaRequisitos   = document.getElementById('senhaRequisitos');
+    const senhaMatchMsg     = document.getElementById('senhaMatchMsg');
+
+    function setReq(id, status) {
+        // status: 'ok' | 'erro' | 'neutro'
+        const el = document.getElementById(id);
+        const icon = el.querySelector('.req-icon');
+        el.className = 'req-item ' + status;
+        icon.textContent = status === 'ok' ? '✓' : status === 'erro' ? '✕' : '—';
+    }
+
+    senhaInput.addEventListener('input', () => {
+        const v = senhaInput.value;
+
+        // Mostra o checklist assim que o usuário começa a digitar
+        senhaRequisitos.style.display = v.length > 0 ? 'flex' : 'none';
+
+        const okMin   = v.length >= 8;
+        const okUpper = /[A-Z]/.test(v);
+        const okLower = /[a-z]/.test(v);
+        const okNum   = /[0-9]/.test(v);
+
+        setReq('req-min',   v.length === 0 ? 'neutro' : okMin   ? 'ok' : 'erro');
+        setReq('req-upper', v.length === 0 ? 'neutro' : okUpper ? 'ok' : 'erro');
+        setReq('req-lower', v.length === 0 ? 'neutro' : okLower ? 'ok' : 'erro');
+        setReq('req-num',   v.length === 0 ? 'neutro' : okNum   ? 'ok' : 'erro');
+
+        // Borda do campo
+        if (v.length === 0) {
+            senhaInput.classList.remove('input-ok', 'input-erro');
+        } else if (okMin && okUpper && okLower && okNum) {
+            senhaInput.classList.add('input-ok');
+            senhaInput.classList.remove('input-erro');
+        } else {
+            senhaInput.classList.add('input-erro');
+            senhaInput.classList.remove('input-ok');
+        }
+
+        // Reavalia confirmação se já tiver algo digitado
+        if (confirmarInput.value.length > 0) validarConfirmacao();
+    });
+
+    confirmarInput.addEventListener('input', validarConfirmacao);
+
+    function validarConfirmacao() {
+        const s = senhaInput.value;
+        const c = confirmarInput.value;
+
+        if (c.length === 0) {
+            senhaMatchMsg.style.display = 'none';
+            confirmarInput.classList.remove('input-ok', 'input-erro');
+            return;
+        }
+
+        senhaMatchMsg.style.display = 'flex';
+
+        if (s === c) {
+            senhaMatchMsg.className = 'senha-match-msg ok';
+            senhaMatchMsg.innerHTML = '<i class="lucide lucide-check-circle" style="font-size:13px;"></i> Senhas coincidem';
+            confirmarInput.classList.add('input-ok');
+            confirmarInput.classList.remove('input-erro');
+        } else {
+            senhaMatchMsg.className = 'senha-match-msg erro';
+            senhaMatchMsg.innerHTML = '<i class="lucide lucide-x-circle" style="font-size:13px;"></i> Senhas não coincidem';
+            confirmarInput.classList.add('input-erro');
+            confirmarInput.classList.remove('input-ok');
+        }
+    }
 
     // ============================================================
     // ✅ INICIALIZAR STRIPE ELEMENTS
@@ -1134,79 +1531,222 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
     }
 
     // ============================================================
+    // MÉTODO DE PAGAMENTO (CARTÃO / PIX)
+    // ============================================================
+
+    let metodoPagamento = 'cartao'; // 'cartao' | 'pix'
+    let pixPollingInterval = null;
+    let pixTimerInterval = null;
+    let emailRegistrado = null; // salvo após registro para gerar PIX
+
+    function selecionarMetodoPagamento(metodo) {
+        metodoPagamento = metodo;
+
+        const tabCartao = document.getElementById('tabCartao');
+        const tabPix    = document.getElementById('tabPix');
+        const cardSection = document.getElementById('cardSection');
+        const pixSection  = document.getElementById('pixInfoSection');
+        const btnText = document.getElementById('btnSubmit');
+
+        if (metodo === 'pix') {
+            tabCartao.className = 'payment-tab';
+            tabPix.className    = 'payment-tab active-tab-pix';
+            cardSection.style.display = 'none';
+            pixSection.style.display  = 'block';
+            btnSubmit.textContent = 'Criar Conta com PIX';
+        } else {
+            tabCartao.className = 'payment-tab active-tab-card';
+            tabPix.className    = 'payment-tab';
+            cardSection.style.display = 'block';
+            pixSection.style.display  = 'none';
+            btnSubmit.textContent = 'Criar Conta e Iniciar Teste Gratuito';
+        }
+    }
+
+    // ============================================================
+    // PIX — geração de QR e polling
+    // ============================================================
+
+    async function gerarPixRegistro(email) {
+        try {
+            const res = await fetch('/api/auth/gerar-pix-registro', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.erro || 'Erro ao gerar PIX');
+            return data;
+        } catch (err) {
+            console.error('❌ [PIX] Erro ao gerar QR:', err);
+            throw err;
+        }
+    }
+
+    function abrirModalPix(pixData) {
+        const overlay = document.getElementById('pixModalOverlay');
+        document.getElementById('pixQrImg').src = `data:image/png;base64,${pixData.pixQrCodeBase64}`;
+        document.getElementById('pixPayloadInput').value = pixData.pixPayload;
+        const valorFmt = parseFloat(pixData.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        document.getElementById('pixValorModal').textContent = valorFmt;
+        document.getElementById('pixPlanModal').textContent = `Plano ${pixData.planNome} · ativação imediata`;
+
+        overlay.classList.add('visible');
+        iniciarTimerPix(15 * 60); // 15 minutos
+        iniciarPollingPix(pixData.cobrancaId);
+    }
+
+    function iniciarTimerPix(segundos) {
+        clearInterval(pixTimerInterval);
+        let restante = segundos;
+        const el = document.getElementById('pixTimer');
+        pixTimerInterval = setInterval(() => {
+            if (restante <= 0) {
+                clearInterval(pixTimerInterval);
+                el.textContent = '00:00';
+                return;
+            }
+            restante--;
+            const m = String(Math.floor(restante / 60)).padStart(2, '0');
+            const s = String(restante % 60).padStart(2, '0');
+            el.textContent = `${m}:${s}`;
+        }, 1000);
+    }
+
+    function iniciarPollingPix(cobrancaId) {
+        clearInterval(pixPollingInterval);
+        pixPollingInterval = setInterval(async () => {
+            try {
+                const res = await fetch(`/api/auth/verificar-pix/${cobrancaId}`);
+                const data = await res.json();
+                if (data.pago) {
+                    clearInterval(pixPollingInterval);
+                    clearInterval(pixTimerInterval);
+                    // Atualiza badge de status
+                    const badge = document.getElementById('pixStatusBadge');
+                    badge.classList.add('paid');
+                    document.getElementById('pixSpinner').style.display = 'none';
+                    document.getElementById('pixStatusText').textContent = '✅ Pagamento confirmado!';
+                    // Limpa localStorage e redireciona
+                    localStorage.removeItem('plano_escolhido_id');
+                    localStorage.removeItem('plano_escolhido_valor');
+                    localStorage.removeItem('plano_escolhido_nome');
+                    setTimeout(() => {
+                        window.location.href = '/login?registro=sucesso&pix=confirmado';
+                    }, 2000);
+                }
+            } catch (e) {
+                console.warn('[PIX polling]', e.message);
+            }
+        }, 5000); // verifica a cada 5 segundos
+    }
+
+    function copiarCodigoPix() {
+        const input = document.getElementById('pixPayloadInput');
+        navigator.clipboard.writeText(input.value).then(() => {
+            const btn = document.querySelector('.pix-copy-btn');
+            btn.textContent = 'Copiado!';
+            setTimeout(() => { btn.textContent = 'Copiar'; }, 2000);
+        });
+    }
+
+    function ignorarPix() {
+        clearInterval(pixPollingInterval);
+        clearInterval(pixTimerInterval);
+        document.getElementById('pixModalOverlay').classList.remove('visible');
+        localStorage.removeItem('plano_escolhido_id');
+        localStorage.removeItem('plano_escolhido_valor');
+        localStorage.removeItem('plano_escolhido_nome');
+        window.location.href = '/login?registro=sucesso&trial=7';
+    }
+
+    // ============================================================
     // EVENTO DE SUBMIT DO FORMULÁRIO
     // ============================================================
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         errorBox.style.display = 'none';
-        
+
         const nome = document.getElementById('nome').value;
         const email = document.getElementById('email').value;
         const senha = document.getElementById('senha').value;
-        
+
         if (!nome || !email || !senha) {
             return showError("Preencha todos os campos obrigatórios.");
         }
-        
+
         if (senha !== document.getElementById('confirmarSenha').value) {
             return showError("Senhas não coincidem.");
         }
-        
-        if (senha.length < 6) {
-            return showError("A senha deve ter 6+ caracteres.");
+
+        if (senha.length < 8) {
+            return showError("A senha deve ter no mínimo 8 caracteres.");
+        }
+
+        if (!/[A-Z]/.test(senha)) {
+            return showError("A senha deve conter ao menos uma letra maiúscula.");
+        }
+
+        if (!/[a-z]/.test(senha)) {
+            return showError("A senha deve conter ao menos uma letra minúscula.");
+        }
+
+        if (!/[0-9]/.test(senha)) {
+            return showError("A senha deve conter ao menos um número.");
         }
 
         // ============================================================
-        // ✅ CRIAR PAYMENT METHOD COM STRIPE ELEMENTS
+        // ✅ CRIAR PAYMENT METHOD COM STRIPE ELEMENTS (só se cartão)
         // ============================================================
 
         let paymentMethodId = null;
         let cartaoInfo = null;
 
-        console.log('💳 Verificando se cartão foi preenchido...');
+        if (metodoPagamento === 'cartao') {
+            console.log('💳 Verificando se cartão foi preenchido...');
 
-        btnSubmit.innerText = "🔐 Validando cartão...";
-        btnSubmit.disabled = true;
+            btnSubmit.innerText = "🔐 Validando cartão...";
+            btnSubmit.disabled = true;
 
-        try {
-            const { paymentMethod, error } = await stripe.createPaymentMethod({
-                type: 'card',
-                card: cardNumberElement,
-                billing_details: {
-                    name: document.getElementById('nomeTitularCartao').value || nome,
-                    email: email
-                }
-            });
-            
-            if (error) {
-                // Se erro é "campo vazio", permite cadastro sem cartão
-                if (error.code === 'incomplete_card' || error.code === 'incomplete_number') {
-                    console.log('⚠️ Cartão não preenchido - continuando sem cartão');
+            try {
+                const { paymentMethod, error } = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: cardNumberElement,
+                    billing_details: {
+                        name: document.getElementById('nomeTitularCartao').value || nome,
+                        email: email
+                    }
+                });
+
+                if (error) {
+                    // Se erro é "campo vazio", permite cadastro sem cartão
+                    if (error.code === 'incomplete_card' || error.code === 'incomplete_number') {
+                        console.log('⚠️ Cartão não preenchido - continuando sem cartão');
+                    } else {
+                        btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
+                        btnSubmit.disabled = false;
+                        return showError(`❌ Erro no cartão: ${error.message}`);
+                    }
                 } else {
-                    btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
-                    btnSubmit.disabled = false;
-                    return showError(`❌ Erro no cartão: ${error.message}`);
+                    paymentMethodId = paymentMethod.id;
+                    cartaoInfo = {
+                        last4: paymentMethod.card.last4,
+                        brand: paymentMethod.card.brand,
+                        exp_month: paymentMethod.card.exp_month,
+                        exp_year: paymentMethod.card.exp_year
+                    };
+                    console.log('✅ Payment Method criado:', paymentMethodId);
                 }
-            } else {
-                // Sucesso! Payment Method criado
-                paymentMethodId = paymentMethod.id;
-                cartaoInfo = {
-                    last4: paymentMethod.card.last4,
-                    brand: paymentMethod.card.brand,
-                    exp_month: paymentMethod.card.exp_month,
-                    exp_year: paymentMethod.card.exp_year
-                };
-                
-                console.log('✅ Payment Method criado:', paymentMethodId);
-                console.log('   Bandeira:', cartaoInfo.brand);
-                console.log('   Últimos 4:', cartaoInfo.last4);
+            } catch (stripeErr) {
+                console.error('❌ Erro ao processar cartão:', stripeErr);
+                btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
+                btnSubmit.disabled = false;
+                return showError('❌ Erro ao processar cartão. Tente novamente.');
             }
-        } catch (stripeErr) {
-            console.error('❌ Erro ao processar cartão:', stripeErr);
-            btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
-            btnSubmit.disabled = false;
-            return showError('❌ Erro ao processar cartão. Tente novamente.');
+        } else {
+            btnSubmit.innerText = "Criando conta...";
+            btnSubmit.disabled = true;
         }
 
         // ============================================================
@@ -1227,7 +1767,8 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
                 endereco: document.getElementById('endereco').value,
                 cidade: document.getElementById('cidade').value,
                 estado: document.getElementById('estado').value,
-                planoId: localStorage.getItem('plano_escolhido_id') || 1
+                planoId: localStorage.getItem('plano_escolhido_id') || 1,
+                preferenciaPagamento: metodoPagamento
             };
 
             const response = await fetch('/api/auth/register', {
@@ -1239,76 +1780,83 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
             const data = await response.json();
 
             if (response.ok) {
-            console.log('✅ [REGISTRO] Conta criada com sucesso:', data);
+                console.log('✅ [REGISTRO] Conta criada com sucesso:', data);
+                emailRegistrado = email;
 
-            // 🔥 EVENTO META PIXEL - CONVERSÃO REAL
-            if (typeof fbq !== 'undefined') {
-                fbq('track', 'CompleteRegistration', {
-                    content_name: localStorage.getItem('plano_escolhido_nome') || 'Plano',
-                    content_category: 'Trial SaaS Jurídico',
-                    status: 'sucesso'
-            });
-        }
-
-    // ============================================================
-    // SALVAR PAYMENT METHOD (SE FOI CRIADO)
-    // ============================================================
-
-    if (paymentMethodId && cartaoInfo) {
-        try {
-            console.log('💳 [REGISTRO] Salvando Payment Method...');
-            
-            const loginRes = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email, senha: senha })
-            });
-            
-            if (loginRes.ok) {
-                const loginData = await loginRes.json();
-                
-                const cartaoRes = await fetch('/api/pagamentos/salvar-cartao', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${loginData.token}`
-                    },
-                    body: JSON.stringify({
-                        token: paymentMethodId,
-                        last4: cartaoInfo.last4,
-                        brand: cartaoInfo.brand,
-                        exp_month: cartaoInfo.exp_month,
-                        exp_year: cartaoInfo.exp_year,
-                        gateway: 'stripe'
-                    })
-                });
-
-                if (cartaoRes.ok) {
-                    console.log('✅ [REGISTRO] Payment Method salvo com sucesso!');
+                // 🔥 EVENTO META PIXEL
+                if (typeof fbq !== 'undefined') {
+                    fbq('track', 'CompleteRegistration', {
+                        content_name: localStorage.getItem('plano_escolhido_nome') || 'Plano',
+                        content_category: 'Trial SaaS Jurídico',
+                        status: 'sucesso'
+                    });
                 }
-            }
-        } catch (cartaoErr) {
-            console.error('❌ [REGISTRO] Erro ao salvar Payment Method:', cartaoErr);
-        }
-    }
 
-    localStorage.removeItem('plano_escolhido_id');
-    localStorage.removeItem('plano_escolhido_valor');
-    localStorage.removeItem('plano_escolhido_nome');
+                // ============================================================
+                // FLUXO PIX: trial normal — sem QR agora, e-mail ao vencer
+                // ============================================================
+                if (metodoPagamento === 'pix') {
+                    localStorage.removeItem('plano_escolhido_id');
+                    localStorage.removeItem('plano_escolhido_valor');
+                    localStorage.removeItem('plano_escolhido_nome');
+                    alert(
+                        '✅ Conta criada com sucesso!\n\n' +
+                        '🎉 Você tem 7 dias de teste gratuito.\n\n' +
+                        'Ao final do período, enviaremos um QR Code PIX no seu e-mail para continuar com o acesso.'
+                    );
+                    window.location.href = '/login?registro=sucesso&trial=7';
+                    return;
+                }
 
-    alert(
-        '✅ Conta criada com sucesso!' +
-        '\n\n🎉 Você ganhou 7 dias de teste gratuito!' +
-        '\n\nClique em OK para fazer login e começar!'
-    );
+                // ============================================================
+                // FLUXO CARTÃO: salva payment method (se preenchido)
+                // ============================================================
+                if (paymentMethodId && cartaoInfo) {
+                    try {
+                        console.log('💳 [REGISTRO] Salvando Payment Method...');
+                        const loginRes = await fetch('/api/auth/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email, senha })
+                        });
+                        if (loginRes.ok) {
+                            const loginData = await loginRes.json();
+                            const cartaoRes = await fetch('/api/pagamentos/salvar-cartao', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${loginData.token}`
+                                },
+                                body: JSON.stringify({
+                                    token: paymentMethodId,
+                                    last4: cartaoInfo.last4,
+                                    brand: cartaoInfo.brand,
+                                    exp_month: cartaoInfo.exp_month,
+                                    exp_year: cartaoInfo.exp_year,
+                                    gateway: 'stripe'
+                                })
+                            });
+                            if (cartaoRes.ok) console.log('✅ [REGISTRO] Payment Method salvo!');
+                        }
+                    } catch (cartaoErr) {
+                        console.error('❌ [REGISTRO] Erro ao salvar Payment Method:', cartaoErr);
+                    }
+                }
 
-    // Pequeno delay para garantir envio do evento ao Meta
-    setTimeout(() => {
-        window.location.href = '/login?registro=sucesso&trial=7';
-    }, 500);
+                localStorage.removeItem('plano_escolhido_id');
+                localStorage.removeItem('plano_escolhido_valor');
+                localStorage.removeItem('plano_escolhido_nome');
 
+                alert(
+                    '✅ Conta criada com sucesso!' +
+                    '\n\n🎉 Você ganhou 7 dias de teste gratuito!' +
+                    '\n\nClique em OK para fazer login e começar!'
+                );
 
-                
+                setTimeout(() => {
+                    window.location.href = '/login?registro=sucesso&trial=7';
+                }, 500);
+
             } else {
                 showError(data.erro || "Falha ao criar conta.");
             }
@@ -1316,7 +1864,9 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
             console.error('❌ Erro:', err);
             showError("Erro de conexão.");
         } finally {
-            btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
+            btnSubmit.innerText = metodoPagamento === 'pix'
+                ? 'Criar Conta com PIX'
+                : 'Criar Conta e Iniciar Teste Gratuito';
             btnSubmit.disabled = false;
         }
     });
@@ -1347,5 +1897,35 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
     }
 </script>
     <script src="mobile.js"></script>
+
+<!-- ========== MODAL PIX ========== -->
+<div class="pix-modal-overlay" id="pixModalOverlay">
+    <div class="pix-modal">
+        <h3>Pague com PIX</h3>
+        <p class="pix-modal-sub">Escaneie o QR Code ou copie o código Pix Copia e Cola</p>
+
+        <div class="pix-qr-wrapper">
+            <img id="pixQrImg" src="" alt="QR Code PIX">
+        </div>
+
+        <div class="pix-valor-modal" id="pixValorModal">R$ —</div>
+        <p style="font-size:13px;color:#64748b;margin-bottom:12px;" id="pixPlanModal">—</p>
+
+        <div class="pix-copy-box">
+            <input type="text" class="pix-copy-input" id="pixPayloadInput" readonly placeholder="Código PIX Copia e Cola">
+            <button class="pix-copy-btn" onclick="copiarCodigoPix()">Copiar</button>
+        </div>
+
+        <div class="pix-status-badge" id="pixStatusBadge">
+            <span class="pix-spinner" id="pixSpinner"></span>
+            <span id="pixStatusText">Aguardando pagamento...</span>
+        </div>
+
+        <p class="pix-modal-footer">
+            QR Code válido por <strong id="pixTimer">15:00</strong>&nbsp;&middot;&nbsp;
+            <a onclick="ignorarPix()">Continuar sem pagar agora</a>
+        </p>
+    </div>
+</div>
 </body>
 </html>

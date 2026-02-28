@@ -36,7 +36,8 @@ router.post('/register', async (req, res) => {
             endereco,
             cidade,
             estado,
-            planoId
+            planoId,
+            preferenciaPagamento
         } = req.body;
 
         console.log('🔍 [REGISTRO] Nova solicitação de cadastro:', email);
@@ -90,11 +91,12 @@ router.post('/register', async (req, res) => {
             await client.query('BEGIN');
 
             // 1️⃣ Criar escritório
+            const prefPag = ['cartao', 'pix'].includes(preferenciaPagamento) ? preferenciaPagamento : 'cartao';
             const escritorioResult = await client.query(
-                `INSERT INTO escritorios 
-                 (nome, documento, data_nascimento, cep, endereco, cidade, estado, 
-                  plano_id, trial_expira_em, plano_financeiro_status, uf) 
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $7) 
+                `INSERT INTO escritorios
+                 (nome, documento, data_nascimento, cep, endereco, cidade, estado,
+                  plano_id, trial_expira_em, plano_financeiro_status, uf, preferencia_pagamento)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $7, $11)
                  RETURNING id`,
                 [
                     nome,
@@ -104,9 +106,10 @@ router.post('/register', async (req, res) => {
                     endereco || null,
                     cidade || 'Não informado',
                     estado || 'BA',
-                    planoId || 1, // Plano Básico por padrão
+                    planoId || 1,
                     dataExpiracao,
-                    'trial' // Status inicial
+                    'trial',
+                    prefPag
                 ]
             );
 
@@ -1017,6 +1020,81 @@ router.get('/verificar-pix/:cobrancaId', async (req, res) => {
     } catch (err) {
         console.error('❌ [VERIFICAR PIX]', err.message);
         res.status(500).json({ erro: 'Erro ao verificar pagamento' });
+    }
+});
+
+/* ======================================================
+   POST /api/auth/gerar-pix-registro  (PÚBLICO — sem JWT)
+   Gera QR PIX para ativação imediata no cadastro.
+   Diferente de pagar-trial-pix: não exige trial expirado.
+===================================================== */
+
+router.post('/gerar-pix-registro', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ erro: 'Email é obrigatório' });
+
+        const userResult = await pool.query(
+            `SELECT u.id, u.nome, u.email, u.escritorio_id,
+                    e.documento, e.plano_id, e.plano_financeiro_status
+             FROM usuarios u
+             JOIN escritorios e ON u.escritorio_id = e.id
+             WHERE u.email = $1`,
+            [email.toLowerCase().trim()]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ erro: 'Usuário não encontrado' });
+        }
+
+        const u = userResult.rows[0];
+
+        if (!['trial', 'inadimplente'].includes(u.plano_financeiro_status)) {
+            return res.status(400).json({ erro: 'Conta já está ativa' });
+        }
+
+        if (!u.documento) {
+            return res.status(400).json({ erro: 'CPF/CNPJ não cadastrado. Verifique seu cadastro.' });
+        }
+
+        const planoR = await pool.query('SELECT nome, preco_mensal FROM planos WHERE id = $1', [u.plano_id]);
+        if (planoR.rows.length === 0) return res.status(400).json({ erro: 'Plano não encontrado' });
+        const plano = planoR.rows[0];
+        const valor = parseFloat(plano.preco_mensal);
+
+        const customerId = await obterOuCriarClienteTrial(u.nome, u.email, u.documento);
+
+        const pagRes = await axios.post(`${ASAAS_BASE_URL_AUTH}/payments`, {
+            customer: customerId,
+            billingType: 'PIX',
+            value: valor,
+            dueDate: obterDataVencimentoTrial(1),
+            description: `${plano.nome} - LawTech Pro (Ativação)`,
+            externalReference: String(u.escritorio_id)
+        }, { headers: getAsaasHeadersAuth() });
+
+        const cobranca = pagRes.data;
+
+        const qrRes = await axios.get(
+            `${ASAAS_BASE_URL_AUTH}/payments/${cobranca.id}/pixQrCode`,
+            { headers: getAsaasHeadersAuth() }
+        );
+
+        console.log(`💰 [PIX REGISTRO] Cobrança ${cobranca.id} criada para escritório ${u.escritorio_id}`);
+
+        res.json({
+            ok: true,
+            cobrancaId: cobranca.id,
+            pixPayload: qrRes.data.payload,
+            pixQrCodeBase64: qrRes.data.encodedImage,
+            valor,
+            planNome: plano.nome
+        });
+
+    } catch (err) {
+        const msg = err.response?.data?.errors?.[0]?.description || err.message;
+        console.error('❌ [PIX REGISTRO]', msg);
+        res.status(500).json({ erro: 'Erro ao gerar PIX: ' + msg });
     }
 });
 

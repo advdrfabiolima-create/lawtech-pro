@@ -633,10 +633,10 @@ input, textarea, select {
         </div>
     </div>
 
-    <!-- Configuração de Repasse (Asaas) -->
+    <!-- Configuração do Faturamento -->
     <div class="card" id="card-repasse-asaas" style="border-top: 4px solid var(--success);">
         <div class="card-title">
-            <i data-lucide="banknote"></i> Configuração de Repasse (Asaas)
+            <i data-lucide="banknote"></i> Configuração do Faturamento
         </div>
 
         <!-- Dados Bancários -->
@@ -755,12 +755,6 @@ input, textarea, select {
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
                 <span id="clicksign-badge-plano" style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;"></span>
                 <span id="clicksign-badge-chave" style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;"></span>
-            </div>
-
-            <!-- Aviso add-on para plano básico -->
-            <div id="clicksign-aviso-addon" style="display:none;background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#713f12;">
-                ⚠️ Seu plano <strong>Básico</strong> requer o add-on de Assinatura Digital (R$ 49,90/mês) para usar este recurso.
-                <a href="/documentos-page" style="color:#7c3aed;font-weight:700;text-decoration:none;margin-left:6px;">Ativar add-on →</a>
             </div>
 
             <!-- Campo API Key -->
@@ -919,12 +913,12 @@ input, textarea, select {
 <!-- INFORMAÇÃO SYNC -->
 <div class="info-box" style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0;">
     <h4 style="margin: 0 0 10px 0; color: #1976d2;">
-        📡 Sincronização Automática
+        📡 Sincronização Automática - Publicações DJEN
     </h4>
     <p style="margin: 0;">
         O sistema busca automaticamente intimações no <strong>Comunica PJe</strong> 
         usando sua OAB cadastrada. Basta clicar em <strong>"Sincronizar DJEN"</strong> 
-        na página de Publicações.
+        na página de Publicações DJEN.
     </p>
 </div>
 
@@ -1805,26 +1799,15 @@ async function carregarStatusClicksign() {
         document.getElementById('clicksign-loading').style.display = 'none';
         document.getElementById('clicksign-conteudo').style.display = 'block';
 
-        // Badge plano
+        // Badge plano — incluso em todos os planos
         const badgePlano = document.getElementById('clicksign-badge-plano');
-        if (d.plano_tem_acesso_gratis) {
-            badgePlano.textContent = '✅ Incluso no seu plano';
-            badgePlano.style.cssText = 'display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;background:#d1fae5;color:#065f46;';
-        } else {
-            badgePlano.textContent = d.addon_ativo ? `✅ Add-on ativo (${d.usado}/${d.limite} usadas)` : '⚠️ Add-on inativo';
-            badgePlano.style.cssText = `display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;background:${d.addon_ativo ? '#d1fae5;color:#065f46' : '#fef3c7;color:#92400e'};`;
-        }
+        badgePlano.textContent = '✅ Incluso no seu plano';
+        badgePlano.style.cssText = 'display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;background:#d1fae5;color:#065f46;';
 
         // Badge chave
         const badgeChave = document.getElementById('clicksign-badge-chave');
         badgeChave.textContent = d.api_key_configurada ? '🔑 Chave configurada' : '🔓 Chave não configurada';
         badgeChave.style.cssText = `display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;background:${d.api_key_configurada ? '#dbeafe;color:#1e40af' : '#f1f5f9;color:#475569'};`;
-
-        // Aviso add-on para básico
-        const avisoAddon = document.getElementById('clicksign-aviso-addon');
-        if (!d.plano_tem_acesso_gratis && !d.addon_ativo) {
-            avisoAddon.style.display = 'block';
-        }
 
         // Botão remover só aparece se já tem chave
         document.getElementById('btnRemoverClicksign').style.display = d.api_key_configurada ? 'inline-block' : 'none';
@@ -1859,7 +1842,10 @@ async function salvarChaveClicksign() {
         if (!res.ok) { alert(d.erro || 'Erro ao salvar.'); return; }
 
         document.getElementById('clicksignApiKeyInput').value = '';
-        mostrarMsgClicksign('✅ Chave salva com sucesso!', '#065f46');
+        const msg = d.webhook_registrado
+            ? '✅ Chave salva! Webhook configurado automaticamente.'
+            : '✅ Chave salva com sucesso!';
+        mostrarMsgClicksign(msg, '#065f46');
         carregarStatusClicksign();
     } catch { alert('Erro de conexão.'); }
     finally { btn.disabled = false; btn.textContent = 'Salvar Chave'; }
