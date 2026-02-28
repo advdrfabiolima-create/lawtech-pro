@@ -39,7 +39,7 @@
             width: 42px;
             height: 42px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -62,7 +62,7 @@
         }
 
         .header-cliente {
-            text-align: right;
+            text-align: left;
         }
 
         .header-cliente .saudacao {
@@ -73,7 +73,7 @@
         .header-cliente .cliente-nome {
             font-size: 16px;
             font-weight: 600;
-            color: #6366f1;
+            color: #3b82f6;
         }
 
         /* ---- Container ---- */
@@ -106,16 +106,12 @@
         }
 
         .processo-card:hover {
-            border-color: #6366f1;
+            border-color: #3b82f6;
         }
 
         .processo-header {
             padding: 18px 22px;
             cursor: pointer;
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 12px;
             user-select: none;
         }
 
@@ -129,6 +125,9 @@
             font-weight: 700;
             color: #f1f5f9;
             letter-spacing: 0.02em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .processo-meta {
@@ -165,24 +164,22 @@
         .status-suspenso { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
 
         .toggle-btn {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 6px;
             font-size: 12px;
             font-weight: 600;
-            color: #6366f1;
+            color: #3b82f6;
             white-space: nowrap;
-            flex-shrink: 0;
-            margin-top: 4px;
-            padding: 6px 12px;
-            background: rgba(99,102,241,0.1);
+            padding: 5px 12px;
+            background: rgba(59,130,246,0.1);
             border-radius: 6px;
-            border: 1px solid rgba(99,102,241,0.2);
+            border: 1px solid rgba(59,130,246,0.2);
             cursor: pointer;
             transition: background 0.2s;
         }
 
-        .toggle-btn:hover { background: rgba(99,102,241,0.2); }
+        .toggle-btn:hover { background: rgba(59,130,246,0.2); }
 
         .toggle-icon { transition: transform 0.25s; font-size: 14px; }
         .toggle-icon.open { transform: rotate(180deg); }
@@ -226,7 +223,7 @@
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            background: #6366f1;
+            background: #3b82f6;
             border: 2px solid #0f172a;
             z-index: 1;
         }
@@ -549,11 +546,11 @@
                     <div class="processo-meta">
                         ${tribunal}${esfera}${instancia}${uf}
                         <span class="status-badge ${statusClass}">${statusLabel}</span>
+                        <span class="toggle-btn">
+                            <span>Ver Andamentos</span>
+                            <span class="toggle-icon" id="icon-${p.id}">▼</span>
+                        </span>
                     </div>
-                </div>
-                <div class="toggle-btn">
-                    <span>Ver Andamentos</span>
-                    <span class="toggle-icon" id="icon-${p.id}">▼</span>
                 </div>
             </div>
             <div class="andamentos-container" id="andamentos-${p.id}">
