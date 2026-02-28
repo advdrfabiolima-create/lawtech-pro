@@ -657,8 +657,24 @@
     }
 }
 
-/* Elementos de UI que permanecem em caixa alta por design */
-/* (labels, badges e cabeçalhos têm text-transform:uppercase declarado individualmente) */
+/* Padronização LawTech Pro - Caixa Alta Global */
+body {
+    text-transform: uppercase;
+}
+
+/* Garante que os campos de digitação também mostrem caixa alta enquanto o usuário digita */
+input, textarea, select {
+    text-transform: uppercase;
+}
+
+/* Exceção: campos de texto livre do modal de andamentos e seu histórico
+   (precisam ser consistentes com o Portal do Cliente, que exibe o valor real do banco) */
+#andTitulo,
+#andDescricao,
+#andTipoCustom,
+.and-text-livre {
+    text-transform: none;
+}
 
 /* Opcional: Se quiser que os números dos processos mantenham o estilo técnico, 
    mas ainda em caixa alta */
@@ -3949,8 +3965,8 @@ function obterTribunaisPorEsfera(esfera) {
                             <span style="font-size:11px;padding:2px 8px;border-radius:12px;background:${meta.cor}22;color:${meta.cor};font-weight:700;">${meta.label}</span>
                             ${a.visivel_cliente ? '<span style="font-size:10px;padding:1px 7px;border-radius:12px;background:#dcfce7;color:#16a34a;font-weight:600;">Visível cliente</span>' : ''}
                         </div>
-                        <div style="font-size:13px;font-weight:600;color:#1e293b;margin-bottom:${a.descricao ? '4px' : '0'};">${escapeHtml(a.titulo)}</div>
-                        ${a.descricao ? '<div style="font-size:12px;color:#64748b;line-height:1.5;">' + escapeHtml(a.descricao) + '</div>' : ''}
+                        <div class="and-text-livre" style="font-size:13px;font-weight:600;color:#1e293b;margin-bottom:${a.descricao ? '4px' : '0'};">${escapeHtml(a.titulo)}</div>
+                        ${a.descricao ? '<div class="and-text-livre" style="font-size:12px;color:#64748b;line-height:1.5;">' + escapeHtml(a.descricao) + '</div>' : ''}
                         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
                             <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;color:#64748b;">
                                 <input type="checkbox" ${a.visivel_cliente ? 'checked' : ''} onchange="toggleVisivelCliente(${a.id}, this)"
