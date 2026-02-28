@@ -113,11 +113,56 @@ async function cancelarDocumento(documentKey) {
     await csApi().patch(`/api/v1/documents/${documentKey}/cancel?access_token=${API_KEY()}`, {});
 }
 
+/**
+ * Baixa o PDF assinado do ClickSign.
+ * Estratégia: busca os metadados do documento para obter a URL real de download,
+ * pois o endpoint /download retorna HTML quando o documento não está pronto ou
+ * a URL difere por ambiente.
+ * @returns {{ data: Buffer, filename: string }}
+ */
+async function downloadDocumentoAssinado(documentKey) {
+    // 1. Busca metadados completos do documento
+    const metaRes = await csApi().get(`/api/v1/documents/${documentKey}?access_token=${API_KEY()}`);
+    const doc = metaRes.data.document;
+
+    // 2. Tenta obter a URL de download dos metadados (varia por versão da API)
+    const downloadUrl = doc.downloads?.file_url
+        || doc.downloads?.signed_file_url
+        || doc.file_download_url
+        || doc.signed_file_url
+        || null;
+
+    console.log(`[ClickSign] Download doc ${documentKey} — status: ${doc.status} — downloadUrl: ${downloadUrl || 'não encontrada nos metadados'}`);
+
+    let fileBuffer;
+    if (downloadUrl) {
+        // 3a. Usa a URL presente nos metadados
+        const fileRes = await axios.get(downloadUrl, { responseType: 'arraybuffer' });
+        fileBuffer = Buffer.from(fileRes.data);
+    } else {
+        // 3b. Fallback: tenta o endpoint direto /download
+        const directRes = await csApi().get(
+            `/api/v1/documents/${documentKey}/download?access_token=${API_KEY()}`,
+            { responseType: 'arraybuffer' }
+        );
+        const contentType = directRes.headers['content-type'] || '';
+        if (!contentType.includes('pdf') && !contentType.includes('octet-stream')) {
+            // Retornou HTML — documento não disponível para download ainda
+            throw new Error(`ClickSign retornou conteúdo inesperado (${contentType}). O documento pode ainda estar em processamento.`);
+        }
+        fileBuffer = Buffer.from(directRes.data);
+    }
+
+    const filename = `documento_assinado_${documentKey}.pdf`;
+    return { data: fileBuffer, filename };
+}
+
 module.exports = {
     uploadDocumento,
     criarSignatario,
     adicionarSignatario,
     notificarSignatario,
     buscarStatus,
-    cancelarDocumento
+    cancelarDocumento,
+    downloadDocumentoAssinado
 };

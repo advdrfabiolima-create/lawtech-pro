@@ -774,6 +774,10 @@ function renderizarTabela(lista) {
             ? `<button class="btn-icon" onclick="verificarStatusAssinatura(${d.assinatura_id}, ${d.id})" title="Verificar status da assinatura" style="color:#d97706;"><i data-lucide="refresh-cw" style="width:14px;height:14px;"></i></button>`
             : '';
 
+        const btnBaixarAssinado = (d.assinatura_id && d.assinatura_status === 'concluido')
+            ? `<button class="btn-icon" onclick="baixarDocumentoAssinado(${d.assinatura_id})" title="Baixar documento assinado" style="color:#16a34a;"><i data-lucide="file-check" style="width:15px;height:15px;"></i></button>`
+            : '';
+
         const assinaturaBadge = d.assinatura_status === 'concluido'
             ? `<span class="badge-assinatura-concluido" title="Documento assinado">✅ Assinado</span>`
             : (d.assinatura_status === 'enviado' || d.assinatura_status === 'em_assinatura')
@@ -804,6 +808,7 @@ function renderizarTabela(lista) {
                     <button class="btn-icon" onclick="abrirNovaVersao(${d.id})" title="Upload nova versão"><i data-lucide="upload" style="width:15px;height:15px;"></i></button>
                     ${btnAssinar}
                     ${btnVerificarStatus}
+                    ${btnBaixarAssinado}
                     ${excluirBtn}
                 </div>
             </td>
@@ -1171,6 +1176,31 @@ async function verificarStatusAssinatura(assId, docId) {
         }
     } catch (err) {
         alert('Erro ao verificar status da assinatura.');
+    }
+}
+
+async function baixarDocumentoAssinado(assId) {
+    try {
+        const res = await fetch(`/api/assinaturas/${assId}/download`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            alert('Erro ao baixar documento assinado: ' + (err.erro || res.statusText));
+            return;
+        }
+        const disposition = res.headers.get('Content-Disposition') || '';
+        const match = disposition.match(/filename="?([^";\n]+)"?/i);
+        const filename = match ? match[1] : 'documento_assinado.pdf';
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        alert('Erro ao baixar documento assinado.');
     }
 }
 

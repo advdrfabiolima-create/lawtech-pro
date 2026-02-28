@@ -70,6 +70,16 @@ if (process.env.NODE_ENV === 'production') {
 // CRÍTICO: Esta rota DEVE vir ANTES do express.json() para receber raw body
 app.use('/webhook', stripeWebhookRoutes);
 
+// --- 4c. WEBHOOK CLICKSIGN — captura raw body para verificação HMAC ---
+// Deve vir ANTES do express.json() para ter acesso ao body bruto
+app.use('/webhook/clicksign', express.raw({ type: 'application/json', limit: '5mb' }), (req, res, next) => {
+    if (Buffer.isBuffer(req.body)) {
+        req.rawBody = req.body.toString('utf8');
+        try { req.body = JSON.parse(req.rawBody); } catch (e) { req.body = {}; }
+    }
+    next();
+});
+
 // --- 5. MIDDLEWARE DE SEGURANÃ‡A MÃXIMA (MASTER ADMIN) ---
 const masterAdminOnly = (req, res, next) => {
     if (req.user && req.user.eh_master) {

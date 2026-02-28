@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const axios = require('axios');
 const pool = require('../config/db');
 const clicksignService = require('../services/clicksignService');
@@ -214,36 +215,131 @@ router.get('/documentos/:id/assinatura', async (req, res) => {
 
 // ─── POST /webhook/clicksign (PÚBLICO — sem authMiddleware) ──────────────────
 // Recebe notificações de status do ClickSign
+// Eventos tratados: sign (assinatura parcial), auto_close/closed (concluído),
+//                   cancel/canceled (cancelado), deadline (expirado)
 router.post('/clicksign', async (req, res) => {
     try {
+        // 1. Verificar assinatura HMAC (se CLICKSIGN_WEBHOOK_SECRET estiver configurado)
+        const webhookSecret = process.env.CLICKSIGN_WEBHOOK_SECRET;
+        if (webhookSecret) {
+            const signature = req.headers['x-clicksign-hmac-sha256'];
+            if (!signature) {
+                console.warn('[WEBHOOK/ClickSign] Requisição rejeitada: sem header HMAC');
+                return res.sendStatus(401);
+            }
+            const expected = crypto
+                .createHmac('sha256', webhookSecret)
+                .update(req.rawBody || JSON.stringify(req.body))
+                .digest('hex');
+            if (signature !== expected) {
+                console.warn('[WEBHOOK/ClickSign] Requisição rejeitada: assinatura HMAC inválida');
+                return res.sendStatus(401);
+            }
+        }
+
         const event = req.body?.event;
         if (!event) return res.sendStatus(200);
 
+        const eventName = event.name;         // 'sign', 'auto_close', 'cancel', 'deadline', etc.
         const docData = event?.data?.document;
         if (!docData) return res.sendStatus(200);
 
         const documentKey = docData.key;
-        const csStatus = docData.status;
+        const csStatus = docData.status;      // 'running', 'closed', 'canceled'
 
-        if (!documentKey || !csStatus) return res.sendStatus(200);
+        if (!documentKey) return res.sendStatus(200);
 
+        console.log(`[WEBHOOK/ClickSign] Evento "${eventName}" — doc ${documentKey} — status ClickSign: "${csStatus}"`);
+
+        // 2. Buscar o registro de assinatura na base
+        const assRes = await pool.query(
+            `SELECT id, documento_id, escritorio_id, usuario_id, status, signatarios
+             FROM assinaturas_digitais WHERE clicksign_document_key = $1`,
+            [documentKey]
+        );
+        if (assRes.rows.length === 0) {
+            console.warn(`[WEBHOOK/ClickSign] Documento ${documentKey} não encontrado na base — ignorando`);
+            return res.sendStatus(200);
+        }
+        const ass = assRes.rows[0];
+
+        // 3. Evento "sign": alguém assinou (pode haver mais signatários pendentes)
+        if (eventName === 'sign') {
+            const signerData = event.data?.signer;
+            if (signerData?.key) {
+                const signatariosAtual = Array.isArray(ass.signatarios) ? ass.signatarios : [];
+                const signatariosAtualizados = signatariosAtual.map(s =>
+                    s.signer_key === signerData.key
+                        ? { ...s, assinado: true, assinado_em: signerData.signed_at || new Date().toISOString() }
+                        : s
+                );
+                await pool.query(`
+                    UPDATE assinaturas_digitais
+                    SET signatarios   = $1::jsonb,
+                        status        = 'em_assinatura',
+                        atualizado_em = NOW()
+                    WHERE id = $2 AND status NOT IN ('concluido', 'cancelado')
+                `, [JSON.stringify(signatariosAtualizados), ass.id]);
+                console.log(`[WEBHOOK/ClickSign] Signer ${signerData.key} (${signerData.email || '?'}) assinou — doc ${documentKey} em_assinatura`);
+            }
+            return res.sendStatus(200);
+        }
+
+        // 4. Evento "deadline": prazo expirado → cancelado
+        if (eventName === 'deadline') {
+            await pool.query(`
+                UPDATE assinaturas_digitais
+                SET status        = 'cancelado',
+                    atualizado_em = NOW()
+                WHERE id = $1 AND status NOT IN ('concluido', 'cancelado')
+            `, [ass.id]);
+            console.log(`[WEBHOOK/ClickSign] Prazo expirado — doc ${documentKey} cancelado`);
+            return res.sendStatus(200);
+        }
+
+        // 5. Demais eventos: basear decisão no status do documento ClickSign
         const statusMap = {
-            closed: 'concluido',
+            closed:   'concluido',
             canceled: 'cancelado'
         };
-
         const novoStatus = statusMap[csStatus];
-        if (!novoStatus) return res.sendStatus(200);
+        if (!novoStatus || novoStatus === ass.status) return res.sendStatus(200);
 
         await pool.query(`
             UPDATE assinaturas_digitais
-            SET status = $1,
+            SET status        = $1,
                 atualizado_em = NOW(),
-                concluido_em = CASE WHEN $1 = 'concluido' THEN NOW() ELSE concluido_em END
-            WHERE clicksign_document_key = $2
-        `, [novoStatus, documentKey]);
+                concluido_em  = $3
+            WHERE id = $2
+        `, [novoStatus, ass.id, novoStatus === 'concluido' ? new Date() : ass.concluido_em]);
 
-        console.log(`[WEBHOOK/ClickSign] Documento ${documentKey} → ${novoStatus}`);
+        console.log(`[WEBHOOK/ClickSign] Documento ${documentKey}: ${ass.status} → ${novoStatus}`);
+
+        // 6. Notificação interna ao escritório quando assinatura for concluída
+        if (novoStatus === 'concluido') {
+            try {
+                const docRes = await pool.query(
+                    'SELECT nome FROM documentos WHERE id = $1',
+                    [ass.documento_id]
+                );
+                const nomeDoc = docRes.rows[0]?.nome || 'Documento';
+                await pool.query(`
+                    INSERT INTO notificacoes
+                        (escritorio_id, usuario_id, prazo_id, tipo, titulo, mensagem)
+                    VALUES ($1, $2, NULL, 'inapp', $3, $4)
+                `, [
+                    ass.escritorio_id,
+                    ass.usuario_id,
+                    '✅ Documento assinado com sucesso',
+                    `O documento "${nomeDoc}" foi assinado por todos os signatários.`
+                ]);
+                console.log(`[WEBHOOK/ClickSign] Notificação criada para assinatura concluída — doc #${ass.documento_id}`);
+            } catch (notifErr) {
+                // Não bloqueia a resposta ao ClickSign
+                console.warn('[WEBHOOK/ClickSign] Falha ao criar notificação:', notifErr.message);
+            }
+        }
+
         res.sendStatus(200);
 
     } catch (err) {
@@ -278,11 +374,11 @@ router.post('/assinaturas/:id/verificar', async (req, res) => {
         if (novoStatus !== ass.status) {
             await pool.query(`
                 UPDATE assinaturas_digitais
-                SET status = $1,
+                SET status        = $1,
                     atualizado_em = NOW(),
-                    concluido_em = CASE WHEN $1 = 'concluido' THEN NOW() ELSE concluido_em END
+                    concluido_em  = $3
                 WHERE id = $2
-            `, [novoStatus, assId]);
+            `, [novoStatus, assId, novoStatus === 'concluido' ? new Date() : ass.concluido_em]);
             console.log(`[ASSINATURA] Verificação manual: #${assId} ${ass.status} → ${novoStatus}`);
         }
 
@@ -290,6 +386,57 @@ router.post('/assinaturas/:id/verificar', async (req, res) => {
     } catch (err) {
         console.error('[ASSINATURA] Erro ao verificar status:', err.message);
         res.status(500).json({ erro: 'Erro ao verificar status no ClickSign' });
+    }
+});
+
+// ─── GET /api/assinaturas/:id/download ───────────────────────────────────────
+// Baixa o PDF assinado diretamente do ClickSign
+router.get('/assinaturas/:id/download', async (req, res) => {
+    if (!req.user) return res.status(401).json({ erro: 'Não autenticado' });
+
+    const escritorioId = req.user.escritorio_id;
+    const assId = parseInt(req.params.id);
+
+    try {
+        const assRes = await pool.query(
+            `SELECT ad.*, d.nome AS doc_nome
+             FROM assinaturas_digitais ad
+             JOIN documentos d ON d.id = ad.documento_id
+             WHERE ad.id = $1 AND ad.escritorio_id = $2`,
+            [assId, escritorioId]
+        );
+        if (assRes.rows.length === 0) {
+            return res.status(404).json({ erro: 'Assinatura não encontrada' });
+        }
+        const ass = assRes.rows[0];
+
+        if (ass.status !== 'concluido') {
+            return res.status(400).json({ erro: 'O documento ainda não foi assinado por todos os signatários' });
+        }
+        if (!ass.clicksign_document_key) {
+            return res.status(400).json({ erro: 'Chave ClickSign não disponível' });
+        }
+
+        const { data, filename } = await clicksignService.downloadDocumentoAssinado(ass.clicksign_document_key);
+
+        const safeName = (ass.doc_nome || filename)
+            .replace(/[^a-zA-Z0-9À-ÿ _.-]/g, '_')
+            .replace(/\s+/g, '_');
+        const downloadName = `${safeName}_assinado.pdf`;
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${downloadName}"`);
+        res.setHeader('Content-Length', data.length);
+        res.send(data);
+
+    } catch (err) {
+        const httpStatus = err.response?.status;
+        const rawData = err.response?.data;
+        const bodyText = rawData
+            ? (Buffer.isBuffer(rawData) ? rawData.toString('utf8').slice(0, 300) : JSON.stringify(rawData).slice(0, 300))
+            : err.message;
+        console.error(`[ASSINATURA] Erro ao baixar documento assinado (HTTP ${httpStatus || 'n/a'}):`, bodyText);
+        res.status(500).json({ erro: err.message || 'Erro ao baixar documento assinado do ClickSign' });
     }
 });
 
