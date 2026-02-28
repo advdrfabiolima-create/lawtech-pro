@@ -1970,17 +1970,20 @@
                 return;
             }
 
+            const primeiroNome = (cliente || 'Cliente').trim().split(' ')[0];
             const dataFormatada = data ? new Date(data).toLocaleDateString('pt-BR') : '---';
             const horaFormatada = hora ? hora.slice(0,5) : '--:--';
-            
-            const mensagem = `🔔 *LEMBRETE DE AUDIÊNCIA*\n\n` +
-                `📋 *Processo:* ${processo}\n` +
-                `📅 *Data:* ${dataFormatada}\n` +
-                `🕐 *Horário:* ${horaFormatada}\n` +
-                `⚖️ *Tipo:* ${tipo}\n` +
-                `📍 *Local:* ${local || 'A informar'}\n\n` +
+
+            const mensagem =
+                `Ola, *${primeiroNome}*!\n\n` +
+                `*LEMBRETE DE AUDIENCIA*\n\n` +
+                `*Processo:* ${processo}\n` +
+                `*Data:* ${dataFormatada}\n` +
+                `*Horario:* ${horaFormatada}\n` +
+                `*Tipo:* ${tipo}\n` +
+                `*Local:* ${local || 'A informar'}\n\n` +
                 `Por favor, confirme seu comparecimento.`;
-            
+
             const tel = telefone.replace(/\D/g, '');
             const url = `https://wa.me/55${tel}?text=${encodeURIComponent(mensagem)}`;
             window.open(url, '_blank');
