@@ -779,12 +779,15 @@ function renderizarTabela(lista) {
 
         let btnAssinar = '';
         if (d.mimetype === 'application/pdf' && d.processo_id) {
-            if (!addonClicksign.ativo) {
+            if (!addonClicksign.api_key_configurada) {
+                btnAssinar = `<button class="btn-icon" onclick="abrirModalAddon()" title="Configurar Assinatura Digital" style="color:#7c3aed;"><i data-lucide="lock" style="width:15px;height:15px;"></i></button>`;
+            } else if (!addonClicksign.ativo) {
                 btnAssinar = `<button class="btn-icon" onclick="abrirModalAddon()" title="Ativar Assinatura Digital" style="color:#7c3aed;"><i data-lucide="lock" style="width:15px;height:15px;"></i></button>`;
-            } else if (!addonClicksign.disponivel) {
+            } else if (addonClicksign.ativo && !addonClicksign.disponivel) {
                 btnAssinar = `<button class="btn-icon" disabled title="Limite mensal atingido (${addonClicksign.usado}/${addonClicksign.limite})" style="color:#94a3b8;cursor:not-allowed;"><i data-lucide="ban" style="width:15px;height:15px;"></i></button>`;
             } else {
-                btnAssinar = `<button class="btn-icon" onclick="abrirModalAssinar(${d.id}, ${d.processo_id})" title="Assinatura Digital (${addonClicksign.usado}/${addonClicksign.limite} usadas)" style="color:#7c3aed;"><i data-lucide="pen-line" style="width:15px;height:15px;"></i></button>`;
+                const quota = addonClicksign.plano_tem_acesso_gratis ? 'ilimitadas' : `${addonClicksign.usado}/${addonClicksign.limite} usadas`;
+                btnAssinar = `<button class="btn-icon" onclick="abrirModalAssinar(${d.id}, ${d.processo_id})" title="Assinatura Digital (${quota})" style="color:#7c3aed;"><i data-lucide="pen-line" style="width:15px;height:15px;"></i></button>`;
             }
         }
 
@@ -1321,16 +1324,25 @@ async function carregarAddonStatus() {
 }
 
 function abrirModalAddon() {
-    const ativo = addonClicksign.ativo;
-    const usado = addonClicksign.usado;
-    const limite = addonClicksign.limite;
-    const periodoInicio = addonClicksign.periodo_inicio;
-
+    const { ativo, addon_ativo, plano_tem_acesso_gratis, usado, limite, periodo_inicio, api_key_configurada } = addonClicksign;
     let avisoHtml = '';
-    if (ativo && usado >= limite) {
+
+    if (!api_key_configurada) {
+        avisoHtml = `
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 14px;margin-bottom:16px;color:#1e40af;font-size:13px;">
+            🔑 Configure sua API Key do ClickSign em
+            <a href="/config-page" style="color:#7c3aed;font-weight:700;text-decoration:none;">Configurações</a>
+            para começar a usar a Assinatura Digital.
+        </div>`;
+    } else if (!plano_tem_acesso_gratis && !addon_ativo) {
+        avisoHtml = `
+        <div style="background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:12px 14px;margin-bottom:16px;color:#713f12;font-size:13px;">
+            ⚠️ Seu plano <strong>Básico</strong> requer o add-on de Assinatura Digital (R$ 49,90/mês).
+        </div>`;
+    } else if (ativo && !plano_tem_acesso_gratis && usado >= limite) {
         let renovaTexto = '';
-        if (periodoInicio) {
-            const proxRenova = new Date(periodoInicio);
+        if (periodo_inicio) {
+            const proxRenova = new Date(periodo_inicio);
             proxRenova.setMonth(proxRenova.getMonth() + 1);
             renovaTexto = ` Renova automaticamente em ${proxRenova.toLocaleDateString('pt-BR')}.`;
         }

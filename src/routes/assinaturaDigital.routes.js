@@ -80,18 +80,31 @@ router.post('/documentos/:id/assinar', async (req, res) => {
     const { mensagem, deadline } = req.body;
 
     try {
-        // 0. Verificar se o add-on ClickSign está ativo e com quota disponível
-        const addonRes = await pool.query(
-            'SELECT clicksign_addon_ativo, clicksign_addon_limite, clicksign_addon_usado FROM escritorios WHERE id = $1',
-            [escritorioId]
-        );
-        const addon = addonRes.rows[0];
-        if (!addon?.clicksign_addon_ativo) {
+        // 0. Verificar acesso ao ClickSign (plano + addon + chave API)
+        const escritorioRes = await pool.query(`
+            SELECT e.clicksign_addon_ativo, e.clicksign_addon_limite, e.clicksign_addon_usado,
+                   e.clicksign_api_key, p.slug AS plano_slug
+            FROM escritorios e
+            LEFT JOIN planos p ON p.id = e.plano_id
+            WHERE e.id = $1
+        `, [escritorioId]);
+        const esc = escritorioRes.rows[0];
+        const planoSlug = esc?.plano_slug || 'basico';
+        const planosGratis = ['intermediario', 'avancado', 'premium'];
+        const acesso = planosGratis.includes(planoSlug) || esc?.clicksign_addon_ativo;
+
+        if (!esc?.clicksign_api_key) {
+            return res.status(403).json({ erro: 'clicksign_key_ausente' });
+        }
+        if (!acesso) {
             return res.status(403).json({ erro: 'addon_inativo' });
         }
-        if (addon.clicksign_addon_usado >= addon.clicksign_addon_limite) {
+        // Quota só se aplica ao plano básico
+        if (planoSlug === 'basico' && esc.clicksign_addon_usado >= esc.clicksign_addon_limite) {
             return res.status(403).json({ erro: 'addon_limite' });
         }
+
+        const clicksignApiKey = esc.clicksign_api_key;
 
         // 1. Buscar e validar o documento
         const docRes = await pool.query(
@@ -153,16 +166,17 @@ router.post('/documentos/:id/assinar', async (req, res) => {
             filePath,
             doc.arquivo_original,
             deadline || null,
-            doc.mimetype
+            doc.mimetype,
+            clicksignApiKey
         );
         console.log('[ClickSign] Etapa 1 OK — document_key:', documentKey);
 
         console.log('[ClickSign] Etapa 2: criar signatário:', parte.pessoa_email);
-        const signerKey = await clicksignService.criarSignatario(parte.pessoa_email, parte.pessoa_nome);
+        const signerKey = await clicksignService.criarSignatario(parte.pessoa_email, parte.pessoa_nome, clicksignApiKey);
         console.log('[ClickSign] Etapa 2 OK — signer_key:', signerKey);
 
         console.log('[ClickSign] Etapa 3: adicionar signatário ao documento...');
-        const { requestSignatureKey, signingUrl } = await clicksignService.adicionarSignatario(documentKey, signerKey, mensagem || null);
+        const { requestSignatureKey, signingUrl } = await clicksignService.adicionarSignatario(documentKey, signerKey, mensagem || null, clicksignApiKey);
         console.log('[ClickSign] Etapa 3 OK — request_signature_key:', requestSignatureKey);
         console.log('[ClickSign] Etapa 3 — signing URL:', signingUrl);
 
@@ -385,7 +399,10 @@ router.post('/assinaturas/:id/verificar', async (req, res) => {
         const ass = assRes.rows[0];
         if (!ass.clicksign_document_key) return res.status(400).json({ erro: 'Chave ClickSign não disponível' });
 
-        const { status: csStatus } = await clicksignService.buscarStatus(ass.clicksign_document_key);
+        const escRes = await pool.query('SELECT clicksign_api_key FROM escritorios WHERE id = $1', [escritorioId]);
+        const clicksignApiKey = escRes.rows[0]?.clicksign_api_key || null;
+
+        const { status: csStatus } = await clicksignService.buscarStatus(ass.clicksign_document_key, clicksignApiKey);
 
         const statusMap = { closed: 'concluido', canceled: 'cancelado', running: 'em_assinatura' };
         const novoStatus = statusMap[csStatus] || ass.status;
@@ -436,7 +453,10 @@ router.get('/assinaturas/:id/download', async (req, res) => {
             return res.status(400).json({ erro: 'Chave ClickSign não disponível' });
         }
 
-        const { data, filename } = await clicksignService.downloadDocumentoAssinado(ass.clicksign_document_key);
+        const escResDown = await pool.query('SELECT clicksign_api_key FROM escritorios WHERE id = $1', [escritorioId]);
+        const clicksignApiKeyDown = escResDown.rows[0]?.clicksign_api_key || null;
+
+        const { data, filename } = await clicksignService.downloadDocumentoAssinado(ass.clicksign_document_key, clicksignApiKeyDown);
 
         const safeName = (ass.doc_nome || filename)
             .replace(/[^a-zA-Z0-9À-ÿ _.-]/g, '_')

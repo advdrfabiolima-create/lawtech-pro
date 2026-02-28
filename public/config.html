@@ -742,6 +742,60 @@ input, textarea, select {
     </div>
    
 
+    <!-- Assinatura Digital ClickSign (BYOK) -->
+    <div class="card" id="card-clicksign">
+        <div class="card-title">
+            <i data-lucide="pen-line"></i> Assinatura Digital — ClickSign
+        </div>
+
+        <div id="clicksign-loading" style="color:var(--muted);font-size:14px;">Carregando...</div>
+
+        <div id="clicksign-conteudo" style="display:none;">
+            <!-- Badge de status -->
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+                <span id="clicksign-badge-plano" style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;"></span>
+                <span id="clicksign-badge-chave" style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;"></span>
+            </div>
+
+            <!-- Aviso add-on para plano básico -->
+            <div id="clicksign-aviso-addon" style="display:none;background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#713f12;">
+                ⚠️ Seu plano <strong>Básico</strong> requer o add-on de Assinatura Digital (R$ 49,90/mês) para usar este recurso.
+                <a href="/documentos-page" style="color:#7c3aed;font-weight:700;text-decoration:none;margin-left:6px;">Ativar add-on →</a>
+            </div>
+
+            <!-- Campo API Key -->
+            <div style="margin-bottom:16px;">
+                <label style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:6px;">
+                    Sua API Key do ClickSign
+                </label>
+                <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">
+                    Obtenha em <strong>app.clicksign.com → Configurações → Integrações → API</strong>. Cada escritório usa sua própria conta e plano ClickSign.
+                </p>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="password" id="clicksignApiKeyInput" placeholder="Insira sua API Key do ClickSign"
+                        style="flex:1;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:monospace;background:#f8fafc;">
+                    <button onclick="toggleVerChaveClicksign()" title="Mostrar/ocultar chave"
+                        style="padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;cursor:pointer;font-size:14px;">
+                        👁
+                    </button>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button onclick="salvarChaveClicksign()" id="btnSalvarClicksign"
+                    style="padding:10px 22px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">
+                    Salvar Chave
+                </button>
+                <button onclick="removerChaveClicksign()" id="btnRemoverClicksign"
+                    style="padding:10px 18px;background:#fef2f2;color:#991b1b;border:2px solid #fecaca;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;display:none;">
+                    Remover Chave
+                </button>
+            </div>
+
+            <p id="clicksign-chave-msg" style="display:none;margin-top:10px;font-size:13px;font-weight:600;"></p>
+        </div>
+    </div>
+
     <!-- Autenticação de Dois Fatores (2FA) -->
     <div class="card" id="card-2fa">
         <div class="card-title">
@@ -1739,6 +1793,102 @@ async function confirmarDesativacao2FA() {
     }
 }
 
+// ─── ClickSign BYOK ──────────────────────────────────────────────────────────
+async function carregarStatusClicksign() {
+    try {
+        const res = await fetch('/api/addon/clicksign/status', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const d = await res.json();
+
+        document.getElementById('clicksign-loading').style.display = 'none';
+        document.getElementById('clicksign-conteudo').style.display = 'block';
+
+        // Badge plano
+        const badgePlano = document.getElementById('clicksign-badge-plano');
+        if (d.plano_tem_acesso_gratis) {
+            badgePlano.textContent = '✅ Incluso no seu plano';
+            badgePlano.style.cssText = 'display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;background:#d1fae5;color:#065f46;';
+        } else {
+            badgePlano.textContent = d.addon_ativo ? `✅ Add-on ativo (${d.usado}/${d.limite} usadas)` : '⚠️ Add-on inativo';
+            badgePlano.style.cssText = `display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;background:${d.addon_ativo ? '#d1fae5;color:#065f46' : '#fef3c7;color:#92400e'};`;
+        }
+
+        // Badge chave
+        const badgeChave = document.getElementById('clicksign-badge-chave');
+        badgeChave.textContent = d.api_key_configurada ? '🔑 Chave configurada' : '🔓 Chave não configurada';
+        badgeChave.style.cssText = `display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;background:${d.api_key_configurada ? '#dbeafe;color:#1e40af' : '#f1f5f9;color:#475569'};`;
+
+        // Aviso add-on para básico
+        const avisoAddon = document.getElementById('clicksign-aviso-addon');
+        if (!d.plano_tem_acesso_gratis && !d.addon_ativo) {
+            avisoAddon.style.display = 'block';
+        }
+
+        // Botão remover só aparece se já tem chave
+        document.getElementById('btnRemoverClicksign').style.display = d.api_key_configurada ? 'inline-block' : 'none';
+
+        // Placeholder indica se já está configurada
+        document.getElementById('clicksignApiKeyInput').placeholder = d.api_key_configurada
+            ? '••••••••••••••• (configurada — cole para substituir)'
+            : 'Cole sua API Key do ClickSign aqui';
+    } catch { /* silencioso */ }
+}
+
+function toggleVerChaveClicksign() {
+    const input = document.getElementById('clicksignApiKeyInput');
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+async function salvarChaveClicksign() {
+    const chave = document.getElementById('clicksignApiKeyInput').value.trim();
+    if (!chave) { alert('Cole sua API Key do ClickSign antes de salvar.'); return; }
+
+    const btn = document.getElementById('btnSalvarClicksign');
+    btn.disabled = true;
+    btn.textContent = 'Salvando…';
+
+    try {
+        const res = await fetch('/api/addon/clicksign/chave', {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ api_key: chave })
+        });
+        const d = await res.json();
+        if (!res.ok) { alert(d.erro || 'Erro ao salvar.'); return; }
+
+        document.getElementById('clicksignApiKeyInput').value = '';
+        mostrarMsgClicksign('✅ Chave salva com sucesso!', '#065f46');
+        carregarStatusClicksign();
+    } catch { alert('Erro de conexão.'); }
+    finally { btn.disabled = false; btn.textContent = 'Salvar Chave'; }
+}
+
+async function removerChaveClicksign() {
+    if (!confirm('Remover a chave ClickSign? A Assinatura Digital ficará indisponível até configurar uma nova chave.')) return;
+
+    try {
+        const res = await fetch('/api/addon/clicksign/chave', {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ api_key: null })
+        });
+        if (res.ok) {
+            mostrarMsgClicksign('Chave removida.', '#64748b');
+            carregarStatusClicksign();
+        }
+    } catch { alert('Erro de conexão.'); }
+}
+
+function mostrarMsgClicksign(texto, cor) {
+    const el = document.getElementById('clicksign-chave-msg');
+    el.textContent = texto;
+    el.style.color = cor;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
 window.onload = () => {
     carregarBancos();
     carregarInfoRodape();
@@ -1747,6 +1897,7 @@ window.onload = () => {
     carregarChaveEscavador();
     carregarDataTrial(); // 🆕 NOVA LINHA
     carregarStatus2FA();
+    carregarStatusClicksign();
 
     const elemento = document.getElementById('ID_DO_ELEMENTO');
     if (elemento) {

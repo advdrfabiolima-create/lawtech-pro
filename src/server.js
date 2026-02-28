@@ -625,13 +625,14 @@ require('./cron/crmFollowup');
         await pool.query(`ALTER TABLE assinaturas_digitais ADD COLUMN IF NOT EXISTS link_assinatura TEXT`);
         console.log('✅ [SISTEMA] Tabela assinaturas_digitais verificada.');
 
-        // ClickSign Add-on (módulo pago)
+        // ClickSign Add-on (módulo pago) + BYOK
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_ativo BOOLEAN DEFAULT false`);
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_limite INTEGER DEFAULT 20`);
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_usado INTEGER DEFAULT 0`);
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_periodo_inicio TIMESTAMP DEFAULT NULL`);
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_stripe_sub_id VARCHAR(200) DEFAULT NULL`);
-        console.log('✅ [SISTEMA] Colunas ClickSign add-on verificadas.');
+        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_api_key TEXT DEFAULT NULL`);
+        console.log('✅ [SISTEMA] Colunas ClickSign add-on e BYOK verificadas.');
 
         iniciarAgendamentos();
 
