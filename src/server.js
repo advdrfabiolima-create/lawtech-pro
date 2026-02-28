@@ -40,6 +40,7 @@ const contatoRoutes = require('./routes/contato.routes');
 const documentosRoutes = require('./routes/documentos.routes');
 const assinaturaDigitalRoutes = require('./routes/assinaturaDigital.routes');
 const addonClicksignRoutes = require('./routes/addonClicksign.routes');
+const calendarSyncRoutes = require('./routes/calendarSync.routes');
 
 // --- 2. MIDDLEWARES DE AUTENTICAÃ‡ÃƒO ---
 const authMiddleware = require('./middlewares/authMiddleware');
@@ -229,6 +230,7 @@ app.use('/api', authMiddleware, verificarPagamento, documentosRoutes);
 app.use('/webhook', assinaturaDigitalRoutes); // ClickSign webhook — público (APÓS express.json)
 app.use('/api', authMiddleware, verificarPagamento, assinaturaDigitalRoutes);
 app.use('/api', authMiddleware, verificarPagamento, addonClicksignRoutes);
+app.use('/', calendarSyncRoutes);
 
 // âœ… Rota do monitor admin
 app.get('/systems/monitor', (req, res) => {
@@ -639,6 +641,12 @@ require('./cron/crmFollowup');
             ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS preferencia_pagamento VARCHAR(10) DEFAULT 'cartao'
         `);
         console.log('✅ [SISTEMA] Coluna preferencia_pagamento verificada.');
+
+        // iCal Feed — token secreto por escritório
+        await pool.query(`
+            ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS ical_token VARCHAR(64)
+        `);
+        console.log('✅ [SISTEMA] Coluna ical_token verificada.');
 
         iniciarAgendamentos();
 

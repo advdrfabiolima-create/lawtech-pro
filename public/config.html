@@ -790,6 +790,65 @@ input, textarea, select {
         </div>
     </div>
 
+    <!-- Sincronização de Calendário (iCal Feed) -->
+    <div class="card" id="card-ical">
+        <div class="card-title">
+            <i data-lucide="calendar-days"></i> Sincronização de Calendário
+            <span style="display:inline-block;margin-left:10px;padding:3px 10px;background:#d1fae5;color:#065f46;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;">✅ Incluso no plano</span>
+        </div>
+
+        <p style="font-size:14px;color:var(--text-secondary);margin:0 0 16px;">
+            Assine seu calendário jurídico no Google Calendar, Outlook ou Apple Calendar. Prazos, audiências e feriados aparecem automaticamente.
+        </p>
+
+        <div id="ical-url-section" style="display:none;">
+            <div style="margin-bottom:12px;">
+                <label style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:6px;">URL do Feed iCal</label>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="text" id="icalUrlInput" readonly
+                        style="flex:1;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:monospace;background:#f8fafc;color:#334155;">
+                    <button onclick="copiarUrlIcal()" id="btnCopiarIcal"
+                        style="padding:10px 16px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;">
+                        📋 Copiar
+                    </button>
+                </div>
+            </div>
+            <button onclick="regenerarTokenIcal()" id="btnRegenerarIcal"
+                style="padding:8px 16px;background:#fef2f2;color:#991b1b;border:2px solid #fecaca;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
+                🔄 Regenerar Token
+            </button>
+            <p id="ical-msg" style="display:none;margin-top:10px;font-size:13px;font-weight:600;"></p>
+        </div>
+
+        <div id="ical-loading" style="color:var(--muted);font-size:14px;margin-bottom:12px;">Carregando...</div>
+
+        <details style="margin-top:16px;">
+            <summary style="cursor:pointer;font-size:14px;font-weight:600;color:var(--primary);user-select:none;">📖 Como adicionar ao Google Calendar</summary>
+            <ol style="font-size:13px;color:var(--text-secondary);margin:10px 0 0 0;padding-left:20px;line-height:1.7;">
+                <li>Abra o <strong>Google Calendar</strong> → no painel esquerdo, clique em <strong>"+"</strong> ao lado de "Outros calendários" → <strong>"A partir de URL"</strong></li>
+                <li>Cole a URL do Feed iCal acima e clique em <strong>"Adicionar calendário"</strong></li>
+                <li>Pronto! Prazos, audiências e feriados aparecerão automaticamente. O Google atualiza a cada 12–24 h.</li>
+            </ol>
+        </details>
+
+        <details style="margin-top:8px;">
+            <summary style="cursor:pointer;font-size:14px;font-weight:600;color:var(--primary);user-select:none;">📖 Como adicionar ao Outlook</summary>
+            <ol style="font-size:13px;color:var(--text-secondary);margin:10px 0 0 0;padding-left:20px;line-height:1.7;">
+                <li>Abra o <strong>Outlook</strong> → clique em <strong>Calendário</strong> → <strong>"Adicionar calendário"</strong> → <strong>"Da Internet"</strong></li>
+                <li>Cole a URL do Feed iCal e clique em <strong>"OK"</strong></li>
+                <li>O Outlook sincronizará automaticamente a cada 1–3 h.</li>
+            </ol>
+        </details>
+
+        <details style="margin-top:8px;">
+            <summary style="cursor:pointer;font-size:14px;font-weight:600;color:var(--primary);user-select:none;">📖 Como adicionar ao Apple Calendar (iPhone/Mac)</summary>
+            <ol style="font-size:13px;color:var(--text-secondary);margin:10px 0 0 0;padding-left:20px;line-height:1.7;">
+                <li>No <strong>Mac</strong>: Abra o Calendário → menu <strong>Arquivo → Nova Assinatura de Calendário</strong> → cole a URL → clique em <strong>Assinar</strong></li>
+                <li>No <strong>iPhone</strong>: Configurações → Calendário → Contas → Adicionar conta → Outra → Adicionar Calendário Assinado → cole a URL</li>
+            </ol>
+        </details>
+    </div>
+
     <!-- Autenticação de Dois Fatores (2FA) -->
     <div class="card" id="card-2fa">
         <div class="card-title">
@@ -1787,6 +1846,70 @@ async function confirmarDesativacao2FA() {
     }
 }
 
+// ─── iCal Feed ───────────────────────────────────────────────────────────────
+async function carregarStatusIcal() {
+    try {
+        const res = await fetch('/api/calendario/ical/status', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        document.getElementById('ical-loading').style.display = 'none';
+        if (!res.ok) return;
+        const d = await res.json();
+        if (d.url) {
+            document.getElementById('icalUrlInput').value = d.url;
+            document.getElementById('ical-url-section').style.display = 'block';
+        }
+        // Botão regenerar visível apenas para admin
+        fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok && data.usuario.role !== 'admin') {
+                    const btn = document.getElementById('btnRegenerarIcal');
+                    if (btn) btn.style.display = 'none';
+                }
+            }).catch(() => {});
+    } catch { document.getElementById('ical-loading').style.display = 'none'; }
+}
+
+async function copiarUrlIcal() {
+    const url = document.getElementById('icalUrlInput').value;
+    if (!url) return;
+    try {
+        await navigator.clipboard.writeText(url);
+        const btn = document.getElementById('btnCopiarIcal');
+        const orig = btn.textContent;
+        btn.textContent = '✅ Copiado!';
+        btn.style.background = '#059669';
+        setTimeout(() => { btn.textContent = orig; btn.style.background = ''; }, 2000);
+    } catch {
+        // fallback para browsers sem clipboard API
+        const input = document.getElementById('icalUrlInput');
+        input.select();
+        document.execCommand('copy');
+        alert('URL copiada!');
+    }
+}
+
+async function regenerarTokenIcal() {
+    if (!confirm('Regenerar o token invalidará o link atual em todos os calendários assinados. Continuar?')) return;
+    try {
+        const res = await fetch('/api/calendario/ical/regenerar', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const d = await res.json();
+        if (!res.ok) { alert(d.erro || 'Erro ao regenerar token.'); return; }
+        if (d.url) {
+            document.getElementById('icalUrlInput').value = d.url;
+            const msg = document.getElementById('ical-msg');
+            msg.textContent = '✅ Token regenerado! Atualize a URL nos seus calendários.';
+            msg.style.color = '#065f46';
+            msg.style.display = 'block';
+            setTimeout(() => { msg.style.display = 'none'; }, 5000);
+        }
+    } catch { alert('Erro de conexão.'); }
+}
+
 // ─── ClickSign BYOK ──────────────────────────────────────────────────────────
 async function carregarStatusClicksign() {
     try {
@@ -1884,6 +2007,7 @@ window.onload = () => {
     carregarDataTrial(); // 🆕 NOVA LINHA
     carregarStatus2FA();
     carregarStatusClicksign();
+    carregarStatusIcal();
 
     const elemento = document.getElementById('ID_DO_ELEMENTO');
     if (elemento) {
