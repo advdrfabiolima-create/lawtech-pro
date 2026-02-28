@@ -1306,6 +1306,12 @@ async function carregarInfoRodape() {
             const groupData = document.getElementById('groupDataNascimento');
             if (groupData) groupData.style.display = tipoDoc === 'CPF' ? 'block' : 'none';
 
+            // Dados carregados do servidor = já estão salvos, desabilitar botão
+            const btnSalvar = document.getElementById('btnSalvarEscritorio');
+            const btnEditar = document.getElementById('btnEditarEscritorio');
+            if (btnSalvar) { btnSalvar.disabled = true; btnSalvar.innerHTML = '✅ Dados Salvos'; }
+            if (btnEditar) btnEditar.style.display = 'inline-block';
+
             if(d.renda_mensal && document.getElementById('confRendaMensal')) {
                 document.getElementById('confRendaMensal').value = 'R$ ' + parseFloat(d.renda_mensal).toLocaleString('pt-BR', {minimumFractionDigits: 2});
             }
