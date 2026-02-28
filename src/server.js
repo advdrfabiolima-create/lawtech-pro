@@ -199,6 +199,8 @@ app.use('/api/contato', contatoLimiter);
 // --- 7. SERVIR ARQUIVOS ESTÃTICOS ---
 const publicPath = path.join(__dirname, '..', 'public');
 app.use(express.static(publicPath));
+// Logos dos escritórios (upload por cliente, isolados por escritório_id)
+app.use('/logos', express.static(path.join(__dirname, 'uploads', 'logos')));
 
 // --- 8. APIs (ROTAS DE DADOS) ---
 app.use('/api/auth', authRoutes);
@@ -307,7 +309,7 @@ app.put('/api/config/escritorio', authMiddleware, async (req, res) => {
     const {
         nome, advogado_responsavel, oab, documento, dataNascimento, email,
         endereco, cidade, estado, cep, banco_codigo,
-        agencia, conta, conta_digito, pix_chave, renda_mensal, logo_arquivo
+        agencia, conta, conta_digito, pix_chave, renda_mensal
     } = req.body;
 
     try {
@@ -315,14 +317,12 @@ app.put('/api/config/escritorio', authMiddleware, async (req, res) => {
             `UPDATE escritorios SET
                 nome=$1, advogado_responsavel=$2, oab=$3, documento=$4, data_nascimento=$5, email=$6,
                 endereco=$7, cidade=$8, estado=$9, cep=$10, banco_codigo=$11,
-                agencia=$12, conta=$13, conta_digito=$14, pix_chave=$15, renda_mensal=$16,
-                logo_arquivo=$17
-             WHERE id = (SELECT escritorio_id FROM usuarios WHERE id = $18)`,
+                agencia=$12, conta=$13, conta_digito=$14, pix_chave=$15, renda_mensal=$16
+             WHERE id = (SELECT escritorio_id FROM usuarios WHERE id = $17)`,
             [
                 nome, advogado_responsavel, oab, documento, dataNascimento || null, email,
                 endereco, cidade, estado, cep, banco_codigo,
                 agencia, conta, conta_digito, pix_chave, renda_mensal,
-                logo_arquivo || null,
                 req.user.id
             ]
         );

@@ -5,6 +5,31 @@ const axios = require('axios'); // 🚀 Adicionado para falar com o Escavador
 const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
 const bcrypt = require('bcrypt');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// ─── Upload de Logo ───────────────────────────────────────────────────────────
+const logoDir = path.join(__dirname, '..', 'uploads', 'logos');
+if (!fs.existsSync(logoDir)) fs.mkdirSync(logoDir, { recursive: true });
+
+const logoStorage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, logoDir),
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname).toLowerCase() || '.png';
+        cb(null, `logo_${req.user.escritorio_id}${ext}`);
+    }
+});
+
+const logoUpload = multer({
+    storage: logoStorage,
+    fileFilter: (req, file, cb) => {
+        const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+        if (allowed.includes(file.mimetype)) cb(null, true);
+        else cb(new Error('Somente imagens são permitidas (JPG, PNG, GIF, WEBP, SVG)'));
+    },
+    limits: { fileSize: 2 * 1024 * 1024 } // 2 MB
+});
 
 // ============================================================
 // ROTA 1: SALVAR/ATUALIZAR DADOS DO ESCRITÓRIO (PUT)
@@ -284,4 +309,51 @@ router.put('/planos/reativar', authMiddleware, roleMiddleware('admin'), async (r
         res.status(500).json({ error: "Erro ao reativar plano no servidor." });
     }
 });
+
+// ============================================================
+// UPLOAD DE LOGO DO ESCRITÓRIO (POST /config/logo)
+// ============================================================
+router.post('/logo', authMiddleware, (req, res, next) => {
+    logoUpload.single('logo')(req, res, (err) => {
+        if (err) return res.status(400).json({ ok: false, erro: err.message });
+        next();
+    });
+}, async (req, res) => {
+    if (!req.file) return res.status(400).json({ ok: false, erro: 'Nenhum arquivo enviado.' });
+
+    const logoArquivo = `logos/${req.file.filename}`;
+    try {
+        await pool.query(
+            'UPDATE escritorios SET logo_arquivo = $1 WHERE id = $2',
+            [logoArquivo, req.user.escritorio_id]
+        );
+        res.json({ ok: true, logo_arquivo: logoArquivo });
+    } catch (err) {
+        console.error('[Config] Erro ao salvar logo:', err.message);
+        res.status(500).json({ ok: false, erro: err.message });
+    }
+});
+
+// ============================================================
+// REMOVER LOGO DO ESCRITÓRIO (DELETE /config/logo)
+// ============================================================
+router.delete('/logo', authMiddleware, async (req, res) => {
+    try {
+        const result = await pool.query(
+            'SELECT logo_arquivo FROM escritorios WHERE id = $1',
+            [req.user.escritorio_id]
+        );
+        const logoArquivo = result.rows[0]?.logo_arquivo;
+        if (logoArquivo) {
+            const filePath = path.join(__dirname, '..', 'uploads', logoArquivo);
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        }
+        await pool.query('UPDATE escritorios SET logo_arquivo = NULL WHERE id = $1', [req.user.escritorio_id]);
+        res.json({ ok: true });
+    } catch (err) {
+        console.error('[Config] Erro ao remover logo:', err.message);
+        res.status(500).json({ ok: false, erro: err.message });
+    }
+});
+
 module.exports = router;
