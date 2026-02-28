@@ -42,6 +42,7 @@ const assinaturaDigitalRoutes = require('./routes/assinaturaDigital.routes');
 const addonClicksignRoutes = require('./routes/addonClicksign.routes');
 const calendarSyncRoutes = require('./routes/calendarSync.routes');
 const andamentosRoutes = require('./routes/andamentos.routes');
+const portalClienteRoutes = require('./routes/portalCliente.routes');
 
 // --- 2. MIDDLEWARES DE AUTENTICAÃ‡ÃƒO ---
 const authMiddleware = require('./middlewares/authMiddleware');
@@ -201,6 +202,7 @@ app.use(express.static(publicPath));
 
 // --- 8. APIs (ROTAS DE DADOS) ---
 app.use('/api/auth', authRoutes);
+app.use('/api/portal', portalClienteRoutes); // Portal do Cliente — cada rota gerencia seu próprio middleware
 app.use('/api/contato', contatoRoutes); // 📬 público — formulário de contato do site
 app.use('/api', iaRoutes);
 app.use('/api/crm/public', crmPublicRoutes); // ðŸ"" pÃºblico
@@ -276,6 +278,7 @@ app.get('/sobre-nos', (req, res) => res.sendFile(path.join(publicPath, 'sobre-no
 app.get('/lgpd', (req, res) => res.sendFile(path.join(publicPath, 'lgpd.html')));
 app.get('/relatorios-page', (req, res) => res.sendFile(path.join(publicPath, 'relatorios.html')));
 app.get('/chat-page', (req, res) => res.sendFile(path.join(publicPath, 'chat.html')));
+app.get('/portal-cliente', (req, res) => res.sendFile(path.join(publicPath, 'portal-cliente.html')));
 
 app.get('/pagamento-pendente', (req, res) => {
     const filePath = path.resolve(publicPath, 'pagamento-pendente.html');
@@ -668,6 +671,11 @@ require('./cron/crmFollowup');
         `);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_andamentos_processo ON andamentos_processuais(processo_id)`);
         console.log('✅ [SISTEMA] Tabela andamentos_processuais verificada.');
+
+        // Portal do Cliente — colunas de magic link
+        await pool.query(`ALTER TABLE clientes ADD COLUMN IF NOT EXISTS portal_token VARCHAR(64)`);
+        await pool.query(`ALTER TABLE clientes ADD COLUMN IF NOT EXISTS portal_token_expira_em TIMESTAMPTZ`);
+        console.log('✅ [SISTEMA] Colunas portal_token verificadas.');
 
         iniciarAgendamentos();
 

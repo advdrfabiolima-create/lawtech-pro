@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Portal do Cliente — LawTech Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        /* ---- Header ---- */
+        .portal-header {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border-bottom: 1px solid #334155;
+            padding: 20px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .header-brand .logo-circle {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .header-brand .escritorio-nome {
+            font-size: 18px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .header-brand .escritorio-advogado {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .header-cliente {
+            text-align: right;
+        }
+
+        .header-cliente .saudacao {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .header-cliente .cliente-nome {
+            font-size: 16px;
+            font-weight: 600;
+            color: #6366f1;
+        }
+
+        /* ---- Container ---- */
+        .portal-container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+
+        /* ---- Section title ---- */
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #64748b;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        /* ---- Process card ---- */
+        .processo-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .processo-card:hover {
+            border-color: #6366f1;
+        }
+
+        .processo-header {
+            padding: 18px 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            user-select: none;
+        }
+
+        .processo-info {
+            flex: 1;
+        }
+
+        .processo-numero {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 15px;
+            font-weight: 700;
+            color: #f1f5f9;
+            letter-spacing: 0.02em;
+        }
+
+        .processo-meta {
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .meta-tag {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #0f172a;
+            color: #94a3b8;
+            border: 1px solid #334155;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-ativo { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+        .status-arquivado { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.3); }
+        .status-suspenso { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+
+        .toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6366f1;
+            white-space: nowrap;
+            flex-shrink: 0;
+            margin-top: 4px;
+            padding: 6px 12px;
+            background: rgba(99,102,241,0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(99,102,241,0.2);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .toggle-btn:hover { background: rgba(99,102,241,0.2); }
+
+        .toggle-icon { transition: transform 0.25s; font-size: 14px; }
+        .toggle-icon.open { transform: rotate(180deg); }
+
+        /* ---- Andamentos timeline ---- */
+        .andamentos-container {
+            display: none;
+            border-top: 1px solid #334155;
+            padding: 20px 22px;
+            background: #0f172a;
+        }
+
+        .andamentos-container.open { display: block; }
+
+        .timeline {
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #1e293b;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .timeline-item:last-child { margin-bottom: 0; }
+
+        .timeline-dot {
+            position: absolute;
+            left: -17px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #6366f1;
+            border: 2px solid #0f172a;
+            z-index: 1;
+        }
+
+        .timeline-date {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .timeline-tipo {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+        }
+
+        /* Tipo colors */
+        .tipo-despacho    { background: rgba(59,130,246,0.15);  color: #3b82f6; }
+        .tipo-decisao     { background: rgba(99,102,241,0.15);  color: #818cf8; }
+        .tipo-sentenca    { background: rgba(168,85,247,0.15);  color: #a855f7; }
+        .tipo-acordao     { background: rgba(236,72,153,0.15);  color: #ec4899; }
+        .tipo-peticao     { background: rgba(20,184,166,0.15);  color: #14b8a6; }
+        .tipo-audiencia   { background: rgba(245,158,11,0.15);  color: #f59e0b; }
+        .tipo-recurso     { background: rgba(239,68,68,0.15);   color: #ef4444; }
+        .tipo-citacao     { background: rgba(34,197,94,0.15);   color: #22c55e; }
+        .tipo-outros      { background: rgba(148,163,184,0.15); color: #94a3b8; }
+
+        .timeline-titulo {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 4px;
+        }
+
+        .timeline-descricao {
+            font-size: 13px;
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+
+        .sem-andamentos {
+            text-align: center;
+            color: #475569;
+            font-size: 13px;
+            padding: 16px 0;
+        }
+
+        /* ---- Empty state ---- */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #475569;
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p { font-size: 14px; }
+
+        /* ---- Error screen ---- */
+        #telaErro {
+            display: none;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 40px 24px;
+        }
+
+        #telaErro.show { display: flex; }
+
+        .erro-icon { font-size: 56px; margin-bottom: 20px; }
+
+        .erro-titulo {
+            font-size: 22px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 12px;
+        }
+
+        .erro-msg {
+            font-size: 15px;
+            color: #94a3b8;
+            max-width: 420px;
+            line-height: 1.6;
+        }
+
+        /* ---- Loading ---- */
+        #telaLoading {
+            display: flex;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #334155;
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ---- Footer ---- */
+        .portal-footer {
+            text-align: center;
+            padding: 24px;
+            font-size: 12px;
+            color: #334155;
+            border-top: 1px solid #1e293b;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #0f172a;
+        }
+
+        /* ---- Main content wrapper ---- */
+        #telaPortal { display: none; }
+        #telaPortal.show { display: block; }
+
+        @media (max-width: 600px) {
+            .portal-header { padding: 16px; }
+            .portal-container { padding: 24px 16px 80px; }
+            .processo-numero { font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="telaLoading">
+    <div class="spinner"></div>
+    <div style="color:#64748b;font-size:14px;">Carregando portal...</div>
+</div>
+
+<!-- Error -->
+<div id="telaErro">
+    <div class="erro-icon">🔒</div>
+    <div class="erro-titulo">Acesso não autorizado</div>
+    <div class="erro-msg" id="erroMsg">Link expirado ou inválido. Solicite um novo link ao seu advogado.</div>
+</div>
+
+<!-- Portal content -->
+<div id="telaPortal">
+    <header class="portal-header">
+        <div class="header-brand">
+            <div class="logo-circle" id="logoIniciais">L</div>
+            <div>
+                <div class="escritorio-nome" id="escritorioNome">Escritório</div>
+                <div class="escritorio-advogado" id="escritorioAdvogado"></div>
+            </div>
+        </div>
+        <div class="header-cliente">
+            <div class="saudacao">Olá,</div>
+            <div class="cliente-nome" id="clienteNome">—</div>
+        </div>
+    </header>
+
+    <div class="portal-container">
+        <div class="section-title">Meus Processos</div>
+        <div id="listaProcessos">
+            <!-- cards rendered here -->
+        </div>
+    </div>
+</div>
+
+<footer class="portal-footer">
+    Desenvolvido por <strong>LawTech Pro</strong> · Portal do Cliente
+</footer>
+
+<script>
+    const TIPO_LABELS = {
+        despacho: 'Despacho',
+        decisao: 'Decisão',
+        sentenca: 'Sentença',
+        acordao: 'Acórdão',
+        peticao: 'Petição',
+        audiencia: 'Audiência',
+        recurso: 'Recurso',
+        citacao: 'Citação',
+        outros: 'Outros'
+    };
+
+    const STATUS_LABELS = {
+        ativo: 'Ativo',
+        arquivado: 'Arquivado',
+        suspenso: 'Suspenso',
+        encerrado: 'Encerrado'
+    };
+
+    let portalToken = null;
+
+    function formatarData(dateStr) {
+        if (!dateStr) return '—';
+        const d = new Date(dateStr + (dateStr.includes('T') ? '' : 'T00:00:00'));
+        return d.toLocaleDateString('pt-BR');
+    }
+
+    function getStatusClass(status) {
+        if (status === 'ativo') return 'status-ativo';
+        if (status === 'arquivado') return 'status-arquivado';
+        return 'status-suspenso';
+    }
+
+    function getStatusLabel(status) {
+        return STATUS_LABELS[status] || status || '—';
+    }
+
+    function mostrarErro(msg) {
+        document.getElementById('telaLoading').style.display = 'none';
+        const telaErro = document.getElementById('telaErro');
+        if (msg) document.getElementById('erroMsg').textContent = msg;
+        telaErro.classList.add('show');
+    }
+
+    async function autenticarPortal(token) {
+        try {
+            const res = await fetch('/api/portal/autenticar?token=' + encodeURIComponent(token));
+            const data = await res.json();
+
+            if (!data.ok) {
+                mostrarErro(data.erro || 'Link inválido ou expirado. Solicite um novo ao seu advogado.');
+                return;
+            }
+
+            portalToken = data.token;
+            sessionStorage.setItem('portalToken', portalToken);
+
+            // Preenche header
+            document.getElementById('clienteNome').textContent = data.nome || '—';
+
+            const nomeEsc = data.escritorio?.nome || 'Escritório';
+            document.getElementById('escritorioNome').textContent = nomeEsc;
+            if (data.escritorio?.advogado) {
+                document.getElementById('escritorioAdvogado').textContent = 'Dr(a). ' + data.escritorio.advogado;
+            }
+            // Iniciais do escritório
+            const iniciais = nomeEsc.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+            document.getElementById('logoIniciais').textContent = iniciais || 'L';
+
+            document.getElementById('telaLoading').style.display = 'none';
+            document.getElementById('telaPortal').classList.add('show');
+
+            await carregarProcessos();
+        } catch (err) {
+            console.error('[Portal] Erro ao autenticar:', err);
+            mostrarErro('Não foi possível conectar ao servidor. Tente novamente mais tarde.');
+        }
+    }
+
+    async function carregarProcessos() {
+        const lista = document.getElementById('listaProcessos');
+        lista.innerHTML = '<div style="color:#64748b;font-size:14px;padding:20px 0;">Carregando...</div>';
+
+        try {
+            const res = await fetch('/api/portal/meus-processos', {
+                headers: { 'Authorization': 'Bearer ' + portalToken }
+            });
+            const data = await res.json();
+
+            if (!data.ok) {
+                lista.innerHTML = '<div class="empty-state"><div class="icon">📂</div><h3>Sem processos</h3><p>' + (data.erro || 'Nenhum processo encontrado.') + '</p></div>';
+                return;
+            }
+
+            const processos = data.processos || [];
+
+            if (processos.length === 0) {
+                lista.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📂</div>
+                        <h3>Nenhum processo encontrado</h3>
+                        <p>Seus processos aparecerão aqui quando forem cadastrados pelo escritório.</p>
+                    </div>`;
+                return;
+            }
+
+            lista.innerHTML = processos.map(p => renderProcessoCard(p)).join('');
+        } catch (err) {
+            console.error('[Portal] Erro ao carregar processos:', err);
+            lista.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>Erro ao carregar</h3><p>Tente recarregar a página.</p></div>';
+        }
+    }
+
+    function renderProcessoCard(p) {
+        const statusClass = getStatusClass(p.status);
+        const statusLabel = getStatusLabel(p.status);
+        const esfera = p.esfera ? `<span class="meta-tag">${p.esfera}</span>` : '';
+        const instancia = p.instancia ? `<span class="meta-tag">${p.instancia}</span>` : '';
+        const tribunal = p.tribunal ? `<span class="meta-tag">${p.tribunal}</span>` : '';
+        const uf = p.uf ? `<span class="meta-tag">${p.uf}</span>` : '';
+
+        return `
+        <div class="processo-card" id="card-${p.id}">
+            <div class="processo-header" onclick="toggleAndamentos(${p.id}, this)">
+                <div class="processo-info">
+                    <div class="processo-numero">${p.numero || '—'}</div>
+                    <div class="processo-meta">
+                        ${tribunal}${esfera}${instancia}${uf}
+                        <span class="status-badge ${statusClass}">${statusLabel}</span>
+                    </div>
+                </div>
+                <div class="toggle-btn">
+                    <span>Ver Andamentos</span>
+                    <span class="toggle-icon" id="icon-${p.id}">▼</span>
+                </div>
+            </div>
+            <div class="andamentos-container" id="andamentos-${p.id}">
+                <div style="color:#64748b;font-size:13px;">Carregando andamentos...</div>
+            </div>
+        </div>`;
+    }
+
+    async function toggleAndamentos(processoId, headerEl) {
+        const container = document.getElementById('andamentos-' + processoId);
+        const icon = document.getElementById('icon-' + processoId);
+        const isOpen = container.classList.contains('open');
+
+        if (isOpen) {
+            container.classList.remove('open');
+            icon.classList.remove('open');
+            return;
+        }
+
+        container.classList.add('open');
+        icon.classList.add('open');
+
+        // Only load once
+        if (container.dataset.loaded === 'true') return;
+
+        try {
+            const res = await fetch('/api/portal/processos/' + processoId + '/andamentos', {
+                headers: { 'Authorization': 'Bearer ' + portalToken }
+            });
+            const data = await res.json();
+
+            if (!data.ok) {
+                container.innerHTML = '<div class="sem-andamentos">Não foi possível carregar os andamentos.</div>';
+                return;
+            }
+
+            const andamentos = data.andamentos || [];
+            container.dataset.loaded = 'true';
+
+            if (andamentos.length === 0) {
+                container.innerHTML = '<div class="sem-andamentos">Nenhum andamento disponível no momento.</div>';
+                return;
+            }
+
+            const html = `
+                <div class="timeline">
+                    ${andamentos.map(a => `
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-date">${formatarData(a.data_andamento)}</div>
+                            <span class="timeline-tipo tipo-${a.tipo || 'outros'}">${TIPO_LABELS[a.tipo] || 'Outros'}</span>
+                            <div class="timeline-titulo">${escapeHtml(a.titulo)}</div>
+                            ${a.descricao ? `<div class="timeline-descricao">${escapeHtml(a.descricao)}</div>` : ''}
+                        </div>
+                    `).join('')}
+                </div>`;
+
+            container.innerHTML = html;
+        } catch (err) {
+            console.error('[Portal] Erro ao carregar andamentos:', err);
+            container.innerHTML = '<div class="sem-andamentos">Erro ao carregar andamentos.</div>';
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // ---- Bootstrap ----
+    window.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+
+        if (!token) {
+            mostrarErro('Nenhum token fornecido. Acesse este portal pelo link enviado pelo seu advogado.');
+            return;
+        }
+
+        // Check if we already have a valid session token in sessionStorage
+        const savedToken = sessionStorage.getItem('portalToken');
+        if (savedToken) {
+            // Try to use saved token — if fails, re-auth with URL token
+            portalToken = savedToken;
+            fetch('/api/portal/meus-processos', { headers: { 'Authorization': 'Bearer ' + savedToken } })
+                .then(r => {
+                    if (r.status === 401) {
+                        sessionStorage.removeItem('portalToken');
+                        return autenticarPortal(token);
+                    }
+                    return autenticarPortal(token); // re-auth anyway to refresh name/escritorio
+                })
+                .catch(() => autenticarPortal(token));
+        } else {
+            autenticarPortal(token);
+        }
+    });
+</script>
+</body>
+</html>

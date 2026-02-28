@@ -812,6 +812,17 @@
             box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
 
+        .btn-portal {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-portal:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
         /* Modal */
         .modal {
             display: none;
@@ -1590,6 +1601,10 @@
                                 <i class="lucide lucide-eye"></i>
                                 <span>VER</span>
                             </button>
+                            <button class="btn-action btn-portal" onclick="gerarLinkPortal(${c.id}, '${c.nome.replace(/'/g, "\\'")}')" title="LINK PORTAL DO CLIENTE">
+                                <i class="lucide lucide-link-2"></i>
+                                <span>LINK</span>
+                            </button>
                             <button class="btn-action btn-edit" onclick="prepararEdicao(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${c.documento}', '${c.email}', '${c.telefone || ''}', '${c.cep || ''}', '${c.endereco || ''}', '${c.cidade || ''}', '${c.estado || ''}', '${c.tipo_pessoa || 'fisica'}', '${c.data_nascimento || ''}')" title="EDITAR">
                                 <i class="lucide lucide-pencil"></i>
                                 <span>EDITAR</span>
@@ -1641,6 +1656,10 @@
                             <i class="lucide lucide-eye"></i>
                             <span>VER</span>
                         </button>
+                        <button class="btn-action btn-portal" onclick="gerarLinkPortal(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}')" title="LINK PORTAL DO CLIENTE">
+                            <i class="lucide lucide-link-2"></i>
+                            <span>LINK</span>
+                        </button>
                         <button class="btn-action btn-edit" onclick="prepararEdicao(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}', '${cliente.documento}', '${cliente.email}', '${cliente.telefone || ''}', '${cliente.cep || ''}', '${cliente.endereco || ''}', '${cliente.cidade || ''}', '${cliente.estado || ''}', '${cliente.tipo_pessoa || 'fisica'}', '${cliente.data_nascimento || ''}')" title="EDITAR">
                             <i class="lucide lucide-pencil"></i>
                             <span>EDITAR</span>
@@ -1691,6 +1710,10 @@
                             <i class="lucide lucide-eye"></i>
                             <span>VER</span>
                         </button>
+                        <button class="btn-action btn-portal" onclick="gerarLinkPortal(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}')" title="LINK PORTAL DO CLIENTE">
+                            <i class="lucide lucide-link-2"></i>
+                            <span>LINK</span>
+                        </button>
                         <button class="btn-action btn-edit" onclick="prepararEdicao(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}', '${cliente.documento}', '${cliente.email}', '${cliente.telefone || ''}', '${cliente.cep || ''}', '${cliente.endereco || ''}', '${cliente.cidade || ''}', '${cliente.estado || ''}', '${cliente.tipo_pessoa || 'fisica'}', '${cliente.data_nascimento || ''}')" title="EDITAR">
                             <i class="lucide lucide-pencil"></i>
                             <span>EDITAR</span>
@@ -1704,7 +1727,7 @@
             `;
 
             lucide.createIcons();
-            
+
             // Atualiza no cache
             const index = clientesCache.findIndex(c => c.id === cliente.id);
             if (index !== -1) clientesCache[index] = cliente;
@@ -1908,6 +1931,33 @@
             } catch (err) {
                 console.error("Erro ao excluir:", err);
                 alert("❌ ERRO DE CONEXÃO");
+            }
+        }
+
+        // ============================================
+        // PORTAL DO CLIENTE — GERAR MAGIC LINK
+        // ============================================
+        async function gerarLinkPortal(clienteId, nomeCliente) {
+            try {
+                const res = await fetch('/api/portal/gerar-token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({ cliente_id: clienteId })
+                });
+                const data = await res.json();
+                if (!data.ok) {
+                    alert('❌ Erro ao gerar link: ' + (data.erro || 'Tente novamente.'));
+                    return;
+                }
+                const url = window.location.origin + data.url;
+                await navigator.clipboard.writeText(url);
+                alert(`✅ Link do portal de ${nomeCliente} copiado! Válido por 90 dias.`);
+            } catch (err) {
+                console.error('Erro ao gerar link portal:', err);
+                alert('❌ Erro de conexão ao gerar link.');
             }
         }
 
