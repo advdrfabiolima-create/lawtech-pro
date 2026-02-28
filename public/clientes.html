@@ -1953,7 +1953,8 @@
                     return;
                 }
                 const url = window.location.origin + data.url;
-                await navigator.clipboard.writeText(url);
+                const mensagem = `Acesse o Portal do Cliente para ter acesso ao andamento do seu processo: ${url}`;
+                await navigator.clipboard.writeText(mensagem);
                 alert(`✅ Link do portal de ${nomeCliente} copiado! Válido por 90 dias.`);
             } catch (err) {
                 console.error('Erro ao gerar link portal:', err);
