@@ -153,4 +153,32 @@ router.put('/audiencias/:id/realizada', authMiddleware, roleMiddleware('admin', 
     }
 });
 
+// Atualizar endereço/link virtual da audiência
+router.patch('/audiencias/:id/local', authMiddleware, roleMiddleware('admin', 'operador'), async (req, res) => {
+    const { id } = req.params;
+    const { local_virtual } = req.body;
+    const escritorioId = req.user.escritorio_id;
+
+    try {
+        const result = await pool.query(
+            `UPDATE audiencias a
+             SET local_virtual = $1
+             FROM processos p
+             WHERE a.id = $2
+               AND a.processo_id = p.id
+               AND p.escritorio_id = $3`,
+            [local_virtual || null, id, escritorioId]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(403).json({ erro: 'Audiência não encontrada.' });
+        }
+
+        res.json({ ok: true });
+    } catch (err) {
+        console.error('❌ [PATCH LOCAL]:', err.message);
+        res.status(500).json({ erro: 'Erro ao atualizar endereço.' });
+    }
+});
+
 module.exports = router;
