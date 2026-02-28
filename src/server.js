@@ -39,6 +39,7 @@ const chatRoutes = require('./routes/chat.routes');
 const contatoRoutes = require('./routes/contato.routes');
 const documentosRoutes = require('./routes/documentos.routes');
 const assinaturaDigitalRoutes = require('./routes/assinaturaDigital.routes');
+const addonClicksignRoutes = require('./routes/addonClicksign.routes');
 
 // --- 2. MIDDLEWARES DE AUTENTICAÃ‡ÃƒO ---
 const authMiddleware = require('./middlewares/authMiddleware');
@@ -227,6 +228,7 @@ app.use('/api', authMiddleware, verificarPagamento, chatRoutes);
 app.use('/api', authMiddleware, verificarPagamento, documentosRoutes);
 app.use('/webhook', assinaturaDigitalRoutes); // ClickSign webhook — público (APÓS express.json)
 app.use('/api', authMiddleware, verificarPagamento, assinaturaDigitalRoutes);
+app.use('/api', authMiddleware, verificarPagamento, addonClicksignRoutes);
 
 // âœ… Rota do monitor admin
 app.get('/systems/monitor', (req, res) => {
@@ -622,6 +624,14 @@ require('./cron/crmFollowup');
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_assdig_esc ON assinaturas_digitais(escritorio_id)`);
         await pool.query(`ALTER TABLE assinaturas_digitais ADD COLUMN IF NOT EXISTS link_assinatura TEXT`);
         console.log('✅ [SISTEMA] Tabela assinaturas_digitais verificada.');
+
+        // ClickSign Add-on (módulo pago)
+        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_ativo BOOLEAN DEFAULT false`);
+        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_limite INTEGER DEFAULT 20`);
+        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_usado INTEGER DEFAULT 0`);
+        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_periodo_inicio TIMESTAMP DEFAULT NULL`);
+        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_stripe_sub_id VARCHAR(200) DEFAULT NULL`);
+        console.log('✅ [SISTEMA] Colunas ClickSign add-on verificadas.');
 
         iniciarAgendamentos();
 

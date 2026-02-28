@@ -80,6 +80,19 @@ router.post('/documentos/:id/assinar', async (req, res) => {
     const { mensagem, deadline } = req.body;
 
     try {
+        // 0. Verificar se o add-on ClickSign está ativo e com quota disponível
+        const addonRes = await pool.query(
+            'SELECT clicksign_addon_ativo, clicksign_addon_limite, clicksign_addon_usado FROM escritorios WHERE id = $1',
+            [escritorioId]
+        );
+        const addon = addonRes.rows[0];
+        if (!addon?.clicksign_addon_ativo) {
+            return res.status(403).json({ erro: 'addon_inativo' });
+        }
+        if (addon.clicksign_addon_usado >= addon.clicksign_addon_limite) {
+            return res.status(403).json({ erro: 'addon_limite' });
+        }
+
         // 1. Buscar e validar o documento
         const docRes = await pool.query(
             `SELECT * FROM documentos WHERE id = $1 AND escritorio_id = $2`,
@@ -167,6 +180,12 @@ router.post('/documentos/:id/assinar', async (req, res) => {
                 (documento_id, escritorio_id, usuario_id, clicksign_document_key, status, signatarios, mensagem, deadline, link_assinatura)
             VALUES ($1, $2, $3, $4, 'enviado', $5::jsonb, $6, $7, $8)
         `, [docId, escritorioId, usuarioId, documentKey, signatarios, mensagem || null, deadline || null, signingUrl || null]);
+
+        // Incrementar contador do add-on
+        await pool.query(
+            'UPDATE escritorios SET clicksign_addon_usado = clicksign_addon_usado + 1 WHERE id = $1',
+            [escritorioId]
+        );
 
         // 11. Enviar e-mail via Brevo com o link de assinatura
         const emailEnviado = await enviarEmailAssinatura({

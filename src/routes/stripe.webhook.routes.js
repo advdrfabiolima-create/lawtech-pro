@@ -197,6 +197,56 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                 break;
             }
 
+            // ─── Add-on ClickSign: ativação via checkout ──────────────────────
+            case 'checkout.session.completed': {
+                const session = event.data.object;
+                if (session.metadata?.tipo === 'clicksign_addon') {
+                    const escritorioId = session.metadata.escritorio_id;
+                    await pool.query(`
+                        UPDATE escritorios SET
+                            clicksign_addon_ativo         = true,
+                            clicksign_addon_usado         = 0,
+                            clicksign_addon_periodo_inicio = NOW(),
+                            clicksign_addon_stripe_sub_id  = $2
+                        WHERE id = $1
+                    `, [escritorioId, session.subscription]);
+                    console.log(`✅ [ADDON/ClickSign] Add-on ativado para escritório ${escritorioId} — sub ${session.subscription}`);
+                }
+                break;
+            }
+
+            // ─── Add-on ClickSign: renovação mensal → zera contador ──────────
+            case 'invoice.payment_succeeded': {
+                const invoice = event.data.object;
+                const subId = invoice.subscription;
+                if (subId) {
+                    const upd = await pool.query(`
+                        UPDATE escritorios SET
+                            clicksign_addon_usado          = 0,
+                            clicksign_addon_periodo_inicio = NOW()
+                        WHERE clicksign_addon_stripe_sub_id = $1
+                        RETURNING id
+                    `, [subId]);
+                    if (upd.rowCount > 0) {
+                        console.log(`✅ [ADDON/ClickSign] Contador zerado para escritório ${upd.rows[0].id} (renovação)`);
+                    }
+                }
+                break;
+            }
+
+            // ─── Add-on ClickSign: cancelamento da subscription ───────────────
+            case 'customer.subscription.deleted': {
+                const subscription = event.data.object;
+                await pool.query(`
+                    UPDATE escritorios SET
+                        clicksign_addon_ativo         = false,
+                        clicksign_addon_stripe_sub_id  = NULL
+                    WHERE clicksign_addon_stripe_sub_id = $1
+                `, [subscription.id]);
+                console.log(`⛔ [ADDON/ClickSign] Add-on desativado — sub cancelada: ${subscription.id}`);
+                break;
+            }
+
             default:
                 console.log(`ℹ️ Evento não tratado: ${event.type}`);
         }
