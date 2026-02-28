@@ -3780,7 +3780,8 @@ function obterTribunaisPorEsfera(esfera) {
                         </div>
                         <div>
                             <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Tipo</label>
-                            <select id="andTipo" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;color:#1e293b;box-sizing:border-box;">
+                            <select id="andTipo" onchange="toggleAndTipoCustom(this.value)" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;color:#1e293b;box-sizing:border-box;">
+                                <option value="distribuicao">Distribuição</option>
                                 <option value="despacho">Despacho</option>
                                 <option value="decisao">Decisão</option>
                                 <option value="sentenca">Sentença</option>
@@ -3789,8 +3790,11 @@ function obterTribunaisPorEsfera(esfera) {
                                 <option value="audiencia">Audiência</option>
                                 <option value="recurso">Recurso</option>
                                 <option value="citacao">Citação/Intimação</option>
-                                <option value="outros" selected>Outros</option>
+                                <option value="outros">Outros</option>
+                                <option value="__custom__">Outro (digitar)...</option>
                             </select>
+                            <input type="text" id="andTipoCustom" maxlength="50" placeholder="Digite o tipo de movimentação..."
+                                style="display:none;width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;color:#1e293b;box-sizing:border-box;margin-top:6px;">
                         </div>
                     </div>
                     <div style="margin-bottom:10px;">
@@ -3828,15 +3832,30 @@ function obterTribunaisPorEsfera(esfera) {
     // ── Andamentos Processuais ───────────────────────────────────────────────────
     (function() {
         const TIPO_META = {
-            despacho:  { label: 'Despacho',          cor: '#64748b' },
-            decisao:   { label: 'Decisão',            cor: '#3b82f6' },
-            sentenca:  { label: 'Sentença',           cor: '#7c3aed' },
-            acordao:   { label: 'Acórdão',            cor: '#6366f1' },
-            peticao:   { label: 'Petição',            cor: '#16a34a' },
-            audiencia: { label: 'Audiência',          cor: '#f97316' },
-            recurso:   { label: 'Recurso',            cor: '#ca8a04' },
-            citacao:   { label: 'Citação/Intimação',  cor: '#0d9488' },
-            outros:    { label: 'Outros',             cor: '#94a3b8' }
+            distribuicao:{ label: 'Distribuição',      cor: '#0ea5e9' },
+            despacho:    { label: 'Despacho',          cor: '#64748b' },
+            decisao:     { label: 'Decisão',           cor: '#3b82f6' },
+            sentenca:    { label: 'Sentença',          cor: '#7c3aed' },
+            acordao:     { label: 'Acórdão',           cor: '#6366f1' },
+            peticao:     { label: 'Petição',           cor: '#16a34a' },
+            audiencia:   { label: 'Audiência',         cor: '#f97316' },
+            recurso:     { label: 'Recurso',           cor: '#ca8a04' },
+            citacao:     { label: 'Citação/Intimação', cor: '#0d9488' },
+            outros:      { label: 'Outros',            cor: '#94a3b8' }
+        };
+        function tipoMeta(tipo) {
+            if (!tipo) return TIPO_META.outros;
+            return TIPO_META[tipo] || { label: tipo, cor: '#94a3b8' };
+        }
+        window.toggleAndTipoCustom = function(val) {
+            const inp = document.getElementById('andTipoCustom');
+            if (val === '__custom__') {
+                inp.style.display = 'block';
+                inp.focus();
+            } else {
+                inp.style.display = 'none';
+                inp.value = '';
+            }
         };
 
         let _andProcessoId = null;
@@ -3862,7 +3881,9 @@ function obterTribunaisPorEsfera(esfera) {
             document.getElementById('andDataAndamento').value = hoje;
             document.getElementById('andTitulo').value = '';
             document.getElementById('andDescricao').value = '';
-            document.getElementById('andTipo').value = 'outros';
+            document.getElementById('andTipo').value = 'distribuicao';
+            document.getElementById('andTipoCustom').value = '';
+            document.getElementById('andTipoCustom').style.display = 'none';
             document.getElementById('andVisivelCliente').checked = false;
 
             const modal = document.getElementById('modalAndamentos');
@@ -3899,7 +3920,7 @@ function obterTribunaisPorEsfera(esfera) {
                 return;
             }
             container.innerHTML = lista.map(a => {
-                const meta = TIPO_META[a.tipo] || TIPO_META.outros;
+                const meta = tipoMeta(a.tipo);
                 const dataFmt = a.data_andamento
                     ? new Date(a.data_andamento + 'T12:00:00').toLocaleDateString('pt-BR')
                     : '—';
@@ -3944,9 +3965,18 @@ function obterTribunaisPorEsfera(esfera) {
             btn.disabled = true;
             btn.textContent = 'Salvando...';
 
+            const tipoSel = document.getElementById('andTipo').value;
+            const tipoCustom = document.getElementById('andTipoCustom').value.trim();
+            if (tipoSel === '__custom__' && !tipoCustom) {
+                alert('Digite o tipo de movimentação.');
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="plus" style="width:15px;height:15px;"></i> Registrar';
+                setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 50);
+                return;
+            }
             const body = {
                 data_andamento: document.getElementById('andDataAndamento').value,
-                tipo: document.getElementById('andTipo').value,
+                tipo: tipoSel === '__custom__' ? tipoCustom : tipoSel,
                 titulo: document.getElementById('andTitulo').value,
                 descricao: document.getElementById('andDescricao').value,
                 visivel_cliente: document.getElementById('andVisivelCliente').checked
@@ -3965,6 +3995,8 @@ function obterTribunaisPorEsfera(esfera) {
                 if (data.ok) {
                     document.getElementById('formAndamento').reset();
                     document.getElementById('andDataAndamento').value = new Date().toISOString().slice(0, 10);
+                    document.getElementById('andTipo').value = 'distribuicao';
+                    document.getElementById('andTipoCustom').style.display = 'none';
                     carregarAndamentos(_andProcessoId);
                 } else {
                     alert('Erro: ' + (data.erro || 'Falha ao registrar andamento.'));
