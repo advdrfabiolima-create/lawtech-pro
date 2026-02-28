@@ -79,6 +79,45 @@ router.post('/processos/:id/andamentos', roleMiddleware('admin', 'operador'), as
     }
 });
 
+// PUT /api/andamentos/:id — editar andamento (admin + operador)
+router.put('/andamentos/:id', roleMiddleware('admin', 'operador'), async (req, res) => {
+    const { id } = req.params;
+    const escritorio_id = req.user.escritorio_id;
+    const { data_andamento, tipo, titulo, descricao, visivel_cliente } = req.body;
+
+    if (!titulo || !titulo.trim()) {
+        return res.status(400).json({ ok: false, erro: 'Título é obrigatório.' });
+    }
+    if (!data_andamento) {
+        return res.status(400).json({ ok: false, erro: 'Data do andamento é obrigatória.' });
+    }
+
+    try {
+        const result = await pool.query(
+            `UPDATE andamentos_processuais
+             SET data_andamento = $1, tipo = $2, titulo = $3, descricao = $4, visivel_cliente = $5
+             WHERE id = $6 AND escritorio_id = $7
+             RETURNING *`,
+            [
+                data_andamento,
+                tipo || 'outros',
+                titulo.trim(),
+                descricao ? descricao.trim() : null,
+                visivel_cliente === true || visivel_cliente === 'true',
+                id,
+                escritorio_id
+            ]
+        );
+        if (!result.rows.length) {
+            return res.status(404).json({ ok: false, erro: 'Andamento não encontrado.' });
+        }
+        res.json({ ok: true, andamento: result.rows[0] });
+    } catch (err) {
+        console.error('[Andamentos] PUT erro:', err.message);
+        res.status(500).json({ ok: false, erro: err.message });
+    }
+});
+
 // DELETE /api/andamentos/:id — excluir andamento (admin)
 router.delete('/andamentos/:id', roleMiddleware('admin'), async (req, res) => {
     const { id } = req.params;

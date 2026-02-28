@@ -3763,7 +3763,7 @@ function obterTribunaisPorEsfera(esfera) {
 
             <!-- Form Registrar -->
             <div style="padding:18px 24px;border-bottom:1px solid #f1f5f9;flex-shrink:0;background:#f8fafc;border-radius:0 0 0 0;">
-                <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;">Registrar Andamento</div>
+                <div id="andFormTitulo" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;">Registrar Andamento</div>
                 <form id="formAndamento" onsubmit="registrarAndamento(event)" autocomplete="off">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
                         <div>
@@ -3804,15 +3804,21 @@ function obterTribunaisPorEsfera(esfera) {
                         <textarea id="andDescricao" rows="2" placeholder="Detalhes do andamento..."
                             style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;color:#1e293b;resize:vertical;box-sizing:border-box;min-height:56px;"></textarea>
                     </div>
-                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
                         <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#374151;">
                             <input type="checkbox" id="andVisivelCliente" style="width:14px;height:14px;accent-color:#6366f1;">
                             Visível ao cliente (Portal)
                         </label>
-                        <button type="submit" id="btnRegistrarAndamento"
-                            style="padding:8px 18px;background:#6366f1;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
-                            <i data-lucide="plus" style="width:15px;height:15px;"></i> Registrar
-                        </button>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <button type="button" id="btnCancelarEdicao" onclick="cancelarEdicaoAndamento()"
+                                style="display:none;padding:8px 14px;background:#f1f5f9;color:#64748b;border:1px solid #d1d5db;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">
+                                Cancelar
+                            </button>
+                            <button type="submit" id="btnRegistrarAndamento"
+                                style="padding:8px 18px;background:#6366f1;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                                <i data-lucide="plus" style="width:15px;height:15px;"></i> Registrar
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -3860,6 +3866,8 @@ function obterTribunaisPorEsfera(esfera) {
         };
 
         let _andProcessoId = null;
+        let _andEditandoId = null;
+        let _andamentosList = [];
         let _userRole = null;
 
         function getUserRole() {
@@ -3896,6 +3904,7 @@ function obterTribunaisPorEsfera(esfera) {
         window.fecharAndamentos = function() {
             document.getElementById('modalAndamentos').style.display = 'none';
             _andProcessoId = null;
+            if (_andEditandoId) cancelarEdicaoAndamento();
         };
 
         window.carregarAndamentos = function(processoId) {
@@ -3914,6 +3923,7 @@ function obterTribunaisPorEsfera(esfera) {
         };
 
         function renderAndamentos(lista) {
+            _andamentosList = lista;
             const container = document.getElementById('andamentosLista');
             const role = getUserRole();
             if (!lista.length) {
@@ -3926,6 +3936,7 @@ function obterTribunaisPorEsfera(esfera) {
                 const dataFmt = _dataStr
                     ? new Date(_dataStr + 'T12:00:00').toLocaleDateString('pt-BR')
                     : '—';
+                const podeEditar = (role === 'admin' || role === 'operador');
                 const podeExcluir = (role === 'admin');
                 return `
                 <div style="display:flex;gap:12px;margin-bottom:18px;align-items:flex-start;">
@@ -3946,7 +3957,10 @@ function obterTribunaisPorEsfera(esfera) {
                                     style="width:12px;height:12px;accent-color:#6366f1;">
                                 Visível no Portal
                             </label>
-                            ${podeExcluir ? `<button onclick="excluirAndamento(${a.id})" title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:2px;"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>` : ''}
+                            <div style="display:flex;gap:4px;">
+                                ${podeEditar ? `<button onclick="editarAndamento(${a.id})" title="Editar" style="background:none;border:none;cursor:pointer;color:#3b82f6;padding:2px;"><i data-lucide="pencil" style="width:14px;height:14px;"></i></button>` : ''}
+                                ${podeExcluir ? `<button onclick="excluirAndamento(${a.id})" title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:2px;"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>` : ''}
+                            </div>
                         </div>
                     </div>
                 </div>`;
@@ -3961,7 +3975,7 @@ function obterTribunaisPorEsfera(esfera) {
 
         window.registrarAndamento = function(event) {
             event.preventDefault();
-            if (!_andProcessoId) return;
+            if (!_andProcessoId && !_andEditandoId) return;
             const token = localStorage.getItem('token');
             const btn = document.getElementById('btnRegistrarAndamento');
             btn.disabled = true;
@@ -3972,7 +3986,9 @@ function obterTribunaisPorEsfera(esfera) {
             if (tipoSel === '__custom__' && !tipoCustom) {
                 alert('Digite o tipo de movimentação.');
                 btn.disabled = false;
-                btn.innerHTML = '<i data-lucide="plus" style="width:15px;height:15px;"></i> Registrar';
+                btn.innerHTML = _andEditandoId
+                    ? '<i data-lucide="save" style="width:15px;height:15px;"></i> Salvar'
+                    : '<i data-lucide="plus" style="width:15px;height:15px;"></i> Registrar';
                 setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 50);
                 return;
             }
@@ -3984,31 +4000,92 @@ function obterTribunaisPorEsfera(esfera) {
                 visivel_cliente: document.getElementById('andVisivelCliente').checked
             };
 
-            fetch('/api/processos/' + _andProcessoId + '/andamentos', {
-                method: 'POST',
+            const isEdicao = !!_andEditandoId;
+            const url = isEdicao
+                ? '/api/andamentos/' + _andEditandoId
+                : '/api/processos/' + _andProcessoId + '/andamentos';
+            const method = isEdicao ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
                 body: JSON.stringify(body)
             })
             .then(r => r.json())
             .then(data => {
                 btn.disabled = false;
-                btn.innerHTML = '<i data-lucide="plus" style="width:15px;height:15px;"></i> Registrar';
-                setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 50);
                 if (data.ok) {
-                    document.getElementById('formAndamento').reset();
-                    document.getElementById('andDataAndamento').value = new Date().toISOString().slice(0, 10);
-                    document.getElementById('andTipo').value = 'distribuicao';
-                    document.getElementById('andTipoCustom').style.display = 'none';
+                    cancelarEdicaoAndamento();
                     carregarAndamentos(_andProcessoId);
                 } else {
-                    alert('Erro: ' + (data.erro || 'Falha ao registrar andamento.'));
+                    btn.innerHTML = isEdicao
+                        ? '<i data-lucide="save" style="width:15px;height:15px;"></i> Salvar'
+                        : '<i data-lucide="plus" style="width:15px;height:15px;"></i> Registrar';
+                    setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 50);
+                    alert('Erro: ' + (data.erro || 'Falha ao salvar andamento.'));
                 }
             })
             .catch(() => {
                 btn.disabled = false;
-                btn.innerHTML = '<i data-lucide="plus" style="width:15px;height:15px;"></i> Registrar';
+                btn.innerHTML = isEdicao
+                    ? '<i data-lucide="save" style="width:15px;height:15px;"></i> Salvar'
+                    : '<i data-lucide="plus" style="width:15px;height:15px;"></i> Registrar';
+                setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 50);
                 alert('Erro de conexão. Tente novamente.');
             });
+        };
+
+        window.editarAndamento = function(id) {
+            const a = _andamentosList.find(x => x.id === id);
+            if (!a) return;
+            _andEditandoId = id;
+
+            // Preenche o formulário com os dados do andamento
+            const dataStr = a.data_andamento ? String(a.data_andamento).slice(0, 10) : '';
+            document.getElementById('andDataAndamento').value = dataStr;
+            document.getElementById('andTitulo').value = a.titulo || '';
+            document.getElementById('andDescricao').value = a.descricao || '';
+            document.getElementById('andVisivelCliente').checked = !!a.visivel_cliente;
+
+            // Tipo: predefinido ou personalizado
+            const select = document.getElementById('andTipo');
+            const tipoCustomInput = document.getElementById('andTipoCustom');
+            if (TIPO_META[a.tipo]) {
+                select.value = a.tipo;
+                tipoCustomInput.style.display = 'none';
+                tipoCustomInput.value = '';
+            } else {
+                select.value = '__custom__';
+                tipoCustomInput.style.display = 'block';
+                tipoCustomInput.value = a.tipo || '';
+            }
+
+            // Muda visual do formulário para modo edição
+            document.getElementById('andFormTitulo').textContent = 'Editar Andamento';
+            document.getElementById('andFormTitulo').style.color = '#3b82f6';
+            const btnSalvar = document.getElementById('btnRegistrarAndamento');
+            btnSalvar.innerHTML = '<i data-lucide="save" style="width:15px;height:15px;"></i> Salvar';
+            btnSalvar.style.background = '#3b82f6';
+            document.getElementById('btnCancelarEdicao').style.display = 'inline-flex';
+
+            // Rola até o formulário
+            document.getElementById('formAndamento').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 50);
+        };
+
+        window.cancelarEdicaoAndamento = function() {
+            _andEditandoId = null;
+            document.getElementById('andFormTitulo').textContent = 'Registrar Andamento';
+            document.getElementById('andFormTitulo').style.color = '#64748b';
+            const btnSalvar = document.getElementById('btnRegistrarAndamento');
+            btnSalvar.innerHTML = '<i data-lucide="plus" style="width:15px;height:15px;"></i> Registrar';
+            btnSalvar.style.background = '#6366f1';
+            document.getElementById('btnCancelarEdicao').style.display = 'none';
+            document.getElementById('formAndamento').reset();
+            document.getElementById('andDataAndamento').value = new Date().toISOString().slice(0, 10);
+            document.getElementById('andTipo').value = 'distribuicao';
+            document.getElementById('andTipoCustom').style.display = 'none';
+            setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 50);
         };
 
         window.excluirAndamento = function(id) {
