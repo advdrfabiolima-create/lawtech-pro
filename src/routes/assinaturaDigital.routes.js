@@ -77,7 +77,7 @@ router.post('/documentos/:id/assinar', async (req, res) => {
     const escritorioId = req.user.escritorio_id;
     const usuarioId = req.user.id;
     const docId = parseInt(req.params.id);
-    const { mensagem, deadline, signatarioNome, signatarioEmail } = req.body;
+    const { mensagem, deadline, signatarios: signatariosInput, signatarioNome, signatarioEmail } = req.body;
 
     try {
         // 0. Verificar acesso ao ClickSign (plano + addon + chave API)
@@ -121,11 +121,26 @@ router.post('/documentos/:id/assinar', async (req, res) => {
             return res.status(400).json({ erro: 'Já existe uma assinatura ativa para este documento. Cancele-a antes de iniciar uma nova.' });
         }
 
-        // 4. Resolver signatário — processo vinculado OU informado manualmente
-        let parteNome, parteEmail;
+        // 4. Montar lista de signatários
+        // Prioridade: array `signatarios` enviado pelo frontend → fallback single (compat)
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        let signatariosLista = [];
 
-        if (doc.processo_id) {
-            // Busca polo ativo do processo
+        if (Array.isArray(signatariosInput) && signatariosInput.length > 0) {
+            // Novo formato multi-signatário
+            for (const s of signatariosInput) {
+                const nome  = (s.nome  || '').trim();
+                const email = (s.email || '').trim().toLowerCase();
+                if (!nome || !email) {
+                    return res.status(400).json({ erro: 'Nome e e-mail são obrigatórios para cada signatário.' });
+                }
+                if (!emailRegex.test(email)) {
+                    return res.status(400).json({ erro: `E-mail inválido: ${email}` });
+                }
+                signatariosLista.push({ nome, email });
+            }
+        } else if (doc.processo_id) {
+            // Fallback: busca polo ativo do processo
             const parteRes = await pool.query(
                 `SELECT pp.pessoa_nome, c.email AS pessoa_email
                  FROM partes_processo pp
@@ -142,19 +157,20 @@ router.post('/documentos/:id/assinar', async (req, res) => {
             if (!parte.pessoa_email) {
                 return res.status(400).json({ erro: 'O signatário (polo ativo) não possui e-mail cadastrado no sistema' });
             }
-            parteNome  = parte.pessoa_nome;
-            parteEmail = parte.pessoa_email;
+            signatariosLista = [{ nome: parte.pessoa_nome, email: parte.pessoa_email }];
         } else {
-            // Documento sem processo — signatário informado manualmente
+            // Fallback: signatário único informado manualmente
             if (!signatarioEmail || !signatarioNome) {
                 return res.status(400).json({ erro: 'Informe o nome e e-mail do signatário para documentos sem processo vinculado' });
             }
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(signatarioEmail)) {
                 return res.status(400).json({ erro: 'E-mail do signatário inválido' });
             }
-            parteNome  = signatarioNome.trim();
-            parteEmail = signatarioEmail.trim().toLowerCase();
+            signatariosLista = [{ nome: signatarioNome.trim(), email: signatarioEmail.trim().toLowerCase() }];
+        }
+
+        if (signatariosLista.length === 0) {
+            return res.status(400).json({ erro: 'É necessário pelo menos um signatário.' });
         }
 
         // 6. Verificar arquivo físico
@@ -163,7 +179,7 @@ router.post('/documentos/:id/assinar', async (req, res) => {
             return res.status(400).json({ erro: 'Arquivo físico não encontrado no servidor' });
         }
 
-        // 7-9. Integração ClickSign
+        // 7. Upload do documento no ClickSign (uma vez, compartilhado por todos os signatários)
         console.log('[ClickSign] Etapa 1: upload do documento...');
         const documentKey = await clicksignService.uploadDocumento(
             filePath,
@@ -174,29 +190,39 @@ router.post('/documentos/:id/assinar', async (req, res) => {
         );
         console.log('[ClickSign] Etapa 1 OK — document_key:', documentKey);
 
-        console.log('[ClickSign] Etapa 2: criar signatário:', parteEmail);
-        const signerKey = await clicksignService.criarSignatario(parteEmail, parteNome, clicksignApiKey);
-        console.log('[ClickSign] Etapa 2 OK — signer_key:', signerKey);
+        // 8. Criar, adicionar e notificar cada signatário
+        const signatariosRegistrados = [];
+        let primeiroSigningUrl = null;
 
-        console.log('[ClickSign] Etapa 3: adicionar signatário ao documento...');
-        const { requestSignatureKey, signingUrl } = await clicksignService.adicionarSignatario(documentKey, signerKey, mensagem || null, clicksignApiKey);
-        console.log('[ClickSign] Etapa 3 OK — request_signature_key:', requestSignatureKey);
-        console.log('[ClickSign] Etapa 3 — signing URL:', signingUrl);
+        for (let i = 0; i < signatariosLista.length; i++) {
+            const { nome, email } = signatariosLista[i];
+            console.log(`[ClickSign] Signatário ${i + 1}/${signatariosLista.length}: criar signatário ${email}...`);
+            const signerKey = await clicksignService.criarSignatario(email, nome, clicksignApiKey);
+            console.log(`[ClickSign] Signatário ${i + 1} — signer_key: ${signerKey}`);
 
-        // 10. Registrar na base
-        const signatarios = JSON.stringify([{
-            nome: parteNome,
-            email: parteEmail,
-            signer_key: signerKey,
-            request_signature_key: requestSignatureKey,
-            signing_url: signingUrl
-        }]);
+            const { requestSignatureKey, signingUrl } = await clicksignService.adicionarSignatario(documentKey, signerKey, mensagem || null, clicksignApiKey);
+            console.log(`[ClickSign] Signatário ${i + 1} — request_signature_key: ${requestSignatureKey}`);
 
+            if (i === 0) primeiroSigningUrl = signingUrl;
+
+            signatariosRegistrados.push({ nome, email, signer_key: signerKey, request_signature_key: requestSignatureKey, signing_url: signingUrl });
+
+            // Enviar e-mail via Brevo para cada signatário
+            await enviarEmailAssinatura({
+                para: email,
+                nomeSignatario: nome,
+                nomeDocumento: doc.nome,
+                signingUrl,
+                mensagemAdvogado: mensagem || null
+            });
+        }
+
+        // 9. Registrar na base
         await pool.query(`
             INSERT INTO assinaturas_digitais
                 (documento_id, escritorio_id, usuario_id, clicksign_document_key, status, signatarios, mensagem, deadline, link_assinatura)
             VALUES ($1, $2, $3, $4, 'enviado', $5::jsonb, $6, $7, $8)
-        `, [docId, escritorioId, usuarioId, documentKey, signatarios, mensagem || null, deadline || null, signingUrl || null]);
+        `, [docId, escritorioId, usuarioId, documentKey, JSON.stringify(signatariosRegistrados), mensagem || null, deadline || null, primeiroSigningUrl || null]);
 
         // Incrementar contador do add-on
         await pool.query(
@@ -204,17 +230,8 @@ router.post('/documentos/:id/assinar', async (req, res) => {
             [escritorioId]
         );
 
-        // 11. Enviar e-mail via Brevo com o link de assinatura
-        const emailEnviado = await enviarEmailAssinatura({
-            para: parteEmail,
-            nomeSignatario: parteNome,
-            nomeDocumento: doc.nome,
-            signingUrl,
-            mensagemAdvogado: mensagem || null
-        });
-
-        console.log(`[ASSINATURA] Documento #${docId} enviado para assinatura. ClickSign key: ${documentKey} | E-mail Brevo: ${emailEnviado ? 'enviado' : 'falhou'}`);
-        res.json({ ok: true, status: 'enviado', clicksign_document_key: documentKey, link_assinatura: signingUrl, email_enviado: emailEnviado });
+        console.log(`[ASSINATURA] Documento #${docId} enviado. ClickSign key: ${documentKey} | ${signatariosLista.length} signatário(s)`);
+        res.json({ ok: true, status: 'enviado', clicksign_document_key: documentKey, link_assinatura: primeiroSigningUrl, total_signatarios: signatariosLista.length });
 
     } catch (err) {
         console.error('[ASSINATURA] Erro ao enviar para assinatura:', err.response?.data || err.message);

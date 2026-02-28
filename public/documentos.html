@@ -596,40 +596,17 @@
             <div id="assinarDocNome" style="font-weight:600;color:var(--text-primary);margin-bottom:16px;padding:10px 12px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;"></div>
 
             <div style="margin-bottom:14px;">
-                <label id="assinarSignLabel" style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Signatário</label>
-
-                <!-- Modo automático: busca polo ativo do processo -->
-                <div id="assinarSignAuto">
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                        <div>
-                            <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">Nome</div>
-                            <div id="assinarSignNome" style="font-weight:600;padding:8px 10px;background:#f1f5f9;border-radius:6px;font-size:13px;min-height:32px;"></div>
-                        </div>
-                        <div>
-                            <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">E-mail</div>
-                            <div id="assinarSignEmail" style="font-weight:500;padding:8px 10px;background:#f1f5f9;border-radius:6px;font-size:13px;min-height:32px;word-break:break-all;"></div>
-                        </div>
-                    </div>
-                    <div id="assinarSignAviso" style="display:none;color:#ef4444;font-size:12px;margin-top:6px;"></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <label style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em;">Signatários</label>
+                    <button type="button" onclick="adicionarLinhaSignatario()"
+                        style="padding:3px 10px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">
+                        + Adicionar
+                    </button>
                 </div>
-
-                <!-- Modo manual: documento sem processo vinculado -->
-                <div id="assinarSignManual" style="display:none;">
-                    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:8px 10px;margin-bottom:8px;font-size:12px;color:#1e40af;">
-                        Documento sem processo vinculado. Informe o signatário manualmente.
-                    </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                        <div>
-                            <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">Nome *</div>
-                            <input type="text" id="assinarSignNomeInput" placeholder="Nome completo"
-                                style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;background:#f8fafc;box-sizing:border-box;">
-                        </div>
-                        <div>
-                            <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">E-mail *</div>
-                            <input type="email" id="assinarSignEmailInput" placeholder="email@exemplo.com"
-                                style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;background:#f8fafc;box-sizing:border-box;">
-                        </div>
-                    </div>
+                <div id="assinarSignatariosList"></div>
+                <div id="assinarSignAviso" style="display:none;color:#ef4444;font-size:12px;margin-top:6px;"></div>
+                <div id="assinarAutoInfo" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:8px 10px;margin-top:8px;font-size:12px;color:#1e40af;">
+                    Polo ativo do processo preenchido automaticamente. Voce pode editar ou adicionar mais signatarios.
                 </div>
             </div>
 
@@ -822,7 +799,7 @@ function renderizarTabela(lista) {
         const processoCol = d.eh_modelo
             ? `<span class="badge badge-modelo-tag">MODELO</span>`
             : (d.processo_numero
-                ? `<a href="/processos-page?busca=${encodeURIComponent(d.processo_numero)}" style="color:var(--primary);font-weight:600;text-decoration:none;">${d.processo_numero}</a>`
+                ? `<a href="/processos-page?busca=${encodeURIComponent(d.processo_numero)}" style="color:var(--primary);font-weight:600;text-decoration:none;">${d.processo_numero}</a>${d.cliente_nome ? `<br><span style="color:#64748b;font-size:11px;">${d.cliente_nome}</span>` : ''}`
                 : '<span style="color:#94a3b8;">—</span>');
 
         const excluirBtn = userRole === 'admin'
@@ -1287,43 +1264,34 @@ async function abrirModalAssinar(docId, processoId) {
     d30.setDate(d30.getDate() + 30);
     document.getElementById('assinarDeadline').value = d30.toISOString().split('T')[0];
 
-    const modoAuto   = document.getElementById('assinarSignAuto');
-    const modoManual = document.getElementById('assinarSignManual');
-    const label      = document.getElementById('assinarSignLabel');
+    // Limpar lista de signatários
+    document.getElementById('assinarSignatariosList').innerHTML = '';
+    document.getElementById('assinarSignAviso').style.display = 'none';
+    document.getElementById('assinarAutoInfo').style.display = 'none';
+
+    abrirModal('modalAssinar');
 
     if (processoId && processoId !== 'null') {
-        // ── Modo automático: busca polo ativo do processo ──
-        modoAuto.style.display   = 'block';
-        modoManual.style.display = 'none';
-        label.textContent = 'Signatário (polo ativo do processo)';
-
-        document.getElementById('assinarSignNome').textContent = '…';
-        document.getElementById('assinarSignEmail').textContent = '…';
-        document.getElementById('assinarSignAviso').style.display = 'none';
-
-        abrirModal('modalAssinar');
-
+        // Busca polo ativo para pré-preencher
         try {
             const res = await fetch(`/api/processos/${processoId}/partes`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (!res.ok) throw new Error('Erro ao buscar partes');
             const data = await res.json();
-            const partes = data.partes || [];
-            const ativo = partes
+            const partes = (data.partes || [])
                 .filter(p => p.polo === 'ativo')
                 .sort((a, b) => (b.eh_principal ? 1 : 0) - (a.eh_principal ? 1 : 0));
 
-            if (ativo.length === 0) {
-                document.getElementById('assinarSignNome').textContent = '—';
-                document.getElementById('assinarSignEmail').textContent = '—';
+            if (partes.length === 0) {
+                adicionarLinhaSignatario();
                 const aviso = document.getElementById('assinarSignAviso');
-                aviso.textContent = 'Nenhuma parte no polo ativo encontrada para este processo.';
+                aviso.textContent = 'Nenhuma parte no polo ativo encontrada. Preencha manualmente.';
                 aviso.style.display = 'block';
             } else {
-                const parte = ativo[0];
-                document.getElementById('assinarSignNome').textContent = parte.pessoa_nome || '—';
-                document.getElementById('assinarSignEmail').textContent = parte.pessoa_email || '—';
+                const parte = partes[0];
+                adicionarLinhaSignatario(parte.pessoa_nome || '', parte.pessoa_email || '');
+                document.getElementById('assinarAutoInfo').style.display = 'block';
                 if (!parte.pessoa_email) {
                     const aviso = document.getElementById('assinarSignAviso');
                     aviso.textContent = 'O signatário não possui e-mail cadastrado. Cadastre o e-mail antes de enviar.';
@@ -1331,20 +1299,44 @@ async function abrirModalAssinar(docId, processoId) {
                 }
             }
         } catch {
-            document.getElementById('assinarSignNome').textContent = '—';
-            document.getElementById('assinarSignEmail').textContent = '—';
+            adicionarLinhaSignatario();
         }
     } else {
-        // ── Modo manual: documento sem processo vinculado ──
-        modoAuto.style.display   = 'none';
-        modoManual.style.display = 'block';
-        label.textContent = 'Signatário';
-
-        document.getElementById('assinarSignNomeInput').value  = '';
-        document.getElementById('assinarSignEmailInput').value = '';
-
-        abrirModal('modalAssinar');
+        adicionarLinhaSignatario();
     }
+}
+
+function adicionarLinhaSignatario(nome = '', email = '') {
+    const list = document.getElementById('assinarSignatariosList');
+    const row = document.createElement('div');
+    row.className = 'sign-row';
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px;';
+    const nomeEsc  = nome.replace(/"/g, '&quot;');
+    const emailEsc = email.replace(/"/g, '&quot;');
+    row.innerHTML = `
+        <div>
+            <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">Nome *</div>
+            <input type="text" class="sign-nome" placeholder="Nome completo" value="${nomeEsc}"
+                style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;background:#f8fafc;box-sizing:border-box;">
+        </div>
+        <div>
+            <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">E-mail *</div>
+            <input type="email" class="sign-email" placeholder="email@exemplo.com" value="${emailEsc}"
+                style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;background:#f8fafc;box-sizing:border-box;">
+        </div>
+        <button type="button" onclick="removerLinhaSignatario(this)"
+            style="padding:6px 8px;border:none;background:none;cursor:pointer;color:#ef4444;font-size:20px;line-height:1;margin-top:14px;" title="Remover">&times;</button>
+    `;
+    list.appendChild(row);
+}
+
+function removerLinhaSignatario(btn) {
+    const list = document.getElementById('assinarSignatariosList');
+    if (list.querySelectorAll('.sign-row').length <= 1) {
+        alert('Deve haver pelo menos um signatario.');
+        return;
+    }
+    btn.closest('.sign-row').remove();
 }
 
 async function enviarAssinatura() {
@@ -1353,17 +1345,27 @@ async function enviarAssinatura() {
     const mensagem = document.getElementById('assinarMensagem').value.trim() || null;
     const deadline = document.getElementById('assinarDeadline').value || null;
 
-    // Modo manual: coleta signatário dos inputs
-    const modoManualVisivel = document.getElementById('assinarSignManual').style.display !== 'none';
-    let signatarioNome  = null;
-    let signatarioEmail = null;
-    if (modoManualVisivel) {
-        signatarioNome  = document.getElementById('assinarSignNomeInput').value.trim();
-        signatarioEmail = document.getElementById('assinarSignEmailInput').value.trim();
-        if (!signatarioNome || !signatarioEmail) {
-            alert('Preencha o nome e o e-mail do signatário.');
+    // Coletar todos os signatários da lista dinâmica
+    const rows = document.querySelectorAll('#assinarSignatariosList .sign-row');
+    const signatarios = [];
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (const row of rows) {
+        const nome  = row.querySelector('.sign-nome').value.trim();
+        const email = row.querySelector('.sign-email').value.trim();
+        if (!nome || !email) {
+            alert('Preencha o nome e o e-mail de todos os signatarios.');
             return;
         }
+        if (!emailRegex.test(email)) {
+            alert(`E-mail invalido: ${email}`);
+            return;
+        }
+        signatarios.push({ nome, email });
+    }
+
+    if (signatarios.length === 0) {
+        alert('Adicione pelo menos um signatario.');
+        return;
     }
 
     const btn = document.getElementById('btnEnviarAssinatura');
@@ -1377,7 +1379,7 @@ async function enviarAssinatura() {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ mensagem, deadline, signatarioNome, signatarioEmail })
+            body: JSON.stringify({ mensagem, deadline, signatarios })
         });
         const data = await res.json();
         if (!res.ok) {
@@ -1385,7 +1387,10 @@ async function enviarAssinatura() {
             return;
         }
         fecharModal('modalAssinar');
-        alert('Documento enviado para assinatura! O signatário receberá um e-mail com o link para assinar.');
+        const plural = signatarios.length > 1
+            ? `${signatarios.length} signatarios receberao e-mails`
+            : 'O signatario recebera um e-mail';
+        alert(`Documento enviado para assinatura! ${plural} com o link para assinar.`);
         carregarDocumentos();
     } catch (err) {
         alert('Erro ao enviar para assinatura.');

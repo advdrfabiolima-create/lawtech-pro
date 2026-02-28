@@ -104,6 +104,7 @@ async function listarDocumentos(req, res) {
         const result = await pool.query(`
             SELECT d.*,
                    p.numero AS processo_numero,
+                   c.nome   AS cliente_nome,
                    u.nome   AS usuario_nome,
                    (SELECT COUNT(*) FROM documentos v
                     WHERE v.id = COALESCE(d.documento_pai_id, d.id)
@@ -113,6 +114,7 @@ async function listarDocumentos(req, res) {
                    a.assinatura_status
             FROM documentos d
             LEFT JOIN processos  p ON p.id = d.processo_id
+            LEFT JOIN clientes   c ON c.id = p.cliente_id
             LEFT JOIN usuarios   u ON u.id = d.usuario_id
             LEFT JOIN (
                 SELECT DISTINCT ON (documento_id) documento_id, id AS assinatura_id, status AS assinatura_status
