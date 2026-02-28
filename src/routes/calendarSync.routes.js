@@ -320,7 +320,7 @@ router.get('/calendario/ical/:tokenFile', async (req, res) => {
 
     } catch (err) {
         console.error('[iCal] Erro ao gerar feed:', err.message);
-        return res.status(500).send('Erro interno ao gerar calendário.');
+        return res.status(500).send(`[DEBUG] ${err.message}`);
     }
 });
 
