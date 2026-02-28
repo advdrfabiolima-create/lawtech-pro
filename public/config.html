@@ -622,6 +622,17 @@ input, textarea, select {
             <input type="text" id="confEndereco" placeholder="Rua, Número, Bairro">
         </div>
 
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label>Logo do Escritório <span style="font-size:11px;color:#94a3b8;font-weight:400;">(nome do arquivo na pasta /public, ex: meu-logo.png)</span></label>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <input type="text" id="confLogoArquivo" placeholder="ex: lima_e_silva_advocacia.png" style="flex:1;" oninput="previewLogoConfig(this.value)">
+                <div id="logoPreviewBox" style="width:64px;height:64px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#f8fafc;flex-shrink:0;">
+                    <img id="logoPreviewImg" src="" alt="logo" style="max-width:100%;max-height:100%;object-fit:contain;display:none;">
+                    <span id="logoPreviewPlaceholder" style="font-size:10px;color:#94a3b8;text-align:center;padding:4px;">sem logo</span>
+                </div>
+            </div>
+        </div>
+
         <div style="margin-top: 20px; padding: 12px; border-left: 4px solid #2563eb; background: #f1f5f9; border-radius: 6px;">
             <span style="font-size: 12px; color: #475569; font-weight: 600; text-transform: uppercase;">
                 ✅ Checklist: Salve todos os dados acima antes de ativar o financeiro.
@@ -1269,8 +1280,10 @@ async function carregarInfoRodape() {
                 'confConta': d.conta,
                 'confContaDigito': d.conta_digito,
                 'confPixChave': d.pix_chave,
-                'confBanco': d.banco_codigo
+                'confBanco': d.banco_codigo,
+                'confLogoArquivo': d.logo_arquivo
             };
+            if (d.logo_arquivo) previewLogoConfig(d.logo_arquivo);
 
             Object.keys(campos).forEach(id => {
                 const el = document.getElementById(id);
@@ -1357,6 +1370,22 @@ async function carregarInfoRodape() {
         else alert("❌ Erro ao atualizar.");
     }
 
+    function previewLogoConfig(filename) {
+        const img = document.getElementById('logoPreviewImg');
+        const placeholder = document.getElementById('logoPreviewPlaceholder');
+        if (!img || !placeholder) return;
+        if (filename && filename.trim()) {
+            img.src = '/' + filename.trim();
+            img.style.display = 'block';
+            placeholder.style.display = 'none';
+            img.onerror = () => { img.style.display = 'none'; placeholder.style.display = 'block'; placeholder.textContent = 'não encontrado'; };
+        } else {
+            img.style.display = 'none';
+            placeholder.style.display = 'block';
+            placeholder.textContent = 'sem logo';
+        }
+    }
+
     async function salvarDadosJuridicos() {
         try {
             const rendaE = document.getElementById('confRendaMensal');
@@ -1378,7 +1407,8 @@ async function carregarInfoRodape() {
                 conta: document.getElementById('confConta')?.value || '',
                 conta_digito: document.getElementById('confContaDigito')?.value || '',
                 pix_chave: document.getElementById('confPixChave')?.value || '',
-                renda_mensal: parseFloat(rendaTratada) || 0
+                renda_mensal: parseFloat(rendaTratada) || 0,
+                logo_arquivo: document.getElementById('confLogoArquivo')?.value.trim() || null
             };
 
             const res = await fetch('/api/config/escritorio', {

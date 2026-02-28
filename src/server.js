@@ -292,7 +292,8 @@ app.get('/api/config/meu-escritorio', authMiddleware, async (req, res) => {
             `SELECT e.id, e.nome, e.advogado_responsavel, e.oab, e.documento, e.data_nascimento,
                     e.email, e.endereco, e.cidade, e.estado, e.cep, e.banco_codigo,
                     e.agencia, e.conta, e.conta_digito, e.pix_chave, e.renda_mensal,
-                    e.plano_id, e.plano_financeiro_status, e.trial_expira_em, e.proxima_cobranca
+                    e.plano_id, e.plano_financeiro_status, e.trial_expira_em, e.proxima_cobranca,
+                    e.logo_arquivo
              FROM escritorios e JOIN usuarios u ON u.escritorio_id = e.id WHERE u.id = $1`,
             [req.user.id]
         );
@@ -306,20 +307,22 @@ app.put('/api/config/escritorio', authMiddleware, async (req, res) => {
     const {
         nome, advogado_responsavel, oab, documento, dataNascimento, email,
         endereco, cidade, estado, cep, banco_codigo,
-        agencia, conta, conta_digito, pix_chave, renda_mensal
+        agencia, conta, conta_digito, pix_chave, renda_mensal, logo_arquivo
     } = req.body;
 
     try {
         await pool.query(
-            `UPDATE escritorios SET 
-                nome=$1, advogado_responsavel=$2, oab=$3, documento=$4, data_nascimento=$5, email=$6, 
-                endereco=$7, cidade=$8, estado=$9, cep=$10, banco_codigo=$11, 
-                agencia=$12, conta=$13, conta_digito=$14, pix_chave=$15, renda_mensal=$16
-             WHERE id = (SELECT escritorio_id FROM usuarios WHERE id = $17)`,
+            `UPDATE escritorios SET
+                nome=$1, advogado_responsavel=$2, oab=$3, documento=$4, data_nascimento=$5, email=$6,
+                endereco=$7, cidade=$8, estado=$9, cep=$10, banco_codigo=$11,
+                agencia=$12, conta=$13, conta_digito=$14, pix_chave=$15, renda_mensal=$16,
+                logo_arquivo=$17
+             WHERE id = (SELECT escritorio_id FROM usuarios WHERE id = $18)`,
             [
                 nome, advogado_responsavel, oab, documento, dataNascimento || null, email,
                 endereco, cidade, estado, cep, banco_codigo,
                 agencia, conta, conta_digito, pix_chave, renda_mensal,
+                logo_arquivo || null,
                 req.user.id
             ]
         );
@@ -676,6 +679,10 @@ require('./cron/crmFollowup');
         await pool.query(`ALTER TABLE clientes ADD COLUMN IF NOT EXISTS portal_token VARCHAR(64)`);
         await pool.query(`ALTER TABLE clientes ADD COLUMN IF NOT EXISTS portal_token_expira_em TIMESTAMPTZ`);
         console.log('✅ [SISTEMA] Colunas portal_token verificadas.');
+
+        // Logo do escritório (exibida no Portal do Cliente)
+        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS logo_arquivo VARCHAR(200)`);
+        console.log('✅ [SISTEMA] Coluna logo_arquivo verificada.');
 
         iniciarAgendamentos();
 

@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Portal do Cliente — LawTech Pro</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -36,9 +37,9 @@
         }
 
         .header-brand .logo-circle {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
             background: linear-gradient(135deg, #3b82f6, #2563eb);
             display: flex;
             align-items: center;
@@ -47,6 +48,14 @@
             font-weight: 700;
             color: white;
             flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .header-brand .logo-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
         }
 
         .header-brand .escritorio-nome {
@@ -392,7 +401,10 @@
 <div id="telaPortal">
     <header class="portal-header">
         <div class="header-brand">
-            <div class="logo-circle" id="logoIniciais">L</div>
+            <div class="logo-circle" id="logoBox">
+                <img id="logoImg" src="" alt="logo" style="display:none;">
+                <span id="logoIniciais">L</span>
+            </div>
             <div>
                 <div class="escritorio-nome" id="escritorioNome">Escritório</div>
                 <div class="escritorio-advogado" id="escritorioAdvogado"></div>
@@ -482,9 +494,25 @@
             if (data.escritorio?.advogado) {
                 document.getElementById('escritorioAdvogado').textContent = 'Dr(a). ' + data.escritorio.advogado;
             }
-            // Iniciais do escritório
-            const iniciais = nomeEsc.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
-            document.getElementById('logoIniciais').textContent = iniciais || 'L';
+
+            // Logo ou iniciais
+            const logoArquivo = data.escritorio?.logo_arquivo;
+            const logoImg = document.getElementById('logoImg');
+            const logoIniciais = document.getElementById('logoIniciais');
+            if (logoArquivo) {
+                logoImg.src = '/' + logoArquivo;
+                logoImg.style.display = 'block';
+                logoIniciais.style.display = 'none';
+                logoImg.onerror = () => {
+                    logoImg.style.display = 'none';
+                    logoIniciais.style.display = 'block';
+                    const iniciais = nomeEsc.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+                    logoIniciais.textContent = iniciais || 'L';
+                };
+            } else {
+                const iniciais = nomeEsc.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+                logoIniciais.textContent = iniciais || 'L';
+            }
 
             document.getElementById('telaLoading').style.display = 'none';
             document.getElementById('telaPortal').classList.add('show');

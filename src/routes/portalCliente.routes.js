@@ -33,7 +33,7 @@ router.get('/autenticar', async (req, res) => {
         }
 
         const escritorioResult = await pool.query(
-            'SELECT nome, advogado_responsavel FROM escritorios WHERE id = $1',
+            'SELECT nome, advogado_responsavel, logo_arquivo FROM escritorios WHERE id = $1',
             [cliente.escritorio_id]
         );
         const escritorio = escritorioResult.rows[0] || {};
@@ -49,7 +49,8 @@ router.get('/autenticar', async (req, res) => {
             nome: cliente.nome,
             escritorio: {
                 nome: escritorio.nome || '',
-                advogado: escritorio.advogado_responsavel || ''
+                advogado: escritorio.advogado_responsavel || '',
+                logo_arquivo: escritorio.logo_arquivo || null
             }
         });
     } catch (err) {
