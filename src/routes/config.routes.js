@@ -181,7 +181,7 @@ router.get('/meu-escritorio', authMiddleware, async (req, res) => {
         const resultado = await pool.query(
             `SELECT id, nome, advogado_responsavel, oab, documento, data_nascimento, email,
                     endereco, cidade, estado, cep, banco_codigo, agencia, conta, conta_digito,
-                    pix_chave, renda_mensal, plano_id, plano_financeiro_status
+                    pix_chave, renda_mensal, plano_id, plano_financeiro_status, logo_arquivo
              FROM escritorios WHERE id = $1`,
             [escritorioId]
         );
