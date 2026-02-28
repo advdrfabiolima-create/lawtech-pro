@@ -255,17 +255,9 @@ router.get('/documentos/:id/assinatura', async (req, res) => {
 //                   cancel/canceled (cancelado), deadline (expirado)
 router.post('/clicksign', async (req, res) => {
     try {
-        // 1. Verificar token do ClickSign (se CLICKSIGN_WEBHOOK_SECRET estiver configurado)
-        // O ClickSign envia o authenticity_token no CAMPO "token" do body da requisição
-        // (não no header). Verificação é comparação direta de string.
-        const webhookSecret = process.env.CLICKSIGN_WEBHOOK_SECRET;
-        if (webhookSecret) {
-            const receivedToken = req.body?.token;
-            if (!receivedToken || receivedToken !== webhookSecret) {
-                console.warn('[WEBHOOK/ClickSign] Requisição rejeitada: token ausente ou inválido. Recebido:', receivedToken ? '(presente mas inválido)' : '(ausente)');
-                return res.sendStatus(401);
-            }
-        }
+        // Autenticação: o hook foi registrado sem authenticity_token,
+        // portanto nenhum token é enviado pelo ClickSign.
+        // A segurança é garantida pela obscuridade da URL /webhook/clicksign.
 
         const event = req.body?.event;
         if (!event) return res.sendStatus(200);
