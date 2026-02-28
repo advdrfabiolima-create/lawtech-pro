@@ -41,6 +41,7 @@ const documentosRoutes = require('./routes/documentos.routes');
 const assinaturaDigitalRoutes = require('./routes/assinaturaDigital.routes');
 const addonClicksignRoutes = require('./routes/addonClicksign.routes');
 const calendarSyncRoutes = require('./routes/calendarSync.routes');
+const andamentosRoutes = require('./routes/andamentos.routes');
 
 // --- 2. MIDDLEWARES DE AUTENTICAÃ‡ÃƒO ---
 const authMiddleware = require('./middlewares/authMiddleware');
@@ -227,6 +228,7 @@ app.use('/api', notificacoesRoutes);
 app.use('/api', authMiddleware, verificarPagamento, relatoriosRoutes);
 app.use('/api', authMiddleware, verificarPagamento, chatRoutes);
 app.use('/api', authMiddleware, verificarPagamento, documentosRoutes);
+app.use('/api', authMiddleware, verificarPagamento, andamentosRoutes);
 app.use('/webhook', assinaturaDigitalRoutes); // ClickSign webhook — público (APÓS express.json)
 app.use('/api', authMiddleware, verificarPagamento, assinaturaDigitalRoutes);
 app.use('/api', authMiddleware, verificarPagamento, addonClicksignRoutes);
@@ -647,6 +649,25 @@ require('./cron/crmFollowup');
             ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS ical_token VARCHAR(64)
         `);
         console.log('✅ [SISTEMA] Coluna ical_token verificada.');
+
+        // Andamentos Processuais
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS andamentos_processuais (
+                id               SERIAL PRIMARY KEY,
+                processo_id      INTEGER NOT NULL REFERENCES processos(id) ON DELETE CASCADE,
+                escritorio_id    INTEGER NOT NULL,
+                usuario_id       INTEGER,
+                data_andamento   DATE NOT NULL,
+                tipo             VARCHAR(50) DEFAULT 'outros',
+                titulo           VARCHAR(200) NOT NULL,
+                descricao        TEXT,
+                visivel_cliente  BOOLEAN DEFAULT FALSE,
+                fonte            VARCHAR(20) DEFAULT 'manual',
+                criado_em        TIMESTAMPTZ DEFAULT NOW()
+            )
+        `);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_andamentos_processo ON andamentos_processuais(processo_id)`);
+        console.log('✅ [SISTEMA] Tabela andamentos_processuais verificada.');
 
         iniciarAgendamentos();
 

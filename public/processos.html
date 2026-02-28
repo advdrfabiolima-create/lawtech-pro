@@ -2425,11 +2425,13 @@ let gerenciadorPartesEdicao = null;
                         ${abaAtual === 'ativo' ? `
                             <button onclick="editarProcesso(${p.id})" title="Editar Processo" style="background:none;border:none;cursor:pointer;color:#5BA4DB;"><i data-lucide="edit" style="width:18px;"></i></button>
                             <button onclick="arquivarProcesso(${p.id})" title="Arquivar" style="background:none;border:none;cursor:pointer;color:#f59e0b;"><i data-lucide="archive" style="width:18px;"></i></button>
+                            <button onclick="abrirAndamentos(${p.id}, '${(p.numero||'').replace(/'/g,"\\\'")}')" title="Andamentos" style="background:none;border:none;cursor:pointer;color:#6366f1;"><i data-lucide="clock" style="width:18px;height:18px;"></i></button>
                             <button onclick="window.location.href='/documentos-page?processo_id=${p.id}'" title="Documentos" style="background:none;border:none;cursor:pointer;color:#7E8CE0;"><i data-lucide="folder-open" style="width:18px;height:18px;"></i></button>
                             <button onclick="excluirProcesso(${p.id})" title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;"><i data-lucide="trash-2" style="width:18px;"></i></button>
                         ` : abaAtual === 'arquivado' ? `
                             <button onclick="editarProcesso(${p.id})" title="Editar Processo" style="background:none;border:none;cursor:pointer;color:#5BA4DB;"><i data-lucide="edit" style="width:18px;"></i></button>
                             <button onclick="desarquivarProcesso(${p.id})" title="Desarquivar" style="background:none;border:none;cursor:pointer;color:#10b981;"><i data-lucide="refresh-cw" style="width:18px;"></i></button>
+                            <button onclick="abrirAndamentos(${p.id}, '${(p.numero||'').replace(/'/g,"\\\'")}')" title="Andamentos" style="background:none;border:none;cursor:pointer;color:#6366f1;"><i data-lucide="clock" style="width:18px;height:18px;"></i></button>
                             <button onclick="window.location.href='/documentos-page?processo_id=${p.id}'" title="Documentos" style="background:none;border:none;cursor:pointer;color:#7E8CE0;"><i data-lucide="folder-open" style="width:18px;height:18px;"></i></button>
                             <button onclick="excluirProcesso(${p.id})" title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;"><i data-lucide="trash-2" style="width:18px;"></i></button>
                         ` : `
@@ -3748,6 +3750,277 @@ function obterTribunaisPorEsfera(esfera) {
 (function(){var t=localStorage.getItem('token');if(!t)return;function checkChat(){fetch('/api/chat/nao-lidas',{headers:{Authorization:'Bearer '+t}}).then(function(r){return r.json()}).then(function(d){if(d.ok){var total=Object.values(d.naoLidas).reduce(function(a,b){return a+b},0);var b=document.getElementById('chatBadge');if(b){b.style.display=total>0?'inline-flex':'none';b.textContent=total>99?'99+':total}}}).catch(function(){})}checkChat();setInterval(checkChat,30000)})();
 </script>
     <script src="mobile.js"></script>
+
+    <!-- MODAL: Andamentos Processuais -->
+    <div id="modalAndamentos" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:10000;align-items:center;justify-content:center;padding:16px;">
+        <div style="background:#fff;border-radius:16px;max-width:680px;width:100%;box-shadow:0 25px 50px rgba(0,0,0,0.25);position:relative;max-height:90vh;display:flex;flex-direction:column;">
+            <!-- Header -->
+            <div style="padding:22px 24px 16px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <i data-lucide="clock" style="width:22px;height:22px;color:#6366f1;"></i>
+                    <div>
+                        <div style="font-size:16px;font-weight:700;color:#1e293b;">Andamentos Processuais</div>
+                        <div id="andamentosNumeroProcesso" style="font-size:12px;color:#64748b;margin-top:1px;"></div>
+                    </div>
+                </div>
+                <button onclick="fecharAndamentos()" style="background:none;border:none;cursor:pointer;color:#94a3b8;padding:4px;">
+                    <i data-lucide="x" style="width:20px;height:20px;"></i>
+                </button>
+            </div>
+
+            <!-- Form Registrar -->
+            <div style="padding:18px 24px;border-bottom:1px solid #f1f5f9;flex-shrink:0;background:#f8fafc;border-radius:0 0 0 0;">
+                <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;">Registrar Andamento</div>
+                <form id="formAndamento" onsubmit="registrarAndamento(event)" autocomplete="off">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+                        <div>
+                            <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Data *</label>
+                            <input type="date" id="andDataAndamento" required
+                                style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;color:#1e293b;box-sizing:border-box;">
+                        </div>
+                        <div>
+                            <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Tipo</label>
+                            <select id="andTipo" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;color:#1e293b;box-sizing:border-box;">
+                                <option value="despacho">Despacho</option>
+                                <option value="decisao">Decisão</option>
+                                <option value="sentenca">Sentença</option>
+                                <option value="acordao">Acórdão</option>
+                                <option value="peticao">Petição</option>
+                                <option value="audiencia">Audiência</option>
+                                <option value="recurso">Recurso</option>
+                                <option value="citacao">Citação/Intimação</option>
+                                <option value="outros" selected>Outros</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Título *</label>
+                        <input type="text" id="andTitulo" required maxlength="200" placeholder="Ex: Tutela antecipada deferida"
+                            style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;color:#1e293b;box-sizing:border-box;">
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Descrição (opcional)</label>
+                        <textarea id="andDescricao" rows="2" placeholder="Detalhes do andamento..."
+                            style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;color:#1e293b;resize:vertical;box-sizing:border-box;min-height:56px;"></textarea>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#374151;">
+                            <input type="checkbox" id="andVisivelCliente" style="width:14px;height:14px;accent-color:#6366f1;">
+                            Visível ao cliente (Portal)
+                        </label>
+                        <button type="submit" id="btnRegistrarAndamento"
+                            style="padding:8px 18px;background:#6366f1;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                            <i data-lucide="plus" style="width:15px;height:15px;"></i> Registrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Histórico / Timeline -->
+            <div style="padding:18px 24px;overflow-y:auto;flex:1;">
+                <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;">Histórico</div>
+                <div id="andamentosLista"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ── Andamentos Processuais ───────────────────────────────────────────────────
+    (function() {
+        const TIPO_META = {
+            despacho:  { label: 'Despacho',          cor: '#64748b' },
+            decisao:   { label: 'Decisão',            cor: '#3b82f6' },
+            sentenca:  { label: 'Sentença',           cor: '#7c3aed' },
+            acordao:   { label: 'Acórdão',            cor: '#6366f1' },
+            peticao:   { label: 'Petição',            cor: '#16a34a' },
+            audiencia: { label: 'Audiência',          cor: '#f97316' },
+            recurso:   { label: 'Recurso',            cor: '#ca8a04' },
+            citacao:   { label: 'Citação/Intimação',  cor: '#0d9488' },
+            outros:    { label: 'Outros',             cor: '#94a3b8' }
+        };
+
+        let _andProcessoId = null;
+        let _userRole = null;
+
+        function getUserRole() {
+            if (_userRole) return _userRole;
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return 'visualizador';
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                _userRole = payload.role || 'visualizador';
+            } catch (e) { _userRole = 'visualizador'; }
+            return _userRole;
+        }
+
+        window.abrirAndamentos = function(processoId, numero) {
+            _andProcessoId = processoId;
+            document.getElementById('andamentosNumeroProcesso').textContent = numero || '';
+            document.getElementById('andamentosLista').innerHTML = '<div style="color:#94a3b8;font-size:13px;">Carregando...</div>';
+            // Pré-preenche data com hoje
+            const hoje = new Date().toISOString().slice(0, 10);
+            document.getElementById('andDataAndamento').value = hoje;
+            document.getElementById('andTitulo').value = '';
+            document.getElementById('andDescricao').value = '';
+            document.getElementById('andTipo').value = 'outros';
+            document.getElementById('andVisivelCliente').checked = false;
+
+            const modal = document.getElementById('modalAndamentos');
+            modal.style.display = 'flex';
+            setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 50);
+            carregarAndamentos(processoId);
+        };
+
+        window.fecharAndamentos = function() {
+            document.getElementById('modalAndamentos').style.display = 'none';
+            _andProcessoId = null;
+        };
+
+        window.carregarAndamentos = function(processoId) {
+            const token = localStorage.getItem('token');
+            fetch('/api/processos/' + processoId + '/andamentos', {
+                headers: { Authorization: 'Bearer ' + token }
+            })
+            .then(r => r.json())
+            .then(data => {
+                renderAndamentos(data.andamentos || []);
+            })
+            .catch(() => {
+                document.getElementById('andamentosLista').innerHTML =
+                    '<div style="color:#ef4444;font-size:13px;">Erro ao carregar andamentos.</div>';
+            });
+        };
+
+        function renderAndamentos(lista) {
+            const container = document.getElementById('andamentosLista');
+            const role = getUserRole();
+            if (!lista.length) {
+                container.innerHTML = '<div style="color:#94a3b8;font-size:13px;text-align:center;padding:24px 0;">Nenhum andamento registrado.</div>';
+                return;
+            }
+            container.innerHTML = lista.map(a => {
+                const meta = TIPO_META[a.tipo] || TIPO_META.outros;
+                const dataFmt = a.data_andamento
+                    ? new Date(a.data_andamento + 'T12:00:00').toLocaleDateString('pt-BR')
+                    : '—';
+                const podeExcluir = (role === 'admin');
+                return `
+                <div style="display:flex;gap:12px;margin-bottom:18px;align-items:flex-start;">
+                    <div style="flex-shrink:0;margin-top:3px;">
+                        <div style="width:10px;height:10px;border-radius:50%;background:${meta.cor};margin-top:4px;"></div>
+                    </div>
+                    <div style="flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;">
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+                            <span style="font-size:11px;color:#64748b;font-weight:600;">${dataFmt}</span>
+                            <span style="font-size:11px;padding:2px 8px;border-radius:12px;background:${meta.cor}22;color:${meta.cor};font-weight:700;">${meta.label}</span>
+                            ${a.visivel_cliente ? '<span style="font-size:10px;padding:1px 7px;border-radius:12px;background:#dcfce7;color:#16a34a;font-weight:600;">Visível cliente</span>' : ''}
+                        </div>
+                        <div style="font-size:13px;font-weight:600;color:#1e293b;margin-bottom:${a.descricao ? '4px' : '0'};">${escapeHtml(a.titulo)}</div>
+                        ${a.descricao ? '<div style="font-size:12px;color:#64748b;line-height:1.5;">' + escapeHtml(a.descricao) + '</div>' : ''}
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+                            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;color:#64748b;">
+                                <input type="checkbox" ${a.visivel_cliente ? 'checked' : ''} onchange="toggleVisivelCliente(${a.id}, this)"
+                                    style="width:12px;height:12px;accent-color:#6366f1;">
+                                Visível no Portal
+                            </label>
+                            ${podeExcluir ? `<button onclick="excluirAndamento(${a.id})" title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:2px;"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 50);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        window.registrarAndamento = function(event) {
+            event.preventDefault();
+            if (!_andProcessoId) return;
+            const token = localStorage.getItem('token');
+            const btn = document.getElementById('btnRegistrarAndamento');
+            btn.disabled = true;
+            btn.textContent = 'Salvando...';
+
+            const body = {
+                data_andamento: document.getElementById('andDataAndamento').value,
+                tipo: document.getElementById('andTipo').value,
+                titulo: document.getElementById('andTitulo').value,
+                descricao: document.getElementById('andDescricao').value,
+                visivel_cliente: document.getElementById('andVisivelCliente').checked
+            };
+
+            fetch('/api/processos/' + _andProcessoId + '/andamentos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+                body: JSON.stringify(body)
+            })
+            .then(r => r.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="plus" style="width:15px;height:15px;"></i> Registrar';
+                setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 50);
+                if (data.ok) {
+                    document.getElementById('formAndamento').reset();
+                    document.getElementById('andDataAndamento').value = new Date().toISOString().slice(0, 10);
+                    carregarAndamentos(_andProcessoId);
+                } else {
+                    alert('Erro: ' + (data.erro || 'Falha ao registrar andamento.'));
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="plus" style="width:15px;height:15px;"></i> Registrar';
+                alert('Erro de conexão. Tente novamente.');
+            });
+        };
+
+        window.excluirAndamento = function(id) {
+            if (!confirm('Excluir este andamento? Esta ação não pode ser desfeita.')) return;
+            const token = localStorage.getItem('token');
+            fetch('/api/andamentos/' + id, {
+                method: 'DELETE',
+                headers: { Authorization: 'Bearer ' + token }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    carregarAndamentos(_andProcessoId);
+                } else {
+                    alert('Erro: ' + (data.erro || 'Falha ao excluir.'));
+                }
+            })
+            .catch(() => alert('Erro de conexão.'));
+        };
+
+        window.toggleVisivelCliente = function(id, checkbox) {
+            const token = localStorage.getItem('token');
+            fetch('/api/andamentos/' + id + '/visivel', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+                body: JSON.stringify({ visivel_cliente: checkbox.checked })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.ok) {
+                    checkbox.checked = !checkbox.checked; // reverte
+                    alert('Erro ao atualizar visibilidade.');
+                }
+            })
+            .catch(() => {
+                checkbox.checked = !checkbox.checked;
+                alert('Erro de conexão.');
+            });
+        };
+
+        // Fechar modal ao clicar fora
+        document.getElementById('modalAndamentos').addEventListener('click', function(e) {
+            if (e.target === this) fecharAndamentos();
+        });
+    })();
+    </script>
 
     <!-- MODAL: Conflito de Interesses -->
     <div id="modalConflito" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:10000;align-items:center;justify-content:center;padding:16px;">
