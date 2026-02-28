@@ -7,20 +7,31 @@ const roleMiddleware = require('../middlewares/roleMiddleware');
 
 // ── Helpers iCal ──────────────────────────────────────────────────────────────
 
-function toICalDate(dateStr) {
-    // '2026-03-15' → '20260315'
-    return String(dateStr).replace(/-/g, '').slice(0, 8);
+/**
+ * Normaliza qualquer valor de data (Date object ou string) para 'YYYY-MM-DD'.
+ * O driver pg retorna DATE como string '2026-03-15' mas TIMESTAMP como Date.
+ */
+function normalizeDate(val) {
+    if (val instanceof Date) return val.toISOString().split('T')[0];
+    // string pode ser '2026-03-15' ou '2026-03-15T00:00:00.000Z'
+    return String(val).split('T')[0];
 }
 
-function addOneDay(dateStr) {
+function toICalDate(dateVal) {
+    // '2026-03-15' → '20260315'
+    return normalizeDate(dateVal).replace(/-/g, '');
+}
+
+function addOneDay(dateVal) {
+    const dateStr = normalizeDate(dateVal);
     const d = new Date(dateStr + 'T00:00:00Z');
     d.setUTCDate(d.getUTCDate() + 1);
     return d.toISOString().split('T')[0].replace(/-/g, '');
 }
 
-function toICalDateTime(dateStr, timeStr) {
+function toICalDateTime(dateVal, timeStr) {
     // '2026-03-15', '14:30:00' → '20260315T143000'
-    const d = String(dateStr).replace(/-/g, '').slice(0, 8);
+    const d = normalizeDate(dateVal).replace(/-/g, '');
     const t = String(timeStr).replace(/:/g, '').slice(0, 6);
     return `${d}T${t}`;
 }
@@ -46,15 +57,16 @@ function escapeIcal(str) {
 }
 
 function foldLine(line) {
-    // RFC 5545: fold lines longer than 75 octets
-    const bytes = Buffer.from(line, 'utf8');
-    if (bytes.length <= 75) return line;
+    // RFC 5545 says fold at 75 octets, but splitting bytes can corrupt multibyte
+    // UTF-8 characters (e.g. emojis). Folding at character boundaries is safe
+    // and accepted by all major calendar clients (Google, Apple, Outlook).
+    if (line.length <= 75) return line;
     const chunks = [];
     let offset = 0;
     let first = true;
-    while (offset < bytes.length) {
+    while (offset < line.length) {
         const limit = first ? 75 : 74;
-        chunks.push(bytes.slice(offset, offset + limit).toString('utf8'));
+        chunks.push(line.slice(offset, offset + limit));
         offset += limit;
         first = false;
     }
@@ -295,7 +307,7 @@ router.get('/calendario/ical/:tokenFile', async (req, res) => {
         );
 
         res.set('Content-Type', 'text/calendar; charset=utf-8');
-        res.set('Content-Disposition', `attachment; filename="lawtechpro.ics"`);
+        res.set('Content-Disposition', 'inline; filename="lawtechpro.ics"');
         res.set('Cache-Control', 'public, max-age=300');
         return res.send(ical);
 
