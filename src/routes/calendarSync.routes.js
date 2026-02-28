@@ -78,6 +78,10 @@ function buildIcal(escritorio, prazos, audiencias, feriados) {
 
     const push = (line) => lines.push(foldLine(line));
 
+    // DTSTAMP: timestamp atual em UTC — obrigatório em todo VEVENT (RFC 5545)
+    const now = new Date();
+    const dtstamp = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
     push('BEGIN:VCALENDAR');
     push('VERSION:2.0');
     push('PRODID:-//LawTech Pro//Calendario Juridico//PT');
@@ -103,20 +107,21 @@ function buildIcal(escritorio, prazos, audiencias, feriados) {
         const dtstart = toICalDate(p.data_limite);
         const dtend   = addOneDay(p.data_limite);
         const cliente = p.cliente_nome || p.processo_numero || 'Processo';
-        const summary = `⚖️ ${escapeIcal(p.tipo)} — ${escapeIcal(cliente)}`;
+        const summary = `[Prazo] ${escapeIcal(p.tipo)} - ${escapeIcal(cliente)}`;
         const desc = [
             p.processo_numero ? `Processo: ${p.processo_numero}` : null,
             p.cliente_nome    ? `Cliente: ${p.cliente_nome}`     : null,
-            p.descricao       ? `Observações: ${p.descricao}`    : null,
+            p.descricao       ? `Observacoes: ${p.descricao}`    : null,
         ].filter(Boolean).join('\\n');
 
         push('BEGIN:VEVENT');
         push(`UID:prazo-${p.id}@lawtechpro.com.br`);
+        push(`DTSTAMP:${dtstamp}`);
+        push(`SEQUENCE:0`);
         push(`DTSTART;VALUE=DATE:${dtstart}`);
         push(`DTEND;VALUE=DATE:${dtend}`);
         push(`SUMMARY:${summary}`);
         if (desc) push(`DESCRIPTION:${desc}`);
-        push('CATEGORIES:PRAZO');
         push('STATUS:CONFIRMED');
         push('END:VEVENT');
     }
@@ -131,7 +136,7 @@ function buildIcal(escritorio, prazos, audiencias, feriados) {
         const dtendT  = addOneHour(timeStr);
         const dtend   = `${String(dateStr).replace(/-/g, '').slice(0, 8)}T${dtendT}`;
         const cliente = a.cliente_nome || a.processo_numero || 'Processo';
-        const summary = `🏛️ ${escapeIcal(a.tipo_audiencia)} — ${escapeIcal(cliente)}`;
+        const summary = `[Audiencia] ${escapeIcal(a.tipo_audiencia)} - ${escapeIcal(cliente)}`;
         const desc = [
             a.processo_numero ? `Processo: ${a.processo_numero}` : null,
             a.local_virtual   ? `Local: ${a.local_virtual}`      : null,
@@ -139,12 +144,13 @@ function buildIcal(escritorio, prazos, audiencias, feriados) {
 
         push('BEGIN:VEVENT');
         push(`UID:audiencia-${a.id}@lawtechpro.com.br`);
+        push(`DTSTAMP:${dtstamp}`);
+        push(`SEQUENCE:0`);
         push(`DTSTART;TZID=America/Sao_Paulo:${dtstart}`);
         push(`DTEND;TZID=America/Sao_Paulo:${dtend}`);
         push(`SUMMARY:${summary}`);
         if (desc)             push(`DESCRIPTION:${desc}`);
         if (a.local_virtual)  push(`LOCATION:${escapeIcal(a.local_virtual)}`);
-        push('CATEGORIES:AUDIENCIA');
         push('STATUS:CONFIRMED');
         push('END:VEVENT');
     }
@@ -156,15 +162,16 @@ function buildIcal(escritorio, prazos, audiencias, feriados) {
             : String(f.data).split('T')[0];
         const dtstart = toICalDate(dateStr);
         const dtend   = addOneDay(dateStr);
-        const emoji   = f.tipo === 'feriado' ? '🏖️' : '⚠️';
-        const summary = `${emoji} ${escapeIcal(f.titulo)}`;
+        const prefix  = f.tipo === 'feriado' ? '[Feriado]' : '[Suspensao]';
+        const summary = `${prefix} ${escapeIcal(f.titulo)}`;
 
         push('BEGIN:VEVENT');
         push(`UID:feriado-${f.id}@lawtechpro.com.br`);
+        push(`DTSTAMP:${dtstamp}`);
+        push(`SEQUENCE:0`);
         push(`DTSTART;VALUE=DATE:${dtstart}`);
         push(`DTEND;VALUE=DATE:${dtend}`);
         push(`SUMMARY:${summary}`);
-        push('CATEGORIES:FERIADO');
         if (f.recorrente) push('RRULE:FREQ=YEARLY');
         push('END:VEVENT');
     }
