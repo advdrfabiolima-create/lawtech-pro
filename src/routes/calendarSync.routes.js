@@ -9,21 +9,30 @@ const roleMiddleware = require('../middlewares/roleMiddleware');
 
 /**
  * Normaliza qualquer valor de data (Date object ou string) para 'YYYY-MM-DD'.
+ * Retorna null se o valor for nulo/inválido.
  * O driver pg retorna DATE como string '2026-03-15' mas TIMESTAMP como Date.
  */
 function normalizeDate(val) {
-    if (val instanceof Date) return val.toISOString().split('T')[0];
-    // string pode ser '2026-03-15' ou '2026-03-15T00:00:00.000Z'
-    return String(val).split('T')[0];
+    if (val == null) return null;
+    if (val instanceof Date) {
+        if (isNaN(val.getTime())) return null;
+        return val.toISOString().split('T')[0];
+    }
+    const s = String(val).split('T')[0];
+    // Valida formato básico YYYY-MM-DD
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
+    return s;
 }
 
 function toICalDate(dateVal) {
-    // '2026-03-15' → '20260315'
-    return normalizeDate(dateVal).replace(/-/g, '');
+    const s = normalizeDate(dateVal);
+    if (!s) return null;
+    return s.replace(/-/g, '');
 }
 
 function addOneDay(dateVal) {
     const dateStr = normalizeDate(dateVal);
+    if (!dateStr) return null;
     const d = new Date(dateStr + 'T00:00:00Z');
     d.setUTCDate(d.getUTCDate() + 1);
     return d.toISOString().split('T')[0].replace(/-/g, '');
@@ -31,8 +40,10 @@ function addOneDay(dateVal) {
 
 function toICalDateTime(dateVal, timeStr) {
     // '2026-03-15', '14:30:00' → '20260315T143000'
-    const d = normalizeDate(dateVal).replace(/-/g, '');
-    const t = String(timeStr).replace(/:/g, '').slice(0, 6);
+    const s = normalizeDate(dateVal);
+    if (!s) return null;
+    const d = s.replace(/-/g, '');
+    const t = String(timeStr || '000000').replace(/:/g, '').slice(0, 6);
     return `${d}T${t}`;
 }
 
@@ -106,6 +117,7 @@ function buildIcal(escritorio, prazos, audiencias, feriados) {
     for (const p of prazos) {
         const dtstart = toICalDate(p.data_limite);
         const dtend   = addOneDay(p.data_limite);
+        if (!dtstart || !dtend) continue; // pula se data inválida
         const cliente = p.cliente_nome || p.processo_numero || 'Processo';
         const summary = `[Prazo] ${escapeIcal(p.tipo)} - ${escapeIcal(cliente)}`;
         const desc = [
@@ -128,13 +140,13 @@ function buildIcal(escritorio, prazos, audiencias, feriados) {
 
     // ── Audiências ──────────────────────────────────────────────────────────
     for (const a of audiencias) {
-        const dateStr = a.data_audiencia instanceof Date
-            ? a.data_audiencia.toISOString().split('T')[0]
-            : String(a.data_audiencia).split('T')[0];
+        const dateNorm = normalizeDate(a.data_audiencia);
+        if (!dateNorm) continue; // pula se data inválida
         const timeStr = a.hora_audiencia ? String(a.hora_audiencia) : '09:00:00';
-        const dtstart = toICalDateTime(dateStr, timeStr);
+        const dtstart = toICalDateTime(dateNorm, timeStr);
         const dtendT  = addOneHour(timeStr);
-        const dtend   = `${String(dateStr).replace(/-/g, '').slice(0, 8)}T${dtendT}`;
+        const dtend   = `${dateNorm.replace(/-/g, '')}T${dtendT}`;
+        if (!dtstart) continue;
         const cliente = a.cliente_nome || a.processo_numero || 'Processo';
         const summary = `[Audiencia] ${escapeIcal(a.tipo_audiencia)} - ${escapeIcal(cliente)}`;
         const desc = [
@@ -157,11 +169,9 @@ function buildIcal(escritorio, prazos, audiencias, feriados) {
 
     // ── Feriados / Suspensões ────────────────────────────────────────────────
     for (const f of feriados) {
-        const dateStr = f.data instanceof Date
-            ? f.data.toISOString().split('T')[0]
-            : String(f.data).split('T')[0];
-        const dtstart = toICalDate(dateStr);
-        const dtend   = addOneDay(dateStr);
+        const dtstart = toICalDate(f.data);
+        const dtend   = addOneDay(f.data);
+        if (!dtstart || !dtend) continue; // pula se data inválida
         const prefix  = f.tipo === 'feriado' ? '[Feriado]' : '[Suspensao]';
         const summary = `${prefix} ${escapeIcal(f.titulo)}`;
 
@@ -273,7 +283,7 @@ router.get('/calendario/ical/:tokenFile', async (req, res) => {
         const escritorio = escResult.rows[0];
         const escritorioId = escritorio.id;
 
-        // Prazos ativos (aberto, atrasado, hoje)
+        // Prazos ativos (aberto, atrasado, hoje) — exige data_limite válida
         const prazosResult = await pool.query(`
             SELECT p.id, p.tipo, p.descricao, p.data_limite,
                    pr.numero AS processo_numero, c.nome AS cliente_nome
@@ -283,10 +293,11 @@ router.get('/calendario/ical/:tokenFile', async (req, res) => {
             WHERE p.escritorio_id = $1
               AND p.deletado = false
               AND p.status IN ('aberto', 'atrasado', 'hoje')
+              AND p.data_limite IS NOT NULL
             ORDER BY p.data_limite ASC
         `, [escritorioId]);
 
-        // Audiências futuras (não realizadas)
+        // Audiências futuras (não realizadas) — exige data_audiencia válida
         const audienciasResult = await pool.query(`
             SELECT a.id, a.tipo_audiencia, a.data_audiencia, a.hora_audiencia, a.local_virtual,
                    pr.numero AS processo_numero, c.nome AS cliente_nome
@@ -295,6 +306,7 @@ router.get('/calendario/ical/:tokenFile', async (req, res) => {
             LEFT JOIN clientes c   ON c.id   = pr.cliente_id
             WHERE pr.escritorio_id = $1
               AND a.realizada = false
+              AND a.data_audiencia IS NOT NULL
             ORDER BY a.data_audiencia ASC, a.hora_audiencia ASC
         `, [escritorioId]);
 
@@ -320,7 +332,7 @@ router.get('/calendario/ical/:tokenFile', async (req, res) => {
 
     } catch (err) {
         console.error('[iCal] Erro ao gerar feed:', err.message);
-        return res.status(500).send(`[DEBUG] ${err.message}`);
+        return res.status(500).send('Erro interno ao gerar calendário.');
     }
 });
 
