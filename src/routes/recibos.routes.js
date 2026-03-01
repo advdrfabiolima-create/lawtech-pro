@@ -230,9 +230,9 @@ router.post('/recibos/gerar',
             const escritorio = escritorioResult.rows[0];
 
             // Criar documento PDF
-            const doc = new PDFDocument({ 
-                size: 'A4', 
-                margin: 50,
+            const doc = new PDFDocument({
+                size: 'A4',
+                margins: { top: 40, bottom: 40, left: 50, right: 50 },
                 bufferPages: true
             });
 
@@ -244,231 +244,162 @@ router.post('/recibos/gerar',
             const writeStream = require('fs').createWriteStream(filePath);
             doc.pipe(writeStream);
 
+            // ── Constantes de layout ─────────────────────────────────
+            const L = 50;   // left
+            const R = 545;  // right
+            const W = 495;  // content width
+            const NAVY  = '#1e3a5f';
+            const DARK  = '#1e293b';
+            const GRAY  = '#64748b';
+            const LGRAY = '#94a3b8';
+            const LINE  = '#e2e8f0';
+
             // ============================================================
-            // 🎨 CABEÇALHO PROFISSIONAL
+            // CABEÇALHO
             // ============================================================
 
-            const headerTop = 60;
-            const logoSize = 85;
+            // Barra navy topo
+            doc.rect(L, 40, W, 4).fill(NAVY);
 
-            // Logo do escritório
+            // Logo (máx 65×65)
+            const LOGO_MAX = 65;
+            let logoBottomY = 55;
             if (escritorio.logo_path) {
                 try {
-                    const logoFullPath = path.join(__dirname, '..', escritorio.logo_path);
-                    await fs.access(logoFullPath);
-                    
-                    // Logo com borda sutil
-                    doc.rect(50, headerTop, logoSize, logoSize)
-                       .strokeColor('#e2e8f0')
-                       .lineWidth(1)
-                       .stroke();
-                    
-                    doc.image(logoFullPath, 52, headerTop + 2, { 
-                        width: logoSize - 4, 
-                        height: logoSize - 4,
-                        fit: [logoSize - 4, logoSize - 4],
-                        align: 'center',
-                        valign: 'center'
-                    });
-                } catch (err) {
-                    console.log('⚠️ Logo não encontrada');
-                }
+                    const lp = path.join(__dirname, '..', escritorio.logo_path);
+                    await fs.access(lp);
+                    doc.image(lp, L, 52, { fit: [LOGO_MAX, LOGO_MAX] });
+                    logoBottomY = 52 + LOGO_MAX;
+                } catch { /* logo ausente */ }
             }
 
-            // Informações do escritório (lado direito)
-            const infoX = 150;
-            
-            doc.font('Helvetica-Bold')
-               .fontSize(16)
-               .fillColor('#1e293b')
-               .text(
-                   escritorio.nome || 'Nome do Escritório',
-                   infoX,
-                   headerTop,
-                   { width: 395, align: 'right' }
-               );
+            // Bloco de dados do escritório (direita)
+            let iy = 52;
+            const IX = 130;
+            doc.font('Helvetica-Bold').fontSize(13).fillColor(DARK)
+               .text(escritorio.nome || 'Escritório', IX, iy, { width: R - IX, align: 'right' });
+            iy += 18;
+            if (escritorio.documento) {
+                doc.font('Helvetica').fontSize(8).fillColor(GRAY)
+                   .text(`CPF/CNPJ: ${escritorio.documento}`, IX, iy, { width: R - IX, align: 'right' });
+                iy += 13;
+            }
+            const addr = [escritorio.endereco, escritorio.cidade, escritorio.estado].filter(Boolean).join(', ');
+            if (addr) {
+                doc.font('Helvetica').fontSize(8).fillColor(GRAY)
+                   .text(addr, IX, iy, { width: R - IX, align: 'right' });
+                iy += 13;
+            }
+            if (escritorio.email) {
+                doc.font('Helvetica').fontSize(8).fillColor(GRAY)
+                   .text(escritorio.email, IX, iy, { width: R - IX, align: 'right' });
+                iy += 13;
+            }
 
-            doc.font('Helvetica')
-               .fontSize(9)
-               .fillColor('#64748b')
-               .text(
-                   `CPF/CNPJ: ${escritorio.documento || 'Não informado'}`,
-                   infoX,
-                   headerTop + 22,
-                   { width: 395, align: 'right' }
-               );
-
-            // Linha azul separadora
-            doc.moveTo(50, 170)
-               .lineTo(545, 170)
-               .strokeColor('#3b82f6')
-               .lineWidth(3)
-               .stroke();
+            // Linha divisória
+            const divY = Math.max(logoBottomY, iy) + 12;
+            doc.moveTo(L, divY).lineTo(R, divY).strokeColor(NAVY).lineWidth(1).stroke();
 
             // ============================================================
-            // 📋 TÍTULO DO RECIBO
+            // IDENTIFICAÇÃO DO DOCUMENTO
             // ============================================================
 
-            doc.fontSize(28)
-               .fillColor('#3b82f6')
-               .font('Helvetica-Bold')
-               .text('RECIBO DE PAGAMENTO', 50, 195, { 
-                   align: 'center',
-                   width: 495
-               });
+            const titleY = divY + 16;
+            doc.font('Helvetica-Bold').fontSize(14).fillColor(NAVY)
+               .text('RECIBO  DE  PAGAMENTO', L, titleY, { width: W, align: 'center' });
 
-            // Número do recibo
-            doc.fontSize(11)
-               .fillColor('#64748b')
-               .font('Helvetica')
-               .text(`Nº ${numeroRecibo || 'REC-0001'}`, 50, 230, { 
-                   align: 'center',
-                   width: 495
-               });
+            const numY = titleY + 22;
+            const dataEmissao = new Date().toLocaleDateString('pt-BR', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+            doc.font('Helvetica').fontSize(8.5).fillColor(GRAY)
+               .text(`Nº ${numeroRecibo || 'REC-0001'}`, L, numY, { width: W, align: 'left' })
+               .text(`Data de emissão: ${dataEmissao}`, L, numY, { width: W, align: 'right' });
 
             // ============================================================
-            // 💰 VALOR EM DESTAQUE (Box verde)
+            // BOX DE VALOR
             // ============================================================
 
-            const valorBoxY = 265;
-            const valorBoxHeight = 70;
+            const boxY  = numY + 20;
+            const boxH  = 66;
+            doc.roundedRect(L, boxY, W, boxH, 5).fill(NAVY);
 
-            // Box com gradiente simulado (fundo verde)
-            doc.rect(50, valorBoxY, 495, valorBoxHeight)
-               .fillAndStroke('#10b981', '#059669')
-               .lineWidth(0);
+            doc.font('Helvetica').fontSize(8).fillColor('#93c5fd')
+               .text('VALOR RECEBIDO', L + 18, boxY + 11);
 
-            // Label "VALOR"
-            doc.fontSize(12)
-               .fillColor('#ffffff')
-               .font('Helvetica-Bold')
-               .text('VALOR', 50, valorBoxY + 15, { 
-                   align: 'center',
-                   width: 495
-               });
+            const valorFmt = Number(valor).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2, maximumFractionDigits: 2
+            });
+            doc.font('Helvetica-Bold').fontSize(22).fillColor('#ffffff')
+               .text(`R$ ${valorFmt}`, L + 18, boxY + 22, { width: W - 36, align: 'right' });
 
-            // Valor em destaque
-            doc.fontSize(36)
-               .fillColor('#ffffff')
-               .font('Helvetica-Bold')
-               .text(
-                   `R$ ${Number(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-                   50,
-                   valorBoxY + 32,
-                   { align: 'center', width: 495 }
-               );
+            doc.font('Helvetica').fontSize(8).fillColor('#bfdbfe')
+               .text(`Por extenso: ${extenso(Number(valor))}`, L + 18, boxY + 50, { width: W - 36 });
 
             // ============================================================
-            // 📝 DADOS DO RECIBO (Tabela limpa)
+            // DADOS DO PAGAMENTO
             // ============================================================
 
-            let currentY = 370;
-            const lineHeight = 28;
-            const labelX = 50;
-            const valueX = 200;
+            const secY = boxY + boxH + 22;
+            doc.font('Helvetica-Bold').fontSize(8).fillColor(NAVY)
+               .text('DADOS DO PAGAMENTO', L, secY);
+            doc.moveTo(L, secY + 14).lineTo(R, secY + 14)
+               .strokeColor(NAVY).lineWidth(0.5).stroke();
 
-            // Função helper para adicionar linha
-            const addField = (label, value, options = {}) => {
-                // Label
-                doc.fontSize(11)
-                   .fillColor('#64748b')
-                   .font('Helvetica')
-                   .text(label, labelX, currentY);
+            let rowY = secY + 24;
+            const LABEL_W = 145;
+            const VAL_X  = L + 155;
+            const VAL_W  = W - 155;
+            const ROW_H  = 28;
 
-                // Valor
-                doc.fontSize(12)
-                   .fillColor('#1e293b')
-                   .font(options.bold ? 'Helvetica-Bold' : 'Helvetica')
-                   .text(value, valueX, currentY, { 
-                       width: 345,
-                       ...(options.italic && { oblique: true })
-                   });
-
-                // Linha separadora sutil
-                currentY += lineHeight;
-                doc.moveTo(50, currentY - 5)
-                   .lineTo(545, currentY - 5)
-                   .strokeColor('#f1f5f9')
-                   .lineWidth(1)
-                   .stroke();
+            const drawRow = (label, value, bold = false) => {
+                doc.font('Helvetica').fontSize(8.5).fillColor(GRAY)
+                   .text(label, L, rowY + 6, { width: LABEL_W });
+                doc.font(bold ? 'Helvetica-Bold' : 'Helvetica').fontSize(10).fillColor(DARK)
+                   .text(value || '—', VAL_X, rowY + 5, { width: VAL_W });
+                rowY += ROW_H;
+                doc.moveTo(L, rowY).lineTo(R, rowY)
+                   .strokeColor(LINE).lineWidth(0.5).stroke();
             };
 
-            // Campos do recibo
-            addField('Recebemos de:', clienteNome, { bold: true });
-            
-            addField('CPF/CNPJ:', clienteDocumento || 'Não informado', { bold: true });
-            
-            addField('A importância de:', extenso(Number(valor)), { italic: true });
-            
-            addField('Referente a:', descricao);
-            
-            addField('Forma de pagamento:', formaPagamento || 'Não especificado', { bold: true });
-            
-            addField('Data:', new Date().toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            }), { bold: true });
+            drawRow('Recebemos de:', clienteNome, true);
+            if (clienteDocumento) drawRow('CPF / CNPJ:', clienteDocumento);
+            drawRow('Referente a:', descricao);
+            drawRow('Forma de pagamento:', formaPagamento || 'Não especificado');
+            drawRow('Por extenso:', extenso(Number(valor)));
 
             // ============================================================
-// ✍️ ASSINATURA (IMAGEM + LINHA + NOME) — AJUSTE DEFINITIVO
-// ============================================================
+            // ASSINATURA
+            // ============================================================
 
-const linhaAssinaturaY = 620;
-const assinaturaWidth = 110; // reduz largura → reduz altura proporcionalmente
-const assinaturaY = linhaAssinaturaY - 110; // margem segura acima da linha
+            const SIG_X = R - 210;    // x inicial do bloco (210pt de largura)
+            const SIG_W = 210;
+            const sigLineY = rowY + 90;
 
-// Assinatura em imagem (100% acima da linha)
-if (escritorio.assinatura_path) {
-    try {
-        const assinaturaFullPath = path.join(__dirname, '..', escritorio.assinatura_path);
-        await fs.access(assinaturaFullPath);
-
-        doc.image(
-            assinaturaFullPath,
-            385,          // X centralizado
-            assinaturaY,  // Y calculado (sempre acima da linha)
-            {
-                width: assinaturaWidth
+            if (escritorio.assinatura_path) {
+                try {
+                    const sp = path.join(__dirname, '..', escritorio.assinatura_path);
+                    await fs.access(sp);
+                    doc.image(sp, SIG_X + 30, sigLineY - 80, { width: 150 });
+                } catch { /* assinatura ausente */ }
             }
-        );
-    } catch (err) {
-        console.log('⚠️ Assinatura não encontrada ou inválida');
-    }
-}
 
-// Linha da assinatura
-doc.moveTo(350, linhaAssinaturaY)
-   .lineTo(545, linhaAssinaturaY)
-   .strokeColor('#64748b')
-   .lineWidth(1)
-   .stroke();
+            doc.moveTo(SIG_X, sigLineY).lineTo(SIG_X + SIG_W, sigLineY)
+               .strokeColor(LGRAY).lineWidth(0.8).stroke();
 
-// Nome do escritório abaixo da linha
-doc.fontSize(10)
-   .font('Helvetica-Bold')
-   .fillColor('#64748b')
-   .text(
-       escritorio.nome || '',
-       350,
-       linhaAssinaturaY + 10,
-       { width: 195, align: 'center' }
-   );
+            doc.font('Helvetica-Bold').fontSize(9).fillColor(DARK)
+               .text(escritorio.nome || '', SIG_X, sigLineY + 8, { width: SIG_W, align: 'center' });
+            doc.font('Helvetica').fontSize(8).fillColor(GRAY)
+               .text('Responsável pelo recebimento', SIG_X, sigLineY + 22, { width: SIG_W, align: 'center' });
 
             // ============================================================
-            // 📌 RODAPÉ COM INFORMAÇÕES DO ESCRITÓRIO
+            // RODAPÉ
             // ============================================================
 
-            const footerY = 755;
+            const footerY = 790;
+            doc.moveTo(L, footerY).lineTo(R, footerY)
+               .strokeColor(LINE).lineWidth(0.5).stroke();
 
-            // Linha separadora do rodapé
-            doc.moveTo(50, footerY)
-               .lineTo(545, footerY)
-               .strokeColor('#e2e8f0')
-               .lineWidth(1)
-               .stroke();
-
-            // Endereço completo
             const enderecoCompleto = [
                 escritorio.endereco,
                 escritorio.cidade,
@@ -476,26 +407,18 @@ doc.fontSize(10)
                 escritorio.cep ? `CEP ${escritorio.cep}` : null
             ].filter(Boolean).join(' – ');
 
-            doc.fontSize(8)
-               .fillColor('#94a3b8')
-               .font('Helvetica')
-               .text(
-                   enderecoCompleto || 'Endereço do escritório',
-                   50,
-                   footerY + 10,
-                   { width: 495, align: 'center' }
-               );
-
-            // E-mail
-            doc.text(
-                escritorio.email || 'contato@escritorio.com',
-                50,
-                footerY + 23,
-                { width: 495, align: 'center' }
-            );
+            let ftY = footerY + 9;
+            doc.font('Helvetica').fontSize(7.5).fillColor(LGRAY);
+            if (enderecoCompleto) {
+                doc.text(enderecoCompleto, L, ftY, { width: W, align: 'center' });
+                ftY += 12;
+            }
+            if (escritorio.email) {
+                doc.text(escritorio.email, L, ftY, { width: W, align: 'center' });
+            }
 
             // ============================================================
-            // 🏁 FINALIZAÇÃO
+            // FINALIZAÇÃO
             // ============================================================
 
             doc.end();
