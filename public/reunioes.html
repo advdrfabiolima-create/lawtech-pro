@@ -48,6 +48,7 @@
         body::after { content: ""; position: fixed; width: 600px; height: 600px; background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%); top: -300px; right: -300px; border-radius: 50%; filter: blur(100px); opacity: 0.08; z-index: 0; animation: float 20s ease-in-out infinite; pointer-events: none; }
         @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-30px, 30px) scale(0.9); } }
         @keyframes slideInLeft { from { opacity: 0; transform: translateX(-100%); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
         /* Sidebar */
         .sidebar { width: 280px; background: var(--bg-secondary); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border-right: 1px solid var(--border-subtle); padding: 32px 24px; display: flex; flex-direction: column; height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -337,6 +338,11 @@
                     <div class="wait-icon">📹</div>
                     <p id="videoWaitMsg">Aguardando o cliente entrar na sala...</p>
                 </div>
+                <!-- Badge de gravação (visível apenas localmente) -->
+                <div id="recordingBadge" style="display:none; position:absolute; top:12px; left:12px; z-index:10; background:rgba(220,38,38,0.92); color:#fff; border-radius:20px; padding:5px 12px; font-size:12px; font-weight:700; align-items:center; gap:7px; backdrop-filter:blur(4px); box-shadow:0 2px 8px rgba(0,0,0,0.3);">
+                    <span style="width:9px;height:9px;background:#fff;border-radius:50%;display:inline-block;animation:blink 1s infinite;"></span>
+                    REC <span id="recordingTimer">00:00</span>
+                </div>
                 <video id="remoteVideo" autoplay playsinline></video>
                 <video id="localVideo" autoplay muted playsinline></video>
                 <!-- Controles flutuantes na base -->
@@ -345,6 +351,7 @@
                     <button class="btn-vcall" id="btnMute" onclick="toggleMute()">🎤 Mudo</button>
                     <button class="btn-vcall" id="btnCam" onclick="toggleCamera()">📷 Câmera</button>
                     <button class="btn-vcall" id="btnScreen" onclick="toggleShareScreen()">🖥️ Tela</button>
+                    <button class="btn-vcall" id="btnRecord" onclick="toggleRecording()">⏺️ Gravar</button>
                 </div>
             </div>
             <!-- Painel de anotações -->

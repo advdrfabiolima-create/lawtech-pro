@@ -203,6 +203,12 @@ const TOKEN = localStorage.getItem('token');
     let _camOff = false;
     let _screenSharing = false;
 
+    // ---- Gravação ----
+    let _mediaRecorder = null;
+    let _recordedChunks = [];
+    let _recording = false;
+    let _recordingInterval = null;
+
     // ---- Anotações ----
     let _notasReuniaoId = null;
     let _notasDebounce = null;
@@ -422,6 +428,105 @@ const TOKEN = localStorage.getItem('token');
         mostrarToast('Compartilhando tela com o cliente.');
     }
 
+    async function toggleRecording() {
+        const btn = document.getElementById('btnRecord');
+
+        // --- PARAR gravação ---
+        if (_recording) {
+            _recording = false;
+            clearInterval(_recordingInterval);
+
+            if (_mediaRecorder && _mediaRecorder.state !== 'inactive') {
+                _mediaRecorder.stop();
+            }
+
+            // Esconde aviso de gravação
+            const aviso = document.getElementById('recordingBadge');
+            if (aviso) aviso.style.display = 'none';
+
+            btn.textContent = '⏺️ Gravar';
+            btn.classList.remove('off');
+            mostrarToast('Gravação encerrada. O arquivo será baixado automaticamente.');
+            return;
+        }
+
+        // --- INICIAR gravação ---
+        if (!_localStream) {
+            alert('Câmera não está ativa. Inicie a reunião antes de gravar.');
+            return;
+        }
+
+        // Combina stream local + remoto em um único canvas para gravar ambos
+        const remoteVideo = document.getElementById('remoteVideo');
+        const localVideo  = document.getElementById('localVideo');
+
+        // Cria stream combinado (local + remoto se disponível)
+        let streamParaGravar;
+        try {
+            // Tenta capturar a área do vídeo inteira via captureStream do canvas
+            const tracks = [..._localStream.getTracks()];
+            if (remoteVideo.srcObject) {
+                remoteVideo.srcObject.getAudioTracks().forEach(t => tracks.push(t));
+            }
+            streamParaGravar = new MediaStream(tracks);
+        } catch(e) {
+            streamParaGravar = _localStream;
+        }
+
+        // Escolhe melhor codec disponível
+        const mimeType = [
+            'video/webm;codecs=vp9,opus',
+            'video/webm;codecs=vp8,opus',
+            'video/webm'
+        ].find(m => MediaRecorder.isTypeSupported(m)) || '';
+
+        _recordedChunks = [];
+        try {
+            _mediaRecorder = new MediaRecorder(streamParaGravar, mimeType ? { mimeType } : {});
+        } catch(e) {
+            alert('Seu navegador não suporta gravação de vídeo.');
+            return;
+        }
+
+        _mediaRecorder.ondataavailable = e => {
+            if (e.data && e.data.size > 0) _recordedChunks.push(e.data);
+        };
+
+        _mediaRecorder.onstop = () => {
+            const blob = new Blob(_recordedChunks, { type: mimeType || 'video/webm' });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            const agora = new Date();
+            const nome  = `reuniao_${agora.getFullYear()}${String(agora.getMonth()+1).padStart(2,'0')}${String(agora.getDate()).padStart(2,'0')}_${String(agora.getHours()).padStart(2,'0')}${String(agora.getMinutes()).padStart(2,'0')}.webm`;
+            a.href     = url;
+            a.download = nome;
+            a.click();
+            URL.revokeObjectURL(url);
+            _recordedChunks = [];
+        };
+
+        _mediaRecorder.start(1000); // salva chunk a cada 1s
+        _recording = true;
+
+        // Mostra aviso discreto de gravação (visível só para o advogado)
+        const aviso = document.getElementById('recordingBadge');
+        if (aviso) aviso.style.display = 'flex';
+
+        // Cronômetro de gravação
+        let segundos = 0;
+        _recordingInterval = setInterval(() => {
+            segundos++;
+            const m = String(Math.floor(segundos / 60)).padStart(2, '0');
+            const s = String(segundos % 60).padStart(2, '0');
+            const timer = document.getElementById('recordingTimer');
+            if (timer) timer.textContent = `${m}:${s}`;
+        }, 1000);
+
+        btn.textContent = '⏹️ Parar';
+        btn.classList.add('off');
+        mostrarToast('Gravação iniciada.');
+    }
+
     function fecharModalVideo() {
         // Salva notas pendentes antes de fechar
         clearTimeout(_notasDebounce);
@@ -445,6 +550,17 @@ const TOKEN = localStorage.getItem('token');
         if (btnScreen) { btnScreen.textContent = '🖥️ Tela'; btnScreen.classList.remove('off'); }
         if (_screenStream) { _screenStream.getTracks().forEach(t => t.stop()); _screenStream = null; }
         _screenSharing = false;
+
+        // Para gravação se estiver ativa
+        if (_recording) {
+            _recording = false;
+            clearInterval(_recordingInterval);
+            if (_mediaRecorder && _mediaRecorder.state !== 'inactive') _mediaRecorder.stop();
+            const aviso = document.getElementById('recordingBadge');
+            if (aviso) aviso.style.display = 'none';
+            const btnRec = document.getElementById('btnRecord');
+            if (btnRec) { btnRec.textContent = '⏺️ Gravar'; btnRec.classList.remove('off'); }
+        }
         // Fecha painel de notas
         document.getElementById('notesPanel').classList.remove('open');
         document.getElementById('btnNotasToggle').classList.remove('active');
