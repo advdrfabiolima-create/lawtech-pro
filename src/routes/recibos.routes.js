@@ -262,7 +262,7 @@ router.post('/recibos/gerar',
             doc.rect(L, 40, W, 4).fill(NAVY);
 
             // Logo (máx 95×95)
-            const LOGO_MAX = 95;
+            const LOGO_MAX = 114;
             let logoBottomY = 55;
             if (escritorio.logo_path) {
                 try {
@@ -374,8 +374,8 @@ router.post('/recibos/gerar',
 
             const SIG_X    = R - 210;   // x inicial do bloco
             const SIG_W    = 210;
-            const SIG_IMG_W = 160;      // largura máxima da imagem
-            const SIG_IMG_H = 85;       // altura máxima da imagem
+            const SIG_IMG_W = 192;      // largura máxima da imagem
+            const SIG_IMG_H = 102;      // altura máxima da imagem
             const sigLineY  = 660;      // Y fixo da linha de assinatura
 
             if (escritorio.assinatura_path) {
