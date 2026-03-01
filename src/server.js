@@ -690,6 +690,11 @@ require('./cron/crmFollowup');
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS logo_base64 TEXT`);
         console.log('✅ [SISTEMA] Coluna logo_base64 verificada.');
 
+        // Recibos: logo e assinatura em base64 — persistência entre deploys
+        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS logo_path_base64 TEXT`);
+        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS assinatura_base64 TEXT`);
+        console.log('✅ [SISTEMA] Colunas logo_path_base64 e assinatura_base64 verificadas.');
+
         iniciarAgendamentos();
 
     } catch (err) {

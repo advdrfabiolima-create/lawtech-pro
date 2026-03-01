@@ -76,10 +76,13 @@ router.post('/recibos/upload-logo',
             const logoPath = `/uploads/logos/${req.file.filename}`;
             const escritorioId = req.user.escritorio_id;
 
-            // Salva o caminho da logo no banco de dados
+            // Converte para base64 e salva no banco — garante persistência entre deploys
+            const fileContent = await fs.readFile(req.file.path);
+            const logoBase64 = `data:${req.file.mimetype};base64,${fileContent.toString('base64')}`;
+
             await pool.query(
-                'UPDATE escritorios SET logo_path = $1 WHERE id = $2',
-                [logoPath, escritorioId]
+                'UPDATE escritorios SET logo_path = $1, logo_path_base64 = $2 WHERE id = $3',
+                [logoPath, logoBase64, escritorioId]
             );
 
             console.log('✅ Logo salva com sucesso:', logoPath);
@@ -87,7 +90,8 @@ router.post('/recibos/upload-logo',
             res.json({
                 ok: true,
                 mensagem: 'Logo atualizada com sucesso!',
-                logoPath: logoPath
+                logoPath,
+                logoBase64
             });
         } catch (err) {
             console.error('Erro ao salvar logo no banco:', err);
@@ -133,20 +137,19 @@ router.get('/recibos/logo',
     async (req, res) => {
         try {
             const result = await pool.query(
-                'SELECT logo_path FROM escritorios WHERE id = $1',
+                'SELECT logo_path, logo_path_base64 FROM escritorios WHERE id = $1',
                 [req.user.escritorio_id]
             );
 
-            if (result.rows.length === 0 || !result.rows[0].logo_path) {
-                return res.json({ 
-                    ok: true,
-                    logoPath: null 
-                });
+            const row = result.rows[0] || {};
+            if (!row.logo_path && !row.logo_path_base64) {
+                return res.json({ ok: true, logoPath: null, logoBase64: null });
             }
 
-            res.json({ 
+            res.json({
                 ok: true,
-                logoPath: result.rows[0].logo_path 
+                logoPath: row.logo_path || null,
+                logoBase64: row.logo_path_base64 || null
             });
         } catch (err) {
             console.error('Erro ao buscar logo:', err);
@@ -162,6 +165,24 @@ router.get('/recibos/logo',
 // 🔍 BUSCAR ASSINATURA ATUAL
 // ============================================================
 
+router.get('/recibos/assinatura', authMiddleware, async (req, res) => {
+    try {
+        const result = await pool.query(
+            'SELECT assinatura_path, assinatura_base64 FROM escritorios WHERE id = $1',
+            [req.user.escritorio_id]
+        );
+        const row = result.rows[0] || {};
+        res.json({
+            ok: true,
+            assinaturaPath: row.assinatura_path || null,
+            assinaturaBase64: row.assinatura_base64 || null
+        });
+    } catch (err) {
+        console.error('Erro ao buscar assinatura:', err);
+        res.status(500).json({ ok: false, erro: 'Erro ao buscar assinatura' });
+    }
+});
+
 router.post(
     '/recibos/upload-assinatura',
     authMiddleware,
@@ -174,14 +195,19 @@ router.post(
 
         const assinaturaPath = `/uploads/assinaturas/${req.file.filename}`;
 
+        // Converte para base64 — persistência entre deploys
+        const fileContent = await fs.readFile(req.file.path);
+        const assinaturaBase64 = `data:${req.file.mimetype};base64,${fileContent.toString('base64')}`;
+
         await pool.query(
-            'UPDATE escritorios SET assinatura_path = $1 WHERE id = $2',
-            [assinaturaPath, req.user.escritorio_id]
+            'UPDATE escritorios SET assinatura_path = $1, assinatura_base64 = $2 WHERE id = $3',
+            [assinaturaPath, assinaturaBase64, req.user.escritorio_id]
         );
 
         res.json({
             ok: true,
-            assinaturaPath
+            assinaturaPath,
+            assinaturaBase64
         });
     }
 );
@@ -218,7 +244,8 @@ router.post('/recibos/gerar',
             }
 
             const escritorioResult = await pool.query(
-                `SELECT nome, documento, endereco, cidade, estado, cep, email, logo_path, assinatura_path
+                `SELECT nome, documento, endereco, cidade, estado, cep, email,
+                        logo_path, logo_path_base64, assinatura_path, assinatura_base64
                  FROM escritorios WHERE id = $1`,
                 [req.user.escritorio_id]
             );
@@ -261,16 +288,30 @@ router.post('/recibos/gerar',
             // Barra navy topo
             doc.rect(L, 40, W, 4).fill(NAVY);
 
-            // Logo (máx 95×95)
+            // Logo (máx 114×114) — usa base64 do banco para evitar problemas de deploy
             const LOGO_MAX = 114;
             let logoBottomY = 55;
-            if (escritorio.logo_path) {
+
+            let logoBuffer = null;
+            if (escritorio.logo_path_base64) {
+                const b64Data = escritorio.logo_path_base64.split(';base64,')[1];
+                if (b64Data) logoBuffer = Buffer.from(b64Data, 'base64');
+            }
+            if (!logoBuffer && escritorio.logo_path) {
                 try {
                     const lp = path.join(__dirname, '..', escritorio.logo_path);
                     await fs.access(lp);
-                    doc.image(lp, L, 52, { fit: [LOGO_MAX, LOGO_MAX] });
-                    logoBottomY = 52 + LOGO_MAX;
+                    logoBuffer = await fs.readFile(lp);
                 } catch { /* logo ausente */ }
+            }
+
+            if (logoBuffer) {
+                // Calcula altura real renderizada para eliminar espaço em branco
+                const imgMeta = doc.openImage(logoBuffer);
+                const scale = Math.min(LOGO_MAX / imgMeta.width, LOGO_MAX / imgMeta.height);
+                const renderedH = Math.round(imgMeta.height * scale);
+                doc.image(logoBuffer, L, 52, { fit: [LOGO_MAX, LOGO_MAX] });
+                logoBottomY = 52 + renderedH;
             }
 
             // Bloco de dados do escritório (direita)
@@ -378,15 +419,25 @@ router.post('/recibos/gerar',
             const SIG_IMG_H = 102;      // altura máxima da imagem
             const sigLineY  = 660;      // Y fixo da linha de assinatura
 
-            if (escritorio.assinatura_path) {
+            // Assinatura — usa base64 do banco para evitar problemas de deploy
+            let sigBuffer = null;
+            if (escritorio.assinatura_base64) {
+                const b64Data = escritorio.assinatura_base64.split(';base64,')[1];
+                if (b64Data) sigBuffer = Buffer.from(b64Data, 'base64');
+            }
+            if (!sigBuffer && escritorio.assinatura_path) {
                 try {
                     const sp = path.join(__dirname, '..', escritorio.assinatura_path);
                     await fs.access(sp);
-                    // Centraliza a imagem horizontalmente no bloco, com base inferior colada à linha
-                    const imgX = SIG_X + (SIG_W - SIG_IMG_W) / 2;
-                    const imgY = sigLineY - SIG_IMG_H - 2;  // 2pt de gap acima da linha
-                    doc.image(sp, imgX, imgY, { fit: [SIG_IMG_W, SIG_IMG_H] });
+                    sigBuffer = await fs.readFile(sp);
                 } catch { /* assinatura ausente */ }
+            }
+
+            if (sigBuffer) {
+                const imgX = SIG_X + (SIG_W - SIG_IMG_W) / 2;
+                // imgY calculado para que a base da imagem passe ~10pt abaixo da linha
+                const imgY = sigLineY - SIG_IMG_H + 10;
+                doc.image(sigBuffer, imgX, imgY, { fit: [SIG_IMG_W, SIG_IMG_H] });
             }
 
             doc.moveTo(SIG_X, sigLineY).lineTo(SIG_X + SIG_W, sigLineY)

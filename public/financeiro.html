@@ -1207,6 +1207,7 @@ input, textarea, select {
                 await carregarClientesParaRecibo(); // Nova função
                 await carregarSaldoReal();
                 await carregarLogoAtual();
+                await carregarAssinaturaAtual();
             }, 100);
         });
 
@@ -1217,6 +1218,7 @@ input, textarea, select {
             await carregarClientesParaRecibo(); // Nova função
             await carregarSaldoReal();
             await carregarLogoAtual();
+            await carregarAssinaturaAtual();
         };
 
 async function inicializar() {
@@ -1711,17 +1713,36 @@ function debugLog(mensagem, dados) {
                 }
 
                 const data = await res.json();
-                
-                if (data.ok && data.logoPath) {
+
+                if (data.ok && (data.logoBase64 || data.logoPath)) {
                     const preview = document.getElementById('logoPreview');
                     if (preview) {
-                        // Cache-bust para garantir que o browser não use a versão antiga
-                        preview.innerHTML = `<img src="${data.logoPath}?t=${Date.now()}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+                        // Prioriza base64 (persiste após deploy); fallback para arquivo com cache-bust
+                        const src = data.logoBase64 || `${data.logoPath}?t=${Date.now()}`;
+                        preview.innerHTML = `<img src="${src}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
                     }
-                    console.log('✅ Logo carregada:', data.logoPath);
                 }
             } catch (err) {
                 console.error('Erro ao carregar logo:', err);
+            }
+        }
+
+        async function carregarAssinaturaAtual() {
+            try {
+                const res = await fetch('/api/recibos/assinatura', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.ok && (data.assinaturaBase64 || data.assinaturaPath)) {
+                    const preview = document.getElementById('assinaturaPreview');
+                    if (preview) {
+                        const src = data.assinaturaBase64 || `${data.assinaturaPath}?t=${Date.now()}`;
+                        preview.innerHTML = `<img src="${src}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
+                    }
+                }
+            } catch (err) {
+                console.error('Erro ao carregar assinatura:', err);
             }
         }
 
@@ -1768,8 +1789,9 @@ function debugLog(mensagem, dados) {
 
                 if (res.ok && data.ok) {
                     alert('✅ Logo atualizada com sucesso!');
-                    // Atualiza preview diretamente com cache-bust (evita flash da logo antiga)
-                    preview.innerHTML = `<img src="${data.logoPath}?t=${Date.now()}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+                    // Usa base64 retornado para garantir persistência após deploy
+                    const src = data.logoBase64 || `${data.logoPath}?t=${Date.now()}`;
+                    preview.innerHTML = `<img src="${src}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
                 } else {
                     alert('❌ Erro: ' + (data.erro || 'Falha ao fazer upload'));
                     await carregarLogoAtual();
@@ -1822,6 +1844,10 @@ function debugLog(mensagem, dados) {
 
         if (res.ok && data.ok) {
             alert('✅ Assinatura salva com sucesso!');
+            // Atualiza preview com base64 retornado (garante persistência após deploy)
+            if (data.assinaturaBase64) {
+                preview.innerHTML = `<img src="${data.assinaturaBase64}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
+            }
         } else {
             alert('❌ Erro: ' + (data.erro || 'Falha no upload'));
         }
