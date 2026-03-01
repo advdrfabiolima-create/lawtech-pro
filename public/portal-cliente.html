@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <script src="https://meet.jit.si/external_api.js"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -759,7 +758,6 @@
     }
 
     let _portalRoomUrl = null;
-    let _portalJitsiApi = null;
 
     async function entrarReuniaoPortal(id, titulo) {
         try {
@@ -776,62 +774,32 @@
             document.getElementById('portalVideoTitulo').textContent = titulo || 'Reunião';
             document.getElementById('portalVideoModal').classList.add('show');
 
-            setTimeout(() => iniciarJitsiPortal(data.room_url), 150);
+            iniciarJitsiPortal(data.room_url);
         } catch (e) {
             alert('Erro de conexão. Tente novamente.');
         }
     }
 
     function iniciarJitsiPortal(roomUrl) {
-        if (_portalJitsiApi) { try { _portalJitsiApi.dispose(); } catch(_) {} _portalJitsiApi = null; }
-
         const container = document.getElementById('portalJitsiContainer');
         container.innerHTML = '';
         container.style.display = 'block';
         document.getElementById('portalJitsiFallback').style.display = 'none';
 
-        const roomName = roomUrl.split('/').pop();
+        const params = [
+            'config.prejoinPageEnabled=false',
+            'config.disableDeepLinking=true',
+            'config.startWithVideoMuted=false',
+            'config.startWithAudioMuted=false',
+            'config.requireDisplayName=false',
+        ].join('&');
 
-        if (typeof JitsiMeetExternalAPI === 'undefined') {
-            document.getElementById('portalJitsiContainer').style.display = 'none';
-            document.getElementById('portalJitsiFallback').style.display = 'flex';
-            return;
-        }
-
-        try {
-            const jitsiH = container.offsetHeight || 500;
-            _portalJitsiApi = new JitsiMeetExternalAPI('meet.jit.si', {
-                roomName,
-                parentNode: container,
-                width: '100%',
-                height: jitsiH,
-                configOverwrite: {
-                    startWithVideoMuted: false,
-                    startWithAudioMuted: false,
-                    prejoinPageEnabled: false,
-                    disableDeepLinking: true,
-                    requireDisplayName: false,
-                    lobby: { enable: false, autoKnock: false },
-                    hideConferenceSubject: true,
-                },
-                interfaceConfigOverwrite: {
-                    SHOW_JITSI_WATERMARK: false,
-                    SHOW_WATERMARK_FOR_GUESTS: false,
-                    SHOW_BRAND_WATERMARK: false,
-                    SHOW_POWERED_BY: false,
-                    TOOLBAR_BUTTONS: [
-                        'microphone', 'camera', 'desktop', 'fullscreen',
-                        'fodeviceselection', 'hangup', 'chat', 'tileview',
-                    ],
-                }
-            });
-            _portalJitsiApi.on('videoConferenceLeft', () => fecharPortalVideo());
-        } catch (err) {
-            console.error('[Jitsi Portal] Erro:', err);
-            if (_portalJitsiApi) { try { _portalJitsiApi.dispose(); } catch(_) {} _portalJitsiApi = null; }
-            container.style.display = 'none';
-            document.getElementById('portalJitsiFallback').style.display = 'flex';
-        }
+        const iframe = document.createElement('iframe');
+        iframe.src = roomUrl + '#' + params;
+        iframe.setAttribute('allow', 'camera; microphone; fullscreen; display-capture; speaker-selection');
+        iframe.setAttribute('allowfullscreen', '');
+        iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+        container.appendChild(iframe);
     }
 
     function abrirPortalVideoNovaAba() {
@@ -840,8 +808,7 @@
 
     function fecharPortalVideo() {
         document.getElementById('portalVideoModal').classList.remove('show');
-        if (_portalJitsiApi) { try { _portalJitsiApi.dispose(); } catch(_) {} _portalJitsiApi = null; }
-        document.getElementById('portalJitsiContainer').innerHTML = '';
+        document.getElementById('portalJitsiContainer').innerHTML = ''; // remover iframe libera câmera
         document.getElementById('portalJitsiContainer').style.display = 'block';
         document.getElementById('portalJitsiFallback').style.display = 'none';
         _portalRoomUrl = null;

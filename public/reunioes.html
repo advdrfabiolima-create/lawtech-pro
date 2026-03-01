@@ -7,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://meet.jit.si/external_api.js"></script>
     <style>
         :root {
             --bg-primary: #F8FAFB;
@@ -493,9 +492,8 @@
     }
 
     let _currentRoomUrl = null;
-    let _jitsiApi = null;
 
-    // Entrar na reunião via Jitsi IFrame API
+    // Entrar na reunião via iframe puro
     async function entrarReuniao(id, titulo) {
         try {
             const res = await fetch(`/api/reunioes/${id}/token`, {
@@ -510,78 +508,37 @@
             document.getElementById('modalVideo').classList.add('show');
             lucide.createIcons();
 
-            // Aguarda o modal renderizar antes de inicializar o Jitsi (necessário para offsetHeight)
-            setTimeout(() => iniciarJitsi(data.room_url), 150);
+            iniciarJitsi(data.room_url);
         } catch (e) {
             alert('Erro de conexão. Tente novamente.');
         }
     }
 
     function iniciarJitsi(roomUrl) {
-        // Destrói instância anterior se existir
-        if (_jitsiApi) { try { _jitsiApi.dispose(); } catch(_) {} _jitsiApi = null; }
-
         const container = document.getElementById('jitsiContainer');
         container.innerHTML = '';
-        document.getElementById('jitsiFallback').style.display = 'none';
         container.style.display = 'block';
+        document.getElementById('jitsiFallback').style.display = 'none';
 
-        // Extrai o nome da sala da URL (parte após o último /)
-        const roomName = roomUrl.split('/').pop();
+        // Parâmetros passados via hash (sem precisar do SDK externo)
+        const params = [
+            'config.prejoinPageEnabled=false',
+            'config.disableDeepLinking=true',
+            'config.startWithVideoMuted=false',
+            'config.startWithAudioMuted=false',
+            'config.requireDisplayName=false',
+        ].join('&');
 
-        if (typeof JitsiMeetExternalAPI === 'undefined') {
-            mostrarFallback('O SDK do Jitsi não carregou. Verifique sua conexão.');
-            return;
-        }
-
-        try {
-            const jitsiH = container.offsetHeight || 500;
-            _jitsiApi = new JitsiMeetExternalAPI('meet.jit.si', {
-                roomName,
-                parentNode: container,
-                width: '100%',
-                height: jitsiH,
-                configOverwrite: {
-                    startWithVideoMuted: false,
-                    startWithAudioMuted: false,
-                    prejoinPageEnabled: false,
-                    disableDeepLinking: true,
-                    requireDisplayName: false,
-                    enableNoisyMicDetection: false,
-                    lobby: { enable: false, autoKnock: false },
-                    disableModeratorIndicator: false,
-                    hideConferenceSubject: true,
-                    hideConferenceTimer: false,
-                },
-                interfaceConfigOverwrite: {
-                    SHOW_JITSI_WATERMARK: false,
-                    SHOW_WATERMARK_FOR_GUESTS: false,
-                    SHOW_BRAND_WATERMARK: false,
-                    SHOW_POWERED_BY: false,
-                    DISPLAY_WELCOME_PAGE_CONTENT: false,
-                    TOOLBAR_BUTTONS: [
-                        'microphone', 'camera', 'desktop', 'fullscreen',
-                        'fodeviceselection', 'hangup', 'chat',
-                        'videoquality', 'tileview', 'select-background',
-                    ],
-                }
-            });
-
-            // Detecta se a tela de lobby/moderador apareceu
-            _jitsiApi.on('videoConferenceLeft', () => fecharModalVideo());
-            _jitsiApi.on('errorOccurred', (err) => {
-                console.warn('[Jitsi] Erro:', err);
-                mostrarFallback('Ocorreu um erro na videochamada.');
-            });
-        } catch (err) {
-            console.error('[Jitsi] Falha ao iniciar IFrame API:', err);
-            mostrarFallback('Não foi possível iniciar a videochamada inline.');
-        }
+        const iframe = document.createElement('iframe');
+        iframe.src = roomUrl + '#' + params;
+        iframe.setAttribute('allow', 'camera; microphone; fullscreen; display-capture; speaker-selection');
+        iframe.setAttribute('allowfullscreen', '');
+        iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+        container.appendChild(iframe);
     }
 
     function mostrarFallback(msg) {
-        // Libera câmera/microfone antes de mostrar o fallback
-        if (_jitsiApi) { try { _jitsiApi.dispose(); } catch(_) {} _jitsiApi = null; }
+        document.getElementById('jitsiContainer').innerHTML = '';
         document.getElementById('jitsiContainer').style.display = 'none';
         const fb = document.getElementById('jitsiFallback');
         fb.style.display = 'flex';
@@ -614,8 +571,7 @@
 
     function fecharModalVideo() {
         document.getElementById('modalVideo').classList.remove('show');
-        if (_jitsiApi) { try { _jitsiApi.dispose(); } catch(_) {} _jitsiApi = null; }
-        document.getElementById('jitsiContainer').innerHTML = '';
+        document.getElementById('jitsiContainer').innerHTML = ''; // remover iframe libera câmera
         document.getElementById('jitsiContainer').style.display = 'block';
         document.getElementById('jitsiFallback').style.display = 'none';
         _currentRoomUrl = null;
