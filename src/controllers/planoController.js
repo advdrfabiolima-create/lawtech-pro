@@ -93,7 +93,7 @@ async function upgradePlano(req, res) {
     `, [escritorioId]);
 
     if (escritorioResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Escritório não encontrado' });
+      return res.status(404).json({ ok: false, erro: 'Escritório não encontrado' });
     }
 
     const escritorio = escritorioResult.rows[0];
@@ -236,7 +236,7 @@ async function cancelarAgendamento(req, res) {
     });
   } catch (err) {
     console.error('❌ Erro ao processar cancelamento:', err);
-    res.status(500).json({ error: 'Erro ao processar a solicitação no servidor.' });
+    res.status(500).json({ ok: false, erro: 'Erro ao processar a solicitação no servidor.' });
   }
 }
 

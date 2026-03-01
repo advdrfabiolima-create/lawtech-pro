@@ -1,23 +1,19 @@
 const cron = require('node-cron');
 const pool = require('../config/db');
-const axios = require('axios');
 const { decrypt } = require('../utils/crypto');
-const { withRetry } = require('../utils/retry');
 const { tentarGatewayAlternativo } = require('../utils/gatewayFailover');
+const { processarCobrancaCartao } = require('../services/chargeService');
+const logger = require('../utils/logger');
+const cache = require('../utils/cache');
 
-/* ======================================================
-   CONFIGURAÇÃO ASAAS
-===================================================== */
-
-const ASAAS_ENV = process.env.ASAAS_ENV || 'production';
-const ASAAS_BASE_URL = ASAAS_ENV === 'sandbox' 
-  ? 'https://sandbox.asaas.com/api/v3'
-  : 'https://api.asaas.com/v3';
-
-const getAsaasHeaders = () => ({
-  'access_token': process.env.ASAAS_API_KEY,
-  'Content-Type': 'application/json'
-});
+async function invalidarCacheEscritorio(escritorioId) {
+    try {
+        const users = await pool.query('SELECT id FROM usuarios WHERE escritorio_id = $1', [escritorioId]);
+        for (const u of users.rows) {
+            await cache.del(`auth:user:${u.id}`);
+        }
+    } catch (_) {}
+}
 
 /* ======================================================
    💳 CRON JOB: Cobranças Recorrentes Mensais
@@ -27,8 +23,8 @@ const getAsaasHeaders = () => ({
 ===================================================== */
 
 cron.schedule('0 8 * * *', async () => {
-    console.log('\n💰 [CRON RECORRENTE] Verificando cobranças mensais...');
-    console.log('📅 Data/Hora:', new Date().toLocaleString('pt-BR'));
+    logger.info('\n💰 [CRON RECORRENTE] Verificando cobranças mensais...');
+    logger.info(`Data/Hora: ${new Date().toLocaleString('pt-BR')}`);
     
     try {
         // Buscar assinaturas que vencem hoje
@@ -59,10 +55,10 @@ cron.schedule('0 8 * * *', async () => {
             ORDER BY e.proxima_cobranca ASC
         `);
 
-        console.log(`📊 [CRON RECORRENTE] Encontrados: ${result.rowCount} assinatura(s) para renovar`);
+        logger.info(`📊 [CRON RECORRENTE] Encontrados: ${result.rowCount} assinatura(s) para renovar`);
 
         if (result.rowCount === 0) {
-            console.log('   ✅ Nenhuma cobrança agendada para hoje\n');
+            logger.info('   ✅ Nenhuma cobrança agendada para hoje\n');
             return;
         }
 
@@ -74,12 +70,12 @@ cron.schedule('0 8 * * *', async () => {
                 // Calcular valor em centavos
                 const valorEmCentavos = Math.round(parseFloat(escritorio.preco_mensal) * 100);
                 
-                console.log(`\n💳 [CRON RECORRENTE] Cobrando renovação: ${escritorio.nome}`);
-                console.log(`   Email: ${escritorio.email_responsavel}`);
-                console.log(`   Plano: ${escritorio.plano_nome}`);
-                console.log(`   Valor: R$ ${escritorio.preco_mensal}`);
-                console.log(`   Cartão: **** ${escritorio.last4} (${escritorio.brand})`);
-                console.log(`   Vencimento: ${new Date(escritorio.proxima_cobranca).toLocaleDateString('pt-BR')}`);
+                logger.info(`\n💳 [CRON RECORRENTE] Cobrando renovação: ${escritorio.nome}`);
+                logger.info(`   Email: ${escritorio.email_responsavel}`);
+                logger.info(`   Plano: ${escritorio.plano_nome}`);
+                logger.info(`   Valor: R$ ${escritorio.preco_mensal}`);
+                logger.info(`   Cartão: **** ${escritorio.last4} (${escritorio.brand})`);
+                logger.info(`   Vencimento: ${new Date(escritorio.proxima_cobranca).toLocaleDateString('pt-BR')}`);
                 
                 let cobranca = await processarCobrancaCartao({
                     escritorioId: escritorio.id,
@@ -119,7 +115,7 @@ cron.schedule('0 8 * * *', async () => {
                         );
                         if (jaExiste.rows.length > 0) {
                             await client.query('ROLLBACK');
-                            console.log(`   ℹ️ Transação já registrada: ${cobranca.transacaoId}`);
+                            logger.info(`   ℹ️ Transação já registrada: ${cobranca.transacaoId}`);
                             sucessos++;
                             continue;
                         }
@@ -144,7 +140,8 @@ cron.schedule('0 8 * * *', async () => {
                         ]);
 
                         await client.query('COMMIT');
-                        console.log(`   ✅ RENOVAÇÃO APROVADA! ID: ${cobranca.transacaoId}`);
+                        await invalidarCacheEscritorio(escritorio.id);
+                        logger.info(`   ✅ RENOVAÇÃO APROVADA! ID: ${cobranca.transacaoId}`);
                         sucessos++;
 
                     } else {
@@ -171,30 +168,31 @@ cron.schedule('0 8 * * *', async () => {
                         ]);
 
                         await client.query('COMMIT');
-                        console.log(`   ❌ COBRANÇA RECUSADA: ${cobranca.erro}`);
+                        await invalidarCacheEscritorio(escritorio.id);
+                        logger.info(`   ❌ COBRANÇA RECUSADA: ${cobranca.erro}`);
                         falhas++;
                     }
                 } catch (txErr) {
                     await client.query('ROLLBACK');
-                    console.error(`   ❌ Erro na transação: ${txErr.message}`);
+                    logger.error(`   ❌ Erro na transação: ${txErr.message}`);
                     falhas++;
                 } finally {
                     client.release();
                 }
 
             } catch (err) {
-                console.error(`   ❌ ERRO ao processar escritório ${escritorio.id}:`, err.message);
+                logger.error(`   ❌ ERRO ao processar escritório ${escritorio.id}:`, err.message);
                 falhas++;
             }
         }
 
-        console.log(`\n📊 [CRON RECORRENTE] Resultado Final:`);
-        console.log(`   ✅ Aprovadas: ${sucessos}`);
-        console.log(`   ❌ Recusadas: ${falhas}`);
-        console.log(`   📊 Total: ${result.rowCount}\n`);
+        logger.info(`\n📊 [CRON RECORRENTE] Resultado Final:`);
+        logger.info(`   ✅ Aprovadas: ${sucessos}`);
+        logger.info(`   ❌ Recusadas: ${falhas}`);
+        logger.info(`   📊 Total: ${result.rowCount}\n`);
 
     } catch (err) {
-        console.error('❌ [CRON RECORRENTE] Erro geral:', err);
+        logger.error(`❌ [CRON RECORRENTE] Erro geral: ${err}`);
     }
 });
 
@@ -203,7 +201,7 @@ cron.schedule('0 8 * * *', async () => {
 ===================================================== */
 
 cron.schedule('0 10 * * *', async () => {
-    console.log('\n📧 [CRON LEMBRETE] Enviando lembretes de cobrança...');
+    logger.info('\n📧 [CRON LEMBRETE] Enviando lembretes de cobrança...');
     
     try {
         const result = await pool.query(`
@@ -223,12 +221,12 @@ cron.schedule('0 10 * * *', async () => {
             AND (e.renovacao_automatica IS NULL OR e.renovacao_automatica = true)
         `);
 
-        console.log(`📊 [CRON LEMBRETE] ${result.rowCount} lembrete(s) para enviar`);
+        logger.info(`📊 [CRON LEMBRETE] ${result.rowCount} lembrete(s) para enviar`);
 
         for (const escritorio of result.rows) {
-            console.log(`📧 Lembrete: ${escritorio.email}`);
-            console.log(`   Cobrança em: ${new Date(escritorio.proxima_cobranca).toLocaleDateString('pt-BR')}`);
-            console.log(`   Valor: R$ ${escritorio.preco_mensal}`);
+            logger.info(`📧 Lembrete: ${escritorio.email}`);
+            logger.info(`   Cobrança em: ${new Date(escritorio.proxima_cobranca).toLocaleDateString('pt-BR')}`);
+            logger.info(`   Valor: R$ ${escritorio.preco_mensal}`);
             
             // TODO: Enviar email de lembrete
             // await enviarEmailLembrete({
@@ -240,10 +238,10 @@ cron.schedule('0 10 * * *', async () => {
             // });
         }
 
-        console.log('✅ [CRON LEMBRETE] Lembretes processados\n');
+        logger.info('✅ [CRON LEMBRETE] Lembretes processados\n');
 
     } catch (err) {
-        console.error('❌ [CRON LEMBRETE] Erro:', err);
+        logger.error(`❌ [CRON LEMBRETE] Erro: ${err}`);
     }
 });
 
@@ -252,7 +250,7 @@ cron.schedule('0 10 * * *', async () => {
 ===================================================== */
 
 cron.schedule('0 14 * * *', async () => {
-    console.log('\n🔄 [CRON RETRY] Tentando reprocessar inadimplentes...');
+    logger.info('\n🔄 [CRON RETRY] Tentando reprocessar inadimplentes...');
     
     try {
         const result = await pool.query(`
@@ -276,10 +274,10 @@ cron.schedule('0 14 * * *', async () => {
                 AND COALESCE(e.retry_count, 0) < 3
         `);
 
-        console.log(`📊 [CRON RETRY] ${result.rowCount} inadimplente(s) para tentar novamente`);
+        logger.info(`📊 [CRON RETRY] ${result.rowCount} inadimplente(s) para tentar novamente`);
 
         for (const esc of result.rows) {
-            console.log(`🔄 Tentando: ${esc.email}`);
+            logger.info(`🔄 Tentando: ${esc.email}`);
             
             const valorEmCentavos = Math.round(parseFloat(esc.preco_mensal) * 100);
             
@@ -302,7 +300,7 @@ cron.schedule('0 14 * * *', async () => {
                     );
                     if (jaExiste.rows.length > 0) {
                         await client.query('ROLLBACK');
-                        console.log(`   ℹ️ Transação já registrada: ${cobranca.transacaoId}`);
+                        logger.info(`   ℹ️ Transação já registrada: ${cobranca.transacaoId}`);
                         continue;
                     }
 
@@ -322,10 +320,11 @@ cron.schedule('0 14 * * *', async () => {
                     `, [esc.id, cobranca.transacaoId, esc.gateway, valorEmCentavos, `Retry bem-sucedido - ${esc.plano_nome}`]);
 
                     await client.query('COMMIT');
-                    console.log(`   ✅ APROVADO no retry!`);
+                    await invalidarCacheEscritorio(esc.id);
+                    logger.info(`   ✅ APROVADO no retry!`);
 
                 } else {
-                    console.log(`   ❌ Ainda recusado: ${cobranca.erro}`);
+                    logger.info(`   ❌ Ainda recusado: ${cobranca.erro}`);
                     await client.query('BEGIN');
                     await client.query(`
                         UPDATE escritorios
@@ -350,134 +349,29 @@ cron.schedule('0 14 * * *', async () => {
                 }
             } catch (txErr) {
                 await client.query('ROLLBACK');
-                console.error(`   ❌ Erro na transação retry: ${txErr.message}`);
+                logger.error(`   ❌ Erro na transação retry: ${txErr.message}`);
             } finally {
                 client.release();
             }
         }
 
-        console.log('✅ [CRON RETRY] Retries processados\n');
+        logger.info('✅ [CRON RETRY] Retries processados\n');
 
     } catch (err) {
-        console.error('❌ [CRON RETRY] Erro:', err);
+        logger.error(`❌ [CRON RETRY] Erro: ${err}`);
     }
 });
 
-/* ======================================================
-   FUNÇÃO: Processar cobrança
-===================================================== */
-
-async function processarCobrancaCartao({ escritorioId, valor, cartaoToken, gateway, descricao }) {
-    console.log(`   🔄 Processando via ${gateway.toUpperCase()}...`);
-
-    try {
-        return await withRetry(async () => {
-            if (gateway === 'stripe') {
-                return await cobrarViaStripe(cartaoToken, valor, descricao);
-            } else if (gateway === 'asaas') {
-                return await cobrarViaAsaas(cartaoToken, valor, descricao, escritorioId);
-            } else {
-                throw new Error('Gateway não suportado: ' + gateway);
-            }
-        }, { maxRetries: 2, baseDelay: 2000 });
-    } catch (err) {
-        console.error(`   ❌ Erro na cobrança:`, err.message);
-        return { sucesso: false, transacaoId: null, erro: err.message };
-    }
-}
-
-/* ======================================================
-   INTEGRAÇÃO STRIPE
-===================================================== */
-
-async function cobrarViaStripe(paymentMethodId, valor, descricao) {
-    try {
-        if (!process.env.STRIPE_SECRET_KEY) {
-            throw new Error('STRIPE_SECRET_KEY não configurado');
-        }
-
-        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: valor,
-            currency: 'brl',
-            payment_method: paymentMethodId,
-            confirm: true,
-            description: descricao,
-            automatic_payment_methods: {
-                enabled: true,
-                allow_redirects: 'never'
-            }
-        });
-
-        const sucesso = paymentIntent.status === 'succeeded';
-
-        return {
-            sucesso,
-            transacaoId: paymentIntent.id,
-            erro: sucesso ? null : (paymentIntent.last_payment_error?.message || 'Erro desconhecido')
-        };
-
-    } catch (err) {
-        return { 
-            sucesso: false, 
-            transacaoId: null, 
-            erro: err.message 
-        };
-    }
-}
-
-/* ======================================================
-   INTEGRAÇÃO ASAAS
-===================================================== */
-
-async function cobrarViaAsaas(customerId, valor, descricao, escritorioId) {
-    try {
-        const response = await axios.post(
-            `${ASAAS_BASE_URL}/payments`,
-            {
-                customer: customerId,
-                billingType: 'CREDIT_CARD',
-                value: valor / 100,
-                dueDate: new Date().toISOString().split('T')[0],
-                description: descricao,
-                externalReference: String(escritorioId)
-            },
-            { headers: getAsaasHeaders() }
-        );
-
-        const aprovado = ['CONFIRMED', 'RECEIVED', 'RECEIVED_IN_CASH'].includes(response.data.status);
-
-        return {
-            sucesso: aprovado,
-            transacaoId: response.data.id,
-            erro: aprovado ? null : `Status: ${response.data.status}`
-        };
-
-    } catch (err) {
-        const msgErro = err.response?.data?.errors?.[0]?.description || err.message;
-        return { 
-            sucesso: false, 
-            transacaoId: null, 
-            erro: msgErro 
-        };
-    }
-}
 
 /* ======================================================
    LOGS DE INICIALIZAÇÃO
 ===================================================== */
 
-console.log('\n✅ [CRON] Sistema de cobranças recorrentes iniciado');
-console.log('   ⏰ 08:00 - Processar renovações mensais');
-console.log('   ⏰ 10:00 - Enviar lembretes (3 dias antes)');
-console.log('   ⏰ 14:00 - Retry de inadimplentes');
-console.log('   🌍 Ambiente:', ASAAS_ENV);
-console.log('   📅 Data atual:', new Date().toLocaleDateString('pt-BR'));
-console.log('');
+logger.info('\n✅ [CRON] Sistema de cobranças recorrentes iniciado');
+logger.info('   ⏰ 08:00 - Processar renovações mensais');
+logger.info('   ⏰ 10:00 - Enviar lembretes (3 dias antes)');
+logger.info('   ⏰ 14:00 - Retry de inadimplentes');
+logger.info(`   Ambiente: ${process.env.ASAAS_ENV || 'production'}`);
+logger.info(`   Data atual: ${new Date().toLocaleDateString('pt-BR')}`);
 
-module.exports = { 
-    processarCobrancaCartao,
-    cobrarViaStripe,
-    cobrarViaAsaas
-};
+module.exports = {};

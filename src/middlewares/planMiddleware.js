@@ -137,7 +137,7 @@ const checkLimit = (resourceType) => {
             const tabelasPermitidas = ['prazos', 'usuarios', 'processos'];
             if (!tabelasPermitidas.includes(tableName)) {
                 console.error(`[PLAN MIDDLEWARE] Tabela não permitida: ${tableName}`);
-                return res.status(500).json({ error: 'Erro interno na verificação de limites' });
+                return res.status(500).json({ ok: false, erro: 'Erro interno na verificação de limites' });
             }
 
             const countResult = await pool.query(

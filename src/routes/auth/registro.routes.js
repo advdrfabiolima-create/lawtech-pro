@@ -1,0 +1,442 @@
+const express = require('express');
+const router = express.Router();
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const axios = require('axios');
+const { sign: jwtSign } = require('../../config/jwt');
+const pool = require('../../config/db');
+const { validarSenha } = require('../../utils/validators');
+const { registrarAudit, dadosReq } = require('../../utils/auditLog');
+const logger = require('../../utils/logger');
+
+/* ======================================================
+   ROTA DE REGISTRO
+===================================================== */
+
+router.post('/register', async (req, res) => {
+    try {
+        const {
+            nome,
+            email,
+            senha,
+            documento,
+            tipoPessoa,
+            dataNascimento,
+            cep,
+            endereco,
+            cidade,
+            estado,
+            planoId,
+            preferenciaPagamento
+        } = req.body;
+
+        logger.info(`🔍 [REGISTRO] Nova solicitação de cadastro: ${email}`);
+
+        // ✅ Validações de entrada
+        if (!nome || !email || !senha) {
+            return res.status(400).json({
+                erro: 'Nome, email e senha são obrigatórios'
+            });
+        }
+
+        const senhaCheck = validarSenha(senha);
+        if (!senhaCheck.valida) {
+            return res.status(400).json({ erro: senhaCheck.erro });
+        }
+
+        // ✅ Validação de email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                erro: 'Email inválido'
+            });
+        }
+
+        // ✅ Verifica se email já existe
+        const emailCheck = await pool.query(
+            'SELECT id FROM usuarios WHERE email = $1',
+            [email.toLowerCase().trim()]
+        );
+
+        if (emailCheck.rows.length > 0) {
+            return res.status(400).json({
+                erro: 'Este email já está cadastrado. Faça login ou use outro email.'
+            });
+        }
+
+        // ✅ Hash da senha
+        const hashedPassword = await bcrypt.hash(senha, 10);
+
+        // ✅ Preparar dados do documento
+        const documentoLimpo = documento ? documento.replace(/\D/g, '') : null;
+
+        // ✅ Calcular data de expiração do trial (7 dias)
+        const dataExpiracao = new Date();
+        dataExpiracao.setDate(dataExpiracao.getDate() + 7);
+
+        // ✅ Token de verificação de e-mail
+        const verificacaoToken = crypto.randomBytes(32).toString('hex');
+        const verificacaoExpira = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+        // ✅ TRANSAÇÃO: Criar escritório e usuário
+        const client = await pool.connect();
+
+        try {
+            await client.query('BEGIN');
+
+            // 1️⃣ Criar escritório
+            const prefPag = ['cartao', 'pix'].includes(preferenciaPagamento) ? preferenciaPagamento : 'cartao';
+            const escritorioResult = await client.query(
+                `INSERT INTO escritorios
+                 (nome, documento, data_nascimento, cep, endereco, cidade, estado,
+                  plano_id, trial_expira_em, plano_financeiro_status, uf, preferencia_pagamento)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $7, $11)
+                 RETURNING id`,
+                [
+                    nome,
+                    documentoLimpo,
+                    dataNascimento || null,
+                    cep || null,
+                    endereco || null,
+                    cidade || 'Não informado',
+                    estado || 'BA',
+                    planoId || 1,
+                    dataExpiracao,
+                    'trial',
+                    prefPag
+                ]
+            );
+
+            const escritorioId = escritorioResult.rows[0].id;
+
+            logger.info(`✅ [REGISTRO] Escritório criado: ID ${escritorioId}`);
+
+            // 2️⃣ Criar usuário (administrador do escritório)
+            const usuarioResult = await client.query(
+                `INSERT INTO usuarios
+                 (nome, email, senha, role, escritorio_id,
+                  email_verificacao_token, email_verificacao_expira)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7)
+                 RETURNING id, nome, email, role`,
+                [
+                    nome,
+                    email.toLowerCase().trim(),
+                    hashedPassword,
+                    'admin',
+                    escritorioId,
+                    verificacaoToken,
+                    verificacaoExpira
+                ]
+            );
+
+            const usuario = usuarioResult.rows[0];
+
+            logger.info(`✅ [REGISTRO] Usuário criado: ${usuario.email} (ID: ${usuario.id})`);
+
+            await client.query('COMMIT');
+
+            // ✅ Gerar token JWT
+            const token = jwtSign({
+                    id: usuario.id,
+                    email: usuario.email,
+                    escritorio_id: escritorioId,
+                    role: usuario.role
+                });
+
+            logger.info(`🎉 [REGISTRO] Cadastro concluído com sucesso: ${usuario.email}`);
+            registrarAudit({ usuario_id: usuario.id, email: usuario.email, escritorio_id: escritorioId, acao: 'REGISTRO', descricao: 'Nova conta criada', ...dadosReq(req) });
+
+            const baseUrl = process.env.BASE_URL || 'https://www.lawtechpro.com.br';
+
+            // 📧 Enviar e-mail de verificação e boas-vindas via Brevo
+            if (process.env.BREVO_API_KEY && process.env.BREVO_SENDER) {
+                const linkVerificacao = `${baseUrl}/verificar-email.html?token=${verificacaoToken}`;
+
+                // E-mail de verificação
+                try {
+                    await axios.post('https://api.brevo.com/v3/smtp/email', {
+                        sender: { name: 'LawTech Pro', email: process.env.BREVO_SENDER },
+                        to: [{ email: usuario.email, name: usuario.nome }],
+                        subject: '✅ Confirme seu e-mail — LawTech Pro',
+                        htmlContent: `
+                        <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafb;">
+                            <div style="background:#1E3A5F;padding:32px 24px;text-align:center;">
+                                <img src="https://www.lawtechpro.com.br/Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro" style="max-width:200px;height:auto;margin:0 auto 12px;" />
+                                <p style="color:rgba(255,255,255,0.8);margin:0;font-size:14px;">Sistema Jurídico Inteligente</p>
+                            </div>
+                            <div style="padding:32px 24px;background:white;">
+                                <h2 style="color:#1E3A5F;margin:0 0 16px;font-size:20px;">Olá, Dr(a). ${usuario.nome}!</h2>
+                                <p style="color:#4A5568;font-size:15px;line-height:1.7;margin:0 0 20px;">
+                                    Sua conta foi criada com sucesso. Para ativar todos os recursos, confirme seu e-mail clicando no botão abaixo.
+                                </p>
+                                <div style="text-align:center;margin:28px 0;">
+                                    <a href="${linkVerificacao}"
+                                       style="display:inline-block;background:linear-gradient(135deg,#4A90E2,#357ABD);color:white;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:700;font-size:15px;">
+                                        Confirmar E-mail →
+                                    </a>
+                                </div>
+                                <div style="background:#FEF3C7;border-left:4px solid #F59E0B;padding:14px 16px;border-radius:0 8px 8px 0;margin:20px 0;">
+                                    <p style="margin:0;font-size:13px;color:#92400E;">⏰ Este link expira em <strong>24 horas</strong>.</p>
+                                </div>
+                                <div style="background:#EBF5FF;border-left:4px solid #4A90E2;padding:16px;border-radius:0 8px 8px 0;margin:20px 0;">
+                                    <p style="margin:0;font-weight:700;color:#1E3A5F;font-size:14px;">🎁 Período de Teste Grátis: 7 dias</p>
+                                    <p style="margin:6px 0 0;color:#4A5568;font-size:13px;">Expira em: ${dataExpiracao.toLocaleDateString('pt-BR')}</p>
+                                </div>
+                            </div>
+                            <div style="padding:20px 24px;text-align:center;background:#f8fafb;border-top:1px solid #e2e8f0;">
+                                <p style="color:#7B8794;font-size:11px;margin:0;">LawTech Pro — Sistema Jurídico Inteligente</p>
+                                <p style="color:#A0AEC0;font-size:10px;margin:4px 0 0;">Este é um e-mail automático. Não responda esta mensagem.</p>
+                            </div>
+                        </div>`
+                    }, { headers: { 'api-key': process.env.BREVO_API_KEY } });
+                    logger.info(`📧 [REGISTRO] E-mail de verificação enviado para ${usuario.email}`);
+                } catch (mailErr) {
+                    logger.warn(`⚠️ [REGISTRO] Falha ao enviar e-mail de verificação: ${mailErr.message}`);
+                }
+
+                // 📧 Notificar admin sobre novo cadastro
+                try {
+                    await axios.post('https://api.brevo.com/v3/smtp/email', {
+                        sender: { name: 'LawTech Pro', email: process.env.BREVO_SENDER },
+                        to: [{ email: process.env.ADMIN_EMAIL || 'fabio@lawtechpro.com.br', name: 'Admin LawTech' }],
+                        subject: '🆕 Novo Cadastro no LawTech Pro!',
+                        htmlContent: `
+                        <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafb;">
+                            <div style="background:#1E3A5F;padding:24px;text-align:center;">
+                                <img src="https://www.lawtechpro.com.br/Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro" style="max-width:180px;height:auto;margin:0 auto 8px;" />
+                                <p style="color:rgba(255,255,255,0.8);margin:0;font-size:13px;">Notificação Administrativa</p>
+                            </div>
+                            <div style="padding:28px 24px;background:white;">
+                                <h2 style="color:#1E3A5F;margin:0 0 16px;font-size:18px;">🎉 Novo usuário cadastrado!</h2>
+                                <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                                    <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;width:120px;">Nome</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#2D3748;">${usuario.nome}</td></tr>
+                                    <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;">E-mail</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#2D3748;">${usuario.email}</td></tr>
+                                    <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;">OAB</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#2D3748;">${req.body.oab || '—'} / ${req.body.uf || '—'}</td></tr>
+                                    <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;">Data</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#2D3748;">${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</td></tr>
+                                    <tr><td style="padding:10px 12px;color:#7B8794;font-weight:600;">Plano</td><td style="padding:10px 12px;color:#2D3748;">Trial (7 dias)</td></tr>
+                                </table>
+                                <div style="text-align:center;margin:24px 0 0;">
+                                    <a href="https://www.lawtechpro.com.br/admin-monitor.html" style="display:inline-block;background:#4A90E2;color:white;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:700;font-size:14px;">Ver Painel Admin</a>
+                                </div>
+                            </div>
+                            <div style="padding:16px 24px;text-align:center;background:#f8fafb;border-top:1px solid #e2e8f0;">
+                                <p style="color:#A0AEC0;font-size:10px;margin:0;">Notificação automática — LawTech Pro</p>
+                            </div>
+                        </div>`
+                    }, { headers: { 'api-key': process.env.BREVO_API_KEY } });
+                    logger.info(`📧 [ADMIN] Notificação de novo cadastro enviada`);
+                } catch (adminMailErr) {
+                    logger.warn(`⚠️ [ADMIN] Falha ao notificar admin: ${adminMailErr.message}`);
+                }
+            }
+
+            // ✅ Retorna sucesso
+            res.status(201).json({
+                ok: true,
+                mensagem: 'Cadastro realizado com sucesso!',
+                token: token,
+                usuario: {
+                    id: usuario.id,
+                    nome: usuario.nome,
+                    email: usuario.email,
+                    role: usuario.role,
+                    escritorio_id: escritorioId
+                },
+                trial: {
+                    dias_restantes: 7,
+                    expira_em: dataExpiracao.toISOString().split('T')[0]
+                }
+            });
+
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
+        }
+
+    } catch (err) {
+        logger.error(`❌ [REGISTRO] Erro ao processar cadastro: ${err.message}`);
+        logger.error(`Stack: ${err.stack}`);
+
+        if (err.message.includes('unique')) {
+            return res.status(400).json({ erro: 'Email já cadastrado no sistema' });
+        }
+        if (err.message.includes('escritorios')) {
+            return res.status(500).json({ erro: 'Erro ao criar escritório. Verifique os dados e tente novamente.' });
+        }
+
+        res.status(500).json({
+            erro: 'Erro ao processar cadastro. Tente novamente em alguns instantes.',
+            detalhes: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
+    }
+});
+
+/* ======================================================
+   ROTA PARA ATUALIZAR STATUS DO TOUR
+===================================================== */
+router.post('/atualizar-tour', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        const [, token] = authHeader.split(' ');
+        const { verify: jwtVerify } = require('../../config/jwt');
+        const decoded = jwtVerify(token);
+
+        const { desativar } = req.body;
+
+        await pool.query(
+            'UPDATE usuarios SET tour_desativado = $1 WHERE id = $2',
+            [desativar, decoded.id]
+        );
+
+        res.json({ ok: true, mensagem: 'Preferência de tour atualizada' });
+    } catch (err) {
+        res.status(500).json({ ok: false, erro: 'Erro ao salvar preferência' });
+    }
+});
+
+/* ======================================================
+   ROTA PARA MARCAR BOAS-VINDAS COMO VISTAS
+===================================================== */
+router.put('/marcar-boas-vindas', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) return res.status(401).json({ ok: false, erro: 'Token não fornecido' });
+
+        const [, token] = authHeader.split(' ');
+        const { verify: jwtVerify } = require('../../config/jwt');
+        const decoded = jwtVerify(token);
+
+        await pool.query(
+            'UPDATE usuarios SET primeiro_acesso = false WHERE id = $1',
+            [decoded.id]
+        );
+
+        logger.info(`✅ [BOAS-VINDAS] Usuário ${decoded.id} marcado como não-primeiro-acesso`);
+        res.json({ ok: true, mensagem: 'Boas-vindas registradas' });
+    } catch (err) {
+        logger.error(`❌ [BOAS-VINDAS] Erro: ${err}`);
+        res.status(500).json({ ok: false, erro: 'Erro ao registrar boas-vindas' });
+    }
+});
+
+/* ======================================================
+   🧪 ROTA PARA RESETAR PRIMEIRO ACESSO (APENAS TESTES)
+===================================================== */
+router.put('/resetar-boas-vindas', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) return res.status(401).json({ ok: false, erro: 'Token não fornecido' });
+
+        const [, token] = authHeader.split(' ');
+        const { verify: jwtVerify } = require('../../config/jwt');
+        const decoded = jwtVerify(token);
+
+        await pool.query(
+            'UPDATE usuarios SET primeiro_acesso = true WHERE id = $1',
+            [decoded.id]
+        );
+
+        logger.info(`🔄 [TESTE] Usuário ${decoded.id} resetado para primeiro acesso`);
+        res.json({ ok: true, mensagem: 'Primeiro acesso resetado para teste' });
+    } catch (err) {
+        logger.error(`❌ [TESTE] Erro: ${err}`);
+        res.status(500).json({ ok: false, erro: 'Erro ao resetar' });
+    }
+});
+
+/* ======================================================
+   🧪 ROTA PARA EXPIRAR TRIAL (APENAS DESENVOLVIMENTO)
+===================================================== */
+router.post('/expirar-trial-teste', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ ok: false, erro: 'Email é obrigatório' });
+        }
+
+        const result = await pool.query(
+            `SELECT escritorio_id FROM usuarios WHERE email = $1`,
+            [email.toLowerCase().trim()]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ ok: false, erro: 'Usuário não encontrado' });
+        }
+
+        const escritorioId = result.rows[0].escritorio_id;
+
+        await pool.query(
+            `UPDATE escritorios
+             SET trial_expira_em = NOW() - INTERVAL '1 day',
+                 plano_financeiro_status = 'trial'
+             WHERE id = $1`,
+            [escritorioId]
+        );
+
+        logger.info(`🧪 [TESTE] Trial expirado para: ${email}`);
+
+        res.json({
+            ok: true,
+            mensagem: `Trial do usuário ${email} foi expirado para testes`
+        });
+
+    } catch (err) {
+        logger.error(`❌ [TESTE] Erro ao expirar trial: ${err}`);
+        res.status(500).json({ ok: false, erro: 'Erro ao processar' });
+    }
+});
+
+/* ======================================================
+   🧪 ROTA PARA VERIFICAR STATUS DO TRIAL (APENAS DESENVOLVIMENTO)
+===================================================== */
+router.post('/verificar-status-trial', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ ok: false, erro: 'Email é obrigatório' });
+        }
+
+        const result = await pool.query(
+            `SELECT
+                u.email,
+                u.nome,
+                e.plano_financeiro_status,
+                e.trial_expira_em,
+                EXTRACT(DAY FROM (e.trial_expira_em - NOW())) as dias_restantes,
+                CASE
+                    WHEN e.trial_expira_em < NOW() THEN 'EXPIRADO'
+                    ELSE 'ATIVO'
+                END as status_trial
+             FROM usuarios u
+             JOIN escritorios e ON u.escritorio_id = e.id
+             WHERE u.email = $1`,
+            [email.toLowerCase().trim()]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ ok: false, erro: 'Usuário não encontrado' });
+        }
+
+        const info = result.rows[0];
+
+        res.json({
+            ok: true,
+            email: info.email,
+            nome: info.nome,
+            status_financeiro: info.plano_financeiro_status,
+            trial_expira_em: info.trial_expira_em,
+            dias_restantes: Math.ceil(parseFloat(info.dias_restantes)),
+            status_trial: info.status_trial
+        });
+
+    } catch (err) {
+        logger.error(`❌ [TESTE] Erro ao verificar status: ${err}`);
+        res.status(500).json({ ok: false, erro: 'Erro ao processar' });
+    }
+});
+
+module.exports = router;

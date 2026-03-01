@@ -227,12 +227,12 @@ router.post('/webhook', async (req, res) => {
   const webhookToken = process.env.ASAAS_WEBHOOK_TOKEN;
   if (!webhookToken) {
     console.error('❌ [WEBHOOK] ASAAS_WEBHOOK_TOKEN não configurado. Rejeitando request.');
-    return res.status(500).json({ error: 'Webhook não configurado' });
+    return res.status(500).json({ ok: false, erro: 'Webhook não configurado' });
   }
   const tokenRecebido = req.headers['asaas-access-token'] || req.query.token;
   if (tokenRecebido !== webhookToken) {
     console.error('❌ [WEBHOOK] Token de acesso inválido');
-    return res.status(401).json({ error: 'Token inválido' });
+    return res.status(401).json({ ok: false, erro: 'Token inválido' });
   }
 
   const { event, payment } = req.body;

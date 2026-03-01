@@ -3,6 +3,7 @@ const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const pool = require('../config/db');
 const axios = require('axios');
+const { encrypt, decrypt } = require('../utils/crypto');
 
 const PLANOS_GRATIS = ['basico', 'intermediario', 'avancado', 'premium'];
 
@@ -64,13 +65,16 @@ router.patch('/addon/clicksign/chave', async (req, res) => {
     const chave = (api_key && String(api_key).trim()) ? String(api_key).trim() : null;
 
     try {
+        // Encripta antes de salvar — nunca armazenar API keys em plain text
+        const chaveCriptografada = chave ? encrypt(chave) : null;
         await pool.query(
             'UPDATE escritorios SET clicksign_api_key = $1 WHERE id = $2',
-            [chave, escritorioId]
+            [chaveCriptografada, escritorioId]
         );
-        console.log(`[ADDON/ClickSign] Chave API ${chave ? 'configurada' : 'removida'} para escritório ${escritorioId}`);
+        console.log(`[ADDON/ClickSign] Chave API ${chave ? 'configurada (encriptada)' : 'removida'} para escritório ${escritorioId}`);
 
         // ── Auto-registrar webhook no ClickSign ao salvar nova chave ──
+        // Usa a chave original (não encriptada) para chamada de API
         let webhookRegistrado = false;
         if (chave) {
             try {

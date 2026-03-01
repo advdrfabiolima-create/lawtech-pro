@@ -1,11 +1,16 @@
 const { verify: jwtVerify } = require('../config/jwt');
 const pool = require('../config/db');
+const logger = require('../utils/logger');
+const cache = require('../utils/cache');
+
+let Sentry = null;
+try { Sentry = require('@sentry/node'); } catch (_) {}
 
 const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    return res.status(401).json({ error: 'Token não informado' });
+    return res.status(401).json({ ok: false, erro: 'Token não informado' });
   }
 
   const [, token] = authHeader.split(' ');
@@ -14,30 +19,37 @@ const authMiddleware = async (req, res, next) => {
     const decoded = jwtVerify(token);
 
     if (decoded.scope === '2fa') {
-      return res.status(401).json({ error: 'Token temporário. Complete a verificação 2FA.' });
+      return res.status(401).json({ ok: false, erro: 'Token temporário. Complete a verificação 2FA.' });
     }
 
     if (decoded.scope === 'portal_cliente') {
-      return res.status(401).json({ error: 'Token de portal não é válido para esta rota.' });
+      return res.status(401).json({ ok: false, erro: 'Token de portal não é válido para esta rota.' });
     }
 
-    const result = await pool.query(
-      `SELECT u.id, u.nome, u.email, u.role, u.escritorio_id, u.is_master,
-              e.plano_financeiro_status, e.plano_id, e.trial_expira_em
-       FROM usuarios u
-       JOIN escritorios e ON u.escritorio_id = e.id
-       WHERE u.id = $1`,
-      [decoded.id]
-    );
+    // ─── Redis cache lookup ───────────────────────────────────────────────────
+    const cacheKey = `auth:user:${decoded.id}`;
+    let usuario = await cache.get(cacheKey);
 
-    if (result.rows.length === 0) {
-      return res.status(401).json({ error: 'Usuário não encontrado' });
+    if (!usuario) {
+      const result = await pool.query(
+        `SELECT u.id, u.nome, u.email, u.role, u.escritorio_id, u.is_master,
+                u.email_verificado,
+                e.plano_financeiro_status, e.plano_id, e.trial_expira_em
+         FROM usuarios u
+         JOIN escritorios e ON u.escritorio_id = e.id
+         WHERE u.id = $1`,
+        [decoded.id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(401).json({ ok: false, erro: 'Usuário não encontrado' });
+      }
+
+      usuario = result.rows[0];
+      await cache.set(cacheKey, usuario, 60);
     }
-
-    const usuario = result.rows[0];
 
     // ✅ CALCULAR DIAS RESTANTES CORRETAMENTE
-    // Padrão 0: sem data de expiração + status trial = expirado imediatamente
     let diasRestantes = 0;
 
     if (usuario.trial_expira_em) {
@@ -52,14 +64,12 @@ const authMiddleware = async (req, res, next) => {
     // 🛡️ REGRA DE IMUNIDADE MASTER (via banco de dados)
     const ehMaster = usuario.is_master === true || usuario.email === process.env.MASTER_EMAIL;
 
-    // 🚨 REGRA DE BLOQUEIO — sem tolerância/grace period
-    if (!ehMaster && diasRestantes <= 0 && !['pago', 'ativo'].includes(usuario.plano_financeiro_status)) {
-      console.log(`❌ [BLOQUEIO ATIVADO] Trial Expirado para: ${usuario.email}`);
-      console.log(`   Dias restantes: ${diasRestantes}`);
-      console.log(`   Status: ${usuario.plano_financeiro_status}`);
-      console.log(`   Trial expira em: ${usuario.trial_expira_em}`);
-      return res.status(402).json({ 
-        error: 'Trial expirado',
+    // 🚨 REGRA DE BLOQUEIO — grace period de 3 dias após expiração
+    if (!ehMaster && diasRestantes < -3 && !['pago', 'ativo'].includes(usuario.plano_financeiro_status)) {
+      logger.warn({ email: usuario.email, diasRestantes, status: usuario.plano_financeiro_status }, '[BLOQUEIO ATIVADO] Trial Expirado');
+      return res.status(402).json({
+        ok: false,
+        erro: 'Trial expirado',
         dias_restantes: diasRestantes,
         trial_expira_em: usuario.trial_expira_em
       });
@@ -76,14 +86,20 @@ const authMiddleware = async (req, res, next) => {
       plano_id: usuario.plano_id,
       dias_restantes: diasRestantes,
       trial_expira_em: usuario.trial_expira_em,
-      eh_master: ehMaster
+      eh_master: ehMaster,
+      email_verificado: usuario.email_verificado || false
     };
+
+    // 🔭 Sentry user context
+    if (Sentry) {
+      Sentry.setUser({ id: usuario.id, email: usuario.email, username: usuario.role });
+    }
 
     next();
 
   } catch (err) {
-    console.error('❌ [AUTH] Erro:', err.message);
-    return res.status(401).json({ error: 'Token inválido' });
+    logger.error({ err: err.message }, '[AUTH] Erro');
+    return res.status(401).json({ ok: false, erro: 'Token inválido' });
   }
 };
 

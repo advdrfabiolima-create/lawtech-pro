@@ -1,14 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
+const rateLimit = require('express-rate-limit');
 const pool = require('../config/db');
 const { sign: jwtSign } = require('../config/jwt');
 const authMiddleware = require('../middlewares/authMiddleware');
 const portalMiddleware = require('../middlewares/portalMiddleware');
 // dailyService não é mais necessário no portal (Jitsi não usa tokens)
 
+// Rate limiting para autenticação do portal — protege contra brute-force de tokens
+const portalAuthLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 10 minutos
+    max: 5,                   // máximo 5 tentativas por IP a cada 10 min
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { ok: false, erro: 'Muitas tentativas de autenticação. Aguarde 10 minutos e tente novamente.' }
+});
+
 // GET /api/portal/autenticar?token=xxx  (público)
-router.get('/autenticar', async (req, res) => {
+router.get('/autenticar', portalAuthLimiter, async (req, res) => {
     const { token } = req.query;
 
     if (!token || token.length !== 64) {

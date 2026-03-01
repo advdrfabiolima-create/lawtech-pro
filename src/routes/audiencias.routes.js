@@ -35,7 +35,7 @@ router.get('/audiencias', authMiddleware, async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('❌ [GET AUDIENCIAS] Erro:', err.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
     }
 });
 
@@ -58,7 +58,7 @@ router.post('/audiencias', authMiddleware, roleMiddleware('admin', 'operador'), 
         res.status(201).json({ ok: true, audiencia: result.rows[0] });
     } catch (err) {
         console.error('❌ [POST AUDIENCIA] Erro:', err.message);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
     }
 });
 
@@ -118,7 +118,7 @@ router.put('/audiencias/:id/ata', authMiddleware, roleMiddleware('admin', 'opera
         res.json({ ok: true, mensagem: 'ATA registrada!' });
     } catch (err) {
         console.error('❌ [ATA]:', err);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
     }
 });
 

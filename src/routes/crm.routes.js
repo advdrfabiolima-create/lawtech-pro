@@ -295,7 +295,7 @@ router.patch('/lead/:id/status',
             res.json({ ok: true });
         } catch (err) {
             console.error('[PATCH /lead/:id/status] Erro:', err);
-            res.status(500).json({ error: 'Erro interno do servidor' });
+            res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
         }
     }
 );
@@ -330,7 +330,7 @@ router.put('/leads/:id/notas',
             res.json({ ok: true });
         } catch (err) {
             console.error('[PUT /leads/:id/notas] Erro:', err);
-            res.status(500).json({ error: 'Erro interno do servidor' });
+            res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
         }
     }
 );
@@ -353,14 +353,14 @@ router.delete('/leads/:id',
 
             if (result.rowCount === 0) {
                 console.log('[DELETE /leads/:id] Lead nao encontrado');
-                return res.status(404).json({ error: 'Lead nao encontrado' });
+                return res.status(404).json({ ok: false, erro: 'Lead nao encontrado' });
             }
 
             console.log('[DELETE /leads/:id] Lead excluido com sucesso');
             res.json({ ok: true });
         } catch (err) {
             console.error('[DELETE /leads/:id] Erro:', err);
-            res.status(500).json({ error: 'Erro interno do servidor' });
+            res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
         }
     }
 );

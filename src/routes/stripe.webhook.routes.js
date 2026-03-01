@@ -255,7 +255,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
 
     } catch (err) {
         console.error('❌ Erro ao processar webhook:', err.message);
-        res.status(500).json({ error: 'Webhook handler failed' });
+        res.status(500).json({ ok: false, erro: 'Webhook handler failed' });
     }
 });
 

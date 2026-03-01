@@ -1,4 +1,14 @@
 require('dotenv').config();
+
+// ─── Sentry: inicializar antes de qualquer require de rotas ───────────────────
+const Sentry = require('@sentry/node');
+if (process.env.SENTRY_DSN) {
+    Sentry.init({
+        dsn: process.env.SENTRY_DSN,
+        environment: process.env.NODE_ENV || 'production'
+    });
+}
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -7,6 +17,8 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('./config/db');
+const logger = require('./utils/logger');
+const requestLogger = require('./middlewares/requestLogger');
 const recibosRoutes = require('./routes/recibos.routes');
 
 // --- 1. IMPORTAÃ‡ÃƒO DE ROTAS ---
@@ -85,16 +97,17 @@ app.use('/webhook/clicksign', express.raw({ type: 'application/json', limit: '5m
     next();
 });
 
-// --- 5. MIDDLEWARE DE SEGURANÃ‡A MÃXIMA (MASTER ADMIN) ---
+// --- 5. MIDDLEWARE DE SEGURANÇA MÁXIMA (MASTER ADMIN) ---
 const masterAdminOnly = (req, res, next) => {
     if (req.user && req.user.eh_master) {
         return next();
     }
-    console.warn(`[SEGURANÃ‡A] Acesso nÃ£o autorizado ao Monitor por: ${req.user?.email || 'Desconhecido'}`);
-    return res.status(403).json({ error: "Acesso restrito ao proprietÃ¡rio do sistema." });
+    logger.warn({ email: req.user?.email || 'Desconhecido' }, '[SEGURANÇA] Acesso não autorizado ao Monitor');
+    return res.status(403).json({ ok: false, erro: "Acesso restrito ao proprietário do sistema." });
 };
 
-// --- 6. CONFIGURAÃ‡Ã•ES GLOBAIS ---
+// --- 6. CONFIGURAÇÕES GLOBAIS ---
+app.use(requestLogger);
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
 
@@ -124,7 +137,26 @@ app.use(cors({
 
 // Headers de segurança
 app.use(helmet({
-    contentSecurityPolicy: false, // Desabilitado para não quebrar scripts inline do frontend
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: [
+                "'self'",
+                "https://cdn.jsdelivr.net",
+                "https://unpkg.com",
+                "https://cdn.tailwindcss.com",
+                "https://cdnjs.cloudflare.com",
+                "https://js.stripe.com"
+            ],
+            scriptSrcAttr: ["'unsafe-inline'"], // permite onclick/onsubmit inline nas páginas ainda não migradas
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+            imgSrc: ["'self'", "data:", "https:"],
+            connectSrc: ["'self'", "https://api.brevo.com", "https://api.asaas.com", "https://sandbox.asaas.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+            frameSrc: ["'self'", "https://*.daily.co", "https://js.stripe.com"],
+            frameAncestors: ["'self'"]
+        }
+    },
     crossOriginEmbedderPolicy: false
 }));
 
@@ -212,7 +244,7 @@ app.use('/api/contato', contatoRoutes); // 📬 público — formulário de cont
 app.use('/api', iaRoutes);
 app.use('/api/crm/public', crmPublicRoutes); // ðŸ"" pÃºblico
 app.use('/api/crm', authMiddleware, crmRoutes);
-console.log('âœ… Rotas CRM registradas no servidor principal');
+logger.info('Rotas CRM registradas no servidor principal');
 app.use('/api', authMiddleware, verificarPagamento, prazosRoutes);
 app.use('/api', authMiddleware, verificarPagamento, processosRoutes);
 app.use('/api', calculosRoutes);
@@ -286,6 +318,7 @@ app.get('/relatorios-page', (req, res) => res.sendFile(path.join(publicPath, 're
 app.get('/chat-page', (req, res) => res.sendFile(path.join(publicPath, 'chat.html')));
 app.get('/portal-cliente', (req, res) => res.sendFile(path.join(publicPath, 'portal-cliente.html')));
 app.get('/reunioes-page', (req, res) => res.sendFile(path.join(publicPath, 'reunioes.html')));
+app.get('/verificar-email', (req, res) => res.sendFile(path.join(publicPath, 'verificar-email.html')));
 
 app.get('/pagamento-pendente', (req, res) => {
     const filePath = path.resolve(publicPath, 'pagamento-pendente.html');
@@ -342,8 +375,12 @@ app.get('/api/auth/me', authMiddleware, (req, res) => {
 });
 
 // --- 11. TRATAMENTO DE ERROS GLOBAL ---
+if (process.env.SENTRY_DSN) {
+    Sentry.setupExpressErrorHandler(app);
+}
+
 app.use((err, req, res, next) => {
-    console.error('SERVER_ERROR:', err.stack);
+    logger.error({ err: err.stack, reqId: req.id }, 'SERVER_ERROR');
     res.status(err.status || 500).json({ ok: false, erro: err.message || 'Erro interno do servidor' });
 });
 
@@ -353,17 +390,17 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`
-â•"â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
-â•'                                                      â•'
-â•'           ðŸš€ LAWTECH PRO - SISTEMA ATIVO            â•'
-â•'                                                      â•'
-â•'  Ambiente: ${process.env.NODE_ENV || 'development'}
-â•'  Porta: ${PORT}
-â•'  âœ… Webhook Stripe: ATIVO e CONFIGURADO            â•'
-â•'                                                      â•'
-â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    `);
+    logger.info({ port: PORT, env: process.env.NODE_ENV || 'development' }, 'LAWTECH PRO - SISTEMA ATIVO');
+});
+
+// Captura erros não tratados
+process.on('unhandledRejection', (reason) => {
+    logger.error({ reason }, 'unhandledRejection');
+    if (process.env.SENTRY_DSN) Sentry.captureException(reason);
+});
+process.on('uncaughtException', (err) => {
+    logger.error({ err }, 'uncaughtException');
+    if (process.env.SENTRY_DSN) Sentry.captureException(err);
 });
 
 // --- 12. INICIALIZAÃ‡ÃƒO E AUTOMAÃ‡ÃƒO (BACKGROUND) ---
@@ -376,7 +413,7 @@ require('./cron/crmFollowup');
 
 (async function iniciarSistema() {
     try {
-        console.log("â³ Conectando ao Neon e validando acesso master...");
+        logger.info('Conectando ao Neon e validando acesso master...');
 
         // Garantir que a coluna is_master exista
         await pool.query(`
@@ -386,17 +423,17 @@ require('./cron/crmFollowup');
         const masterEmail = process.env.MASTER_EMAIL;
         const masterPassword = process.env.MASTER_PASSWORD;
         if (!masterEmail || !masterPassword) {
-            console.warn("⚠️ [SISTEMA] MASTER_EMAIL ou MASTER_PASSWORD não configurados. Pulando criação de conta master.");
+            logger.warn('[SISTEMA] MASTER_EMAIL ou MASTER_PASSWORD não configurados. Pulando criação de conta master.');
         } else {
             const hash = await bcrypt.hash(masterPassword, 10);
             await pool.query(`
                 INSERT INTO usuarios (nome, email, senha, role, escritorio_id, is_master)
-                VALUES ('Dr. Fábio Lima', $2, $1, 'admin', 1, true)
+                VALUES ('Dr. Fábio Lima', $1, $2, 'admin', 1, true)
                 ON CONFLICT (email) DO UPDATE SET is_master = true
-            `, [hash, masterEmail]);
+            `, [masterEmail, hash]);
         }
 
-        console.log("âœ… [SISTEMA] VerificaÃ§Ã£o de Acesso Master concluÃ­da.");
+        logger.info("âœ… [SISTEMA] VerificaÃ§Ã£o de Acesso Master concluÃ­da.");
 
         // Criar tabela de controle de idempotência de webhooks
         await pool.query(`
@@ -407,7 +444,7 @@ require('./cron/crmFollowup');
                 processed_at TIMESTAMP DEFAULT NOW()
             )
         `);
-        console.log("✅ [SISTEMA] Tabela webhook_events verificada.");
+        logger.info("✅ [SISTEMA] Tabela webhook_events verificada.");
 
         // Criar tabela de logs do sistema (monitoramento)
         await pool.query(`
@@ -421,7 +458,7 @@ require('./cron/crmFollowup');
             )
         `);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_logs_sistema_criado ON logs_sistema(criado_em)`);
-        console.log("✅ [SISTEMA] Tabela logs_sistema verificada.");
+        logger.info("✅ [SISTEMA] Tabela logs_sistema verificada.");
 
         // Criar tabela de audit log
         await pool.query(`
@@ -446,13 +483,13 @@ require('./cron/crmFollowup');
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_acao ON audit_log(acao)`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_usuario ON audit_log(usuario_id)`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(criado_em)`);
-        console.log("✅ [SISTEMA] Tabela audit_log verificada.");
+        logger.info("✅ [SISTEMA] Tabela audit_log verificada.");
 
         // Coluna retry_count para controle de retentativas de cobrança
         await pool.query(`
             ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS retry_count INTEGER DEFAULT 0
         `);
-        console.log("✅ [SISTEMA] Coluna retry_count verificada.");
+        logger.info("✅ [SISTEMA] Coluna retry_count verificada.");
 
         // Tabela de consentimentos LGPD
         await pool.query(`
@@ -466,7 +503,7 @@ require('./cron/crmFollowup');
             )
         `);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_consentimentos_usuario ON consentimentos(usuario_id)`);
-        console.log("✅ [SISTEMA] Tabela consentimentos LGPD verificada.");
+        logger.info("✅ [SISTEMA] Tabela consentimentos LGPD verificada.");
 
         // Criar tabela de transações financeiras
         await pool.query(`
@@ -486,7 +523,7 @@ require('./cron/crmFollowup');
             CREATE UNIQUE INDEX IF NOT EXISTS idx_transacoes_gateway_id_unique
             ON transacoes(gateway_id) WHERE gateway_id IS NOT NULL
         `);
-        console.log("✅ [SISTEMA] Tabela transacoes verificada.");
+        logger.info("✅ [SISTEMA] Tabela transacoes verificada.");
 
         // Tabela de feriados e suspensões (Calendário Jurídico)
         await pool.query(`
@@ -501,7 +538,7 @@ require('./cron/crmFollowup');
                 created_at TIMESTAMP DEFAULT NOW()
             )
         `);
-        console.log("✅ [SISTEMA] Tabela feriados_suspensoes verificada.");
+        logger.info("✅ [SISTEMA] Tabela feriados_suspensoes verificada.");
 
         // Tabela de configuração de alertas
         await pool.query(`
@@ -517,7 +554,7 @@ require('./cron/crmFollowup');
                 updated_at TIMESTAMP DEFAULT NOW()
             )
         `);
-        console.log("✅ [SISTEMA] Tabela config_alertas verificada.");
+        logger.info("✅ [SISTEMA] Tabela config_alertas verificada.");
 
         // Tabela de notificações in-app
         await pool.query(`
@@ -534,7 +571,7 @@ require('./cron/crmFollowup');
             )
         `);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_notificacoes_usuario ON notificacoes(usuario_id, lida)`);
-        console.log("✅ [SISTEMA] Tabela notificacoes verificada.");
+        logger.info("✅ [SISTEMA] Tabela notificacoes verificada.");
 
         // Tabela de chat interno do escritório
         await pool.query(`
@@ -553,23 +590,29 @@ require('./cron/crmFollowup');
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_chat_destinatario ON chat_mensagens(destinatario_id)`);
         await pool.query(`ALTER TABLE chat_mensagens ADD COLUMN IF NOT EXISTS arquivo_nome VARCHAR(255)`);
         await pool.query(`ALTER TABLE chat_mensagens ADD COLUMN IF NOT EXISTS arquivo_path VARCHAR(500)`);
-        console.log("✅ [SISTEMA] Tabela chat_mensagens verificada.");
+        logger.info("✅ [SISTEMA] Tabela chat_mensagens verificada.");
 
         // Coluna de último acesso para status online
         await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS ultimo_acesso TIMESTAMPTZ`);
-        console.log("✅ [SISTEMA] Coluna ultimo_acesso verificada.");
+        logger.info("✅ [SISTEMA] Coluna ultimo_acesso verificada.");
 
         // Colunas para recuperação de senha
         await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255)`);
         await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS reset_token_expira TIMESTAMPTZ`);
-        console.log("✅ [SISTEMA] Colunas de reset de senha verificadas.");
+        logger.info("✅ [SISTEMA] Colunas de reset de senha verificadas.");
 
         // 2FA (TOTP)
         await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS totp_secret TEXT`);
         await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS totp_ativo BOOLEAN DEFAULT false`);
         await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS totp_backup_codes TEXT`);
         await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS totp_ativado_em TIMESTAMPTZ`);
-        console.log('✅ [SISTEMA] Colunas 2FA verificadas.');
+        logger.info('✅ [SISTEMA] Colunas 2FA verificadas.');
+
+        // Verificação de e-mail
+        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email_verificado BOOLEAN DEFAULT false`);
+        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email_verificacao_token VARCHAR(64)`);
+        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email_verificacao_expira TIMESTAMPTZ`);
+        logger.info('✅ [SISTEMA] Colunas de verificação de e-mail verificadas.');
 
         // CRM Automation — colunas e tabelas
         await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS score INTEGER DEFAULT 0`);
@@ -588,7 +631,7 @@ require('./cron/crmFollowup');
         `);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_lead_ativ_lead ON lead_atividades(lead_id)`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_lead_ativ_escritorio ON lead_atividades(escritorio_id, criado_em DESC)`);
-        console.log('✅ [SISTEMA] Tabelas CRM automação verificadas.');
+        logger.info('✅ [SISTEMA] Tabelas CRM automação verificadas.');
 
         // GED — Gestão Eletrônica de Documentos
         await pool.query(`
@@ -616,7 +659,7 @@ require('./cron/crmFollowup');
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_doc_processo   ON documentos(processo_id, escritorio_id)`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_doc_modelo     ON documentos(escritorio_id, eh_modelo) WHERE eh_modelo = true`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_doc_pai        ON documentos(documento_pai_id)`);
-        console.log('✅ [SISTEMA] Tabela documentos (GED) verificada.');
+        logger.info('✅ [SISTEMA] Tabela documentos (GED) verificada.');
 
         // Assinaturas Digitais (ClickSign)
         await pool.query(`
@@ -638,7 +681,7 @@ require('./cron/crmFollowup');
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_assdig_doc ON assinaturas_digitais(documento_id)`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_assdig_esc ON assinaturas_digitais(escritorio_id)`);
         await pool.query(`ALTER TABLE assinaturas_digitais ADD COLUMN IF NOT EXISTS link_assinatura TEXT`);
-        console.log('✅ [SISTEMA] Tabela assinaturas_digitais verificada.');
+        logger.info('✅ [SISTEMA] Tabela assinaturas_digitais verificada.');
 
         // ClickSign Add-on (módulo pago) + BYOK
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_ativo BOOLEAN DEFAULT false`);
@@ -647,19 +690,39 @@ require('./cron/crmFollowup');
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_periodo_inicio TIMESTAMP DEFAULT NULL`);
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_stripe_sub_id VARCHAR(200) DEFAULT NULL`);
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_api_key TEXT DEFAULT NULL`);
-        console.log('✅ [SISTEMA] Colunas ClickSign add-on e BYOK verificadas.');
+        logger.info('✅ [SISTEMA] Colunas ClickSign add-on e BYOK verificadas.');
+
+        // Migrar clicksign_api_key plain-text existentes → AES-256-GCM encriptado
+        try {
+            const { encrypt: encryptKey } = require('./utils/crypto');
+            const keysToMigrate = await pool.query(
+                `SELECT id, clicksign_api_key FROM escritorios WHERE clicksign_api_key IS NOT NULL`
+            );
+            let migrated = 0;
+            for (const row of keysToMigrate.rows) {
+                // Formato encriptado tem exatamente 3 partes separadas por ":"
+                if (row.clicksign_api_key.split(':').length !== 3) {
+                    const encrypted = encryptKey(row.clicksign_api_key);
+                    await pool.query('UPDATE escritorios SET clicksign_api_key = $1 WHERE id = $2', [encrypted, row.id]);
+                    migrated++;
+                }
+            }
+            if (migrated > 0) logger.info(`✅ [SISTEMA] ${migrated} chave(s) ClickSign migrada(s) para formato encriptado.`);
+        } catch (migrErr) {
+            logger.warn({ err: migrErr.message }, '[SISTEMA] Migração clicksign_api_key (sem ENCRYPTION_KEY?)');
+        }
 
         // Preferência de pagamento: 'cartao' | 'pix'
         await pool.query(`
             ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS preferencia_pagamento VARCHAR(10) DEFAULT 'cartao'
         `);
-        console.log('✅ [SISTEMA] Coluna preferencia_pagamento verificada.');
+        logger.info('✅ [SISTEMA] Coluna preferencia_pagamento verificada.');
 
         // iCal Feed — token secreto por escritório
         await pool.query(`
             ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS ical_token VARCHAR(64)
         `);
-        console.log('✅ [SISTEMA] Coluna ical_token verificada.');
+        logger.info('✅ [SISTEMA] Coluna ical_token verificada.');
 
         // Andamentos Processuais
         await pool.query(`
@@ -678,25 +741,25 @@ require('./cron/crmFollowup');
             )
         `);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_andamentos_processo ON andamentos_processuais(processo_id)`);
-        console.log('✅ [SISTEMA] Tabela andamentos_processuais verificada.');
+        logger.info('✅ [SISTEMA] Tabela andamentos_processuais verificada.');
 
         // Portal do Cliente — colunas de magic link
         await pool.query(`ALTER TABLE clientes ADD COLUMN IF NOT EXISTS portal_token VARCHAR(64)`);
         await pool.query(`ALTER TABLE clientes ADD COLUMN IF NOT EXISTS portal_token_expira_em TIMESTAMPTZ`);
-        console.log('✅ [SISTEMA] Colunas portal_token verificadas.');
+        logger.info('✅ [SISTEMA] Colunas portal_token verificadas.');
 
         // Logo do escritório (exibida no Portal do Cliente)
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS logo_arquivo VARCHAR(200)`);
-        console.log('✅ [SISTEMA] Coluna logo_arquivo verificada.');
+        logger.info('✅ [SISTEMA] Coluna logo_arquivo verificada.');
 
         // Logo base64 — persiste no banco, sobrevive a git pull / redeploy
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS logo_base64 TEXT`);
-        console.log('✅ [SISTEMA] Coluna logo_base64 verificada.');
+        logger.info('✅ [SISTEMA] Coluna logo_base64 verificada.');
 
         // Recibos: logo e assinatura em base64 — persistência entre deploys
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS logo_path_base64 TEXT`);
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS assinatura_base64 TEXT`);
-        console.log('✅ [SISTEMA] Colunas logo_path_base64 e assinatura_base64 verificadas.');
+        logger.info('✅ [SISTEMA] Colunas logo_path_base64 e assinatura_base64 verificadas.');
 
         // Reuniões com videochamada Daily.co
         await pool.query(`
@@ -719,12 +782,12 @@ require('./cron/crmFollowup');
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_reunioes_escritorio ON reunioes(escritorio_id)`);
         await pool.query(`ALTER TABLE reunioes ADD COLUMN IF NOT EXISTS peer_host_id VARCHAR(100)`);
         await pool.query(`ALTER TABLE reunioes ADD COLUMN IF NOT EXISTS anotacoes TEXT`);
-        console.log('✅ [SISTEMA] Tabela reunioes verificada.');
+        logger.info('✅ [SISTEMA] Tabela reunioes verificada.');
 
         iniciarAgendamentos();
 
     } catch (err) {
-        console.error("âš ï¸ [BOOTSTRAP] Erro na inicializaÃ§Ã£o:", err.message);
-        // NÃƒO derruba o servidor no Railway
+        logger.error({ err: err.message }, '[BOOTSTRAP] Erro na inicialização');
+        // NÃO derruba o servidor no Railway
     }
 })();

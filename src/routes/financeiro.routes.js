@@ -611,7 +611,7 @@ router.post('/webhook/financeiro', async (req, res) => {
         const tokenRecebido = req.headers['asaas-access-token'] || req.query.token;
         if (tokenRecebido !== webhookToken) {
             console.error('❌ [WEBHOOK] Token de acesso inválido');
-            return res.status(401).json({ error: 'Token inválido' });
+            return res.status(401).json({ ok: false, erro: 'Token inválido' });
         }
     }
 

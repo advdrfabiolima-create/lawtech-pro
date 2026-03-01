@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const axios = require('axios');
 const pool = require('../config/db');
 const clicksignService = require('../services/clicksignService');
+const { decrypt } = require('../utils/crypto');
 
 const uploadDir = path.join(__dirname, '..', 'uploads', 'documentos');
 
@@ -94,7 +95,7 @@ router.post('/documentos/:id/assinar', async (req, res) => {
             return res.status(403).json({ erro: 'clicksign_key_ausente' });
         }
 
-        const clicksignApiKey = esc.clicksign_api_key;
+        const clicksignApiKey = decrypt(esc.clicksign_api_key);
 
         // 1. Buscar e validar o documento
         const docRes = await pool.query(
@@ -180,7 +181,6 @@ router.post('/documentos/:id/assinar', async (req, res) => {
         }
 
         // 7. Upload do documento no ClickSign (uma vez, compartilhado por todos os signatários)
-        console.log('[ClickSign] Etapa 1: upload do documento...');
         const documentKey = await clicksignService.uploadDocumento(
             filePath,
             doc.arquivo_original,
@@ -188,7 +188,6 @@ router.post('/documentos/:id/assinar', async (req, res) => {
             doc.mimetype,
             clicksignApiKey
         );
-        console.log('[ClickSign] Etapa 1 OK — document_key:', documentKey);
 
         // 8. Criar, adicionar e notificar cada signatário
         const signatariosRegistrados = [];
@@ -196,12 +195,8 @@ router.post('/documentos/:id/assinar', async (req, res) => {
 
         for (let i = 0; i < signatariosLista.length; i++) {
             const { nome, email } = signatariosLista[i];
-            console.log(`[ClickSign] Signatário ${i + 1}/${signatariosLista.length}: criar signatário ${email}...`);
             const signerKey = await clicksignService.criarSignatario(email, nome, clicksignApiKey);
-            console.log(`[ClickSign] Signatário ${i + 1} — signer_key: ${signerKey}`);
-
             const { requestSignatureKey, signingUrl } = await clicksignService.adicionarSignatario(documentKey, signerKey, mensagem || null, clicksignApiKey);
-            console.log(`[ClickSign] Signatário ${i + 1} — request_signature_key: ${requestSignatureKey}`);
 
             if (i === 0) primeiroSigningUrl = signingUrl;
 
@@ -230,7 +225,7 @@ router.post('/documentos/:id/assinar', async (req, res) => {
             [escritorioId]
         );
 
-        console.log(`[ASSINATURA] Documento #${docId} enviado. ClickSign key: ${documentKey} | ${signatariosLista.length} signatário(s)`);
+        console.log(`[ASSINATURA] Documento #${docId} enviado para assinatura — ${signatariosLista.length} signatário(s)`);
         res.json({ ok: true, status: 'enviado', clicksign_document_key: documentKey, link_assinatura: primeiroSigningUrl, total_signatarios: signatariosLista.length });
 
     } catch (err) {
@@ -438,7 +433,7 @@ router.post('/assinaturas/:id/verificar', async (req, res) => {
         if (!ass.clicksign_document_key) return res.status(400).json({ erro: 'Chave ClickSign não disponível' });
 
         const escRes = await pool.query('SELECT clicksign_api_key FROM escritorios WHERE id = $1', [escritorioId]);
-        const clicksignApiKey = escRes.rows[0]?.clicksign_api_key || null;
+        const clicksignApiKey = decrypt(escRes.rows[0]?.clicksign_api_key || null);
 
         const { status: csStatus } = await clicksignService.buscarStatus(ass.clicksign_document_key, clicksignApiKey);
 
@@ -492,7 +487,7 @@ router.get('/assinaturas/:id/download', async (req, res) => {
         }
 
         const escResDown = await pool.query('SELECT clicksign_api_key FROM escritorios WHERE id = $1', [escritorioId]);
-        const clicksignApiKeyDown = escResDown.rows[0]?.clicksign_api_key || null;
+        const clicksignApiKeyDown = decrypt(escResDown.rows[0]?.clicksign_api_key || null);
 
         const { data, filename } = await clicksignService.downloadDocumentoAssinado(ass.clicksign_document_key, clicksignApiKeyDown);
 

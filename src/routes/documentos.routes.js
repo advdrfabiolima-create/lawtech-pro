@@ -171,7 +171,7 @@ router.post('/documentos', roleAdminOp, uploadMiddleware('arquivo'), async (req,
             cat,
             tags || null,
             req.file.filename,
-            req.file.originalname,
+            path.basename(req.file.originalname), // path.basename() previne path traversal
             req.file.mimetype,
             req.file.size,
             eh_modelo === 'true' || eh_modelo === true
@@ -227,7 +227,7 @@ router.post('/documentos/:id/versao', roleAdminOp, uploadMiddleware('arquivo'), 
             doc.categoria,
             doc.tags,
             req.file.filename,
-            req.file.originalname,
+            path.basename(req.file.originalname), // path.basename() previne path traversal
             req.file.mimetype,
             req.file.size,
             proximaVersao,

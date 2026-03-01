@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const pool = require('../config/db');
 const { enviarAlertaLeadParado, enviarEmailReativacao } = require('../services/crmEmailService');
+const logger = require('../utils/logger');
 
 async function registrarAtividade(leadId, escritorioId, tipo, descricao) {
     try {
@@ -10,12 +11,12 @@ async function registrarAtividade(leadId, escritorioId, tipo, descricao) {
             [leadId, escritorioId, tipo, descricao]
         );
     } catch (err) {
-        console.error('[CRM Cron] Erro ao registrar atividade:', err.message);
+        logger.error(`[CRM Cron] Erro ao registrar atividade: ${err.message}`);
     }
 }
 
 cron.schedule('0 9 * * *', async () => {
-    console.log('🔔 [CRM] Iniciando verificação de leads parados e reativação...');
+    logger.info('🔔 [CRM] Iniciando verificação de leads parados e reativação...');
     try {
         // --- Cron 1: Alertas ao advogado (leads parados há 3+ dias) ---
         const leadsParados = await pool.query(`
@@ -65,7 +66,7 @@ cron.schedule('0 9 * * *', async () => {
                         `O lead ${lead.nome} está parado há ${lead.dias_parado} dia(s) na etapa ${lead.status}.`
                     ]);
                 } catch (e) {
-                    console.warn('[CRM Cron] Notificação in-app falhou:', e.message);
+                    logger.warn(`[CRM Cron] Notificação in-app falhou: ${e.message}`);
                 }
             }
         }
@@ -113,10 +114,10 @@ cron.schedule('0 9 * * *', async () => {
             );
         }
 
-        console.log(`✅ [CRM] Cron concluído: ${leadsParados.rowCount} alertas, ${leadsReativar.rowCount} reativações.`);
+        logger.info(`✅ [CRM] Cron concluído: ${leadsParados.rowCount} alertas, ${leadsReativar.rowCount} reativações.`);
     } catch (error) {
-        console.error('❌ [CRM] Erro no cron de follow-up:', error.message);
+        logger.error(`❌ [CRM] Erro no cron de follow-up: ${error.message}`);
     }
 });
 
-console.log('📅 [CRM] Cron de follow-up registrado (9h diário)');
+logger.info('📅 [CRM] Cron de follow-up registrado (9h diário)');

@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const axios = require('axios'); // 🚀 Adicionado para falar com o Escavador
+const axios = require('axios');
 const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const cache = require('../utils/cache');
+const logger = require('../utils/logger');
 
 // ─── Upload de Logo ───────────────────────────────────────────────────────────
 const logoDir = path.join(__dirname, '..', 'uploads', 'logos');
@@ -302,12 +304,14 @@ router.put('/planos/reativar', authMiddleware, roleMiddleware('admin'), async (r
             [escritorioId]
         );
 
-        console.log(`✅ [REATIVAÇÃO] Assinatura reativada para o escritório: ${escritorioId}`);
-        
+        // Invalida cache do usuário para refletir mudança de plano
+        await cache.del(`auth:user:${req.user.id}`);
+        logger.info({ escritorioId }, '[REATIVAÇÃO] Assinatura reativada');
+
         res.json({ ok: true, msg: "Sua assinatura foi reativada com sucesso, Doutor! A renovação automática está ativa novamente." });
     } catch (err) {
-        console.error('❌ Erro ao reativar assinatura:', err.message);
-        res.status(500).json({ error: "Erro ao reativar plano no servidor." });
+        logger.error({ err: err.message }, 'Erro ao reativar assinatura');
+        res.status(500).json({ ok: false, erro: "Erro ao reativar plano no servidor." });
     }
 });
 
