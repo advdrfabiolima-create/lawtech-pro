@@ -121,22 +121,28 @@
 
         /* Modal Videochamada PeerJS */
         .modal-video { background: #0f172a; border-radius: 16px; width: 96%; max-width: 1140px; height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.5); animation: modalIn 0.3s cubic-bezier(0.16,1,0.3,1); }
-        .modal-video-header { padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; background: #1e293b; gap: 12px; flex-wrap: wrap; }
-        .modal-video-title { font-size: 15px; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
-        .modal-video-title i { color: #818cf8; flex-shrink: 0; }
-        .video-status-badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; background: rgba(255,255,255,0.07); color: #94a3b8; transition: 0.3s; white-space: nowrap; }
-        .video-status-badge.connected { background: rgba(52,211,153,0.15); color: #34d399; }
-        .btn-vcall { background: rgba(255,255,255,0.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.12); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-vcall:hover { background: rgba(255,255,255,0.15); }
-        .btn-vcall.off { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
-        .btn-vcall-end { background: #ef4444; color: white; border: none; padding: 6px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .modal-video-header { padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; background: #1e293b; gap: 12px; }
+        .modal-video-title { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; overflow: hidden; }
+        .modal-video-logo { height: 22px; opacity: 0.9; flex-shrink: 0; }
+        .modal-video-title span { font-size: 14px; font-weight: 700; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .btn-vcall-end { background: #ef4444; color: white; border: none; padding: 7px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
         .btn-vcall-end:hover { background: #dc2626; }
         #videoArea { flex: 1; min-height: 0; position: relative; background: #020617; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         #remoteVideo { width: 100%; height: 100%; object-fit: cover; display: none; }
-        #localVideo { position: absolute; bottom: 16px; right: 16px; width: 200px; height: 130px; object-fit: cover; border-radius: 10px; border: 2px solid rgba(255,255,255,0.15); background: #111827; z-index: 10; }
-        #videoWaitOverlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #475569; }
-        #videoWaitOverlay .wait-icon { font-size: 52px; line-height: 1; }
-        #videoWaitMsg { font-size: 15px; color: #64748b; }
+        #localVideo { position: absolute; bottom: 72px; right: 14px; width: 160px; height: 100px; object-fit: cover; border-radius: 10px; border: 2px solid rgba(255,255,255,0.15); background: #111827; z-index: 20; }
+        #videoWaitOverlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #475569; padding-bottom: 60px; }
+        #videoWaitOverlay .wait-icon { font-size: 48px; line-height: 1; }
+        #videoWaitMsg { font-size: 14px; color: #64748b; }
+        /* Logo marca-d'água no vídeo */
+        #videoWatermark { position: absolute; top: 14px; left: 14px; z-index: 15; pointer-events: none; opacity: 0.35; }
+        #videoWatermark img { height: 26px; filter: brightness(0) invert(1); }
+        /* Barra de controles flutuante no rodapé do vídeo */
+        #videoControls { position: absolute; bottom: 0; left: 0; right: 0; height: 60px; display: flex; align-items: center; justify-content: center; gap: 12px; background: linear-gradient(transparent, rgba(0,0,0,0.65)); z-index: 25; padding: 0 16px; }
+        .btn-vcall { background: rgba(255,255,255,0.12); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.18); padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; backdrop-filter: blur(6px); }
+        .btn-vcall:hover { background: rgba(255,255,255,0.22); }
+        .btn-vcall.off { background: rgba(239,68,68,0.25); border-color: rgba(239,68,68,0.5); color: #fca5a5; }
+        .video-status-badge { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; background: rgba(0,0,0,0.45); color: #94a3b8; transition: 0.3s; white-space: nowrap; backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.08); }
+        .video-status-badge.connected { background: rgba(52,211,153,0.2); color: #34d399; border-color: rgba(52,211,153,0.3); }
         .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e3a5f; color: white; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
         .toast.show { opacity: 1; }
 
@@ -285,25 +291,33 @@
 <!-- Modal Videochamada PeerJS -->
 <div class="modal-overlay" id="modalVideo">
     <div class="modal-video">
+        <!-- Cabeçalho: logo + título + encerrar -->
         <div class="modal-video-header">
             <div class="modal-video-title">
-                <i data-lucide="video"></i>
+                <img src="Logo LawTech Pro_transparente.png" class="modal-video-logo" alt="LawTech Pro">
                 <span id="videoTitulo">Reunião</span>
-                <span class="video-status-badge" id="videoStatus">Iniciando...</span>
             </div>
-            <div style="display:flex;gap:8px;align-items:center;">
-                <button class="btn-vcall" id="btnMute" onclick="toggleMute()">🎤 Mudo</button>
-                <button class="btn-vcall" id="btnCam" onclick="toggleCamera()">📷 Câmera</button>
-                <button class="btn-vcall-end" onclick="fecharModalVideo()">✕ Encerrar</button>
-            </div>
+            <button class="btn-vcall-end" onclick="fecharModalVideo()">✕ Encerrar</button>
         </div>
+        <!-- Área de vídeo -->
         <div id="videoArea">
+            <!-- Marca-d'água discreta -->
+            <div id="videoWatermark">
+                <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+            </div>
+            <!-- Tela de espera -->
             <div id="videoWaitOverlay">
                 <div class="wait-icon">📹</div>
                 <p id="videoWaitMsg">Aguardando o cliente entrar na sala...</p>
             </div>
             <video id="remoteVideo" autoplay playsinline></video>
             <video id="localVideo" autoplay muted playsinline></video>
+            <!-- Controles flutuantes na base -->
+            <div id="videoControls">
+                <span class="video-status-badge" id="videoStatus">Iniciando...</span>
+                <button class="btn-vcall" id="btnMute" onclick="toggleMute()">🎤 Mudo</button>
+                <button class="btn-vcall" id="btnCam" onclick="toggleCamera()">📷 Câmera</button>
+            </div>
         </div>
     </div>
 </div>
