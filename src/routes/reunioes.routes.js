@@ -122,7 +122,8 @@ router.get('/reunioes/:id/token', async (req, res) => {
 
         const dataHora = new Date(reuniao.data_hora);
         const duracao = reuniao.duracao_minutos || 60;
-        const expTimestamp = Math.floor((dataHora.getTime() + (duracao + 30) * 60 * 1000) / 1000);
+        const expFromMeeting = Math.floor((dataHora.getTime() + (duracao + 30) * 60 * 1000) / 1000);
+        const expTimestamp = Math.max(expFromMeeting, Math.floor(Date.now() / 1000) + 3600);
 
         const token = await criarToken(reuniao.daily_room_name, true, expTimestamp);
 
