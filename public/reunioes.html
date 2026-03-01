@@ -42,7 +42,7 @@
             --text-main: var(--text-primary);
         }
         * { box-sizing: border-box; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; height: 100vh; overflow: hidden; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; height: 100vh; overflow: hidden; text-transform: uppercase; -webkit-font-smoothing: antialiased; }
         body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.015; background-image: linear-gradient(rgba(74, 144, 226, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(74, 144, 226, 0.08) 1px, transparent 1px); background-size: 50px 50px; animation: patternMove 20s linear infinite; pointer-events: none; }
         @keyframes patternMove { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }
         body::after { content: ""; position: fixed; width: 600px; height: 600px; background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%); top: -300px; right: -300px; border-radius: 50%; filter: blur(100px); opacity: 0.08; z-index: 0; animation: float 20s ease-in-out infinite; pointer-events: none; }
@@ -113,8 +113,9 @@
         .modal-title i { color: var(--accent-blue); }
         .form-group { margin-bottom: 18px; }
         .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-        .form-input { width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: var(--radius-md); font-size: 14px; color: var(--text-primary); transition: border-color 0.2s; font-family: 'Outfit', sans-serif; background: white; }
+        .form-input { width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: var(--radius-md); font-size: 14px; color: var(--text-primary); transition: border-color 0.2s; font-family: 'Outfit', sans-serif; background: white; text-transform: none; }
         .form-input:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(74,144,226,0.1); }
+        .link-box { text-transform: none; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
 
@@ -315,16 +316,34 @@
 
     async function carregarPerfil() {
         try {
-            const res = await fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
-            const data = await res.json();
-            if (data.ok) {
-                const nome = data.usuario.nome || data.usuario.email || '';
-                document.getElementById('userNameHeader').textContent = nome.split(' ')[0];
-                document.getElementById('userCircle').textContent = nome.charAt(0).toUpperCase() || 'A';
-                document.getElementById('footerEmail').textContent = data.usuario.email || '—';
-                document.getElementById('footerPlano').textContent = data.usuario.plano || 'básico';
+            // 1. Dados do usuário
+            const resUser = await fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
+            const dataUser = await resUser.json();
+            if (dataUser.ok) {
+                const nomeCompleto = dataUser.usuario.nome || 'Advogado';
+                const primeiroNome = nomeCompleto.trim().split(' ')[0];
+
+                const nameHeader = document.getElementById('userNameHeader');
+                if (nameHeader) nameHeader.innerText = primeiroNome;
+
+                // Iniciais: primeira letra do primeiro + última palavra
+                const partes = nomeCompleto.trim().split(' ').filter(n => n);
+                let iniciais = partes[0][0];
+                if (partes.length > 1) iniciais += partes[partes.length - 1][0];
+                const circulo = document.getElementById('userCircle');
+                if (circulo) circulo.innerText = iniciais.toUpperCase();
+
+                document.getElementById('footerEmail').innerText = dataUser.usuario.email || '—';
             }
-        } catch (e) {}
+
+            // 2. Plano via endpoint correto
+            const resPlan = await fetch('/api/plano-consumo', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
+            const dataPlan = await resPlan.json();
+            const planoEl = document.getElementById('footerPlano');
+            if (planoEl) planoEl.innerText = dataPlan.plano || 'Free';
+        } catch (e) {
+            console.error('[Reuniões] carregarPerfil erro:', e);
+        }
     }
 
     async function carregarClientes() {
