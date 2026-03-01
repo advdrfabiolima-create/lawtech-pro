@@ -1715,7 +1715,8 @@ function debugLog(mensagem, dados) {
                 if (data.ok && data.logoPath) {
                     const preview = document.getElementById('logoPreview');
                     if (preview) {
-                        preview.innerHTML = `<img src="${data.logoPath}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+                        // Cache-bust para garantir que o browser não use a versão antiga
+                        preview.innerHTML = `<img src="${data.logoPath}?t=${Date.now()}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
                     }
                     console.log('✅ Logo carregada:', data.logoPath);
                 }
@@ -1767,10 +1768,10 @@ function debugLog(mensagem, dados) {
 
                 if (res.ok && data.ok) {
                     alert('✅ Logo atualizada com sucesso!');
-                    await carregarLogoAtual();
+                    // Atualiza preview diretamente com cache-bust (evita flash da logo antiga)
+                    preview.innerHTML = `<img src="${data.logoPath}?t=${Date.now()}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
                 } else {
                     alert('❌ Erro: ' + (data.erro || 'Falha ao fazer upload'));
-                    // Restaura preview anterior
                     await carregarLogoAtual();
                 }
             } catch (err) {
