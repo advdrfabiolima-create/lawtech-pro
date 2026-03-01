@@ -261,8 +261,8 @@ router.post('/recibos/gerar',
             // Barra navy topo
             doc.rect(L, 40, W, 4).fill(NAVY);
 
-            // Logo (máx 65×65)
-            const LOGO_MAX = 65;
+            // Logo (máx 95×95)
+            const LOGO_MAX = 95;
             let logoBottomY = 55;
             if (escritorio.logo_path) {
                 try {
@@ -275,7 +275,7 @@ router.post('/recibos/gerar',
 
             // Bloco de dados do escritório (direita)
             let iy = 52;
-            const IX = 130;
+            const IX = 160;
             doc.font('Helvetica-Bold').fontSize(13).fillColor(DARK)
                .text(escritorio.nome || 'Escritório', IX, iy, { width: R - IX, align: 'right' });
             iy += 18;
@@ -369,18 +369,23 @@ router.post('/recibos/gerar',
             drawRow('Por extenso:', extenso(Number(valor)));
 
             // ============================================================
-            // ASSINATURA
+            // ASSINATURA  (Y fixo — não depende do conteúdo das linhas)
             // ============================================================
 
-            const SIG_X = R - 210;    // x inicial do bloco (210pt de largura)
-            const SIG_W = 210;
-            const sigLineY = rowY + 90;
+            const SIG_X    = R - 210;   // x inicial do bloco
+            const SIG_W    = 210;
+            const SIG_IMG_W = 90;       // largura máxima da imagem
+            const SIG_IMG_H = 48;       // altura máxima da imagem
+            const sigLineY  = 660;      // Y fixo da linha de assinatura
 
             if (escritorio.assinatura_path) {
                 try {
                     const sp = path.join(__dirname, '..', escritorio.assinatura_path);
                     await fs.access(sp);
-                    doc.image(sp, SIG_X + 30, sigLineY - 80, { width: 150 });
+                    // Centraliza a imagem horizontalmente no bloco, com base inferior colada à linha
+                    const imgX = SIG_X + (SIG_W - SIG_IMG_W) / 2;
+                    const imgY = sigLineY - SIG_IMG_H - 2;  // 2pt de gap acima da linha
+                    doc.image(sp, imgX, imgY, { fit: [SIG_IMG_W, SIG_IMG_H] });
                 } catch { /* assinatura ausente */ }
             }
 
@@ -396,7 +401,8 @@ router.post('/recibos/gerar',
             // RODAPÉ
             // ============================================================
 
-            const footerY = 790;
+            // Rodapé em Y fixo — nunca depende do conteúdo acima
+            const footerY = 755;
             doc.moveTo(L, footerY).lineTo(R, footerY)
                .strokeColor(LINE).lineWidth(0.5).stroke();
 
@@ -407,14 +413,14 @@ router.post('/recibos/gerar',
                 escritorio.cep ? `CEP ${escritorio.cep}` : null
             ].filter(Boolean).join(' – ');
 
-            let ftY = footerY + 9;
             doc.font('Helvetica').fontSize(7.5).fillColor(LGRAY);
+            let ftY = footerY + 9;
             if (enderecoCompleto) {
-                doc.text(enderecoCompleto, L, ftY, { width: W, align: 'center' });
+                doc.text(enderecoCompleto, L, ftY, { width: W, align: 'center', lineBreak: false });
                 ftY += 12;
             }
             if (escritorio.email) {
-                doc.text(escritorio.email, L, ftY, { width: W, align: 'center' });
+                doc.text(escritorio.email, L, ftY, { width: W, align: 'center', lineBreak: false });
             }
 
             // ============================================================
