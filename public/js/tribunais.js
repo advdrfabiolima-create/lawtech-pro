@@ -1,20 +1,18 @@
 
         // Guard síncrono — redireciona antes de renderizar qualquer conteúdo
         (function() {
-            var token = localStorage.getItem('token');
-            if (!token) {
+            if (!API.getToken()) {
                 window.location.replace('/login.html');
             }
         })();
-    
+
 
 // Validação assíncrona do token — invalida sessões expiradas ou forjadas
 (function() {
-    var token = localStorage.getItem('token');
-    if (!token) { window.location.replace('/login.html'); return; }
-    fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
+    if (!API.getToken()) { window.location.replace('/login.html'); return; }
+    API.get('/api/auth/me')
         .then(function(r) {
-            if (!r.ok) { localStorage.removeItem('token'); window.location.replace('/login.html'); }
+            if (!r || !r.ok) { localStorage.removeItem('token'); window.location.replace('/login.html'); }
         })
         .catch(function() { /* mantém a página se a rede falhar momentaneamente */ });
 })();

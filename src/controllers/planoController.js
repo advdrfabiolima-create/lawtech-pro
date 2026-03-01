@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const logger = require('../utils/logger');
 
 // ============================================================
 // FUNÇÃO LISTAR PLANOS
@@ -33,7 +34,7 @@ async function meuPlano(req, res) {
 
     if (result.rowCount > 0) {
       const dados = result.rows[0];
-      console.log('📊 [MEU PLANO] Plano atual:', dados);
+      logger.info({ plano: dados }, '[MEU PLANO] Plano atual');
       res.json(dados);
     } else {
       res.status(404).json({ 
@@ -42,8 +43,8 @@ async function meuPlano(req, res) {
       });
     }
   } catch (err) {
-    console.error('❌ [MEU PLANO] Erro:', err);
-    res.status(500).json({ 
+    logger.error({ err: err.message }, '[MEU PLANO] Erro');
+    res.status(500).json({
       error: "Erro ao buscar plano atual.",
       detalhes: err.message
     });
@@ -59,12 +60,7 @@ async function upgradePlano(req, res) {
     const { planoId, ciclo } = req.body;
     const escritorioId = req.user.escritorio_id;
 
-    console.log('📊 [UPGRADE] Dados recebidos:', {
-      planoId,
-      ciclo,
-      escritorioId,
-      usuario: req.user.email
-    });
+    logger.info({ planoId, ciclo, escritorioId, usuario: req.user.email }, '[UPGRADE] Dados recebidos');
 
     // ✅ 1. VALIDAÇÕES BÁSICAS
     if (!planoId) {
@@ -98,11 +94,7 @@ async function upgradePlano(req, res) {
 
     const escritorio = escritorioResult.rows[0];
     
-    console.log('📊 [UPGRADE] Status atual:', {
-      plano_atual: escritorio.plano_atual_nome,
-      status: escritorio.plano_financeiro_status,
-      dias_trial: Math.ceil(escritorio.dias_trial)
-    });
+    logger.info({ plano_atual: escritorio.plano_atual_nome, status: escritorio.plano_financeiro_status, dias_trial: Math.ceil(escritorio.dias_trial) }, '[UPGRADE] Status atual');
 
     // ✅ 3. BUSCAR INFORMAÇÕES DO NOVO PLANO
     const novoPlanoResult = await pool.query(
@@ -111,7 +103,7 @@ async function upgradePlano(req, res) {
     );
 
     if (novoPlanoResult.rows.length === 0) {
-      console.log('❌ [UPGRADE] Plano não existe:', planoId);
+      logger.warn({ planoId }, '[UPGRADE] Plano nao existe');
       return res.status(404).json({ 
         error: 'Plano não encontrado',
         planoId: planoId
@@ -124,7 +116,7 @@ async function upgradePlano(req, res) {
 
     // 4.1. Não pode "fazer upgrade" para o mesmo plano
     if (parseInt(planoId) === parseInt(escritorio.plano_atual_id)) {
-      console.log('⚠️ [UPGRADE] Tentativa de upgrade para o mesmo plano');
+      logger.warn({ planoId, escritorioId }, '[UPGRADE] Tentativa de upgrade para o mesmo plano');
       return res.status(400).json({
         error: 'Você já está no plano ' + novoPlano.nome,
         plano_atual: escritorio.plano_atual_nome
@@ -133,7 +125,7 @@ async function upgradePlano(req, res) {
 
     // 4.2. Durante TRIAL: NÃO pode upgrade sem pagamento
     if (escritorio.plano_financeiro_status === 'trial' && escritorio.dias_trial > 0) {
-      console.log(`⚠️ [UPGRADE BLOQUEADO] Tentativa durante trial por escritório ${escritorioId}`);
+      logger.warn({ escritorioId }, '[UPGRADE BLOQUEADO] Tentativa durante trial');
       
       return res.status(402).json({
         error: 'Upgrade não permitido durante período trial',
@@ -150,7 +142,7 @@ async function upgradePlano(req, res) {
 
     // 4.3. Trial EXPIRADO sem pagamento: Sistema bloqueado
     if (escritorio.plano_financeiro_status === 'trial' && escritorio.dias_trial <= 0) {
-      console.log(`❌ [UPGRADE BLOQUEADO] Trial expirado para escritório ${escritorioId}`);
+      logger.warn({ escritorioId }, '[UPGRADE BLOQUEADO] Trial expirado');
       return res.status(402).json({
         error: 'Trial expirado',
         message: 'Seu período de teste expirou. Ative seu plano para continuar.',
@@ -161,7 +153,7 @@ async function upgradePlano(req, res) {
 
     // 4.4. Se status = 'pago', pode fazer upgrade (gerando nova cobrança)
     if (escritorio.plano_financeiro_status === 'pago' || escritorio.plano_financeiro_status === 'ativo') {
-      console.log(`✅ [UPGRADE] Usuário ${req.user.email} pode fazer upgrade (plano pago)`);
+      logger.info({ email: req.user.email, escritorioId }, '[UPGRADE] Usuario pode fazer upgrade');
       
       const valorMensal = parseFloat(novoPlano.preco_mensal);
       const valorAnual = parseFloat(novoPlano.preco_anual);
@@ -192,7 +184,7 @@ async function upgradePlano(req, res) {
     }
 
     // ✅ Se chegou aqui, status está em estado inválido
-    console.error('❌ [UPGRADE] Status de plano inválido:', escritorio.plano_financeiro_status);
+    logger.error({ status: escritorio.plano_financeiro_status, escritorioId }, '[UPGRADE] Status de plano invalido');
     return res.status(500).json({
       error: 'Status de plano inválido',
       message: 'Entre em contato com o suporte',
@@ -203,8 +195,7 @@ async function upgradePlano(req, res) {
     });
 
   } catch (err) {
-    console.error('❌ [UPGRADE] Erro ao processar upgrade:', err);
-    console.error('Stack:', err.stack);
+    logger.error({ err: err.message, stack: err.stack }, '[UPGRADE] Erro ao processar upgrade');
     res.status(500).json({ 
       error: 'Erro ao processar upgrade',
       detalhes: err.message
@@ -220,7 +211,7 @@ async function cancelarAgendamento(req, res) {
     const escritorioId = req.user.escritorio_id;
     const userEmail = req.user.email;
 
-    console.log(`📢 [CANCELAMENTO] Solicitação recebida de: ${userEmail}`);
+    logger.info({ email: userEmail, escritorioId }, '[CANCELAMENTO] Solicitacao recebida');
 
     await pool.query(
       `UPDATE escritorios 
@@ -235,7 +226,7 @@ async function cancelarAgendamento(req, res) {
       msg: "Doutor, sua renovação automática foi cancelada com sucesso. O acesso permanecerá ativo até o fim do período atual." 
     });
   } catch (err) {
-    console.error('❌ Erro ao processar cancelamento:', err);
+    logger.error({ err: err.message }, 'Erro ao processar cancelamento');
     res.status(500).json({ ok: false, erro: 'Erro ao processar a solicitação no servidor.' });
   }
 }
@@ -279,8 +270,7 @@ async function planoEConsumo(req, res) {
       diasRestantes = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
     }
 
-    console.log(`[PLANO CONSUMO] Escritório: ${req.user.escritorio_id}`);
-    console.log(`[PLANO CONSUMO] Prazos criados no mês: ${prazosUsados}/${dadosBase.limite_prazos}`);
+    logger.info({ escritorioId: req.user.escritorio_id, prazosUsados, limite: dadosBase.limite_prazos }, '[PLANO CONSUMO] Consulta');
 
     res.json({
       plano: dadosBase.plano,
@@ -295,7 +285,7 @@ async function planoEConsumo(req, res) {
     });
 
   } catch (err) {
-    console.error('Erro planoEConsumo:', err.message);
+    logger.error({ err: err.message }, 'Erro planoEConsumo');
     res.status(500).json({ erro: 'Erro ao buscar plano e consumo' });
   }
 }

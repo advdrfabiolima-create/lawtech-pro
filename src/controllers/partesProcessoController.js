@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const logger = require('../utils/logger');
 
 /**
  * CONTROLLER: Partes do Processo
@@ -51,7 +52,7 @@ async function listarPartesPorProcesso(req, res) {
         });
 
     } catch (err) {
-        console.error('Erro ao listar partes:', err.message);
+        logger.error({ err: err.message }, 'Erro ao listar partes');
         res.status(500).json({ 
             erro: 'Erro ao carregar partes do processo',
             detalhes: err.message 
@@ -124,7 +125,7 @@ async function adicionarParte(req, res) {
             ]
         );
 
-        console.log(`✅ Parte adicionada ao processo ${processoId}: ${pessoa_nome} (${polo})`);
+        logger.info({ processoId, pessoa_nome, polo }, 'Parte adicionada ao processo');
 
         res.status(201).json({
             ok: true,
@@ -133,7 +134,7 @@ async function adicionarParte(req, res) {
         });
 
     } catch (err) {
-        console.error('Erro ao adicionar parte:', err.message);
+        logger.error({ err: err.message }, 'Erro ao adicionar parte');
         
         if (err.code === '23505') { // Violação de unique constraint
             return res.status(400).json({ 
@@ -204,7 +205,7 @@ async function atualizarParte(req, res) {
             ]
         );
 
-        console.log(`✅ Parte ${parteId} atualizada`);
+        logger.info({ parteId }, 'Parte atualizada');
 
         res.json({
             ok: true,
@@ -213,7 +214,7 @@ async function atualizarParte(req, res) {
         });
 
     } catch (err) {
-        console.error('Erro ao atualizar parte:', err.message);
+        logger.error({ err: err.message }, 'Erro ao atualizar parte');
         res.status(500).json({ 
             erro: 'Erro ao atualizar parte',
             detalhes: err.message 
@@ -261,7 +262,7 @@ async function removerParte(req, res) {
             [parteId, escritorioId]
         );
 
-        console.log(`✅ Parte ${parteId} removida`);
+        logger.info({ parteId }, 'Parte removida');
 
         res.json({
             ok: true,
@@ -269,7 +270,7 @@ async function removerParte(req, res) {
         });
 
     } catch (err) {
-        console.error('Erro ao remover parte:', err.message);
+        logger.error({ err: err.message }, 'Erro ao remover parte');
         res.status(500).json({ 
             erro: 'Erro ao remover parte',
             detalhes: err.message 
@@ -315,7 +316,7 @@ async function definirPartePrincipal(req, res) {
             [parteId]
         );
 
-        console.log(`✅ Parte ${parteId} definida como principal`);
+        logger.info({ parteId }, 'Parte definida como principal');
 
         res.json({
             ok: true,
@@ -323,7 +324,7 @@ async function definirPartePrincipal(req, res) {
         });
 
     } catch (err) {
-        console.error('Erro ao definir parte principal:', err.message);
+        logger.error({ err: err.message }, 'Erro ao definir parte principal');
         res.status(500).json({ 
             erro: 'Erro ao definir parte principal',
             detalhes: err.message 
@@ -404,7 +405,7 @@ async function adicionarMultiplasPartes(req, res) {
 
         await client.query('COMMIT');
 
-        console.log(`✅ ${partesInseridas.length} partes adicionadas ao processo ${processoId}`);
+        logger.info({ processoId, total: partesInseridas.length }, 'Partes adicionadas ao processo');
 
         res.status(201).json({
             ok: true,
@@ -414,7 +415,7 @@ async function adicionarMultiplasPartes(req, res) {
 
     } catch (err) {
         await client.query('ROLLBACK');
-        console.error('Erro ao adicionar múltiplas partes:', err.message);
+        logger.error({ err: err.message }, 'Erro ao adicionar multiplas partes');
         res.status(500).json({ 
             erro: 'Erro ao adicionar partes',
             detalhes: err.message 

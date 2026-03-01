@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const roleMiddleware = require('../middlewares/roleMiddleware');
+const logger = require('../utils/logger');
 
 // GET /api/processos/:id/andamentos — listar andamentos de um processo
 router.get('/processos/:id/andamentos', async (req, res) => {
@@ -28,7 +29,7 @@ router.get('/processos/:id/andamentos', async (req, res) => {
         );
         res.json({ ok: true, andamentos: result.rows });
     } catch (err) {
-        console.error('[Andamentos] GET erro:', err.message);
+        logger.error({ err: err.message }, '[Andamentos] GET erro');
         res.status(500).json({ ok: false, erro: err.message });
     }
 });
@@ -74,7 +75,7 @@ router.post('/processos/:id/andamentos', roleMiddleware('admin', 'operador'), as
         );
         res.status(201).json({ ok: true, andamento: result.rows[0] });
     } catch (err) {
-        console.error('[Andamentos] POST erro:', err.message);
+        logger.error({ err: err.message }, '[Andamentos] POST erro');
         res.status(500).json({ ok: false, erro: err.message });
     }
 });
@@ -113,7 +114,7 @@ router.put('/andamentos/:id', roleMiddleware('admin', 'operador'), async (req, r
         }
         res.json({ ok: true, andamento: result.rows[0] });
     } catch (err) {
-        console.error('[Andamentos] PUT erro:', err.message);
+        logger.error({ err: err.message }, '[Andamentos] PUT erro');
         res.status(500).json({ ok: false, erro: err.message });
     }
 });
@@ -132,7 +133,7 @@ router.delete('/andamentos/:id', roleMiddleware('admin'), async (req, res) => {
         }
         res.json({ ok: true });
     } catch (err) {
-        console.error('[Andamentos] DELETE erro:', err.message);
+        logger.error({ err: err.message }, '[Andamentos] DELETE erro');
         res.status(500).json({ ok: false, erro: err.message });
     }
 });
@@ -156,7 +157,7 @@ router.patch('/andamentos/:id/visivel', roleMiddleware('admin', 'operador'), asy
         }
         res.json({ ok: true, visivel_cliente: result.rows[0].visivel_cliente });
     } catch (err) {
-        console.error('[Andamentos] PATCH visivel erro:', err.message);
+        logger.error({ err: err.message }, '[Andamentos] PATCH visivel erro');
         res.status(500).json({ ok: false, erro: err.message });
     }
 });

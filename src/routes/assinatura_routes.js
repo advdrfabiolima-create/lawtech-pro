@@ -10,6 +10,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
+const logger = require('../utils/logger');
 
 /* ======================================================
    🗑️ CANCELAR RENOVAÇÃO AUTOMÁTICA
@@ -22,7 +23,7 @@ router.post('/cancelar-assinatura', authMiddleware, roleMiddleware('admin'), asy
     try {
         const escritorioId = req.user.escritorio_id;
         
-        console.log('🗑️ [CANCELAMENTO] Solicitação recebida:', req.user.email);
+        logger.info({ email: req.user.email }, '[CANCELAMENTO] Solicitacao recebida');
 
         // Verificar status atual
         const check = await pool.query(
@@ -54,8 +55,7 @@ router.post('/cancelar-assinatura', authMiddleware, roleMiddleware('admin'), asy
             [escritorioId]
         );
 
-        console.log('✅ [CANCELAMENTO] Renovação automática desativada:', req.user.email);
-        console.log('   Acesso até:', proxima_cobranca ? new Date(proxima_cobranca).toLocaleDateString('pt-BR') : 'Indefinido');
+        logger.info({ email: req.user.email, acesso_ate: proxima_cobranca }, '[CANCELAMENTO] Renovacao automatica desativada');
 
         // TODO: Enviar email de confirmação de cancelamento
 
@@ -67,7 +67,7 @@ router.post('/cancelar-assinatura', authMiddleware, roleMiddleware('admin'), asy
         });
 
     } catch (err) {
-        console.error('❌ [CANCELAMENTO] Erro:', err);
+        logger.error({ err: err.message }, '[CANCELAMENTO] Erro');
         res.status(500).json({ 
             erro: 'Erro ao processar cancelamento',
             detalhes: process.env.NODE_ENV === 'development' ? err.message : undefined
@@ -85,7 +85,7 @@ router.post('/reativar-assinatura', authMiddleware, roleMiddleware('admin'), asy
     try {
         const escritorioId = req.user.escritorio_id;
         
-        console.log('🔄 [REATIVAÇÃO] Solicitação recebida:', req.user.email);
+        logger.info({ email: req.user.email }, '[REATIVACAO] Solicitacao recebida');
 
         // Verificar status atual
         const check = await pool.query(
@@ -118,8 +118,7 @@ router.post('/reativar-assinatura', authMiddleware, roleMiddleware('admin'), asy
             [escritorioId]
         );
 
-        console.log('✅ [REATIVAÇÃO] Renovação automática reativada:', req.user.email);
-        console.log('   Próxima cobrança:', proxima_cobranca ? new Date(proxima_cobranca).toLocaleDateString('pt-BR') : 'A definir');
+        logger.info({ email: req.user.email, proxima_cobranca }, '[REATIVACAO] Renovacao automatica reativada');
 
         // TODO: Enviar email de confirmação
 
@@ -131,7 +130,7 @@ router.post('/reativar-assinatura', authMiddleware, roleMiddleware('admin'), asy
         });
 
     } catch (err) {
-        console.error('❌ [REATIVAÇÃO] Erro:', err);
+        logger.error({ err: err.message }, '[REATIVACAO] Erro');
         res.status(500).json({ 
             erro: 'Erro ao processar reativação',
             detalhes: process.env.NODE_ENV === 'development' ? err.message : undefined
@@ -193,7 +192,7 @@ router.get('/status-assinatura', authMiddleware, async (req, res) => {
         });
 
     } catch (err) {
-        console.error('❌ [STATUS ASSINATURA] Erro:', err);
+        logger.error({ err: err.message }, '[STATUS ASSINATURA] Erro');
         res.status(500).json({ 
             erro: 'Erro ao buscar status da assinatura' 
         });
@@ -234,7 +233,7 @@ router.get('/historico-transacoes', authMiddleware, async (req, res) => {
         });
 
     } catch (err) {
-        console.error('❌ [HISTÓRICO] Erro:', err);
+        logger.error({ err: err.message }, '[HISTORICO] Erro');
         res.status(500).json({ 
             erro: 'Erro ao buscar histórico de transações' 
         });

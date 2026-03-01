@@ -1,74 +1,56 @@
 
-    const token = localStorage.getItem('token');
-    if (!token) window.location.href = '/login.html';
+    if (!API.getToken()) window.location.href = '/login.html';
 
     let taxaSelicAtual = 0.0085;
 
     async function carregarInfoRodape() {
         try {
-            const resUser = await fetch('/api/usuario/me', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            console.log('🔄 Carregando informações do rodapé...');
 
-            if (!resUser.ok) {
-                console.error('Erro ao buscar usuário:', resUser.status);
-                return;
-            }
-
+            const resUser = await API.get('/api/auth/me');
             const dataUser = await resUser.json();
-            console.log('✅ Dados do usuário:', dataUser);
-            
-            // Extrai dados do usuário (ajustado para diferentes formatos de resposta)
-            const usuario = dataUser.usuario || dataUser;
-            const email = usuario.email || 'não disponível';
-            const nomeCompleto = usuario.nome || 'Advogado';
 
-            // Atualiza email no rodapé
-            const emailEl = document.getElementById('userEmail');
-            if(emailEl) {
-                emailEl.innerText = email;
-                console.log('✅ Email atualizado:', email);
-            }
+            if (dataUser.ok) {
+                // Atualiza o e-mail na sidebar
+                const emailEl = document.getElementById('userEmail');
+                if(emailEl) {
+                    emailEl.innerText = dataUser.usuario.email || 'Não disponível';
+                    console.log('✅ Email atualizado:', dataUser.usuario.email);
+                }
 
-            // Atualiza nome no header (primeiro nome apenas)
-            const primeiroNome = nomeCompleto.trim().split(' ')[0];
-            const nameEl = document.getElementById('userNameHeader');
-            if(nameEl) {
-                nameEl.innerText = primeiroNome;
-                console.log('✅ Nome atualizado:', primeiroNome);
-            }
+                // --- LÓGICA DO CABEÇALHO PADRONIZADA ---
+                const nomeCompleto = dataUser.usuario.nome || 'Advogado';
 
-            // Calcula iniciais (primeira letra do primeiro nome + primeira letra do último nome)
-            const partes = nomeCompleto.trim().split(' ').filter(n => n);
-            let iniciais = partes[0][0];
-            
-            if (partes.length > 1) {
-                iniciais += partes[partes.length - 1][0];
-            }
-            
-            const circulo = document.getElementById('userCircle');
-            if (circulo) {
-                circulo.innerText = iniciais.toUpperCase();
-                console.log('✅ Iniciais atualizadas:', iniciais.toUpperCase());
-            }
+                // 1. Define apenas o Primeiro Nome no texto
+                const primeiroNome = nomeCompleto.trim().split(' ')[0];
+                const nameEl = document.getElementById('userNameHeader');
+                if(nameEl) nameEl.innerText = primeiroNome;
 
-            // Busca plano do usuário
-            const resPlan = await fetch('/api/plano-consumo', { 
-                headers: { Authorization: `Bearer ${token}` } 
-            });
-            
-            if (resPlan.ok) {
-                const dataPlan = await resPlan.json();
-                const plano = dataPlan.plano || 'Free';
-                const planEl = document.getElementById('planNameFooter');
-                if(planEl) {
-                    planEl.innerText = plano;
-                    console.log('✅ Plano atualizado:', plano);
+                // 2. Define as Iniciais no Círculo (Primeiro e Último nome)
+                const partes = nomeCompleto.trim().split(' ').filter(n => n);
+                let iniciais = partes[0][0]; // Pega a letra do primeiro nome
+
+                if (partes.length > 1) {
+                    iniciais += partes[partes.length - 1][0]; // Pega a letra do último nome
+                }
+
+                const circulo = document.getElementById('userCircle');
+                if (circulo) {
+                    circulo.innerText = iniciais.toUpperCase();
                 }
             }
-            
-        } catch (err) { 
-            console.error("❌ Erro ao carregar rodapé:", err); 
+
+            // Busca informação do Plano
+            const resPlan = await API.get('/api/plano-consumo');
+            const dataPlan = await resPlan.json();
+            const planEl = document.getElementById('planNameFooter');
+            if(planEl) {
+                planEl.innerText = dataPlan.plano || 'Free';
+                console.log('✅ Plano atualizado:', dataPlan.plano);
+            }
+
+        } catch (err) {
+            console.error("❌ Erro ao carregar rodapé:", err);
         }
     }
 
@@ -83,57 +65,6 @@
             if(m) m.style.display = 'none';
         }
     });
-
-    async function carregarInfoRodape() {
-        try {
-            console.log('🔄 Carregando informações do rodapé...');
-            
-            const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
-            const dataUser = await resUser.json();
-            
-            if (dataUser.ok) {
-                // Atualiza o e-mail na sidebar
-                const emailEl = document.getElementById('userEmail');
-                if(emailEl) {
-                    emailEl.innerText = dataUser.usuario.email || 'Não disponível';
-                    console.log('✅ Email atualizado:', dataUser.usuario.email);
-                }
-
-                // --- LÓGICA DO CABEÇALHO PADRONIZADA ---
-                const nomeCompleto = dataUser.usuario.nome || 'Advogado';
-                
-                // 1. Define apenas o Primeiro Nome no texto
-                const primeiroNome = nomeCompleto.trim().split(' ')[0];
-                const nameEl = document.getElementById('userNameHeader');
-                if(nameEl) nameEl.innerText = primeiroNome;
-
-                // 2. Define as Iniciais no Círculo (Primeiro e Último nome)
-                const partes = nomeCompleto.trim().split(' ').filter(n => n);
-                let iniciais = partes[0][0]; // Pega a letra do primeiro nome
-                
-                if (partes.length > 1) {
-                    iniciais += partes[partes.length - 1][0]; // Pega a letra do último nome
-                }
-                
-                const circulo = document.getElementById('userCircle');
-                if (circulo) {
-                    circulo.innerText = iniciais.toUpperCase();
-                }
-            }
-
-            // Busca informação do Plano
-            const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
-            const dataPlan = await resPlan.json();
-            const planEl = document.getElementById('planNameFooter');
-            if(planEl) {
-                planEl.innerText = dataPlan.plano || 'Free';
-                console.log('✅ Plano atualizado:', dataPlan.plano);
-            }
-            
-        } catch (err) { 
-            console.error("❌ Erro ao carregar rodapé:", err); 
-        }
-    }
 
     function toggleCitacao() {
         const select = document.getElementById('jurosIncidencia');
@@ -190,9 +121,7 @@
 
     async function processarCalculo() {
         try {
-            const checkRes = await fetch('/api/calculos/historico', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const checkRes = await API.get('/api/calculos/historico');
             
             if (checkRes.status === 402) {
                 const data = await checkRes.json();
@@ -356,11 +285,7 @@
         };
 
         try {
-            const res = await fetch('/api/calculos/salvar', { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
-                body: JSON.stringify(dadosParaSalvar) 
-            });
+            const res = await API.post('/api/calculos/salvar', dadosParaSalvar);
             const data = await res.json();
             // ✅ Interceptar erro 402 (Recurso bloqueado)
             if (res.status === 402) {
@@ -374,7 +299,7 @@
     
     async function carregarHistorico() {
         try {
-            const res = await fetch('/api/calculos/historico', { headers: { Authorization: `Bearer ${token}` } });
+            const res = await API.get('/api/calculos/historico');
             const dados = await res.json();
             const container = document.getElementById('listaHistorico');
             
@@ -517,10 +442,7 @@
     async function confirmarExclusao(id) {
         if (!confirm("Deseja realmente excluir este registro?")) return;
         try {
-            const res = await fetch(`/api/calculos/excluir/${id}`, { 
-                method: 'DELETE', 
-                headers: { Authorization: `Bearer ${token}` } 
-            });
+            const res = await API.delete(`/api/calculos/excluir/${id}`);
             if (res.ok) { 
                 alert("✅ Registro removido."); 
                 carregarHistorico(); 

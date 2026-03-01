@@ -12,10 +12,9 @@
         // Variáveis globais
         let escritoriosData = [];
         let logsData = [];
-        let token = localStorage.getItem('token');
 
         // Verificar autenticação
-        if (!token) {
+        if (!API.getToken()) {
             alert('Você precisa estar logado para acessar esta página');
             window.location.href = '/login';
         }
@@ -71,20 +70,10 @@ async function carregarDadosEscritorios() {
     try {
         mostrarLoading();
 
-        const headersSet = { 
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json' 
-        };
-
         // 1. Buscar estatísticas
-        const statsRes = await fetch('/systems/stats', { headers: headersSet });
+        const statsRes = await API.get('/systems/stats');
 
-        if (statsRes.status === 401 || statsRes.status === 403) {
-            alert('Acesso negado. Por favor, faça login novamente.');
-            window.location.href = '/login';
-            return;
-        }
-
+        if (!statsRes) return; // API handles 401 redirect
         if (!statsRes.ok) throw new Error('Erro ao buscar estatísticas');
         const statsData = await statsRes.json();
         if (statsData.ok) {
@@ -92,7 +81,7 @@ async function carregarDadosEscritorios() {
         }
 
         // 2. Buscar lista de escritórios
-        const escritRes = await fetch('/systems/escritorios', { headers: headersSet });
+        const escritRes = await API.get('/systems/escritorios');
         if (!escritRes.ok) throw new Error('Erro ao buscar escritórios');
 
         const escritData = await escritRes.json();
@@ -266,16 +255,9 @@ function renderizarTabelaEscritorios(lista) {
             try {
                 mostrarLoading();
 
-                const res = await fetch('/systems/monitoramento', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await API.get('/systems/monitoramento');
 
-                if (res.status === 401) {
-                    alert('Sessão expirada. Faça login novamente.');
-                    window.location.href = '/login';
-                    return;
-                }
-
+                if (!res) return; // API handles 401 redirect
                 if (!res.ok) throw new Error('Erro ao buscar logs');
 
                 const data = await res.json();
@@ -450,9 +432,7 @@ function renderizarTabelaEscritorios(lista) {
 
 async function carregarGraficoCrescimento() {
     try {
-        const res = await fetch('/systems/crescimento', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await API.get('/systems/crescimento');
         const data = await res.json();
 
         if (data.ok) {
@@ -521,9 +501,7 @@ async function carregarInadimplentes() {
     try {
         mostrarLoading();
         console.log('🔄 Carregando inadimplentes...');
-        const res = await fetch('/systems/inadimplencia', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await API.get('/systems/inadimplencia');
 
         if (!res.ok) {
             console.error('❌ Erro HTTP:', res.status);
@@ -631,9 +609,7 @@ async function carregarUpgrade() {
     try {
         mostrarLoading();
         console.log('🔄 Carregando oportunidades de upgrade...');
-        const res = await fetch('/systems/no-limite', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await API.get('/systems/no-limite');
 
         if (!res.ok) {
             console.error('❌ Erro HTTP:', res.status);
@@ -788,9 +764,7 @@ function trocarAba(aba, botaoClicado) {
 // Adicione ao final da função carregarDadosEscritorios (ou crie uma nova):
 async function atualizarEstatisticasCompletas() {
     try {
-        const res = await fetch('/systems/stats', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await API.get('/systems/stats');
         
         if (!res.ok) throw new Error('Erro ao carregar estatísticas');
         const data = await res.json();
@@ -988,11 +962,7 @@ async function gerarRelatorioMensal() {
 
         async function carregarAuditoriaFinanceira() {
     try {
-        const res = await fetch('/systems/audit-log', {
-            headers: {
-                Authorization: 'Bearer ' + localStorage.getItem('token')
-            }
-        });
+        const res = await API.get('/systems/audit-log');
 
         const data = await res.json();
         const eventos = data.eventos || [];

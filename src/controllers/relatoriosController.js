@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const logger = require('../utils/logger');
 
 // Helper: converte ?periodo= em {inicio, fim}
 function getDateRange(req) {
@@ -73,7 +74,7 @@ exports.financeiro = async (req, res) => {
             categorias: categorias.rows
         });
     } catch (err) {
-        console.error('[RELATORIOS] Erro financeiro:', err.message);
+        logger.error({ err: err.message }, '[RELATORIOS] Erro financeiro');
         res.status(500).json({ ok: false, erro: err.message });
     }
 };
@@ -124,7 +125,7 @@ exports.prazos = async (req, res) => {
             evolucao: evolucao.rows
         });
     } catch (err) {
-        console.error('[RELATORIOS] Erro prazos:', err.message);
+        logger.error({ err: err.message }, '[RELATORIOS] Erro prazos');
         res.status(500).json({ ok: false, erro: err.message });
     }
 };
@@ -171,7 +172,7 @@ exports.processos = async (req, res) => {
             total: parseInt(totalProcessos.rows[0].total)
         });
     } catch (err) {
-        console.error('[RELATORIOS] Erro processos:', err.message);
+        logger.error({ err: err.message }, '[RELATORIOS] Erro processos');
         res.status(500).json({ ok: false, erro: err.message });
     }
 };
@@ -212,7 +213,7 @@ exports.produtividade = async (req, res) => {
             audienciasPorUsuario: audienciasPorUsuario.rows
         });
     } catch (err) {
-        console.error('[RELATORIOS] Erro produtividade:', err.message);
+        logger.error({ err: err.message }, '[RELATORIOS] Erro produtividade');
         res.status(500).json({ ok: false, erro: err.message });
     }
 };
@@ -279,7 +280,7 @@ exports.crm = async (req, res) => {
             evolucao: evolucao.rows
         });
     } catch (err) {
-        console.error('[RELATORIOS] Erro CRM:', err.message);
+        logger.error({ err: err.message }, '[RELATORIOS] Erro CRM');
         res.status(500).json({ ok: false, erro: err.message });
     }
 };

@@ -64,16 +64,14 @@ async function confirmarUpgrade() {
     btnConfirmar.innerText = '⏳ Processando...';
     btnConfirmar.disabled = true;
     
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
+    if (!API.getToken()) {
         alert('❌ Você precisa estar logado para fazer upgrade!');
         window.location.href = '/login.html';
         return;
     }
-    
+
     const isAnual = document.getElementById('billing-toggle').checked;
-    
+
     const nomesParaId = { 'Básico': 1, 'Intermediário': 2, 'Avançado': 3, 'Premium': 4 };
     const novoPlanoId = nomesParaId[planoSelecionado];
 
@@ -84,18 +82,11 @@ async function confirmarUpgrade() {
     });
 
     try {
-        const response = await fetch('/api/planos/upgrade', { 
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                planoId: novoPlanoId,
-                nomePlano: planoSelecionado,
-                ciclo: isAnual ? 'anual' : 'mensal',
-                cpfUsuario: '00000000000'
-            })
+        const response = await API.post('/api/planos/upgrade', {
+            planoId: novoPlanoId,
+            nomePlano: planoSelecionado,
+            ciclo: isAnual ? 'anual' : 'mensal',
+            cpfUsuario: '00000000000'
         });
 
         console.log('📡 Resposta do servidor:', response.status);
@@ -164,8 +155,7 @@ function atualizarEstadoDosBotoes() {
 
 // Carregamento Inicial
 document.addEventListener('DOMContentLoaded', async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (!API.getToken()) {
         console.log('❌ Token não encontrado');
         return;
     }
@@ -173,9 +163,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('🔑 Token encontrado, carregando plano...');
 
     try {
-        const response = await fetch('/api/planos/meu-plano', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const response = await API.get('/api/planos/meu-plano');
 
         console.log('📡 Status da resposta:', response.status);
 

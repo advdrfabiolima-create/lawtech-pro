@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const { sign: jwtSign } = require('../config/jwt');
 const pool = require('../config/db');
 const { validarSenha } = require('../utils/validators');
+const logger = require('../utils/logger');
 
 /* ======================================================
    1. FUNÇÃO DE REGISTRO - CORRIGIDA
@@ -14,7 +15,7 @@ const register = async (req, res) => {
         cidade, estado, pagamento 
     } = req.body;
 
-    console.log('📝 [REGISTRO] Nova solicitação:', email);
+    logger.info({ email }, '[REGISTRO] Nova solicitacao');
 
     // ✅ Validação de entrada
     if (!nome || !email || !senha) {
@@ -82,7 +83,7 @@ const register = async (req, res) => {
             const novoEscritorio = await client.query(queryEscritorio, valoresEscritorio);
             const escritorioId = novoEscritorio.rows[0].id;
 
-            console.log(`✅ [REGISTRO] Escritório criado: ID ${escritorioId}`);
+            logger.info({ escritorioId }, '[REGISTRO] Escritorio criado');
 
             // 2️⃣ Criar usuário
             const senhaHash = await bcrypt.hash(senha, 10);
@@ -96,7 +97,7 @@ const register = async (req, res) => {
 
             const usuario = result.rows[0];
 
-            console.log(`✅ [REGISTRO] Usuário criado: ${usuario.email} (ID: ${usuario.id})`);
+            logger.info({ email: usuario.email, id: usuario.id }, '[REGISTRO] Usuario criado');
 
             await client.query('COMMIT');
 
@@ -108,7 +109,7 @@ const register = async (req, res) => {
                     escritorio_id: escritorioId
                 });
 
-            console.log(`🎉 [REGISTRO] Cadastro concluído com sucesso: ${usuario.email}`);
+            logger.info({ email: usuario.email }, '[REGISTRO] Cadastro concluido');
 
             // ✅ Retorna sucesso com token
             res.status(201).json({
@@ -131,15 +132,14 @@ const register = async (req, res) => {
 
         } catch (err) {
             await client.query('ROLLBACK');
-            console.error('❌ [REGISTRO] Erro na transação:', err.message);
+            logger.error({ err: err.message }, '[REGISTRO] Erro na transacao');
             throw err;
         } finally {
             client.release();
         }
 
     } catch (error) {
-        console.error('❌ [REGISTRO] Erro ao processar cadastro:', error.message);
-        console.error('Stack:', error.stack);
+        logger.error({ err: error.message, stack: error.stack }, '[REGISTRO] Erro ao processar cadastro');
         
         // ✅ Mensagens de erro específicas
         if (error.message.includes('unique') || error.code === '23505') {
@@ -172,7 +172,7 @@ const login = async (req, res) => {
     }
 
     try {
-        console.log('🔐 [LOGIN] Tentativa de login:', email);
+        logger.info({ email }, '[LOGIN] Tentativa de login');
 
         const result = await pool.query(
             `SELECT u.*, e.plano_id, e.plano_financeiro_status, e.trial_expira_em,
@@ -194,7 +194,7 @@ const login = async (req, res) => {
             return res.status(401).json({ erro: 'Email ou senha incorretos' });
         }
 
-        console.log('📊 [LOGIN] Usuário:', usuario.email, '| Escritório:', usuario.escritorio_id);
+        logger.info({ email: usuario.email, escritorioId: usuario.escritorio_id }, '[LOGIN] Usuario encontrado');
 
         // ✅ Verificação de Trial/Pagamento
         const ehMaster = usuario.is_master === true || usuario.email === process.env.MASTER_EMAIL;
@@ -210,7 +210,7 @@ const login = async (req, res) => {
 
             // Bloqueia login se trial expirou (sem tolerância)
             if (diasRestantes <= 0 && !['pago', 'ativo'].includes(usuario.plano_financeiro_status)) {
-                console.log('⚠️ [LOGIN] Trial expirado:', usuario.email, '| Dias:', diasRestantes, '| Status:', usuario.plano_financeiro_status);
+                logger.warn({ email: usuario.email, diasRestantes, status: usuario.plano_financeiro_status }, '[LOGIN] Trial expirado');
 
                 return res.status(402).json({
                     erro: 'Período de teste expirado',
@@ -228,7 +228,7 @@ const login = async (req, res) => {
                 escritorio_id: usuario.escritorio_id
             });
 
-        console.log('✅ [LOGIN] Login bem-sucedido:', usuario.email);
+        logger.info({ email: usuario.email }, '[LOGIN] Login bem-sucedido');
 
         res.json({ 
             ok: true,
@@ -246,7 +246,7 @@ const login = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ [LOGIN] Erro:', error.message);
+        logger.error({ err: error.message }, '[LOGIN] Erro');
         res.status(500).json({ erro: 'Erro ao realizar login' });
     }
 };
@@ -258,7 +258,7 @@ const login = async (req, res) => {
 async function alterarSenha(req, res) {
     const { senhaAtual, novaSenha } = req.body;
     
-    console.log('🔑 [ALTERAR SENHA] Solicitação do usuário:', req.user.email);
+    logger.info({ email: req.user.email }, '[ALTERAR SENHA] Solicitacao');
 
     try {
         // ✅ Validações
@@ -290,12 +290,12 @@ async function alterarSenha(req, res) {
         const senhaHash = await bcrypt.hash(novaSenha, 10);
         await pool.query('UPDATE usuarios SET senha = $1 WHERE id = $2', [senhaHash, req.user.id]);
         
-        console.log('✅ [ALTERAR SENHA] Senha alterada:', req.user.email);
+        logger.info({ email: req.user.email }, '[ALTERAR SENHA] Senha alterada');
         
         res.json({ ok: true, mensagem: 'Senha alterada com sucesso!' });
         
     } catch (err) {
-        console.error('❌ [ALTERAR SENHA] Erro:', err.message);
+        logger.error({ err: err.message }, '[ALTERAR SENHA] Erro');
         res.status(500).json({ erro: 'Erro ao processar alteração de senha.' });
     }
 }

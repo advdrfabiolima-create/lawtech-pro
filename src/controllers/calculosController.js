@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const logger = require('../utils/logger');
 
 async function salvarCalculo(req, res) {
     try {
@@ -18,7 +19,7 @@ async function salvarCalculo(req, res) {
 
         res.status(201).json({ ok: true, calculo: result.rows[0] });
     } catch (err) {
-        console.error("Erro ao salvar cálculo:", err.message);
+        logger.error({ err: err.message }, 'Erro ao salvar cálculo');
         res.status(500).json({ erro: 'Erro ao salvar cálculo' });
     }
 }
@@ -34,7 +35,7 @@ async function listarHistorico(req, res) {
         );
         res.json(result.rows);
     } catch (err) {
-        console.error('Erro ao listar histórico:', err.message);
+        logger.error({ err: err.message }, 'Erro ao listar histórico de cálculos');
         res.status(500).json({ erro: 'Erro ao listar histórico' });
     }
 }
@@ -56,7 +57,7 @@ async function excluirCalculo(req, res) {
             res.status(404).json({ erro: "Cálculo não encontrado ou sem permissão." });
         }
     } catch (err) {
-        console.error('Erro ao excluir cálculo:', err.message);
+        logger.error({ err: err.message }, 'Erro ao excluir cálculo');
         res.status(500).json({ erro: 'Erro ao excluir cálculo' });
     }
 }
@@ -80,7 +81,7 @@ async function obterFatorAcumulado(req, res) {
         );
         res.json({ fator: 1 + (parseFloat(result.rows[0].acumulado) || 0) });
     } catch (err) {
-        console.error('Erro ao obter fator acumulado:', err.message);
+        logger.error({ err: err.message }, 'Erro ao obter fator acumulado');
         res.status(500).json({ erro: 'Erro ao calcular fator acumulado' });
     }
 }

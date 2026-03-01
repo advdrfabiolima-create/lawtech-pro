@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
+const logger = require('../utils/logger');
 
 // ============================================================
 // CONFIGURAÇÃO DE OAB
@@ -34,7 +35,7 @@ router.get('/oab-config', authMiddleware, async (req, res) => {
             config: result.rows[0] 
         });
     } catch (err) {
-        console.error('❌ Erro ao buscar configuração OAB:', err);
+        logger.error({ err: err.message }, 'Erro ao buscar configuracao OAB');
         res.status(500).json({ erro: 'Erro ao buscar configuração' });
     }
 });
@@ -67,7 +68,7 @@ router.post('/oab-config', authMiddleware, roleMiddleware('admin'), async (req, 
             [usuario_id, escritorio_id, numero_oab, uf_oab]
         );
         
-        console.log(`✅ Configuração OAB salva: ${numero_oab}/${uf_oab} - Escritório ${escritorio_id}`);
+        logger.info({ numero_oab, uf_oab, escritorio_id }, 'Configuracao OAB salva');
         
         res.json({ 
             ok: true, 
@@ -75,7 +76,7 @@ router.post('/oab-config', authMiddleware, roleMiddleware('admin'), async (req, 
             config: result.rows[0]
         });
     } catch (err) {
-        console.error('❌ Erro ao salvar configuração OAB:', err);
+        logger.error({ err: err.message }, 'Erro ao salvar configuracao OAB');
         res.status(500).json({ erro: 'Erro ao salvar configuração' });
     }
 });
@@ -142,11 +143,11 @@ router.post('/sync/processos', authMiddleware, roleMiddleware('admin'), async (r
         
         const job = jobResult.rows[0];
         
-        console.log(`🚀 Job de sincronização criado: ${job.id} - Tipo: ${tipo}`);
+        logger.info({ jobId: job.id, tipo }, 'Job de sincronizacao criado');
         
         // Processar job em background (não aguardar)
         processarSyncJob(job.id).catch(err => {
-            console.error('❌ Erro ao processar job:', err);
+            logger.error({ err: err.message }, 'Erro ao processar job');
         });
         
         res.json({ 
@@ -159,7 +160,7 @@ router.post('/sync/processos', authMiddleware, roleMiddleware('admin'), async (r
             }
         });
     } catch (err) {
-        console.error('❌ Erro ao iniciar sincronização:', err);
+        logger.error({ err: err.message }, 'Erro ao iniciar sincronizacao');
         res.status(500).json({ erro: 'Erro ao iniciar sincronização' });
     }
 });
@@ -199,7 +200,7 @@ router.get('/sync/status/:jobId', authMiddleware, async (req, res) => {
             logs: logsResult.rows
         });
     } catch (err) {
-        console.error('❌ Erro ao buscar status:', err);
+        logger.error({ err: err.message }, 'Erro ao buscar status do job');
         res.status(500).json({ erro: 'Erro ao buscar status' });
     }
 });
@@ -222,7 +223,7 @@ router.get('/sync/history', authMiddleware, async (req, res) => {
         
         res.json(result.rows);
     } catch (err) {
-        console.error('❌ Erro ao buscar histórico:', err);
+        logger.error({ err: err.message }, 'Erro ao buscar historico de sync');
         res.status(500).json({ erro: 'Erro ao buscar histórico' });
     }
 });
@@ -260,7 +261,7 @@ async function processarSyncJob(jobId) {
             config = job.dados_config; // Já é objeto
         }
         
-        console.log(`🔄 Processando job ${jobId} - Tipo: ${job.tipo}`);
+        logger.info({ jobId, tipo: job.tipo }, 'Processando job de sincronizacao');
         
         // Atualizar status para processando
         await client.query(
@@ -314,12 +315,12 @@ async function processarSyncJob(jobId) {
         
         await client.query('COMMIT');
         
-        console.log(`✅ Job ${jobId} concluído com sucesso!`);
+        logger.info({ jobId }, 'Job de sincronizacao concluido');
         
     } catch (err) {
         await client.query('ROLLBACK');
         
-        console.error(`❌ Erro ao processar job ${jobId}:`, err);
+        logger.error({ err: err.message, jobId }, 'Erro ao processar job de sincronizacao');
         
         // Marcar job como erro
         await pool.query(
@@ -353,7 +354,7 @@ async function sincronizarPJe(client, jobId, config) {
         ['Conectando ao PJe...', jobId]
     );
     
-    console.log(`🔍 Buscando processos no PJe - OAB: ${config.numero_oab}/${config.uf_oab}`);
+    logger.info({ oab: `${config.numero_oab}/${config.uf_oab}` }, 'Buscando processos no PJe');
     
     // AQUI SERÁ IMPLEMENTADA A INTEGRAÇÃO REAL COM PJe
     // Por enquanto, usamos dados simulados
@@ -466,7 +467,7 @@ async function sincronizarPJe(client, jobId, config) {
                     [jobId, `✅ Processo importado: ${proc.numero}`]
                 );
                 
-                console.log(`✅ Processo importado: ${proc.numero}`);
+                logger.info({ numero: proc.numero }, 'Processo importado');
                 
             } else {
                 // ATUALIZAR PROCESSO EXISTENTE
@@ -479,11 +480,11 @@ async function sincronizarPJe(client, jobId, config) {
                 
                 atualizados++;
                 
-                console.log(`🔄 Processo atualizado: ${proc.numero}`);
+                logger.info({ numero: proc.numero }, 'Processo atualizado');
             }
             
         } catch (errProcesso) {
-            console.error(`❌ Erro ao importar processo ${proc.numero}:`, errProcesso.message);
+            logger.error({ err: errProcesso.message, numero: proc.numero }, 'Erro ao importar processo');
             
             // Log de erro específico
             await client.query(

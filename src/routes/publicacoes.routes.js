@@ -4,6 +4,7 @@ const pool = require('../config/db');
 const axios = require('axios');
 const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
+const logger = require('../utils/logger');
 
 /**
  * ============================================================
@@ -18,12 +19,10 @@ router.post('/sincronizar', authMiddleware, roleMiddleware('admin', 'operador'),
     const escritorioId = req.user.escritorio_id;
     const { dataInicio, dataFim } = req.body;
 
-    console.log('📄 [SYNC] Enviando solicitação ao WORKER DJEN...');
-    console.log('📋 Escritório ID:', escritorioId);
-    console.log('📅 Período:', dataInicio, 'até', dataFim);
+    logger.info({ escritorioId, dataInicio, dataFim }, 'Enviando solicitacao ao Worker DJEN');
 
     if (!process.env.WORKER_URL) {
-      console.error('❌ WORKER_URL não configurada!');
+      logger.error('WORKER_URL nao configurada');
       return res.status(500).json({
         ok: false,
         erro: 'WORKER_URL não configurada no servidor.'
@@ -31,14 +30,14 @@ router.post('/sincronizar', authMiddleware, roleMiddleware('admin', 'operador'),
     }
 
     if (!process.env.WORKER_SECRET) {
-      console.error('❌ WORKER_SECRET não configurada!');
+      logger.error('WORKER_SECRET nao configurada');
       return res.status(500).json({
         ok: false,
         erro: 'WORKER_SECRET não configurada no servidor.'
       });
     }
 
-    console.log('🔗 Worker URL:', process.env.WORKER_URL);
+    logger.info({ workerUrl: process.env.WORKER_URL }, 'Worker URL configurada');
 
     const escritorio = await pool.query(
       'SELECT oab, uf, advogado_responsavel FROM escritorios WHERE id = $1',
@@ -68,8 +67,7 @@ router.post('/sincronizar', authMiddleware, roleMiddleware('admin', 'operador'),
       });
     }
 
-    console.log('👤 Advogado:', advogado_responsavel);
-    console.log('🎓 OAB:', oab, '/', uf);
+    logger.info({ advogado: advogado_responsavel, oab, uf }, 'Dados do advogado para sincronizacao');
 
     // ✅ CHAMADA CORRETA AO WORKER
     const response = await axios.post(
@@ -90,8 +88,7 @@ router.post('/sincronizar', authMiddleware, roleMiddleware('admin', 'operador'),
       }
     );
 
-    console.log('✅ Worker DJEN executado com sucesso');
-    console.log('📊 Resultado:', response.data);
+    logger.info({ resultado: response.data }, 'Worker DJEN executado com sucesso');
 
     return res.json({
       ok: true,
@@ -100,10 +97,10 @@ router.post('/sincronizar', authMiddleware, roleMiddleware('admin', 'operador'),
     });
 
   } catch (err) {
-    console.error('❌ Erro ao chamar worker DJEN:', err.message);
-    
+    logger.error({ err: err.message }, 'Erro ao chamar worker DJEN');
+
     if (err.code === 'ECONNREFUSED') {
-      console.error('❌ Worker offline ou inacessível');
+      logger.error('Worker DJEN offline ou inacessivel');
       return res.status(503).json({
         ok: false,
         erro: 'Worker DJEN está temporariamente indisponível.',
@@ -112,7 +109,7 @@ router.post('/sincronizar', authMiddleware, roleMiddleware('admin', 'operador'),
     }
 
     if (err.response) {
-      console.error('❌ Resposta do worker:', err.response.status, err.response.data);
+      logger.error({ status: err.response.status, data: err.response.data }, 'Resposta de erro do worker DJEN');
       return res.status(err.response.status).json({
         ok: false,
         erro: 'Erro no worker DJEN',
@@ -136,28 +133,33 @@ router.post('/sincronizar', authMiddleware, roleMiddleware('admin', 'operador'),
 router.get('/publicacoes-pendentes', authMiddleware, async (req, res) => {
     try {
         const escritorioId = req.user.escritorio_id;
-        
-        const query = `
-            SELECT 
-                id, 
-                numero_processo, 
-                conteudo, 
-                data_publicacao, 
-                tribunal, 
-                status
-            FROM publicacoes 
-            WHERE escritorio_id = $1 
-            ORDER BY data_publicacao DESC
-            LIMIT 200`;
+        const { getPagination, buildPage } = require('../utils/paginate');
+        const { page, limit, offset } = getPagination(req.query);
 
-        const result = await pool.query(query, [escritorioId]);
-        
-        console.log(`📋 Retornando ${result.rows.length} publicações (todas)`);
-        
-        res.json(result.rows);
-        
+        const [result, countResult] = await Promise.all([
+            pool.query(`
+                SELECT
+                    id,
+                    numero_processo,
+                    conteudo,
+                    data_publicacao,
+                    tribunal,
+                    status
+                FROM publicacoes
+                WHERE escritorio_id = $1
+                ORDER BY data_publicacao DESC
+                LIMIT $2 OFFSET $3
+            `, [escritorioId, limit, offset]),
+            pool.query('SELECT COUNT(*) AS total FROM publicacoes WHERE escritorio_id = $1', [escritorioId])
+        ]);
+
+        const total = parseInt(countResult.rows[0].total);
+        logger.info({ count: result.rows.length, page }, 'Publicacoes retornadas');
+
+        res.json(buildPage(result.rows, total, page, limit));
+
     } catch (err) {
-        console.error("❌ Erro ao buscar publicações:", err.message);
+        logger.error({ err: err.message }, 'Erro ao buscar publicacoes');
         res.status(500).json({ erro: "Erro ao carregar publicações do banco." });
     }
 });
@@ -181,15 +183,15 @@ router.delete('/publicacoes/:id', authMiddleware, roleMiddleware('admin'), async
             return res.status(404).json({ erro: 'Publicação não encontrada' });
         }
         
-        console.log(`✅ Publicação ${publicacaoId} excluída com sucesso`);
-        
-        res.json({ 
-            ok: true, 
-            mensagem: 'Publicação excluída com sucesso' 
+        logger.info({ publicacaoId }, 'Publicacao excluida com sucesso');
+
+        res.json({
+            ok: true,
+            mensagem: 'Publicação excluída com sucesso'
         });
-        
+
     } catch (err) {
-        console.error('❌ Erro ao excluir publicação:', err.message);
+        logger.error({ err: err.message }, 'Erro ao excluir publicacao');
         res.status(500).json({ erro: 'Erro ao excluir publicação' });
     }
 });
@@ -265,7 +267,7 @@ router.post('/converter-publicacao', authMiddleware, roleMiddleware('admin', 'op
         });
 
     } catch (err) {
-        console.error('❌ Erro ao converter publicação:', err.message);
+        logger.error({ err: err.message }, 'Erro ao converter publicacao em prazo');
         res.status(500).json({ erro: 'Erro ao criar prazo' });
     }
 });
@@ -298,14 +300,14 @@ router.post('/publicacoes/manual', authMiddleware, roleMiddleware('admin', 'oper
             ]
         );
 
-        console.log(`✅ Publicação manual inserida: ${numero_processo}`);
+        logger.info({ numero_processo }, 'Publicacao manual inserida');
 
         res.json({ ok: true, publicacao: result.rows[0] });
     } catch (err) {
         if (err.code === '23505') {
             return res.status(400).json({ erro: 'Esta publicação já existe' });
         }
-        console.error('❌ Erro ao inserir publicação manual:', err.message);
+        logger.error({ err: err.message }, 'Erro ao inserir publicacao manual');
         res.status(500).json({ erro: 'Erro ao inserir publicação' });
     }
 });
@@ -321,23 +323,16 @@ router.patch('/publicacoes/:id/status', authMiddleware, roleMiddleware('admin', 
         const { status } = req.body;
         const escritorioId = req.user.escritorio_id;
 
-        console.log('\n========================================');
-        console.log('🔄 [PATCH STATUS] INICIANDO...');
-        console.log('ID:', id);
-        console.log('Novo status:', status);
-        console.log('Escritório:', escritorioId);
-        console.log('========================================');
+        logger.info({ id, status, escritorioId }, 'Atualizando status de publicacao');
 
         if (!['pendente', 'convertida', 'descartada'].includes(status)) {
-            console.error('❌ Status inválido:', status);
+            logger.error({ status }, 'Status invalido para publicacao');
             return res.status(400).json({ 
                 ok: false, 
                 erro: 'Status inválido. Use: pendente, convertida ou descartada' 
             });
         }
 
-        console.log('💾 Executando UPDATE...');
-        
         const result = await pool.query(
             `UPDATE publicacoes 
              SET status = $1 
@@ -346,30 +341,22 @@ router.patch('/publicacoes/:id/status', authMiddleware, roleMiddleware('admin', 
             [status, id, escritorioId]
         );
 
-        console.log('📊 Linhas afetadas:', result.rowCount);
-
         if (result.rowCount === 0) {
-            console.error('❌ Publicação não encontrada ou não pertence ao escritório');
+            logger.error({ id, escritorioId }, 'Publicacao nao encontrada ou nao pertence ao escritorio');
             return res.status(404).json({ 
                 ok: false, 
                 erro: 'Publicação não encontrada' 
             });
         }
 
-        console.log('✅ Status atualizado com sucesso!');
-        console.log('📦 Publicação atualizada:', result.rows[0]);
-        console.log('========================================\n');
+        logger.info({ id, status }, 'Status de publicacao atualizado com sucesso');
 
-        res.json({ 
-            ok: true, 
-            publicacao: result.rows[0] 
+        res.json({
+            ok: true,
+            publicacao: result.rows[0]
         });
     } catch (err) {
-        console.error('\n========================================');
-        console.error('❌ ERRO AO ATUALIZAR STATUS');
-        console.error('Mensagem:', err.message);
-        console.error('Código:', err.code);
-        console.error('========================================\n');
+        logger.error({ err: err.message, code: err.code }, 'Erro ao atualizar status de publicacao');
         
         res.status(500).json({ 
             ok: false, 

@@ -6,6 +6,7 @@ const pool = require('../config/db');
 const { sign: jwtSign } = require('../config/jwt');
 const authMiddleware = require('../middlewares/authMiddleware');
 const portalMiddleware = require('../middlewares/portalMiddleware');
+const logger = require('../utils/logger');
 // dailyService não é mais necessário no portal (Jitsi não usa tokens)
 
 // Rate limiting para autenticação do portal — protege contra brute-force de tokens
@@ -66,7 +67,7 @@ router.get('/autenticar', portalAuthLimiter, async (req, res) => {
             }
         });
     } catch (err) {
-        console.error('[Portal] GET /autenticar erro:', err.message);
+        logger.error({ err: err.message }, '[Portal] GET /autenticar erro');
         res.status(500).json({ ok: false, erro: 'Erro interno.' });
     }
 });
@@ -105,7 +106,7 @@ router.post('/gerar-token', authMiddleware, async (req, res) => {
             url: '/portal-cliente?token=' + novoToken
         });
     } catch (err) {
-        console.error('[Portal] POST /gerar-token erro:', err.message);
+        logger.error({ err: err.message }, '[Portal] POST /gerar-token erro');
         res.status(500).json({ ok: false, erro: 'Erro interno.' });
     }
 });
@@ -144,7 +145,7 @@ router.get('/meus-processos', portalMiddleware, async (req, res) => {
 
         res.json({ ok: true, processos: result.rows });
     } catch (err) {
-        console.error('[Portal] GET /meus-processos erro:', err.message);
+        logger.error({ err: err.message }, '[Portal] GET /meus-processos erro');
         res.status(500).json({ ok: false, erro: 'Erro interno.' });
     }
 });
@@ -181,7 +182,7 @@ router.get('/processos/:id/andamentos', portalMiddleware, async (req, res) => {
 
         res.json({ ok: true, andamentos: result.rows });
     } catch (err) {
-        console.error('[Portal] GET /processos/:id/andamentos erro:', err.message);
+        logger.error({ err: err.message }, '[Portal] GET /processos/:id/andamentos erro');
         res.status(500).json({ ok: false, erro: 'Erro interno.' });
     }
 });
@@ -204,7 +205,7 @@ router.get('/reunioes', portalMiddleware, async (req, res) => {
 
         res.json({ ok: true, reunioes: result.rows });
     } catch (err) {
-        console.error('[Portal] GET /reunioes erro:', err.message);
+        logger.error({ err: err.message }, '[Portal] GET /reunioes erro');
         res.status(500).json({ ok: false, erro: 'Erro interno.' });
     }
 });
@@ -241,7 +242,7 @@ router.get('/reunioes/:id/token', portalMiddleware, async (req, res) => {
             data_hora: reuniao.data_hora
         });
     } catch (err) {
-        console.error('[Portal] GET /reunioes/:id/token erro:', err.message);
+        logger.error({ err: err.message }, '[Portal] GET /reunioes/:id/token erro');
         res.status(500).json({ ok: false, erro: 'Erro ao obter URL da sala.' });
     }
 });

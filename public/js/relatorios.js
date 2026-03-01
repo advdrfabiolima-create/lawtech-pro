@@ -1,16 +1,14 @@
 
 // ========== AUTH & GLOBALS ==========
-const API = '';
-let token = localStorage.getItem('token');
 let abaAtual = 'financeiro';
 const chartInstances = {};
 
-if (!token) window.location.href = '/login';
+if (!API.getToken()) window.location.href = '/login';
 
 // ========== USER INFO ==========
 async function carregarInfoRodape() {
     try {
-        const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        const resUser = await API.get('/api/auth/me');
         const dataUser = await resUser.json();
 
         if (dataUser.ok) {
@@ -30,7 +28,7 @@ async function carregarInfoRodape() {
             if (circulo) circulo.innerText = iniciais.toUpperCase();
         }
 
-        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+        const resPlan = await API.get('/api/plano-consumo');
         const dataPlan = await resPlan.json();
 
         const planoElement = document.getElementById('planNameFooter');
@@ -115,9 +113,7 @@ function trocarAba(aba, btn) {
 // ========== FETCH HELPER ==========
 async function fetchRelatorio(endpoint) {
     const params = getPeriodoParams();
-    const res = await fetch(`${API}/api/relatorios/${endpoint}?${params}`, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
+    const res = await API.get(`/api/relatorios/${endpoint}?${params}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
 }

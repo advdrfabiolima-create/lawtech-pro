@@ -1,6 +1,7 @@
 const pool = require('../config/db');
 const bcrypt = require('bcrypt');
 const planLimits = require('../config/planLimits.json');
+const logger = require('../utils/logger');
 
 /**
  * ============================================================
@@ -73,7 +74,7 @@ const verificarLimiteUsuarios = async (escritorioId) => {
         };
 
     } catch (err) {
-        console.error('❌ Erro ao verificar limite de usuários:', err);
+        logger.error({ err: err.message }, 'Erro ao verificar limite de usuários');
         return { 
             permitido: false, 
             erro: 'Erro ao verificar limite' 
@@ -103,7 +104,7 @@ exports.listarUsuarios = async (req, res) => {
         res.json(result.rows);
 
     } catch (err) {
-        console.error('❌ Erro ao listar usuários:', err);
+        logger.error({ err: err.message }, 'Erro ao listar usuários');
         res.status(500).json({ erro: 'Erro ao listar usuários' });
     }
 };
@@ -181,7 +182,7 @@ exports.criarUsuario = async (req, res) => {
         });
 
     } catch (err) {
-        console.error('❌ Erro ao criar usuário:', err);
+        logger.error({ err: err.message }, 'Erro ao criar usuário');
         res.status(500).json({ erro: 'Erro ao criar usuário: ' + err.message });
     }
 };
@@ -244,7 +245,7 @@ exports.atualizarUsuario = async (req, res) => {
         res.json(result.rows[0]);
 
     } catch (err) {
-        console.error('❌ Erro ao atualizar usuário:', err);
+        logger.error({ err: err.message }, 'Erro ao atualizar usuário');
         res.status(500).json({ erro: 'Erro ao atualizar usuário' });
     }
 };
@@ -305,7 +306,7 @@ exports.alterarSenha = async (req, res) => {
         res.json({ mensagem: 'Senha alterada com sucesso' });
 
     } catch (err) {
-        console.error('❌ Erro ao alterar senha:', err);
+        logger.error({ err: err.message }, 'Erro ao alterar senha');
         res.status(500).json({ erro: 'Erro ao alterar senha' });
     }
 };
@@ -350,7 +351,7 @@ exports.desativarUsuario = async (req, res) => {
         });
 
     } catch (err) {
-        console.error('❌ Erro ao desativar usuário:', err);
+        logger.error({ err: err.message }, 'Erro ao desativar usuário');
         res.status(500).json({ erro: 'Erro ao desativar usuário' });
     }
 };
@@ -395,7 +396,7 @@ exports.reativarUsuario = async (req, res) => {
         });
 
     } catch (err) {
-        console.error('❌ Erro ao reativar usuário:', err);
+        logger.error({ err: err.message }, 'Erro ao reativar usuário');
         res.status(500).json({ erro: 'Erro ao reativar usuário' });
     }
 };
@@ -461,7 +462,7 @@ exports.excluirUsuario = async (req, res) => {
         res.json({ mensagem: 'Usuário excluído com sucesso' });
 
     } catch (err) {
-        console.error('❌ Erro ao excluir usuário:', err);
+        logger.error({ err: err.message }, 'Erro ao excluir usuário');
         res.status(500).json({ erro: 'Erro ao excluir usuário' });
     }
 };
@@ -483,7 +484,7 @@ exports.obterLimitesUsuarios = async (req, res) => {
         });
 
     } catch (err) {
-        console.error('❌ Erro ao obter limites:', err);
+        logger.error({ err: err.message }, 'Erro ao obter limites de usuários');
         res.status(500).json({ erro: 'Erro ao obter limites de usuários' });
     }
 };

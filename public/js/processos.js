@@ -50,12 +50,13 @@ class GerenciadorPartes {
     async carregarClientes() {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('/api/clientes', {
+            const response = await fetch('/api/clientes?limit=200', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (response.ok) {
-                this.clientesDisponiveis = await response.json();
+                const rC = await response.json();
+                this.clientesDisponiveis = rC.data || rC;
             }
         } catch (err) {
             console.error('Erro ao carregar clientes:', err);
@@ -436,14 +437,14 @@ let gerenciadorPartesEdicao = null;
     // ============================================
     async function carregarProcessos() {
         try {
-            const response = await fetch('/api/processos', {
+            const response = await fetch('/api/processos?limit=200', {
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
             });
 
             if (response.ok) {
-                todosProcessos = await response.json();
-                console.log('JSON RAW recebido:', JSON.stringify(todosProcessos[0], null, 2));
+                const respProcessos = await response.json();
+                todosProcessos = respProcessos.data || respProcessos;
                 renderizarTabela(todosProcessos);
 
                 // Pré-filtrar se veio de /documentos-page com ?busca=NUMERO
@@ -884,11 +885,12 @@ let gerenciadorPartesEdicao = null;
 
     async function carregarClientesNoSelect() {
         try {
-            const res = await fetch('/api/clientes', { headers: { 'Authorization': `Bearer ${token}` } });
-            const clientes = await res.json();
+            const res = await fetch('/api/clientes?limit=200', { headers: { 'Authorization': `Bearer ${token}` } });
+            const rClientes = await res.json();
+            const clientes = rClientes.data || rClientes;
             const select = document.getElementById('procClienteId');
             if (select) {
-                select.innerHTML = '<option value="">Selecione o Cliente...</option>' + 
+                select.innerHTML = '<option value="">Selecione o Cliente...</option>' +
                     clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
             }
         } catch (err) { 
@@ -901,12 +903,13 @@ let gerenciadorPartesEdicao = null;
     // ============================================
     async function carregarClientesParaSelect() {
         try {
-            const response = await fetch('/api/clientes', {
+            const response = await fetch('/api/clientes?limit=200', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
+
             if (response.ok) {
-                const clientes = await response.json();
+                const rCli = await response.json();
+                const clientes = rCli.data || rCli;
                 const select = document.getElementById('clienteSelect');
                 
                 if (select) {

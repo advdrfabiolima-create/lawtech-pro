@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const logger = require('../utils/logger');
 
 /**
  * 📊 ESTATÍSTICAS GERAIS - COMPATÍVEL
@@ -144,7 +145,7 @@ router.get('/stats', async (req, res) => {
             }
         });
     } catch (err) {
-        console.error('❌ Erro nas estatísticas admin:', err.message);
+        logger.error({ err: err.message }, 'Erro nas estatísticas admin');
         res.status(500).json({ ok: false, error: 'Erro interno do servidor' });
     }
 });
@@ -217,7 +218,7 @@ router.get('/escritorios', async (req, res) => {
             escritorios: result.rows
         });
     } catch (err) {
-        console.error('❌ Erro na lista de escritórios:', err.message);
+        logger.error({ err: err.message }, 'Erro na lista de escritórios');
         res.status(500).json({ ok: false, error: 'Erro interno do servidor' });
     }
 });
@@ -254,7 +255,7 @@ router.get('/monitoramento', async (req, res) => {
 
         res.json({ ok: true, total: result.rowCount, logs: logsFormatados });
     } catch (err) {
-        console.error('❌ Erro ao buscar logs:', err.message);
+        logger.error({ err: err.message }, 'Erro ao buscar logs');
         res.json({ ok: true, total: 0, logs: [] });
     }
 });
@@ -296,7 +297,7 @@ router.get('/audit-log', async (req, res) => {
 
         res.json({ ok: true, total: result.rowCount, eventos: eventsFormatados });
     } catch (err) {
-        console.error('❌ Erro ao buscar audit log:', err.message);
+        logger.error({ err: err.message }, 'Erro ao buscar audit log');
         res.json({ ok: true, total: 0, eventos: [] });
     }
 });
@@ -392,7 +393,7 @@ router.get('/no-limite', async (req, res) => {
 
         res.json({ ok: true, total: escritoriosComLimites.length, escritorios: escritoriosComLimites });
     } catch (err) {
-        console.error('❌ Erro ao buscar escritórios no limite:', err.message);
+        logger.error({ err: err.message }, 'Erro ao buscar escritórios no limite');
         res.status(500).json({ ok: false, error: 'Erro interno do servidor' });
     }
 });
@@ -431,7 +432,7 @@ router.get('/inadimplencia', async (req, res) => {
 
         res.json({ ok: true, total: result.rowCount, inadimplentes: result.rows });
     } catch (err) {
-        console.error('❌ Erro ao buscar inadimplentes:', err.message);
+        logger.error({ err: err.message }, 'Erro ao buscar inadimplentes');
         res.status(500).json({ ok: false, error: 'Erro interno do servidor' });
     }
 });
@@ -459,7 +460,7 @@ router.get('/crescimento', async (req, res) => {
             valores: result.rows.map(r => parseInt(r.total))
         });
     } catch (err) {
-        console.error('❌ Erro no gráfico:', err.message);
+        logger.error({ err: err.message }, 'Erro no gráfico de crescimento');
         res.status(500).json({ ok: false, error: 'Erro interno do servidor' });
     }
 });

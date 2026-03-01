@@ -5,6 +5,7 @@ const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
 const { validarSenha } = require('../utils/validators');
+const logger = require('../utils/logger');
 
 // Carregar limites dos planos
 const planLimits = require('../config/planLimits.json');
@@ -97,7 +98,7 @@ router.post('/auth/convidar-funcionario', authMiddleware, roleMiddleware('admin'
             [nome.trim(), email.toLowerCase().trim(), senhaHash, role || 'operador', escritorioId]
         );
 
-        console.log(`✅ Novo membro adicionado: ${nome} (${email}) - Escritório ${escritorioId}`);
+        logger.info({ nome, email, escritorioId }, 'Novo membro adicionado');
 
         res.status(201).json({
             ok: true,
@@ -106,7 +107,7 @@ router.post('/auth/convidar-funcionario', authMiddleware, roleMiddleware('admin'
         });
 
     } catch (error) {
-        console.error('❌ Erro ao adicionar membro:', error.message);
+        logger.error({ err: error.message }, 'Erro ao adicionar membro');
         res.status(500).json({ erro: 'Erro ao adicionar membro à equipe' });
     }
 });
@@ -117,41 +118,31 @@ router.post('/auth/convidar-funcionario', authMiddleware, roleMiddleware('admin'
  */
 router.get('/auth/equipe', authMiddleware, async (req, res) => {
     try {
-        console.log('🔍 [EQUIPE] Solicitação de listagem de equipe recebida');
-        console.log('📋 [EQUIPE] Usuário:', req.user.email, '| Escritório ID:', req.user.escritorio_id);
+        logger.info({ email: req.user.email, escritorioId: req.user.escritorio_id }, '[EQUIPE] Listagem solicitada');
         
         const escritorioId = req.user.escritorio_id;
 
         if (!escritorioId) {
-            console.error('❌ [EQUIPE] escritorio_id não encontrado no token');
+            logger.error('[EQUIPE] escritorio_id nao encontrado no token');
             return res.status(400).json({ erro: 'Escritório não identificado' });
         }
 
         // Query mais simples e robusta - só seleciona campos essenciais que sempre existem
-        let query = `SELECT id, nome, email, 
+        let query = `SELECT id, nome, email,
                      COALESCE(role, 'operador') as role
-                     FROM usuarios 
-                     WHERE escritorio_id = $1 
+                     FROM usuarios
+                     WHERE escritorio_id = $1
                      ORDER BY id DESC`;
-        
-        console.log('🔍 [EQUIPE] Executando query:', query);
-        console.log('🔍 [EQUIPE] Parâmetros:', [escritorioId]);
         
         const result = await pool.query(query, [escritorioId]);
 
-        console.log(`✅ [EQUIPE] ${result.rows.length} membros encontrados para o escritório ${escritorioId}`);
-        
-        if (result.rows.length > 0) {
-            console.log('📋 [EQUIPE] Primeiro membro:', result.rows[0]);
-        }
+        logger.info({ total: result.rows.length, escritorioId }, '[EQUIPE] Membros encontrados');
 
         // Retorna diretamente o array, conforme esperado pelo frontend
         res.json(result.rows);
 
     } catch (error) {
-        console.error('❌ [EQUIPE] Erro ao listar equipe:', error.message);
-        console.error('❌ [EQUIPE] Stack:', error.stack);
-        console.error('❌ [EQUIPE] Detalhes completos:', error);
+        logger.error({ err: error.message, stack: error.stack }, '[EQUIPE] Erro ao listar equipe');
         res.status(500).json({ erro: 'Erro ao carregar membros da equipe' });
     }
 });
@@ -184,12 +175,12 @@ router.delete('/auth/equipe/:id', authMiddleware, roleMiddleware('admin'), async
         // Remover o usuário
         await pool.query('DELETE FROM usuarios WHERE id = $1', [id]);
 
-        console.log(`✅ Membro removido (ID: ${id}) - Escritório ${escritorioId}`);
+        logger.info({ id, escritorioId }, 'Membro removido');
 
         res.json({ ok: true, mensagem: 'Membro removido com sucesso' });
 
     } catch (error) {
-        console.error('❌ Erro ao remover membro:', error.message);
+        logger.error({ err: error.message }, 'Erro ao remover membro');
         res.status(500).json({ erro: 'Erro ao remover membro da equipe' });
     }
 });
@@ -225,12 +216,12 @@ router.put('/usuarios/:id/role', authMiddleware, roleMiddleware('admin'), async 
             [role, id]
         );
 
-        console.log(`✅ Permissão atualizada (ID: ${id}) - Nova role: ${role}`);
+        logger.info({ id, role }, 'Permissao atualizada');
 
         res.json({ ok: true, mensagem: 'Permissão atualizada com sucesso' });
 
     } catch (error) {
-        console.error('❌ Erro ao atualizar permissão:', error.message);
+        logger.error({ err: error.message }, 'Erro ao atualizar permissao');
         res.status(500).json({ erro: 'Erro ao atualizar permissão' });
     }
 });

@@ -1,38 +1,45 @@
 const pool = require('../config/db');
+const logger = require('../utils/logger');
+const { getPagination, buildPage } = require('../utils/paginate');
 
-// 1. Listar Clientes (CORRIGIDO: conta processos em ambos os polos)
+// 1. Listar Clientes (paginado)
 async function listarClientes(req, res) {
     try {
         const escritorioId = req.user.escritorio_id;
+        const { page, limit, offset } = getPagination(req.query);
 
-        const query = `
-            SELECT
-                c.id,
-                c.nome,
-                c.documento,
-                c.email,
-                c.telefone,
-                c.cep,
-                c.endereco,
-                c.cidade,
-                c.estado,
-                c.data_nascimento,
-                (SELECT COUNT(DISTINCT pp.processo_id)::int
-                 FROM partes_processo pp
-                 INNER JOIN processos p ON p.id = pp.processo_id
-                 WHERE pp.pessoa_id = c.id
-                 AND p.escritorio_id = $1
-                 AND p.status != 'excluido'
-                ) as total_processos
-            FROM clientes c
-            WHERE c.escritorio_id = $1
-            ORDER BY c.nome ASC
-        `;
+        const [result, countResult] = await Promise.all([
+            pool.query(`
+                SELECT
+                    c.id,
+                    c.nome,
+                    c.documento,
+                    c.email,
+                    c.telefone,
+                    c.cep,
+                    c.endereco,
+                    c.cidade,
+                    c.estado,
+                    c.data_nascimento,
+                    (SELECT COUNT(DISTINCT pp.processo_id)::int
+                     FROM partes_processo pp
+                     INNER JOIN processos p ON p.id = pp.processo_id
+                     WHERE pp.pessoa_id = c.id
+                     AND p.escritorio_id = $1
+                     AND p.status != 'excluido'
+                    ) as total_processos
+                FROM clientes c
+                WHERE c.escritorio_id = $1
+                ORDER BY c.nome ASC
+                LIMIT $2 OFFSET $3
+            `, [escritorioId, limit, offset]),
+            pool.query('SELECT COUNT(*) AS total FROM clientes WHERE escritorio_id = $1', [escritorioId])
+        ]);
 
-        const result = await pool.query(query, [escritorioId]);
-        res.json(result.rows || []);
+        const total = parseInt(countResult.rows[0].total);
+        res.json(buildPage(result.rows, total, page, limit));
     } catch (error) {
-        console.error('❌ Erro ao listar clientes:', error.message);
+        logger.error({ err: error.message }, 'Erro ao listar clientes');
         res.status(500).json({ erro: 'Erro ao carregar lista de clientes' });
     }
 }
@@ -55,11 +62,11 @@ async function criarCliente(req, res) {
         ];
 
         const resultado = await pool.query(query, values);
-        console.log("✅ Cliente salvo com sucesso no banco local!");
+        logger.info('Cliente salvo com sucesso no banco local');
         res.status(201).json(resultado.rows[0]);
 
     } catch (err) {
-        console.error("❌ Erro ao criar cliente:", err.message);
+        logger.error({ err: err.message }, 'Erro ao criar cliente');
         res.status(500).json({ erro: 'Erro ao salvar cliente' });
     }
 }
@@ -132,11 +139,11 @@ async function editarCliente(req, res) {
             return res.status(404).json({ erro: 'Cliente não encontrado' });
         }
         
-        console.log('✅ Cliente atualizado com sucesso:', result.rows[0].nome);
-        res.json(result.rows[0]); // ✅ RETORNA O CLIENTE COMPLETO ATUALIZADO
-        
+        logger.info({ nome: result.rows[0].nome }, 'Cliente atualizado com sucesso');
+        res.json(result.rows[0]);
+
     } catch (error) {
-        console.error('❌ Erro ao editar cliente:', error.message);
+        logger.error({ err: error.message }, 'Erro ao editar cliente');
         res.status(500).json({ erro: 'Erro ao editar cliente' });
     }
 }
@@ -156,11 +163,11 @@ async function excluirCliente(req, res) {
             return res.status(404).json({ erro: 'Cliente não encontrado' });
         }
         
-        console.log('✅ Cliente excluído com sucesso, ID:', id);
+        logger.info({ id }, 'Cliente excluido com sucesso');
         res.json({ ok: true });
-        
+
     } catch (error) {
-        console.error('❌ Erro ao excluir cliente:', error.message);
+        logger.error({ err: error.message }, 'Erro ao excluir cliente');
         res.status(500).json({ erro: 'Erro ao excluir cliente' });
     }
 }

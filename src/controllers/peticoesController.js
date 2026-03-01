@@ -8,6 +8,7 @@
 const pool = require('../config/db');
 const Anthropic = require('@anthropic-ai/sdk');
 const PDFGeneratorService = require('../services/pdfGenerator.service');
+const logger = require('../utils/logger');
 
 const anthropic = new Anthropic({
     apiKey: process.env.CLAUDE_API_KEY
@@ -43,7 +44,7 @@ class PeticoesController {
                 });
             }
 
-            console.log('[PETIÇÕES] Gerando petição com IA...', { tipo, autor });
+            logger.info({ tipo, autor }, '[PETIÇÕES] Gerando petição com IA...');
 
             // ===== PROMPT PARA CLAUDE =====
             const prompt = PeticoesController.construirPromptIA(tipo, {
@@ -97,7 +98,7 @@ class PeticoesController {
             const result = await pool.query(query, values);
             const peticao = result.rows[0];
 
-            console.log('[PETIÇÕES] Petição gerada com sucesso! ID:', peticao.id);
+            logger.info({ id: peticao.id }, '[PETIÇÕES] Petição gerada com sucesso');
 
             return res.status(201).json({
                 ok: true,
@@ -114,7 +115,7 @@ class PeticoesController {
             });
 
         } catch (error) {
-            console.error('[PETIÇÕES] Erro ao gerar petição:', error);
+            logger.error({ err: error.message }, '[PETIÇÕES] Erro ao gerar petição');
             
             if (error.status === 401) {
                 return res.status(500).json({
@@ -159,7 +160,7 @@ class PeticoesController {
 
             const peticao = result.rows[0];
 
-            console.log('[PETIÇÕES] Gerando PDF para petição:', id);
+            logger.info({ id }, '[PETIÇÕES] Gerando PDF para petição');
 
             // Gerar PDF
             const pdfResult = await PDFGeneratorService.gerarPeticaoPDF({
@@ -183,7 +184,7 @@ class PeticoesController {
                 [pdfResult.url, id]
             );
 
-            console.log('[PETIÇÕES] PDF gerado com sucesso:', pdfResult.filename);
+            logger.info({ filename: pdfResult.filename }, '[PETIÇÕES] PDF gerado com sucesso');
 
             return res.json({
                 ok: true,
@@ -194,7 +195,7 @@ class PeticoesController {
             });
 
         } catch (error) {
-            console.error('[PETIÇÕES] Erro ao gerar PDF:', error);
+            logger.error({ err: error.message }, '[PETIÇÕES] Erro ao gerar PDF');
             return res.status(500).json({
                 ok: false,
                 erro: 'Erro ao gerar PDF',
@@ -245,7 +246,7 @@ class PeticoesController {
             });
 
         } catch (error) {
-            console.error('[PETIÇÕES] Erro ao listar:', error);
+            logger.error({ err: error.message }, '[PETIÇÕES] Erro ao listar');
             return res.status(500).json({
                 ok: false,
                 erro: 'Erro ao listar petições'
@@ -275,7 +276,7 @@ class PeticoesController {
             });
 
         } catch (error) {
-            console.error('[PETIÇÕES] Erro ao editar:', error);
+            logger.error({ err: error.message }, '[PETIÇÕES] Erro ao editar');
             return res.status(500).json({
                 ok: false,
                 erro: 'Erro ao editar petição'
@@ -322,7 +323,7 @@ class PeticoesController {
             });
 
         } catch (error) {
-            console.error('[PETIÇÕES] Erro ao deletar:', error);
+            logger.error({ err: error.message }, '[PETIÇÕES] Erro ao deletar');
             return res.status(500).json({
                 ok: false,
                 erro: 'Erro ao deletar petição'

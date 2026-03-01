@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
 const { registrarAudit, dadosReq } = require('../utils/auditLog');
+const logger = require('../utils/logger');
 
 /* ======================================================
    LGPD - Exportar dados pessoais (Direito de Portabilidade)
@@ -83,7 +84,7 @@ router.get('/meus-dados', authMiddleware, async (req, res) => {
         });
 
     } catch (err) {
-        console.error('LGPD - Erro na exportação:', err.message);
+        logger.error({ err: err.message }, 'LGPD - Erro na exportação');
         res.status(500).json({ erro: 'Erro ao exportar dados' });
     }
 });
@@ -173,7 +174,7 @@ router.delete('/minha-conta', authMiddleware, async (req, res) => {
 
         await client.query('COMMIT');
 
-        console.log(`LGPD: Conta excluída - Escritório ${escritorioId}`);
+        logger.info({ escritorioId }, 'LGPD: Conta excluída');
 
         res.json({
             ok: true,
@@ -182,7 +183,7 @@ router.delete('/minha-conta', authMiddleware, async (req, res) => {
 
     } catch (err) {
         await client.query('ROLLBACK');
-        console.error('LGPD - Erro na exclusão:', err.message);
+        logger.error({ err: err.message }, 'LGPD - Erro na exclusão');
         res.status(500).json({ erro: 'Erro ao processar exclusão' });
     } finally {
         client.release();
@@ -224,7 +225,7 @@ router.post('/consentimento', authMiddleware, async (req, res) => {
         res.json({ ok: true, mensagem: 'Consentimento registrado' });
 
     } catch (err) {
-        console.error('LGPD - Erro no consentimento:', err.message);
+        logger.error({ err: err.message }, 'LGPD - Erro no consentimento');
         res.status(500).json({ erro: 'Erro ao registrar consentimento' });
     }
 });

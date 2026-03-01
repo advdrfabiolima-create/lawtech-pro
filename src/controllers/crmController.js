@@ -1,5 +1,6 @@
 const axios = require('axios');
 const pool = require('../config/db');
+const logger = require('../utils/logger');
 
 /**
  * 1. OBTER MÉTRICAS DO FUNIL
@@ -77,14 +78,14 @@ async function obterMetricasFunil(req, res) {
                 statusRaw.includes('GANHO')
             ) {
                 stats.ganho += count;
-                console.log(`Mapeado como GANHO: "${statusRaw}" → ${count}`);
+                logger.info({ statusRaw, count }, 'Mapeado como GANHO');
             }
         });
 
-        console.log(`Métricas reais retornadas para escritório ${escritorioId}:`, stats);
+        logger.info({ escritorioId, stats }, 'Metricas CRM retornadas');
         res.json(stats);
     } catch (error) {
-        console.error('Erro CRM Metricas:', error.message);
+        logger.error({ err: error.message }, 'Erro CRM Metricas');
         res.status(500).json({ erro: 'Erro ao carregar métricas do pipeline' });
     }
 }
@@ -98,7 +99,7 @@ async function listarLeads(req, res) {
         );
         res.json(result.rows);
     } catch (error) {
-        console.error('Erro ao listar leads:', error.message);
+        logger.error({ err: error.message }, 'Erro ao listar leads');
         res.status(500).json({ erro: 'Erro ao buscar lista de leads' });
     }
 }
@@ -129,13 +130,13 @@ async function criarLeadPublico(req, res) {
                     `
                 }, { headers: { 'api-key': process.env.BREVO_API_KEY } });
             } catch (mailErr) {
-                console.warn("E-mail de alerta falhou:", mailErr.message);
+                logger.warn({ err: mailErr.message }, 'E-mail de alerta falhou');
             }
         }
 
         res.status(201).json({ ok: true, mensagem: 'Lead captado!' });
     } catch (error) {
-        console.error('Erro ao criar lead público:', error.message);
+        logger.error({ err: error.message }, 'Erro ao criar lead publico');
         res.status(500).json({ erro: 'Falha ao processar lead' });
     }
 }
@@ -165,7 +166,7 @@ async function atualizarStatusLead(req, res) {
 
         res.json({ ok: true, status: statusFinal });
     } catch (err) {
-        console.error('Erro ao atualizar status:', err.message);
+        logger.error({ err: err.message }, 'Erro ao atualizar status do lead');
         res.status(500).json({ erro: 'Erro ao mover lead' });
     }
 }
@@ -177,10 +178,10 @@ async function atualizarStatusLead(req, res) {
 async function completarDadosLead(req, res) {
     const { leadId, nome, documento, email, nascimento, cep, endereco, cidade, uf, tipoPessoa } = req.body;
 
-    console.log('📝 [completarDadosLead] Dados recebidos:', { leadId, nome, documento, tipoPessoa });
+    logger.info({ leadId, nome, tipoPessoa }, '[completarDadosLead] Dados recebidos');
 
     if (!leadId || !nome || !documento) {
-        console.error('❌ Validação falhou: dados incompletos');
+        logger.warn({ leadId, nome, documento }, '[completarDadosLead] Dados incompletos');
         return res.status(400).json({ 
             ok: false, 
             mensagem: 'Dados obrigatórios não fornecidos (leadId, nome, documento).' 
@@ -195,7 +196,7 @@ async function completarDadosLead(req, res) {
         );
 
         if (leadResult.rowCount === 0) {
-            console.error('❌ Lead não encontrado:', leadId);
+            logger.error({ leadId }, '[completarDadosLead] Lead nao encontrado');
             return res.status(404).json({ 
                 ok: false, 
                 mensagem: 'Lead não localizado no sistema.' 
@@ -203,7 +204,7 @@ async function completarDadosLead(req, res) {
         }
 
         const { escritorio_id, telefone } = leadResult.rows[0];
-        console.log('✅ Lead encontrado. Escritório:', escritorio_id);
+        logger.info({ leadId, escritorio_id }, '[completarDadosLead] Lead encontrado');
 
         // 2. Cria registro na tabela clientes
         const enderecoCompleto = `${endereco}, ${cidade}/${uf}`;
@@ -235,7 +236,7 @@ async function completarDadosLead(req, res) {
         ]);
 
         const clienteId = clienteResult.rows[0].id;
-        console.log('✅ Cliente criado com ID:', clienteId);
+        logger.info({ clienteId }, '[completarDadosLead] Cliente criado');
 
         // 3. Atualiza o lead para status "Ganho"
         const resumo = `Cliente cadastrado. Doc: ${documento} | Endereço: ${enderecoCompleto}`;
@@ -247,7 +248,7 @@ async function completarDadosLead(req, res) {
             [resumo, leadId]
         );
 
-        console.log('✅ Lead atualizado para status Ganho');
+        logger.info({ leadId }, '[completarDadosLead] Lead atualizado para Ganho');
 
         res.status(201).json({ 
             ok: true, 
@@ -256,7 +257,7 @@ async function completarDadosLead(req, res) {
         });
 
     } catch (err) {
-        console.error('❌ ERRO CRÍTICO ao completar dados:', err);
+        logger.error({ err: err.message }, '[completarDadosLead] Erro critico');
         
         // Erros específicos do PostgreSQL
         if (err.code === '23505') { // Violação de constraint UNIQUE

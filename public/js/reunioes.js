@@ -45,10 +45,10 @@
 
     async function carregarClientes() {
         try {
-            const res = await fetch('/api/clientes', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
+            const res = await fetch('/api/clientes?limit=200', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
             const data = await res.json();
             const sel = document.getElementById('reuniaoClienteId');
-            const lista = Array.isArray(data) ? data : (data.clientes || []);
+            const lista = Array.isArray(data) ? data : (data.data || data.clientes || []);
             lista.forEach(c => {
                 const opt = document.createElement('option');
                 opt.value = c.id;
@@ -60,9 +60,9 @@
 
     async function carregarReunioes() {
         try {
-            const res = await fetch('/api/reunioes', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
+            const res = await fetch('/api/reunioes?limit=200', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
             const data = await res.json();
-            reunioes = data.reunioes || [];
+            reunioes = data.data || data.reunioes || [];
             renderReunioes();
         } catch (e) {
             document.getElementById('listaReunioes').innerHTML =

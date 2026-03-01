@@ -1,21 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path');
-const fs = require('fs');
 const crypto = require('crypto');
 const axios = require('axios');
 const pool = require('../config/db');
 const clicksignService = require('../services/clicksignService');
 const { decrypt } = require('../utils/crypto');
-
-const uploadDir = path.join(__dirname, '..', 'uploads', 'documentos');
+const storage = require('../utils/storage');
+const logger = require('../utils/logger');
 
 // ─── Helper: enviar e-mail de assinatura via Brevo ───────────────────────────
 async function enviarEmailAssinatura({ para, nomeSignatario, nomeDocumento, signingUrl, mensagemAdvogado }) {
     const apiKey = process.env.BREVO_API_KEY;
     const sender = process.env.BREVO_SENDER || 'contato@lawtechpro.com.br';
     if (!apiKey || !signingUrl) {
-        console.warn('[ASSINATURA] Brevo não configurado ou URL de assinatura ausente — e-mail não enviado.');
+        logger.warn('[ASSINATURA] Brevo não configurado ou URL de assinatura ausente — e-mail não enviado.');
         return false;
     }
     try {
@@ -62,10 +60,10 @@ async function enviarEmailAssinatura({ para, nomeSignatario, nomeDocumento, sign
                 </div>
             </div>`
         }, { headers: { 'api-key': apiKey } });
-        console.log(`📧 [ASSINATURA] E-mail de assinatura enviado para ${para}`);
+        logger.info({ para }, '[ASSINATURA] E-mail de assinatura enviado');
         return true;
     } catch (err) {
-        console.warn('[ASSINATURA] Falha ao enviar e-mail via Brevo:', err.response?.data || err.message);
+        logger.warn({ err: err.response?.data || err.message }, '[ASSINATURA] Falha ao enviar e-mail via Brevo');
         return false;
     }
 }
@@ -174,15 +172,15 @@ router.post('/documentos/:id/assinar', async (req, res) => {
             return res.status(400).json({ erro: 'É necessário pelo menos um signatário.' });
         }
 
-        // 6. Verificar arquivo físico
-        const filePath = path.join(uploadDir, doc.arquivo_nome);
-        if (!fs.existsSync(filePath)) {
+        // 6. Obter buffer do arquivo (R2 ou disco)
+        const fileBuffer = await storage.getBuffer(`documentos/${doc.arquivo_nome}`);
+        if (!fileBuffer) {
             return res.status(400).json({ erro: 'Arquivo físico não encontrado no servidor' });
         }
 
         // 7. Upload do documento no ClickSign (uma vez, compartilhado por todos os signatários)
         const documentKey = await clicksignService.uploadDocumento(
-            filePath,
+            fileBuffer,
             doc.arquivo_original,
             deadline || null,
             doc.mimetype,
@@ -225,11 +223,11 @@ router.post('/documentos/:id/assinar', async (req, res) => {
             [escritorioId]
         );
 
-        console.log(`[ASSINATURA] Documento #${docId} enviado para assinatura — ${signatariosLista.length} signatário(s)`);
+        logger.info({ docId, totalSignatarios: signatariosLista.length }, '[ASSINATURA] Documento enviado para assinatura');
         res.json({ ok: true, status: 'enviado', clicksign_document_key: documentKey, link_assinatura: primeiroSigningUrl, total_signatarios: signatariosLista.length });
 
     } catch (err) {
-        console.error('[ASSINATURA] Erro ao enviar para assinatura:', err.response?.data || err.message);
+        logger.error({ err: err.response?.data || err.message }, '[ASSINATURA] Erro ao enviar para assinatura');
         res.status(500).json({ erro: 'Erro ao enviar documento para assinatura: ' + (err.response?.data?.error || err.message) });
     }
 });
@@ -256,7 +254,7 @@ router.get('/documentos/:id/assinatura', async (req, res) => {
 
         res.json({ ok: true, assinatura: result.rows[0] });
     } catch (err) {
-        console.error('[ASSINATURA] Erro ao buscar assinatura:', err.message);
+        logger.error({ err: err.message }, '[ASSINATURA] Erro ao buscar assinatura');
         res.status(500).json({ erro: 'Erro ao buscar assinatura' });
     }
 });
@@ -283,7 +281,7 @@ router.post('/clicksign', async (req, res) => {
 
         if (!documentKey) return res.sendStatus(200);
 
-        console.log(`[WEBHOOK/ClickSign] Evento "${eventName}" — doc ${documentKey} — status ClickSign: "${csStatus}"`);
+        logger.info({ eventName, documentKey, csStatus }, '[WEBHOOK/ClickSign] Evento recebido');
 
         // 2. Buscar o registro de assinatura na base
         const assRes = await pool.query(
@@ -292,7 +290,7 @@ router.post('/clicksign', async (req, res) => {
             [documentKey]
         );
         if (assRes.rows.length === 0) {
-            console.warn(`[WEBHOOK/ClickSign] Documento ${documentKey} não encontrado na base — ignorando`);
+            logger.warn({ documentKey }, '[WEBHOOK/ClickSign] Documento nao encontrado na base — ignorando');
             return res.sendStatus(200);
         }
         const ass = assRes.rows[0];
@@ -326,7 +324,7 @@ router.post('/clicksign', async (req, res) => {
                     statusFinal === 'concluido' ? new Date() : ass.concluido_em
                 ]);
 
-                console.log(`[WEBHOOK/ClickSign] Signer ${signerData.key} (${signerData.email || '?'}) assinou — doc ${documentKey} → ${statusFinal}`);
+                logger.info({ signerKey: signerData.key, email: signerData.email, documentKey, statusFinal }, '[WEBHOOK/ClickSign] Signer assinou');
 
                 // Notificação interna quando a assinatura for concluída via evento sign
                 if (statusFinal === 'concluido') {
@@ -344,7 +342,7 @@ router.post('/clicksign', async (req, res) => {
                             `O documento "${nomeDoc}" foi assinado por todos os signatários.`
                         ]);
                     } catch (notifErr) {
-                        console.warn('[WEBHOOK/ClickSign] Falha ao criar notificação (sign+closed):', notifErr.message);
+                        logger.warn({ err: notifErr.message }, '[WEBHOOK/ClickSign] Falha ao criar notificacao (sign+closed)');
                     }
                 }
             }
@@ -359,7 +357,7 @@ router.post('/clicksign', async (req, res) => {
                     atualizado_em = NOW()
                 WHERE id = $1 AND status NOT IN ('concluido', 'cancelado')
             `, [ass.id]);
-            console.log(`[WEBHOOK/ClickSign] Prazo expirado — doc ${documentKey} cancelado`);
+            logger.info({ documentKey }, '[WEBHOOK/ClickSign] Prazo expirado — doc cancelado');
             return res.sendStatus(200);
         }
 
@@ -379,7 +377,7 @@ router.post('/clicksign', async (req, res) => {
             WHERE id = $2
         `, [novoStatus, ass.id, novoStatus === 'concluido' ? new Date() : ass.concluido_em]);
 
-        console.log(`[WEBHOOK/ClickSign] Documento ${documentKey}: ${ass.status} → ${novoStatus}`);
+        logger.info({ documentKey, statusAnterior: ass.status, novoStatus }, '[WEBHOOK/ClickSign] Status atualizado');
 
         // 6. Notificação interna ao escritório quando assinatura for concluída
         if (novoStatus === 'concluido') {
@@ -399,17 +397,17 @@ router.post('/clicksign', async (req, res) => {
                     '✅ Documento assinado com sucesso',
                     `O documento "${nomeDoc}" foi assinado por todos os signatários.`
                 ]);
-                console.log(`[WEBHOOK/ClickSign] Notificação criada para assinatura concluída — doc #${ass.documento_id}`);
+                logger.info({ documentoId: ass.documento_id }, '[WEBHOOK/ClickSign] Notificacao criada para assinatura concluida');
             } catch (notifErr) {
                 // Não bloqueia a resposta ao ClickSign
-                console.warn('[WEBHOOK/ClickSign] Falha ao criar notificação:', notifErr.message);
+                logger.warn({ err: notifErr.message }, '[WEBHOOK/ClickSign] Falha ao criar notificacao');
             }
         }
 
         res.sendStatus(200);
 
     } catch (err) {
-        console.error('[WEBHOOK/ClickSign] Erro:', err.message);
+        logger.error({ err: err.message }, '[WEBHOOK/ClickSign] Erro');
         res.sendStatus(200); // Sempre 200 para o ClickSign não retentar
     }
 });
@@ -448,12 +446,12 @@ router.post('/assinaturas/:id/verificar', async (req, res) => {
                     concluido_em  = $3
                 WHERE id = $2
             `, [novoStatus, assId, novoStatus === 'concluido' ? new Date() : ass.concluido_em]);
-            console.log(`[ASSINATURA] Verificação manual: #${assId} ${ass.status} → ${novoStatus}`);
+            logger.info({ assId, statusAnterior: ass.status, novoStatus }, '[ASSINATURA] Verificacao manual de status');
         }
 
         res.json({ ok: true, status: novoStatus, atualizado: novoStatus !== ass.status });
     } catch (err) {
-        console.error('[ASSINATURA] Erro ao verificar status:', err.message);
+        logger.error({ err: err.message }, '[ASSINATURA] Erro ao verificar status');
         res.status(500).json({ erro: 'Erro ao verificar status no ClickSign' });
     }
 });
@@ -507,7 +505,7 @@ router.get('/assinaturas/:id/download', async (req, res) => {
         const bodyText = rawData
             ? (Buffer.isBuffer(rawData) ? rawData.toString('utf8').slice(0, 300) : JSON.stringify(rawData).slice(0, 300))
             : err.message;
-        console.error(`[ASSINATURA] Erro ao baixar documento assinado (HTTP ${httpStatus || 'n/a'}):`, bodyText);
+        logger.error({ httpStatus, bodyText }, '[ASSINATURA] Erro ao baixar documento assinado');
         res.status(500).json({ erro: err.message || 'Erro ao baixar documento assinado do ClickSign' });
     }
 });
@@ -538,7 +536,7 @@ router.delete('/assinaturas/:id', async (req, res) => {
                 await clicksignService.cancelarDocumento(ass.clicksign_document_key);
             } catch (csErr) {
                 // Não bloqueia a operação — pode já estar cancelado no ClickSign
-                console.warn('[ASSINATURA] Aviso ao cancelar no ClickSign:', csErr.response?.data || csErr.message);
+                logger.warn({ err: csErr.response?.data || csErr.message }, '[ASSINATURA] Aviso ao cancelar no ClickSign');
             }
         }
 
@@ -549,7 +547,7 @@ router.delete('/assinaturas/:id', async (req, res) => {
 
         res.json({ ok: true });
     } catch (err) {
-        console.error('[ASSINATURA] Erro ao cancelar assinatura:', err.message);
+        logger.error({ err: err.message }, '[ASSINATURA] Erro ao cancelar assinatura');
         res.status(500).json({ erro: 'Erro ao cancelar assinatura' });
     }
 });

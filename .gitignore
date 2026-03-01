@@ -2,3 +2,17 @@
 tests/
 node_modules/
 backup_lawtech.sql
+# Uploads de usuários (PDFs, imagens)
+src/uploads/
+
+# Cobertura de testes
+coverage/
+
+# Banco de dados local
+database.json
+
+# Migrations geradas localmente
+migrations/
+
+# Logs
+*.log

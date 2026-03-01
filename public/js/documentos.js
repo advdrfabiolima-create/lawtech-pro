@@ -292,9 +292,10 @@ async function baixarDoc(id, nomeOriginal) {
 // ─── Carregar processos para o select ────────────────────────────────────────
 async function carregarProcessos() {
     try {
-        const res = await fetch('/api/processos', { headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch('/api/processos?limit=200', { headers: { Authorization: `Bearer ${token}` } });
         if (!res.ok) return;
-        const lista = await res.json();
+        const respDoc = await res.json();
+        const lista = respDoc.data || respDoc;
         const sel = document.getElementById('uploadProcesso');
         lista.forEach(p => {
             const opt = document.createElement('option');

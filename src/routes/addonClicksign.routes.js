@@ -4,6 +4,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const pool = require('../config/db');
 const axios = require('axios');
 const { encrypt, decrypt } = require('../utils/crypto');
+const logger = require('../utils/logger');
 
 const PLANOS_GRATIS = ['basico', 'intermediario', 'avancado', 'premium'];
 
@@ -45,7 +46,7 @@ router.get('/addon/clicksign/status', async (req, res) => {
             disponivel: ativo && dentroQuota && apiKeyConfigurada
         });
     } catch (err) {
-        console.error('[ADDON/ClickSign] Erro ao buscar status:', err.message);
+        logger.error({ err: err.message }, '[ADDON/ClickSign] Erro ao buscar status');
         res.status(500).json({ erro: 'Erro ao buscar status do add-on' });
     }
 });
@@ -71,7 +72,7 @@ router.patch('/addon/clicksign/chave', async (req, res) => {
             'UPDATE escritorios SET clicksign_api_key = $1 WHERE id = $2',
             [chaveCriptografada, escritorioId]
         );
-        console.log(`[ADDON/ClickSign] Chave API ${chave ? 'configurada (encriptada)' : 'removida'} para escritório ${escritorioId}`);
+        logger.info({ escritorioId, hasKey: !!chave }, '[ADDON/ClickSign] Chave API atualizada');
 
         // ── Auto-registrar webhook no ClickSign ao salvar nova chave ──
         // Usa a chave original (não encriptada) para chamada de API
@@ -91,17 +92,16 @@ router.patch('/addon/clicksign/chave', async (req, res) => {
                     { headers: { 'Content-Type': 'application/json' }, timeout: 10000 }
                 );
                 webhookRegistrado = true;
-                console.log(`[ADDON/ClickSign] Webhook registrado automaticamente para escritório ${escritorioId}: ${webhookUrl}`);
+                logger.info({ escritorioId, webhookUrl }, '[ADDON/ClickSign] Webhook registrado automaticamente');
             } catch (whErr) {
                 // Não crítico: chave salva com sucesso mesmo se webhook falhar
-                console.warn('[ADDON/ClickSign] Não foi possível registrar webhook automaticamente:',
-                    whErr.response?.data || whErr.message);
+                logger.warn({ err: whErr.message }, '[ADDON/ClickSign] Falha ao registrar webhook automaticamente');
             }
         }
 
         res.json({ ok: true, api_key_configurada: !!chave, webhook_registrado: webhookRegistrado });
     } catch (err) {
-        console.error('[ADDON/ClickSign] Erro ao salvar chave:', err.message);
+        logger.error({ err: err.message }, '[ADDON/ClickSign] Erro ao salvar chave');
         res.status(500).json({ erro: 'Erro ao salvar chave ClickSign' });
     }
 });
@@ -149,7 +149,7 @@ router.post('/addon/clicksign/checkout', async (req, res) => {
 
         res.json({ url: session.url });
     } catch (err) {
-        console.error('[ADDON/ClickSign] Erro ao criar checkout session:', err.message);
+        logger.error({ err: err.message }, '[ADDON/ClickSign] Erro ao criar checkout session');
         res.status(500).json({ erro: 'Erro ao criar sessão de pagamento: ' + err.message });
     }
 });
@@ -173,9 +173,9 @@ router.delete('/addon/clicksign/cancelar', async (req, res) => {
         if (subId) {
             try {
                 await stripe.subscriptions.cancel(subId);
-                console.log(`[ADDON/ClickSign] Subscription ${subId} cancelada no Stripe`);
+                logger.info({ subId, escritorioId }, '[ADDON/ClickSign] Subscription cancelada no Stripe');
             } catch (stripeErr) {
-                console.warn('[ADDON/ClickSign] Aviso ao cancelar no Stripe:', stripeErr.message);
+                logger.warn({ err: stripeErr.message }, '[ADDON/ClickSign] Aviso ao cancelar no Stripe');
             }
         }
 
@@ -186,7 +186,7 @@ router.delete('/addon/clicksign/cancelar', async (req, res) => {
 
         res.json({ ok: true });
     } catch (err) {
-        console.error('[ADDON/ClickSign] Erro ao cancelar add-on:', err.message);
+        logger.error({ err: err.message }, '[ADDON/ClickSign] Erro ao cancelar add-on');
         res.status(500).json({ erro: 'Erro ao cancelar add-on' });
     }
 });

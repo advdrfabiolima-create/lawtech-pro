@@ -3,6 +3,7 @@ const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const pool = require('../config/db');
 const { registrarAudit } = require('../utils/auditLog');
+const logger = require('../utils/logger');
 const axios = require('axios');
 
 /* ✅ CORREÇÃO 3: Webhook Stripe Completo */
@@ -16,11 +17,11 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
     try {
         event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
     } catch (err) {
-        console.error('⚠️ Webhook signature verification failed:', err.message);
+        logger.error({ err: err.message }, 'Webhook signature verification failed');
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    console.log('✅ Webhook recebido:', event.type);
+    logger.info({ eventType: event.type }, 'Webhook Stripe recebido');
 
     try {
         switch (event.type) {
@@ -29,7 +30,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                 const paymentIntent = event.data.object;
                 const escritorioId = paymentIntent.metadata?.escritorio_id;
 
-                console.log('✅ Pagamento aprovado:', paymentIntent.id);
+                logger.info({ paymentIntentId: paymentIntent.id }, 'Pagamento Stripe aprovado');
 
                 if (escritorioId) {
                     // Verificação de idempotência
@@ -38,7 +39,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                         [paymentIntent.id]
                     );
                     if (jaExiste.rows.length > 0) {
-                        console.log(`ℹ️ Transação já registrada: ${paymentIntent.id}`);
+                        logger.info({ paymentIntentId: paymentIntent.id }, 'Transacao ja registrada');
                         break;
                     }
 
@@ -61,7 +62,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                         `, [escritorioId, paymentIntent.id, paymentIntent.amount]);
 
                         await client.query('COMMIT');
-                        console.log(`✅ Escritório ${escritorioId} atualizado para PAGO`);
+                        logger.info({ escritorioId }, 'Escritorio atualizado para PAGO');
                         registrarAudit({ escritorio_id: parseInt(escritorioId), acao: 'PAGAMENTO_APROVADO', descricao: `Pagamento Stripe aprovado: ${paymentIntent.id}`, metadata: { gateway: 'stripe', valor: paymentIntent.amount, gateway_id: paymentIntent.id } });
 
                         // 📧 Notificar admin sobre pagamento aprovado
@@ -108,14 +109,14 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                                         </div>
                                     </div>`
                                 }, { headers: { 'api-key': process.env.BREVO_API_KEY } });
-                                console.log(`📧 [ADMIN] Notificação de pagamento aprovado enviada`);
+                                logger.info('[ADMIN] Notificacao de pagamento aprovado enviada');
                             } catch (adminMailErr) {
-                                console.warn(`⚠️ [ADMIN] Falha ao notificar pagamento: ${adminMailErr.message}`);
+                                logger.warn({ err: adminMailErr.message }, '[ADMIN] Falha ao notificar pagamento');
                             }
                         }
                     } catch (txErr) {
                         await client.query('ROLLBACK');
-                        console.error('❌ Erro na transação webhook:', txErr.message);
+                        logger.error({ err: txErr.message }, 'Erro na transacao webhook');
                     } finally {
                         client.release();
                     }
@@ -128,7 +129,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                 const paymentIntent = event.data.object;
                 const escritorioId = paymentIntent.metadata?.escritorio_id;
 
-                console.log('❌ Pagamento recusado:', paymentIntent.id);
+                logger.info({ paymentIntentId: paymentIntent.id }, 'Pagamento Stripe recusado');
 
                 if (escritorioId) {
                     await pool.query(`
@@ -145,7 +146,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                         VALUES ($1, $2, 'stripe', $3, 'recusada', $4, 'Tentativa de pagamento', NOW())
                     `, [escritorioId, paymentIntent.id, paymentIntent.amount, erro]);
 
-                    console.log(`❌ Escritório ${escritorioId} marcado como INADIMPLENTE`);
+                    logger.info({ escritorioId }, 'Escritorio marcado como INADIMPLENTE');
                     registrarAudit({ escritorio_id: parseInt(escritorioId), acao: 'PAGAMENTO_RECUSADO', descricao: `Pagamento Stripe recusado: ${paymentIntent.id}`, metadata: { gateway: 'stripe', erro: paymentIntent.last_payment_error?.message } });
                 }
                 break;
@@ -156,7 +157,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                 const charge = event.data.object;
                 const paymentIntentId = charge.payment_intent;
 
-                console.log('🔄 Estorno processado:', charge.id);
+                logger.info({ chargeId: charge.id }, 'Estorno Stripe processado');
 
                 await pool.query(`
                     INSERT INTO transacoes 
@@ -182,7 +183,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                 const dispute = event.data.object;
                 const chargeId = dispute.charge;
 
-                console.log('🚨 Chargeback detectado:', chargeId);
+                logger.info({ chargeId }, 'Chargeback Stripe detectado');
                 registrarAudit({ acao: 'CHARGEBACK', descricao: `Chargeback Stripe detectado: ${chargeId}`, metadata: { gateway: 'stripe', charge_id: chargeId } });
 
                 await pool.query(`
@@ -210,7 +211,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                             clicksign_addon_stripe_sub_id  = $2
                         WHERE id = $1
                     `, [escritorioId, session.subscription]);
-                    console.log(`✅ [ADDON/ClickSign] Add-on ativado para escritório ${escritorioId} — sub ${session.subscription}`);
+                    logger.info({ escritorioId, subscription: session.subscription }, '[ADDON/ClickSign] Add-on ativado');
                 }
                 break;
             }
@@ -228,7 +229,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                         RETURNING id
                     `, [subId]);
                     if (upd.rowCount > 0) {
-                        console.log(`✅ [ADDON/ClickSign] Contador zerado para escritório ${upd.rows[0].id} (renovação)`);
+                        logger.info({ escritorioId: upd.rows[0].id }, '[ADDON/ClickSign] Contador zerado (renovacao)');
                     }
                 }
                 break;
@@ -243,18 +244,18 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                         clicksign_addon_stripe_sub_id  = NULL
                     WHERE clicksign_addon_stripe_sub_id = $1
                 `, [subscription.id]);
-                console.log(`⛔ [ADDON/ClickSign] Add-on desativado — sub cancelada: ${subscription.id}`);
+                logger.info({ subscriptionId: subscription.id }, '[ADDON/ClickSign] Add-on desativado — sub cancelada');
                 break;
             }
 
             default:
-                console.log(`ℹ️ Evento não tratado: ${event.type}`);
+                logger.info({ eventType: event.type }, 'Evento Stripe nao tratado');
         }
 
         res.json({ received: true });
 
     } catch (err) {
-        console.error('❌ Erro ao processar webhook:', err.message);
+        logger.error({ err: err.message }, 'Erro ao processar webhook Stripe');
         res.status(500).json({ ok: false, erro: 'Webhook handler failed' });
     }
 });

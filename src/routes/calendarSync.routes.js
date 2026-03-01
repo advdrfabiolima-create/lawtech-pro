@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
+const logger = require('../utils/logger');
 
 // ── Helpers iCal ──────────────────────────────────────────────────────────────
 
@@ -225,7 +226,7 @@ router.get('/api/calendario/ical/status', authMiddleware, async (req, res) => {
 
         return res.json({ ok: true, token: row.ical_token, url });
     } catch (err) {
-        console.error('[iCal] Erro em GET /status:', err.message);
+        logger.error({ err: err.message }, '[iCal] Erro em GET /status');
         return res.status(500).json({ ok: false, erro: err.message });
     }
 });
@@ -250,7 +251,7 @@ router.post('/api/calendario/ical/regenerar', authMiddleware, roleMiddleware('ad
 
         return res.json({ ok: true, token: newToken, url });
     } catch (err) {
-        console.error('[iCal] Erro em POST /regenerar:', err.message);
+        logger.error({ err: err.message }, '[iCal] Erro em POST /regenerar');
         return res.status(500).json({ ok: false, erro: err.message });
     }
 });
@@ -331,7 +332,7 @@ router.get('/calendario/ical/:tokenFile', async (req, res) => {
         return res.send(ical);
 
     } catch (err) {
-        console.error('[iCal] Erro ao gerar feed:', err.message);
+        logger.error({ err: err.message }, '[iCal] Erro ao gerar feed');
         return res.status(500).send('Erro interno ao gerar calendário.');
     }
 });

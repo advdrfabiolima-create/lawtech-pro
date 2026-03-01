@@ -3,8 +3,7 @@
         console.log('🎯 AUDIENCIAS.HTML CARREGADO - VERSÃO 13/02/2026 11:30');
         console.log('✅ Função abrirModalRegistrarAta: ', typeof abrirModalRegistrarAta !== 'undefined' ? 'EXISTE' : 'NÃO EXISTE');
         
-        const token = localStorage.getItem('token');
-        if (!token) window.location.href = '/login';
+        if (!API.getToken()) window.location.href = '/login';
 
         // Toggle menu do usuário
         function toggleUserMenu() {
@@ -33,11 +32,10 @@
 
         // Badge de novo lead CRM — polling global em todas as páginas
         (function() {
-            const _tk = localStorage.getItem('token');
-            if (!_tk) return;
+            if (!API.getToken()) return;
             function _checkLeadBadge() {
-                fetch('/api/crm/metricas', { headers: { Authorization: 'Bearer ' + _tk } })
-                    .then(r => r.ok ? r.json() : null)
+                API.get('/api/crm/metricas')
+                    .then(r => r && r.ok ? r.json() : null)
                     .then(d => {
                         if (!d) return;
                         const atual = d.leads || 0;
@@ -54,7 +52,7 @@
         // Carregar informações do usuário
         async function carregarInfoUsuario() {
             try {
-                const res = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await API.get('/api/auth/me');
                 const data = await res.json();
                 
                 if (data.ok) {
@@ -80,7 +78,7 @@
         // Carregar plano
         async function carregarPlano() {
             try {
-                const res = await fetch('/api/plano-consumo', { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await API.get('/api/plano-consumo');
                 const data = await res.json();
                 document.getElementById('footerPlano').innerText = data.plano || 'free';
             } catch (err) { 
@@ -107,7 +105,7 @@
         // Carregar audiências
         async function carregarAudiencias() {
             try {
-                const res = await fetch('/api/audiencias', { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await API.get('/api/audiencias');
                 const dados = await res.json();
                 
                 const corpoFuturas = document.getElementById('listaAudiencias');
@@ -283,8 +281,9 @@
         // Carregar processos no select
         async function carregarProcessosModal() {
             try {
-                const res = await fetch('/api/processos', { headers: { 'Authorization': `Bearer ${token}` } });
-                const processos = await res.json();
+                const res = await API.get('/api/processos?limit=200');
+                const respAud = await res.json();
+                const processos = respAud.data || respAud;
                 
                 const select = document.getElementById('audProcesso');
                 select.innerHTML = '<option value="">SELECIONE UM PROCESSO</option>';
@@ -305,8 +304,9 @@
         // Carregar clientes no select
         async function carregarClientesModal() {
             try {
-                const res = await fetch('/api/clientes', { headers: { 'Authorization': `Bearer ${token}` } });
-                const clientes = await res.json();
+                const res = await API.get('/api/clientes?limit=200');
+                const respCli = await res.json();
+                const clientes = respCli.data || respCli;
                 
                 const select = document.getElementById('audCliente');
                 select.innerHTML = '<option value="">SELECIONE UM CLIENTE</option>';
@@ -379,14 +379,7 @@
             };
 
             try {
-                const res = await fetch('/api/audiencias', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` 
-                    },
-                    body: JSON.stringify(dados)
-                });
+                const res = await API.post('/api/audiencias', dados);
 
                 if (res.ok) {
                     alert("✅ AUDIÊNCIA CADASTRADA COM SUCESSO!");
@@ -471,14 +464,7 @@
 
             try {
                 // 1. Salvar ATA
-                const resAta = await fetch(`/api/audiencias/${audienciaAtaId}/ata`, {
-                    method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` 
-                    },
-                    body: JSON.stringify({ ata_audiencia: ataTexto })
-                });
+                const resAta = await API.put(`/api/audiencias/${audienciaAtaId}/ata`, { ata_audiencia: ataTexto });
 
                 if (!resAta.ok) {
                     const erro = await resAta.json();
@@ -488,12 +474,7 @@
 
                 // 2. Se estiver no modo REGISTRAR, marcar como realizada
                 if (modoRegistrarAta) {
-                    const resRealizada = await fetch(`/api/audiencias/${audienciaAtaId}/realizada`, {
-                        method: 'PUT',
-                        headers: { 
-                            'Authorization': `Bearer ${token}` 
-                        }
-                    });
+                    const resRealizada = await API.put(`/api/audiencias/${audienciaAtaId}/realizada`, {});
 
                     if (resRealizada.ok) {
                         alert("✅ ATA REGISTRADA E AUDIÊNCIA MARCADA COMO REALIZADA!");
@@ -520,10 +501,7 @@
             if (!confirm("DESEJA REALMENTE EXCLUIR ESTA AUDIÊNCIA?")) return;
             
             try {
-                const res = await fetch(`/api/audiencias/${id}`, { 
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await API.delete(`/api/audiencias/${id}`);
                 
                 if (res.ok) {
                     alert("✅ AUDIÊNCIA EXCLUÍDA!");
@@ -611,14 +589,7 @@
             const local = document.getElementById('localVirtualInput').value.trim();
 
             try {
-                const res = await fetch(`/api/audiencias/${audienciaLocalId}/local`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ local_virtual: local })
-                });
+                const res = await API.patch(`/api/audiencias/${audienciaLocalId}/local`, { local_virtual: local });
                 const d = await res.json();
                 if (!res.ok) { alert('Erro ao salvar: ' + (d.erro || d.error || 'Erro')); return; }
                 fecharModalEditarLocal();

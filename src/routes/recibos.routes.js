@@ -7,6 +7,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
 const PDFDocument = require('pdfkit');
+const logger = require('../utils/logger');
 
 // ============================================================
 // 📁 CONFIGURAÇÃO DE UPLOAD DE LOGOMARCA
@@ -55,7 +56,7 @@ router.post('/recibos/upload-logo',
     (req, res, next) => {
         upload.single('logo')(req, res, (err) => {
             if (err) {
-                console.error('Erro no upload:', err);
+                logger.error({ err: err.message }, 'Erro no upload de logo');
                 return res.status(400).json({ 
                     ok: false,
                     erro: err.message || 'Erro ao fazer upload do arquivo' 
@@ -85,7 +86,7 @@ router.post('/recibos/upload-logo',
                 [logoPath, logoBase64, escritorioId]
             );
 
-            console.log('✅ Logo salva com sucesso:', logoPath);
+            logger.info({ logoPath }, 'Logo salva com sucesso');
 
             res.json({
                 ok: true,
@@ -94,7 +95,7 @@ router.post('/recibos/upload-logo',
                 logoBase64
             });
         } catch (err) {
-            console.error('Erro ao salvar logo no banco:', err);
+            logger.error({ err: err.message }, 'Erro ao salvar logo no banco');
             res.status(500).json({ 
                 ok: false,
                 erro: 'Erro ao salvar logo no banco de dados' 
@@ -152,7 +153,7 @@ router.get('/recibos/logo',
                 logoBase64: row.logo_path_base64 || null
             });
         } catch (err) {
-            console.error('Erro ao buscar logo:', err);
+            logger.error({ err: err.message }, 'Erro ao buscar logo');
             res.status(500).json({ 
                 ok: false,
                 erro: 'Erro ao buscar logo' 
@@ -178,7 +179,7 @@ router.get('/recibos/assinatura', authMiddleware, async (req, res) => {
             assinaturaBase64: row.assinatura_base64 || null
         });
     } catch (err) {
-        console.error('Erro ao buscar assinatura:', err);
+        logger.error({ err: err.message }, 'Erro ao buscar assinatura');
         res.status(500).json({ ok: false, erro: 'Erro ao buscar assinatura' });
     }
 });
@@ -493,7 +494,7 @@ router.post('/recibos/gerar',
             });
 
         } catch (err) {
-            console.error('❌ Erro ao gerar recibo:', err);
+            logger.error({ err: err.message }, 'Erro ao gerar recibo');
             res.status(500).json({ erro: 'Erro ao gerar recibo' });
         }
     }
@@ -516,7 +517,7 @@ router.get('/recibos/historico',
 
             res.json(result.rows);
         } catch (err) {
-            console.error('Erro ao buscar histórico:', err);
+            logger.error({ err: err.message }, 'Erro ao buscar histórico de recibos');
             res.status(500).json({ erro: 'Erro ao buscar histórico' });
         }
     }

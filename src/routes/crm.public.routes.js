@@ -1,16 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const logger = require('../utils/logger');
 
-console.log('[CRM PUBLIC] Rotas públicas carregadas');
+logger.info('CRM public routes carregadas');
 
 router.post('/onboarding', async (req, res) => {
-    console.log('\n========================================');
-    console.log('📝 [ONBOARDING] INICIANDO PROCESSO...');
-    console.log('========================================');
-    
+    logger.info({ body: req.body }, 'Onboarding iniciando');
+
     try {
-        console.log('📦 Body recebido:', JSON.stringify(req.body, null, 2));
         
         const {
             leadId,
@@ -31,17 +29,14 @@ router.post('/onboarding', async (req, res) => {
 
         // ✅ Validação
         if (!leadId || !nome || !documento || !cidade || !uf || !telefone) {
-            console.error('❌ Dados obrigatórios ausentes');
+            logger.error('Onboarding: dados obrigatorios ausentes');
             return res.status(400).json({ 
                 ok: false, 
                 erro: 'Dados obrigatórios ausentes' 
             });
         }
 
-        console.log('✅ Validação OK');
-
         // 🔎 Buscar lead + escritorio_id
-        console.log('🔍 Buscando lead ID:', leadId);
         
         const leadResult = await pool.query(
             `SELECT id, escritorio_id FROM leads WHERE id = $1`,
@@ -49,7 +44,7 @@ router.post('/onboarding', async (req, res) => {
         );
 
         if (leadResult.rowCount === 0) {
-            console.error('❌ Lead não encontrado:', leadId);
+            logger.error({ leadId }, 'Onboarding: lead nao encontrado');
             return res.status(404).json({ 
                 ok: false, 
                 erro: 'Lead não encontrado' 
@@ -57,7 +52,7 @@ router.post('/onboarding', async (req, res) => {
         }
 
         const { escritorio_id } = leadResult.rows[0];
-        console.log('✅ Lead encontrado! Escritório:', escritorio_id);
+        logger.info({ leadId, escritorioId: escritorio_id }, 'Onboarding: lead encontrado');
 
         // 📝 Montar endereço completo
         const enderecoCompleto = [
@@ -70,7 +65,6 @@ router.post('/onboarding', async (req, res) => {
         ].filter(Boolean).join(', ');
 
         // 1️⃣ ATUALIZAR LEAD (apenas campos básicos que existem)
-        console.log('💾 Atualizando lead...');
         
         await pool.query(
             `UPDATE leads SET
@@ -89,10 +83,9 @@ router.post('/onboarding', async (req, res) => {
             ]
         );
 
-        console.log('✅ Lead atualizado!');
+        logger.info({ leadId }, 'Onboarding: lead atualizado');
 
         // 2️⃣ VERIFICAR SE CLIENTE JÁ EXISTE
-        console.log('🔍 Verificando se cliente existe...');
         
         let clienteExiste = await pool.query(
             `SELECT id FROM clientes 
@@ -103,7 +96,6 @@ router.post('/onboarding', async (req, res) => {
 
         // 3️⃣ CRIAR OU ATUALIZAR CLIENTE
         if (clienteExiste.rowCount === 0) {
-            console.log('📝 Criando novo cliente...');
             
             await pool.query(
                 `INSERT INTO clientes (
@@ -134,9 +126,8 @@ router.post('/onboarding', async (req, res) => {
                 ]
             );
 
-            console.log('✅ Cliente criado com sucesso!');
+            logger.info({ leadId }, 'Onboarding: cliente criado');
         } else {
-            console.log('📝 Atualizando cliente existente...');
             
             await pool.query(
                 `UPDATE clientes SET
@@ -166,26 +157,18 @@ router.post('/onboarding', async (req, res) => {
                 ]
             );
 
-            console.log('✅ Cliente atualizado com sucesso!');
+            logger.info({ leadId }, 'Onboarding: cliente atualizado');
         }
 
-        console.log('========================================');
-        console.log('✅ ONBOARDING CONCLUÍDO!');
-        console.log('========================================\n');
+        logger.info({ leadId }, 'Onboarding concluido com sucesso');
 
-        return res.json({ 
+        return res.json({
             ok: true,
-            mensagem: 'Dados salvos com sucesso!' 
+            mensagem: 'Dados salvos com sucesso!'
         });
 
     } catch (err) {
-        console.error('\n========================================');
-        console.error('❌ ERRO NO ONBOARDING');
-        console.error('========================================');
-        console.error('Mensagem:', err.message);
-        console.error('Código:', err.code);
-        console.error('Stack:', err.stack);
-        console.error('========================================\n');
+        logger.error({ err: err.message, stack: err.stack, code: err.code }, 'Erro no onboarding');
         
         return res.status(500).json({ 
             ok: false,

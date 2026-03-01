@@ -1,6 +1,5 @@
 
-const token = localStorage.getItem('token');
-if (!token) window.location.href = '/login.html';
+if (!API.getToken()) window.location.href = '/login.html';
 
 let publicacoes = [];
 let modalPubId = null;
@@ -125,7 +124,7 @@ async function copiarTexto(texto, btnEl) {
 // CARREGAR DADOS USUÁRIO
 async function carregarDadosUsuario() {
     try {
-        const res = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        const res = await API.get('/api/auth/me');
         const data = await res.json();
 
         if (data.ok && data.usuario) {
@@ -140,7 +139,7 @@ async function carregarDadosUsuario() {
             aplicarPermissoesRoleUI(window._userRole);
         }
 
-        const resPlano = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+        const resPlano = await API.get('/api/plano-consumo');
         const plano = await resPlano.json();
         document.getElementById('planNameFooter').innerText = plano.plano || 'free';
     } catch (e) {
@@ -215,11 +214,10 @@ function renderPartes(partes) {
 // CARREGAR PUBLICAÇÕES
 async function carregarPublicacoes() {
     try {
-        const res = await fetch('/api/publicacoes-pendentes', {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await API.get('/api/publicacoes-pendentes?limit=200');
 
-        publicacoes = await res.json();
+        const resp = await res.json();
+        publicacoes = resp.data || resp;
         renderizarTabela();
         atualizarMetricas();
     } catch (err) {
@@ -320,14 +318,7 @@ async function sincronizar() {
     document.getElementById('loading').classList.add('show');
 
     try {
-        const res = await fetch('/api/sincronizar', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ dataInicio: dataBusca, dataFim: dataBusca })
-        });
+        const res = await API.post('/api/sincronizar', { dataInicio: dataBusca, dataFim: dataBusca });
 
         const data = await res.json();
 
@@ -446,18 +437,11 @@ async function converterPrazo(id) {
     }
 
     try {
-        const res = await fetch('/api/converter-publicacao', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                id_publicacao: id,
-                tipo,
-                dias: parseInt(dias),
-                dataCalculada
-            })
+        const res = await API.post('/api/converter-publicacao', {
+            id_publicacao: id,
+            tipo,
+            dias: parseInt(dias),
+            dataCalculada
         });
 
         const data = await res.json();
@@ -482,14 +466,7 @@ async function excluir(id) {
     if (!confirm('Descartar esta publicação?')) return;
 
     try {
-        const res = await fetch(`/api/publicacoes/${id}/status`, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ status: 'descartada' })
-        });
+        const res = await API.patch(`/api/publicacoes/${id}/status`, { status: 'descartada' });
 
         const data = await res.json();
 

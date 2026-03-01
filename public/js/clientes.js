@@ -141,25 +141,27 @@
     try {
         // Carrega clientes e processos EM PARALELO
         const [resClientes, resProcessos] = await Promise.all([
-            fetch('/api/clientes', { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch('/api/processos', { headers: { 'Authorization': `Bearer ${token}` } })
+            fetch('/api/clientes?limit=200', { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch('/api/processos?limit=200', { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
-        
+
         if (resClientes.status === 401) {
             alert("SESSÃO EXPIRADA! REDIRECIONANDO...");
             localStorage.removeItem('token');
             window.location.href = '/login.html';
             return;
         }
-        
-        const clientes = await resClientes.json();
-        const todosProcessos = await resProcessos.json();
-        
+
+        const respClientes = await resClientes.json();
+        const respProcessos = await resProcessos.json();
+        const clientes = respClientes.data || respClientes;
+        const todosProcessos = respProcessos.data || respProcessos;
+
         clientesCache = clientes; // Armazena em cache
 
         // Total de clientes
-        document.getElementById('totalClientes').innerText = clientes.length;
-        
+        document.getElementById('totalClientes').innerText = respClientes.total ?? clientes.length;
+
         // Contar clientes com processos (RÁPIDO - sem loop de requisições)
         const clientesComProcessosSet = new Set(
             todosProcessos.map(p => p.cliente_id).filter(Boolean)
@@ -167,7 +169,7 @@
         document.getElementById('clientesAtivos').innerText = clientesComProcessosSet.size;
 
         // Total de processos
-        document.getElementById('processosVinculados').innerText = todosProcessos.length;
+        document.getElementById('processosVinculados').innerText = respProcessos.total ?? todosProcessos.length;
 
         renderizarClientes(clientes);
 
@@ -741,10 +743,11 @@
         // ============================================
         async function exportarCSV() {
             try {
-                const res = await fetch('/api/clientes', {
+                const res = await fetch('/api/clientes?limit=200', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const clientes = await res.json();
+                const rExport = await res.json();
+                const clientes = rExport.data || rExport;
 
                 if (!clientes || clientes.length === 0) {
                     alert('⚠️ Nenhum cliente para exportar');

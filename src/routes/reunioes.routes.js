@@ -2,22 +2,33 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const { criarSala } = require('../services/dailyService');
+const logger = require('../utils/logger');
+const { getPagination, buildPage } = require('../utils/paginate');
 
-// GET /api/reunioes — Lista reuniões do escritório
+// GET /api/reunioes — Lista reuniões do escritório (paginado)
 router.get('/reunioes', async (req, res) => {
     const escritorio_id = req.user.escritorio_id;
+    const { page, limit, offset } = getPagination(req.query);
     try {
-        const result = await pool.query(
-            `SELECT r.*, c.nome AS cliente_nome
-             FROM reunioes r
-             LEFT JOIN clientes c ON c.id = r.cliente_id
-             WHERE r.escritorio_id = $1
-             ORDER BY r.data_hora DESC`,
-            [escritorio_id]
-        );
-        res.json({ ok: true, reunioes: result.rows });
+        const [result, countResult] = await Promise.all([
+            pool.query(
+                `SELECT r.*, c.nome AS cliente_nome
+                 FROM reunioes r
+                 LEFT JOIN clientes c ON c.id = r.cliente_id
+                 WHERE r.escritorio_id = $1
+                 ORDER BY r.data_hora DESC
+                 LIMIT $2 OFFSET $3`,
+                [escritorio_id, limit, offset]
+            ),
+            pool.query(
+                'SELECT COUNT(*) AS total FROM reunioes WHERE escritorio_id = $1',
+                [escritorio_id]
+            )
+        ]);
+        const total = parseInt(countResult.rows[0].total);
+        res.json({ ok: true, ...buildPage(result.rows, total, page, limit) });
     } catch (err) {
-        console.error('[Reuniões] GET /reunioes erro:', err.message);
+        logger.error({ err: err.message }, '[Reuniões] GET /reunioes erro');
         res.status(500).json({ ok: false, erro: 'Erro interno.' });
     }
 });
@@ -43,7 +54,7 @@ router.post('/reunioes', async (req, res) => {
                 return res.status(404).json({ ok: false, erro: 'Cliente não encontrado.' });
             }
         } catch (err) {
-            console.error('[Reuniões] POST erro validação cliente:', err.message);
+            logger.error({ err: err.message }, '[Reuniões] POST validação cliente erro');
             return res.status(500).json({ ok: false, erro: 'Erro interno.' });
         }
     }
@@ -70,7 +81,7 @@ router.post('/reunioes', async (req, res) => {
 
         res.json({ ok: true, reuniao });
     } catch (err) {
-        console.error('[Reuniões] POST erro INSERT:', err.message);
+        logger.error({ err: err.message }, '[Reuniões] POST INSERT erro');
         res.status(500).json({ ok: false, erro: 'Erro interno ao salvar reunião.' });
     }
 });
@@ -103,7 +114,7 @@ router.get('/reunioes/:id/token', async (req, res) => {
 
         res.json({ ok: true, room_url: reuniao.daily_room_url, peer_host_id });
     } catch (err) {
-        console.error('[Reuniões] GET /reunioes/:id/token erro:', err.message);
+        logger.error({ err: err.message }, '[Reuniões] GET token erro');
         res.status(500).json({ ok: false, erro: 'Erro ao obter URL da sala.' });
     }
 });
@@ -133,7 +144,7 @@ router.patch('/reunioes/:id/status', async (req, res) => {
 
         res.json({ ok: true, reuniao: result.rows[0] });
     } catch (err) {
-        console.error('[Reuniões] PATCH /reunioes/:id/status erro:', err.message);
+        logger.error({ err: err.message }, '[Reuniões] PATCH status erro');
         res.status(500).json({ ok: false, erro: 'Erro interno.' });
     }
 });
@@ -160,7 +171,7 @@ router.delete('/reunioes/:id', async (req, res) => {
 
         res.json({ ok: true });
     } catch (err) {
-        console.error('[Reuniões] DELETE /reunioes/:id erro:', err.message);
+        logger.error({ err: err.message }, '[Reuniões] DELETE erro');
         res.status(500).json({ ok: false, erro: 'Erro interno.' });
     }
 });
@@ -185,7 +196,7 @@ router.patch('/reunioes/:id/anotacoes', async (req, res) => {
 
         res.json({ ok: true });
     } catch (err) {
-        console.error('[Reuniões] PATCH /reunioes/:id/anotacoes erro:', err.message);
+        logger.error({ err: err.message }, '[Reuniões] PATCH anotacoes erro');
         res.status(500).json({ ok: false, erro: 'Erro interno.' });
     }
 });
@@ -214,7 +225,7 @@ router.delete('/reunioes/:id/excluir', async (req, res) => {
 
         res.json({ ok: true });
     } catch (err) {
-        console.error('[Reuniões] DELETE /reunioes/:id/excluir erro:', err.message);
+        logger.error({ err: err.message }, '[Reuniões] DELETE excluir erro');
         res.status(500).json({ ok: false, erro: 'Erro interno.' });
     }
 });

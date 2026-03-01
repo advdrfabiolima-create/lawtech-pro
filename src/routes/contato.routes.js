@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { enviarEmail } = require('../services/emailService');
+const logger = require('../utils/logger');
 
 /**
  * POST /api/contato
@@ -64,11 +65,11 @@ router.post('/', async (req, res) => {
             html
         });
 
-        console.log(`📬 Formulário de contato recebido de ${email} (${motivoLabel})`);
+        logger.info({ email, motivoLabel }, 'Formulário de contato recebido');
 
         res.json({ ok: true, mensagem: 'Mensagem enviada com sucesso!' });
     } catch (err) {
-        console.error('❌ Erro ao enviar formulário de contato:', err);
+        logger.error({ err: err.message }, 'Erro ao enviar formulário de contato');
         res.status(500).json({ erro: 'Erro ao enviar mensagem. Tente novamente.' });
     }
 });

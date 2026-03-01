@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const planLimits = require('../config/planLimits.json');
+const logger = require('../utils/logger');
 
 /**
  * 🔒 MIDDLEWARE DE VERIFICAÇÃO DE PLANO
@@ -15,9 +16,9 @@ const planLimits = require('../config/planLimits.json');
 const checkFeature = (featureName) => {
     return async (req, res, next) => {
         try {
-            console.log('🔍 [MIDDLEWARE] checkFeature chamado para:', featureName);
+            logger.info({ featureName }, '[MIDDLEWARE] checkFeature chamado');
             const escritorioId = req.user.escritorio_id;
-            console.log('🔍 [MIDDLEWARE] escritorioId:', escritorioId);
+            logger.info({ escritorioId }, '[MIDDLEWARE] escritorioId');
             
 
             const result = await pool.query(
@@ -45,8 +46,7 @@ const checkFeature = (featureName) => {
             }
 
             const featureEnabled = planoConfig.funcionalidades[featureName];
-            console.log('🔍 [MIDDLEWARE] Plano:', planoSlug);
-            console.log('🔍 [MIDDLEWARE] Feature habilitada?:', featureEnabled);
+            logger.info({ planoSlug, featureEnabled }, '[MIDDLEWARE] Verificacao de feature');
 
             if (!featureEnabled) {
                 return res.status(402).json({
@@ -60,14 +60,13 @@ const checkFeature = (featureName) => {
 
             req.plan = planoConfig;
             req.planSlug = planoSlug;
-            console.log('✅ [MIDDLEWARE] Chamando next() - Feature liberada!');
-            console.log('🎯 [MIDDLEWARE] Próximo handler deve ser executado AGORA!');
+            logger.info({ featureName }, '[MIDDLEWARE] Feature liberada');
             next();
 
         } catch (err) {
-            console.error('Erro ao verificar funcionalidade:', err);
-            return res.status(500).json({ 
-                error: 'Erro ao verificar permissões de plano' 
+            logger.error({ err: err.message }, 'Erro ao verificar funcionalidade');
+            return res.status(500).json({
+                error: 'Erro ao verificar permissões de plano'
             });
         }
     };
@@ -136,7 +135,7 @@ const checkLimit = (resourceType) => {
             // Validação extra: garantir que tableName é um dos valores esperados
             const tabelasPermitidas = ['prazos', 'usuarios', 'processos'];
             if (!tabelasPermitidas.includes(tableName)) {
-                console.error(`[PLAN MIDDLEWARE] Tabela não permitida: ${tableName}`);
+                logger.error({ tableName }, '[PLAN MIDDLEWARE] Tabela nao permitida');
                 return res.status(500).json({ ok: false, erro: 'Erro interno na verificação de limites' });
             }
 
@@ -147,10 +146,10 @@ const checkLimit = (resourceType) => {
 
             currentCount = parseInt(countResult.rows[0].total);
 
-            console.log(`[PLAN MIDDLEWARE] ${resourceType}: ${currentCount}/${maxAllowed} (Plano: ${planoSlug})`);
+            logger.info({ resourceType, currentCount, maxAllowed, planoSlug }, '[PLAN MIDDLEWARE] Uso de recurso');
 
             if (currentCount >= maxAllowed) {
-                console.log(`[PLAN MIDDLEWARE] ❌ LIMITE ATINGIDO! ${currentCount} >= ${maxAllowed}`);
+                logger.warn({ resourceType, currentCount, maxAllowed }, '[PLAN MIDDLEWARE] Limite atingido');
                 return res.status(402).json({
                     error: 'Limite do plano atingido',
                     resource: resourceType,
@@ -171,11 +170,11 @@ const checkLimit = (resourceType) => {
                 remaining: maxAllowed - currentCount
             };
 
-            console.log(`[PLAN MIDDLEWARE] ✅ LIBERADO: ${currentCount}/${maxAllowed} - Restam ${maxAllowed - currentCount}`);
+            logger.info({ resourceType, currentCount, maxAllowed, remaining: maxAllowed - currentCount }, '[PLAN MIDDLEWARE] Recurso liberado');
             next();
 
         } catch (err) {
-            console.error('[PLAN MIDDLEWARE] Erro ao verificar limite:', err);
+            logger.error({ err: err.message }, '[PLAN MIDDLEWARE] Erro ao verificar limite');
             return res.status(500).json({
                 error: 'Erro ao verificar limite de recursos'
             });
@@ -246,7 +245,7 @@ const getPlanInfo = async (req, res, next) => {
         next();
 
     } catch (err) {
-        console.error('Erro ao obter informações do plano:', err);
+        logger.error({ err: err.message }, 'Erro ao obter informacoes do plano');
         return res.status(500).json({ 
             error: 'Erro ao carregar informações do plano' 
         });

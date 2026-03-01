@@ -71,9 +71,11 @@
         for (const item of map) {
             try {
                 console.log(`📡 [CARREGAR] Buscando: ${item.url}`);
-                const res = await fetch(item.url, { headers: { Authorization: `Bearer ${token}` } });
-                const prazos = await res.json();
-                
+                const urlPaginada = item.url + (item.url.includes('?') ? '&' : '?') + 'limit=200';
+                const res = await fetch(urlPaginada, { headers: { Authorization: `Bearer ${token}` } });
+                const respPrazos = await res.json();
+                const prazos = respPrazos.data || respPrazos;
+
                 console.log(`✅ [CARREGAR] Recebidos ${prazos.length} prazos de ${item.url}`);
                 console.log(`📦 [CARREGAR] Container: ${item.container}, Classe: ${item.classe}`);
                 
@@ -381,11 +383,12 @@
     async function carregarProcessosSelect() {
         const select = document.getElementById('processoId');
         try {
-            const res = await fetch('/api/processos', { headers: { Authorization: `Bearer ${token}` } });
-            const processos = await res.json();
+            const res = await fetch('/api/processos?limit=200', { headers: { Authorization: `Bearer ${token}` } });
+            const resp = await res.json();
+            const processos = resp.data || resp;
             select.innerHTML = '<option value="">Selecione o Processo</option>';
-            processos.forEach(p => { 
-                select.innerHTML += `<option value="${p.id}">${p.numero}</option>`; 
+            processos.forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.numero}</option>`;
             });
         } catch (err) {
             console.error('Erro ao carregar processos:', err);
@@ -395,11 +398,12 @@
     // Carregar clientes no select
     async function carregarClientesSelect() {
         try {
-            const res = await fetch('/api/clientes', {
+            const res = await fetch('/api/clientes?limit=200', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
-            const clientes = await res.json();
+
+            const rPC = await res.json();
+            const clientes = rPC.data || rPC;
             const select = document.getElementById('clienteId');
             
             select.innerHTML = '<option value="">Selecione um cliente (opcional)</option>';

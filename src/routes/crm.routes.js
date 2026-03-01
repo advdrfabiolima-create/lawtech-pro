@@ -4,8 +4,9 @@ const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
 const planMiddleware = require('../middlewares/planMiddleware');
 const crmEmailService = require('../services/crmEmailService');
+const logger = require('../utils/logger');
 
-console.log('[CRM] Arquivo CRM.ROUTES.JS carregado - Versao 4.0 AUTOMAÇÃO');
+logger.info('CRM routes carregadas - Versao 4.0 AUTOMACAO');
 
 const crmController = require('../controllers/crmController');
 router.post('/proposta/:id/completar-dados', crmController.completarDadosLead);
@@ -20,7 +21,7 @@ async function registrarAtividade(leadId, escritorioId, tipo, descricao) {
             [leadId, escritorioId, tipo, descricao]
         );
     } catch (err) {
-        console.error('[CRM] Erro ao registrar atividade:', err.message);
+        logger.error({ err: err.message }, 'CRM: erro ao registrar atividade');
     }
 }
 
@@ -67,7 +68,7 @@ router.get('/leads/:id/atividades',
             `, [id, escritorioId]);
             res.json(result.rows);
         } catch (err) {
-            console.error('[GET /leads/:id/atividades] Erro:', err);
+            logger.error({ err: err.message }, 'GET /leads/:id/atividades erro');
             res.status(500).json({ erro: 'Erro interno do servidor' });
         }
     }
@@ -80,29 +81,34 @@ router.get('/leads',
     async (req, res) => {
         try {
             const escritorioId = req.user.escritorio_id;
-            const query = `
-                SELECT
-                    id,
-                    nome,
-                    email,
-                    telefone,
-                    COALESCE(NULLIF(TRIM(assunto), ''), NULLIF(TRIM(area_interesse), ''), 'Não informado') AS assunto,
-                    mensagem,
-                    status,
-                    origem,
-                    data_criacao,
-                    COALESCE(score, 0) AS score,
-                    ultima_movimentacao
-                FROM leads
-                WHERE escritorio_id = $1
-                ORDER BY data_criacao DESC
-                LIMIT 500
-            `;
-            const resultado = await pool.query(query, [escritorioId]);
-            console.log('[GET /leads] Retornando', resultado.rows.length, 'leads');
-            res.json(resultado.rows);
+            const { getPagination, buildPage } = require('../utils/paginate');
+            const { page, limit, offset } = getPagination(req.query);
+            const [resultado, countResult] = await Promise.all([
+                pool.query(`
+                    SELECT
+                        id,
+                        nome,
+                        email,
+                        telefone,
+                        COALESCE(NULLIF(TRIM(assunto), ''), NULLIF(TRIM(area_interesse), ''), 'Não informado') AS assunto,
+                        mensagem,
+                        status,
+                        origem,
+                        data_criacao,
+                        COALESCE(score, 0) AS score,
+                        ultima_movimentacao
+                    FROM leads
+                    WHERE escritorio_id = $1
+                    ORDER BY data_criacao DESC
+                    LIMIT $2 OFFSET $3
+                `, [escritorioId, limit, offset]),
+                pool.query('SELECT COUNT(*) AS total FROM leads WHERE escritorio_id = $1', [escritorioId])
+            ]);
+            const total = parseInt(countResult.rows[0].total);
+            logger.info({ count: resultado.rows.length, page }, 'GET /leads: leads retornados');
+            res.json(buildPage(resultado.rows, total, page, limit));
         } catch (err) {
-            console.error('[GET /leads] Erro:', err);
+            logger.error({ err: err.message }, 'GET /leads erro');
             res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
         }
     }
@@ -110,7 +116,7 @@ router.get('/leads',
 
 // ─── POST /teste-post ──────────────────────────────────────────────────────────
 router.post('/teste-post', (req, res) => {
-    console.log('[TESTE] ROTA TESTE EXECUTADA COM SUCESSO!');
+    logger.info('Rota de teste CRM executada');
     res.json({ ok: true, mensagem: 'Rota de teste funcionou!' });
 });
 
@@ -119,18 +125,15 @@ router.post('/leads',
     authMiddleware,
     planMiddleware.checkFeature('crm'),
     (req, res, next) => {
-        console.log('[POST /leads] ===== HANDLER FINAL EXECUTADO =====');
-        console.log('[POST /leads] req.user:', req.user);
-        console.log('[POST /leads] req.body:', req.body);
+        logger.info({ userId: req.user?.id, body: req.body }, 'POST /leads handler executado');
         next();
     },
     async (req, res) => {
-        console.log('[POST /leads] FUNCAO ASYNC EXECUTADA!');
         try {
             const { nome, email, telefone, interesse } = req.body;
             const escritorioId = req.user.escritorio_id;
 
-            console.log('[POST /leads] Dados:', { nome, email, telefone, interesse, escritorioId });
+            logger.info({ nome, email, telefone, interesse, escritorioId }, 'POST /leads dados recebidos');
 
             if (!nome || !telefone) {
                 return res.status(400).json({ ok: false, error: 'Campos obrigatorios' });
@@ -186,21 +189,21 @@ router.post('/leads',
                         `Novo lead cadastrado — ${lead.assunto || 'interesse não informado'}`
                     ]);
                 } catch (e) {
-                    console.warn('[CRM] Notificação in-app falhou:', e.message);
+                    logger.warn({ err: e.message }, 'CRM: notificacao in-app falhou');
                 }
             }
 
-            console.log('[POST /leads] Lead criado! ID:', leadId, '| Score:', score, '| Assunto:', lead.assunto);
+            logger.info({ leadId, score, assunto: lead.assunto }, 'POST /leads: lead criado');
             res.status(201).json({ ok: true, lead: { ...lead, score } });
 
         } catch (err) {
-            console.error('[POST /leads] ERRO:', err);
+            logger.error({ err: err.message }, 'POST /leads erro');
             res.status(500).json({ ok: false, error: 'Erro interno do servidor' });
         }
     }
 );
 
-console.log('[CRM] Rota POST /leads registrada no Express');
+logger.info('CRM: rota POST /leads registrada no Express');
 
 // ─── GET /metricas ─────────────────────────────────────────────────────────────
 router.get('/metricas',
@@ -209,7 +212,7 @@ router.get('/metricas',
     async (req, res) => {
         try {
             const id = req.user.escritorio_id;
-            console.log('[GET /metricas] Calculando metricas do escritorio:', id);
+            logger.info({ escritorioId: id }, 'GET /metricas calculando metricas');
             const query = `
                 SELECT
                     COUNT(*) FILTER (WHERE status IN ('Novo', 'Novo Lead')) as leads,
@@ -219,10 +222,10 @@ router.get('/metricas',
                 FROM leads WHERE escritorio_id = $1
             `;
             const result = await pool.query(query, [id]);
-            console.log('[GET /metricas] Metricas:', result.rows[0]);
+            logger.info({ metricas: result.rows[0] }, 'GET /metricas calculadas');
             res.json(result.rows[0]);
         } catch (err) {
-            console.error('[GET /metricas] Erro:', err);
+            logger.error({ err: err.message }, 'GET /metricas erro');
             res.status(500).json({ erro: 'Erro interno do servidor' });
         }
     }
@@ -238,7 +241,7 @@ router.patch('/lead/:id/status',
             const { status } = req.body;
             const escritorioId = req.user.escritorio_id;
 
-            console.log('[PATCH /lead/:id/status] Atualizando status:', { id, status, escritorioId });
+            logger.info({ id, status, escritorioId }, 'PATCH /lead/:id/status atualizando status');
 
             // Buscar status anterior
             const anterior = await pool.query(
@@ -291,10 +294,10 @@ router.patch('/lead/:id/status',
                 }
             }
 
-            console.log('[PATCH /lead/:id/status] Status atualizado com sucesso');
+            logger.info({ id, status }, 'PATCH /lead/:id/status atualizado com sucesso');
             res.json({ ok: true });
         } catch (err) {
-            console.error('[PATCH /lead/:id/status] Erro:', err);
+            logger.error({ err: err.message }, 'PATCH /lead/:id/status erro');
             res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
         }
     }
@@ -310,7 +313,7 @@ router.put('/leads/:id/notas',
             const { notas } = req.body;
             const escritorioId = req.user.escritorio_id;
 
-            console.log('[PUT /leads/:id/notas] Salvando notas:', { id, notasLength: notas?.length, escritorioId });
+            logger.info({ id, notasLength: notas?.length, escritorioId }, 'PUT /leads/:id/notas salvando notas');
 
             await pool.query(
                 'UPDATE leads SET mensagem = $1 WHERE id = $2 AND escritorio_id = $3',
@@ -326,10 +329,10 @@ router.put('/leads/:id/notas',
                 await pool.query('UPDATE leads SET score = $1 WHERE id = $2', [score, id]);
             }
 
-            console.log('[PUT /leads/:id/notas] Notas salvas com sucesso');
+            logger.info({ id }, 'PUT /leads/:id/notas salvas com sucesso');
             res.json({ ok: true });
         } catch (err) {
-            console.error('[PUT /leads/:id/notas] Erro:', err);
+            logger.error({ err: err.message }, 'PUT /leads/:id/notas erro');
             res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
         }
     }
@@ -344,7 +347,7 @@ router.delete('/leads/:id',
             const { id } = req.params;
             const escritorioId = req.user.escritorio_id;
 
-            console.log('[DELETE /leads/:id] Excluindo lead:', { id, escritorioId });
+            logger.info({ id, escritorioId }, 'DELETE /leads/:id excluindo lead');
 
             const result = await pool.query(
                 'DELETE FROM leads WHERE id = $1 AND escritorio_id = $2 RETURNING *',
@@ -352,14 +355,14 @@ router.delete('/leads/:id',
             );
 
             if (result.rowCount === 0) {
-                console.log('[DELETE /leads/:id] Lead nao encontrado');
+                logger.warn({ id }, 'DELETE /leads/:id lead nao encontrado');
                 return res.status(404).json({ ok: false, erro: 'Lead nao encontrado' });
             }
 
-            console.log('[DELETE /leads/:id] Lead excluido com sucesso');
+            logger.info({ id }, 'DELETE /leads/:id lead excluido com sucesso');
             res.json({ ok: true });
         } catch (err) {
-            console.error('[DELETE /leads/:id] Erro:', err);
+            logger.error({ err: err.message }, 'DELETE /leads/:id erro');
             res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
         }
     }

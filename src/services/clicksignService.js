@@ -21,9 +21,11 @@ function csApi() {
  * @param {string} apiKey - Chave API do escritório (BYOK)
  * @returns {string} document_key
  */
-async function uploadDocumento(filePath, nomeOriginal, deadline, mimetype = 'application/pdf', apiKey) {
+async function uploadDocumento(filePathOrBuffer, nomeOriginal, deadline, mimetype = 'application/pdf', apiKey) {
     const key = apiKey || DEFAULT_API_KEY();
-    const content = fs.readFileSync(filePath);
+    const content = Buffer.isBuffer(filePathOrBuffer)
+        ? filePathOrBuffer
+        : fs.readFileSync(filePathOrBuffer);
     const content_base64 = `data:${mimetype};base64,${content.toString('base64')}`;
     const safeName = nomeOriginal.replace(/[^a-zA-Z0-9._-]/g, '_');
     const docPath = `/docs/${Date.now()}_${safeName}`;

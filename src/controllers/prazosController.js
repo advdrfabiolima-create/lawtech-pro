@@ -1,5 +1,7 @@
 const pool = require('../config/db');
 const planLimits = require('../config/planLimits.json');
+const logger = require('../utils/logger');
+const { getPagination, buildPage } = require('../utils/paginate');
 
 /**
  * ============================================================
@@ -76,10 +78,10 @@ async function verificarLimitePrazos(escritorioId) {
     };
 
   } catch (err) {
-    console.error('❌ Erro ao verificar limite de prazos:', err);
-    return { 
-      permitido: false, 
-      erro: 'Erro ao verificar limite' 
+    logger.error({ err: err.message }, 'Erro ao verificar limite de prazos');
+    return {
+      permitido: false,
+      erro: 'Erro ao verificar limite'
     };
   }
 }
@@ -120,7 +122,7 @@ async function criarPrazo(req, res) {
       [processoId, clienteFinal, tipo, descricao, dataLimite, escritorioId, usuarioId]
     );
 
-    console.log(`✅ [CRIAR PRAZO] Tipo: ${tipo} - Cliente: ${clienteFinal || 'SEM CLIENTE'}`);
+    logger.info({ tipo, clienteFinal }, 'Prazo criado');
 
     res.status(201).json({
       ok: true,
@@ -129,7 +131,7 @@ async function criarPrazo(req, res) {
     });
 
   } catch (err) {
-    console.error('❌ [CRIAR PRAZO] Erro:', err.message);
+    logger.error({ err: err.message }, 'Erro ao criar prazo');
     res.status(500).json({ erro: 'Erro ao criar prazo' });
   }
 }
@@ -142,27 +144,39 @@ async function criarPrazo(req, res) {
  */
 async function listarPrazosGeral(req, res) {
   try {
-    const result = await pool.query(
-      `SELECT 
-        pr.*,
-        proc.numero AS processo_numero,
-        COALESCE(c.nome, proc.cliente) AS cliente_nome,
-        proc.parte_contraria,
-        proc.tribunal
-       FROM prazos pr
-       LEFT JOIN processos proc ON proc.id = pr.processo_id
-       LEFT JOIN clientes c ON c.id = pr.cliente_id
-       WHERE pr.escritorio_id = $1 
-         AND pr.deletado = false
-         AND pr.status IN ('aberto', 'hoje', 'atrasado')
-       ORDER BY pr.data_limite ASC`,
-      [req.user.escritorio_id]
-    );
-    
-    console.log(`📋 [LISTAR PRAZOS] Retornando ${result.rowCount} prazos`);
-    res.json(result.rows);
+    const { page, limit, offset } = getPagination(req.query);
+    const escritorioId = req.user.escritorio_id;
+
+    const [result, countResult] = await Promise.all([
+      pool.query(
+        `SELECT
+          pr.*,
+          proc.numero AS processo_numero,
+          COALESCE(c.nome, proc.cliente) AS cliente_nome,
+          proc.parte_contraria,
+          proc.tribunal
+         FROM prazos pr
+         LEFT JOIN processos proc ON proc.id = pr.processo_id
+         LEFT JOIN clientes c ON c.id = pr.cliente_id
+         WHERE pr.escritorio_id = $1
+           AND pr.deletado = false
+           AND pr.status IN ('aberto', 'hoje', 'atrasado')
+         ORDER BY pr.data_limite ASC
+         LIMIT $2 OFFSET $3`,
+        [escritorioId, limit, offset]
+      ),
+      pool.query(
+        `SELECT COUNT(*) AS total FROM prazos
+         WHERE escritorio_id = $1 AND deletado = false AND status IN ('aberto', 'hoje', 'atrasado')`,
+        [escritorioId]
+      )
+    ]);
+
+    const total = parseInt(countResult.rows[0].total);
+    logger.info({ count: result.rowCount, page }, 'Prazos listados');
+    res.json(buildPage(result.rows, total, page, limit));
   } catch (error) {
-    console.error('❌ [LISTAR PRAZOS] Erro:', error);
+    logger.error({ err: error.message }, 'Erro ao listar prazos');
     res.status(500).json({ erro: 'Erro ao listar geral' });
   }
 }
@@ -202,10 +216,10 @@ async function listarPrazosDashboard(req, res) {
       [req.user.escritorio_id]
     );
     
-    console.log(`📊 [DASHBOARD PRAZOS] Retornando ${result.rowCount} prazos`);
+    logger.info({ count: result.rowCount }, 'Dashboard prazos listados');
     res.json(result.rows);
   } catch (err) {
-    console.error('❌ [DASHBOARD PRAZOS] Erro:', err);
+    logger.error({ err: err.message }, 'Erro no dashboard de prazos');
     res.status(500).json({ erro: err.message });
   }
 }
@@ -235,10 +249,10 @@ async function listarPrazosVencidos(req, res) {
       [req.user.escritorio_id]
     );
 
-    console.log(`🔴 [PRAZOS VENCIDOS] Retornando ${result.rowCount} prazos`);
+    logger.info({ count: result.rowCount }, 'Prazos vencidos listados');
     res.json(result.rows);
   } catch (err) {
-    console.error('❌ [PRAZOS VENCIDOS] Erro:', err.message);
+    logger.error({ err: err.message }, 'Erro ao buscar prazos vencidos');
     res.status(500).json({ erro: 'Erro ao buscar prazos vencidos' });
   }
 }
@@ -270,10 +284,10 @@ async function listarPrazosSemana(req, res) {
       [req.user.escritorio_id]
     );
 
-    console.log(`📅 [PRAZOS SEMANA] Retornando ${result.rowCount} prazos`);
+    logger.info({ count: result.rowCount }, 'Prazos da semana listados');
     res.json(result.rows);
   } catch (err) {
-    console.error('❌ [PRAZOS SEMANA] Erro:', err.message);
+    logger.error({ err: err.message }, 'Erro ao buscar prazos da semana');
     res.status(500).json({ erro: err.message });
   }
 }
@@ -304,10 +318,10 @@ async function listarPrazosFuturos(req, res) {
       [req.user.escritorio_id]
     );
 
-    console.log(`🔮 [PRAZOS FUTUROS] Retornando ${result.rowCount} prazos`);
+    logger.info({ count: result.rowCount }, 'Prazos futuros listados');
     res.json(result.rows);
   } catch (err) {
-    console.error('❌ [PRAZOS FUTUROS] Erro:', err.message);
+    logger.error({ err: err.message }, 'Erro ao buscar prazos futuros');
     res.status(500).json({ erro: err.message });
   }
 }
@@ -337,10 +351,10 @@ async function listarPrazosConcluidos(req, res) {
       [req.user.escritorio_id]
     );
     
-    console.log(`✅ [PRAZOS CONCLUÍDOS] Retornando ${result.rowCount} prazos`);
+    logger.info({ count: result.rowCount }, 'Prazos concluidos listados');
     res.json(result.rows);
   } catch (error) {
-    console.error('❌ [PRAZOS CONCLUÍDOS] Erro:', error);
+    logger.error({ err: error.message }, 'Erro ao listar prazos concluidos');
     res.status(500).json({ erro: 'Erro ao listar concluídos' });
   }
 }
@@ -359,7 +373,7 @@ async function atualizarPrazo(req, res) {
     // Aceita ambos os formatos
     const clienteFinal = clienteId || cliente_id || null;
 
-    console.log(`📝 [ATUALIZAR PRAZO] ID: ${id}, Cliente: ${clienteFinal}, Tipo: ${tipo}`);
+    logger.info({ id, clienteFinal, tipo }, 'Atualizando prazo');
 
     try {
         const result = await pool.query(
@@ -376,11 +390,11 @@ async function atualizarPrazo(req, res) {
         );
 
         if (result.rowCount === 0) {
-            console.warn(`⚠️ [ATUALIZAR PRAZO] Prazo ${id} não encontrado`);
+            logger.warn({ id }, 'Prazo nao encontrado ao atualizar');
             return res.status(404).json({ erro: 'Prazo não encontrado' });
         }
 
-        console.log(`✅ [ATUALIZAR PRAZO] Prazo ${id} atualizado - Cliente: ${clienteFinal || 'SEM CLIENTE'}`);
+        logger.info({ id, clienteFinal }, 'Prazo atualizado');
         
         res.json({ 
             ok: true, 
@@ -389,7 +403,7 @@ async function atualizarPrazo(req, res) {
         });
 
     } catch (err) {
-        console.error('❌ [ATUALIZAR PRAZO] Erro:', err.message);
+        logger.error({ err: err.message }, 'Erro ao atualizar prazo');
         res.status(500).json({ erro: 'Erro ao atualizar prazo' });
     }
 }
@@ -416,10 +430,10 @@ async function concluirPrazo(req, res) {
       return res.status(404).json({ erro: 'Prazo não encontrado' });
     }
 
-    console.log(`✅ [CONCLUIR PRAZO] ID: ${req.params.id}`);
+    logger.info({ id: req.params.id }, 'Prazo concluido');
     res.json({ sucesso: true, prazo: result.rows[0] });
   } catch (err) {
-    console.error('❌ [CONCLUIR PRAZO] Erro:', err);
+    logger.error({ err: err.message }, 'Erro ao concluir prazo');
     res.status(500).json({ erro: err.message });
   }
 }
@@ -445,10 +459,10 @@ async function excluirPrazo(req, res) {
       return res.status(404).json({ erro: 'Prazo não encontrado' });
     }
 
-    console.log(`🗑️ [EXCLUIR PRAZO] ID ${req.params.id} marcado como deletado`);
+    logger.info({ id: req.params.id }, 'Prazo marcado como deletado');
     res.json({ ok: true });
   } catch (error) {
-    console.error('❌ [EXCLUIR PRAZO] Erro:', error);
+    logger.error({ err: error.message }, 'Erro ao excluir prazo');
     res.status(500).json({ erro: 'Erro ao excluir' });
   }
 }
@@ -469,10 +483,10 @@ async function limparPrazosConcluidos(req, res) {
       [req.user.escritorio_id]
     );
     
-    console.log(`🧹 [LIMPAR CONCLUÍDOS] ${resultado.rowCount} prazos removidos`);
+    logger.info({ removidos: resultado.rowCount }, 'Prazos concluidos limpos');
     res.json({ sucesso: true, removidos: resultado.rowCount });
   } catch (err) {
-    console.error('❌ [LIMPAR CONCLUÍDOS] Erro:', err);
+    logger.error({ err: err.message }, 'Erro ao limpar prazos concluidos');
     res.status(500).json({ erro: 'Erro ao limpar' });
   }
 }
@@ -493,7 +507,7 @@ async function atualizarStatusPrazo(id) {
         AND status IN ('aberto', 'hoje')
     `, [id]);
   } catch (err) {
-    console.error('❌ Erro ao atualizar status do prazo', id, ':', err.message);
+    logger.error({ prazoId: id, err: err.message }, 'Erro ao atualizar status do prazo');
   }
 }
 
@@ -555,7 +569,7 @@ async function planoEConsumo(req, res) {
     const vencimento = planoResult.rows[0].data_vencimento ? new Date(planoResult.rows[0].data_vencimento) : null;
     let diasRestantes = vencimento ? Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24)) : null;
 
-    console.log(`📊 [PLANO CONSUMO] Escritório ${escritorioId}: ${prazosAtivos}/${planoConfig.prazos.max} prazos`);
+    logger.info({ escritorioId, prazosAtivos, max: planoConfig.prazos.max }, 'Consulta plano e consumo');
 
     // Resposta com compatibilidade dupla
     res.json({ 
@@ -602,7 +616,7 @@ async function planoEConsumo(req, res) {
     });
 
   } catch (error) {
-    console.error('❌ [PLANO CONSUMO] Erro:', error);
+    logger.error({ err: error.message }, 'Erro ao buscar plano e consumo');
     res.status(500).json({ erro: 'Erro interno' });
   }
 }
@@ -645,7 +659,7 @@ async function uploadAnexo(req, res) {
       
       if (fs.existsSync(oldFilePath)) {
         fs.unlinkSync(oldFilePath);
-        console.log('🗑️ Arquivo antigo removido:', prazoCheck.rows[0].anexo_pdf);
+        logger.info({ arquivo: prazoCheck.rows[0].anexo_pdf }, 'Arquivo antigo removido');
       }
     }
     
@@ -658,7 +672,7 @@ async function uploadAnexo(req, res) {
       [req.file.filename, prazoId, escritorioId]
     );
     
-    console.log(`📎 [UPLOAD ANEXO] PDF anexado ao prazo ${prazoId}: ${req.file.filename}`);
+    logger.info({ prazoId, filename: req.file.filename }, 'PDF anexado ao prazo');
     
     res.json({
       ok: true,
@@ -672,8 +686,8 @@ async function uploadAnexo(req, res) {
     });
     
   } catch (err) {
-    console.error('❌ [UPLOAD ANEXO] Erro:', err);
-    
+    logger.error({ err: err.message }, 'Erro ao fazer upload de anexo');
+
     // Tentar deletar o arquivo se houve erro
     if (req.file) {
       const fs = require('fs');
@@ -696,7 +710,7 @@ async function visualizarAnexo(req, res) {
     const prazoId = req.params.id;
     const escritorioId = req.user.escritorio_id;
     
-    console.log(`👁️ [VISUALIZAR ANEXO] Prazo: ${prazoId}, Escritório: ${escritorioId}`);
+    logger.info({ prazoId, escritorioId }, 'Visualizando anexo');
     
     // Buscar informações do prazo
     const result = await pool.query(
@@ -705,14 +719,14 @@ async function visualizarAnexo(req, res) {
     );
     
     if (result.rows.length === 0) {
-      console.warn(`⚠️ [VISUALIZAR ANEXO] Prazo ${prazoId} não encontrado`);
+      logger.warn({ prazoId }, 'Prazo nao encontrado ao visualizar anexo');
       return res.status(404).json({ erro: 'Prazo não encontrado' });
     }
-    
+
     const anexoPdf = result.rows[0].anexo_pdf;
-    
+
     if (!anexoPdf) {
-      console.warn(`⚠️ [VISUALIZAR ANEXO] Prazo ${prazoId} não possui anexo`);
+      logger.warn({ prazoId }, 'Prazo nao possui anexo');
       return res.status(404).json({ erro: 'Este prazo não possui anexo' });
     }
     
@@ -721,11 +735,11 @@ async function visualizarAnexo(req, res) {
     const fs = require('fs');
     const filePath = path.join(__dirname, '..', 'uploads', 'prazos', anexoPdf);
     
-    console.log(`📂 [VISUALIZAR ANEXO] Caminho do arquivo: ${filePath}`);
+    logger.info({ filePath }, 'Caminho do arquivo para visualizacao');
     
     // Verificar se o arquivo existe
     if (!fs.existsSync(filePath)) {
-      console.error(`❌ [VISUALIZAR ANEXO] Arquivo não encontrado: ${filePath}`);
+      logger.error({ filePath }, 'Arquivo nao encontrado no servidor');
       
       // Limpar referência do banco se arquivo não existe
       await pool.query(
@@ -741,19 +755,19 @@ async function visualizarAnexo(req, res) {
     
     // Verificar se é realmente um PDF
     const stats = fs.statSync(filePath);
-    console.log(`📊 [VISUALIZAR ANEXO] Tamanho do arquivo: ${stats.size} bytes`);
+    logger.info({ fileSize: stats.size }, 'Tamanho do arquivo para visualizacao');
     
     // Configurar headers para PDF
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="${anexoPdf}"`);
     res.setHeader('Content-Length', stats.size);
     
-    console.log(`✅ [VISUALIZAR ANEXO] Servindo PDF do prazo ${prazoId}`);
-    
+    logger.info({ prazoId }, 'Servindo PDF do prazo');
+
     // Enviar o arquivo
     res.sendFile(filePath, (err) => {
       if (err) {
-        console.error(`❌ [VISUALIZAR ANEXO] Erro ao enviar arquivo:`, err);
+        logger.error({ err: err.message }, 'Erro ao enviar arquivo PDF');
         if (!res.headersSent) {
           res.status(500).json({ erro: 'Erro ao enviar arquivo' });
         }
@@ -761,9 +775,8 @@ async function visualizarAnexo(req, res) {
     });
     
   } catch (err) {
-    console.error('❌ [VISUALIZAR ANEXO] Erro:', err.message);
-    console.error('Stack trace:', err.stack);
-    
+    logger.error({ err: err.message, stack: err.stack }, 'Erro ao visualizar anexo');
+
     if (!res.headersSent) {
       res.status(500).json({ 
         erro: 'Erro ao buscar PDF',
@@ -806,7 +819,7 @@ async function deletarAnexo(req, res) {
     
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
-      console.log('🗑️ Arquivo deletado:', filePath);
+      logger.info({ filePath }, 'Arquivo deletado');
     }
     
     // Remover referência do banco
@@ -817,15 +830,15 @@ async function deletarAnexo(req, res) {
       [prazoId, escritorioId]
     );
     
-    console.log(`🗑️ [DELETAR ANEXO] PDF removido do prazo ${prazoId}`);
-    
+    logger.info({ prazoId }, 'PDF removido do prazo');
+
     res.json({
       ok: true,
       mensagem: 'PDF removido com sucesso'
     });
-    
+
   } catch (err) {
-    console.error('❌ [DELETAR ANEXO] Erro:', err);
+    logger.error({ err: err.message }, 'Erro ao deletar anexo');
     res.status(500).json({ erro: 'Erro ao deletar PDF' });
   }
 }

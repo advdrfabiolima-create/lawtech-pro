@@ -7,6 +7,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
 const planMiddleware = require('../middlewares/planMiddleware');
 const controller = require('../controllers/prazosController');
+const logger = require('../utils/logger');
 
 /**
  * ============================================================
@@ -76,7 +77,7 @@ router.delete('/prazos/:id', authMiddleware, roleMiddleware('admin'), controller
 const uploadDir = path.join(__dirname, '..', 'uploads', 'prazos');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
-    console.log('📁 Diretório de uploads criado:', uploadDir);
+    logger.info({ uploadDir }, 'Diretório de uploads criado');
 }
 
 // Configuração do storage do Multer

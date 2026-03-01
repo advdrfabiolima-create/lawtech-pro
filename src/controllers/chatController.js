@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const logger = require('../utils/logger');
 
 // GET /api/chat/mensagens?tipo=geral&ultimo_id=0
 // GET /api/chat/mensagens?tipo=dm&usuario_id=X&ultimo_id=0
@@ -60,7 +61,7 @@ exports.listarMensagens = async (req, res) => {
 
         res.json({ ok: true, mensagens: result.rows });
     } catch (err) {
-        console.error('[CHAT] Erro ao listar mensagens:', err.message);
+        logger.error({ err: err.message }, '[CHAT] Erro ao listar mensagens');
         res.status(500).json({ ok: false, erro: err.message });
     }
 };
@@ -98,7 +99,7 @@ exports.enviarMensagem = async (req, res) => {
             }
         });
     } catch (err) {
-        console.error('[CHAT] Erro ao enviar mensagem:', err.message);
+        logger.error({ err: err.message }, '[CHAT] Erro ao enviar mensagem');
         res.status(500).json({ ok: false, erro: err.message });
     }
 };
@@ -118,7 +119,7 @@ exports.listarUsuarios = async (req, res) => {
 
         res.json({ ok: true, usuarios: result.rows });
     } catch (err) {
-        console.error('[CHAT] Erro ao listar usuários:', err.message);
+        logger.error({ err: err.message }, '[CHAT] Erro ao listar usuários');
         res.status(500).json({ ok: false, erro: err.message });
     }
 };
@@ -164,7 +165,7 @@ exports.contarNaoLidas = async (req, res) => {
 
         res.json({ ok: true, naoLidas });
     } catch (err) {
-        console.error('[CHAT] Erro ao contar não lidas:', err.message);
+        logger.error({ err: err.message }, '[CHAT] Erro ao contar não lidas');
         res.status(500).json({ ok: false, erro: err.message });
     }
 };
@@ -202,7 +203,7 @@ exports.enviarArquivo = async (req, res) => {
             }
         });
     } catch (err) {
-        console.error('[CHAT] Erro ao enviar arquivo:', err.message);
+        logger.error({ err: err.message }, '[CHAT] Erro ao enviar arquivo');
         res.status(500).json({ ok: false, erro: err.message });
     }
 };
@@ -223,17 +224,28 @@ exports.baixarArquivo = async (req, res) => {
         }
 
         const { arquivo_nome, arquivo_path } = result.rows[0];
-        const path = require('path');
-        const fs = require('fs');
 
+        // Novo formato: chave R2/disco relativa (começa com 'chat/')
+        if (arquivo_path.startsWith('chat/')) {
+            const fileStorage = require('../utils/storage');
+            const found = await fileStorage.download(arquivo_path, res, { filename: arquivo_nome });
+            if (found === null) {
+                return res.status(404).json({ ok: false, erro: 'Arquivo não encontrado no servidor.' });
+            }
+            return;
+        }
+
+        // Legado: caminho absoluto no disco
+        const fs = require('fs');
         if (!fs.existsSync(arquivo_path)) {
             return res.status(404).json({ ok: false, erro: 'Arquivo não encontrado no servidor.' });
         }
-
         res.download(arquivo_path, arquivo_nome);
     } catch (err) {
-        console.error('[CHAT] Erro ao baixar arquivo:', err.message);
-        res.status(500).json({ ok: false, erro: err.message });
+        logger.error({ err: err.message }, '[CHAT] Erro ao baixar arquivo');
+        if (!res.headersSent) {
+            res.status(500).json({ ok: false, erro: err.message });
+        }
     }
 };
 
@@ -260,7 +272,7 @@ exports.marcarComoLidas = async (req, res) => {
 
         res.json({ ok: true });
     } catch (err) {
-        console.error('[CHAT] Erro ao marcar como lidas:', err.message);
+        logger.error({ err: err.message }, '[CHAT] Erro ao marcar como lidas');
         res.status(500).json({ ok: false, erro: err.message });
     }
 };

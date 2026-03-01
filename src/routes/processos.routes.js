@@ -3,6 +3,8 @@ const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
+const logger = require('../utils/logger');
+const { getPagination, buildPage } = require('../utils/paginate');
 
 /**
  * CADASTRAR NOVO PROCESSO (COM MÚLTIPLAS PARTES)
@@ -11,7 +13,7 @@ const roleMiddleware = require('../middlewares/roleMiddleware');
 router.post('/processos', authMiddleware, roleMiddleware('admin', 'operador'), async (req, res) => {
   const dadosRecebidos = req.body;
 
-  console.log('🚀 POST /api/processos - Dados recebidos:', dadosRecebidos);
+  logger.info({ dadosRecebidos }, 'POST /api/processos - Dados recebidos');
 
   let {
     numero,
@@ -33,7 +35,7 @@ router.post('/processos', authMiddleware, roleMiddleware('admin', 'operador'), a
   }
 
   if (!esfera || !tribunal) {
-    console.warn('Aviso: esfera ou tribunal não enviados');
+    logger.warn('Aviso: esfera ou tribunal não enviados');
   }
 
   // Validar partes
@@ -75,7 +77,7 @@ router.post('/processos', authMiddleware, roleMiddleware('admin', 'operador'), a
     );
 
     const processoId = processoResult.rows[0].id;
-    console.log('✅ Processo criado:', processoId);
+    logger.info({ processoId }, 'Processo criado');
 
     // 2️⃣ Inserir partes do polo ativo
     for (const parte of partes_ativo) {
@@ -133,7 +135,7 @@ router.post('/processos', authMiddleware, roleMiddleware('admin', 'operador'), a
 
     await client.query('COMMIT');
 
-    console.log('✅ Processo e partes salvos com sucesso');
+    logger.info({ processoId }, 'Processo e partes salvos com sucesso');
 
     res.status(201).json({
       ok: true,
@@ -142,10 +144,10 @@ router.post('/processos', authMiddleware, roleMiddleware('admin', 'operador'), a
 
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('❌ Erro ao salvar processo:', err.message);
-    res.status(500).json({ 
-      erro: 'Erro interno ao salvar processo', 
-      detalhe: err.message 
+    logger.error({ err: err.message }, 'Erro ao salvar processo');
+    res.status(500).json({
+      erro: 'Erro interno ao salvar processo',
+      detalhe: err.message
     });
   } finally {
     client.release();
@@ -158,47 +160,57 @@ router.post('/processos', authMiddleware, roleMiddleware('admin', 'operador'), a
  */
 router.get('/processos', authMiddleware, async (req, res) => {
   try {
-    const query = `
-      SELECT 
-        p.id,
-        p.numero,
-        p.esfera,
-        p.tribunal,
-        p.instancia,
-        p.uf,
-        p.status,
-        p.excluido_por,
-        p.data_exclusao,
-        -- Parte ativa principal
-        (SELECT pessoa_nome FROM partes_processo 
-         WHERE processo_id = p.id AND polo = 'ativo' AND eh_principal = TRUE 
-         LIMIT 1) as cliente,
-        (SELECT pessoa_id FROM partes_processo 
-         WHERE processo_id = p.id AND polo = 'ativo' AND eh_principal = TRUE 
-         LIMIT 1) as cliente_id,
-        -- Parte passiva principal
-        (SELECT pessoa_nome FROM partes_processo 
-         WHERE processo_id = p.id AND polo = 'passivo' AND eh_principal = TRUE 
-         LIMIT 1) as parte_contraria,
-        -- Contadores
-        (SELECT COUNT(*) FROM partes_processo 
-         WHERE processo_id = p.id AND polo = 'ativo') as total_autores,
-        (SELECT COUNT(*) FROM partes_processo 
-         WHERE processo_id = p.id AND polo = 'passivo') as total_reus
-      FROM processos p
-      WHERE p.escritorio_id = $1
-      ORDER BY p.id DESC
-      LIMIT 500
-    `;
+    const { page, limit, offset } = getPagination(req.query);
+    const escritorioId = req.user.escritorio_id;
+    const { status } = req.query;
 
-    const result = await pool.query(query, [req.user.escritorio_id]);
+    const whereStatus = status ? `AND p.status = $2` : '';
+    const params = status ? [escritorioId, status, limit, offset] : [escritorioId, limit, offset];
+    const limitIdx = status ? 3 : 2;
+    const offsetIdx = status ? 4 : 3;
 
-    console.log(`📋 Listados ${result.rowCount} processos`);
+    const [result, countResult] = await Promise.all([
+      pool.query(`
+        SELECT
+          p.id,
+          p.numero,
+          p.esfera,
+          p.tribunal,
+          p.instancia,
+          p.uf,
+          p.status,
+          p.excluido_por,
+          p.data_exclusao,
+          (SELECT pessoa_nome FROM partes_processo
+           WHERE processo_id = p.id AND polo = 'ativo' AND eh_principal = TRUE
+           LIMIT 1) as cliente,
+          (SELECT pessoa_id FROM partes_processo
+           WHERE processo_id = p.id AND polo = 'ativo' AND eh_principal = TRUE
+           LIMIT 1) as cliente_id,
+          (SELECT pessoa_nome FROM partes_processo
+           WHERE processo_id = p.id AND polo = 'passivo' AND eh_principal = TRUE
+           LIMIT 1) as parte_contraria,
+          (SELECT COUNT(*) FROM partes_processo
+           WHERE processo_id = p.id AND polo = 'ativo') as total_autores,
+          (SELECT COUNT(*) FROM partes_processo
+           WHERE processo_id = p.id AND polo = 'passivo') as total_reus
+        FROM processos p
+        WHERE p.escritorio_id = $1 ${whereStatus}
+        ORDER BY p.id DESC
+        LIMIT $${limitIdx} OFFSET $${offsetIdx}
+      `, params),
+      pool.query(
+        `SELECT COUNT(*) AS total FROM processos p WHERE p.escritorio_id = $1 ${whereStatus}`,
+        status ? [escritorioId, status] : [escritorioId]
+      )
+    ]);
 
-    res.json(result.rows);
+    const total = parseInt(countResult.rows[0].total);
+    logger.info({ count: result.rowCount, page }, 'Processos listados');
+    res.json(buildPage(result.rows, total, page, limit));
 
   } catch (err) {
-    console.error('Erro ao listar processos:', err.message);
+    logger.error({ err: err.message }, 'Erro ao listar processos');
     res.status(500).json({ erro: 'Erro ao listar processos' });
   }
 });
@@ -245,7 +257,7 @@ router.get('/processos/:id', authMiddleware, async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Erro ao buscar processo:', err.message);
+    logger.error({ err: err.message }, 'Erro ao buscar processo');
     res.status(500).json({ erro: 'Erro ao buscar processo' });
   }
 });
@@ -288,7 +300,7 @@ router.get('/processos/:processoId/partes', authMiddleware, async (req, res) => 
     });
 
   } catch (err) {
-    console.error('Erro ao listar partes:', err.message);
+    logger.error({ err: err.message }, 'Erro ao listar partes');
     res.status(500).json({ erro: 'Erro ao carregar partes' });
   }
 });
@@ -405,7 +417,7 @@ router.put('/processos/:id', authMiddleware, roleMiddleware('admin', 'operador')
 
         await client.query('COMMIT');
 
-        console.log(`✅ Processo ${id} atualizado com sucesso`);
+        logger.info({ id }, 'Processo atualizado com sucesso');
 
         res.json({ 
             ok: true, 
@@ -414,7 +426,7 @@ router.put('/processos/:id', authMiddleware, roleMiddleware('admin', 'operador')
 
     } catch (err) {
         await client.query('ROLLBACK');
-        console.error('❌ Erro ao atualizar processo:', err.message);
+        logger.error({ err: err.message }, 'Erro ao atualizar processo');
         res.status(500).json({ 
             erro: 'Erro ao atualizar processo',
             detalhes: err.message 
@@ -443,7 +455,7 @@ router.get('/processos/existe/:numero', authMiddleware, async (req, res) => {
       processoId: result.rowCount > 0 ? result.rows[0].id : null 
     });
   } catch (err) {
-    console.error('Erro ao verificar duplicidade:', err.message);
+    logger.error({ err: err.message }, 'Erro ao verificar duplicidade');
     res.status(500).json({ erro: 'Erro ao verificar processo' });
   }
 });
@@ -453,7 +465,7 @@ router.patch('/processos/:id/excluir', authMiddleware, roleMiddleware('admin'), 
   const escritorioId = req.user?.escritorio_id;
   const operador = req.user?.nome || req.user?.email || 'Usuário desconhecido';
 
-  console.log(`Tentando excluir processo ID ${id} por usuário ${operador}`);
+  logger.info({ id, operador }, 'Tentando excluir processo');
 
   if (!req.user || !escritorioId) {
     return res.status(401).json({ erro: 'Autenticação inválida' });
@@ -480,7 +492,7 @@ router.patch('/processos/:id/excluir', authMiddleware, roleMiddleware('admin'), 
 
     if (auditoria.rows.length >= 10) {
       await pool.query('DELETE FROM processos WHERE id = $1', [auditoria.rows[0].id]);
-      console.log(`Deletado processo antigo excluído ID ${auditoria.rows[0].id}`);
+      logger.info({ id: auditoria.rows[0].id }, 'Deletado processo antigo excluido');
     }
 
     const updateResult = await pool.query(
@@ -495,11 +507,11 @@ router.patch('/processos/:id/excluir', authMiddleware, roleMiddleware('admin'), 
       return res.status(404).json({ erro: 'Processo não encontrado' });
     }
 
-    console.log(`Processo ${id} excluído com sucesso`);
+    logger.info({ id }, 'Processo excluido com sucesso');
     res.json({ ok: true });
 
   } catch (err) {
-    console.error('❌ Erro ao excluir processo:', err.message);
+    logger.error({ err: err.message }, 'Erro ao excluir processo');
     res.status(500).json({ erro: 'Erro interno ao excluir processo' });
   }
 });
@@ -512,7 +524,7 @@ router.patch('/processos/:id/arquivar', authMiddleware, roleMiddleware('admin', 
     );
     res.json({ ok: true });
   } catch (err) {
-    console.error('Erro ao arquivar:', err.message);
+    logger.error({ err: err.message }, 'Erro ao arquivar processo');
     res.status(500).json({ erro: 'Erro ao arquivar' });
   }
 });
@@ -525,7 +537,7 @@ router.patch('/processos/:id/desarquivar', authMiddleware, roleMiddleware('admin
     );
     res.json({ ok: true });
   } catch (err) {
-    console.error('Erro ao desarquivar:', err.message);
+    logger.error({ err: err.message }, 'Erro ao desarquivar processo');
     res.status(500).json({ erro: 'Erro ao desarquivar' });
   }
 });
@@ -573,12 +585,12 @@ router.get('/por-cliente/:clienteId', authMiddleware, async (req, res) => {
 
     const result = await pool.query(query, [req.user.escritorio_id, clienteId]);
     
-    console.log(`📋 Encontrados ${result.rowCount} processos para o cliente ${clienteId}`);
+    logger.info({ count: result.rowCount, clienteId }, 'Processos do cliente listados');
     
     res.json(result.rows);
 
   } catch (err) {
-    console.error('Erro ao buscar processos do cliente:', err.message);
+    logger.error({ err: err.message }, 'Erro ao buscar processos do cliente');
     res.status(500).json({ erro: 'Erro ao buscar processos do cliente' });
   }
 });
@@ -652,7 +664,7 @@ router.post('/verificar-conflito', authMiddleware, async (req, res) => {
         });
 
     } catch (err) {
-        console.error('❌ [CONFLITO] Erro:', err.message);
+        logger.error({ err: err.message }, 'Erro ao verificar conflito de interesses');
         res.status(500).json({ erro: 'Erro ao verificar conflito de interesses' });
     }
 });

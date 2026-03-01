@@ -1,6 +1,6 @@
 
-        const token = localStorage.getItem('token');
-        if (!token) window.location.href = '/login.html';
+        if (!API.getToken()) window.location.href = '/login.html';
+        const token = API.getToken();
         
         let originalData = [];
         let financeChart;
@@ -34,7 +34,7 @@ async function inicializar() {
     try {
         console.log('🔄 Inicializando página financeira...');
         
-        const resU = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        const resU = await API.get('/api/auth/me');
         const du = await resU.json(); 
         
         if(du.ok) {
@@ -61,7 +61,7 @@ async function inicializar() {
             aplicarPermissoesRoleUI(window._userRole);
         }
 
-        const resP = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+        const resP = await API.get('/api/plano-consumo');
         const dp = await resP.json();
         
         const planoElement = document.getElementById('planNameFooter');
@@ -77,8 +77,9 @@ async function inicializar() {
 }
 
         async function carregarDados() {
-            const res = await fetch('/api/financeiro', { headers: { Authorization: `Bearer ${token}` } });
-            originalData = await res.json();
+            const res = await API.get('/api/financeiro?limit=200');
+            const resp = await res.json();
+            originalData = resp.data || resp;
             renderizar(originalData);
         }
 
@@ -298,7 +299,7 @@ async function atualizarLancamento() {
         // Carregar clientes cadastrados para o select do recibo
         async function carregarClientesParaRecibo() {
             try {
-                const res = await fetch('/api/clientes', {
+                const res = await fetch('/api/clientes?limit=200', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
@@ -306,7 +307,8 @@ async function atualizarLancamento() {
                     throw new Error('Erro ao carregar clientes');
                 }
 
-                clientesCadastrados = await res.json();
+                const rCR = await res.json();
+                clientesCadastrados = rCR.data || rCR;
                 
                 const select = document.getElementById('reciboClienteSelect');
                 if (select) {
@@ -366,13 +368,14 @@ async function atualizarLancamento() {
 async function carregarClientesSelect() {
     const select = document.getElementById('selectClienteBoleto');
     try {
-        const res = await fetch('/api/clientes', {
+        const res = await fetch('/api/clientes?limit=200', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (!res.ok) throw new Error('Erro ao carregar clientes');
-        
-        const clientes = await res.json();
+
+        const rCS = await res.json();
+        const clientes = rCS.data || rCS;
         
         select.innerHTML = '<option value="">Selecione o cliente pagador</option>';
         
@@ -669,13 +672,14 @@ function debugLog(mensagem, dados) {
         async function carregarClientesParaBoleto() {
     const select = document.getElementById('selectClienteBoleto');
     try {
-        const res = await fetch('/api/clientes', { 
-            headers: { Authorization: `Bearer ${token}` } 
+        const res = await fetch('/api/clientes?limit=200', {
+            headers: { Authorization: `Bearer ${token}` }
         });
-        
+
         if (!res.ok) throw new Error("Erro na requisição");
 
-        const clientes = await res.json();
+        const rCB = await res.json();
+        const clientes = rCB.data || rCB;
         
         select.innerHTML = '<option value="">Selecione o cliente...</option>';
         clientes.forEach(c => {

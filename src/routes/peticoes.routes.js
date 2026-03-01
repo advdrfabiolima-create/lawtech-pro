@@ -11,6 +11,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
 const planMiddleware = require('../middlewares/planMiddleware');
 const PeticoesController = require('../controllers/peticoesController');
+const logger = require('../utils/logger');
 
 // ===== ROTAS PROTEGIDAS - REQUEREM AUTENTICAÇÃO =====
 
@@ -64,6 +65,6 @@ router.delete('/:id',
     PeticoesController.deletarPeticao
 );
 
-console.log('[PETICOES] Rotas de petições carregadas');
+logger.info('[PETICOES] Rotas de petições carregadas');
 
 module.exports = router;

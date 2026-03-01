@@ -1,6 +1,5 @@
 
-let token = localStorage.getItem('token');
-if (!token) window.location.href = '/login';
+if (!API.getToken()) window.location.href = '/login';
 
 let currentUserId = null;
 let currentUserNome = '';
@@ -24,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ========== AUTH / FOOTER ==========
 async function carregarInfoRodape() {
     try {
-        const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        const resUser = await API.get('/api/auth/me');
         const dataUser = await resUser.json();
 
         if (dataUser.ok) {
@@ -45,7 +44,7 @@ async function carregarInfoRodape() {
             if (circulo) circulo.innerText = iniciais.toUpperCase();
         }
 
-        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+        const resPlan = await API.get('/api/plano-consumo');
         const dataPlan = await resPlan.json();
         const planoElement = document.getElementById('planNameFooter');
         if (planoElement) planoElement.innerText = dataPlan.plano || 'Free';
@@ -89,7 +88,7 @@ document.addEventListener('click', (e) => {
 // ========== USUARIOS ==========
 async function carregarUsuarios() {
     try {
-        const res = await fetch('/api/chat/usuarios', { headers: { Authorization: `Bearer ${token}` } });
+        const res = await API.get('/api/chat/usuarios');
         const data = await res.json();
         if (data.ok) usuarios = data.usuarios;
     } catch (e) { console.error('Erro ao carregar usuários:', e); }
@@ -239,7 +238,7 @@ async function carregarMensagens(isInitial) {
         let url = `/api/chat/mensagens?tipo=${conversaAtiva.tipo}&ultimo_id=${ultimoMsgId}`;
         if (conversaAtiva.tipo === 'dm') url += `&usuario_id=${conversaAtiva.usuario_id}`;
 
-        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        const res = await API.get(url);
         const data = await res.json();
 
         if (data.ok && data.mensagens.length > 0) {
@@ -295,11 +294,7 @@ async function enviarMensagem() {
     if (conversaAtiva.tipo === 'dm') body.destinatario_id = conversaAtiva.usuario_id;
 
     try {
-        const res = await fetch('/api/chat/mensagens', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify(body)
-        });
+        const res = await API.post('/api/chat/mensagens', body);
         const data = await res.json();
 
         if (data.ok) {
@@ -343,7 +338,7 @@ function autoResize(el) {
 // ========== NAO LIDAS ==========
 async function carregarNaoLidas() {
     try {
-        const res = await fetch('/api/chat/nao-lidas', { headers: { Authorization: `Bearer ${token}` } });
+        const res = await API.get('/api/chat/nao-lidas');
         const data = await res.json();
         if (data.ok) {
             naoLidasMap = data.naoLidas;
@@ -358,7 +353,7 @@ async function marcarComoLidas() {
         let url = `/api/chat/mensagens/ler?tipo=${conversaAtiva.tipo}`;
         if (conversaAtiva.tipo === 'dm') url += `&usuario_id=${conversaAtiva.usuario_id}`;
 
-        await fetch(url, { method: 'PUT', headers: { Authorization: `Bearer ${token}` } });
+        await API.put(url, null);
 
         // Limpar badge local
         if (conversaAtiva.tipo === 'geral') {
@@ -377,12 +372,12 @@ function iniciarPollingNaoLidas() {
 
 // ========== HEARTBEAT (status online) ==========
 function enviarHeartbeat() {
-    fetch('/api/chat/heartbeat', { method: 'PUT', headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+    API.put('/api/chat/heartbeat', null).catch(() => {});
 }
 
 async function atualizarStatusOnline() {
     try {
-        const res = await fetch('/api/chat/usuarios', { headers: { Authorization: `Bearer ${token}` } });
+        const res = await API.get('/api/chat/usuarios');
         const data = await res.json();
         if (data.ok) {
             usuarios = data.usuarios;
@@ -423,11 +418,7 @@ async function enviarArquivo(input) {
     }
 
     try {
-        const res = await fetch('/api/chat/mensagens/arquivo', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
-            body: formData
-        });
+        const res = await API.upload('/api/chat/mensagens/arquivo', formData);
         const data = await res.json();
 
         if (data.ok) {
@@ -461,9 +452,7 @@ async function enviarArquivo(input) {
 // ========== DOWNLOAD DE ARQUIVO COM TOKEN ==========
 async function baixarArquivoChat(msgId, nomeArquivo) {
     try {
-        const res = await fetch(`/api/chat/arquivo/${msgId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await API.get(`/api/chat/arquivo/${msgId}`);
         if (!res.ok) {
             alert('Erro ao baixar arquivo.');
             return;

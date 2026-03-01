@@ -3,13 +3,14 @@ const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
+const logger = require('../utils/logger');
 
 // ============================================================
 // 🔧 CORRIGIDO: Listar audiências DO ESCRITÓRIO (não só do usuário)
 // ============================================================
 router.get('/audiencias', authMiddleware, async (req, res) => {
     try {
-        console.log('🔍 [GET AUDIENCIAS] Buscando para escritorio_id:', req.user.escritorio_id);
+        logger.info({ escritorioId: req.user.escritorio_id }, '[GET AUDIENCIAS] Buscando audiencias');
         
         // ✅ MUDANÇA: Busca por escritorio_id em vez de usuario_id
         const limit = Math.min(500, Math.max(1, parseInt(req.query.limit) || 200));
@@ -30,11 +31,10 @@ router.get('/audiencias', authMiddleware, async (req, res) => {
             [req.user.escritorio_id, limit]
         );
         
-        console.log('📊 [GET AUDIENCIAS] Total encontrado:', result.rows.length);
-        console.log('📋 [GET AUDIENCIAS] IDs:', result.rows.map(r => r.id));
+        logger.info({ total: result.rows.length }, '[GET AUDIENCIAS] Total encontrado');
         res.json(result.rows);
     } catch (err) {
-        console.error('❌ [GET AUDIENCIAS] Erro:', err.message);
+        logger.error({ err: err.message }, '[GET AUDIENCIAS] Erro');
         res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
     }
 });
@@ -43,7 +43,7 @@ router.get('/audiencias', authMiddleware, async (req, res) => {
 router.post('/audiencias', authMiddleware, roleMiddleware('admin', 'operador'), async (req, res) => {
     const { processo_id, tipo_audiencia, data_audiencia, hora_audiencia, local_virtual } = req.body;
     
-    console.log('🔍 [POST AUDIENCIA] Criando:', { processo_id, tipo_audiencia, data_audiencia });
+    logger.info({ processo_id, tipo_audiencia, data_audiencia }, '[POST AUDIENCIA] Criando');
     
     try {
         // ✅ Mantém usuario_id para saber quem cadastrou
@@ -54,10 +54,10 @@ router.post('/audiencias', authMiddleware, roleMiddleware('admin', 'operador'), 
             [req.user.id, processo_id, tipo_audiencia, data_audiencia, hora_audiencia, local_virtual]
         );
         
-        console.log('✅ [POST AUDIENCIA] Criada com ID:', result.rows[0].id);
+        logger.info({ id: result.rows[0].id }, '[POST AUDIENCIA] Criada');
         res.status(201).json({ ok: true, audiencia: result.rows[0] });
     } catch (err) {
-        console.error('❌ [POST AUDIENCIA] Erro:', err.message);
+        logger.error({ err: err.message }, '[POST AUDIENCIA] Erro');
         res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
     }
 });
@@ -82,10 +82,10 @@ router.delete('/audiencias/:id', authMiddleware, roleMiddleware('admin'), async 
             return res.status(403).json({ erro: 'Audiência não encontrada ou sem permissão.' });
         }
 
-        console.log(`✅ [DELETE AUDIENCIA] ID ${id} excluída do escritório ${escritorioId}`);
+        logger.info({ id, escritorioId }, '[DELETE AUDIENCIA] Excluida');
         res.json({ mensagem: 'Audiência excluída!' });
     } catch (err) {
-        console.error('❌ [DELETE AUDIENCIA]:', err);
+        logger.error({ err: err.message }, '[DELETE AUDIENCIA] Erro');
         res.status(500).json({ erro: 'Erro ao excluir audiência' });
     }
 });
@@ -114,10 +114,10 @@ router.put('/audiencias/:id/ata', authMiddleware, roleMiddleware('admin', 'opera
             return res.status(403).json({ erro: 'Audiência não encontrada.' });
         }
         
-        console.log(`✅ [ATA] Registrada para audiência ${id} por usuário ${req.user.id}`);
+        logger.info({ audienciaId: id, userId: req.user.id }, '[ATA] Registrada');
         res.json({ ok: true, mensagem: 'ATA registrada!' });
     } catch (err) {
-        console.error('❌ [ATA]:', err);
+        logger.error({ err: err.message }, '[ATA] Erro');
         res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
     }
 });
@@ -145,10 +145,10 @@ router.put('/audiencias/:id/realizada', authMiddleware, roleMiddleware('admin', 
             return res.status(403).json({ erro: 'Audiência não encontrada' });
         }
 
-        console.log(`✅ [REALIZADA] Audiência ${id} marcada pelo usuário ${req.user.id}`);
+        logger.info({ audienciaId: id, userId: req.user.id }, '[REALIZADA] Audiencia marcada');
         res.json({ ok: true, mensagem: 'Marcada como realizada' });
     } catch (err) {
-        console.error('❌ [REALIZADA]:', err);
+        logger.error({ err: err.message }, '[REALIZADA] Erro');
         res.status(500).json({ erro: 'Erro ao atualizar' });
     }
 });
@@ -176,7 +176,7 @@ router.patch('/audiencias/:id/local', authMiddleware, roleMiddleware('admin', 'o
 
         res.json({ ok: true });
     } catch (err) {
-        console.error('❌ [PATCH LOCAL]:', err.message);
+        logger.error({ err: err.message }, '[PATCH LOCAL] Erro');
         res.status(500).json({ erro: 'Erro ao atualizar endereço.' });
     }
 });

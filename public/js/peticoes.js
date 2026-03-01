@@ -75,8 +75,9 @@
     // ==================== CLIENTES ====================
     async function carregarClientes() {
         try {
-            const res = await fetch('/api/clientes', { headers: { Authorization: `Bearer ${token}` } });
-            const clientes = await res.json();
+            const res = await fetch('/api/clientes?limit=200', { headers: { Authorization: `Bearer ${token}` } });
+            const rPet = await res.json();
+            const clientes = rPet.data || rPet;
             const select = document.getElementById('clienteSelect');
             clientes.forEach(cliente => {
                 const option = document.createElement('option');

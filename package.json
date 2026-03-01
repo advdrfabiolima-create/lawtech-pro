@@ -7,7 +7,11 @@
     "dev": "nodemon src/server.js",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "migrate": "node-pg-migrate up",
+    "migrate:down": "node-pg-migrate down",
+    "migrate:create": "node-pg-migrate create",
+    "migrate:status": "node-pg-migrate status"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +23,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
+    "@aws-sdk/client-s3": "^3.1000.0",
+    "@aws-sdk/s3-request-presigner": "^3.1000.0",
     "@google/generative-ai": "^0.24.1",
     "@sentry/node": "^10.40.0",
     "@sparticuz/chromium": "^143.0.4",
@@ -35,6 +41,7 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
+    "node-pg-migrate": "^8.0.4",
     "nodemailer": "^7.0.12",
     "openai": "^6.16.0",
     "pdfkit": "^0.17.2",

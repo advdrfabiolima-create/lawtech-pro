@@ -1,5 +1,6 @@
 // src/controllers/adminController.js
 const pool = require('../config/db');
+const logger = require('../utils/logger');
 
 /**
  * 📊 LawTech Systems - Estatísticas Gerais
@@ -26,7 +27,7 @@ exports.estatisticasGerais = async (req, res) => {
         });
 
     } catch (erro) {
-        console.error('❌ [ADMIN] Erro nas estatísticas:', erro);
+        logger.error({ err: erro.message }, '[ADMIN] Erro nas estatísticas');
         res.status(500).json({
             ok: false,
             erro: 'Erro ao buscar estatísticas'
@@ -70,7 +71,7 @@ exports.listarEscritorios = async (req, res) => {
         });
 
     } catch (erro) {
-        console.error('❌ [ADMIN] Erro ao listar escritórios:', erro);
+        logger.error({ err: erro.message }, '[ADMIN] Erro ao listar escritórios');
         res.status(500).json({
             ok: false,
             erro: 'Erro ao buscar dados dos escritórios'
@@ -114,7 +115,7 @@ exports.detalhesEscritorio = async (req, res) => {
         });
 
     } catch (erro) {
-        console.error('❌ [ADMIN] Erro nos detalhes:', erro);
+        logger.error({ err: erro.message }, '[ADMIN] Erro nos detalhes do escritório');
         res.status(500).json({
             ok: false,
             erro: 'Erro ao buscar detalhes do escritório'
@@ -149,7 +150,7 @@ exports.getLogsSistema = async (req, res) => {
             logs: result.rows
         });
     } catch (err) {
-        console.error('❌ [ADMIN] Erro ao carregar logs:', err.message);
+        logger.error({ err: err.message }, '[ADMIN] Erro ao carregar logs');
         res.status(500).json({ 
             ok: false, 
             erro: 'Erro ao carregar logs administrativos' 

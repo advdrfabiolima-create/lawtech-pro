@@ -90,7 +90,7 @@ if (oabApenasNumeros) {
     const oabSemZeros = oabApenasNumeros.replace(/^0+/, '');
     const termoFormatado = `${ufFinal}-${oabSemZeros}`;
     
-    console.log(`📡 [ESCALA] Registrando OAB no Escavador: ${termoFormatado}`);
+    logger.info({ oab: termoFormatado, escritorioId }, '[ESCALA] Registrando OAB no Escavador');
 
     // Verificar se escritório tem chave API própria
     const verificarChave = await pool.query(
@@ -102,7 +102,7 @@ if (oabApenasNumeros) {
     
     // Se não tem chave própria, pula criação de monitoramento
     if (!chaveApi || chaveApi.trim() === '') {
-        console.log(`⚠️ [ESCALA] Escritório ${escritorioId} sem chave API própria.`);
+        logger.info({ escritorioId }, '[ESCALA] Escritorio sem chave API propria');
     } else {
         // Envia para o Escavador com a chave do cliente
         axios.post(`https://api.escavador.com/api/v1/monitoramentos`, {
@@ -119,7 +119,7 @@ if (oabApenasNumeros) {
             timeout: 15000
         }).then(async (response) => {
             const monitoramentoId = response.data.id;
-            console.log(`✅ [ESCALA] Sucesso: ${termoFormatado} - ID: ${monitoramentoId}`);
+            logger.info({ oab: termoFormatado, monitoramentoId }, '[ESCALA] Monitoramento criado');
             
             // Salvar ID no banco
             try {
@@ -127,13 +127,13 @@ if (oabApenasNumeros) {
                     'UPDATE escritorios SET monitoramento_id = $1 WHERE id = $2',
                     [monitoramentoId, escritorioId]
                 );
-                console.log(`   ✅ ID salvo no banco`);
+                logger.info({ monitoramentoId, escritorioId }, '[ESCALA] ID salvo no banco');
             } catch (errDb) {
-                console.error(`   ❌ Erro ao salvar ID:`, errDb.message);
+                logger.error({ err: errDb.message }, '[ESCALA] Erro ao salvar ID');
             }
         }).catch(err => {
             if (err.response?.status === 409) {
-                console.log(`ℹ️ [ESCALA] Monitoramento ${termoFormatado} já existe`);
+                logger.info({ oab: termoFormatado }, '[ESCALA] Monitoramento ja existe');
                 
                 // Buscar ID do existente
                 axios.get('https://api.escavador.com/api/v1/monitoramentos', {
@@ -147,20 +147,20 @@ if (oabApenasNumeros) {
                     );
                     
                     if (monExistente) {
-                        console.log(`   ✅ Encontrado: ID ${monExistente.id}`);
+                        logger.info({ id: monExistente.id }, '[ESCALA] Monitoramento encontrado');
                         try {
                             await pool.query(
                                 'UPDATE escritorios SET monitoramento_id = $1 WHERE id = $2',
                                 [monExistente.id, escritorioId]
                             );
-                            console.log(`   ✅ ID salvo no banco`);
+                            logger.info({ id: monExistente.id, escritorioId }, '[ESCALA] ID existente salvo no banco');
                         } catch (errDb) {
-                            console.error(`   ❌ Erro:`, errDb.message);
+                            logger.error({ err: errDb.message }, '[ESCALA] Erro ao salvar ID existente');
                         }
                     }
                 }).catch(() => {});
             } else {
-                console.log(`⚠️ [ESCALA] Erro: ${err.message}`);
+                logger.warn({ err: err.message }, '[ESCALA] Erro ao criar monitoramento');
             }
         });
     }
@@ -169,7 +169,7 @@ if (oabApenasNumeros) {
         res.json({ ok: true, mensagem: 'Configurações salvas e Radar DJEN ativado para sua OAB!' });
 
     } catch (err) {
-        console.error("❌ ERRO SQL NO SALVAMENTO:", err.message);
+        logger.error({ err: err.message }, 'Erro SQL ao salvar configuracoes');
         res.status(500).json({ erro: 'Erro ao salvar configurações' });
     }
 });
@@ -195,7 +195,7 @@ router.get('/meu-escritorio', authMiddleware, async (req, res) => {
             res.json({ ok: false, mensagem: "Escritório não encontrado." });
         }
     } catch (err) {
-        console.error('Erro ao buscar escritório:', err.message);
+        logger.error({ err: err.message }, 'Erro ao buscar escritorio');
         res.status(500).json({ ok: false, erro: 'Erro ao carregar configurações' });
     }
 });
@@ -225,7 +225,7 @@ router.put('/senha', authMiddleware, async (req, res) => {
 
         res.json({ ok: true, mensagem: 'Senha alterada com sucesso' });
     } catch (err) {
-        console.error('Erro ao alterar senha:', err.message);
+        logger.error({ err: err.message }, 'Erro ao alterar senha');
         res.status(500).json({ erro: 'Erro interno ao alterar senha' });
     }
 });
@@ -250,10 +250,10 @@ router.put('/config/perfil', authMiddleware, async (req, res) => {
             return res.status(404).json({ erro: 'Usuário não encontrado' });
         }
 
-        console.log(`✅ Nome atualizado: ${nome} (ID: ${req.user.id})`);
+        logger.info({ nome, userId: req.user.id }, 'Nome atualizado');
         res.json({ ok: true, mensagem: 'Nome atualizado com sucesso', nome: result.rows[0].nome });
     } catch (err) {
-        console.error('❌ Erro ao atualizar nome:', err.message);
+        logger.error({ err: err.message }, 'Erro ao atualizar nome');
         res.status(500).json({ erro: 'Erro ao atualizar nome' });
     }
 });
@@ -279,7 +279,7 @@ router.put('/config/escavador-key', authMiddleware, roleMiddleware('admin'), asy
             [chave, escritorioId]
         );
 
-        console.log(`✅ Chave API do Escavador ${chave ? 'salva' : 'removida'} para escritório ${escritorioId}`);
+        logger.info({ escritorioId, hasKey: !!chave }, 'Chave API do Escavador atualizada');
 
         res.json({ 
             ok: true, 
@@ -288,7 +288,7 @@ router.put('/config/escavador-key', authMiddleware, roleMiddleware('admin'), asy
                 : 'Chave API removida. Use inserção manual de publicações.'
         });
     } catch (err) {
-        console.error('❌ Erro ao salvar chave API do Escavador:', err.message);
+        logger.error({ err: err.message }, 'Erro ao salvar chave API do Escavador');
         res.status(500).json({ erro: 'Erro ao salvar chave API' });
     }
 });
@@ -338,7 +338,7 @@ router.post('/config/logo', authMiddleware, (req, res, next) => {
         );
         res.json({ ok: true, logo_arquivo: logoArquivo, logo_base64: logoBase64 });
     } catch (err) {
-        console.error('[Config] Erro ao salvar logo:', err.message);
+        logger.error({ err: err.message }, '[Config] Erro ao salvar logo');
         res.status(500).json({ ok: false, erro: err.message });
     }
 });
@@ -360,7 +360,7 @@ router.delete('/config/logo', authMiddleware, async (req, res) => {
         await pool.query('UPDATE escritorios SET logo_arquivo = NULL, logo_base64 = NULL WHERE id = $1', [req.user.escritorio_id]);
         res.json({ ok: true });
     } catch (err) {
-        console.error('[Config] Erro ao remover logo:', err.message);
+        logger.error({ err: err.message }, '[Config] Erro ao remover logo');
         res.status(500).json({ ok: false, erro: err.message });
     }
 });
