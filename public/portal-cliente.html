@@ -140,6 +140,16 @@
             text-overflow: ellipsis;
         }
 
+        .processo-parte-contraria {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 3px;
+            font-style: italic;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         .processo-meta {
             margin-top: 6px;
             display: flex;
@@ -660,6 +670,7 @@
             <div class="processo-header" onclick="toggleAndamentos(${p.id}, this)">
                 <div class="processo-info">
                     <div class="processo-numero">${p.numero || '—'}</div>
+                    ${p.parte_contraria ? `<div class="processo-parte-contraria">Parte contrária: ${escapeHtml(p.parte_contraria)}</div>` : ''}
                     <div class="processo-meta">
                         ${tribunal}${esfera}${instancia}${uf}
                         <span class="status-badge ${statusClass}">${statusLabel}</span>
