@@ -1,6 +1,4 @@
-
-        // 🛡️ VERIFICAÇÃO DE SEGURANÇA OBRIGATÓRIA
-        const token = localStorage.getItem('token');
+// 🛡️ VERIFICAÇÃO DE SEGURANÇA OBRIGATÓRIA
 
 // ============================================================
 // VERIFICAR SE PRECISA MOSTRAR MODAL
@@ -11,12 +9,10 @@
 async function verificarPrimeiroAcesso() {
     try {
         // Verificar no backend se é primeiro acesso
-        const res = await fetch('/api/auth/me', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
+        const res = await API.get('/api/auth/me');
+
         const data = await res.json();
-        
+
         console.log('🔍 [DEBUG PRIMEIRO ACESSO]', {
             primeiroAcesso: data.usuario?.primeiro_acesso,
             usuario: data.usuario?.nome,
@@ -55,13 +51,7 @@ async function fecharModalBoasVindas() {
         console.log('📤 [BOAS-VINDAS] Enviando requisição para marcar como visto...');
 
         // Marcar no backend que o usuário já viu a tela de boas-vindas
-        const res = await fetch('/api/auth/marcar-boas-vindas', {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        const res = await API.put('/api/auth/marcar-boas-vindas', {});
 
         if (res.ok) {
             console.log('✅ [BOAS-VINDAS] Modal fechado e registrado no banco');
@@ -88,13 +78,7 @@ async function resetarPrimeiroAcesso() {
     try {
         console.log('🔄 [TESTE] Tentando resetar primeiro acesso...');
         
-        const res = await fetch('/api/auth/resetar-boas-vindas', {
-            method: 'PUT',
-            headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        const res = await API.put('/api/auth/resetar-boas-vindas', {});
         
         if (res.ok) {
             alert('✅ Primeiro acesso resetado! Recarregue a página para ver o modal novamente.');
@@ -117,47 +101,52 @@ window.resetarPrimeiroAcesso = resetarPrimeiroAcesso;
 // ============================================================
 window.addEventListener('DOMContentLoaded', () => {
     verificarPrimeiroAcesso();
-});
-        if (!token) {
-            window.location.href = '/login.html';
-        } else {
-            (async function validarAcesso() {
-                try {
-                    const res = await fetch('/api/auth/me', { 
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
 
-                    if (res.status === 402) {
-                        localStorage.clear(); 
-                        window.location.href = '/pagamento-pendente';
-                        return; 
-                    }
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '/login';
+        return;
+    }
 
-                    inicializarDashboard();
-                    carregarPrazos();
-                    checarNovosLeads(); // Carrega CRM logo no início
-                } catch (err) {
-                    console.error("Erro na validação de acesso:", err);
-                }
-            })();
+    (async function validarAcesso() {
+        try {
+            const res = await API.get('/api/auth/me');
+
+            if (!res || res.status === 401) {
+                localStorage.clear();
+                window.location.href = '/login';
+                return;
+            }
+
+            if (res.status === 402) {
+                localStorage.clear();
+                window.location.href = '/pagamento-pendente';
+                return;
+            }
+
+            inicializarDashboard();
+            carregarPrazos();
+            checarNovosLeads();
+        } catch (err) {
+            console.error("Erro na validação de acesso:", err);
         }
+    })();
 
-        // Notificações (mantido)
-        const notifContainer = document.getElementById('notif-container');
-        const notifDropdown = document.getElementById('notif-dropdown');
-        const notifList = document.getElementById('notif-list');
-        const notifCount = document.getElementById('notif-count');
+    // Notificações
+    const notifContainer = document.getElementById('notif-container');
+    const notifDropdown  = document.getElementById('notif-dropdown');
 
-        if (notifContainer && notifDropdown) {
-            notifContainer.addEventListener('click', (e) => { 
-                e.stopPropagation(); 
-                notifDropdown.style.display = notifDropdown.style.display === 'none' ? 'block' : 'none'; 
-            });
-        }
-
-        document.addEventListener('click', () => {
-            if (notifDropdown) notifDropdown.style.display = 'none';
+    if (notifContainer && notifDropdown) {
+        notifContainer.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifDropdown.style.display = notifDropdown.style.display === 'none' ? 'block' : 'none';
         });
+    }
+
+    document.addEventListener('click', () => {
+        if (notifDropdown) notifDropdown.style.display = 'none';
+    });
+});
 
         // Formatação de diferença de dias
         function formatarDiferencaDias(dataVencimento) {
@@ -180,8 +169,7 @@ window.addEventListener('DOMContentLoaded', () => {
         // Inicializa dashboard (mantido seu código original, apenas organizado)
 async function inicializarDashboard() {
     try {
-        const token = localStorage.getItem('token');
-        const resUser = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        const resUser = await API.get('/api/auth/me');
         const dataUser = await resUser.json();
         
         let idEscritorio = null;
@@ -262,7 +250,7 @@ async function inicializarDashboard() {
         }
 
         // --- PLANO E CONSUMO ---
-        const resPlan = await fetch('/api/plano-consumo', { headers: { Authorization: `Bearer ${token}` } });
+        const resPlan = await API.get('/api/plano-consumo');
         const dataPlan = await resPlan.json();
 
         const alertaDiv = document.getElementById('alerta-pagamento');
@@ -336,9 +324,7 @@ async function inicializarDashboard() {
         // CRM Metrics - CORRIGIDO E ATUALIZADO
 async function checarNovosLeads() {
     try {
-        const res = await fetch('/api/crm/metricas', {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await API.get('/api/crm/metricas');
 
         if (!res.ok) {
             console.warn('Erro na API /api/metricas:', res.status);
@@ -441,7 +427,7 @@ async function carregarPrazos() {
     if (!containerGeral) return;
 
     try {
-        const res = await fetch('/api/dashboard/prazos-geral', { headers: { Authorization: `Bearer ${token}` } });
+        const res = await API.get('/api/dashboard/prazos-geral');
         const prazos = await res.json();
         
         // ✅ ADICIONAR CONTAGEM DE PRAZOS VENCIDOS E DA SEMANA
@@ -561,7 +547,7 @@ function iniciarContagemRegressiva() {
 
         async function concluirPrazoDash(id) {
             if (!confirm("Deseja marcar como concluído?")) return;
-            const res = await fetch(`/api/prazos/${id}/concluir`, { method: 'PUT', headers: { Authorization: `Bearer ${token}` } });
+            const res = await API.put(`/api/prazos/${id}/concluir`, {});
             if (res.ok) { 
                 carregarPrazos(); 
                 inicializarDashboard(); 
@@ -661,11 +647,11 @@ function iniciarContagemRegressiva() {
     checarNovosLeads(); 
     setInterval(checarNovosLeads, 30000); 
     
-    fetch('/api/audiencias', { headers: { Authorization: `Bearer ${token}` } })
+    API.get('/api/audiencias')
         .then(res => res.json())
-        .then(dados => { 
-            if (document.getElementById('totalAudiencias')) 
-                document.getElementById('totalAudiencias').innerText = Array.isArray(dados) ? dados.length : 0; 
+        .then(dados => {
+            if (document.getElementById('totalAudiencias'))
+                document.getElementById('totalAudiencias').innerText = Array.isArray(dados) ? dados.length : 0;
         });
 
     // 🚀 COMANDO DE OURO: Renderiza a lupa especificamente
@@ -757,14 +743,7 @@ async function alternarAutoStart(ligado) {
     const desativar = !ligado;
     
     // 1. Salva no banco (Permanente)
-    await fetch('/api/auth/atualizar-tour', {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ desativar })
-    });
+    await API.post('/api/auth/atualizar-tour', { desativar });
 
     // 2. Atualiza o LocalStorage IMEDIATAMENTE
     if (desativar) {
@@ -810,10 +789,8 @@ function toggleNotifDropdown() {
 }
 
 async function carregarNotificacoes() {
-    const tk = localStorage.getItem('token');
-    if (!tk) return;
     try {
-        const res = await fetch('/api/notificacoes', { headers: { 'Authorization': 'Bearer ' + tk } });
+        const res = await API.get('/api/notificacoes');
         const data = await res.json();
         const lista = document.getElementById('notif-list');
         if (!data.ok || !data.notificacoes || data.notificacoes.length === 0) {
@@ -846,28 +823,25 @@ function tempoRelativo(dataStr) {
 
 async function clicarNotificacao(id, event) {
     event.stopPropagation();
-    const tk = localStorage.getItem('token');
     try {
-        await fetch(`/api/notificacoes/${id}/lida`, { method: 'PUT', headers: { 'Authorization': 'Bearer ' + tk } });
+        await API.put(`/api/notificacoes/${id}/lida`, {});
     } catch (e) {}
     window.location.href = '/prazos-page';
 }
 
 async function marcarTodasLidas(event) {
     event.stopPropagation();
-    const tk = localStorage.getItem('token');
     try {
-        await fetch('/api/notificacoes/ler-todas', { method: 'PUT', headers: { 'Authorization': 'Bearer ' + tk } });
+        await API.put('/api/notificacoes/ler-todas', {});
         atualizarBadgeNotif();
         carregarNotificacoes();
     } catch (e) {}
 }
 
 async function atualizarBadgeNotif() {
-    const tk = localStorage.getItem('token');
-    if (!tk) return;
+    if (!API.getToken()) return;
     try {
-        const res = await fetch('/api/notificacoes/count', { headers: { 'Authorization': 'Bearer ' + tk } });
+        const res = await API.get('/api/notificacoes/count');
         const data = await res.json();
         const badge = document.getElementById('notif-count');
         if (data.ok && data.count > 0) {

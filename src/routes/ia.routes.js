@@ -3,8 +3,10 @@ const router = express.Router();
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
 const planMiddleware = require('../middlewares/planMiddleware');
+const logger = require('../utils/logger');
 const { analisarPrazoComClaude } = require('../controllers/iaController');
 const Anthropic = require('@anthropic-ai/sdk');
+
 
 /**
  * ============================================================
@@ -15,13 +17,9 @@ const Anthropic = require('@anthropic-ai/sdk');
  * ============================================================
  */
 router.post('/crm/public/captura-lead', async (req, res) => {
-    console.log('\n================================');
-    console.log('🎯 [CAPTURA LEAD] INICIANDO...');
-    console.log('================================');
-    
+    logger.info({ body: req.body }, 'Captura de lead iniciando');
+
     try {
-        console.log('📦 [1/5] Body recebido:', JSON.stringify(req.body, null, 2));
-        
         const {
             escritorio_id,
             nome,
@@ -31,17 +29,11 @@ router.post('/crm/public/captura-lead', async (req, res) => {
             mensagem
         } = req.body;
 
-        console.log('📋 [2/5] Dados extraídos:', {
-            escritorio_id,
-            nome,
-            telefone,
-            email: email || 'não fornecido',
-            assunto: assunto || 'não fornecido'
-        });
+        logger.info({ escritorio_id, nome, telefone, email: email || null, assunto: assunto || null }, 'Captura de lead dados extraidos');
 
         // Validação de dados obrigatórios
         if (!escritorio_id || !nome || !telefone) {
-            console.error('❌ [3/5] VALIDAÇÃO FALHOU - Dados obrigatórios faltando');
+            logger.error('Captura lead: dados obrigatorios faltando');
             
             return res.status(400).json({
                 erro: 'Dados obrigatórios não informados',
@@ -52,9 +44,6 @@ router.post('/crm/public/captura-lead', async (req, res) => {
                 }
             });
         }
-
-        console.log('✅ [3/5] Validação OK');
-        console.log('💾 [4/5] Inserindo na tabela LEADS...');
 
         // ✅ USANDO TABELA 'leads' que já existe
         const query = `
@@ -83,14 +72,9 @@ router.post('/crm/public/captura-lead', async (req, res) => {
             mensagem ? mensagem.trim() : null
         ];
 
-        console.log('📝 Query:', query.substring(0, 100) + '...');
-        console.log('📝 Values:', values);
-
         const result = await pool.query(query, values);
 
-        console.log('✅ [5/5] Lead inserido com sucesso!');
-        console.log('📊 Resultado:', result.rows[0]);
-        console.log('================================\n');
+        logger.info({ lead: result.rows[0] }, 'Captura lead: lead inserido com sucesso');
 
         return res.status(201).json({ 
             ok: true,
@@ -100,12 +84,7 @@ router.post('/crm/public/captura-lead', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('\n❌❌❌ ERRO CAPTURADO ❌❌❌');
-        console.error('Tipo:', error.name);
-        console.error('Mensagem:', error.message);
-        console.error('Código:', error.code);
-        console.error('Stack:', error.stack);
-        console.error('================================\n');
+        logger.error({ err: error.message, stack: error.stack, code: error.code, type: error.name }, 'Erro na captura de lead');
         
         // Erros específicos do PostgreSQL
         if (error.code === '42P01') {
@@ -147,10 +126,7 @@ router.post('/ia/perguntar',
         try {
             const { pergunta, pdf } = req.body;
 
-            console.log('📊 [IA JURÍDICA] Nova pergunta:', {
-                temPDF: !!pdf,
-                tamanhoPergunta: pergunta?.length
-            });
+            logger.info({ temPDF: !!pdf, tamanhoPergunta: pergunta?.length }, '[IA JURIDICA] Nova pergunta');
 
             if (!pergunta || !pergunta.trim()) {
                 return res.status(400).json({ 
@@ -241,7 +217,7 @@ Responda sempre:
             return res.json({ resposta: respostaIA });
 
         } catch (err) {
-            console.error('❌ ERRO NO ASSISTENTE JURÍDICO:', err.message);
+            logger.error({ err: err.message }, 'Erro no assistente juridico');
 
             if (err.status === 401) {
                 return res.status(401).json({ 
@@ -286,7 +262,7 @@ router.get('/crm/leads',
             res.json(result.rows);
 
         } catch (err) {
-            console.error('❌ ERRO AO BUSCAR LEADS:', err.message);
+            logger.error({ err: err.message }, 'Erro ao buscar leads');
             res.status(500).json({ erro: 'Erro ao buscar leads' });
         }
     }
@@ -320,7 +296,7 @@ router.put('/crm/leads/:id',
             res.json(result.rows[0]);
 
         } catch (err) {
-            console.error('❌ ERRO AO ATUALIZAR LEAD:', err.message);
+            logger.error({ err: err.message }, 'Erro ao atualizar lead');
             res.status(500).json({ erro: 'Erro ao atualizar lead' });
         }
     }
@@ -346,7 +322,7 @@ router.delete('/crm/leads/:id',
             res.json({ mensagem: 'Lead excluído com sucesso' });
 
         } catch (err) {
-            console.error('❌ ERRO AO EXCLUIR LEAD:', err.message);
+            logger.error({ err: err.message }, 'Erro ao excluir lead');
             res.status(500).json({ erro: 'Erro ao excluir lead' });
         }
     }
@@ -373,7 +349,7 @@ router.get('/crm/pipeline',
             res.json(result.rows);
 
         } catch (err) {
-            console.error('❌ ERRO AO BUSCAR PIPELINE:', err.message);
+            logger.error({ err: err.message }, 'Erro ao buscar pipeline');
             res.status(500).json({ erro: 'Erro ao buscar pipeline' });
         }
     }

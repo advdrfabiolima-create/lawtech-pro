@@ -1,5 +1,21 @@
 require('dotenv').config();
 
+// ── Validação de variáveis de ambiente ────────────────────────────────────────
+const _REQUIRED = ['DATABASE_URL', 'JWT_SECRET', 'ENCRYPTION_KEY'];
+const _CRITICAL = ['BREVO_API_KEY', 'MASTER_EMAIL', 'MASTER_PASSWORD'];
+const _missing = _REQUIRED.filter(v => !process.env[v]);
+if (_missing.length > 0) {
+    console.error(`[FATAL] Variáveis obrigatórias ausentes: ${_missing.join(', ')}`);
+    console.error('[FATAL] Configure no Railway → Variables e faça novo deploy.');
+    process.exit(1);
+}
+if (process.env.NODE_ENV === 'production') {
+    const _warn = _CRITICAL.filter(v => !process.env[v]);
+    if (_warn.length > 0)
+        console.warn(`[WARN] Variáveis críticas não configuradas: ${_warn.join(', ')}`);
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // ─── Sentry: inicializar antes de qualquer require de rotas ───────────────────
 const Sentry = require('@sentry/node');
 if (process.env.SENTRY_DSN) {
@@ -56,6 +72,7 @@ const calendarSyncRoutes = require('./routes/calendarSync.routes');
 const andamentosRoutes = require('./routes/andamentos.routes');
 const portalClienteRoutes = require('./routes/portalCliente.routes');
 const reunioesRoutes = require('./routes/reunioes.routes');
+const fileStorage = require('./utils/storage');
 
 // --- 2. MIDDLEWARES DE AUTENTICAÃ‡ÃƒO ---
 const authMiddleware = require('./middlewares/authMiddleware');
@@ -151,7 +168,15 @@ app.use(helmet({
             scriptSrcAttr: ["'unsafe-inline'"], // permite onclick/onsubmit inline nas páginas ainda não migradas
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
             imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: ["'self'", "https://api.brevo.com", "https://api.asaas.com", "https://sandbox.asaas.com"],
+            connectSrc: [
+    "'self'",
+    "https://api.brevo.com",
+    "https://api.asaas.com",
+    "https://sandbox.asaas.com",
+    "https://*.peerjs.com",
+    "wss://*.peerjs.com",      // WebSocket do PeerJS
+    "https://unpkg.com"        // source maps do unpkg
+],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
             frameSrc: ["'self'", "https://*.daily.co", "https://js.stripe.com"],
             frameAncestors: ["'self'"]
@@ -232,10 +257,11 @@ app.use('/api/contato', contatoLimiter);
 // --- 7. SERVIR ARQUIVOS ESTÃTICOS ---
 const publicPath = path.join(__dirname, '..', 'public');
 app.use(express.static(publicPath));
-// Uploads (logos, assinaturas, documentos) — acessíveis em /uploads/*
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-// Alias legado: /logos/* → mesma pasta de logos
-app.use('/logos', express.static(path.join(__dirname, 'uploads', 'logos')));
+// Uploads locais — servidos apenas quando R2 não está ativo (fallback disco)
+if (!fileStorage.isR2Active()) {
+    app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+    app.use('/logos', express.static(path.join(__dirname, 'uploads', 'logos')));
+}
 
 // --- 8. APIs (ROTAS DE DADOS) ---
 app.use('/api/auth', authRoutes);
@@ -415,10 +441,8 @@ require('./cron/crmFollowup');
     try {
         logger.info('Conectando ao Neon e validando acesso master...');
 
-        // Garantir que a coluna is_master exista
-        await pool.query(`
-            ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS is_master BOOLEAN DEFAULT false
-        `);
+        // Garantir que a coluna is_master exista (necessário antes do upsert abaixo)
+        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS is_master BOOLEAN DEFAULT false`);
 
         const masterEmail = process.env.MASTER_EMAIL;
         const masterPassword = process.env.MASTER_PASSWORD;
@@ -433,264 +457,7 @@ require('./cron/crmFollowup');
             `, [masterEmail, hash]);
         }
 
-        logger.info("âœ… [SISTEMA] VerificaÃ§Ã£o de Acesso Master concluÃ­da.");
-
-        // Criar tabela de controle de idempotência de webhooks
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS webhook_events (
-                id SERIAL PRIMARY KEY,
-                event_id VARCHAR(255) UNIQUE NOT NULL,
-                source VARCHAR(50) NOT NULL,
-                processed_at TIMESTAMP DEFAULT NOW()
-            )
-        `);
-        logger.info("✅ [SISTEMA] Tabela webhook_events verificada.");
-
-        // Criar tabela de logs do sistema (monitoramento)
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS logs_sistema (
-                id SERIAL PRIMARY KEY,
-                escritorio_id INTEGER,
-                servico VARCHAR(100),
-                tipo_erro VARCHAR(100),
-                mensagem_erro TEXT,
-                criado_em TIMESTAMP DEFAULT NOW()
-            )
-        `);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_logs_sistema_criado ON logs_sistema(criado_em)`);
-        logger.info("✅ [SISTEMA] Tabela logs_sistema verificada.");
-
-        // Criar tabela de audit log
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS audit_log (
-                id SERIAL PRIMARY KEY,
-                usuario_id INTEGER,
-                email VARCHAR(255),
-                escritorio_id INTEGER,
-                tipo_evento VARCHAR(100),
-                acao VARCHAR(100),
-                descricao TEXT,
-                metadata JSONB,
-                ip VARCHAR(45),
-                user_agent TEXT,
-                criado_em TIMESTAMP DEFAULT NOW()
-            )
-        `);
-        // Colunas extras (caso tabela já exista sem elas)
-        await pool.query(`ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS tipo_evento VARCHAR(100)`);
-        await pool.query(`ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS criado_em TIMESTAMP DEFAULT NOW()`);
-        // Índices para consultas frequentes
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_acao ON audit_log(acao)`);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_usuario ON audit_log(usuario_id)`);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(criado_em)`);
-        logger.info("✅ [SISTEMA] Tabela audit_log verificada.");
-
-        // Coluna retry_count para controle de retentativas de cobrança
-        await pool.query(`
-            ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS retry_count INTEGER DEFAULT 0
-        `);
-        logger.info("✅ [SISTEMA] Coluna retry_count verificada.");
-
-        // Tabela de consentimentos LGPD
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS consentimentos (
-                id SERIAL PRIMARY KEY,
-                usuario_id INTEGER NOT NULL,
-                tipo VARCHAR(50) NOT NULL,
-                aceito BOOLEAN NOT NULL,
-                ip VARCHAR(45),
-                created_at TIMESTAMP DEFAULT NOW()
-            )
-        `);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_consentimentos_usuario ON consentimentos(usuario_id)`);
-        logger.info("✅ [SISTEMA] Tabela consentimentos LGPD verificada.");
-
-        // Criar tabela de transações financeiras
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS transacoes (
-                id SERIAL PRIMARY KEY,
-                escritorio_id INTEGER,
-                gateway_id VARCHAR(255),
-                gateway VARCHAR(50),
-                valor NUMERIC(10,2),
-                status VARCHAR(50),
-                descricao TEXT,
-                created_at TIMESTAMP DEFAULT NOW()
-            )
-        `);
-        // Unique constraint em gateway_id para idempotência atômica
-        await pool.query(`
-            CREATE UNIQUE INDEX IF NOT EXISTS idx_transacoes_gateway_id_unique
-            ON transacoes(gateway_id) WHERE gateway_id IS NOT NULL
-        `);
-        logger.info("✅ [SISTEMA] Tabela transacoes verificada.");
-
-        // Tabela de feriados e suspensões (Calendário Jurídico)
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS feriados_suspensoes (
-                id SERIAL PRIMARY KEY,
-                escritorio_id INTEGER NOT NULL,
-                titulo VARCHAR(200) NOT NULL,
-                data DATE NOT NULL,
-                tipo VARCHAR(20) NOT NULL,
-                abrangencia VARCHAR(20) DEFAULT 'local',
-                recorrente BOOLEAN DEFAULT false,
-                created_at TIMESTAMP DEFAULT NOW()
-            )
-        `);
-        logger.info("✅ [SISTEMA] Tabela feriados_suspensoes verificada.");
-
-        // Tabela de configuração de alertas
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS config_alertas (
-                id SERIAL PRIMARY KEY,
-                escritorio_id INTEGER UNIQUE NOT NULL,
-                dias_alerta_1 INTEGER DEFAULT 7,
-                dias_alerta_2 INTEGER DEFAULT 3,
-                dias_alerta_3 INTEGER DEFAULT 1,
-                email_ativo BOOLEAN DEFAULT true,
-                inapp_ativo BOOLEAN DEFAULT true,
-                hora_envio VARCHAR(5) DEFAULT '08:00',
-                updated_at TIMESTAMP DEFAULT NOW()
-            )
-        `);
-        logger.info("✅ [SISTEMA] Tabela config_alertas verificada.");
-
-        // Tabela de notificações in-app
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS notificacoes (
-                id SERIAL PRIMARY KEY,
-                escritorio_id INTEGER NOT NULL,
-                usuario_id INTEGER NOT NULL,
-                prazo_id INTEGER NOT NULL,
-                tipo VARCHAR(20) NOT NULL,
-                titulo VARCHAR(300),
-                mensagem TEXT,
-                lida BOOLEAN DEFAULT false,
-                enviada_em TIMESTAMP DEFAULT NOW()
-            )
-        `);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_notificacoes_usuario ON notificacoes(usuario_id, lida)`);
-        logger.info("✅ [SISTEMA] Tabela notificacoes verificada.");
-
-        // Tabela de chat interno do escritório
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS chat_mensagens (
-                id SERIAL PRIMARY KEY,
-                escritorio_id INTEGER NOT NULL,
-                remetente_id INTEGER NOT NULL,
-                destinatario_id INTEGER,
-                conteudo TEXT NOT NULL,
-                lida BOOLEAN DEFAULT false,
-                criado_em TIMESTAMP DEFAULT NOW()
-            )
-        `);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_chat_escritorio_criado ON chat_mensagens(escritorio_id, criado_em)`);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_chat_remetente ON chat_mensagens(remetente_id)`);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_chat_destinatario ON chat_mensagens(destinatario_id)`);
-        await pool.query(`ALTER TABLE chat_mensagens ADD COLUMN IF NOT EXISTS arquivo_nome VARCHAR(255)`);
-        await pool.query(`ALTER TABLE chat_mensagens ADD COLUMN IF NOT EXISTS arquivo_path VARCHAR(500)`);
-        logger.info("✅ [SISTEMA] Tabela chat_mensagens verificada.");
-
-        // Coluna de último acesso para status online
-        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS ultimo_acesso TIMESTAMPTZ`);
-        logger.info("✅ [SISTEMA] Coluna ultimo_acesso verificada.");
-
-        // Colunas para recuperação de senha
-        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255)`);
-        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS reset_token_expira TIMESTAMPTZ`);
-        logger.info("✅ [SISTEMA] Colunas de reset de senha verificadas.");
-
-        // 2FA (TOTP)
-        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS totp_secret TEXT`);
-        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS totp_ativo BOOLEAN DEFAULT false`);
-        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS totp_backup_codes TEXT`);
-        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS totp_ativado_em TIMESTAMPTZ`);
-        logger.info('✅ [SISTEMA] Colunas 2FA verificadas.');
-
-        // Verificação de e-mail
-        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email_verificado BOOLEAN DEFAULT false`);
-        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email_verificacao_token VARCHAR(64)`);
-        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email_verificacao_expira TIMESTAMPTZ`);
-        logger.info('✅ [SISTEMA] Colunas de verificação de e-mail verificadas.');
-
-        // CRM Automation — colunas e tabelas
-        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS score INTEGER DEFAULT 0`);
-        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS ultima_movimentacao TIMESTAMP DEFAULT NOW()`);
-        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS email_boas_vindas_enviado BOOLEAN DEFAULT FALSE`);
-        await pool.query(`ALTER TABLE notificacoes ALTER COLUMN prazo_id DROP NOT NULL`);
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS lead_atividades (
-                id SERIAL PRIMARY KEY,
-                lead_id INTEGER NOT NULL,
-                escritorio_id INTEGER NOT NULL,
-                tipo VARCHAR(50) NOT NULL,
-                descricao TEXT,
-                criado_em TIMESTAMP DEFAULT NOW()
-            )
-        `);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_lead_ativ_lead ON lead_atividades(lead_id)`);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_lead_ativ_escritorio ON lead_atividades(escritorio_id, criado_em DESC)`);
-        logger.info('✅ [SISTEMA] Tabelas CRM automação verificadas.');
-
-        // GED — Gestão Eletrônica de Documentos
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS documentos (
-                id               SERIAL PRIMARY KEY,
-                escritorio_id    INTEGER NOT NULL,
-                processo_id      INTEGER,
-                usuario_id       INTEGER NOT NULL,
-                nome             VARCHAR(300) NOT NULL,
-                descricao        TEXT,
-                categoria        VARCHAR(80) NOT NULL DEFAULT 'outros',
-                tags             TEXT,
-                arquivo_nome     VARCHAR(300) NOT NULL,
-                arquivo_original VARCHAR(300) NOT NULL,
-                mimetype         VARCHAR(100) NOT NULL,
-                tamanho          INTEGER NOT NULL,
-                versao           INTEGER NOT NULL DEFAULT 1,
-                documento_pai_id INTEGER,
-                eh_modelo        BOOLEAN NOT NULL DEFAULT false,
-                criado_em        TIMESTAMP DEFAULT NOW(),
-                atualizado_em    TIMESTAMP DEFAULT NOW()
-            )
-        `);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_doc_escritorio ON documentos(escritorio_id)`);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_doc_processo   ON documentos(processo_id, escritorio_id)`);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_doc_modelo     ON documentos(escritorio_id, eh_modelo) WHERE eh_modelo = true`);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_doc_pai        ON documentos(documento_pai_id)`);
-        logger.info('✅ [SISTEMA] Tabela documentos (GED) verificada.');
-
-        // Assinaturas Digitais (ClickSign)
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS assinaturas_digitais (
-                id                     SERIAL PRIMARY KEY,
-                documento_id           INTEGER NOT NULL,
-                escritorio_id          INTEGER NOT NULL,
-                usuario_id             INTEGER NOT NULL,
-                clicksign_document_key VARCHAR(200),
-                status                 VARCHAR(50) NOT NULL DEFAULT 'criando',
-                signatarios            JSONB DEFAULT '[]'::jsonb,
-                mensagem               TEXT,
-                deadline               DATE,
-                criado_em              TIMESTAMP DEFAULT NOW(),
-                atualizado_em          TIMESTAMP DEFAULT NOW(),
-                concluido_em           TIMESTAMP
-            )
-        `);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_assdig_doc ON assinaturas_digitais(documento_id)`);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_assdig_esc ON assinaturas_digitais(escritorio_id)`);
-        await pool.query(`ALTER TABLE assinaturas_digitais ADD COLUMN IF NOT EXISTS link_assinatura TEXT`);
-        logger.info('✅ [SISTEMA] Tabela assinaturas_digitais verificada.');
-
-        // ClickSign Add-on (módulo pago) + BYOK
-        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_ativo BOOLEAN DEFAULT false`);
-        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_limite INTEGER DEFAULT 20`);
-        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_usado INTEGER DEFAULT 0`);
-        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_periodo_inicio TIMESTAMP DEFAULT NULL`);
-        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_addon_stripe_sub_id VARCHAR(200) DEFAULT NULL`);
-        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS clicksign_api_key TEXT DEFAULT NULL`);
-        logger.info('✅ [SISTEMA] Colunas ClickSign add-on e BYOK verificadas.');
+        logger.info('✅ [SISTEMA] Verificação de Acesso Master concluída.');
 
         // Migrar clicksign_api_key plain-text existentes → AES-256-GCM encriptado
         try {
@@ -711,78 +478,6 @@ require('./cron/crmFollowup');
         } catch (migrErr) {
             logger.warn({ err: migrErr.message }, '[SISTEMA] Migração clicksign_api_key (sem ENCRYPTION_KEY?)');
         }
-
-        // Preferência de pagamento: 'cartao' | 'pix'
-        await pool.query(`
-            ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS preferencia_pagamento VARCHAR(10) DEFAULT 'cartao'
-        `);
-        logger.info('✅ [SISTEMA] Coluna preferencia_pagamento verificada.');
-
-        // iCal Feed — token secreto por escritório
-        await pool.query(`
-            ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS ical_token VARCHAR(64)
-        `);
-        logger.info('✅ [SISTEMA] Coluna ical_token verificada.');
-
-        // Andamentos Processuais
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS andamentos_processuais (
-                id               SERIAL PRIMARY KEY,
-                processo_id      INTEGER NOT NULL REFERENCES processos(id) ON DELETE CASCADE,
-                escritorio_id    INTEGER NOT NULL,
-                usuario_id       INTEGER,
-                data_andamento   DATE NOT NULL,
-                tipo             VARCHAR(50) DEFAULT 'outros',
-                titulo           VARCHAR(200) NOT NULL,
-                descricao        TEXT,
-                visivel_cliente  BOOLEAN DEFAULT FALSE,
-                fonte            VARCHAR(20) DEFAULT 'manual',
-                criado_em        TIMESTAMPTZ DEFAULT NOW()
-            )
-        `);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_andamentos_processo ON andamentos_processuais(processo_id)`);
-        logger.info('✅ [SISTEMA] Tabela andamentos_processuais verificada.');
-
-        // Portal do Cliente — colunas de magic link
-        await pool.query(`ALTER TABLE clientes ADD COLUMN IF NOT EXISTS portal_token VARCHAR(64)`);
-        await pool.query(`ALTER TABLE clientes ADD COLUMN IF NOT EXISTS portal_token_expira_em TIMESTAMPTZ`);
-        logger.info('✅ [SISTEMA] Colunas portal_token verificadas.');
-
-        // Logo do escritório (exibida no Portal do Cliente)
-        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS logo_arquivo VARCHAR(200)`);
-        logger.info('✅ [SISTEMA] Coluna logo_arquivo verificada.');
-
-        // Logo base64 — persiste no banco, sobrevive a git pull / redeploy
-        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS logo_base64 TEXT`);
-        logger.info('✅ [SISTEMA] Coluna logo_base64 verificada.');
-
-        // Recibos: logo e assinatura em base64 — persistência entre deploys
-        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS logo_path_base64 TEXT`);
-        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS assinatura_base64 TEXT`);
-        logger.info('✅ [SISTEMA] Colunas logo_path_base64 e assinatura_base64 verificadas.');
-
-        // Reuniões com videochamada Daily.co
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS reunioes (
-                id SERIAL PRIMARY KEY,
-                escritorio_id INTEGER NOT NULL,
-                cliente_id INTEGER REFERENCES clientes(id),
-                usuario_id INTEGER REFERENCES usuarios(id),
-                titulo VARCHAR(200) NOT NULL,
-                descricao TEXT,
-                data_hora TIMESTAMPTZ NOT NULL,
-                duracao_minutos INTEGER DEFAULT 60,
-                daily_room_name VARCHAR(150),
-                daily_room_url VARCHAR(400),
-                status VARCHAR(20) DEFAULT 'agendada',
-                criado_em TIMESTAMPTZ DEFAULT NOW(),
-                atualizado_em TIMESTAMPTZ DEFAULT NOW()
-            )
-        `);
-        await pool.query(`CREATE INDEX IF NOT EXISTS idx_reunioes_escritorio ON reunioes(escritorio_id)`);
-        await pool.query(`ALTER TABLE reunioes ADD COLUMN IF NOT EXISTS peer_host_id VARCHAR(100)`);
-        await pool.query(`ALTER TABLE reunioes ADD COLUMN IF NOT EXISTS anotacoes TEXT`);
-        logger.info('✅ [SISTEMA] Tabela reunioes verificada.');
 
         iniciarAgendamentos();
 
