@@ -146,6 +146,23 @@
         .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e3a5f; color: white; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
         .toast.show { opacity: 1; }
 
+        /* Painel de anotações */
+        #videoBody { flex: 1; display: flex; min-height: 0; }
+        #notesPanel { width: 300px; background: #1e293b; border-left: 1px solid rgba(255,255,255,0.08); display: none; flex-direction: column; flex-shrink: 0; }
+        #notesPanel.open { display: flex; }
+        .notes-panel-header { padding: 11px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        #notasTextarea { flex: 1; background: transparent; border: none; color: #e2e8f0; font-size: 13px; font-family: 'Outfit', sans-serif; line-height: 1.65; resize: none; padding: 14px 16px; outline: none; }
+        #notasTextarea::placeholder { color: #334155; font-style: italic; }
+        .notes-save-status { padding: 7px 16px; font-size: 11px; color: #475569; border-top: 1px solid rgba(255,255,255,0.05); flex-shrink: 0; min-height: 28px; }
+        .notes-save-status.saved { color: #34d399; }
+        .notes-save-status.error { color: #f87171; }
+        .btn-vcall-notes { background: rgba(255,255,255,0.07); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); padding: 6px 13px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
+        .btn-vcall-notes:hover { background: rgba(255,255,255,0.14); color: #e2e8f0; }
+        .btn-vcall-notes.active { background: rgba(99,102,241,0.2); border-color: rgba(99,102,241,0.4); color: #a5b4fc; }
+        @media (max-width: 640px) {
+            #notesPanel { width: 100%; position: absolute; inset: 0; z-index: 30; }
+        }
+
         /* User menu */
         .user-menu-dropdown { display: none; position: absolute; top: 48px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); min-width: 160px; z-index: 1000; }
         .user-menu-dropdown.show { display: block; }
@@ -291,32 +308,42 @@
 <!-- Modal Videochamada PeerJS -->
 <div class="modal-overlay" id="modalVideo">
     <div class="modal-video">
-        <!-- Cabeçalho: logo + título + encerrar -->
+        <!-- Cabeçalho: logo + título + notas + encerrar -->
         <div class="modal-video-header">
             <div class="modal-video-title">
                 <img src="Logo LawTech Pro_transparente.png" class="modal-video-logo" alt="LawTech Pro">
                 <span id="videoTitulo">Reunião</span>
             </div>
+            <button class="btn-vcall-notes" id="btnNotasToggle" onclick="toggleNotasPanel()" title="Anotações da reunião">📝 Notas</button>
             <button class="btn-vcall-end" onclick="fecharModalVideo()">✕ Encerrar</button>
         </div>
-        <!-- Área de vídeo -->
-        <div id="videoArea">
-            <!-- Marca-d'água discreta -->
-            <div id="videoWatermark">
-                <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+        <!-- Corpo: vídeo + painel de notas -->
+        <div id="videoBody">
+            <!-- Área de vídeo -->
+            <div id="videoArea">
+                <!-- Marca-d'água discreta -->
+                <div id="videoWatermark">
+                    <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+                </div>
+                <!-- Tela de espera -->
+                <div id="videoWaitOverlay">
+                    <div class="wait-icon">📹</div>
+                    <p id="videoWaitMsg">Aguardando o cliente entrar na sala...</p>
+                </div>
+                <video id="remoteVideo" autoplay playsinline></video>
+                <video id="localVideo" autoplay muted playsinline></video>
+                <!-- Controles flutuantes na base -->
+                <div id="videoControls">
+                    <span class="video-status-badge" id="videoStatus">Iniciando...</span>
+                    <button class="btn-vcall" id="btnMute" onclick="toggleMute()">🎤 Mudo</button>
+                    <button class="btn-vcall" id="btnCam" onclick="toggleCamera()">📷 Câmera</button>
+                </div>
             </div>
-            <!-- Tela de espera -->
-            <div id="videoWaitOverlay">
-                <div class="wait-icon">📹</div>
-                <p id="videoWaitMsg">Aguardando o cliente entrar na sala...</p>
-            </div>
-            <video id="remoteVideo" autoplay playsinline></video>
-            <video id="localVideo" autoplay muted playsinline></video>
-            <!-- Controles flutuantes na base -->
-            <div id="videoControls">
-                <span class="video-status-badge" id="videoStatus">Iniciando...</span>
-                <button class="btn-vcall" id="btnMute" onclick="toggleMute()">🎤 Mudo</button>
-                <button class="btn-vcall" id="btnCam" onclick="toggleCamera()">📷 Câmera</button>
+            <!-- Painel de anotações -->
+            <div id="notesPanel">
+                <div class="notes-panel-header">📝 Anotações da Reunião</div>
+                <textarea id="notasTextarea" placeholder="Digite aqui suas anotações durante a reunião..." oninput="onNotasInput()"></textarea>
+                <div class="notes-save-status" id="notasSaveStatus"></div>
             </div>
         </div>
     </div>
@@ -524,6 +551,53 @@
     let _muteOn = false;
     let _camOff = false;
 
+    // ---- Anotações ----
+    let _notasReuniaoId = null;
+    let _notasDebounce = null;
+
+    function toggleNotasPanel() {
+        const panel = document.getElementById('notesPanel');
+        const btn = document.getElementById('btnNotasToggle');
+        const isOpen = panel.classList.toggle('open');
+        btn.classList.toggle('active', isOpen);
+        if (isOpen) document.getElementById('notasTextarea').focus();
+    }
+
+    function onNotasInput() {
+        clearTimeout(_notasDebounce);
+        const status = document.getElementById('notasSaveStatus');
+        status.textContent = 'Digitando...';
+        status.className = 'notes-save-status';
+        _notasDebounce = setTimeout(salvarNotas, 1500);
+    }
+
+    async function salvarNotas() {
+        if (!_notasReuniaoId) return;
+        const texto = document.getElementById('notasTextarea').value;
+        const status = document.getElementById('notasSaveStatus');
+        try {
+            const res = await fetch(`/api/reunioes/${_notasReuniaoId}/anotacoes`, {
+                method: 'PATCH',
+                headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ anotacoes: texto })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                status.textContent = '✓ Salvo';
+                status.className = 'notes-save-status saved';
+                // Atualiza cache local
+                const r = reunioes.find(x => x.id === _notasReuniaoId);
+                if (r) r.anotacoes = texto;
+            } else {
+                status.textContent = '✗ Erro ao salvar';
+                status.className = 'notes-save-status error';
+            }
+        } catch (e) {
+            status.textContent = '✗ Sem conexão';
+            status.className = 'notes-save-status error';
+        }
+    }
+
     function setVideoStatus(msg, connected = false) {
         const el = document.getElementById('videoStatus');
         el.textContent = msg;
@@ -542,6 +616,14 @@
             document.getElementById('videoTitulo').textContent = titulo || 'Reunião';
             document.getElementById('modalVideo').classList.add('show');
             lucide.createIcons();
+
+            // Carrega notas existentes
+            _notasReuniaoId = id;
+            const reuniaoAtual = reunioes.find(r => r.id === id);
+            document.getElementById('notasTextarea').value = reuniaoAtual?.anotacoes || '';
+            document.getElementById('notasSaveStatus').textContent = '';
+            document.getElementById('notasSaveStatus').className = 'notes-save-status';
+
             setVideoStatus('Iniciando câmera...');
             document.getElementById('videoWaitOverlay').style.display = 'flex';
             document.getElementById('remoteVideo').style.display = 'none';
@@ -623,6 +705,12 @@
     }
 
     function fecharModalVideo() {
+        // Salva notas pendentes antes de fechar
+        clearTimeout(_notasDebounce);
+        if (_notasReuniaoId && document.getElementById('notasTextarea').value.trim()) {
+            salvarNotas();
+        }
+
         document.getElementById('modalVideo').classList.remove('show');
         if (_activeCall) { try { _activeCall.close(); } catch(_) {} _activeCall = null; }
         if (_peer) { try { _peer.destroy(); } catch(_) {} _peer = null; }
@@ -635,7 +723,10 @@
         document.getElementById('btnMute').classList.remove('off');
         document.getElementById('btnCam').textContent = '📷 Câmera';
         document.getElementById('btnCam').classList.remove('off');
-        _muteOn = false; _camOff = false;
+        // Fecha painel de notas
+        document.getElementById('notesPanel').classList.remove('open');
+        document.getElementById('btnNotasToggle').classList.remove('active');
+        _muteOn = false; _camOff = false; _notasReuniaoId = null;
     }
 
     function mostrarToast(msg) {

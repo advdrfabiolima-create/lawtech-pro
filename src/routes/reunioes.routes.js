@@ -165,6 +165,31 @@ router.delete('/reunioes/:id', async (req, res) => {
     }
 });
 
+// PATCH /api/reunioes/:id/anotacoes — Salva anotações da reunião (advogado)
+router.patch('/reunioes/:id/anotacoes', async (req, res) => {
+    const escritorio_id = req.user.escritorio_id;
+    const { id } = req.params;
+    const { anotacoes } = req.body;
+
+    try {
+        const result = await pool.query(
+            `UPDATE reunioes SET anotacoes = $1, atualizado_em = NOW()
+             WHERE id = $2 AND escritorio_id = $3
+             RETURNING id`,
+            [anotacoes || null, id, escritorio_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ ok: false, erro: 'Reunião não encontrada.' });
+        }
+
+        res.json({ ok: true });
+    } catch (err) {
+        console.error('[Reuniões] PATCH /reunioes/:id/anotacoes erro:', err.message);
+        res.status(500).json({ ok: false, erro: 'Erro interno.' });
+    }
+});
+
 // DELETE /api/reunioes/:id/excluir — Exclui permanentemente do banco (concluída/cancelada)
 router.delete('/reunioes/:id/excluir', async (req, res) => {
     const escritorio_id = req.user.escritorio_id;
