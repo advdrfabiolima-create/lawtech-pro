@@ -717,6 +717,7 @@ require('./cron/crmFollowup');
             )
         `);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_reunioes_escritorio ON reunioes(escritorio_id)`);
+        await pool.query(`ALTER TABLE reunioes ADD COLUMN IF NOT EXISTS peer_host_id VARCHAR(100)`);
         console.log('✅ [SISTEMA] Tabela reunioes verificada.');
 
         iniciarAgendamentos();

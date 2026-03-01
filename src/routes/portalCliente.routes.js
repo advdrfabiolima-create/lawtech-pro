@@ -193,7 +193,7 @@ router.get('/reunioes/:id/token', portalMiddleware, async (req, res) => {
 
     try {
         const result = await pool.query(
-            `SELECT id, titulo, data_hora, daily_room_url, status FROM reunioes
+            `SELECT id, titulo, data_hora, daily_room_url, status, peer_host_id FROM reunioes
              WHERE id = $1 AND cliente_id = $2 AND escritorio_id = $3`,
             [id, cliente_id, escritorio_id]
         );
@@ -211,6 +211,7 @@ router.get('/reunioes/:id/token', portalMiddleware, async (req, res) => {
         res.json({
             ok: true,
             room_url: reuniao.daily_room_url,
+            peer_host_id: reuniao.peer_host_id || null,
             titulo: reuniao.titulo,
             data_hora: reuniao.data_hora
         });

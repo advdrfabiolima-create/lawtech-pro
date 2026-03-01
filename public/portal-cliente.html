@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -362,14 +363,23 @@
             background: #0f172a;
         }
 
-        /* ---- Modal Jitsi Portal ---- */
-        .portal-video-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; }
+        /* ---- Modal Videochamada PeerJS Portal ---- */
+        .portal-video-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center; }
         .portal-video-overlay.show { display: flex; }
         .portal-video-box { background: #0f172a; border-radius: 12px; width: 96%; max-width: 1100px; height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.6); }
-        .portal-video-header { padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); background: #1e293b; flex-shrink: 0; }
-        #portalJitsiContainer { flex: 1; min-height: 0; }
-        #portalJitsiContainer iframe { width: 100% !important; height: 100% !important; border: none !important; }
-        .portal-jitsi-fallback { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #94a3b8; gap: 14px; text-align: center; padding: 32px; }
+        .portal-video-header { padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); background: #1e293b; flex-shrink: 0; gap: 12px; flex-wrap: wrap; }
+        .portal-video-title { display: flex; align-items: center; gap: 8px; font-weight: 700; color: #e2e8f0; font-size: 14px; flex: 1; min-width: 0; }
+        .portal-vstatus { font-size: 11px; padding: 3px 10px; border-radius: 20px; background: rgba(255,255,255,0.07); color: #94a3b8; transition: 0.3s; white-space: nowrap; }
+        .portal-vstatus.connected { background: rgba(52,211,153,0.15); color: #34d399; }
+        .btn-pvcall { background: rgba(255,255,255,0.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.12); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-pvcall:hover { background: rgba(255,255,255,0.15); }
+        .btn-pvcall.off { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
+        .btn-pvcall-end { background: #ef4444; color: white; border: none; padding: 6px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
+        #portalVideoArea { flex: 1; min-height: 0; position: relative; background: #020617; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        #portalRemoteVideo { width: 100%; height: 100%; object-fit: cover; display: none; }
+        #portalLocalVideo { position: absolute; bottom: 16px; right: 16px; width: 190px; height: 120px; object-fit: cover; border-radius: 10px; border: 2px solid rgba(255,255,255,0.15); background: #111827; z-index: 10; }
+        #portalWaitOverlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #475569; }
+        #portalWaitMsg { font-size: 14px; color: #64748b; }
 
         /* ---- Reunião cards ---- */
         .reuniao-card {
@@ -449,20 +459,28 @@
             <div style="color:#64748b;font-size:14px;padding:20px 0;">Carregando...</div>
         </div>
 
-        <!-- Modal Videochamada Jitsi IFrame API -->
+        <!-- Modal Videochamada PeerJS -->
         <div class="portal-video-overlay" id="portalVideoModal">
             <div class="portal-video-box">
                 <div class="portal-video-header">
-                    <span id="portalVideoTitulo" style="font-weight:700;color:#e2e8f0;font-size:14px;">Reunião</span>
+                    <div class="portal-video-title">
+                        <span>📹</span>
+                        <span id="portalVideoTitulo">Reunião</span>
+                        <span class="portal-vstatus" id="portalVideoStatus">Iniciando...</span>
+                    </div>
                     <div style="display:flex;gap:8px;">
-                        <button onclick="abrirPortalVideoNovaAba()" style="background:#1e3a5f;color:#94a3b8;border:1px solid #334155;padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;">↗ Nova aba</button>
-                        <button onclick="fecharPortalVideo()" style="background:#334155;color:#e2e8f0;border:none;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;">✕ Fechar</button>
+                        <button class="btn-pvcall" id="portalBtnMute" onclick="togglePortalMute()">🎤 Mudo</button>
+                        <button class="btn-pvcall" id="portalBtnCam" onclick="togglePortalCamera()">📷 Câmera</button>
+                        <button class="btn-pvcall-end" onclick="fecharPortalVideo()">✕ Encerrar</button>
                     </div>
                 </div>
-                <div id="portalJitsiContainer"></div>
-                <div class="portal-jitsi-fallback" id="portalJitsiFallback">
-                    <p>Não foi possível carregar a videochamada aqui.</p>
-                    <button onclick="abrirPortalVideoNovaAba()" style="background:#6366f1;color:white;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">↗ Abrir em nova aba</button>
+                <div id="portalVideoArea">
+                    <div id="portalWaitOverlay">
+                        <div style="font-size:48px;">📹</div>
+                        <p id="portalWaitMsg">Conectando ao advogado...</p>
+                    </div>
+                    <video id="portalRemoteVideo" autoplay playsinline></video>
+                    <video id="portalLocalVideo" autoplay muted playsinline></video>
                 </div>
             </div>
         </div>
@@ -757,7 +775,19 @@
         }
     }
 
-    let _portalRoomUrl = null;
+    // ---- PeerJS Videochamada (cliente = participante) ----
+    let _portalPeer = null;
+    let _portalCall = null;
+    let _portalLocalStream = null;
+    let _portalMuteOn = false;
+    let _portalCamOff = false;
+
+    function setPortalVideoStatus(msg, connected = false) {
+        const el = document.getElementById('portalVideoStatus');
+        el.textContent = msg;
+        el.classList.toggle('connected', connected);
+        document.getElementById('portalWaitMsg').textContent = msg;
+    }
 
     async function entrarReuniaoPortal(id, titulo) {
         try {
@@ -770,48 +800,108 @@
                 return;
             }
 
-            _portalRoomUrl = data.room_url;
+            if (!data.peer_host_id) {
+                alert('O advogado ainda não abriu a sala. Peça para ele clicar em "Entrar" primeiro e tente novamente.');
+                return;
+            }
+
             document.getElementById('portalVideoTitulo').textContent = titulo || 'Reunião';
             document.getElementById('portalVideoModal').classList.add('show');
+            document.getElementById('portalWaitOverlay').style.display = 'flex';
+            document.getElementById('portalRemoteVideo').style.display = 'none';
+            setPortalVideoStatus('Iniciando câmera...');
 
-            iniciarJitsiPortal(data.room_url);
+            // Acessa câmera e microfone
+            try {
+                _portalLocalStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('portalLocalVideo').srcObject = _portalLocalStream;
+            } catch (e) {
+                fecharPortalVideo();
+                alert('Permita o acesso à câmera e microfone no navegador e tente novamente.');
+                return;
+            }
+
+            setPortalVideoStatus('Conectando ao advogado...');
+
+            // Cria peer com ID aleatório (cliente)
+            _portalPeer = new Peer({ debug: 0 });
+
+            _portalPeer.on('open', () => {
+                // Chama o advogado pelo peer_host_id recebido do servidor
+                const call = _portalPeer.call(data.peer_host_id, _portalLocalStream);
+                _portalCall = call;
+
+                call.on('stream', remoteStream => {
+                    const rv = document.getElementById('portalRemoteVideo');
+                    rv.srcObject = remoteStream;
+                    rv.style.display = 'block';
+                    document.getElementById('portalWaitOverlay').style.display = 'none';
+                    setPortalVideoStatus('Conectado', true);
+                });
+
+                call.on('close', () => {
+                    document.getElementById('portalRemoteVideo').style.display = 'none';
+                    document.getElementById('portalRemoteVideo').srcObject = null;
+                    document.getElementById('portalWaitOverlay').style.display = 'flex';
+                    setPortalVideoStatus('Advogado desconectou');
+                    _portalCall = null;
+                });
+
+                call.on('error', err => console.error('[Portal PeerJS] call error:', err));
+            });
+
+            _portalPeer.on('error', err => {
+                console.error('[Portal PeerJS] erro:', err.type, err);
+                if (err.type === 'peer-unavailable') {
+                    fecharPortalVideo();
+                    alert('O advogado não está disponível na sala ainda. Aguarde ele abrir a sala e tente novamente.');
+                } else {
+                    setPortalVideoStatus('Erro de conexão: ' + err.type);
+                }
+            });
+
         } catch (e) {
+            console.error('[entrarReuniaoPortal]', e);
             alert('Erro de conexão. Tente novamente.');
         }
     }
 
-    function iniciarJitsiPortal(roomUrl) {
-        const container = document.getElementById('portalJitsiContainer');
-        container.innerHTML = '';
-        container.style.display = 'block';
-        document.getElementById('portalJitsiFallback').style.display = 'none';
-
-        const params = [
-            'config.prejoinPageEnabled=false',
-            'config.disableDeepLinking=true',
-            'config.startWithVideoMuted=false',
-            'config.startWithAudioMuted=false',
-            'config.requireDisplayName=false',
-        ].join('&');
-
-        const iframe = document.createElement('iframe');
-        iframe.src = roomUrl + '#' + params;
-        iframe.setAttribute('allow', 'camera; microphone; fullscreen; display-capture; speaker-selection');
-        iframe.setAttribute('allowfullscreen', '');
-        iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
-        container.appendChild(iframe);
+    function togglePortalMute() {
+        if (!_portalLocalStream) return;
+        const track = _portalLocalStream.getAudioTracks()[0];
+        if (!track) return;
+        _portalMuteOn = !_portalMuteOn;
+        track.enabled = !_portalMuteOn;
+        const btn = document.getElementById('portalBtnMute');
+        btn.textContent = _portalMuteOn ? '🔇 Áudio' : '🎤 Mudo';
+        btn.classList.toggle('off', _portalMuteOn);
     }
 
-    function abrirPortalVideoNovaAba() {
-        if (_portalRoomUrl) window.open(_portalRoomUrl + '#config.disableDeepLinking=true', '_blank');
+    function togglePortalCamera() {
+        if (!_portalLocalStream) return;
+        const track = _portalLocalStream.getVideoTracks()[0];
+        if (!track) return;
+        _portalCamOff = !_portalCamOff;
+        track.enabled = !_portalCamOff;
+        const btn = document.getElementById('portalBtnCam');
+        btn.textContent = _portalCamOff ? '🚫 Câmera' : '📷 Câmera';
+        btn.classList.toggle('off', _portalCamOff);
     }
 
     function fecharPortalVideo() {
         document.getElementById('portalVideoModal').classList.remove('show');
-        document.getElementById('portalJitsiContainer').innerHTML = ''; // remover iframe libera câmera
-        document.getElementById('portalJitsiContainer').style.display = 'block';
-        document.getElementById('portalJitsiFallback').style.display = 'none';
-        _portalRoomUrl = null;
+        if (_portalCall) { try { _portalCall.close(); } catch(_) {} _portalCall = null; }
+        if (_portalPeer) { try { _portalPeer.destroy(); } catch(_) {} _portalPeer = null; }
+        if (_portalLocalStream) { _portalLocalStream.getTracks().forEach(t => t.stop()); _portalLocalStream = null; }
+        document.getElementById('portalLocalVideo').srcObject = null;
+        document.getElementById('portalRemoteVideo').srcObject = null;
+        document.getElementById('portalRemoteVideo').style.display = 'none';
+        document.getElementById('portalWaitOverlay').style.display = 'flex';
+        document.getElementById('portalBtnMute').textContent = '🎤 Mudo';
+        document.getElementById('portalBtnMute').classList.remove('off');
+        document.getElementById('portalBtnCam').textContent = '📷 Câmera';
+        document.getElementById('portalBtnCam').classList.remove('off');
+        _portalMuteOn = false; _portalCamOff = false;
     }
 
     // ---- Bootstrap ----

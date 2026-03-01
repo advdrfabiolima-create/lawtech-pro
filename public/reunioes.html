@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
         :root {
             --bg-primary: #F8FAFB;
@@ -118,16 +119,24 @@
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
 
-        /* Modal Videochamada Jitsi */
+        /* Modal Videochamada PeerJS */
         .modal-video { background: #0f172a; border-radius: 16px; width: 96%; max-width: 1140px; height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.5); animation: modalIn 0.3s cubic-bezier(0.16,1,0.3,1); }
-        .modal-video-header { padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; background: #1e293b; }
-        .modal-video-title { font-size: 15px; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 8px; }
-        .modal-video-title i { color: #818cf8; }
-        #jitsiContainer { flex: 1; min-height: 0; position: relative; }
-        #jitsiContainer iframe { width: 100% !important; height: 100% !important; border: none !important; }
-        .jitsi-fallback { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #94a3b8; gap: 16px; text-align: center; padding: 32px; }
-        .jitsi-fallback h3 { color: #e2e8f0; font-size: 17px; }
-        .link-box { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #94a3b8; word-break: break-all; font-family: 'JetBrains Mono', monospace; margin: 8px 0; max-width: 500px; width: 100%; }
+        .modal-video-header { padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; background: #1e293b; gap: 12px; flex-wrap: wrap; }
+        .modal-video-title { font-size: 15px; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+        .modal-video-title i { color: #818cf8; flex-shrink: 0; }
+        .video-status-badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; background: rgba(255,255,255,0.07); color: #94a3b8; transition: 0.3s; white-space: nowrap; }
+        .video-status-badge.connected { background: rgba(52,211,153,0.15); color: #34d399; }
+        .btn-vcall { background: rgba(255,255,255,0.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.12); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-vcall:hover { background: rgba(255,255,255,0.15); }
+        .btn-vcall.off { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
+        .btn-vcall-end { background: #ef4444; color: white; border: none; padding: 6px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-vcall-end:hover { background: #dc2626; }
+        #videoArea { flex: 1; min-height: 0; position: relative; background: #020617; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        #remoteVideo { width: 100%; height: 100%; object-fit: cover; display: none; }
+        #localVideo { position: absolute; bottom: 16px; right: 16px; width: 200px; height: 130px; object-fit: cover; border-radius: 10px; border: 2px solid rgba(255,255,255,0.15); background: #111827; z-index: 10; }
+        #videoWaitOverlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #475569; }
+        #videoWaitOverlay .wait-icon { font-size: 52px; line-height: 1; }
+        #videoWaitMsg { font-size: 15px; color: #64748b; }
         .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e3a5f; color: white; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
         .toast.show { opacity: 1; }
 
@@ -273,26 +282,28 @@
     </div>
 </div>
 
-<!-- Modal Videochamada Jitsi IFrame API -->
+<!-- Modal Videochamada PeerJS -->
 <div class="modal-overlay" id="modalVideo">
     <div class="modal-video">
         <div class="modal-video-header">
             <div class="modal-video-title">
                 <i data-lucide="video"></i>
                 <span id="videoTitulo">Reunião</span>
+                <span class="video-status-badge" id="videoStatus">Iniciando...</span>
             </div>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                <button onclick="copiarLinkModal()" style="background:#1e3a5f;color:#94a3b8;border:1px solid #334155;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;" title="Copiar link para o cliente">📋 Copiar link</button>
-                <button onclick="abrirLinkNovamente()" style="background:#1e3a5f;color:#94a3b8;border:1px solid #334155;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;" title="Abrir em nova aba como fallback">↗ Nova aba</button>
-                <button onclick="fecharModalVideo()" style="background:#334155;color:#e2e8f0;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">✕ Fechar</button>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <button class="btn-vcall" id="btnMute" onclick="toggleMute()">🎤 Mudo</button>
+                <button class="btn-vcall" id="btnCam" onclick="toggleCamera()">📷 Câmera</button>
+                <button class="btn-vcall-end" onclick="fecharModalVideo()">✕ Encerrar</button>
             </div>
         </div>
-        <div id="jitsiContainer"></div>
-        <div class="jitsi-fallback" id="jitsiFallback">
-            <h3>Não foi possível carregar a videochamada inline.</h3>
-            <p style="font-size:13px;">O meet.jit.si pode estar bloqueando o embedding. Use a nova aba:</p>
-            <div class="link-box" id="videoLinkBox">—</div>
-            <button class="btn-primary" onclick="abrirLinkNovamente()">↗ Abrir reunião em nova aba</button>
+        <div id="videoArea">
+            <div id="videoWaitOverlay">
+                <div class="wait-icon">📹</div>
+                <p id="videoWaitMsg">Aguardando o cliente entrar na sala...</p>
+            </div>
+            <video id="remoteVideo" autoplay playsinline></video>
+            <video id="localVideo" autoplay muted playsinline></video>
         </div>
     </div>
 </div>
@@ -491,9 +502,20 @@
         }
     }
 
-    let _currentRoomUrl = null;
+    // ---- PeerJS Videochamada (advogado = host) ----
+    let _peer = null;
+    let _activeCall = null;
+    let _localStream = null;
+    let _muteOn = false;
+    let _camOff = false;
 
-    // Entrar na reunião via iframe puro
+    function setVideoStatus(msg, connected = false) {
+        const el = document.getElementById('videoStatus');
+        el.textContent = msg;
+        el.classList.toggle('connected', connected);
+        document.getElementById('videoWaitMsg').textContent = msg;
+    }
+
     async function entrarReuniao(id, titulo) {
         try {
             const res = await fetch(`/api/reunioes/${id}/token`, {
@@ -502,79 +524,103 @@
             const data = await res.json();
             if (!data.ok) { alert('Erro: ' + (data.erro || 'Não foi possível acessar a sala.')); return; }
 
-            _currentRoomUrl = data.room_url;
             document.getElementById('videoTitulo').textContent = titulo || 'Reunião';
-            document.getElementById('videoLinkBox').textContent = data.room_url;
             document.getElementById('modalVideo').classList.add('show');
             lucide.createIcons();
+            setVideoStatus('Iniciando câmera...');
+            document.getElementById('videoWaitOverlay').style.display = 'flex';
+            document.getElementById('remoteVideo').style.display = 'none';
 
-            iniciarJitsi(data.room_url);
+            // Acessa câmera e microfone
+            try {
+                _localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('localVideo').srcObject = _localStream;
+            } catch (e) {
+                fecharModalVideo();
+                alert('Permita o acesso à câmera e microfone no navegador e tente novamente.');
+                return;
+            }
+
+            setVideoStatus('Aguardando o cliente entrar...');
+
+            // Cria peer com ID gerado pelo servidor (único por sessão)
+            _peer = new Peer(data.peer_host_id, { debug: 0 });
+
+            _peer.on('open', () => {
+                console.log('[PeerJS] Host pronto. ID:', data.peer_host_id);
+            });
+
+            _peer.on('call', call => {
+                _activeCall = call;
+                call.answer(_localStream);
+                call.on('stream', remoteStream => {
+                    const rv = document.getElementById('remoteVideo');
+                    rv.srcObject = remoteStream;
+                    rv.style.display = 'block';
+                    document.getElementById('videoWaitOverlay').style.display = 'none';
+                    setVideoStatus('Conectado', true);
+                });
+                call.on('close', () => {
+                    document.getElementById('remoteVideo').style.display = 'none';
+                    document.getElementById('remoteVideo').srcObject = null;
+                    document.getElementById('videoWaitOverlay').style.display = 'flex';
+                    setVideoStatus('Cliente desconectou');
+                    _activeCall = null;
+                });
+                call.on('error', err => console.error('[PeerJS] call error:', err));
+            });
+
+            _peer.on('error', err => {
+                console.error('[PeerJS] erro:', err.type, err);
+                if (err.type === 'unavailable-id') {
+                    setVideoStatus('ID em uso. Feche e reabra a sala em alguns segundos.');
+                } else {
+                    setVideoStatus('Erro: ' + err.type);
+                }
+            });
+
         } catch (e) {
+            console.error('[entrarReuniao]', e);
             alert('Erro de conexão. Tente novamente.');
         }
     }
 
-    function iniciarJitsi(roomUrl) {
-        const container = document.getElementById('jitsiContainer');
-        container.innerHTML = '';
-        container.style.display = 'block';
-        document.getElementById('jitsiFallback').style.display = 'none';
-
-        // Parâmetros passados via hash (sem precisar do SDK externo)
-        const params = [
-            'config.prejoinPageEnabled=false',
-            'config.disableDeepLinking=true',
-            'config.startWithVideoMuted=false',
-            'config.startWithAudioMuted=false',
-            'config.requireDisplayName=false',
-        ].join('&');
-
-        const iframe = document.createElement('iframe');
-        iframe.src = roomUrl + '#' + params;
-        iframe.setAttribute('allow', 'camera; microphone; fullscreen; display-capture; speaker-selection');
-        iframe.setAttribute('allowfullscreen', '');
-        iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
-        container.appendChild(iframe);
+    function toggleMute() {
+        if (!_localStream) return;
+        const track = _localStream.getAudioTracks()[0];
+        if (!track) return;
+        _muteOn = !_muteOn;
+        track.enabled = !_muteOn;
+        const btn = document.getElementById('btnMute');
+        btn.textContent = _muteOn ? '🔇 Áudio' : '🎤 Mudo';
+        btn.classList.toggle('off', _muteOn);
     }
 
-    function mostrarFallback(msg) {
-        document.getElementById('jitsiContainer').innerHTML = '';
-        document.getElementById('jitsiContainer').style.display = 'none';
-        const fb = document.getElementById('jitsiFallback');
-        fb.style.display = 'flex';
-        fb.querySelector('p').textContent = msg || 'Use a nova aba como alternativa.';
-    }
-
-    // Copiar link direto da linha da tabela (sem abrir a sala)
-    async function copiarLinkReuniao(id) {
-        try {
-            const res = await fetch(`/api/reunioes/${id}/token`, {
-                headers: { 'Authorization': 'Bearer ' + TOKEN }
-            });
-            const data = await res.json();
-            if (!data.ok) { alert('Erro ao obter link.'); return; }
-            await navigator.clipboard.writeText(data.room_url);
-            mostrarToast('Link copiado! Envie ao cliente.');
-        } catch (e) {
-            alert('Não foi possível copiar. Tente novamente.');
-        }
-    }
-
-    function abrirLinkNovamente() {
-        if (_currentRoomUrl) window.open(_currentRoomUrl + '#config.disableDeepLinking=true', '_blank');
-    }
-
-    function copiarLinkModal() {
-        if (!_currentRoomUrl) return;
-        navigator.clipboard.writeText(_currentRoomUrl).then(() => mostrarToast('Link copiado!'));
+    function toggleCamera() {
+        if (!_localStream) return;
+        const track = _localStream.getVideoTracks()[0];
+        if (!track) return;
+        _camOff = !_camOff;
+        track.enabled = !_camOff;
+        const btn = document.getElementById('btnCam');
+        btn.textContent = _camOff ? '🚫 Câmera' : '📷 Câmera';
+        btn.classList.toggle('off', _camOff);
     }
 
     function fecharModalVideo() {
         document.getElementById('modalVideo').classList.remove('show');
-        document.getElementById('jitsiContainer').innerHTML = ''; // remover iframe libera câmera
-        document.getElementById('jitsiContainer').style.display = 'block';
-        document.getElementById('jitsiFallback').style.display = 'none';
-        _currentRoomUrl = null;
+        if (_activeCall) { try { _activeCall.close(); } catch(_) {} _activeCall = null; }
+        if (_peer) { try { _peer.destroy(); } catch(_) {} _peer = null; }
+        if (_localStream) { _localStream.getTracks().forEach(t => t.stop()); _localStream = null; }
+        document.getElementById('localVideo').srcObject = null;
+        document.getElementById('remoteVideo').srcObject = null;
+        document.getElementById('remoteVideo').style.display = 'none';
+        document.getElementById('videoWaitOverlay').style.display = 'flex';
+        document.getElementById('btnMute').textContent = '🎤 Mudo';
+        document.getElementById('btnMute').classList.remove('off');
+        document.getElementById('btnCam').textContent = '📷 Câmera';
+        document.getElementById('btnCam').classList.remove('off');
+        _muteOn = false; _camOff = false;
     }
 
     function mostrarToast(msg) {

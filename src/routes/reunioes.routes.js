@@ -96,7 +96,12 @@ router.get('/reunioes/:id/token', async (req, res) => {
             return res.status(400).json({ ok: false, erro: 'Esta reunião foi cancelada.' });
         }
 
-        res.json({ ok: true, room_url: reuniao.daily_room_url });
+        // Gera peer ID único para o advogado (host) e persiste no banco
+        const crypto = require('crypto');
+        const peer_host_id = 'lt-' + crypto.randomBytes(10).toString('hex');
+        await pool.query('UPDATE reunioes SET peer_host_id = $1 WHERE id = $2', [peer_host_id, id]);
+
+        res.json({ ok: true, room_url: reuniao.daily_room_url, peer_host_id });
     } catch (err) {
         console.error('[Reuniões] GET /reunioes/:id/token erro:', err.message);
         res.status(500).json({ ok: false, erro: 'Erro ao obter URL da sala.' });
