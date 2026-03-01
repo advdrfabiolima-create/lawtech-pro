@@ -1291,7 +1291,11 @@ async function carregarInfoRodape() {
                 'confPixChave': d.pix_chave,
                 'confBanco': d.banco_codigo
             };
-            if (d.logo_arquivo) mostrarLogoAtual('/' + d.logo_arquivo);
+            if (d.logo_base64) {
+                mostrarLogoAtual(d.logo_base64);
+            } else if (d.logo_arquivo) {
+                mostrarLogoAtual('/' + d.logo_arquivo);
+            }
 
             Object.keys(campos).forEach(id => {
                 const el = document.getElementById(id);
@@ -1422,7 +1426,7 @@ async function carregarInfoRodape() {
             });
             const data = await res.json();
             if (data.ok) {
-                mostrarLogoAtual('/' + data.logo_arquivo + '?t=' + Date.now());
+                mostrarLogoAtual(data.logo_base64 || ('/' + data.logo_arquivo + '?t=' + Date.now()));
                 alert('✅ Logo enviada com sucesso!');
             } else {
                 alert('❌ Erro: ' + (data.erro || 'Falha ao enviar logo.'));

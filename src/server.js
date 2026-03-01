@@ -686,6 +686,10 @@ require('./cron/crmFollowup');
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS logo_arquivo VARCHAR(200)`);
         console.log('✅ [SISTEMA] Coluna logo_arquivo verificada.');
 
+        // Logo base64 — persiste no banco, sobrevive a git pull / redeploy
+        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS logo_base64 TEXT`);
+        console.log('✅ [SISTEMA] Coluna logo_base64 verificada.');
+
         iniciarAgendamentos();
 
     } catch (err) {

@@ -181,7 +181,8 @@ router.get('/meu-escritorio', authMiddleware, async (req, res) => {
         const resultado = await pool.query(
             `SELECT id, nome, advogado_responsavel, oab, documento, data_nascimento, email,
                     endereco, cidade, estado, cep, banco_codigo, agencia, conta, conta_digito,
-                    pix_chave, renda_mensal, plano_id, plano_financeiro_status, logo_arquivo
+                    pix_chave, renda_mensal, plano_id, plano_financeiro_status, logo_arquivo,
+                    logo_base64
              FROM escritorios WHERE id = $1`,
             [escritorioId]
         );
@@ -322,12 +323,16 @@ router.post('/config/logo', authMiddleware, (req, res, next) => {
     if (!req.file) return res.status(400).json({ ok: false, erro: 'Nenhum arquivo enviado.' });
 
     const logoArquivo = `logos/${req.file.filename}`;
+    // Converte para base64 e salva no banco — garante persistência entre deploys
+    const fileContent = fs.readFileSync(req.file.path);
+    const logoBase64 = `data:${req.file.mimetype};base64,${fileContent.toString('base64')}`;
+
     try {
         await pool.query(
-            'UPDATE escritorios SET logo_arquivo = $1 WHERE id = $2',
-            [logoArquivo, req.user.escritorio_id]
+            'UPDATE escritorios SET logo_arquivo = $1, logo_base64 = $2 WHERE id = $3',
+            [logoArquivo, logoBase64, req.user.escritorio_id]
         );
-        res.json({ ok: true, logo_arquivo: logoArquivo });
+        res.json({ ok: true, logo_arquivo: logoArquivo, logo_base64: logoBase64 });
     } catch (err) {
         console.error('[Config] Erro ao salvar logo:', err.message);
         res.status(500).json({ ok: false, erro: err.message });
@@ -348,7 +353,7 @@ router.delete('/config/logo', authMiddleware, async (req, res) => {
             const filePath = path.join(__dirname, '..', 'uploads', logoArquivo);
             if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
         }
-        await pool.query('UPDATE escritorios SET logo_arquivo = NULL WHERE id = $1', [req.user.escritorio_id]);
+        await pool.query('UPDATE escritorios SET logo_arquivo = NULL, logo_base64 = NULL WHERE id = $1', [req.user.escritorio_id]);
         res.json({ ok: true });
     } catch (err) {
         console.error('[Config] Erro ao remover logo:', err.message);
