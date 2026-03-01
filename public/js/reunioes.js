@@ -1,5 +1,4 @@
-
-    const TOKEN = localStorage.getItem('token');
+const TOKEN = localStorage.getItem('token');
     if (!TOKEN) { window.location.href = '/login'; }
 
     let reunioes = [];
@@ -199,8 +198,10 @@
     let _peer = null;
     let _activeCall = null;
     let _localStream = null;
+    let _screenStream = null;
     let _muteOn = false;
     let _camOff = false;
+    let _screenSharing = false;
 
     // ---- Anotações ----
     let _notasReuniaoId = null;
@@ -355,6 +356,72 @@
         btn.classList.toggle('off', _camOff);
     }
 
+    async function toggleShareScreen() {
+        const btn = document.getElementById('btnScreen');
+
+        // --- PARAR compartilhamento ---
+        if (_screenSharing) {
+            _screenSharing = false;
+            if (_screenStream) {
+                _screenStream.getTracks().forEach(t => t.stop());
+                _screenStream = null;
+            }
+            // Volta para câmera no vídeo local
+            const camTrack = _localStream ? _localStream.getVideoTracks()[0] : null;
+            document.getElementById('localVideo').srcObject = _localStream;
+
+            // Substitui a track enviada ao cliente
+            if (_activeCall && _activeCall.peerConnection && camTrack) {
+                const sender = _activeCall.peerConnection.getSenders()
+                    .find(s => s.track && s.track.kind === 'video');
+                if (sender) await sender.replaceTrack(camTrack);
+            }
+
+            btn.textContent = '🖥️ Tela';
+            btn.classList.remove('off');
+            mostrarToast('Compartilhamento de tela encerrado.');
+            return;
+        }
+
+        // --- INICIAR compartilhamento ---
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+            alert('Seu navegador não suporta compartilhamento de tela.');
+            return;
+        }
+
+        try {
+            _screenStream = await navigator.mediaDevices.getDisplayMedia({
+                video: { cursor: 'always' },
+                audio: false
+            });
+        } catch (e) {
+            // Usuário cancelou ou negou permissão
+            return;
+        }
+
+        _screenSharing = true;
+        const screenTrack = _screenStream.getVideoTracks()[0];
+
+        // Mostra a tela no vídeo local
+        document.getElementById('localVideo').srcObject = _screenStream;
+
+        // Substitui a track enviada ao cliente via PeerJS
+        if (_activeCall && _activeCall.peerConnection) {
+            const sender = _activeCall.peerConnection.getSenders()
+                .find(s => s.track && s.track.kind === 'video');
+            if (sender) await sender.replaceTrack(screenTrack);
+        }
+
+        // Quando o usuário para pelo botão do navegador, sincroniza o estado
+        screenTrack.addEventListener('ended', () => {
+            if (_screenSharing) toggleShareScreen();
+        });
+
+        btn.textContent = '⏹️ Parar Tela';
+        btn.classList.add('off');
+        mostrarToast('Compartilhando tela com o cliente.');
+    }
+
     function fecharModalVideo() {
         // Salva notas pendentes antes de fechar
         clearTimeout(_notasDebounce);
@@ -374,6 +441,10 @@
         document.getElementById('btnMute').classList.remove('off');
         document.getElementById('btnCam').textContent = '📷 Câmera';
         document.getElementById('btnCam').classList.remove('off');
+        const btnScreen = document.getElementById('btnScreen');
+        if (btnScreen) { btnScreen.textContent = '🖥️ Tela'; btnScreen.classList.remove('off'); }
+        if (_screenStream) { _screenStream.getTracks().forEach(t => t.stop()); _screenStream = null; }
+        _screenSharing = false;
         // Fecha painel de notas
         document.getElementById('notesPanel').classList.remove('open');
         document.getElementById('btnNotasToggle').classList.remove('active');
