@@ -1287,6 +1287,8 @@
         document.getElementById('count-ganho').innerText = metricas.ganho || 0;
 
         atualizarBadgeCRM(metricas.leads || 0);
+        // Marca leads como vistos para apagar o badge nas outras páginas
+        localStorage.setItem('crm_leads_visto', metricas.leads || 0);
 
         document.querySelectorAll('[id^="container-"]').forEach(c => c.innerHTML = '');
 

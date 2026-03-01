@@ -409,6 +409,27 @@ function toggleUserMenu() {
 function logout() { localStorage.removeItem('token'); window.location.href = '/login'; }
 function toggleIaMenu(e) { e.preventDefault(); document.getElementById('submenu-ia').classList.toggle('open'); }
 function limparBolinha() { const dot = document.getElementById('dotNotificacao'); if (dot) dot.style.display = 'none'; }
+
+// Badge de novo lead CRM — polling global em todas as páginas
+(function() {
+    const _tk = localStorage.getItem('token');
+    if (!_tk) return;
+    function _checkLeadBadge() {
+        fetch('/api/crm/metricas', { headers: { Authorization: 'Bearer ' + _tk } })
+            .then(r => r.ok ? r.json() : null)
+            .then(d => {
+                if (!d) return;
+                const atual = d.leads || 0;
+                const vs = localStorage.getItem('crm_leads_visto');
+                if (vs === null) { localStorage.setItem('crm_leads_visto', atual); return; }
+                const dot = document.getElementById('dotNotificacao');
+                if (dot) dot.style.display = atual > parseInt(vs) ? 'inline-block' : 'none';
+            }).catch(() => {});
+    }
+    _checkLeadBadge();
+    setInterval(_checkLeadBadge, 60000);
+})();
+
 document.addEventListener('click', (e) => {
     const menu = document.getElementById('userDropdown');
     const circle = document.getElementById('userCircle');

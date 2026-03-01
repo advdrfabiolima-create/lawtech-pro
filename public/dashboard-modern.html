@@ -2253,21 +2253,18 @@ async function inicializarDashboard() {
 }
 
         // CRM Metrics - CORRIGIDO E ATUALIZADO
-let totalLeadsAtual = 0;
-
 async function checarNovosLeads() {
     try {
-        const res = await fetch('/api/crm/metricas', { 
-            headers: { Authorization: `Bearer ${token}` } 
+        const res = await fetch('/api/crm/metricas', {
+            headers: { Authorization: `Bearer ${token}` }
         });
-        
+
         if (!res.ok) {
             console.warn('Erro na API /api/metricas:', res.status);
             return;
         }
 
         const stats = await res.json();
-        console.log('Métricas CRM recebidas no dashboard:', stats);
 
         // IDs exatos do seu HTML
         document.getElementById('crm-leads-count').innerText   = stats.leads    || '0';
@@ -2275,13 +2272,16 @@ async function checarNovosLeads() {
         document.getElementById('crm-proposta-count').innerText = stats.proposta || '0';
         document.getElementById('crm-ganho-count').innerText   = stats.ganho    || '0';
 
-        // Notificação de novo lead
-        if (totalLeadsAtual !== 0 && (stats.leads || 0) > totalLeadsAtual) {
+        // Notificação de novo lead — persiste via localStorage entre navegações de página
+        const atual = stats.leads || 0;
+        const vistoStr = localStorage.getItem('crm_leads_visto');
+        if (vistoStr === null) {
+            localStorage.setItem('crm_leads_visto', atual); // primeira carga — só registra
+        } else if (atual > parseInt(vistoStr)) {
             const som = document.getElementById('notificacaoSom');
             if (som) som.play().catch(() => {});
             document.getElementById('dotNotificacao').style.display = 'inline-block';
         }
-        totalLeadsAtual = stats.leads || 0;
 
     } catch (e) {
         console.error('Erro ao carregar métricas CRM:', e);
