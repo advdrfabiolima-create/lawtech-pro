@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://meet.jit.si/external_api.js"></script>
     <style>
         :root {
             --bg-primary: #F8FAFB;
@@ -117,9 +118,16 @@
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
 
-        /* Modal Info Reunião */
-        .modal-video { background: white; border-radius: 16px; padding: 32px; width: 90%; max-width: 520px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); animation: modalIn 0.3s cubic-bezier(0.16,1,0.3,1); }
-        .link-box { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #475569; word-break: break-all; font-family: 'JetBrains Mono', monospace; margin: 8px 0 16px; }
+        /* Modal Videochamada Jitsi */
+        .modal-video { background: #0f172a; border-radius: 16px; width: 96%; max-width: 1140px; height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.5); animation: modalIn 0.3s cubic-bezier(0.16,1,0.3,1); }
+        .modal-video-header { padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; background: #1e293b; }
+        .modal-video-title { font-size: 15px; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 8px; }
+        .modal-video-title i { color: #818cf8; }
+        #jitsiContainer { flex: 1; min-height: 0; position: relative; }
+        #jitsiContainer iframe { width: 100% !important; height: 100% !important; border: none !important; }
+        .jitsi-fallback { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #94a3b8; gap: 16px; text-align: center; padding: 32px; }
+        .jitsi-fallback h3 { color: #e2e8f0; font-size: 17px; }
+        .link-box { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #94a3b8; word-break: break-all; font-family: 'JetBrains Mono', monospace; margin: 8px 0; max-width: 500px; width: 100%; }
         .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e3a5f; color: white; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
         .toast.show { opacity: 1; }
 
@@ -265,16 +273,26 @@
     </div>
 </div>
 
-<!-- Modal Info Reunião -->
+<!-- Modal Videochamada Jitsi IFrame API -->
 <div class="modal-overlay" id="modalVideo">
     <div class="modal-video">
-        <div class="modal-title" style="margin-bottom:16px;"><i data-lucide="video"></i> <span id="videoTitulo">Reunião</span></div>
-        <p style="font-size:14px;color:#5a6c7d;margin-bottom:8px;">Sala aberta em nova aba. Compartilhe o link abaixo com o cliente:</p>
-        <div class="link-box" id="videoLinkBox">—</div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn-primary" onclick="abrirLinkNovamente()" id="btnAbrirNovamente">↗ Abrir sala novamente</button>
-            <button class="btn-secondary" onclick="copiarLinkModal()">📋 Copiar link</button>
-            <button class="btn-secondary" onclick="fecharModalVideo()">Fechar</button>
+        <div class="modal-video-header">
+            <div class="modal-video-title">
+                <i data-lucide="video"></i>
+                <span id="videoTitulo">Reunião</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <button onclick="copiarLinkModal()" style="background:#1e3a5f;color:#94a3b8;border:1px solid #334155;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;" title="Copiar link para o cliente">📋 Copiar link</button>
+                <button onclick="abrirLinkNovamente()" style="background:#1e3a5f;color:#94a3b8;border:1px solid #334155;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;" title="Abrir em nova aba como fallback">↗ Nova aba</button>
+                <button onclick="fecharModalVideo()" style="background:#334155;color:#e2e8f0;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">✕ Fechar</button>
+            </div>
+        </div>
+        <div id="jitsiContainer"></div>
+        <div class="jitsi-fallback" id="jitsiFallback">
+            <h3>Não foi possível carregar a videochamada inline.</h3>
+            <p style="font-size:13px;">O meet.jit.si pode estar bloqueando o embedding. Use a nova aba:</p>
+            <div class="link-box" id="videoLinkBox">—</div>
+            <button class="btn-primary" onclick="abrirLinkNovamente()">↗ Abrir reunião em nova aba</button>
         </div>
     </div>
 </div>
@@ -453,30 +471,95 @@
     }
 
     let _currentRoomUrl = null;
+    let _jitsiApi = null;
 
-    // Entrar na reunião — abre em nova aba e mostra modal com link para copiar
+    // Entrar na reunião via Jitsi IFrame API
     async function entrarReuniao(id, titulo) {
         try {
             const res = await fetch(`/api/reunioes/${id}/token`, {
                 headers: { 'Authorization': 'Bearer ' + TOKEN }
             });
             const data = await res.json();
-
-            if (!data.ok) {
-                alert('Erro: ' + (data.erro || 'Não foi possível acessar a sala.'));
-                return;
-            }
+            if (!data.ok) { alert('Erro: ' + (data.erro || 'Não foi possível acessar a sala.')); return; }
 
             _currentRoomUrl = data.room_url;
-            window.open(data.room_url, '_blank');
-
             document.getElementById('videoTitulo').textContent = titulo || 'Reunião';
             document.getElementById('videoLinkBox').textContent = data.room_url;
             document.getElementById('modalVideo').classList.add('show');
             lucide.createIcons();
+
+            iniciarJitsi(data.room_url);
         } catch (e) {
             alert('Erro de conexão. Tente novamente.');
         }
+    }
+
+    function iniciarJitsi(roomUrl) {
+        // Destrói instância anterior se existir
+        if (_jitsiApi) { try { _jitsiApi.dispose(); } catch(_) {} _jitsiApi = null; }
+
+        const container = document.getElementById('jitsiContainer');
+        container.innerHTML = '';
+        document.getElementById('jitsiFallback').style.display = 'none';
+        container.style.display = 'block';
+
+        // Extrai o nome da sala da URL (parte após o último /)
+        const roomName = roomUrl.split('/').pop();
+
+        if (typeof JitsiMeetExternalAPI === 'undefined') {
+            mostrarFallback('O SDK do Jitsi não carregou. Verifique sua conexão.');
+            return;
+        }
+
+        try {
+            _jitsiApi = new JitsiMeetExternalAPI('meet.jit.si', {
+                roomName,
+                parentNode: container,
+                width: '100%',
+                height: '100%',
+                configOverwrite: {
+                    startWithVideoMuted: false,
+                    startWithAudioMuted: false,
+                    prejoinPageEnabled: false,
+                    disableDeepLinking: true,
+                    requireDisplayName: false,
+                    enableNoisyMicDetection: false,
+                    lobby: { enable: false, autoKnock: false },
+                    disableModeratorIndicator: false,
+                    hideConferenceSubject: true,
+                    hideConferenceTimer: false,
+                },
+                interfaceConfigOverwrite: {
+                    SHOW_JITSI_WATERMARK: false,
+                    SHOW_WATERMARK_FOR_GUESTS: false,
+                    SHOW_BRAND_WATERMARK: false,
+                    SHOW_POWERED_BY: false,
+                    DISPLAY_WELCOME_PAGE_CONTENT: false,
+                    TOOLBAR_BUTTONS: [
+                        'microphone', 'camera', 'desktop', 'fullscreen',
+                        'fodeviceselection', 'hangup', 'chat',
+                        'videoquality', 'tileview', 'select-background',
+                    ],
+                }
+            });
+
+            // Detecta se a tela de lobby/moderador apareceu
+            _jitsiApi.on('videoConferenceLeft', () => fecharModalVideo());
+            _jitsiApi.on('errorOccurred', (err) => {
+                console.warn('[Jitsi] Erro:', err);
+                mostrarFallback('Ocorreu um erro na videochamada.');
+            });
+        } catch (err) {
+            console.error('[Jitsi] Falha ao iniciar IFrame API:', err);
+            mostrarFallback('Não foi possível iniciar a videochamada inline.');
+        }
+    }
+
+    function mostrarFallback(msg) {
+        document.getElementById('jitsiContainer').style.display = 'none';
+        const fb = document.getElementById('jitsiFallback');
+        fb.style.display = 'flex';
+        fb.querySelector('p').textContent = msg || 'Use a nova aba como alternativa.';
     }
 
     // Copiar link direto da linha da tabela (sem abrir a sala)
@@ -500,13 +583,15 @@
 
     function copiarLinkModal() {
         if (!_currentRoomUrl) return;
-        navigator.clipboard.writeText(_currentRoomUrl).then(() => {
-            mostrarToast('Link copiado!');
-        });
+        navigator.clipboard.writeText(_currentRoomUrl).then(() => mostrarToast('Link copiado!'));
     }
 
     function fecharModalVideo() {
         document.getElementById('modalVideo').classList.remove('show');
+        if (_jitsiApi) { try { _jitsiApi.dispose(); } catch(_) {} _jitsiApi = null; }
+        document.getElementById('jitsiContainer').innerHTML = '';
+        document.getElementById('jitsiContainer').style.display = 'block';
+        document.getElementById('jitsiFallback').style.display = 'none';
         _currentRoomUrl = null;
     }
 

@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://meet.jit.si/external_api.js"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -362,6 +363,15 @@
             background: #0f172a;
         }
 
+        /* ---- Modal Jitsi Portal ---- */
+        .portal-video-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; }
+        .portal-video-overlay.show { display: flex; }
+        .portal-video-box { background: #0f172a; border-radius: 12px; width: 96%; max-width: 1100px; height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.6); }
+        .portal-video-header { padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); background: #1e293b; flex-shrink: 0; }
+        #portalJitsiContainer { flex: 1; min-height: 0; }
+        #portalJitsiContainer iframe { width: 100% !important; height: 100% !important; border: none !important; }
+        .portal-jitsi-fallback { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #94a3b8; gap: 14px; text-align: center; padding: 32px; }
+
         /* ---- Reunião cards ---- */
         .reuniao-card {
             background: #1e293b;
@@ -440,7 +450,23 @@
             <div style="color:#64748b;font-size:14px;padding:20px 0;">Carregando...</div>
         </div>
 
-        <!-- Modal de vídeo removido: reunião abre em nova aba -->
+        <!-- Modal Videochamada Jitsi IFrame API -->
+        <div class="portal-video-overlay" id="portalVideoModal">
+            <div class="portal-video-box">
+                <div class="portal-video-header">
+                    <span id="portalVideoTitulo" style="font-weight:700;color:#e2e8f0;font-size:14px;">Reunião</span>
+                    <div style="display:flex;gap:8px;">
+                        <button onclick="abrirPortalVideoNovaAba()" style="background:#1e3a5f;color:#94a3b8;border:1px solid #334155;padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;">↗ Nova aba</button>
+                        <button onclick="fecharPortalVideo()" style="background:#334155;color:#e2e8f0;border:none;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;">✕ Fechar</button>
+                    </div>
+                </div>
+                <div id="portalJitsiContainer"></div>
+                <div class="portal-jitsi-fallback" id="portalJitsiFallback">
+                    <p>Não foi possível carregar a videochamada aqui.</p>
+                    <button onclick="abrirPortalVideoNovaAba()" style="background:#6366f1;color:white;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">↗ Abrir em nova aba</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -732,6 +758,9 @@
         }
     }
 
+    let _portalRoomUrl = null;
+    let _portalJitsiApi = null;
+
     async function entrarReuniaoPortal(id, titulo) {
         try {
             const res = await fetch(`/api/portal/reunioes/${id}/token`, {
@@ -742,15 +771,78 @@
                 alert(data.erro || 'Não foi possível acessar a sala. Tente novamente.');
                 return;
             }
-            // Abre a sala Jitsi em nova aba — evita problemas de OAuth dentro de iframe
-            window.open(data.room_url, '_blank');
+
+            _portalRoomUrl = data.room_url;
+            document.getElementById('portalVideoTitulo').textContent = titulo || 'Reunião';
+            document.getElementById('portalVideoModal').classList.add('show');
+
+            iniciarJitsiPortal(data.room_url);
         } catch (e) {
             alert('Erro de conexão. Tente novamente.');
         }
     }
 
+    function iniciarJitsiPortal(roomUrl) {
+        if (_portalJitsiApi) { try { _portalJitsiApi.dispose(); } catch(_) {} _portalJitsiApi = null; }
+
+        const container = document.getElementById('portalJitsiContainer');
+        container.innerHTML = '';
+        container.style.display = 'block';
+        document.getElementById('portalJitsiFallback').style.display = 'none';
+
+        const roomName = roomUrl.split('/').pop();
+
+        if (typeof JitsiMeetExternalAPI === 'undefined') {
+            document.getElementById('portalJitsiContainer').style.display = 'none';
+            document.getElementById('portalJitsiFallback').style.display = 'flex';
+            return;
+        }
+
+        try {
+            _portalJitsiApi = new JitsiMeetExternalAPI('meet.jit.si', {
+                roomName,
+                parentNode: container,
+                width: '100%',
+                height: '100%',
+                configOverwrite: {
+                    startWithVideoMuted: false,
+                    startWithAudioMuted: false,
+                    prejoinPageEnabled: false,
+                    disableDeepLinking: true,
+                    requireDisplayName: false,
+                    lobby: { enable: false, autoKnock: false },
+                    hideConferenceSubject: true,
+                },
+                interfaceConfigOverwrite: {
+                    SHOW_JITSI_WATERMARK: false,
+                    SHOW_WATERMARK_FOR_GUESTS: false,
+                    SHOW_BRAND_WATERMARK: false,
+                    SHOW_POWERED_BY: false,
+                    TOOLBAR_BUTTONS: [
+                        'microphone', 'camera', 'desktop', 'fullscreen',
+                        'fodeviceselection', 'hangup', 'chat', 'tileview',
+                    ],
+                }
+            });
+            _portalJitsiApi.on('videoConferenceLeft', () => fecharPortalVideo());
+        } catch (err) {
+            console.error('[Jitsi Portal] Erro:', err);
+            container.style.display = 'none';
+            document.getElementById('portalJitsiFallback').style.display = 'flex';
+        }
+    }
+
+    function abrirPortalVideoNovaAba() {
+        if (_portalRoomUrl) window.open(_portalRoomUrl, '_blank');
+    }
+
     function fecharPortalVideo() {
-        // mantido por compatibilidade — não faz mais nada
+        document.getElementById('portalVideoModal').classList.remove('show');
+        if (_portalJitsiApi) { try { _portalJitsiApi.dispose(); } catch(_) {} _portalJitsiApi = null; }
+        document.getElementById('portalJitsiContainer').innerHTML = '';
+        document.getElementById('portalJitsiContainer').style.display = 'block';
+        document.getElementById('portalJitsiFallback').style.display = 'none';
+        _portalRoomUrl = null;
     }
 
     // ---- Bootstrap ----
