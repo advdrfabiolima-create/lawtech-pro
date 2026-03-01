@@ -441,10 +441,12 @@
         document.getElementById('reuniaoTitulo').value = '';
         document.getElementById('reuniaoDescricao').value = '';
         document.getElementById('reuniaoDuracao').value = '60';
-        // Pré-preenche data/hora com +1h
+        // Pré-preenche data/hora com +1h (em hora local, não UTC)
         const agora = new Date(Date.now() + 60 * 60 * 1000);
         agora.setSeconds(0, 0);
-        document.getElementById('reuniaoDataHora').value = agora.toISOString().slice(0, 16);
+        const _pad = n => String(n).padStart(2, '0');
+        document.getElementById('reuniaoDataHora').value =
+            `${agora.getFullYear()}-${_pad(agora.getMonth()+1)}-${_pad(agora.getDate())}T${_pad(agora.getHours())}:${_pad(agora.getMinutes())}`;
         document.getElementById('modalNovaReuniao').classList.add('show');
     }
 
@@ -454,7 +456,8 @@
 
     async function criarReuniao() {
         const titulo = document.getElementById('reuniaoTitulo').value.trim();
-        const data_hora = document.getElementById('reuniaoDataHora').value;
+        // Converte datetime-local (sem fuso) para ISO UTC respeitando a hora local do navegador
+        const data_hora = new Date(document.getElementById('reuniaoDataHora').value).toISOString();
         const cliente_id = document.getElementById('reuniaoClienteId').value || null;
         const descricao = document.getElementById('reuniaoDescricao').value.trim();
         const duracao_minutos = parseInt(document.getElementById('reuniaoDuracao').value);
@@ -507,7 +510,8 @@
             document.getElementById('modalVideo').classList.add('show');
             lucide.createIcons();
 
-            iniciarJitsi(data.room_url);
+            // Aguarda o modal renderizar antes de inicializar o Jitsi (necessário para offsetHeight)
+            setTimeout(() => iniciarJitsi(data.room_url), 150);
         } catch (e) {
             alert('Erro de conexão. Tente novamente.');
         }
@@ -531,11 +535,12 @@
         }
 
         try {
+            const jitsiH = container.offsetHeight || 500;
             _jitsiApi = new JitsiMeetExternalAPI('meet.jit.si', {
                 roomName,
                 parentNode: container,
                 width: '100%',
-                height: '100%',
+                height: jitsiH,
                 configOverwrite: {
                     startWithVideoMuted: false,
                     startWithAudioMuted: false,
@@ -575,6 +580,8 @@
     }
 
     function mostrarFallback(msg) {
+        // Libera câmera/microfone antes de mostrar o fallback
+        if (_jitsiApi) { try { _jitsiApi.dispose(); } catch(_) {} _jitsiApi = null; }
         document.getElementById('jitsiContainer').style.display = 'none';
         const fb = document.getElementById('jitsiFallback');
         fb.style.display = 'flex';
@@ -597,7 +604,7 @@
     }
 
     function abrirLinkNovamente() {
-        if (_currentRoomUrl) window.open(_currentRoomUrl, '_blank');
+        if (_currentRoomUrl) window.open(_currentRoomUrl + '#config.disableDeepLinking=true', '_blank');
     }
 
     function copiarLinkModal() {
