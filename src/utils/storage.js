@@ -1,10 +1,10 @@
 /**
  * storage.js — Abstração unificada de armazenamento de arquivos.
  *
- * Ativo em modo R2 se todas as 4 vars estiverem presentes:
- *   R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME
- *
- * Caso contrário, usa fallback automático para disco local (uploads/).
+ * Prioridade de ativação:
+ *   1. Backblaze B2 (se B2_KEY_ID + B2_APP_KEY + B2_BUCKET_NAME + B2_ENDPOINT estiverem presentes)
+ *   2. Cloudflare R2 (se R2_ACCOUNT_ID + R2_ACCESS_KEY_ID + R2_SECRET_ACCESS_KEY + R2_BUCKET_NAME)
+ *   3. Disco local (fallback automático)
  *
  * API pública:
  *   storage.upload(buffer, key, mimetype)  → Promise<void>
@@ -14,8 +14,8 @@
  *   storage.isR2Active()                   → Boolean
  *
  * Migração gradual (zero downtime):
- *   - Novos uploads vão para R2 (ou disco).
- *   - Downloads tentam R2 primeiro; se o objeto não existe (404), caem para disco.
+ *   - Novos uploads vão para B2/R2 (ou disco).
+ *   - Downloads tentam nuvem primeiro; se o objeto não existe (404), caem para disco.
  *   - Arquivos antigos continuam acessíveis enquanto ainda estiverem no disco.
  */
 
@@ -24,9 +24,15 @@
 const path = require('path');
 const fs   = require('fs');
 
-// ── Detectar se R2 está configurado ──────────────────────────────────────────
-const R2_VARS    = ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME'];
-const r2Active   = R2_VARS.every(v => process.env[v]);
+// ── Detectar Backblaze B2 ─────────────────────────────────────────────────────
+const B2_VARS   = ['B2_KEY_ID', 'B2_APP_KEY', 'B2_BUCKET_NAME', 'B2_ENDPOINT'];
+const b2Active  = B2_VARS.every(v => process.env[v]);
+
+// ── Detectar Cloudflare R2 ────────────────────────────────────────────────────
+const R2_VARS   = ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME'];
+const r2Active  = !b2Active && R2_VARS.every(v => process.env[v]);
+
+const cloudActive = b2Active || r2Active;
 
 let s3Client             = null;
 let bucketName           = null;
@@ -36,8 +42,31 @@ let DeleteObjectCommand  = null;
 let HeadObjectCommand    = null;
 let getSignedUrl         = null;
 
-if (r2Active) {
-    const sdk = require('@aws-sdk/client-s3');
+if (b2Active) {
+    const sdk       = require('@aws-sdk/client-s3');
+    const presigner = require('@aws-sdk/s3-request-presigner');
+
+    GetObjectCommand    = sdk.GetObjectCommand;
+    PutObjectCommand    = sdk.PutObjectCommand;
+    DeleteObjectCommand = sdk.DeleteObjectCommand;
+    HeadObjectCommand   = sdk.HeadObjectCommand;
+    getSignedUrl        = presigner.getSignedUrl;
+    bucketName          = process.env.B2_BUCKET_NAME;
+
+    s3Client = new sdk.S3Client({
+        region: 'us-east-1', // B2 aceita qualquer região neste campo
+        endpoint: process.env.B2_ENDPOINT, // ex: https://s3.us-west-004.backblazeb2.com
+        credentials: {
+            accessKeyId:     process.env.B2_KEY_ID,
+            secretAccessKey: process.env.B2_APP_KEY
+        },
+        forcePathStyle: true // necessário para Backblaze B2
+    });
+
+    console.log(`[storage] Modo Backblaze B2 ativo — bucket: ${bucketName}`);
+
+} else if (r2Active) {
+    const sdk       = require('@aws-sdk/client-s3');
     const presigner = require('@aws-sdk/s3-request-presigner');
 
     GetObjectCommand    = sdk.GetObjectCommand;
@@ -57,8 +86,9 @@ if (r2Active) {
     });
 
     console.log(`[storage] Modo R2 ativo — bucket: ${bucketName}`);
+
 } else {
-    console.log('[storage] Modo disco local (R2 não configurado)');
+    console.log('[storage] Modo disco local (B2 e R2 não configurados)');
 }
 
 // ── Caminho local de fallback ─────────────────────────────────────────────────
@@ -94,7 +124,7 @@ const INLINE_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/jpg', 'ima
 // upload(buffer, key, mimetype) → Promise<void>
 // ─────────────────────────────────────────────────────────────────────────────
 async function upload(buffer, key, mimetype) {
-    if (r2Active) {
+    if (cloudActive) {
         await s3Client.send(new PutObjectCommand({
             Bucket:      bucketName,
             Key:         key,
@@ -123,9 +153,9 @@ async function download(key, res, opts = {}) {
         ? `${isInline ? 'inline' : 'attachment'}; filename="${encodeURIComponent(filename)}"`
         : undefined;
 
-    if (r2Active) {
+    if (cloudActive) {
         try {
-            // Verifica existência no R2
+            // Verifica existência no storage
             await s3Client.send(new HeadObjectCommand({ Bucket: bucketName, Key: key }));
 
             // Gera presigned URL (1 hora) com Content-Disposition personalizado
@@ -142,7 +172,7 @@ async function download(key, res, opts = {}) {
             return true;
         } catch (err) {
             if (!isNotFound(err)) throw err;
-            // Objeto não existe no R2 → tenta disco (migração gradual)
+            // Objeto não existe na nuvem → tenta disco (migração gradual)
         }
     }
 
@@ -163,13 +193,13 @@ async function download(key, res, opts = {}) {
 //   null → arquivo não encontrado
 // ─────────────────────────────────────────────────────────────────────────────
 async function getBuffer(key) {
-    if (r2Active) {
+    if (cloudActive) {
         try {
             const data = await s3Client.send(new GetObjectCommand({ Bucket: bucketName, Key: key }));
             return await streamToBuffer(data.Body);
         } catch (err) {
             if (!isNotFound(err)) throw err;
-            // Não existe no R2 → tenta disco
+            // Não existe na nuvem → tenta disco
         }
     }
 
@@ -183,7 +213,7 @@ async function getBuffer(key) {
 // del(key) → Promise<void>
 // ─────────────────────────────────────────────────────────────────────────────
 async function del(key) {
-    if (r2Active) {
+    if (cloudActive) {
         try {
             await s3Client.send(new DeleteObjectCommand({ Bucket: bucketName, Key: key }));
         } catch (_) { /* objeto já não existe — ignora */ }
@@ -197,10 +227,10 @@ async function del(key) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// isR2Active() → Boolean
+// isR2Active() → Boolean (mantido para compatibilidade com server.js)
 // ─────────────────────────────────────────────────────────────────────────────
 function isR2Active() {
-    return r2Active;
+    return cloudActive;
 }
 
 module.exports = { upload, download, getBuffer, delete: del, isR2Active };
