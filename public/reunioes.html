@@ -420,11 +420,8 @@
                 <td>${badgeStatus(r.status)}</td>
                 <td style="text-align:right; white-space:nowrap;">
                     ${r.status === 'agendada' ? `
-                        <button class="btn-icon" title="Entrar na Reunião (nova aba)" onclick="entrarReuniao(${r.id}, '${escapeHtml(r.titulo)}')" style="color:#6366f1;">
+                        <button class="btn-icon" title="Entrar na Reunião" onclick="entrarReuniao(${r.id}, '${escapeHtml(r.titulo)}')" style="color:#6366f1;">
                             <i data-lucide="video" style="width:18px;height:18px;"></i>
-                        </button>
-                        <button class="btn-icon" title="Copiar link para o cliente" onclick="copiarLinkReuniao(${r.id})" style="color:#0ea5e9;">
-                            <i data-lucide="link" style="width:18px;height:18px;"></i>
                         </button>
                         <button class="btn-icon" title="Concluir" onclick="atualizarStatus(${r.id}, 'concluida')" style="color:#16a34a;">
                             <i data-lucide="check-circle" style="width:18px;height:18px;"></i>
@@ -432,7 +429,11 @@
                         <button class="btn-icon" title="Cancelar Reunião" onclick="cancelarReuniao(${r.id})" style="color:#dc2626;">
                             <i data-lucide="trash-2" style="width:18px;height:18px;"></i>
                         </button>
-                    ` : '<span style="color:#94a3b8;font-size:12px;">—</span>'}
+                    ` : `
+                        <button class="btn-icon" title="Excluir permanentemente" onclick="excluirReuniao(${r.id})" style="color:#dc2626;">
+                            <i data-lucide="trash-2" style="width:18px;height:18px;"></i>
+                        </button>
+                    `}
                 </td>
             </tr>
         `).join('');
@@ -663,9 +664,9 @@
         }
     }
 
-    // Cancelar reunião (DELETE)
+    // Cancelar reunião (marca como cancelada)
     async function cancelarReuniao(id) {
-        if (!confirm('Cancelar esta reunião? A sala de videochamada será encerrada.')) return;
+        if (!confirm('Cancelar esta reunião?')) return;
 
         try {
             const res = await fetch(`/api/reunioes/${id}`, {
@@ -674,6 +675,23 @@
             });
             const data = await res.json();
             if (!data.ok) { alert('Erro: ' + (data.erro || 'Falha ao cancelar.')); return; }
+            await carregarReunioes();
+        } catch (e) {
+            alert('Erro de conexão.');
+        }
+    }
+
+    // Excluir permanentemente (apenas concluída/cancelada)
+    async function excluirReuniao(id) {
+        if (!confirm('Excluir permanentemente esta reunião? Esta ação não pode ser desfeita.')) return;
+
+        try {
+            const res = await fetch(`/api/reunioes/${id}/excluir`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + TOKEN }
+            });
+            const data = await res.json();
+            if (!data.ok) { alert('Erro: ' + (data.erro || 'Falha ao excluir.')); return; }
             await carregarReunioes();
         } catch (e) {
             alert('Erro de conexão.');

@@ -138,7 +138,7 @@ router.patch('/reunioes/:id/status', async (req, res) => {
     }
 });
 
-// DELETE /api/reunioes/:id — Cancela reunião (sala Jitsi expira sozinha)
+// DELETE /api/reunioes/:id — Cancela reunião (marca status='cancelada')
 router.delete('/reunioes/:id', async (req, res) => {
     const escritorio_id = req.user.escritorio_id;
     const { id } = req.params;
@@ -161,6 +161,35 @@ router.delete('/reunioes/:id', async (req, res) => {
         res.json({ ok: true });
     } catch (err) {
         console.error('[Reuniões] DELETE /reunioes/:id erro:', err.message);
+        res.status(500).json({ ok: false, erro: 'Erro interno.' });
+    }
+});
+
+// DELETE /api/reunioes/:id/excluir — Exclui permanentemente do banco (concluída/cancelada)
+router.delete('/reunioes/:id/excluir', async (req, res) => {
+    const escritorio_id = req.user.escritorio_id;
+    const { id } = req.params;
+
+    try {
+        const result = await pool.query(
+            `SELECT id, status FROM reunioes WHERE id = $1 AND escritorio_id = $2`,
+            [id, escritorio_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ ok: false, erro: 'Reunião não encontrada.' });
+        }
+
+        const { status } = result.rows[0];
+        if (status === 'agendada') {
+            return res.status(400).json({ ok: false, erro: 'Cancele a reunião antes de excluí-la.' });
+        }
+
+        await pool.query('DELETE FROM reunioes WHERE id = $1', [id]);
+
+        res.json({ ok: true });
+    } catch (err) {
+        console.error('[Reuniões] DELETE /reunioes/:id/excluir erro:', err.message);
         res.status(500).json({ ok: false, erro: 'Erro interno.' });
     }
 });
