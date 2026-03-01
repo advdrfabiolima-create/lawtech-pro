@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <title>LawTech Pro — Reuniões</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-primary: #F8FAFB;
+            --bg-secondary: #1E3A5F;
+            --bg-tertiary: #2A4A73;
+            --bg-elevated: #ffffff;
+            --text-primary: #2C3E50;
+            --text-secondary: #5A6C7D;
+            --text-tertiary: #7B8794;
+            --accent-blue: #4A90E2;
+            --accent-blue-light: #5BA4DB;
+            --accent-blue-glow: rgba(74, 144, 226, 0.2);
+            --accent-green: #52B788;
+            --accent-purple: #7E8CE0;
+            --accent-orange: #F2A65A;
+            --accent-red: #E76F51;
+            --border-subtle: rgba(42, 74, 115, 0.08);
+            --border-medium: rgba(42, 74, 115, 0.12);
+            --radius-sm: 4px;
+            --radius-md: 6px;
+            --radius-lg: 8px;
+            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+            --bg: var(--bg-primary);
+            --sidebar: var(--bg-secondary);
+            --white: var(--bg-elevated);
+            --border: var(--border-medium);
+            --primary: var(--accent-blue);
+            --success: var(--accent-green);
+            --danger: var(--accent-red);
+            --warning: var(--accent-orange);
+            --muted: var(--text-tertiary);
+            --text-main: var(--text-primary);
+        }
+        * { box-sizing: border-box; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; height: 100vh; overflow: hidden; }
+        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.015; background-image: linear-gradient(rgba(74, 144, 226, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(74, 144, 226, 0.08) 1px, transparent 1px); background-size: 50px 50px; animation: patternMove 20s linear infinite; pointer-events: none; }
+        @keyframes patternMove { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }
+        body::after { content: ""; position: fixed; width: 600px; height: 600px; background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%); top: -300px; right: -300px; border-radius: 50%; filter: blur(100px); opacity: 0.08; z-index: 0; animation: float 20s ease-in-out infinite; pointer-events: none; }
+        @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-30px, 30px) scale(0.9); } }
+        @keyframes slideInLeft { from { opacity: 0; transform: translateX(-100%); } to { opacity: 1; transform: translateX(0); } }
+
+        /* Sidebar */
+        .sidebar { width: 280px; background: var(--bg-secondary); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border-right: 1px solid var(--border-subtle); padding: 32px 24px; display: flex; flex-direction: column; height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        .sidebar-header { text-align: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0; }
+        .sidebar-header img { width: 100%; max-width: 180px; height: auto; filter: drop-shadow(0 0 20px var(--accent-blue-glow)); transition: all var(--transition-base); }
+        .sidebar-header img:hover { filter: drop-shadow(0 0 30px var(--accent-blue-glow)); transform: scale(1.05); }
+        .menu { display: flex; flex-direction: column; gap: 6px; flex-grow: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; }
+        .menu a { display: flex; align-items: center; padding: 10px 16px; color: #94a3b8; text-decoration: none; border-radius: var(--radius-lg); font-size: 14px; font-weight: 600; transition: all var(--transition-base); position: relative; overflow: hidden; border: 1px solid transparent; }
+        .menu a::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent-blue); transform: scaleY(0); transition: transform var(--transition-base); }
+        .menu a:hover::before, .menu a.active::before { transform: scaleY(1); }
+        .menu a i { margin-right: 12px; font-size: 18px; transition: all var(--transition-base); }
+        .menu a:hover { background: rgba(255,255,255,0.05); color: #e2e8f0; transform: translateX(4px); }
+        .menu a.active { background: rgba(37,99,235,0.15); color: #60a5fa; border: 1px solid rgba(37,99,235,0.4); }
+        .menu a.active i { color: #60a5fa; }
+        .btn-crm-gold-nav { background: #fbbf24 !important; color: #000 !important; font-weight: 700 !important; margin-top: 8px !important; display: flex !important; align-items: center; justify-content: center; padding: 8px 12px !important; border-radius: 8px; text-decoration: none; font-size: 12px; transition: 0.3s; }
+        .btn-crm-gold-nav:hover { background: #facc15 !important; transform: scale(1.02); }
+        .btn-crm-gold-nav i { margin-right: 10px; }
+        .sidebar-footer { padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+        .sidebar-footer span { color: #cbd5e1 !important; }
+        .footer-info-row { display: flex; justify-content: flex-start; align-items: center; gap: 5px; font-size: 12px; width: 100%; }
+        .footer-info-row span:first-child { text-transform: uppercase; color: var(--text-tertiary); font-weight: 700; min-width: 65px; }
+        .keep-lowercase { text-transform: lowercase !important; color: #cbd5e1; font-weight: 500; }
+        .menu-item-with-submenu { position: relative; }
+        .submenu { display: none; flex-direction: column; gap: 4px; padding-left: 16px; margin-top: 4px; }
+        .submenu.open { display: flex; }
+        .submenu a { font-size: 13px; padding: 8px 14px; }
+
+        /* Main */
+        .main { margin-left: 280px; min-height: 100vh; display: flex; flex-direction: column; position: relative; z-index: 1; width: calc(100% - 280px); }
+        .header { background: rgba(255,255,255,0.85); backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; }
+        .content { padding: 32px 40px; flex-grow: 1; overflow-y: auto; max-height: calc(100vh - 72px); }
+
+        /* Botões */
+        .btn-primary { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; transition: all var(--transition-base); }
+        .btn-primary:hover { background: var(--accent-blue-light); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(74,144,226,0.3); }
+        .btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; padding: 10px 20px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; transition: all var(--transition-base); }
+        .btn-secondary:hover { background: #e2e8f0; }
+        .btn-danger { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; padding: 8px 14px; border-radius: var(--radius-md); font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--transition-base); }
+        .btn-danger:hover { background: #fecaca; }
+        .btn-icon { background: none; border: none; cursor: pointer; padding: 6px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .btn-icon:hover { background: rgba(0,0,0,0.05); }
+
+        /* Tabela */
+        .table-container { background: white; border-radius: 12px; border: 1px solid var(--border-subtle); overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8fafc; padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); border-bottom: 1px solid var(--border-subtle); }
+        td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; font-size: 14px; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f8fafc; }
+
+        /* Status badges */
+        .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+        .badge-agendada { background: #dbeafe; color: #1d4ed8; }
+        .badge-concluida { background: #f1f5f9; color: #475569; }
+        .badge-cancelada { background: #fee2e2; color: #dc2626; }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-overlay.show { display: flex; }
+        .modal { background: white; border-radius: 16px; padding: 32px; width: 90%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.15); animation: modalIn 0.3s cubic-bezier(0.16,1,0.3,1); }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .modal-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+        .modal-title i { color: var(--accent-blue); }
+        .form-group { margin-bottom: 18px; }
+        .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .form-input { width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: var(--radius-md); font-size: 14px; color: var(--text-primary); transition: border-color 0.2s; font-family: 'Outfit', sans-serif; background: white; }
+        .form-input:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(74,144,226,0.1); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
+
+        /* Modal Videochamada */
+        .modal-video { background: white; border-radius: 16px; padding: 0; width: 95%; max-width: 1000px; max-height: 92vh; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: modalIn 0.3s cubic-bezier(0.16,1,0.3,1); display: flex; flex-direction: column; }
+        .modal-video-header { padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; flex-shrink: 0; }
+        .modal-video-title { font-size: 16px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+        .modal-video-title i { color: #6366f1; }
+        .video-iframe-container { flex: 1; min-height: 600px; position: relative; }
+        .video-iframe-container iframe { width: 100%; height: 100%; min-height: 600px; border: none; display: block; }
+        .video-loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: var(--text-tertiary); }
+
+        /* User menu */
+        .user-menu-dropdown { display: none; position: absolute; top: 48px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); min-width: 160px; z-index: 1000; }
+        .user-menu-dropdown.show { display: block; }
+        .user-menu-dropdown a { display: block; padding: 10px 16px; font-size: 13px; color: var(--text-primary); text-decoration: none; transition: background 0.2s; }
+        .user-menu-dropdown a:hover { background: #f8fafc; }
+        .user-menu-dropdown a:last-child { color: var(--danger); border-top: 1px solid #f1f5f9; }
+
+        /* Empty state */
+        .empty-state { text-align: center; padding: 60px 24px; color: var(--text-tertiary); }
+        .empty-state i { margin-bottom: 16px; opacity: 0.4; }
+        .empty-state h3 { font-size: 18px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+        .empty-state p { font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
+    </div>
+    <nav class="menu">
+        <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
+        <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
+        <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
+        <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
+        <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
+        <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
+        <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
+        <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
+        <div class="menu-item-with-submenu">
+            <a href="/ia-page" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
+                <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
+                IA Jurídica
+                <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">PREMIUM</span>
+            </a>
+            <div class="submenu" id="submenu-ia">
+                <a href="/peticoes.html"><i class="lucide lucide-file-text"></i> Petições IA</a>
+                <a href="/ia-page"><i class="lucide lucide-bot"></i> Assistente IA</a>
+            </div>
+        </div>
+        <a href="/chat-page"><i class="lucide lucide-message-circle"></i> 💬 Chat <span id="chatBadge" style="display:none;background:#ef4444;color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 5px;margin-left:auto;box-shadow:0 0 8px rgba(239,68,68,0.5);"></span></a>
+        <a href="/relatorios-page"><i class="lucide lucide-bar-chart-3"></i> Relatórios</a>
+        <a href="/documentos-page"><i class="lucide lucide-folder-open"></i> Documentos (GED)</a>
+        <a href="/reunioes-page" class="active"><i class="lucide lucide-video"></i> Reuniões</a>
+        <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+        <a href="/config-page" id="guia-config"><i class="lucide lucide-settings"></i> Configurações</a>
+        <a href="/crm-page" class="btn-crm-gold-nav" onclick="limparBolinha()">
+            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+            <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="footer-info-row">
+            <span>Usuário:</span>
+            <span id="footerEmail" class="keep-lowercase">...</span>
+        </div>
+        <div class="footer-info-row">
+            <span>Plano:</span>
+            <span id="footerPlano" class="keep-lowercase">...</span>
+        </div>
+    </div>
+</aside>
+
+<div class="main">
+    <header class="header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <h2 style="font-size: 18px; font-weight: 700;">🎥 Reuniões com Clientes</h2>
+        </div>
+        <div style="display:flex; gap:20px; align-items:center;">
+            <button class="btn-primary" onclick="abrirModalNovaReuniao()">+ Nova Reunião</button>
+            <div style="position: relative; display: flex; align-items: center; gap: 12px;">
+                <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
+                <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">A</div>
+                <div class="user-menu-dropdown" id="userMenuDropdown">
+                    <a href="/config-page">Configurações</a>
+                    <a href="#" onclick="logout()">Sair</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="content">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Título</th>
+                        <th>Data / Hora</th>
+                        <th>Duração</th>
+                        <th>Status</th>
+                        <th style="text-align:right;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="listaReunioes">
+                    <tr><td colspan="6"><div class="empty-state"><p>Carregando...</p></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nova Reunião -->
+<div class="modal-overlay" id="modalNovaReuniao">
+    <div class="modal">
+        <div class="modal-title"><i data-lucide="video"></i> Nova Reunião</div>
+        <div class="form-group">
+            <label class="form-label">Cliente</label>
+            <select class="form-input" id="reuniaoClienteId">
+                <option value="">— Selecione um cliente —</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Título *</label>
+            <input type="text" class="form-input" id="reuniaoTitulo" placeholder="Ex: Consulta inicial trabalhista" maxlength="200">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Descrição</label>
+            <textarea class="form-input" id="reuniaoDescricao" rows="3" placeholder="Detalhes sobre a reunião..." style="resize:vertical;"></textarea>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Data e Hora *</label>
+                <input type="datetime-local" class="form-input" id="reuniaoDataHora">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Duração</label>
+                <select class="form-input" id="reuniaoDuracao">
+                    <option value="30">30 minutos</option>
+                    <option value="60" selected>60 minutos</option>
+                    <option value="90">90 minutos</option>
+                    <option value="120">120 minutos</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="fecharModalNovaReuniao()">Cancelar</button>
+            <button class="btn-primary" onclick="criarReuniao()" id="btnCriarReuniao">Criar Reunião</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Videochamada -->
+<div class="modal-overlay" id="modalVideo">
+    <div class="modal-video">
+        <div class="modal-video-header">
+            <div class="modal-video-title">
+                <i data-lucide="video"></i>
+                <span id="videoTitulo">Videochamada</span>
+            </div>
+            <button class="btn-secondary" onclick="fecharModalVideo()" style="padding:8px 16px;font-size:13px;">✕ Fechar</button>
+        </div>
+        <div class="video-iframe-container" id="videoContainer">
+            <div class="video-loading" id="videoLoading">
+                <i data-lucide="loader" style="width:32px;height:32px;"></i>
+                <p style="margin-top:12px;">Conectando à sala...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const TOKEN = localStorage.getItem('token');
+    if (!TOKEN) { window.location.href = '/login'; }
+
+    let reunioes = [];
+
+    // Inicialização
+    window.addEventListener('DOMContentLoaded', async () => {
+        lucide.createIcons();
+        await Promise.all([carregarPerfil(), carregarClientes(), carregarReunioes()]);
+        verificarBolinhaCRM();
+    });
+
+    async function carregarPerfil() {
+        try {
+            const res = await fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
+            const data = await res.json();
+            if (data.ok) {
+                const nome = data.usuario.nome || data.usuario.email || '';
+                document.getElementById('userNameHeader').textContent = nome.split(' ')[0];
+                document.getElementById('userCircle').textContent = nome.charAt(0).toUpperCase() || 'A';
+                document.getElementById('footerEmail').textContent = data.usuario.email || '—';
+                document.getElementById('footerPlano').textContent = data.usuario.plano || 'básico';
+            }
+        } catch (e) {}
+    }
+
+    async function carregarClientes() {
+        try {
+            const res = await fetch('/api/clientes', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
+            const data = await res.json();
+            const sel = document.getElementById('reuniaoClienteId');
+            const lista = Array.isArray(data) ? data : (data.clientes || []);
+            lista.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.nome;
+                sel.appendChild(opt);
+            });
+        } catch (e) {}
+    }
+
+    async function carregarReunioes() {
+        try {
+            const res = await fetch('/api/reunioes', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
+            const data = await res.json();
+            reunioes = data.reunioes || [];
+            renderReunioes();
+        } catch (e) {
+            document.getElementById('listaReunioes').innerHTML =
+                '<tr><td colspan="6"><div class="empty-state"><p>Erro ao carregar reuniões.</p></div></td></tr>';
+        }
+    }
+
+    function renderReunioes() {
+        const tbody = document.getElementById('listaReunioes');
+        if (reunioes.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6">
+                <div class="empty-state">
+                    <i data-lucide="video-off" style="width:48px;height:48px;"></i>
+                    <h3>Nenhuma reunião agendada</h3>
+                    <p>Clique em "+ Nova Reunião" para começar.</p>
+                </div>
+            </td></tr>`;
+            lucide.createIcons();
+            return;
+        }
+
+        tbody.innerHTML = reunioes.map(r => `
+            <tr>
+                <td><strong>${escapeHtml(r.cliente_nome || '—')}</strong></td>
+                <td>${escapeHtml(r.titulo)}</td>
+                <td>${formatarDataHora(r.data_hora)}</td>
+                <td>${r.duracao_minutos || 60} min</td>
+                <td>${badgeStatus(r.status)}</td>
+                <td style="text-align:right; white-space:nowrap;">
+                    ${r.status === 'agendada' ? `
+                        <button class="btn-icon" title="Entrar na Reunião" onclick="entrarReuniao(${r.id}, '${escapeHtml(r.titulo)}')" style="color:#6366f1;">
+                            <i data-lucide="video" style="width:18px;height:18px;"></i>
+                        </button>
+                        <button class="btn-icon" title="Concluir" onclick="atualizarStatus(${r.id}, 'concluida')" style="color:#16a34a;">
+                            <i data-lucide="check-circle" style="width:18px;height:18px;"></i>
+                        </button>
+                        <button class="btn-icon" title="Cancelar Reunião" onclick="cancelarReuniao(${r.id})" style="color:#dc2626;">
+                            <i data-lucide="trash-2" style="width:18px;height:18px;"></i>
+                        </button>
+                    ` : '<span style="color:#94a3b8;font-size:12px;">—</span>'}
+                </td>
+            </tr>
+        `).join('');
+        lucide.createIcons();
+    }
+
+    function badgeStatus(status) {
+        const map = {
+            agendada: '<span class="badge badge-agendada">Agendada</span>',
+            concluida: '<span class="badge badge-concluida">Concluída</span>',
+            cancelada: '<span class="badge badge-cancelada">Cancelada</span>'
+        };
+        return map[status] || `<span class="badge">${status}</span>`;
+    }
+
+    function formatarDataHora(str) {
+        if (!str) return '—';
+        const d = new Date(str);
+        return d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // Modal Nova Reunião
+    function abrirModalNovaReuniao() {
+        document.getElementById('reuniaoClienteId').value = '';
+        document.getElementById('reuniaoTitulo').value = '';
+        document.getElementById('reuniaoDescricao').value = '';
+        document.getElementById('reuniaoDuracao').value = '60';
+        // Pré-preenche data/hora com +1h
+        const agora = new Date(Date.now() + 60 * 60 * 1000);
+        agora.setSeconds(0, 0);
+        document.getElementById('reuniaoDataHora').value = agora.toISOString().slice(0, 16);
+        document.getElementById('modalNovaReuniao').classList.add('show');
+    }
+
+    function fecharModalNovaReuniao() {
+        document.getElementById('modalNovaReuniao').classList.remove('show');
+    }
+
+    async function criarReuniao() {
+        const titulo = document.getElementById('reuniaoTitulo').value.trim();
+        const data_hora = document.getElementById('reuniaoDataHora').value;
+        const cliente_id = document.getElementById('reuniaoClienteId').value || null;
+        const descricao = document.getElementById('reuniaoDescricao').value.trim();
+        const duracao_minutos = parseInt(document.getElementById('reuniaoDuracao').value);
+
+        if (!titulo) { alert('Informe o título da reunião.'); return; }
+        if (!data_hora) { alert('Informe a data e hora da reunião.'); return; }
+
+        const btn = document.getElementById('btnCriarReuniao');
+        btn.disabled = true;
+        btn.textContent = 'Criando...';
+
+        try {
+            const res = await fetch('/api/reunioes', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cliente_id, titulo, descricao, data_hora, duracao_minutos })
+            });
+            const data = await res.json();
+
+            if (!data.ok) {
+                alert('Erro: ' + (data.erro || 'Não foi possível criar a reunião.'));
+                return;
+            }
+
+            fecharModalNovaReuniao();
+            await carregarReunioes();
+        } catch (e) {
+            alert('Erro de conexão. Tente novamente.');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Criar Reunião';
+        }
+    }
+
+    // Entrar na reunião (iframe Daily.co)
+    async function entrarReuniao(id, titulo) {
+        document.getElementById('videoTitulo').textContent = titulo || 'Videochamada';
+        document.getElementById('videoLoading').style.display = 'block';
+        const container = document.getElementById('videoContainer');
+        // Remove iframe anterior se existir
+        const prev = container.querySelector('iframe');
+        if (prev) prev.remove();
+
+        document.getElementById('modalVideo').classList.add('show');
+        lucide.createIcons();
+
+        try {
+            const res = await fetch(`/api/reunioes/${id}/token`, {
+                headers: { 'Authorization': 'Bearer ' + TOKEN }
+            });
+            const data = await res.json();
+
+            if (!data.ok) {
+                document.getElementById('videoLoading').innerHTML =
+                    `<p style="color:#dc2626;">Erro: ${escapeHtml(data.erro || 'Não foi possível acessar a sala.')}</p>`;
+                return;
+            }
+
+            document.getElementById('videoLoading').style.display = 'none';
+            const iframe = document.createElement('iframe');
+            iframe.src = `${data.room_url}?t=${data.token}`;
+            iframe.allow = 'camera; microphone; fullscreen; display-capture; speaker-selection';
+            iframe.style.cssText = 'width:100%;height:100%;min-height:600px;border:none;display:block;';
+            container.appendChild(iframe);
+        } catch (e) {
+            document.getElementById('videoLoading').innerHTML =
+                '<p style="color:#dc2626;">Erro de conexão. Feche e tente novamente.</p>';
+        }
+    }
+
+    function fecharModalVideo() {
+        document.getElementById('modalVideo').classList.remove('show');
+        const container = document.getElementById('videoContainer');
+        const iframe = container.querySelector('iframe');
+        if (iframe) iframe.remove();
+        document.getElementById('videoLoading').style.display = 'block';
+        document.getElementById('videoLoading').innerHTML =
+            '<i data-lucide="loader" style="width:32px;height:32px;"></i><p style="margin-top:12px;">Conectando à sala...</p>';
+        lucide.createIcons();
+    }
+
+    // Atualizar status
+    async function atualizarStatus(id, status) {
+        const labels = { concluida: 'concluída', cancelada: 'cancelada' };
+        if (!confirm(`Marcar reunião como ${labels[status] || status}?`)) return;
+
+        try {
+            const res = await fetch(`/api/reunioes/${id}/status`, {
+                method: 'PATCH',
+                headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            const data = await res.json();
+            if (!data.ok) { alert('Erro: ' + (data.erro || 'Falha ao atualizar status.')); return; }
+            await carregarReunioes();
+        } catch (e) {
+            alert('Erro de conexão.');
+        }
+    }
+
+    // Cancelar reunião (DELETE)
+    async function cancelarReuniao(id) {
+        if (!confirm('Cancelar esta reunião? A sala de videochamada será encerrada.')) return;
+
+        try {
+            const res = await fetch(`/api/reunioes/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + TOKEN }
+            });
+            const data = await res.json();
+            if (!data.ok) { alert('Erro: ' + (data.erro || 'Falha ao cancelar.')); return; }
+            await carregarReunioes();
+        } catch (e) {
+            alert('Erro de conexão.');
+        }
+    }
+
+    // Fechar modais ao clicar fora
+    document.getElementById('modalNovaReuniao').addEventListener('click', function(e) {
+        if (e.target === this) fecharModalNovaReuniao();
+    });
+    document.getElementById('modalVideo').addEventListener('click', function(e) {
+        if (e.target === this) fecharModalVideo();
+    });
+
+    // User menu
+    function toggleUserMenu() {
+        document.getElementById('userMenuDropdown').classList.toggle('show');
+    }
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#userCircle')) {
+            document.getElementById('userMenuDropdown').classList.remove('show');
+        }
+    });
+
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+    }
+
+    function toggleIaMenu(e) {
+        e.preventDefault();
+        document.getElementById('submenu-ia').classList.toggle('open');
+    }
+
+    // Badge CRM
+    function limparBolinha() {
+        const dot = document.getElementById('dotNotificacao');
+        if (dot) dot.style.display = 'none';
+        localStorage.removeItem('crmNovoLead');
+    }
+
+    function verificarBolinhaCRM() {
+        const dot = document.getElementById('dotNotificacao');
+        if (!dot) return;
+        if (localStorage.getItem('crmNovoLead') === '1') dot.style.display = 'inline-block';
+    }
+</script>
+</body>
+</html>

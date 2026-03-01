@@ -5,6 +5,7 @@ const pool = require('../config/db');
 const { sign: jwtSign } = require('../config/jwt');
 const authMiddleware = require('../middlewares/authMiddleware');
 const portalMiddleware = require('../middlewares/portalMiddleware');
+const { criarToken } = require('../services/dailyService');
 
 // GET /api/portal/autenticar?token=xxx  (público)
 router.get('/autenticar', async (req, res) => {
@@ -157,6 +158,75 @@ router.get('/processos/:id/andamentos', portalMiddleware, async (req, res) => {
     } catch (err) {
         console.error('[Portal] GET /processos/:id/andamentos erro:', err.message);
         res.status(500).json({ ok: false, erro: 'Erro interno.' });
+    }
+});
+
+// GET /api/portal/reunioes  (portal JWT)
+router.get('/reunioes', portalMiddleware, async (req, res) => {
+    const cliente_id = req.cliente.id;
+    const escritorio_id = req.cliente.escritorio_id;
+
+    try {
+        const result = await pool.query(
+            `SELECT id, titulo, descricao, data_hora, duracao_minutos, status
+             FROM reunioes
+             WHERE cliente_id = $1
+               AND escritorio_id = $2
+               AND status != 'cancelada'
+             ORDER BY data_hora DESC`,
+            [cliente_id, escritorio_id]
+        );
+
+        res.json({ ok: true, reunioes: result.rows });
+    } catch (err) {
+        console.error('[Portal] GET /reunioes erro:', err.message);
+        res.status(500).json({ ok: false, erro: 'Erro interno.' });
+    }
+});
+
+// GET /api/portal/reunioes/:id/token  (portal JWT)
+router.get('/reunioes/:id/token', portalMiddleware, async (req, res) => {
+    const { id } = req.params;
+    const cliente_id = req.cliente.id;
+    const escritorio_id = req.cliente.escritorio_id;
+
+    try {
+        const result = await pool.query(
+            `SELECT * FROM reunioes
+             WHERE id = $1 AND cliente_id = $2 AND escritorio_id = $3`,
+            [id, cliente_id, escritorio_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ ok: false, erro: 'Reunião não encontrada.' });
+        }
+
+        const reuniao = result.rows[0];
+
+        if (reuniao.status === 'cancelada') {
+            return res.status(400).json({ ok: false, erro: 'Esta reunião foi cancelada.' });
+        }
+
+        if (!process.env.DAILY_API_KEY) {
+            return res.status(503).json({ ok: false, erro: 'Videochamada não configurada. Contate o escritório.' });
+        }
+
+        const dataHora = new Date(reuniao.data_hora);
+        const duracao = reuniao.duracao_minutos || 60;
+        const expTimestamp = Math.floor((dataHora.getTime() + (duracao + 30) * 60 * 1000) / 1000);
+
+        const token = await criarToken(reuniao.daily_room_name, false, expTimestamp);
+
+        res.json({
+            ok: true,
+            token,
+            room_url: reuniao.daily_room_url,
+            titulo: reuniao.titulo,
+            data_hora: reuniao.data_hora
+        });
+    } catch (err) {
+        console.error('[Portal] GET /reunioes/:id/token erro:', err.message);
+        res.status(500).json({ ok: false, erro: 'Erro ao gerar token de acesso.' });
     }
 });
 

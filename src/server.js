@@ -43,6 +43,7 @@ const addonClicksignRoutes = require('./routes/addonClicksign.routes');
 const calendarSyncRoutes = require('./routes/calendarSync.routes');
 const andamentosRoutes = require('./routes/andamentos.routes');
 const portalClienteRoutes = require('./routes/portalCliente.routes');
+const reunioesRoutes = require('./routes/reunioes.routes');
 
 // --- 2. MIDDLEWARES DE AUTENTICAÃ‡ÃƒO ---
 const authMiddleware = require('./middlewares/authMiddleware');
@@ -235,6 +236,7 @@ app.use('/api', authMiddleware, verificarPagamento, relatoriosRoutes);
 app.use('/api', authMiddleware, verificarPagamento, chatRoutes);
 app.use('/api', authMiddleware, verificarPagamento, documentosRoutes);
 app.use('/api', authMiddleware, verificarPagamento, andamentosRoutes);
+app.use('/api', authMiddleware, verificarPagamento, reunioesRoutes);
 app.use('/webhook', assinaturaDigitalRoutes); // ClickSign webhook — público (APÓS express.json)
 app.use('/api', authMiddleware, verificarPagamento, assinaturaDigitalRoutes);
 app.use('/api', authMiddleware, verificarPagamento, addonClicksignRoutes);
@@ -283,6 +285,7 @@ app.get('/lgpd', (req, res) => res.sendFile(path.join(publicPath, 'lgpd.html')))
 app.get('/relatorios-page', (req, res) => res.sendFile(path.join(publicPath, 'relatorios.html')));
 app.get('/chat-page', (req, res) => res.sendFile(path.join(publicPath, 'chat.html')));
 app.get('/portal-cliente', (req, res) => res.sendFile(path.join(publicPath, 'portal-cliente.html')));
+app.get('/reunioes-page', (req, res) => res.sendFile(path.join(publicPath, 'reunioes.html')));
 
 app.get('/pagamento-pendente', (req, res) => {
     const filePath = path.resolve(publicPath, 'pagamento-pendente.html');
@@ -694,6 +697,27 @@ require('./cron/crmFollowup');
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS logo_path_base64 TEXT`);
         await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS assinatura_base64 TEXT`);
         console.log('✅ [SISTEMA] Colunas logo_path_base64 e assinatura_base64 verificadas.');
+
+        // Reuniões com videochamada Daily.co
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS reunioes (
+                id SERIAL PRIMARY KEY,
+                escritorio_id INTEGER NOT NULL,
+                cliente_id INTEGER REFERENCES clientes(id),
+                usuario_id INTEGER REFERENCES usuarios(id),
+                titulo VARCHAR(200) NOT NULL,
+                descricao TEXT,
+                data_hora TIMESTAMPTZ NOT NULL,
+                duracao_minutos INTEGER DEFAULT 60,
+                daily_room_name VARCHAR(150),
+                daily_room_url VARCHAR(400),
+                status VARCHAR(20) DEFAULT 'agendada',
+                criado_em TIMESTAMPTZ DEFAULT NOW(),
+                atualizado_em TIMESTAMPTZ DEFAULT NOW()
+            )
+        `);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_reunioes_escritorio ON reunioes(escritorio_id)`);
+        console.log('✅ [SISTEMA] Tabela reunioes verificada.');
 
         iniciarAgendamentos();
 
