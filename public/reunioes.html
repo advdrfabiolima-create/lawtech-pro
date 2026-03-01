@@ -146,6 +146,13 @@
         .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e3a5f; color: white; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
         .toast.show { opacity: 1; }
 
+        /* Modal de anotações (leitura/edição pós-reunião) */
+        .notas-meta { font-size: 13px; color: var(--text-tertiary); margin: -14px 0 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .notas-meta span { display: flex; align-items: center; gap: 5px; }
+        #notasModalTexto { width: 100%; padding: 16px; border: 1.5px solid #e8e4d9; border-radius: 10px; font-size: 14px; font-family: 'Outfit', sans-serif; color: var(--text-primary); background: #fafaf8; line-height: 1.75; resize: vertical; min-height: 240px; transition: border-color 0.2s; text-transform: none; }
+        #notasModalTexto:focus { outline: none; border-color: var(--accent-blue); background: #fff; box-shadow: 0 0 0 3px rgba(74,144,226,0.1); }
+        .notas-empty { text-align: center; padding: 32px 0; color: var(--text-tertiary); font-size: 14px; }
+
         /* Painel de anotações */
         #videoBody { flex: 1; display: flex; min-height: 0; }
         #notesPanel { width: 300px; background: #1e293b; border-left: 1px solid rgba(255,255,255,0.08); display: none; flex-direction: column; flex-shrink: 0; }
@@ -349,6 +356,22 @@
     </div>
 </div>
 
+<!-- Modal Anotações (pós-reunião) -->
+<div class="modal-overlay" id="modalNotas">
+    <div class="modal" style="max-width:620px;">
+        <div class="modal-title"><i data-lucide="file-text"></i> Anotações da Reunião</div>
+        <div class="notas-meta">
+            <span><i data-lucide="user" style="width:13px;height:13px;"></i> <span id="notasModalCliente"></span></span>
+            <span><i data-lucide="calendar" style="width:13px;height:13px;"></i> <span id="notasModalData"></span></span>
+        </div>
+        <textarea id="notasModalTexto" placeholder="Nenhuma anotação registrada para esta reunião."></textarea>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="fecharModalNotas()">Fechar</button>
+            <button class="btn-primary" onclick="salvarNotasModal()" id="btnSalvarNotasModal">Salvar alterações</button>
+        </div>
+    </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -446,6 +469,11 @@
                 <td>${r.duracao_minutos || 60} min</td>
                 <td>${badgeStatus(r.status)}</td>
                 <td style="text-align:right; white-space:nowrap;">
+                    ${r.anotacoes ? `
+                        <button class="btn-icon" title="Ver anotações" onclick="verNotasReuniao(${r.id})" style="color:#f59e0b;">
+                            <i data-lucide="file-text" style="width:18px;height:18px;"></i>
+                        </button>
+                    ` : ''}
                     ${r.status === 'agendada' ? `
                         <button class="btn-icon" title="Entrar na Reunião" onclick="entrarReuniao(${r.id}, '${escapeHtml(r.titulo)}')" style="color:#6366f1;">
                             <i data-lucide="video" style="width:18px;height:18px;"></i>
@@ -772,6 +800,56 @@
         }
     }
 
+    // ---- Modal de anotações (pós-reunião) ----
+    let _notasModalId = null;
+
+    function verNotasReuniao(id) {
+        const r = reunioes.find(x => x.id === id);
+        if (!r) return;
+        _notasModalId = id;
+        document.getElementById('notasModalCliente').textContent = r.cliente_nome || '(sem cliente)';
+        document.getElementById('notasModalData').textContent = formatarDataHora(r.data_hora) + ' · ' + (r.titulo || '');
+        document.getElementById('notasModalTexto').value = r.anotacoes || '';
+        document.getElementById('modalNotas').classList.add('show');
+        lucide.createIcons();
+        setTimeout(() => document.getElementById('notasModalTexto').focus(), 80);
+    }
+
+    function fecharModalNotas() {
+        document.getElementById('modalNotas').classList.remove('show');
+        _notasModalId = null;
+    }
+
+    async function salvarNotasModal() {
+        if (!_notasModalId) return;
+        const texto = document.getElementById('notasModalTexto').value;
+        const btn = document.getElementById('btnSalvarNotasModal');
+        btn.disabled = true;
+        btn.textContent = 'Salvando...';
+        try {
+            const res = await fetch(`/api/reunioes/${_notasModalId}/anotacoes`, {
+                method: 'PATCH',
+                headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ anotacoes: texto })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                const r = reunioes.find(x => x.id === _notasModalId);
+                if (r) r.anotacoes = texto;
+                renderReunioes();
+                mostrarToast('Anotações salvas com sucesso!');
+                fecharModalNotas();
+            } else {
+                alert('Erro ao salvar: ' + (data.erro || 'Tente novamente.'));
+            }
+        } catch (e) {
+            alert('Erro de conexão.');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Salvar alterações';
+        }
+    }
+
     // Excluir permanentemente (apenas concluída/cancelada)
     async function excluirReuniao(id) {
         if (!confirm('Excluir permanentemente esta reunião? Esta ação não pode ser desfeita.')) return;
@@ -795,6 +873,9 @@
     });
     document.getElementById('modalVideo').addEventListener('click', function(e) {
         if (e.target === this) fecharModalVideo();
+    });
+    document.getElementById('modalNotas').addEventListener('click', function(e) {
+        if (e.target === this) fecharModalNotas();
     });
 
     // User menu
