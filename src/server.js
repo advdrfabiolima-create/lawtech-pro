@@ -199,7 +199,9 @@ app.use('/api/contato', contatoLimiter);
 // --- 7. SERVIR ARQUIVOS ESTÃTICOS ---
 const publicPath = path.join(__dirname, '..', 'public');
 app.use(express.static(publicPath));
-// Logos dos escritórios (upload por cliente, isolados por escritório_id)
+// Uploads (logos, assinaturas, documentos) — acessíveis em /uploads/*
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Alias legado: /logos/* → mesma pasta de logos
 app.use('/logos', express.static(path.join(__dirname, 'uploads', 'logos')));
 
 // --- 8. APIs (ROTAS DE DADOS) ---
