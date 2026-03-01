@@ -110,14 +110,19 @@ router.get('/meus-processos', portalMiddleware, async (req, res) => {
             `SELECT DISTINCT ON (p.id)
                 p.id, p.numero, p.tribunal, p.esfera, p.instancia, p.status, p.uf,
                 (
-                    SELECT pp2.pessoa_nome
+                    SELECT string_agg(pp2.pessoa_nome, ' · ' ORDER BY pp2.eh_principal DESC, pp2.id ASC)
+                    FROM partes_processo pp2
+                    WHERE pp2.processo_id = p.id
+                      AND pp2.polo = 'ativo'
+                      AND pp2.escritorio_id = $2
+                ) AS polo_ativo,
+                (
+                    SELECT string_agg(pp2.pessoa_nome, ' · ' ORDER BY pp2.eh_principal DESC, pp2.id ASC)
                     FROM partes_processo pp2
                     WHERE pp2.processo_id = p.id
                       AND pp2.polo = 'passivo'
                       AND pp2.escritorio_id = $2
-                    ORDER BY pp2.eh_principal DESC, pp2.id ASC
-                    LIMIT 1
-                ) AS parte_contraria
+                ) AS polo_passivo
              FROM processos p
              JOIN partes_processo pp ON pp.processo_id = p.id
              WHERE pp.pessoa_id = $1
