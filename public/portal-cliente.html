@@ -767,7 +767,7 @@
             }
             loading.style.display = 'none';
             const iframe = document.createElement('iframe');
-            iframe.src = `${data.room_url}?t=${data.token}`;
+            iframe.src = data.room_url;
             iframe.allow = 'camera; microphone; fullscreen; display-capture; speaker-selection';
             iframe.style.cssText = 'width:100%;height:100%;min-height:600px;border:none;display:block;';
             container.appendChild(iframe);

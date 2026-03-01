@@ -1,65 +1,35 @@
-const axios = require('axios');
+const crypto = require('crypto');
 
-const DAILY_BASE = 'https://api.daily.co/v1';
-
-function dailyApi() {
-    return axios.create({
-        baseURL: DAILY_BASE,
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.DAILY_API_KEY}`
-        },
-        timeout: 15000
-    });
-}
+const JITSI_BASE = 'https://meet.jit.si';
 
 /**
- * Cria uma sala privada no Daily.co.
- * @param {number} reuniaoId - ID da reunião no banco
- * @param {number} expTimestamp - Expiração em segundos Unix
+ * Gera uma sala Jitsi única e privada (nome aleatório de 32 chars hex).
+ * Não requer API key — Jitsi Meet é gratuito e open source.
+ * @param {number} reuniaoId - ID da reunião (usado no prefixo para rastreabilidade)
  * @returns {{ name: string, url: string }}
  */
-async function criarSala(reuniaoId, expTimestamp) {
-    const name = `reuniao-${reuniaoId}-${Date.now()}`;
-    const body = {
-        name,
-        privacy: 'private',
-        properties: {
-            exp: expTimestamp,
-            max_participants: 10
-        }
-    };
-
-    const res = await dailyApi().post('/rooms', body);
-    return { name: res.data.name, url: res.data.url };
+function criarSala(reuniaoId) {
+    const rand = crypto.randomBytes(12).toString('hex'); // 24 chars hex
+    const name = `lawtech-${reuniaoId}-${rand}`;
+    const url = `${JITSI_BASE}/${name}`;
+    return { name, url };
 }
 
 /**
- * Cria um token de acesso Daily.co para entrar na sala.
- * @param {string} roomName - Nome da sala
- * @param {boolean} isOwner - true = advogado (owner), false = cliente (participante)
- * @param {number} expTimestamp - Expiração em segundos Unix
- * @returns {string} token JWT do Daily.co
+ * No Jitsi Meet público, não há tokens — qualquer um com o link entra.
+ * A privacidade vem do nome aleatório da sala.
+ * Retorna null para manter compatibilidade com a interface existente.
  */
-async function criarToken(roomName, isOwner, expTimestamp) {
-    const body = {
-        properties: {
-            room_name: roomName,
-            exp: expTimestamp,
-            is_owner: isOwner
-        }
-    };
-
-    const res = await dailyApi().post('/meeting-tokens', body);
-    return res.data.token;
+function criarToken() {
+    return null;
 }
 
 /**
- * Deleta uma sala do Daily.co.
- * @param {string} roomName - Nome da sala a deletar
+ * Salas Jitsi expiram automaticamente quando ficam vazias.
+ * Não há API para deletar — esta função é no-op.
  */
-async function deletarSala(roomName) {
-    await dailyApi().delete(`/rooms/${roomName}`);
+function deletarSala() {
+    // No-op: Jitsi não requer exclusão manual de salas
 }
 
 module.exports = { criarSala, criarToken, deletarSala };

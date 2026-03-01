@@ -5,7 +5,7 @@ const pool = require('../config/db');
 const { sign: jwtSign } = require('../config/jwt');
 const authMiddleware = require('../middlewares/authMiddleware');
 const portalMiddleware = require('../middlewares/portalMiddleware');
-const { criarToken } = require('../services/dailyService');
+// dailyService não é mais necessário no portal (Jitsi não usa tokens)
 
 // GET /api/portal/autenticar?token=xxx  (público)
 router.get('/autenticar', async (req, res) => {
@@ -185,6 +185,7 @@ router.get('/reunioes', portalMiddleware, async (req, res) => {
 });
 
 // GET /api/portal/reunioes/:id/token  (portal JWT)
+// Retorna a URL da sala Jitsi — sem tokens, sem API key
 router.get('/reunioes/:id/token', portalMiddleware, async (req, res) => {
     const { id } = req.params;
     const cliente_id = req.cliente.id;
@@ -192,7 +193,7 @@ router.get('/reunioes/:id/token', portalMiddleware, async (req, res) => {
 
     try {
         const result = await pool.query(
-            `SELECT * FROM reunioes
+            `SELECT id, titulo, data_hora, daily_room_url, status FROM reunioes
              WHERE id = $1 AND cliente_id = $2 AND escritorio_id = $3`,
             [id, cliente_id, escritorio_id]
         );
@@ -207,27 +208,15 @@ router.get('/reunioes/:id/token', portalMiddleware, async (req, res) => {
             return res.status(400).json({ ok: false, erro: 'Esta reunião foi cancelada.' });
         }
 
-        if (!process.env.DAILY_API_KEY) {
-            return res.status(503).json({ ok: false, erro: 'Videochamada não configurada. Contate o escritório.' });
-        }
-
-        const dataHora = new Date(reuniao.data_hora);
-        const duracao = reuniao.duracao_minutos || 60;
-        const expFromMeeting = Math.floor((dataHora.getTime() + (duracao + 30) * 60 * 1000) / 1000);
-        const expTimestamp = Math.max(expFromMeeting, Math.floor(Date.now() / 1000) + 3600);
-
-        const token = await criarToken(reuniao.daily_room_name, false, expTimestamp);
-
         res.json({
             ok: true,
-            token,
             room_url: reuniao.daily_room_url,
             titulo: reuniao.titulo,
             data_hora: reuniao.data_hora
         });
     } catch (err) {
         console.error('[Portal] GET /reunioes/:id/token erro:', err.message);
-        res.status(500).json({ ok: false, erro: 'Erro ao gerar token de acesso.' });
+        res.status(500).json({ ok: false, erro: 'Erro ao obter URL da sala.' });
     }
 });
 
