@@ -440,20 +440,7 @@
             <div style="color:#64748b;font-size:14px;padding:20px 0;">Carregando...</div>
         </div>
 
-        <!-- Modal Videochamada Portal -->
-        <div id="portalVideoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center; flex-direction:column;">
-            <div style="background:#1e293b; border-radius:12px; width:95%; max-width:960px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.4);">
-                <div style="padding:14px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #334155; flex-shrink:0;">
-                    <span id="portalVideoTitulo" style="font-weight:700; color:#e2e8f0; font-size:15px;">Videochamada</span>
-                    <button onclick="fecharPortalVideo()" style="background:#334155; border:none; color:#e2e8f0; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600;">✕ Fechar</button>
-                </div>
-                <div id="portalVideoContainer" style="flex:1; min-height:600px; position:relative;">
-                    <div id="portalVideoLoading" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; color:#64748b;">
-                        <p>Conectando...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Modal de vídeo removido: reunião abre em nova aba -->
     </div>
 </div>
 
@@ -746,42 +733,24 @@
     }
 
     async function entrarReuniaoPortal(id, titulo) {
-        const modal = document.getElementById('portalVideoModal');
-        const container = document.getElementById('portalVideoContainer');
-        const loading = document.getElementById('portalVideoLoading');
-        document.getElementById('portalVideoTitulo').textContent = titulo || 'Videochamada';
-        loading.style.display = 'block';
-        loading.innerHTML = '<p>Conectando...</p>';
-        const prev = container.querySelector('iframe');
-        if (prev) prev.remove();
-        modal.style.display = 'flex';
-
         try {
             const res = await fetch(`/api/portal/reunioes/${id}/token`, {
                 headers: { 'Authorization': 'Bearer ' + portalToken }
             });
             const data = await res.json();
             if (!data.ok) {
-                loading.innerHTML = `<p style="color:#f87171;">Erro: ${escapeHtml(data.erro || 'Não foi possível acessar a sala.')}</p>`;
+                alert(data.erro || 'Não foi possível acessar a sala. Tente novamente.');
                 return;
             }
-            loading.style.display = 'none';
-            const iframe = document.createElement('iframe');
-            iframe.src = data.room_url;
-            iframe.allow = 'camera; microphone; fullscreen; display-capture; speaker-selection';
-            iframe.style.cssText = 'width:100%;height:100%;min-height:600px;border:none;display:block;';
-            container.appendChild(iframe);
+            // Abre a sala Jitsi em nova aba — evita problemas de OAuth dentro de iframe
+            window.open(data.room_url, '_blank');
         } catch (e) {
-            loading.innerHTML = '<p style="color:#f87171;">Erro de conexão. Tente novamente.</p>';
+            alert('Erro de conexão. Tente novamente.');
         }
     }
 
     function fecharPortalVideo() {
-        const modal = document.getElementById('portalVideoModal');
-        modal.style.display = 'none';
-        const container = document.getElementById('portalVideoContainer');
-        const iframe = container.querySelector('iframe');
-        if (iframe) iframe.remove();
+        // mantido por compatibilidade — não faz mais nada
     }
 
     // ---- Bootstrap ----

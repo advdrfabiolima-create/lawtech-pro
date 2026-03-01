@@ -117,14 +117,11 @@
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
 
-        /* Modal Videochamada */
-        .modal-video { background: white; border-radius: 16px; padding: 0; width: 95%; max-width: 1000px; max-height: 92vh; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: modalIn 0.3s cubic-bezier(0.16,1,0.3,1); display: flex; flex-direction: column; }
-        .modal-video-header { padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; flex-shrink: 0; }
-        .modal-video-title { font-size: 16px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
-        .modal-video-title i { color: #6366f1; }
-        .video-iframe-container { flex: 1; min-height: 600px; position: relative; }
-        .video-iframe-container iframe { width: 100%; height: 100%; min-height: 600px; border: none; display: block; }
-        .video-loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: var(--text-tertiary); }
+        /* Modal Info Reunião */
+        .modal-video { background: white; border-radius: 16px; padding: 32px; width: 90%; max-width: 520px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); animation: modalIn 0.3s cubic-bezier(0.16,1,0.3,1); }
+        .link-box { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #475569; word-break: break-all; font-family: 'JetBrains Mono', monospace; margin: 8px 0 16px; }
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e3a5f; color: white; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .toast.show { opacity: 1; }
 
         /* User menu */
         .user-menu-dropdown { display: none; position: absolute; top: 48px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); min-width: 160px; z-index: 1000; }
@@ -268,24 +265,22 @@
     </div>
 </div>
 
-<!-- Modal Videochamada -->
+<!-- Modal Info Reunião -->
 <div class="modal-overlay" id="modalVideo">
     <div class="modal-video">
-        <div class="modal-video-header">
-            <div class="modal-video-title">
-                <i data-lucide="video"></i>
-                <span id="videoTitulo">Videochamada</span>
-            </div>
-            <button class="btn-secondary" onclick="fecharModalVideo()" style="padding:8px 16px;font-size:13px;">✕ Fechar</button>
-        </div>
-        <div class="video-iframe-container" id="videoContainer">
-            <div class="video-loading" id="videoLoading">
-                <i data-lucide="loader" style="width:32px;height:32px;"></i>
-                <p style="margin-top:12px;">Conectando à sala...</p>
-            </div>
+        <div class="modal-title" style="margin-bottom:16px;"><i data-lucide="video"></i> <span id="videoTitulo">Reunião</span></div>
+        <p style="font-size:14px;color:#5a6c7d;margin-bottom:8px;">Sala aberta em nova aba. Compartilhe o link abaixo com o cliente:</p>
+        <div class="link-box" id="videoLinkBox">—</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn-primary" onclick="abrirLinkNovamente()" id="btnAbrirNovamente">↗ Abrir sala novamente</button>
+            <button class="btn-secondary" onclick="copiarLinkModal()">📋 Copiar link</button>
+            <button class="btn-secondary" onclick="fecharModalVideo()">Fechar</button>
         </div>
     </div>
 </div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
 
 <script>
     const TOKEN = localStorage.getItem('token');
@@ -364,8 +359,11 @@
                 <td>${badgeStatus(r.status)}</td>
                 <td style="text-align:right; white-space:nowrap;">
                     ${r.status === 'agendada' ? `
-                        <button class="btn-icon" title="Entrar na Reunião" onclick="entrarReuniao(${r.id}, '${escapeHtml(r.titulo)}')" style="color:#6366f1;">
+                        <button class="btn-icon" title="Entrar na Reunião (nova aba)" onclick="entrarReuniao(${r.id}, '${escapeHtml(r.titulo)}')" style="color:#6366f1;">
                             <i data-lucide="video" style="width:18px;height:18px;"></i>
+                        </button>
+                        <button class="btn-icon" title="Copiar link para o cliente" onclick="copiarLinkReuniao(${r.id})" style="color:#0ea5e9;">
+                            <i data-lucide="link" style="width:18px;height:18px;"></i>
                         </button>
                         <button class="btn-icon" title="Concluir" onclick="atualizarStatus(${r.id}, 'concluida')" style="color:#16a34a;">
                             <i data-lucide="check-circle" style="width:18px;height:18px;"></i>
@@ -454,18 +452,10 @@
         }
     }
 
-    // Entrar na reunião (iframe Daily.co)
+    let _currentRoomUrl = null;
+
+    // Entrar na reunião — abre em nova aba e mostra modal com link para copiar
     async function entrarReuniao(id, titulo) {
-        document.getElementById('videoTitulo').textContent = titulo || 'Videochamada';
-        document.getElementById('videoLoading').style.display = 'block';
-        const container = document.getElementById('videoContainer');
-        // Remove iframe anterior se existir
-        const prev = container.querySelector('iframe');
-        if (prev) prev.remove();
-
-        document.getElementById('modalVideo').classList.add('show');
-        lucide.createIcons();
-
         try {
             const res = await fetch(`/api/reunioes/${id}/token`, {
                 headers: { 'Authorization': 'Bearer ' + TOKEN }
@@ -473,32 +463,58 @@
             const data = await res.json();
 
             if (!data.ok) {
-                document.getElementById('videoLoading').innerHTML =
-                    `<p style="color:#dc2626;">Erro: ${escapeHtml(data.erro || 'Não foi possível acessar a sala.')}</p>`;
+                alert('Erro: ' + (data.erro || 'Não foi possível acessar a sala.'));
                 return;
             }
 
-            document.getElementById('videoLoading').style.display = 'none';
-            const iframe = document.createElement('iframe');
-            iframe.src = data.room_url;
-            iframe.allow = 'camera; microphone; fullscreen; display-capture; speaker-selection';
-            iframe.style.cssText = 'width:100%;height:100%;min-height:600px;border:none;display:block;';
-            container.appendChild(iframe);
+            _currentRoomUrl = data.room_url;
+            window.open(data.room_url, '_blank');
+
+            document.getElementById('videoTitulo').textContent = titulo || 'Reunião';
+            document.getElementById('videoLinkBox').textContent = data.room_url;
+            document.getElementById('modalVideo').classList.add('show');
+            lucide.createIcons();
         } catch (e) {
-            document.getElementById('videoLoading').innerHTML =
-                '<p style="color:#dc2626;">Erro de conexão. Feche e tente novamente.</p>';
+            alert('Erro de conexão. Tente novamente.');
         }
+    }
+
+    // Copiar link direto da linha da tabela (sem abrir a sala)
+    async function copiarLinkReuniao(id) {
+        try {
+            const res = await fetch(`/api/reunioes/${id}/token`, {
+                headers: { 'Authorization': 'Bearer ' + TOKEN }
+            });
+            const data = await res.json();
+            if (!data.ok) { alert('Erro ao obter link.'); return; }
+            await navigator.clipboard.writeText(data.room_url);
+            mostrarToast('Link copiado! Envie ao cliente.');
+        } catch (e) {
+            alert('Não foi possível copiar. Tente novamente.');
+        }
+    }
+
+    function abrirLinkNovamente() {
+        if (_currentRoomUrl) window.open(_currentRoomUrl, '_blank');
+    }
+
+    function copiarLinkModal() {
+        if (!_currentRoomUrl) return;
+        navigator.clipboard.writeText(_currentRoomUrl).then(() => {
+            mostrarToast('Link copiado!');
+        });
     }
 
     function fecharModalVideo() {
         document.getElementById('modalVideo').classList.remove('show');
-        const container = document.getElementById('videoContainer');
-        const iframe = container.querySelector('iframe');
-        if (iframe) iframe.remove();
-        document.getElementById('videoLoading').style.display = 'block';
-        document.getElementById('videoLoading').innerHTML =
-            '<i data-lucide="loader" style="width:32px;height:32px;"></i><p style="margin-top:12px;">Conectando à sala...</p>';
-        lucide.createIcons();
+        _currentRoomUrl = null;
+    }
+
+    function mostrarToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
     }
 
     // Atualizar status
