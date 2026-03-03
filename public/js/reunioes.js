@@ -202,7 +202,6 @@ const TOKEN = localStorage.getItem('token');
         const r = reunioes.find(x => x.id === id);
         const nome = r?.cliente_nome ? ` para ${r.cliente_nome}` : '';
         if (!confirm(`Reenviar e-mail de convite${nome}?`)) return;
-
         try {
             const res = await fetch(`/api/reunioes/${id}/reenviar-email`, {
                 method: 'POST',
@@ -219,7 +218,7 @@ const TOKEN = localStorage.getItem('token');
         }
     }
 
-
+    // ---- PeerJS Videochamada (advogado = host) ----
     let _peer = null;
     let _activeCall = null;
     let _localStream = null;
@@ -477,6 +476,41 @@ const TOKEN = localStorage.getItem('token');
         if (b) b.classList.add('active');
         const nomes = { pip: 'PiP', sidebyside: 'Lado a lado', focus_remote: 'Cliente em destaque', focus_local: 'Você em destaque' };
         mostrarToast('Layout: ' + nomes[layout]);
+        // Se não estiver gravando, aplica o layout diretamente nos elementos de vídeo
+        if (!_recording) _aplicarLayoutAoVivo(layout);
+    }
+
+    function _aplicarLayoutAoVivo(layout) {
+        const remoteVideo = document.getElementById('remoteVideo');
+        const localVideo  = document.getElementById('localVideo');
+        remoteVideo.style.cssText = '';
+        localVideo.style.cssText  = '';
+        if (remoteVideo.srcObject) remoteVideo.style.display = 'block';
+        const base = 'position:absolute; border-radius:10px; object-fit:cover;';
+        if (layout === 'sidebyside') {
+            remoteVideo.style.cssText = base + ' left:0; top:0; width:50%; height:100%; border-radius:0;';
+            localVideo.style.cssText  = base + ' right:0; top:0; width:50%; height:100%; border-radius:0;';
+        } else if (layout === 'focus_remote') {
+            remoteVideo.style.cssText = base + ' inset:0; width:100%; height:100%; border-radius:0;';
+            localVideo.style.cssText  = 'display:none;';
+        } else if (layout === 'focus_local') {
+            localVideo.style.cssText  = base + ' inset:0; width:100%; height:100%; border-radius:0;';
+            remoteVideo.style.cssText = 'display:none;';
+        } else {
+            // pip (padrão)
+            remoteVideo.style.cssText = base + ' inset:0; width:100%; height:100%; border-radius:0;';
+            localVideo.style.cssText  = base + ' bottom:80px; right:12px; width:22%; aspect-ratio:16/9; height:auto; border:2px solid rgba(255,255,255,0.25); box-shadow:0 4px 16px rgba(0,0,0,0.4); z-index:6;';
+        }
+    }
+
+    // Desenha vídeo mantendo aspect-ratio (cover) dentro da área
+    function _drawCover(ctx, video, dx, dy, dw, dh) {
+        const vw = video.videoWidth  || dw;
+        const vh = video.videoHeight || dh;
+        const scale = Math.max(dw / vw, dh / vh);
+        const sw = dw / scale, sh = dh / scale;
+        const sx = (vw - sw) / 2, sy = (vh - sh) / 2;
+        ctx.drawImage(video, sx, sy, sw, sh, dx, dy, dw, dh);
     }
 
     function _renderCanvas(ctx, W, H, localVideo, remoteVideo) {
@@ -500,7 +534,7 @@ const TOKEN = localStorage.getItem('token');
             if (ctx.roundRect) ctx.roundRect(px, py, pw, ph, 10);
             else ctx.rect(px, py, pw, ph);
             ctx.clip();
-            if (video) ctx.drawImage(video, px, py, pw, ph);
+            if (video) _drawCover(ctx, video, px, py, pw, ph);
             ctx.restore();
             ctx.strokeStyle = 'rgba(255,255,255,0.25)';
             ctx.lineWidth = 2;
@@ -512,26 +546,27 @@ const TOKEN = localStorage.getItem('token');
         }
 
         if (_recordLayout === 'sidebyside') {
-            if (hasR) ctx.drawImage(remoteVideo, 0,   0, W/2, H);
-            if (hasL) ctx.drawImage(localVideo,  W/2, 0, W/2, H);
+            if (hasR) _drawCover(ctx, remoteVideo, 0,   0, W/2, H);
+            if (hasL) _drawCover(ctx, localVideo,  W/2, 0, W/2, H);
             ctx.strokeStyle = 'rgba(255,255,255,0.15)';
             ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H); ctx.stroke();
             label('Cliente', 0,   H - 50, 64);
             label('Você',    W/2, H - 50, 44);
         } else if (_recordLayout === 'focus_remote') {
-            if (hasR) ctx.drawImage(remoteVideo, 0, 0, W, H);
+            if (hasR) _drawCover(ctx, remoteVideo, 0, 0, W, H);
             if (hasL && hasR) pip(localVideo,  W*0.75-16, H*0.72-16, W*0.23, H*0.26, 'Você');
-            else if (hasL)    ctx.drawImage(localVideo, 0, 0, W, H);
+            else if (hasL)    _drawCover(ctx, localVideo, 0, 0, W, H);
             if (hasR) label('Cliente', 0, H - 50, 64);
         } else if (_recordLayout === 'focus_local') {
-            if (hasL) ctx.drawImage(localVideo, 0, 0, W, H);
+            if (hasL) _drawCover(ctx, localVideo, 0, 0, W, H);
             if (hasR && hasL) pip(remoteVideo, W*0.75-16, H*0.72-16, W*0.23, H*0.26, 'Cliente');
-            else if (hasR)    ctx.drawImage(remoteVideo, 0, 0, W, H);
+            else if (hasR)    _drawCover(ctx, remoteVideo, 0, 0, W, H);
             if (hasL) label('Você', 0, H - 50, 44);
         } else {
-            if (hasR) ctx.drawImage(remoteVideo, 0, 0, W, H);
-            else if (hasL) ctx.drawImage(localVideo, 0, 0, W, H);
+            // pip padrão
+            if (hasR) _drawCover(ctx, remoteVideo, 0, 0, W, H);
+            else if (hasL) _drawCover(ctx, localVideo, 0, 0, W, H);
             if (hasR && hasL) pip(localVideo, W*0.75-16, H*0.72-16, W*0.23, H*0.26, 'Você');
             if (hasR) label('Cliente', 0, H - 50, 64);
         }
@@ -555,10 +590,13 @@ const TOKEN = localStorage.getItem('token');
             remoteVideo.style.display = remoteVideo.srcObject ? 'block' : 'none';
             localVideo.style.display = 'block';
 
+            remoteVideo.style.visibility = '';
+            localVideo.style.visibility  = '';
+            if (_audioCtx) { _audioCtx.close(); _audioCtx = null; }
             document.getElementById('recordingBadge').style.display = 'none';
-            document.getElementById('layoutBar').style.display = 'none';
             btn.textContent = '⏺️ Gravar';
             btn.classList.remove('off');
+            _aplicarLayoutAoVivo(_recordLayout);
             mostrarToast('Gravação encerrada. Arquivo será baixado automaticamente.');
             return;
         }
@@ -580,8 +618,11 @@ const TOKEN = localStorage.getItem('token');
         _canvasEl.style.cssText = 'width:100%;height:100%;object-fit:contain;position:absolute;inset:0;z-index:5;background:#0f172a;';
         videoArea.appendChild(_canvasEl);
 
-        remoteVideo.style.display = 'none';
-        localVideo.style.display  = 'none';
+        // visibility:hidden mantém os vídeos acessíveis ao canvas (display:none bloqueia frames)
+        remoteVideo.style.visibility = 'hidden';
+        localVideo.style.visibility  = 'hidden';
+        remoteVideo.style.display = 'block';
+        localVideo.style.display  = 'block';
 
         const ctx = _canvasEl.getContext('2d');
         const W = _canvasEl.width, H = _canvasEl.height;
@@ -592,12 +633,18 @@ const TOKEN = localStorage.getItem('token');
         }
         loop();
 
-        // Stream: canvas (video) + audio local + audio remoto
+        // AudioContext mixa áudio local + remoto corretamente
         const canvasStream = _canvasEl.captureStream(25);
-        _localStream.getAudioTracks().forEach(t => canvasStream.addTrack(t));
-        if (_remoteStream) {
-            _remoteStream.getAudioTracks().forEach(t => canvasStream.addTrack(t));
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const audioDest = audioCtx.createMediaStreamDestination();
+        if (_localStream && _localStream.getAudioTracks().length > 0) {
+            audioCtx.createMediaStreamSource(_localStream).connect(audioDest);
         }
+        if (_remoteStream && _remoteStream.getAudioTracks().length > 0) {
+            audioCtx.createMediaStreamSource(_remoteStream).connect(audioDest);
+        }
+        audioDest.stream.getAudioTracks().forEach(t => canvasStream.addTrack(t));
+        _audioCtx = audioCtx;
 
         const mimeType = [
             'video/webm;codecs=vp9,opus',
@@ -634,7 +681,6 @@ const TOKEN = localStorage.getItem('token');
         _recording = true;
 
         document.getElementById('recordingBadge').style.display = 'flex';
-        document.getElementById('layoutBar').style.display = 'flex';
 
         let segundos = 0;
         _recordingInterval = setInterval(() => {
@@ -680,17 +726,21 @@ const TOKEN = localStorage.getItem('token');
             clearInterval(_recordingInterval);
             if (_canvasAnimId) { cancelAnimationFrame(_canvasAnimId); _canvasAnimId = null; }
             if (_mediaRecorder && _mediaRecorder.state !== 'inactive') _mediaRecorder.stop();
+            if (_audioCtx) { _audioCtx.close(); _audioCtx = null; }
             const videoArea = document.getElementById('videoArea');
             if (_canvasEl && videoArea.contains(_canvasEl)) videoArea.removeChild(_canvasEl);
             _canvasEl = null;
             const aviso = document.getElementById('recordingBadge');
             if (aviso) aviso.style.display = 'none';
-            const lb = document.getElementById('layoutBar');
-            if (lb) lb.style.display = 'none';
             const btnRec = document.getElementById('btnRecord');
             if (btnRec) { btnRec.textContent = '⏺️ Gravar'; btnRec.classList.remove('off'); }
         }
         _remoteStream = null;
+        // Reseta layout para pip ao fechar
+        _recordLayout = 'pip';
+        document.querySelectorAll('.btn-layout').forEach(b => b.classList.remove('active'));
+        const pipBtn = document.getElementById('layout_pip');
+        if (pipBtn) pipBtn.classList.add('active');
         // Fecha painel de notas
         document.getElementById('notesPanel').classList.remove('open');
         document.getElementById('btnNotasToggle').classList.remove('active');
