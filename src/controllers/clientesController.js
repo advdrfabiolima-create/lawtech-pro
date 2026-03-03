@@ -7,6 +7,8 @@ async function listarClientes(req, res) {
     try {
         const escritorioId = req.user.escritorio_id;
         const { page, limit, offset } = getPagination(req.query);
+        const search = (req.query.search || '').trim();
+        const searchParam = search ? `%${search}%` : null;
 
         const [result, countResult] = await Promise.all([
             pool.query(`
@@ -30,10 +32,24 @@ async function listarClientes(req, res) {
                     ) as total_processos
                 FROM clientes c
                 WHERE c.escritorio_id = $1
+                  AND ($4::text IS NULL
+                       OR c.nome      ILIKE $4
+                       OR c.documento ILIKE $4
+                       OR c.email     ILIKE $4
+                       OR c.telefone  ILIKE $4)
                 ORDER BY c.nome ASC
                 LIMIT $2 OFFSET $3
-            `, [escritorioId, limit, offset]),
-            pool.query('SELECT COUNT(*) AS total FROM clientes WHERE escritorio_id = $1', [escritorioId])
+            `, [escritorioId, limit, offset, searchParam]),
+            pool.query(
+                `SELECT COUNT(*) AS total FROM clientes c
+                   WHERE c.escritorio_id = $1
+                     AND ($2::text IS NULL
+                          OR c.nome      ILIKE $2
+                          OR c.documento ILIKE $2
+                          OR c.email     ILIKE $2
+                          OR c.telefone  ILIKE $2)`,
+                [escritorioId, searchParam]
+            )
         ]);
 
         const total = parseInt(countResult.rows[0].total);

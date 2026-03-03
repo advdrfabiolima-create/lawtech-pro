@@ -1,5 +1,4 @@
-
-        if (!API.getToken()) window.location.href = '/login.html';
+if (!API.getToken()) window.location.href = '/login.html';
         const token = API.getToken();
         
         let originalData = [];
@@ -10,6 +9,7 @@
         // --- INICIALIZAÇÃO ÚNICA ---
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('📄 DOM carregado');
+
             setTimeout(async () => {
                 await inicializar();
                 await carregarClientesParaBoleto();
@@ -17,18 +17,16 @@
                 await carregarSaldoReal();
                 await carregarLogoAtual();
                 await carregarAssinaturaAtual();
+                await carregarClientesParaLancamento();
             }, 100);
         });
 
-        window.onload = async () => {
-            console.log('🌐 Window carregado');
-            await inicializar();
-            await carregarClientesParaBoleto();
-            await carregarClientesParaRecibo(); // Nova função
-            await carregarSaldoReal();
-            await carregarLogoAtual();
-            await carregarAssinaturaAtual();
-        };
+        ['modalRelatorioFaturamento', 'modalVisualizacaoRelatorio'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) document.body.appendChild(el);
+});
+
+// window.onload removido
 
 async function inicializar() {
     try {
@@ -122,17 +120,33 @@ async function inicializar() {
         }
 
         const btnPagar = !isP ? `<button onclick="marcarComoPago(${item.id})" style="background: var(--accent-green); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; margin-right: 6px;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='var(--accent-green)'" title="Marcar como Pago"><i data-lucide="check" style="width:14px; height:14px;"></i></button>` : '';
-        const btnRecibo = isP ? `<button onclick="prepararRecibo(${item.id})" style="background: var(--accent-purple); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; margin-right: 6px;" onmouseover="this.style.background='#7c3aed'" onmouseout="this.style.background='var(--accent-purple)'" title="Emitir Recibo"><i data-lucide="file-text" style="width:14px; height:14px;"></i></button>` : '';
+        const btnRecibo = (isP && item.tipo === 'Receita') ? `<button onclick="prepararRecibo(${item.id})" style="background: var(--accent-purple); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; margin-right: 6px;" onmouseover="this.style.background='#7c3aed'" onmouseout="this.style.background='var(--accent-purple)'" title="Emitir Recibo"><i data-lucide="file-text" style="width:14px; height:14px;"></i></button>` : '';
         const btnEditar = `<button onclick="editarLancamento(${item.id})" style="background: var(--accent-blue); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; margin-right: 6px;" onmouseover="this.style.background='var(--accent-blue-light)'" onmouseout="this.style.background='var(--accent-blue)'" title="Editar"><i data-lucide="pencil" style="width:14px; height:14px;"></i></button>`;
         const btnExcluir = `<button onclick="deletar(${item.id})" style="background: var(--accent-red); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='var(--accent-red)'" title="Excluir"><i data-lucide="trash-2" style="width:14px; height:14px;"></i></button>`;
+
+        const clienteLabel = (item.tipo === 'Receita' && item.cliente_nome)
+            ? `<span style="font-size:11px;color:var(--text-main);font-weight:600;">${item.cliente_nome}</span>`
+            : `<span style="font-size:11px;color:var(--muted);font-style:italic;">—</span>`;
+
+        // Label da coluna Beneficiário (só Despesas)
+        const beneficiarioLabel = (item.tipo === 'Despesa' && item.beneficiario)
+            ? `<span style="font-size:11px;color:var(--text-main);font-weight:600;">${item.beneficiario}</span>`
+            : `<span style="font-size:11px;color:var(--muted);font-style:italic;">—</span>`;
+
+        const formaPagamentoLabel = item.forma_pagamento
+            ? `<span style="font-size:11px;font-weight:700;color:var(--text-main);white-space:nowrap;">${item.forma_pagamento}</span>`
+            : `<span style="font-size:11px;color:var(--muted);font-style:italic;">—</span>`;
 
         corpo.innerHTML += `
             <tr>
                 <td><strong>${item.descricao}</strong></td>
-                <td><strong style="color: ${isR ? 'var(--success)' : 'var(--danger)'}">R$ ${v.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong></td>
+                <td>${clienteLabel}</td>
+                <td>${beneficiarioLabel}</td>
+                <td><strong style="color:${isR ? 'var(--success)' : 'var(--danger)'}">R$ ${v.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong></td>
                 <td>${new Date(item.data_vencimento).toLocaleDateString('pt-BR')}</td>
-                <td><span style="font-weight:700; font-size:11px; color: ${isP ? 'var(--success)' : 'var(--warning)'}}">${item.status.toUpperCase()}</span></td>
-                <td style="text-align: center; white-space: nowrap;">
+                <td><span style="font-weight:700;font-size:11px;color:${isP ? 'var(--success)' : 'var(--warning)'}">${item.status.toUpperCase()}</span></td>
+                <td>${formaPagamentoLabel}</td>
+                <td style="text-align:center;white-space:nowrap;">
                     ${btnPagar} ${btnRecibo} ${btnEditar} ${btnExcluir}
                 </td>
             </tr>`;
@@ -170,16 +184,19 @@ carregarSaldoReal();
         function fecharModalLancamento() { document.getElementById('modalNovoLancamento').style.display = 'none'; }
 
 async function salvarLancamento() {
-    const descricao = document.getElementById('addDescricao').value;
-    const valorComMascara = document.getElementById('addValor').value; 
-    const tipo = document.getElementById('addTipo').value;
+    const descricao      = document.getElementById('addDescricao').value;
+    const valorComMascara = document.getElementById('addValor').value;
+    const tipo           = document.getElementById('addTipo').value;
     const data_vencimento = document.getElementById('addData').value;
+    const cliente_id     = document.getElementById('addCliente')?.value || null;
+    const beneficiario   = document.getElementById('addBeneficiario')?.value.trim() || null; // NOVO
 
-    if(!descricao || !valorComMascara || !data_vencimento) return alert("Preencha todos os campos!");
+    if (!descricao || !valorComMascara || !data_vencimento) return alert('Preencha todos os campos!');
 
-    const valorNumerico = parseFloat(valorComMascara.replace("R$", "").replace(/\./g, "").replace(",", ".").trim());
-
-    const dados = { descricao, valor: valorNumerico, tipo, data_vencimento };
+    const valorNumerico = parseFloat(
+        valorComMascara.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()
+    );
+    const dados = { descricao, valor: valorNumerico, tipo, data_vencimento, cliente_id, beneficiario };
 
     try {
         const res = await fetch('/api/financeiro', {
@@ -187,25 +204,66 @@ async function salvarLancamento() {
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify(dados)
         });
-
-        if (res.ok) {
-            alert("Lançamento salvo!");
-            fecharModalLancamento();
-            location.reload();
-        } else {
-            const erro = await res.json();
-            alert("Erro: " + erro.erro);
-        }
-    } catch (err) {
-        alert("Erro de conexão com o servidor.");
-    }
+        if (res.ok) { alert('Lançamento salvo!'); fecharModalLancamento(); location.reload(); }
+        else { const erro = await res.json(); alert('Erro: ' + erro.erro); }
+    } catch (err) { alert('Erro de conexão com o servidor.'); }
 }
 
-        async function marcarComoPago(id) {
-            if(!confirm("Deseja marcar como Pago?")) return;
-            const res = await fetch(`/api/financeiro/${id}/pagar`, { method: 'PATCH', headers: { Authorization: `Bearer ${token}` } });
-            if(res.ok) carregarDados();
-        }
+async function marcarComoPago(id) {
+    const overlay = document.createElement('div');
+    overlay.id = 'overlayMarcarPago';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px);';
+    overlay.innerHTML = `
+        <div style="background:var(--bg-card,#fff);border-radius:16px;padding:32px 28px;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.25);">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+                <div style="background:#d1fae5;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i data-lucide="check-circle" style="width:22px;height:22px;color:#16a34a;"></i>
+                </div>
+                <div>
+                    <div style="font-weight:800;font-size:15px;color:var(--text-main,#0f172a);">Confirmar Pagamento</div>
+                    <div style="font-size:12px;color:var(--muted,#64748b);margin-top:2px;">Registre como o pagamento foi realizado</div>
+                </div>
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="font-size:11px;font-weight:700;color:var(--muted,#64748b);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:8px;">FORMA DE PAGAMENTO</label>
+                <select id="formaPagamentoConfirm" style="width:100%;padding:10px 14px;border:1px solid var(--border-medium,#e2e8f0);border-radius:8px;font-size:13px;font-weight:600;background:var(--bg-card,#fff);color:var(--text-main,#0f172a);cursor:pointer;">
+                    <option value="">— Não informar —</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="PIX">PIX</option>
+                    <option value="Transferência">Transferência</option>
+                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                    <option value="Cartão de Débito">Cartão de Débito</option>
+                    <option value="Boleto">Boleto</option>
+                    <option value="Cheque">Cheque</option>
+                </select>
+            </div>
+            <div style="display:flex;gap:10px;">
+                <button id="btnCancelarPago" style="flex:1;padding:12px;border-radius:8px;background:var(--bg,#f1f5f9);border:none;font-weight:700;font-size:13px;cursor:pointer;color:var(--text-main,#0f172a);">Cancelar</button>
+                <button id="btnConfirmarPago" style="flex:2;padding:12px;border-radius:8px;background:#10b981;border:none;font-weight:800;font-size:13px;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;">
+                    <i data-lucide="check" style="width:16px;height:16px;"></i> Marcar como Pago
+                </button>
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+    if (window.lucide) lucide.createIcons();
+
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    document.getElementById('btnCancelarPago').addEventListener('click', () => overlay.remove());
+    document.getElementById('btnConfirmarPago').addEventListener('click', async () => {
+        const forma_pagamento = document.getElementById('formaPagamentoConfirm').value || null;
+        const btn = document.getElementById('btnConfirmarPago');
+        btn.innerHTML = 'Salvando...';
+        btn.disabled = true;
+        const res = await fetch(`/api/financeiro/${id}/pagar`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ forma_pagamento })
+        });
+        overlay.remove();
+        if (res.ok) carregarDados();
+        else alert('Erro ao marcar como pago.');
+    });
+}
 
         async function deletar(id) {
             if(confirm('Deseja excluir?')) {
@@ -214,50 +272,60 @@ async function salvarLancamento() {
             }
         }
 
-        function editarLancamento(id) {
+function editarLancamento(id) {
     const item = originalData.find(i => i.id === id);
     if (!item) return;
 
-    document.getElementById('editId').value = item.id;
-    document.getElementById('editDescricao').value = item.descricao;
-    document.getElementById('editValor').value = item.valor;
-    document.getElementById('editTipo').value = item.tipo;
-    
+    document.getElementById('editId').value        = item.id;
+    document.getElementById('editDescricao').value  = item.descricao;
+    document.getElementById('editValor').value      = item.valor;
+    document.getElementById('editTipo').value       = item.tipo;
+
     const dataFormatada = new Date(item.data_vencimento).toISOString().split('T')[0];
     document.getElementById('editData').value = dataFormatada;
+
+    const editFormaPagamento = document.getElementById('editFormaPagamento');
+    if (editFormaPagamento) editFormaPagamento.value = item.forma_pagamento || '';
+
+    // Dispara a lógica de exibição dos campos de parte (cliente vs beneficiário)
+    toggleParteEditar(item.tipo);
+
+    if (item.tipo === 'Receita') {
+        const editCliente = document.getElementById('editCliente');
+        if (editCliente) editCliente.value = item.cliente_id || '';
+    } else {
+        const editBeneficiario = document.getElementById('editBeneficiario');
+        if (editBeneficiario) editBeneficiario.value = item.beneficiario || '';
+    }
 
     document.getElementById('modalEditarLancamento').style.display = 'flex';
 }
 
 async function atualizarLancamento() {
-    const id = document.getElementById('editId').value;
-    const dados = {
-        descricao: document.getElementById('editDescricao').value,
-        valor: document.getElementById('editValor').value,
-        tipo: document.getElementById('editTipo').value,
-        data_vencimento: document.getElementById('editData').value
-    };
+    const id             = document.getElementById('editId').value;
+    const tipo           = document.getElementById('editTipo').value;
+    const cliente_id     = document.getElementById('editCliente')?.value || null;
+    const beneficiario   = document.getElementById('editBeneficiario')?.value.trim() || null;
+    const forma_pagamento = document.getElementById('editFormaPagamento')?.value || null;
 
+    const dados = {
+        descricao:       document.getElementById('editDescricao').value,
+        valor:           document.getElementById('editValor').value,
+        tipo,
+        data_vencimento: document.getElementById('editData').value,
+        cliente_id,
+        beneficiario,
+        forma_pagamento
+    };
     try {
         const res = await fetch(`/api/financeiro/${id}`, {
             method: 'PUT',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': `Bearer ${token}` 
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify(dados)
         });
-
-        if (res.ok) {
-            document.getElementById('modalEditarLancamento').style.display = 'none';
-            carregarDados();
-        } else {
-            alert("Erro ao atualizar lançamento.");
-        }
-    } catch (err) {
-        console.error(err);
-        alert("Erro de conexão.");
-    }
+        if (res.ok) { document.getElementById('modalEditarLancamento').style.display = 'none'; carregarDados(); }
+        else { alert('Erro ao atualizar lançamento.'); }
+    } catch (err) { console.error(err); alert('Erro de conexão.'); }
 }
 
         function prepararBoleto(id, desc, valor) {
@@ -293,7 +361,46 @@ async function atualizarLancamento() {
         return true; // Permite continuar em caso de erro na validação
     }
 }
+async function carregarClientesParaLancamento() {
+    try {
+        const res = await fetch('/api/clientes?limit=200', { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) throw new Error('Erro');
+        const r = await res.json();
+        const clientes = r.data || r;
+        const opcoes = '<option value="">Nenhum (sem cliente)</option>' +
+            clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+        const s1 = document.getElementById('addCliente');
+        const s2 = document.getElementById('editCliente');
+        if (s1) s1.innerHTML = opcoes;
+        if (s2) s2.innerHTML = opcoes;
+    } catch (err) { console.error('Erro ao carregar clientes para lancamento:', err); }
+}
 
+function toggleParteAdicionar() {
+    const tipo = document.getElementById('addTipo').value;
+    const secaoCliente      = document.getElementById('addSecaoCliente');
+    const secaoBeneficiario = document.getElementById('addSecaoBeneficiario');
+    if (tipo === 'Receita') {
+        if (secaoCliente)      secaoCliente.style.display      = 'block';
+        if (secaoBeneficiario) secaoBeneficiario.style.display = 'none';
+    } else {
+        if (secaoCliente)      secaoCliente.style.display      = 'none';
+        if (secaoBeneficiario) secaoBeneficiario.style.display = 'block';
+    }
+}
+
+function toggleParteEditar(tipoForcado) {
+    const tipo = tipoForcado || document.getElementById('editTipo').value;
+    const secaoCliente      = document.getElementById('editSecaoCliente');
+    const secaoBeneficiario = document.getElementById('editSecaoBeneficiario');
+    if (tipo === 'Receita') {
+        if (secaoCliente)      secaoCliente.style.display      = 'block';
+        if (secaoBeneficiario) secaoBeneficiario.style.display = 'none';
+    } else {
+        if (secaoCliente)      secaoCliente.style.display      = 'none';
+        if (secaoBeneficiario) secaoBeneficiario.style.display = 'block';
+    }
+}
         // --- FUNÇÕES DE RECIBO ---
         
         // Carregar clientes cadastrados para o select do recibo
@@ -409,27 +516,55 @@ function redirecionarParaConfiguracoes() {
     }
 }
         
-        function prepararRecibo(lancamentoId) {
-            const item = originalData.find(i => i.id === lancamentoId);
-            if (!item) return;
+function prepararRecibo(lancamentoId) {
+    const item = originalData.find(i => i.id === lancamentoId);
+    if (!item) return;
 
-            document.getElementById('reciboLancamentoId').value = lancamentoId;
-            document.getElementById('reciboNumero').value = `REC-${lancamentoId}-${new Date().getFullYear()}`;
-            document.getElementById('reciboValor').value = item.valor;
-            document.getElementById('reciboDescricao').value = item.descricao;
-            
-            // Limpa seleção de cliente
-            document.getElementById('reciboClienteSelect').value = '';
-            document.getElementById('reciboClienteNome').value = '';
-            document.getElementById('reciboClienteDoc').value = '';
-            
-            document.getElementById('modalRecibo').style.display = 'flex';
-            
-            // Recarrega ícones do Lucide
-            if (window.lucide) {
-                lucide.createIcons();
-            }
+    document.getElementById('reciboLancamentoId').value = lancamentoId;
+    document.getElementById('reciboNumero').value = `REC-${lancamentoId}-${new Date().getFullYear()}`;
+    document.getElementById('reciboValor').value = item.valor;
+    document.getElementById('reciboDescricao').value = item.descricao;
+
+    // Preenche forma de pagamento automaticamente do lançamento
+    const reciboFormaPagamento = document.getElementById('reciboFormaPagamento');
+    if (reciboFormaPagamento) reciboFormaPagamento.value = item.forma_pagamento || '';
+
+    const sectionSelecaoCliente = document.getElementById('reciboSecaoSelecaoCliente');
+    const infoClienteVinculado = document.getElementById('reciboInfoClienteVinculado');
+
+    if (item.cliente_id && item.cliente_nome) {
+        // Lançamento já tem cliente vinculado — preenche direto, oculta seleção
+        document.getElementById('reciboClienteNome').value = item.cliente_nome;
+        document.getElementById('reciboClienteDoc').value = '';
+
+        // Tenta buscar o documento do cliente (se já estiver na lista carregada)
+        const clienteEncontrado = clientesCadastrados.find(c => c.id === item.cliente_id);
+        if (clienteEncontrado) {
+            document.getElementById('reciboClienteDoc').value = clienteEncontrado.documento || '';
         }
+
+        // Oculta a seção de seleção manual
+        if (sectionSelecaoCliente) sectionSelecaoCliente.style.display = 'none';
+
+        // Exibe o badge informativo do cliente vinculado
+        if (infoClienteVinculado) {
+            infoClienteVinculado.style.display = 'flex';
+            document.getElementById('reciboClienteVinculadoNome').innerText = item.cliente_nome;
+        }
+    } else {
+        // Sem cliente vinculado — exibe seleção manual normalmente
+        document.getElementById('reciboClienteSelect').value = '';
+        document.getElementById('reciboClienteNome').value = '';
+        document.getElementById('reciboClienteDoc').value = '';
+
+        if (sectionSelecaoCliente) sectionSelecaoCliente.style.display = 'block';
+        if (infoClienteVinculado) infoClienteVinculado.style.display = 'none';
+    }
+
+    document.getElementById('modalRecibo').style.display = 'flex';
+
+    if (window.lucide) lucide.createIcons();
+}
 
         const DEBUG_MODE = false;
 
@@ -965,20 +1100,24 @@ window.addEventListener('click', (e) => {
 // ==========================================
 
 function abrirRelatorioFaturamento() {
-    document.getElementById('modalRelatorioFaturamento').style.display = 'flex';
-    
-    // Define mês atual como padrão
-    const hoje = new Date();
-    const mesAtual = hoje.toISOString().substring(0, 7); // YYYY-MM
-    document.getElementById('relatorioMes').value = mesAtual;
+    const modal = document.getElementById('modalRelatorioFaturamento');
+    if (!modal) { alert('Modal não encontrado'); return; }
+    // Garante que está diretamente no body
+    if (modal.parentElement !== document.body) document.body.appendChild(modal);
+    modal.removeAttribute('style');
+    modal.setAttribute('style', 'display:flex !important; position:fixed !important; top:0 !important; left:0 !important; width:100vw !important; height:100vh !important; background:rgba(15,23,42,0.85) !important; z-index:2147483647 !important; align-items:center !important; justify-content:center !important;');
+    const mesInput = document.getElementById('relatorioMes');
+    if (mesInput) mesInput.value = new Date().toISOString().substring(0, 7);
 }
 
 function fecharRelatorioFaturamento() {
-    document.getElementById('modalRelatorioFaturamento').style.display = 'none';
+    const modal = document.getElementById('modalRelatorioFaturamento');
+    if (modal) modal.style.display = 'none';
 }
 
 function fecharVisualizacaoRelatorio() {
-    document.getElementById('modalVisualizacaoRelatorio').style.display = 'none';
+    const modal = document.getElementById('modalVisualizacaoRelatorio');
+    if (modal) modal.style.display = 'none';
 }
 
 function atualizarCamposPeriodo() {
@@ -996,9 +1135,9 @@ async function visualizarRelatorio() {
     const html = gerarHTMLRelatorio(dados);
     document.getElementById('conteudoRelatorio').innerHTML = html;
     
-    // Fechar modal de configuração e abrir visualização
     fecharRelatorioFaturamento();
-    document.getElementById('modalVisualizacaoRelatorio').style.display = 'flex';
+    const mv = document.getElementById('modalVisualizacaoRelatorio');
+    if (mv) mv.style.display = 'flex';
     
     // Reinicializar ícones Lucide
     if (typeof lucide !== 'undefined') {
@@ -1276,3 +1415,35 @@ function toggleIaMenu(event) {
     
 
 (function(){var t=localStorage.getItem('token');if(!t)return;function checkChat(){fetch('/api/chat/nao-lidas',{headers:{Authorization:'Bearer '+t}}).then(function(r){return r.json()}).then(function(d){if(d.ok){var total=Object.values(d.naoLidas).reduce(function(a,b){return a+b},0);var b=document.getElementById('chatBadge');if(b){b.style.display=total>0?'inline-flex':'none';b.textContent=total>99?'99+':total}}}).catch(function(){})}checkChat();setInterval(checkChat,30000)})();
+
+// Cola isso no final do financeiro.js
+window.abrirRelatorioFaturamento   = abrirRelatorioFaturamento;
+window.fecharRelatorioFaturamento  = fecharRelatorioFaturamento;
+window.fecharVisualizacaoRelatorio = fecharVisualizacaoRelatorio;
+window.atualizarCamposPeriodo      = atualizarCamposPeriodo;
+window.visualizarRelatorio         = visualizarRelatorio;
+window.gerarPDFRelatorio           = gerarPDFRelatorio;
+window.abrirModalLancamento        = abrirModalLancamento;
+window.fecharModalLancamento       = fecharModalLancamento;
+window.salvarLancamento            = salvarLancamento;
+window.marcarComoPago              = marcarComoPago;
+window.deletar                     = deletar;
+window.editarLancamento            = editarLancamento;
+window.atualizarLancamento         = atualizarLancamento;
+window.prepararBoleto              = prepararBoleto;
+window.confirmarBoleto             = confirmarBoleto;
+window.prepararRecibo              = prepararRecibo;
+window.fecharModalRecibo           = fecharModalRecibo;
+window.gerarRecibo                 = gerarRecibo;
+window.abrirModalLogo              = abrirModalLogo;
+window.fecharModalLogo             = fecharModalLogo;
+window.uploadLogo                  = uploadLogo;
+window.uploadAssinatura            = uploadAssinatura;
+window.preencherDadosCliente       = preencherDadosCliente;
+window.toggleParteAdicionar        = toggleParteAdicionar;
+window.toggleParteEditar           = toggleParteEditar;
+window.toggleUserMenu              = toggleUserMenu;
+window.toggleIaMenu                = toggleIaMenu;
+window.logout                      = logout;
+window.rolarParaTabela             = rolarParaTabela;
+window.limparBolinha               = limparBolinha;

@@ -45,4 +45,71 @@ router.delete(
     clientesController.excluirCliente
 );
 
+
+// ================================
+// ROTAS DE CONTRATOS DE HONORÁRIOS
+// ================================
+const contratosController = require('../controllers/contratosController');
+
+// Listar contratos do cliente
+router.get(
+    '/clientes/:id/contratos',
+    authMiddleware,
+    verificarPagamento,
+    contratosController.listarContratos
+);
+
+// Criar contrato
+router.post(
+    '/clientes/:id/contratos',
+    authMiddleware,
+    roleMiddleware('admin', 'operador'),
+    verificarPagamento,
+    contratosController.criarContrato
+);
+
+// Gerar template HTML
+router.get(
+    '/clientes/:id/contratos/:contratoId/template',
+    authMiddleware,
+    verificarPagamento,
+    contratosController.gerarTemplate
+);
+
+// Upload PDF assinado
+router.post(
+    '/contratos/:contratoId/upload',
+    authMiddleware,
+    roleMiddleware('admin', 'operador'),
+    verificarPagamento,
+    contratosController.uploadMiddleware,
+    contratosController.uploadContratoAssinado
+);
+
+// Download PDF
+router.get(
+    '/contratos/:contratoId/arquivo',
+    authMiddleware,
+    verificarPagamento,
+    contratosController.downloadContrato
+);
+
+// Editar metadados
+router.put(
+    '/contratos/:contratoId',
+    authMiddleware,
+    roleMiddleware('admin', 'operador'),
+    verificarPagamento,
+    contratosController.editarContrato
+);
+
+// Excluir contrato
+router.delete(
+    '/contratos/:contratoId',
+    authMiddleware,
+    roleMiddleware('admin'),
+    verificarPagamento,
+    contratosController.excluirContrato
+);
+
 module.exports = router;

@@ -1,5 +1,4 @@
-
-        const token = localStorage.getItem('token');
+const token = localStorage.getItem('token');
         if (!token) window.location.href = 'login.html';
 
         // Som de notificação - usando URL externa confiável
@@ -13,6 +12,9 @@
         // CACHE DE CLIENTES EM MEMÓRIA
         // ============================================
         let clientesCache = [];
+        let paginaAtual = 1;
+        const LIMITE_POR_PAGINA = 20;
+        let termoBusca = '';
 
         // ============================================
         // INICIALIZAÇÃO DA PÁGINA
@@ -136,12 +138,15 @@
         // ============================================
         // CARREGAR CLIENTES - APENAS INICIAL
         // ============================================
-        async function carregarClientes() {
+        async function carregarClientes(page = 1, search = '') {
+    paginaAtual = page;
+    termoBusca = search;
     const tbody = document.getElementById('listaClientes');
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#64748b;">Carregando...</td></tr>';
     try {
-        // Carrega clientes e processos EM PARALELO
+        const searchQS = search ? `&search=${encodeURIComponent(search)}` : '';
         const [resClientes, resProcessos] = await Promise.all([
-            fetch('/api/clientes?limit=200', { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch(`/api/clientes?page=${page}&limit=${LIMITE_POR_PAGINA}${searchQS}`, { headers: { 'Authorization': `Bearer ${token}` } }),
             fetch('/api/processos?limit=200', { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
 
@@ -157,21 +162,29 @@
         const clientes = respClientes.data || respClientes;
         const todosProcessos = respProcessos.data || respProcessos;
 
-        clientesCache = clientes; // Armazena em cache
+        clientesCache = clientes;
+        // Só limpa o campo se não há busca ativa
+        if (!search) {
+            termoBusca = '';
+            const searchInput = document.getElementById('searchClientes');
+            if (searchInput) searchInput.value = '';
+        }
 
-        // Total de clientes
         document.getElementById('totalClientes').innerText = respClientes.total ?? clientes.length;
 
-        // Contar clientes com processos (RÁPIDO - sem loop de requisições)
         const clientesComProcessosSet = new Set(
             todosProcessos.map(p => p.cliente_id).filter(Boolean)
         );
         document.getElementById('clientesAtivos').innerText = clientesComProcessosSet.size;
-
-        // Total de processos
         document.getElementById('processosVinculados').innerText = respProcessos.total ?? todosProcessos.length;
 
         renderizarClientes(clientes);
+        const totalItens = respClientes.total ?? clientes.length;
+        const totalPags = respClientes.totalPages ?? Math.ceil(totalItens / LIMITE_POR_PAGINA);
+        renderizarPaginacao(totalItens, page, totalPags);
+        // Always show pagination container when there are results
+        const paginacaoEl = document.getElementById('paginacaoClientes');
+        if (paginacaoEl) paginacaoEl.style.display = totalItens > 0 ? '' : 'none';
 
     } catch (err) {
         console.error("Erro ao carregar clientes:", err);
@@ -214,6 +227,10 @@
                                 <i class="lucide lucide-link-2"></i>
                                 <span>LINK</span>
                             </button>
+                            <button class="btn-action btn-contract" onclick="abrirModalContratos(${c.id}, '${c.nome.replace(/'/g, "\\'")}')" title="CONTRATOS DE HONORÁRIOS">
+                                <i class="lucide lucide-file-signature"></i>
+                                <span>CONTRATOS</span>
+                            </button>
                             <button class="btn-action btn-edit" onclick="prepararEdicao(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${c.documento}', '${c.email}', '${c.telefone || ''}', '${c.cep || ''}', '${c.endereco || ''}', '${c.cidade || ''}', '${c.estado || ''}', '${c.tipo_pessoa || 'fisica'}', '${c.data_nascimento || ''}')" title="EDITAR">
                                 <i class="lucide lucide-pencil"></i>
                                 <span>EDITAR</span>
@@ -228,6 +245,44 @@
             `).join('');
 
             lucide.createIcons();
+        }
+
+        // ============================================
+        // PAGINAÇÃO
+        // ============================================
+        function renderizarPaginacao(total, page, totalPages) {
+            const container = document.getElementById('paginacaoClientes');
+            if (!container) return;
+
+            if (!totalPages || totalPages <= 1) {
+                container.classList.remove('ativo');
+                return;
+            }
+
+            const inicio = ((page - 1) * LIMITE_POR_PAGINA) + 1;
+            const fim = Math.min(page * LIMITE_POR_PAGINA, total);
+
+            const delta = 2;
+            const left = Math.max(1, page - delta);
+            const right = Math.min(totalPages, page + delta);
+            let nums = '';
+            if (left > 1) nums += '<button onclick="carregarClientes(1, termoBusca)" class="pag-num' + (1===page?' pag-ativo':'') + '">1</button>';
+            if (left > 2) nums += '<span class="pag-ellipsis">…</span>';
+            for (let i = left; i <= right; i++) {
+                nums += '<button onclick="carregarClientes(' + i + ', termoBusca)" class="pag-num' + (i===page?' pag-ativo':'') + '">' + i + '</button>';
+            }
+            if (right < totalPages - 1) nums += '<span class="pag-ellipsis">…</span>';
+            if (right < totalPages) nums += '<button onclick="carregarClientes(' + totalPages + ', termoBusca)" class="pag-num' + (totalPages===page?' pag-ativo':'') + '">' + totalPages + '</button>';
+
+            container.innerHTML =
+                '<span class="pag-info">Mostrando <strong>' + inicio + '–' + fim + '</strong> de <strong>' + total + '</strong> clientes</span>' +
+                '<div class="pag-controles">' +
+                    '<button onclick="carregarClientes(' + (page-1) + ', termoBusca)" ' + (page<=1?'disabled':'') + ' class="pag-nav">← Anterior</button>' +
+                    nums +
+                    '<button onclick="carregarClientes(' + (page+1) + ', termoBusca)" ' + (page>=totalPages?'disabled':'') + ' class="pag-nav">Próximo →</button>' +
+                '</div>';
+
+            container.classList.add('ativo');
         }
 
         // ============================================
@@ -269,6 +324,10 @@
                             <i class="lucide lucide-link-2"></i>
                             <span>LINK</span>
                         </button>
+                            <button class="btn-action btn-contract" onclick="abrirModalContratos(${c.id}, '${c.nome.replace(/'/g, "\\'")}')" title="CONTRATOS DE HONORÁRIOS">
+                                <i class="lucide lucide-file-signature"></i>
+                                <span>CONTRATOS</span>
+                            </button>
                         <button class="btn-action btn-edit" onclick="prepararEdicao(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}', '${cliente.documento}', '${cliente.email}', '${cliente.telefone || ''}', '${cliente.cep || ''}', '${cliente.endereco || ''}', '${cliente.cidade || ''}', '${cliente.estado || ''}', '${cliente.tipo_pessoa || 'fisica'}', '${cliente.data_nascimento || ''}')" title="EDITAR">
                             <i class="lucide lucide-pencil"></i>
                             <span>EDITAR</span>
@@ -323,6 +382,10 @@
                             <i class="lucide lucide-link-2"></i>
                             <span>LINK</span>
                         </button>
+                            <button class="btn-action btn-contract" onclick="abrirModalContratos(${c.id}, '${c.nome.replace(/'/g, "\\'")}')" title="CONTRATOS DE HONORÁRIOS">
+                                <i class="lucide lucide-file-signature"></i>
+                                <span>CONTRATOS</span>
+                            </button>
                         <button class="btn-action btn-edit" onclick="prepararEdicao(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}', '${cliente.documento}', '${cliente.email}', '${cliente.telefone || ''}', '${cliente.cep || ''}', '${cliente.endereco || ''}', '${cliente.cidade || ''}', '${cliente.estado || ''}', '${cliente.tipo_pessoa || 'fisica'}', '${cliente.data_nascimento || ''}')" title="EDITAR">
                             <i class="lucide lucide-pencil"></i>
                             <span>EDITAR</span>
@@ -377,14 +440,14 @@
         // ============================================
         // FILTRAR CLIENTES
         // ============================================
-        function filtrarClientes() {
-            const termo = document.getElementById('searchClientes').value.toLowerCase();
-            const linhas = document.querySelectorAll('#listaClientes tr');
+        let _searchDebounce = null;
 
-            linhas.forEach(linha => {
-                const nome = linha.querySelector('td')?.innerText.toLowerCase() || '';
-                linha.style.display = nome.includes(termo) ? '' : 'none';
-            });
+        function filtrarClientes() {
+            clearTimeout(_searchDebounce);
+            _searchDebounce = setTimeout(async () => {
+                termoBusca = document.getElementById('searchClientes').value.trim();
+                await carregarClientes(1, termoBusca);
+            }, 300);
         }
 
         // ============================================
@@ -743,7 +806,7 @@
         // ============================================
         async function exportarCSV() {
             try {
-                const res = await fetch('/api/clientes?limit=200', {
+                const res = await fetch('/api/clientes?page=1&limit=9999', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const rExport = await res.json();
@@ -822,6 +885,294 @@
             }
             document.head.appendChild(s);
         }
+
+        // Fix: evita que o header seja empurrado quando a tabela carrega
+        (function() {
+            const fixStyle = document.createElement('style');
+            fixStyle.textContent = [
+                '.main { min-height: 100vh; }',
+                '.content { min-height: calc(100vh - 72px); }',
+                '#paginacaoClientes { margin-top: -1px; }'
+            ].join('');
+            document.head.appendChild(fixStyle);
+        })();
     
 
 (function(){var t=localStorage.getItem('token');if(!t)return;function checkChat(){fetch('/api/chat/nao-lidas',{headers:{Authorization:'Bearer '+t}}).then(function(r){return r.json()}).then(function(d){if(d.ok){var total=Object.values(d.naoLidas).reduce(function(a,b){return a+b},0);var b=document.getElementById('chatBadge');if(b){b.style.display=total>0?'inline-flex':'none';b.textContent=total>99?'99+':total}}}).catch(function(){})}checkChat();setInterval(checkChat,30000)})();
+        // ============================================================
+        // CONTRATOS DE HONORÁRIOS
+        // ============================================================
+        let _contratoClienteId   = null;
+        let _contratoClienteNome = null;
+        let _contratoEditandoId  = null;
+        let _contratoUploadId    = null;
+
+        // ── Abrir modal de listagem ──────────────────────────────────
+        async function abrirModalContratos(clienteId, clienteNome) {
+            _contratoClienteId   = clienteId;
+            _contratoClienteNome = clienteNome;
+
+            document.getElementById('tituloModalContratos').innerHTML =
+                `<i class="lucide lucide-file-signature"></i> CONTRATOS — ${clienteNome}`;
+
+            document.getElementById('corpoModalContratos').innerHTML =
+                '<p style="text-align:center;padding:32px;color:var(--muted);">CARREGANDO...</p>';
+            document.getElementById('modalContratos').style.display = 'flex';
+
+            await _carregarListaContratos();
+            lucide.createIcons();
+        }
+
+        function fecharModalContratos() {
+            document.getElementById('modalContratos').style.display = 'none';
+            _contratoClienteId   = null;
+            _contratoClienteNome = null;
+        }
+
+        // ── Carregar e renderizar lista ──────────────────────────────
+        async function _carregarListaContratos() {
+            try {
+                const res  = await API.get(`/api/clientes/${_contratoClienteId}/contratos`);
+                const data = await res.json();
+
+                const corpo = document.getElementById('corpoModalContratos');
+
+                const header = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+                        <span style="font-size:13px;color:var(--text-secondary);font-weight:600;">
+                            ${data.length} contrato${data.length !== 1 ? 's' : ''} cadastrado${data.length !== 1 ? 's' : ''}
+                        </span>
+                        <button class="btn-primary" style="padding:8px 18px;font-size:12px;" onclick="abrirNovoContrato()">
+                            <i class="lucide lucide-plus"></i> NOVO CONTRATO
+                        </button>
+                    </div>`;
+
+                if (!data || data.length === 0) {
+                    corpo.innerHTML = header + `
+                        <div style="text-align:center;padding:48px 20px;color:var(--muted);">
+                            <i class="lucide lucide-file-x" style="font-size:48px;margin-bottom:12px;display:block;"></i>
+                            <p style="font-weight:600;">NENHUM CONTRATO CADASTRADO</p>
+                            <p style="font-size:12px;margin-top:4px;">Clique em "NOVO CONTRATO" para começar.</p>
+                        </div>`;
+                    lucide.createIcons();
+                    return;
+                }
+
+                const tipoLabel = { fixo:'Fixo', exito:'Êxito', misto:'Misto', consultoria:'Consultoria', outros:'Outros' };
+                const statusColor = { ativo:'#10b981', encerrado:'#6b7280', suspenso:'#f59e0b' };
+
+                const cards = data.map(c => {
+                    const valorTxt = c.tipo_honorario === 'fixo' && c.valor_fixo
+                        ? `R$ ${parseFloat(c.valor_fixo).toLocaleString('pt-BR',{minimumFractionDigits:2})}`
+                        : c.tipo_honorario === 'exito' && c.percentual_exito
+                        ? `${c.percentual_exito}% êxito`
+                        : c.tipo_honorario === 'misto'
+                        ? [c.valor_fixo ? `R$ ${parseFloat(c.valor_fixo).toLocaleString('pt-BR',{minimumFractionDigits:2})}` : null, c.percentual_exito ? `${c.percentual_exito}%` : null].filter(Boolean).join(' + ')
+                        : '—';
+
+                    const dataAss = c.data_assinatura
+                        ? new Date(c.data_assinatura).toLocaleDateString('pt-BR')
+                        : '—';
+
+                    return `
+                    <div style="border:1px solid var(--border-subtle);border-radius:8px;padding:16px 20px;margin-bottom:12px;background:#fafafa;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+                            <div>
+                                <div style="font-weight:700;font-size:14px;color:var(--text-primary);margin-bottom:4px;">${c.titulo}</div>
+                                <div style="font-size:12px;color:var(--text-secondary);display:flex;gap:12px;flex-wrap:wrap;">
+                                    <span><strong>Tipo:</strong> ${tipoLabel[c.tipo_honorario] || c.tipo_honorario}</span>
+                                    <span><strong>Valor:</strong> ${valorTxt}</span>
+                                    ${c.processo_numero ? `<span><strong>Processo:</strong> ${c.processo_numero}</span>` : ''}
+                                    <span><strong>Assinado:</strong> ${dataAss}</span>
+                                </div>
+                                ${c.observacoes ? `<div style="font-size:11px;color:var(--muted);margin-top:6px;font-style:italic;">${c.observacoes.substring(0,120)}${c.observacoes.length>120?'…':''}</div>` : ''}
+                            </div>
+                            <span style="background:${statusColor[c.status]||'#6b7280'};color:#fff;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;text-transform:uppercase;flex-shrink:0;">${c.status}</span>
+                        </div>
+                        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+                            <button onclick="_gerarTemplate(${c.id})" style="${_btnSmall('#3b82f6')}">
+                                <i class="lucide lucide-file-text" style="width:13px;height:13px;"></i> VER TEMPLATE
+                            </button>
+                            ${c.tem_arquivo
+                                ? `<button onclick="_downloadContrato(${c.id})" style="${_btnSmall('#10b981')}"><i class="lucide lucide-download" style="width:13px;height:13px;"></i> BAIXAR PDF</button>`
+                                : `<button onclick="_abrirUpload(${c.id})" style="${_btnSmall('#6366f1')}"><i class="lucide lucide-upload" style="width:13px;height:13px;"></i> ENVIAR PDF ASSINADO</button>`
+                            }
+                            <button onclick="_editarContrato(${c.id},'${c.titulo.replace(/'/g,"\\'")}','${c.tipo_honorario}',${c.valor_fixo||'null'},${c.percentual_exito||'null'},'${c.data_assinatura||''}',${c.processo_id||'null'},'${(c.observacoes||'').replace(/'/g,"\\'")}','${c.status}')" style="${_btnSmall('#f59e0b')}">
+                                <i class="lucide lucide-pencil" style="width:13px;height:13px;"></i> EDITAR
+                            </button>
+                            <button onclick="_excluirContrato(${c.id},'${c.titulo.replace(/'/g,"\\'")}')\" style="${_btnSmall('#ef4444')}">
+                                <i class="lucide lucide-trash-2" style="width:13px;height:13px;"></i> EXCLUIR
+                            </button>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                corpo.innerHTML = header + cards;
+                lucide.createIcons();
+            } catch (err) {
+                console.error('Contratos: erro ao carregar', err);
+                document.getElementById('corpoModalContratos').innerHTML =
+                    '<p style="color:var(--danger);text-align:center;padding:32px;font-weight:600;">❌ ERRO AO CARREGAR CONTRATOS</p>';
+            }
+        }
+
+        function _btnSmall(color) {
+            return `background:${color};color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit;text-transform:uppercase;`;
+        }
+
+        // ── Abrir template em nova aba ───────────────────────────────
+        function _gerarTemplate(contratoId) {
+            const token = localStorage.getItem('token');
+            window.open(`/api/clientes/${_contratoClienteId}/contratos/${contratoId}/template?token=${token}`, '_blank');
+        }
+
+        // ── Download PDF assinado ────────────────────────────────────
+        function _downloadContrato(contratoId) {
+            const token = localStorage.getItem('token');
+            window.open(`/api/contratos/${contratoId}/arquivo?token=${token}`, '_blank');
+        }
+
+        // ── Upload PDF assinado ──────────────────────────────────────
+        function _abrirUpload(contratoId) {
+            _contratoUploadId = contratoId;
+            document.getElementById('inputPdfContrato').value = '';
+            document.getElementById('modalUploadContrato').style.display = 'flex';
+        }
+
+        function fecharModalUpload() {
+            document.getElementById('modalUploadContrato').style.display = 'none';
+            _contratoUploadId = null;
+        }
+
+        async function confirmarUploadContrato() {
+            const file = document.getElementById('inputPdfContrato').files[0];
+            if (!file) { alert('Selecione um arquivo PDF.'); return; }
+            if (file.type !== 'application/pdf') { alert('Apenas arquivos PDF são aceitos.'); return; }
+
+            const formData = new FormData();
+            formData.append('arquivo', file);
+
+            try {
+                const res = await fetch(`/api/contratos/${_contratoUploadId}/upload`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') },
+                    body: formData
+                });
+                const data = await res.json();
+                if (!res.ok) { alert('❌ Erro: ' + (data.erro || 'Falha no upload')); return; }
+
+                fecharModalUpload();
+                alert('✅ PDF assinado vinculado com sucesso!');
+                await _carregarListaContratos();
+            } catch (err) {
+                console.error('Upload contrato:', err);
+                alert('❌ Erro de conexão ao fazer upload.');
+            }
+        }
+
+        // ── Novo contrato ────────────────────────────────────────────
+        async function abrirNovoContrato() {
+            _contratoEditandoId = null;
+            document.getElementById('tituloFormContrato').innerHTML =
+                '<i class="lucide lucide-plus-circle"></i> NOVO CONTRATO';
+            document.getElementById('textoSalvarContrato').textContent = 'SALVAR CONTRATO';
+            document.getElementById('formContrato').reset();
+            document.getElementById('campoValorFixo').style.display  = 'none';
+            document.getElementById('campoPercentual').style.display = 'none';
+            await _carregarProcessosSelect();
+            document.getElementById('modalFormContrato').style.display = 'flex';
+            lucide.createIcons();
+        }
+
+        // ── Editar contrato ──────────────────────────────────────────
+        async function _editarContrato(id, titulo, tipo, valorFixo, percentual, dataAss, processoId, obs, status) {
+            _contratoEditandoId = id;
+            document.getElementById('tituloFormContrato').innerHTML =
+                '<i class="lucide lucide-pencil"></i> EDITAR CONTRATO';
+            document.getElementById('textoSalvarContrato').textContent = 'SALVAR ALTERAÇÕES';
+
+            await _carregarProcessosSelect(processoId);
+
+            document.getElementById('ctTitulo').value         = titulo || '';
+            document.getElementById('ctTipo').value           = tipo   || '';
+            document.getElementById('ctValorFixo').value      = valorFixo   || '';
+            document.getElementById('ctPercentual').value     = percentual  || '';
+            document.getElementById('ctDataAssinatura').value = dataAss ? dataAss.split('T')[0] : '';
+            document.getElementById('ctObs').value            = obs    || '';
+
+            atualizarCamposHonorario();
+            document.getElementById('modalFormContrato').style.display = 'flex';
+            lucide.createIcons();
+        }
+
+        function fecharModalFormContrato() {
+            document.getElementById('modalFormContrato').style.display = 'none';
+            _contratoEditandoId = null;
+        }
+
+        function atualizarCamposHonorario() {
+            const tipo = document.getElementById('ctTipo').value;
+            document.getElementById('campoValorFixo').style.display  = ['fixo','misto','consultoria'].includes(tipo) ? '' : 'none';
+            document.getElementById('campoPercentual').style.display = ['exito','misto'].includes(tipo)             ? '' : 'none';
+        }
+
+        async function _carregarProcessosSelect(selecionado) {
+            const sel = document.getElementById('ctProcesso');
+            sel.innerHTML = '<option value="">SEM PROCESSO VINCULADO</option>';
+            try {
+                const res  = await API.get(`/api/processos?limit=200`);
+                const data = await res.json();
+                const lista = data.data || data;
+                lista.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = p.numero + (p.cliente ? ` — ${p.cliente}` : '');
+                    if (selecionado && p.id == selecionado) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            } catch(e) { /* silencioso */ }
+        }
+
+        // ── Submeter formulário ──────────────────────────────────────
+        document.getElementById('formContrato').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                titulo:           document.getElementById('ctTitulo').value,
+                tipo_honorario:   document.getElementById('ctTipo').value,
+                valor_fixo:       document.getElementById('ctValorFixo').value   || null,
+                percentual_exito: document.getElementById('ctPercentual').value  || null,
+                data_assinatura:  document.getElementById('ctDataAssinatura').value || null,
+                processo_id:      document.getElementById('ctProcesso').value    || null,
+                observacoes:      document.getElementById('ctObs').value         || null,
+            };
+
+            try {
+                let res;
+                if (_contratoEditandoId) {
+                    res = await API.put(`/api/contratos/${_contratoEditandoId}`, payload);
+                } else {
+                    res = await API.post(`/api/clientes/${_contratoClienteId}/contratos`, payload);
+                }
+                const data = await res.json();
+                if (!res.ok) { alert('❌ Erro: ' + (data.erro || 'Falha ao salvar')); return; }
+
+                fecharModalFormContrato();
+                await _carregarListaContratos();
+            } catch (err) {
+                console.error('Salvar contrato:', err);
+                alert('❌ Erro de conexão ao salvar contrato.');
+            }
+        });
+
+        // ── Excluir contrato ─────────────────────────────────────────
+        async function _excluirContrato(id, titulo) {
+            if (!confirm(`EXCLUIR o contrato "${titulo}"?\n\nO PDF vinculado também será removido.`)) return;
+            try {
+                const res = await API.delete(`/api/contratos/${id}`);
+                if (!res.ok) { alert('❌ Erro ao excluir contrato'); return; }
+                await _carregarListaContratos();
+            } catch (err) {
+                console.error('Excluir contrato:', err);
+                alert('❌ Erro de conexão ao excluir.');
+            }
+        }

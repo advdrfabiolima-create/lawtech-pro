@@ -1,5 +1,4 @@
-
-        // ========== VERSÃO ATUALIZADA - 13/02/2026 11:30 ==========
+// ========== VERSÃO ATUALIZADA - 13/02/2026 11:30 ==========
         console.log('🎯 AUDIENCIAS.HTML CARREGADO - VERSÃO 13/02/2026 11:30');
         console.log('✅ Função abrirModalRegistrarAta: ', typeof abrirModalRegistrarAta !== 'undefined' ? 'EXISTE' : 'NÃO EXISTE');
         
@@ -102,166 +101,162 @@
             }
         }
 
+        // ── Estado de paginação ──────────────────────────────────────────────
+        const PAG_LIMITE = 10;
+        let _todasFuturas    = [];
+        let _todasRealizadas = [];
+        let _pagFuturas      = 1;
+        let _pagRealizadas   = 1;
+        let _carregandoAud   = false;
+
+        // ── Renderizar controles de paginação ────────────────────────────────
+        function renderizarPaginacaoAud(containerId, total, pagina, callbackFn) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const totalPags = Math.ceil(total / PAG_LIMITE);
+            if (totalPags <= 1) { container.classList.remove('ativo'); return; }
+
+            const inicio = (pagina - 1) * PAG_LIMITE + 1;
+            const fim    = Math.min(pagina * PAG_LIMITE, total);
+            const delta  = 2;
+            const left   = Math.max(1, pagina - delta);
+            const right  = Math.min(totalPags, pagina + delta);
+
+            let nums = '';
+            if (left > 1)  nums += `<button onclick="${callbackFn}(1)" class="pag-num${1===pagina?' pag-ativo':''}">1</button>`;
+            if (left > 2)  nums += '<span class="pag-ellipsis">…</span>';
+            for (let i = left; i <= right; i++) {
+                nums += `<button onclick="${callbackFn}(${i})" class="pag-num${i===pagina?' pag-ativo':''}">${i}</button>`;
+            }
+            if (right < totalPags - 1) nums += '<span class="pag-ellipsis">…</span>';
+            if (right < totalPags)     nums += `<button onclick="${callbackFn}(${totalPags})" class="pag-num${totalPags===pagina?' pag-ativo':''}">${totalPags}</button>`;
+
+            container.innerHTML =
+                `<span class="pag-info">Mostrando <strong>${inicio}–${fim}</strong> de <strong>${total}</strong></span>` +
+                `<div class="pag-controles">` +
+                    `<button onclick="${callbackFn}(${pagina-1})" ${pagina<=1?'disabled':''} class="pag-nav">← Anterior</button>` +
+                    nums +
+                    `<button onclick="${callbackFn}(${pagina+1})" ${pagina>=totalPags?'disabled':''} class="pag-nav">Próximo →</button>` +
+                `</div>`;
+            container.classList.add('ativo');
+        }
+
+        // ── Renderizar página de audiências AGENDADAS ────────────────────────
+        function renderizarPaginaFuturas(pagina) {
+            _pagFuturas = pagina;
+            const corpo = document.getElementById('listaAudiencias');
+            const hoje  = new Date(); hoje.setHours(0,0,0,0);
+            const inicio = (pagina - 1) * PAG_LIMITE;
+            const fatia  = _todasFuturas.slice(inicio, inicio + PAG_LIMITE);
+
+            if (_todasFuturas.length === 0) {
+                corpo.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:60px 20px;color:var(--muted);"><i class="lucide lucide-calendar-x" style="font-size:48px;margin-bottom:16px;"></i><p style="font-weight:600;font-size:16px;">NENHUMA AUDIÊNCIA AGENDADA</p></td></tr>';
+                document.getElementById('paginacaoAgendadas').classList.remove('ativo');
+                lucide.createIcons(); return;
+            }
+
+            corpo.innerHTML = fatia.map(a => {
+                const dataFormatada = a.data_audiencia ? new Date(a.data_audiencia).toLocaleDateString('pt-BR') : '---';
+                const horaFormatada = a.hora_audiencia ? a.hora_audiencia.slice(0,5) : '--:--';
+                let alertaBadge = '', alertaStyle = '';
+                if (a.data_audiencia) {
+                    let dataAud = a.data_audiencia.includes('T') ? new Date(a.data_audiencia) : new Date(a.data_audiencia + 'T00:00:00');
+                    dataAud.setHours(0,0,0,0);
+                    const diff = Math.ceil((dataAud - hoje) / 86400000);
+                    if (diff === 0)      { alertaBadge = '<span class="badge badge-hoje">HOJE</span>';           alertaStyle = 'background:rgba(239,68,68,.05);border-left:3px solid #ef4444;'; }
+                    else if (diff === 1) { alertaBadge = '<span class="badge badge-amanha">AMANHÃ</span>';       alertaStyle = 'background:rgba(245,158,11,.05);border-left:3px solid #f59e0b;'; }
+                    else                { alertaBadge = `<span class="badge badge-proximo">FALTAM ${diff} DIAS</span>`; }
+                }
+                return `<tr style="${alertaStyle}">
+                    <td><strong style="color:var(--primary);display:block;margin-bottom:4px;">${dataFormatada}</strong><span style="font-size:12px;font-weight:600;color:var(--muted);">${horaFormatada}</span>${alertaBadge}</td>
+                    <td><div style="font-weight:700;color:var(--text-main);margin-bottom:4px;">${a.processo_numero||'SEM NÚMERO'}</div><div style="font-size:12px;color:var(--muted);">${a.cliente||'CLIENTE NÃO INFORMADO'}</div></td>
+                    <td><span style="background:#f1f5f9;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;">${(a.tipo_audiencia||a.tipo||'AUDIÊNCIA').toUpperCase()}</span></td>
+                    <td style="font-size:12px;color:var(--muted);max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.local_virtual||a.local||'---'}</td>
+                    <td><div class="action-buttons">
+                        <button class="btn-action btn-whatsapp" onclick="avisarZap('${a.cliente}','${a.processo_numero}','${a.tipo_audiencia}','${a.data_audiencia}','${a.hora_audiencia}','${a.local_virtual}','${a.telefone}')"><i class="lucide lucide-message-circle"></i><span>WHATSAPP</span></button>
+                        <button class="btn-action btn-link-edit" data-local-id="${a.id}" data-local-valor="${(a.local_virtual||'').replace(/"/g,'&quot;')}" onclick="abrirModalEditarLocalSeguro(this)"><i class="lucide lucide-link"></i><span>EDITAR LINK</span></button>
+                        <button class="btn-action btn-realizada" onclick="abrirModalRegistrarAta(${a.id})"><i class="lucide lucide-check"></i><span>REALIZADA</span></button>
+                        <button class="btn-action btn-delete" onclick="excluirAudiencia(${a.id})"><i class="lucide lucide-trash-2"></i><span>EXCLUIR</span></button>
+                    </div></td>
+                </tr>`;
+            }).join('');
+
+            lucide.createIcons();
+            renderizarPaginacaoAud('paginacaoAgendadas', _todasFuturas.length, pagina, 'renderizarPaginaFuturas');
+        }
+
+        // ── Renderizar página de audiências REALIZADAS ───────────────────────
+        function renderizarPaginaRealizadas(pagina) {
+            _pagRealizadas = pagina;
+            const corpo  = document.getElementById('listaAudienciasRealizadas');
+            const inicio = (pagina - 1) * PAG_LIMITE;
+            const fatia  = _todasRealizadas.slice(inicio, inicio + PAG_LIMITE);
+
+            if (_todasRealizadas.length === 0) {
+                corpo.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:60px 20px;color:var(--muted);"><i class="lucide lucide-calendar-check" style="font-size:48px;margin-bottom:16px;"></i><p style="font-weight:600;font-size:16px;">NENHUMA AUDIÊNCIA REALIZADA</p></td></tr>';
+                document.getElementById('paginacaoRealizadas').classList.remove('ativo');
+                lucide.createIcons(); return;
+            }
+
+            corpo.innerHTML = fatia.map(a => {
+                const dataFormatada = a.data_audiencia ? new Date(a.data_audiencia).toLocaleDateString('pt-BR') : '---';
+                const horaFormatada = a.hora_audiencia ? a.hora_audiencia.slice(0,5) : '--:--';
+                return `<tr>
+                    <td><strong style="color:var(--muted);display:block;margin-bottom:4px;">${dataFormatada}</strong><span style="font-size:12px;font-weight:600;color:var(--muted);">${horaFormatada}</span></td>
+                    <td><div style="font-weight:700;color:var(--text-main);margin-bottom:4px;">${a.processo_numero||'SEM NÚMERO'}</div><div style="font-size:12px;color:var(--muted);">${a.cliente||'CLIENTE NÃO INFORMADO'}</div></td>
+                    <td><span style="background:#f1f5f9;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;">${(a.tipo_audiencia||a.tipo||'AUDIÊNCIA').toUpperCase()}</span></td>
+                    <td style="font-size:12px;color:var(--muted);max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.local_virtual||a.local||'---'}</td>
+                    <td><div class="action-buttons">
+                        <button class="btn-action btn-edit" data-ata-id="${a.id}" data-ata-texto="${(a.ata_audiencia||'').replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}" onclick="abrirModalVerAtaSeguro(this)"><i class="lucide lucide-file-text"></i><span>VER ATA</span></button>
+                        <button class="btn-action btn-delete" onclick="excluirAudiencia(${a.id})"><i class="lucide lucide-trash-2"></i><span>EXCLUIR</span></button>
+                    </div></td>
+                </tr>`;
+            }).join('');
+
+            lucide.createIcons();
+            renderizarPaginacaoAud('paginacaoRealizadas', _todasRealizadas.length, pagina, 'renderizarPaginaRealizadas');
+        }
+
         // Carregar audiências
         async function carregarAudiencias() {
+            if (_carregandoAud) return;
+            _carregandoAud = true;
             try {
-                const res = await API.get('/api/audiencias');
+                const res   = await API.get('/api/audiencias');
                 const dados = await res.json();
-                
-                const corpoFuturas = document.getElementById('listaAudiencias');
-                const corpoRealizadas = document.getElementById('listaAudienciasRealizadas');
-                
-                if (!dados || dados.length === 0) {
-                    corpoFuturas.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:60px 20px; color:var(--muted);"><i class="lucide lucide-calendar-x" style="font-size:48px; margin-bottom:16px;"></i><p style="font-weight:600; font-size:16px;">NENHUMA AUDIÊNCIA AGENDADA</p></td></tr>';
-                    corpoRealizadas.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:60px 20px; color:var(--muted);"><i class="lucide lucide-calendar-check" style="font-size:48px; margin-bottom:16px;"></i><p style="font-weight:600; font-size:16px;">NENHUMA AUDIÊNCIA REALIZADA</p></td></tr>';
-                    lucide.createIcons();
-                    return;
+
+                const hoje = new Date(); hoje.setHours(0,0,0,0);
+                _todasFuturas    = [];
+                _todasRealizadas = [];
+
+                if (dados && dados.length > 0) {
+                    dados.forEach(a => {
+                        if (!a.data_audiencia) return;
+                        let dataAud = a.data_audiencia.includes('T') ? new Date(a.data_audiencia) : new Date(a.data_audiencia + 'T00:00:00');
+                        dataAud.setHours(0,0,0,0);
+                        if (a.realizada === true || dataAud < hoje) _todasRealizadas.push(a);
+                        else _todasFuturas.push(a);
+                    });
                 }
 
-                // Separar audiências
-                const hoje = new Date();
-                hoje.setHours(0, 0, 0, 0);
-                const futuras = [];
-                const realizadas = [];
+                // Contadores
+                document.getElementById('totalAudiencias').innerText       = dados ? dados.length : 0;
+                document.getElementById('audienciasAgendadas').innerText   = _todasFuturas.length;
+                document.getElementById('audienciasRealizadas').innerText  = _todasRealizadas.length;
+                document.getElementById('contadorFuturas').innerText       = _todasFuturas.length;
+                document.getElementById('contadorRealizadas').innerText    = _todasRealizadas.length;
 
-                dados.forEach(a => {
-                    if (a.data_audiencia) {
-                        let dataAud;
-                        if (a.data_audiencia.includes('T')) {
-                            dataAud = new Date(a.data_audiencia);
-                        } else {
-                            dataAud = new Date(a.data_audiencia + 'T00:00:00');
-                        }
-                        dataAud.setHours(0, 0, 0, 0);
-                        
-                        if (a.realizada === true) {
-                            realizadas.push(a);
-                        } else if (dataAud < hoje) {
-                            realizadas.push(a);
-                        } else {
-                            futuras.push(a);
-                        }
-                    }
-                });
+                // Renderizar página 1 de cada aba
+                _pagFuturas    = 1;
+                _pagRealizadas = 1;
+                renderizarPaginaFuturas(1);
+                renderizarPaginaRealizadas(1);
 
-                // Atualizar contadores
-                document.getElementById('totalAudiencias').innerText = dados.length;
-                document.getElementById('audienciasAgendadas').innerText = futuras.length;
-                document.getElementById('audienciasRealizadas').innerText = realizadas.length;
-                document.getElementById('contadorFuturas').innerText = futuras.length;
-                document.getElementById('contadorRealizadas').innerText = realizadas.length;
-
-                // Renderizar agendadas
-                if (futuras.length === 0) {
-                    corpoFuturas.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:60px 20px; color:var(--muted);"><i class="lucide lucide-calendar-x" style="font-size:48px; margin-bottom:16px;"></i><p style="font-weight:600; font-size:16px;">NENHUMA AUDIÊNCIA AGENDADA</p></td></tr>';
-                } else {
-                    corpoFuturas.innerHTML = futuras.map(a => {
-                        const dataFormatada = a.data_audiencia ? new Date(a.data_audiencia).toLocaleDateString('pt-BR') : '---';
-                        const horaFormatada = a.hora_audiencia ? a.hora_audiencia.slice(0,5) : '--:--';
-
-                        // Calcular badge de alerta
-                        let alertaBadge = '';
-                        let alertaStyle = '';
-                        
-                        if (a.data_audiencia) {
-                            let dataAud = a.data_audiencia.includes('T') ? new Date(a.data_audiencia) : new Date(a.data_audiencia + 'T00:00:00');
-                            dataAud.setHours(0, 0, 0, 0);
-                            
-                            const diffTime = dataAud - hoje;
-                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            
-                            if (diffDays === 0) {
-                                alertaBadge = '<span class="badge badge-hoje">HOJE</span>';
-                                alertaStyle = 'background: rgba(239, 68, 68, 0.05); border-left: 3px solid #ef4444;';
-                            } else if (diffDays === 1) {
-                                alertaBadge = '<span class="badge badge-amanha">AMANHÃ</span>';
-                                alertaStyle = 'background: rgba(245, 158, 11, 0.05); border-left: 3px solid #f59e0b;';
-                            } else if (diffDays <= 7) {
-                                alertaBadge = `<span class="badge badge-proximo">FALTAM ${diffDays} DIAS</span>`;
-                            } else {
-                                alertaBadge = `<span class="badge badge-proximo">FALTAM ${diffDays} DIAS</span>`;
-                            }
-                        }
-
-                        return `
-                        <tr style="${alertaStyle}">
-                            <td>
-                                <strong style="color:var(--primary); display:block; margin-bottom:4px;">${dataFormatada}</strong>
-                                <span style="font-size:12px; font-weight:600; color:var(--muted);">${horaFormatada}</span>
-                                ${alertaBadge}
-                            </td>
-                            <td>
-                                <div style="font-weight:700; color:var(--text-main); margin-bottom:4px;">${a.processo_numero || 'SEM NÚMERO'}</div>
-                                <div style="font-size:12px; color:var(--muted);">${a.cliente || 'CLIENTE NÃO INFORMADO'}</div>
-                            </td>
-                            <td><span style="background:#f1f5f9; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:700;">${(a.tipo_audiencia || a.tipo || 'AUDIÊNCIA').toUpperCase()}</span></td>
-                            <td style="font-size:12px; color:var(--muted); max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.local_virtual || a.local || '---'}</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-action btn-whatsapp" onclick="avisarZap('${a.cliente}', '${a.processo_numero}', '${a.tipo_audiencia}', '${a.data_audiencia}', '${a.hora_audiencia}', '${a.local_virtual}', '${a.telefone}')">
-                                        <i class="lucide lucide-message-circle"></i>
-                                        <span>WHATSAPP</span>
-                                    </button>
-                                    <button class="btn-action btn-link-edit" data-local-id="${a.id}" data-local-valor="${(a.local_virtual || '').replace(/"/g, '&quot;')}" onclick="abrirModalEditarLocalSeguro(this)">
-                                        <i class="lucide lucide-link"></i>
-                                        <span>EDITAR LINK</span>
-                                    </button>
-                                    <button class="btn-action btn-realizada" onclick="abrirModalRegistrarAta(${a.id})">
-                                        <i class="lucide lucide-check"></i>
-                                        <span>REALIZADA</span>
-                                    </button>
-                                    <button class="btn-action btn-delete" onclick="excluirAudiencia(${a.id})">
-                                        <i class="lucide lucide-trash-2"></i>
-                                        <span>EXCLUIR</span>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        `;
-                    }).join('');
-                }
-
-                // Renderizar realizadas
-                if (realizadas.length === 0) {
-                    corpoRealizadas.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:60px 20px; color:var(--muted);"><i class="lucide lucide-calendar-check" style="font-size:48px; margin-bottom:16px;"></i><p style="font-weight:600; font-size:16px;">NENHUMA AUDIÊNCIA REALIZADA</p></td></tr>';
-                } else {
-                    corpoRealizadas.innerHTML = realizadas.map(a => {
-                        const dataFormatada = a.data_audiencia ? new Date(a.data_audiencia).toLocaleDateString('pt-BR') : '---';
-                        const horaFormatada = a.hora_audiencia ? a.hora_audiencia.slice(0,5) : '--:--';
-
-                        return `
-                        <tr>
-                            <td>
-                                <strong style="color:var(--muted); display:block; margin-bottom:4px;">${dataFormatada}</strong>
-                                <span style="font-size:12px; font-weight:600; color:var(--muted);">${horaFormatada}</span>
-                            </td>
-                            <td>
-                                <div style="font-weight:700; color:var(--text-main); margin-bottom:4px;">${a.processo_numero || 'SEM NÚMERO'}</div>
-                                <div style="font-size:12px; color:var(--muted);">${a.cliente || 'CLIENTE NÃO INFORMADO'}</div>
-                            </td>
-                            <td><span style="background:#f1f5f9; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:700;">${(a.tipo_audiencia || a.tipo || 'AUDIÊNCIA').toUpperCase()}</span></td>
-                            <td style="font-size:12px; color:var(--muted); max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.local_virtual || a.local || '---'}</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-action btn-edit" data-ata-id="${a.id}" data-ata-texto="${(a.ata_audiencia || '').replace(/"/g, '&quot;').replace(/\n/g, '&#10;')}" onclick="abrirModalVerAtaSeguro(this)">
-                                        <i class="lucide lucide-file-text"></i>
-                                        <span>VER ATA</span>
-                                    </button>
-                                    <button class="btn-action btn-delete" onclick="excluirAudiencia(${a.id})">
-                                        <i class="lucide lucide-trash-2"></i>
-                                        <span>EXCLUIR</span>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        `;
-                    }).join('');
-                }
-
-                lucide.createIcons();
             } catch (err) {
                 console.error("Erro ao carregar audiências:", err);
-                document.getElementById('listaAudiencias').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--danger); font-weight:600;">❌ ERRO AO CARREGAR AUDIÊNCIAS</td></tr>';
+                document.getElementById('listaAudiencias').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--danger);font-weight:600;">❌ ERRO AO CARREGAR AUDIÊNCIAS</td></tr>';
+            } finally {
+                _carregandoAud = false;
             }
         }
 

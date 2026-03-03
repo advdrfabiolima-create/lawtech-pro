@@ -318,12 +318,12 @@
         .main {
             margin-left: 280px;
             width: calc(100% - 280px);
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
             flex-direction: column;
             position: relative;
             z-index: 1;
-            overflow-y: auto;
+            overflow: hidden;
         }
 
         /* Header Premium */
@@ -332,15 +332,15 @@
             backdrop-filter: blur(30px) saturate(180%);
             -webkit-backdrop-filter: blur(30px) saturate(180%);
             height: 80px;
+            min-height: 80px;
+            flex-shrink: 0;
             padding: 0 40px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-            position: sticky;
-            top: 0;
+            position: relative;
             z-index: 900;
-            animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
             box-shadow: 
                 0 1px 3px rgba(0, 0, 0, 0.05),
                 inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
@@ -432,6 +432,9 @@
         .content {
             padding: 32px 40px;
             flex-grow: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
 
         /* CARDS DE ESTATÍSTICAS */
@@ -1122,6 +1125,43 @@
     font-size: 13px;
     margin-top: 4px;
 }
+        /* ── Paginação ─────────────────────────────── */
+        .paginacao-audiencias {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            background: #fff;
+            border: 1px solid rgba(42, 74, 115, 0.08);
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-family: inherit;
+        }
+        .paginacao-audiencias.ativo { display: flex; }
+        .pag-info { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .5px; }
+        .pag-info strong { color: #1e293b; }
+        .pag-controles { display: flex; align-items: center; gap: 6px; }
+        .pag-nav {
+            padding: 6px 14px; font-size: 12px; font-weight: 700;
+            border: 1px solid #cbd5e1; border-radius: 8px;
+            background: #f8fafc; color: #475569; cursor: pointer;
+            text-transform: uppercase; letter-spacing: .5px;
+            transition: all .15s; font-family: inherit;
+        }
+        .pag-nav:hover:not(:disabled) { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
+        .pag-nav:disabled { opacity: .4; cursor: not-allowed; }
+        .pag-num {
+            width: 32px; height: 32px; font-size: 12px; font-weight: 700;
+            border: 1px solid #cbd5e1; border-radius: 8px;
+            background: #f8fafc; color: #475569; cursor: pointer;
+            transition: all .15s; font-family: inherit;
+        }
+        .pag-num:hover:not(.pag-ativo) { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
+        .pag-ativo { background: #1e3a5f !important; color: #fff !important; border-color: #1e3a5f !important; }
+        .pag-ellipsis { font-size: 13px; color: #94a3b8; padding: 0 4px; line-height: 32px; }
+
     </style>
     <link rel="stylesheet" href="mobile.css">
 </head>
@@ -1294,6 +1334,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="paginacaoAgendadas" class="paginacao-audiencias"></div>
                 </div>
 
                 <!-- Conteúdo Aba Realizadas -->
@@ -1320,6 +1361,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="paginacaoRealizadas" class="paginacao-audiencias"></div>
                 </div>
             </div>
         </main>

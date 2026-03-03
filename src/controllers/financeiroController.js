@@ -37,6 +37,9 @@ function formatarDataVencimento(dataInput) {
     return `${fb.getFullYear()}-${String(fb.getMonth() + 1).padStart(2, '0')}-${String(fb.getDate()).padStart(2, '0')}`;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ALTERAÇÃO: LEFT JOIN com clientes para retornar cliente_nome em cada lançamento
+// ─────────────────────────────────────────────────────────────────────────────
 async function listarLancamentos(req, res) {
     try {
         const { page, limit, offset } = getPagination(req.query);
@@ -44,8 +47,10 @@ async function listarLancamentos(req, res) {
 
         const [result, countResult] = await Promise.all([
             pool.query(`
-                SELECT f.* FROM financeiro f
+                SELECT f.*, c.nome AS cliente_nome
+                FROM financeiro f
                 JOIN usuarios u ON u.id = f.usuario_id
+                LEFT JOIN clientes c ON c.id = f.cliente_id
                 WHERE u.escritorio_id = $1
                 ORDER BY f.data_vencimento DESC
                 LIMIT $2 OFFSET $3
@@ -65,16 +70,27 @@ async function listarLancamentos(req, res) {
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ALTERAÇÃO: Aceita cliente_id opcional no corpo da requisição
+// ─────────────────────────────────────────────────────────────────────────────
 async function criarLancamento(req, res) {
-    const { descricao, valor, tipo, data_vencimento } = req.body;
+    const { descricao, valor, tipo, data_vencimento, cliente_id, beneficiario } = req.body;
     try {
         if (!descricao || !valor || !tipo || !data_vencimento) {
             return res.status(400).json({ erro: 'Preencha todos os campos obrigatórios' });
         }
+        const clienteIdFinal = cliente_id ? parseInt(cliente_id) : null;
+        // beneficiario só é relevante para Despesa; cliente_id só para Receita
+        const beneficiarioFinal = tipo === 'Despesa' ? (beneficiario || null) : null;
+        const clienteFinal     = tipo === 'Receita'  ? clienteIdFinal : null;
+
         const result = await pool.query(`
-            INSERT INTO financeiro (descricao, valor, tipo, data_vencimento, usuario_id, status)
-            VALUES ($1, $2, $3, $4, $5, 'Pendente') RETURNING *
-        `, [descricao, valor, tipo, data_vencimento, req.user.id]);
+            INSERT INTO financeiro
+                (descricao, valor, tipo, data_vencimento, usuario_id, status, cliente_id, beneficiario)
+            VALUES ($1, $2, $3, $4, $5, 'Pendente', $6, $7)
+            RETURNING *
+        `, [descricao, valor, tipo, data_vencimento, req.user.id, clienteFinal, beneficiarioFinal]);
+
         res.status(201).json(result.rows[0]);
     } catch (err) {
         logger.error({ err: err.message }, 'Erro ao salvar lancamento');
@@ -82,16 +98,31 @@ async function criarLancamento(req, res) {
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ALTERAÇÃO: Aceita cliente_id opcional na atualização
+// ─────────────────────────────────────────────────────────────────────────────
 async function atualizarLancamento(req, res) {
     const { id } = req.params;
-    const { descricao, valor, tipo, data_vencimento } = req.body;
+    const { descricao, valor, tipo, data_vencimento, cliente_id, forma_pagamento, beneficiario } = req.body;
     try {
+        const clienteIdFinal    = cliente_id   ? parseInt(cliente_id) : null;
+        const beneficiarioFinal = tipo === 'Despesa' ? (beneficiario || null) : null;
+        const clienteFinal      = tipo === 'Receita'  ? clienteIdFinal : null;
+
         const result = await pool.query(`
             UPDATE financeiro
-            SET descricao = $1, valor = $2, tipo = $3, data_vencimento = $4
-            WHERE id = $5 AND usuario_id = $6
+            SET descricao      = $1,
+                valor          = $2,
+                tipo           = $3,
+                data_vencimento = $4,
+                cliente_id     = $5,
+                forma_pagamento = $6,
+                beneficiario   = $7
+            WHERE id = $8 AND usuario_id = $9
             RETURNING *
-        `, [descricao, valor, tipo, data_vencimento, id, req.user.id]);
+        `, [descricao, valor, tipo, data_vencimento, clienteFinal,
+            forma_pagamento || null, beneficiarioFinal, id, req.user.id]);
+
         res.json(result.rows[0]);
     } catch (err) {
         logger.error({ err: err.message }, 'Erro ao atualizar lancamento');
@@ -102,11 +133,14 @@ async function atualizarLancamento(req, res) {
 async function marcarPago(req, res) {
     try {
         const { id } = req.params;
+        const { forma_pagamento } = req.body || {};
         const result = await pool.query(`
-            UPDATE financeiro SET status = 'Pago'
-            WHERE id = $1 AND usuario_id = $2
+            UPDATE financeiro
+            SET status = 'Pago',
+                forma_pagamento = COALESCE($1::varchar, forma_pagamento)
+            WHERE id = $2 AND usuario_id = $3
             RETURNING *
-        `, [id, req.user.id]);
+        `, [forma_pagamento || null, id, req.user.id]);
         if (result.rows.length === 0) return res.status(404).json({ erro: 'Lançamento não encontrado' });
         res.json(result.rows[0]);
     } catch (err) {
@@ -150,6 +184,9 @@ async function calcularSaldo(req, res) {
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ALTERAÇÃO: Inclui cliente_nome no relatório
+// ─────────────────────────────────────────────────────────────────────────────
 async function gerarRelatorio(req, res) {
     try {
         const { dataInicio, dataFim } = req.query;
@@ -157,9 +194,10 @@ async function gerarRelatorio(req, res) {
             return res.status(400).json({ erro: 'Datas de início e fim são obrigatórias' });
         }
         const result = await pool.query(`
-            SELECT f.*
+            SELECT f.*, c.nome AS cliente_nome
             FROM financeiro f
             JOIN usuarios u ON u.id = f.usuario_id
+            LEFT JOIN clientes c ON c.id = f.cliente_id
             WHERE u.escritorio_id = $1
               AND f.data_vencimento BETWEEN $2 AND $3
             ORDER BY f.data_vencimento ASC, f.tipo DESC
@@ -361,9 +399,9 @@ async function gerarBoletoHonorarios(req, res) {
 
         try {
             await pool.query(
-                `INSERT INTO financeiro (descricao, valor, tipo, data_vencimento, usuario_id, status, asaas_payment_id)
-                 VALUES ($1, $2, 'Receita', $3, $4, 'Pendente', $5)`,
-                [descricao || 'Honorários Advocatícios', parseFloat(valor), dataVencimento, req.user.id, cobranca.data.id]
+                `INSERT INTO financeiro (descricao, valor, tipo, data_vencimento, usuario_id, status, asaas_payment_id, cliente_id)
+                 VALUES ($1, $2, 'Receita', $3, $4, 'Pendente', $5, $6)`,
+                [descricao || 'Honorários Advocatícios', parseFloat(valor), dataVencimento, req.user.id, cobranca.data.id, parseInt(clienteId)]
             );
         } catch (dbErr) {
             logger.warn({ err: dbErr.message }, 'Erro ao criar lancamento no banco');

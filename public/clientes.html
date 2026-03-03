@@ -313,13 +313,9 @@
             min-height: 100vh;
             position: relative;
             z-index: 1;
-            animation: fadeIn 0.6s ease-out;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+
 
         /* Main Content */
         .main {
@@ -331,6 +327,8 @@
             position: relative;
             z-index: 1;
             overflow-y: auto;
+            overflow-x: hidden;
+            padding-top: 80px;
         }
 
         /* Header Premium */
@@ -344,19 +342,18 @@
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-            position: sticky;
+            position: fixed;
             top: 0;
+            left: 280px;
+            right: 0;
             z-index: 900;
-            animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+
             box-shadow: 
                 0 1px 3px rgba(0, 0, 0, 0.05),
                 inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
         }
 
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+
 
         .header h2 {
             font-size: 22px;
@@ -480,6 +477,7 @@
         }
 
         .stat-card {
+            opacity: 1;
             background: linear-gradient(135deg, #5B9FD8 0%, #4A90E2 100%);
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 6px;
@@ -487,8 +485,6 @@
             position: relative;
             overflow: hidden;
             transition: all var(--transition-base);
-            animation: slideUp 0.5s ease-out forwards;
-            opacity: 0;
             box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
         }
 
@@ -508,14 +504,9 @@
             50% { transform: scale(1.1); opacity: 0.8; }
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
 
-        .stat-card:nth-child(1) { animation-delay: 0.1s; }
-        .stat-card:nth-child(2) { animation-delay: 0.2s; }
-        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+
+
 
         .stat-card:hover {
             transform: translateY(-4px);
@@ -654,6 +645,11 @@
             border-radius: 6px;
             border: 1px solid var(--border-subtle);
         }
+        /* Garante que colunas não quebrem conteúdo */
+        #listaClientes td:nth-child(2),
+        table thead th:nth-child(2) { min-width: 130px; white-space: nowrap; }
+        #listaClientes td:nth-child(1),
+        table thead th:nth-child(1) { min-width: 180px; }
 
         table {
             width: 100%;
@@ -823,6 +819,18 @@
             box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
         }
 
+
+        .btn-contract {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-contract:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
         /* Modal */
         .modal {
             display: none;
@@ -834,7 +842,6 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            animation: fadeIn 0.3s ease-out;
         }
 
         .modal-content {
@@ -1000,7 +1007,7 @@
             .menu { overflow-y: auto; }
             .menu a { padding: 10px 14px; font-size: 13px; }
             .main { margin-left: 220px; width: calc(100% - 220px); }
-            .header { padding: 16px 24px; }
+            .header { padding: 16px 24px; left: 0; }
             .content { padding: 24px; }
         }
 
@@ -1095,6 +1102,43 @@
     50% { opacity: 0.8; transform: scale(1.05); }
 }
 
+    
+        /* ── Paginação ─────────────────────────────── */
+        #paginacaoClientes {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            background: var(--bg-card, #fff);
+            border: 1px solid var(--border-subtle, #e2e8f0);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-family: inherit;
+        }
+        #paginacaoClientes.ativo { display: flex; }
+        .pag-info { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .5px; }
+        .pag-info strong { color: #1e293b; }
+        .pag-controles { display: flex; align-items: center; gap: 6px; }
+        .pag-nav {
+            padding: 6px 14px; font-size: 12px; font-weight: 700;
+            border: 1px solid #cbd5e1; border-radius: 8px;
+            background: #f8fafc; color: #475569; cursor: pointer;
+            text-transform: uppercase; letter-spacing: .5px;
+            transition: all .15s; font-family: inherit;
+        }
+        .pag-nav:hover:not(:disabled) { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
+        .pag-nav:disabled { opacity: .4; cursor: not-allowed; }
+        .pag-num {
+            width: 32px; height: 32px; font-size: 12px; font-weight: 700;
+            border: 1px solid #cbd5e1; border-radius: 8px;
+            background: #f8fafc; color: #475569; cursor: pointer;
+            transition: all .15s; font-family: inherit;
+        }
+        .pag-num:hover:not(.pag-ativo) { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
+        .pag-ativo { background: #1e3a5f !important; color: #fff !important; border-color: #1e3a5f !important; }
+        .pag-ellipsis { font-size: 13px; color: #94a3b8; padding: 0 4px; line-height: 32px; }
     </style>
     <link rel="stylesheet" href="mobile.css">
 </head>
@@ -1288,6 +1332,8 @@
                     </tbody>
                 </table>
             </div>
+            <!-- Paginação -->
+            <div id="paginacaoClientes"></div>
             </div>
         </main>
     </div>
@@ -1414,6 +1460,106 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Contratos de Honorários -->
+    <div class="modal" id="modalContratos">
+        <div class="modal-content" style="max-width: 860px;">
+            <div class="modal-header">
+                <h2 id="tituloModalContratos"><i class="lucide lucide-file-signature"></i> CONTRATOS DE HONORÁRIOS</h2>
+                <button class="close" onclick="fecharModalContratos()">×</button>
+            </div>
+            <div class="modal-body" id="corpoModalContratos">
+                <!-- Preenchido via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Novo/Editar Contrato -->
+    <div class="modal" id="modalFormContrato">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2 id="tituloFormContrato"><i class="lucide lucide-plus-circle"></i> NOVO CONTRATO</h2>
+                <button class="close" onclick="fecharModalFormContrato()">×</button>
+            </div>
+            <form id="formContrato">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label>TÍTULO DO CONTRATO *</label>
+                            <input type="text" id="ctTitulo" placeholder="Ex: Contrato Trabalhista — João Silva" required />
+                        </div>
+                        <div class="form-group">
+                            <label>TIPO DE HONORÁRIO *</label>
+                            <select id="ctTipo" required onchange="atualizarCamposHonorario()">
+                                <option value="">SELECIONE</option>
+                                <option value="fixo">HONORÁRIOS FIXOS</option>
+                                <option value="exito">HONORÁRIOS DE ÊXITO</option>
+                                <option value="misto">MISTO (FIXO + ÊXITO)</option>
+                                <option value="consultoria">CONSULTORIA</option>
+                                <option value="outros">OUTROS</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>DATA DE ASSINATURA</label>
+                            <input type="date" id="ctDataAssinatura" />
+                        </div>
+                        <div class="form-group" id="campoValorFixo" style="display:none;">
+                            <label>VALOR FIXO (R$)</label>
+                            <input type="number" id="ctValorFixo" min="0" step="0.01" placeholder="0,00" />
+                        </div>
+                        <div class="form-group" id="campoPercentual" style="display:none;">
+                            <label>PERCENTUAL DE ÊXITO (%)</label>
+                            <input type="number" id="ctPercentual" min="0" max="100" step="0.1" placeholder="0,0" />
+                        </div>
+                        <div class="form-group full-width">
+                            <label>PROCESSO VINCULADO (OPCIONAL)</label>
+                            <select id="ctProcesso">
+                                <option value="">SEM PROCESSO VINCULADO</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>OBSERVAÇÕES</label>
+                            <textarea id="ctObs" placeholder="Condições especiais, prazos, forma de pagamento..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="fecharModalFormContrato()">CANCELAR</button>
+                    <button type="submit" class="btn-primary">
+                        <i class="lucide lucide-save"></i>
+                        <span id="textoSalvarContrato">SALVAR CONTRATO</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Upload PDF Assinado -->
+    <div class="modal" id="modalUploadContrato">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <h2><i class="lucide lucide-upload"></i> ENVIAR PDF ASSINADO</h2>
+                <button class="close" onclick="fecharModalUpload()">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--text-secondary); font-size:13px; margin-bottom:20px;">
+                    Selecione o PDF do contrato já assinado para vinculá-lo ao cadastro do cliente.
+                </p>
+                <div class="form-group">
+                    <label>ARQUIVO PDF *</label>
+                    <input type="file" id="inputPdfContrato" accept="application/pdf" style="padding:8px;" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="fecharModalUpload()">CANCELAR</button>
+                <button type="button" class="btn-primary" onclick="confirmarUploadContrato()">
+                    <i class="lucide lucide-upload"></i>
+                    ENVIAR PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
 
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.451.0/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/imask@7.1.3/dist/imask.min.js"></script>

@@ -404,24 +404,123 @@
             transform: translateY(-2px);
         }
 
-        @media print { 
-            .no-print, .sidebar, .header, .analytics-grid { display: none !important; }
-            .main { margin-left: 0 !important; }
-            body { background: white !important; }
-            .content { padding: 20px !important; }
-            .cards-financeiro { 
-                grid-template-columns: repeat(5, 1fr) !important;
-                page-break-inside: avoid;
-            }
-            .card-stat {
-                background: #f0f9ff !important;
-                border: 1px solid #ddd !important;
-                print-color-adjust: exact;
-                -webkit-print-color-adjust: exact;
-            }
-            table { page-break-inside: auto; }
-            tr { page-break-inside: avoid; page-break-after: auto; }
-        }
+@media print {
+    /* ── Oculta TUDO primeiro, depois mostra só o que interessa ── */
+    * { visibility: hidden !important; }
+
+    /* ── Mostra apenas os cards e a tabela ── */
+    .cards-financeiro,
+    .cards-financeiro *,
+    .table-card,
+    .table-card *        { visibility: visible !important; }
+
+    /* ── Reset de layout ── */
+    body  { background: #fff !important; margin: 0; padding: 0; display: block !important; }
+    .main { margin-left: 0 !important; display: block !important; }
+    .content { padding: 12px !important; position: static !important; }
+
+    /* Posiciona os blocos visíveis */
+    .cards-financeiro {
+        position: relative !important;
+        display: grid !important;
+        grid-template-columns: repeat(5, 1fr) !important;
+        gap: 8px !important;
+        margin-bottom: 16px !important;
+        page-break-inside: avoid;
+    }
+    .card-stat {
+        background: #e8f0fe !important;
+        border: 1px solid #aaa !important;
+        border-radius: 6px !important;
+        padding: 10px !important;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+    .card-stat .card-label { color: #333 !important; font-size: 9px !important; }
+    .card-stat .card-value { color: #000 !important; font-size: 14px !important; }
+
+    .table-card {
+        position: relative !important;
+        border: none !important;
+        box-shadow: none !important;
+        margin-top: 8px;
+    }
+    table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-size: 10px !important;
+        table-layout: fixed;
+    }
+    thead { display: table-header-group; }
+    th {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+        border: 1px solid #999 !important;
+        padding: 5px 6px !important;
+        font-size: 9px !important;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+    td {
+        border: 1px solid #ccc !important;
+        padding: 5px 6px !important;
+        color: #000 !important;
+        background: #fff !important;
+        vertical-align: middle;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+    td strong, td span { color: #000 !important; font-size: 10px !important; }
+
+    /* Larguras fixas — 8 colunas */
+    th:nth-child(1), td:nth-child(1) { width: 22%; }
+    th:nth-child(2), td:nth-child(2) { width: 13%; }
+    th:nth-child(3), td:nth-child(3) { width: 13%; }
+    th:nth-child(4), td:nth-child(4) { width: 11%; }
+    th:nth-child(5), td:nth-child(5) { width: 10%; }
+    th:nth-child(6), td:nth-child(6) { width: 8%;  }
+    th:nth-child(7), td:nth-child(7) { width: 11%; }
+    th:nth-child(8), td:nth-child(8) { display: none !important; visibility: hidden !important; }
+
+    tr { page-break-inside: avoid; }
+
+    /* Remove espaços e posiciona tudo junto */
+    .content {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+        padding: 8px !important;
+    }
+
+    .cards-financeiro {
+        margin-bottom: 8px !important;
+    }
+
+    /* Força a tabela a aparecer imediatamente após os cards */
+    .table-card {
+        margin-top: 0 !important;
+        page-break-before: avoid !important;
+    }
+
+    /* Remove qualquer espaço de elementos invisíveis que ainda ocupam área */
+    .analytics-grid,
+    .filter-row,
+    .header,
+    .sidebar,
+    .no-print {
+        display: none !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    @page {
+        size: A4 landscape;
+        margin: 10mm 12mm;
+    }
+}
 
         /* CARDS DE ESTATÍSTICAS - DESIGN CORPORATIVO AZUL */
         .card-stat {
@@ -850,14 +949,17 @@ input, textarea, select {
     <div class="table-card" style="background: white; border-radius: 12px; border: 1px solid var(--border); width: 100%; overflow: hidden;">
         <table style="width: 100%;">
             <thead>
-                <tr>
-                    <th style="padding-left: 20px;">Descrição</th>
-                    <th>Valor</th>
-                    <th>Vencimento</th>
-                    <th>Status</th>
-                    <th style="text-align: center;">Ações</th>
-                </tr>
-            </thead>
+    <tr>
+        <th style="padding-left: 20px;">Descrição</th>
+        <th>Cliente</th>
+        <th>Beneficiário</th>
+        <th>Valor</th>
+        <th>Vencimento</th>
+        <th>Status</th>
+        <th>Pagamento</th>
+        <th style="text-align: center;">Ações</th>
+    </tr>
+</thead>
             <tbody id="corpoTabela"></tbody>
         </table>
     </div>
@@ -878,7 +980,7 @@ input, textarea, select {
             </div>
             <div class="form-group">
                 <label>TIPO</label>
-                <select id="addTipo">
+                <select id="addTipo" onchange="toggleParteAdicionar()">
                     <option value="Receita">Receita (Honorários/Entrada)</option>
                     <option value="Despesa">Despesa (Custas/Saída)</option>
                 </select>
@@ -887,6 +989,26 @@ input, textarea, select {
                 <label>DATA DE VENCIMENTO</label>
                 <input type="date" id="addData">
             </div>
+            <div id="addSecaoCliente" class="form-group">
+    <label>CLIENTE (opcional)</label>
+    <select id="addCliente" style="width:100%;padding:10px 14px;border:1px solid var(--border-medium);border-radius:8px;font-size:13px;background:var(--bg-card);color:var(--text-main);">
+        <option value="">Carregando clientes...</option>
+    </select>
+    <small style="color:var(--muted);font-size:11px;margin-top:4px;display:block;">
+        Associe um cliente a este lançamento para controle de recebimento.
+    </small>
+</div>
+
+<!-- Seção Beneficiário — visível para Despesa -->
+<div id="addSecaoBeneficiario" class="form-group" style="display:none;">
+    <label>BENEFICIÁRIO / FORNECEDOR (opcional)</label>
+    <input type="text" id="addBeneficiario"
+           placeholder="Ex: João Eletricista, Escritório X Ltda."
+           style="width:100%;padding:10px 14px;border:1px solid var(--border-medium);border-radius:8px;font-size:13px;background:var(--bg-card);color:var(--text-main);">
+    <small style="color:var(--muted);font-size:11px;margin-top:4px;display:block;">
+        Identifique para quem esta despesa foi paga.
+    </small>
+</div>
             <button class="btn-mini-boleto" style="width: 100%; padding: 14px; font-size: 14px; justify-content: center;" onclick="salvarLancamento()">SALVAR NO FLUXO</button>
             <button style="width: 100%; margin-top: 10px; background: none; border: none; color: var(--muted); cursor: pointer;" onclick="fecharModalLancamento()">Cancelar</button>
         </div>
@@ -930,7 +1052,7 @@ input, textarea, select {
         </div>
         <div class="form-group">
             <label>TIPO</label>
-            <select id="editTipo">
+            <select id="editTipo" onchange="toggleParteEditar()">
                 <option value="Receita">Receita</option>
                 <option value="Despesa">Despesa</option>
             </select>
@@ -939,6 +1061,33 @@ input, textarea, select {
             <label>DATA DE VENCIMENTO</label>
             <input type="date" id="editData">
         </div>
+        <div class="form-group">
+    <label>FORMA DE PAGAMENTO</label>
+    <select id="editFormaPagamento" style="width:100%;padding:10px 14px;border:1px solid var(--border-medium);border-radius:8px;font-size:13px;background:var(--bg-card);color:var(--text-main);">
+        <option value="">— Não informado —</option>
+        <option value="Dinheiro">Dinheiro</option>
+        <option value="PIX">PIX</option>
+        <option value="Transferência">Transferência</option>
+        <option value="Cartão de Crédito">Cartão de Crédito</option>
+        <option value="Cartão de Débito">Cartão de Débito</option>
+        <option value="Boleto">Boleto</option>
+        <option value="Cheque">Cheque</option>
+    </select>
+</div>
+        <div id="editSecaoCliente" class="form-group">
+    <label>CLIENTE (opcional)</label>
+    <select id="editCliente" style="width:100%;padding:10px 14px;border:1px solid var(--border-medium);border-radius:8px;font-size:13px;background:var(--bg-card);color:var(--text-main);">
+        <option value="">Carregando clientes...</option>
+    </select>
+</div>
+
+<!-- Seção Beneficiário — visível para Despesa -->
+<div id="editSecaoBeneficiario" class="form-group" style="display:none;">
+    <label>BENEFICIÁRIO / FORNECEDOR (opcional)</label>
+    <input type="text" id="editBeneficiario"
+           placeholder="Ex: João Eletricista, Escritório X Ltda."
+           style="width:100%;padding:10px 14px;border:1px solid var(--border-medium);border-radius:8px;font-size:13px;background:var(--bg-card);color:var(--text-main);">
+</div>
         <button class="btn-mini-boleto" style="width: 100%; padding: 14px; font-size: 14px; justify-content: center;" onclick="atualizarLancamento()">SALVAR ALTERAÇÕES</button>
         <button style="width: 100%; margin-top: 10px; background: none; border: none; color: var(--muted); cursor: pointer;" onclick="document.getElementById('modalEditarLancamento').style.display='none'">Cancelar</button>
     </div>
@@ -956,20 +1105,37 @@ input, textarea, select {
 
             <div class="form-group">
                 <label>SELECIONAR CLIENTE CADASTRADO</label>
-                <select id="reciboClienteSelect" onchange="preencherDadosCliente()">
-                    <option value="">Selecione um cliente ou preencha manualmente abaixo</option>
-                </select>
-            </div>
+<div id="reciboInfoClienteVinculado" style="display:none; align-items:center; gap:10px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:12px 16px; margin-bottom:16px;">
+    <i data-lucide="user-check" style="width:18px; height:18px; color:#16a34a; flex-shrink:0;"></i>
+    <div>
+        <div style="font-size:11px; font-weight:700; color:#16a34a; text-transform:uppercase; letter-spacing:0.5px;">Cliente vinculado ao lançamento</div>
+        <div id="reciboClienteVinculadoNome" style="font-size:14px; font-weight:800; color:#15803d; margin-top:2px;"></div>
+    </div>
+</div>
 
-            <div class="form-group">
-                <label>NOME DO CLIENTE</label>
-                <input type="text" id="reciboClienteNome" placeholder="Ex: João da Silva">
-            </div>
+<!-- Seção de seleção manual — exibida somente quando não há cliente vinculado -->
+<div id="reciboSecaoSelecaoCliente">
+    <div style="background:#fefce8; border:1px solid #fde68a; border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:12px; color:#92400e; display:flex; align-items:center; gap:8px;">
+        <i data-lucide="info" style="width:14px; height:14px; flex-shrink:0;"></i>
+        Este lançamento não tem cliente vinculado. Selecione abaixo ou preencha manualmente.
+    </div>
+    <div class="form-group">
+        <label>SELECIONAR CLIENTE CADASTRADO</label>
+        <select id="reciboClienteSelect" onchange="preencherDadosCliente()" style="width:100%; padding:10px 14px; border:1px solid var(--border-medium); border-radius:8px; font-size:13px; background:var(--bg-card); color:var(--text-main);">
+            <option value="">Selecione um cliente ou preencha manualmente abaixo</option>
+        </select>
+    </div>
+</div>
 
-            <div class="form-group">
-                <label>CPF/CNPJ DO CLIENTE</label>
-                <input type="text" id="reciboClienteDoc" placeholder="000.000.000-00">
-            </div>
+<!-- Campos de nome e documento permanecem sempre visíveis -->
+<div class="form-group">
+    <label>NOME DO CLIENTE *</label>
+    <input type="text" id="reciboClienteNome" placeholder="Nome completo do cliente">
+</div>
+<div class="form-group">
+    <label>CPF / CNPJ DO CLIENTE</label>
+    <input type="text" id="reciboClienteDoc" placeholder="Opcional">
+</div>
 
             <div class="form-group">
                 <label>VALOR (R$)</label>
@@ -1084,8 +1250,8 @@ input, textarea, select {
 </div>
 
 <!-- Modal Relatório de Faturamento -->
-<div id="modalRelatorioFaturamento" class="modal">
-    <div class="modal-content" style="max-width: 700px;">
+<div id="modalRelatorioFaturamento" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.85);z-index:999999;align-items:center;justify-content:center;">
+    <div style="background:#fff;width:90%;max-width:700px;padding:32px;border-radius:16px;max-height:90vh;overflow-y:auto;position:relative;z-index:999999;">
         <h3 style="margin-bottom: 20px; font-weight: 800;">📊 Relatório de Faturamento</h3>
         
         <p style="font-size: 13px; color: var(--muted); margin-bottom: 25px;">
@@ -1169,8 +1335,8 @@ input, textarea, select {
 </div>
 
 <!-- Área de Visualização do Relatório -->
-<div id="modalVisualizacaoRelatorio" class="modal">
-    <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+<div id="modalVisualizacaoRelatorio" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.85);z-index:999999;align-items:center;justify-content:center;">
+    <div style="background:#fff;width:90%;max-width:900px;padding:32px;border-radius:16px;max-height:90vh;overflow-y:auto;position:relative;z-index:999999;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
             <h3 style="font-weight: 800;">📊 Relatório de Faturamento</h3>
             <button onclick="fecharVisualizacaoRelatorio()" style="background: none; border: none; cursor: pointer; font-size: 24px; color: var(--muted);">&times;</button>
