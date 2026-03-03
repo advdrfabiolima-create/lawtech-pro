@@ -1,5 +1,4 @@
-
-    const TIPO_META = {
+const TIPO_META = {
         distribuicao: { label: 'Distribuição',      cor: '#0ea5e9' },
         despacho:     { label: 'Despacho',          cor: '#64748b' },
         decisao:      { label: 'Decisão',           cor: '#3b82f6' },
@@ -336,7 +335,17 @@
             setPortalVideoStatus('Conectando ao advogado...');
 
             // Cria peer com ID aleatório (cliente)
-            _portalPeer = new Peer({ debug: 0 });
+            // Servidores STUN garantem conectividade entre redes diferentes (NAT traversal)
+            _portalPeer = new Peer({
+                debug: 0,
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' }
+                    ]
+                }
+            });
 
             _portalPeer.on('open', () => {
                 // Chama o advogado pelo peer_host_id recebido do servidor

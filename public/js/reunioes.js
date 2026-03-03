@@ -97,6 +97,9 @@ const TOKEN = localStorage.getItem('token');
                         </button>
                     ` : ''}
                     ${r.status === 'agendada' ? `
+                        <button class="btn-icon" title="Reenviar convite por e-mail" onclick="reenviarEmail(${r.id})" style="color:#4A90E2;">
+                            <i data-lucide="mail" style="width:18px;height:18px;"></i>
+                        </button>
                         <button class="btn-icon" title="Entrar na Reunião" onclick="entrarReuniao(${r.id}, '${escapeHtml(r.titulo)}')" style="color:#6366f1;">
                             <i data-lucide="video" style="width:18px;height:18px;"></i>
                         </button>
@@ -194,7 +197,29 @@ const TOKEN = localStorage.getItem('token');
         }
     }
 
-    // ---- PeerJS Videochamada (advogado = host) ----
+    // Reenviar e-mail de convite ao cliente
+    async function reenviarEmail(id) {
+        const r = reunioes.find(x => x.id === id);
+        const nome = r?.cliente_nome ? ` para ${r.cliente_nome}` : '';
+        if (!confirm(`Reenviar e-mail de convite${nome}?`)) return;
+
+        try {
+            const res = await fetch(`/api/reunioes/${id}/reenviar-email`, {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + TOKEN }
+            });
+            const data = await res.json();
+            if (data.ok) {
+                mostrarToast('✉️ E-mail reenviado com sucesso!');
+            } else {
+                alert('Erro: ' + (data.erro || 'Não foi possível reenviar o e-mail.'));
+            }
+        } catch (e) {
+            alert('Erro de conexão.');
+        }
+    }
+
+
     let _peer = null;
     let _activeCall = null;
     let _localStream = null;
@@ -300,7 +325,16 @@ const TOKEN = localStorage.getItem('token');
             setVideoStatus('Aguardando o cliente entrar...');
 
             // Cria peer com ID gerado pelo servidor (único por sessão)
-            _peer = new Peer(data.peer_host_id, { debug: 0 });
+            _peer = new Peer(data.peer_host_id, {
+                debug: 0,
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' }
+                    ]
+                }
+            });
 
             _peer.on('open', () => {
                 console.log('[PeerJS] Host pronto. ID:', data.peer_host_id);
@@ -316,8 +350,6 @@ const TOKEN = localStorage.getItem('token');
                     rv.style.display = 'block';
                     document.getElementById('videoWaitOverlay').style.display = 'none';
                     setVideoStatus('Conectado', true);
-                    // Aplica o layout atual ao vivo assim que o cliente entra
-                    if (!_recording) _aplicarLayoutAoVivo(_recordLayout);
                 });
                 call.on('close', () => {
                     _remoteStream = null;
@@ -445,36 +477,6 @@ const TOKEN = localStorage.getItem('token');
         if (b) b.classList.add('active');
         const nomes = { pip: 'PiP', sidebyside: 'Lado a lado', focus_remote: 'Cliente em destaque', focus_local: 'Você em destaque' };
         mostrarToast('Layout: ' + nomes[layout]);
-
-        // Se não estiver gravando, aplica o layout diretamente nos elementos de vídeo
-        if (!_recording) _aplicarLayoutAoVivo(layout);
-    }
-
-    function _aplicarLayoutAoVivo(layout) {
-        const remoteVideo = document.getElementById('remoteVideo');
-        const localVideo  = document.getElementById('localVideo');
-
-        // Reset base — garante que remoteVideo esteja visível
-        remoteVideo.style.cssText = '';
-        localVideo.style.cssText  = '';
-        if (remoteVideo.srcObject) remoteVideo.style.display = 'block';
-
-        const base = 'position:absolute; border-radius:10px; object-fit:cover;';
-
-        if (layout === 'sidebyside') {
-            remoteVideo.style.cssText = `${base} left:0; top:0; width:50%; height:100%; border-radius:0;`;
-            localVideo.style.cssText  = `${base} right:0; top:0; width:50%; height:100%; border-radius:0;`;
-        } else if (layout === 'focus_remote') {
-            remoteVideo.style.cssText = `${base} inset:0; width:100%; height:100%; border-radius:0;`;
-            localVideo.style.cssText  = 'display:none;';
-        } else if (layout === 'focus_local') {
-            localVideo.style.cssText  = `${base} inset:0; width:100%; height:100%; border-radius:0;`;
-            remoteVideo.style.cssText = 'display:none;';
-        } else {
-            // pip (padrão): cliente em tela cheia, advogado no canto inferior direito
-            remoteVideo.style.cssText = `${base} inset:0; width:100%; height:100%; border-radius:0;`;
-            localVideo.style.cssText  = `${base} bottom:80px; right:12px; width:22%; aspect-ratio:16/9; height:auto; border:2px solid rgba(255,255,255,0.25); box-shadow:0 4px 16px rgba(0,0,0,0.4); z-index:6;`;
-        }
     }
 
     function _renderCanvas(ctx, W, H, localVideo, remoteVideo) {
@@ -554,10 +556,9 @@ const TOKEN = localStorage.getItem('token');
             localVideo.style.display = 'block';
 
             document.getElementById('recordingBadge').style.display = 'none';
+            document.getElementById('layoutBar').style.display = 'none';
             btn.textContent = '⏺️ Gravar';
             btn.classList.remove('off');
-            // Reaplica o layout ao vivo após encerrar gravação
-            _aplicarLayoutAoVivo(_recordLayout);
             mostrarToast('Gravação encerrada. Arquivo será baixado automaticamente.');
             return;
         }
@@ -633,6 +634,7 @@ const TOKEN = localStorage.getItem('token');
         _recording = true;
 
         document.getElementById('recordingBadge').style.display = 'flex';
+        document.getElementById('layoutBar').style.display = 'flex';
 
         let segundos = 0;
         _recordingInterval = setInterval(() => {
@@ -645,7 +647,7 @@ const TOKEN = localStorage.getItem('token');
 
         btn.textContent = '⏹️ Parar';
         btn.classList.add('off');
-        mostrarToast('Gravação iniciada. Use o layout acima para ajustar a tela.');
+        mostrarToast('Gravação iniciada. Escolha o layout acima.');
     }
 
     function fecharModalVideo() {
@@ -683,15 +685,12 @@ const TOKEN = localStorage.getItem('token');
             _canvasEl = null;
             const aviso = document.getElementById('recordingBadge');
             if (aviso) aviso.style.display = 'none';
+            const lb = document.getElementById('layoutBar');
+            if (lb) lb.style.display = 'none';
             const btnRec = document.getElementById('btnRecord');
             if (btnRec) { btnRec.textContent = '⏺️ Gravar'; btnRec.classList.remove('off'); }
         }
         _remoteStream = null;
-        // Reseta layout para pip ao fechar
-        _recordLayout = 'pip';
-        document.querySelectorAll('.btn-layout').forEach(b => b.classList.remove('active'));
-        const pipBtn = document.getElementById('layout_pip');
-        if (pipBtn) pipBtn.classList.add('active');
         // Fecha painel de notas
         document.getElementById('notesPanel').classList.remove('open');
         document.getElementById('btnNotasToggle').classList.remove('active');

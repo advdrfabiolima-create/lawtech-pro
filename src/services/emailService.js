@@ -99,6 +99,8 @@ async function enviarAlertaPrazo(email, dadosPrazo) {
 
 /**
  * Envia e-mail de cobrança PIX ao vencer o trial
+ * @param {string} email
+ * @param {{ nomeEscritorio: string, planoNome: string, valor: number, pixQrCodeBase64: string, pixPayload: string, diasParaSuspensao: number }} dados
  */
 async function enviarEmailCobrancaPix(email, dados) {
     const config = getBrevoConfig();
@@ -122,6 +124,7 @@ async function enviarEmailCobrancaPix(email, dados) {
                 Olá, <strong>${nomeEscritorio}</strong>! Esperamos que tenha aproveitado o LawTech Pro.
                 Para continuar com acesso completo, realize o pagamento via PIX abaixo.
             </p>
+
             <div style="background:#f0fdf4;border:2px solid #10b981;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
                 <p style="margin:0 0 4px;font-size:13px;color:#065f46;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Plano ${planoNome}</p>
                 <p style="margin:0 0 16px;font-size:32px;font-weight:800;color:#059669;">${valorFmt}<span style="font-size:14px;font-weight:500;color:#6b7280;">/mês</span></p>
@@ -131,12 +134,14 @@ async function enviarEmailCobrancaPix(email, dados) {
                     ${pixPayload}
                 </div>
             </div>
+
             <div style="background:#fef3c7;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:24px;">
                 <p style="margin:0;color:#92400e;font-size:13px;">
                     ⚠️ <strong>Atenção:</strong> Se o pagamento não for confirmado até <strong>${dataLimiteFmt}</strong>,
                     sua conta será suspensa temporariamente.
                 </p>
             </div>
+
             <div style="text-align:center;">
                 <a href="https://www.lawtechpro.com.br/pagamento-pendente"
                    style="display:inline-block;background:#2563eb;color:white;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:700;font-size:14px;">
@@ -162,6 +167,7 @@ async function enviarEmailCobrancaPix(email, dados) {
     }
 }
 
+
 /**
  * Envia e-mail de confirmação de reunião ao cliente
  *
@@ -171,10 +177,10 @@ async function enviarEmailCobrancaPix(email, dados) {
  * @param {string} params.tituloReuniao  - Título/assunto da reunião
  * @param {string} params.dataHoraISO    - Data/hora em ISO 8601
  * @param {number} params.duracaoMinutos - Duração em minutos
- * @param {string} params.linkSala       - URL completa da sala (daily_room_url)
+ * @param {string} params.linkPortal     - URL do portal do cliente (ex: https://site.com/portal-cliente.html?token=XYZ)
  * @param {string} params.nomeAdvogado   - Nome do advogado para assinar o e-mail
  */
-async function enviarEmailReuniao({ emailCliente, nomeCliente, tituloReuniao, dataHoraISO, duracaoMinutos, linkSala, nomeAdvogado }) {
+async function enviarEmailReuniao({ emailCliente, nomeCliente, tituloReuniao, dataHoraISO, duracaoMinutos, linkPortal, nomeAdvogado }) {
     const config = getBrevoConfig();
     if (!config) return { ok: false, erro: 'Brevo não configurado' };
 
@@ -184,18 +190,25 @@ async function enviarEmailReuniao({ emailCliente, nomeCliente, tituloReuniao, da
 
     const html = `
     <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#F0F4F8;">
-        <div style="background:linear-gradient(135deg,#1E3A5F 0%,#2A4A73 100%);padding:36px 40px;text-align:center;">
-            <img src="https://www.lawtechpro.com.br/Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro" style="max-width:180px;height:auto;display:block;margin:0 auto 12px;"/>
+
+        <!-- Cabeçalho azul escuro -->
+        <div style="background:#1E3A5F;padding:36px 40px;text-align:center;border-radius:12px 12px 0 0;">
+            <img src="https://www.lawtechpro.com.br/Logo%20LawTech%20Pro_transparente.png"
+                 alt="LawTech Pro"
+                 style="max-width:180px;height:auto;display:block;margin:0 auto 12px;"/>
             <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.6);letter-spacing:2px;text-transform:uppercase;">Reunião Agendada</p>
         </div>
 
+        <!-- Corpo branco -->
         <div style="background:#ffffff;padding:36px 40px;">
             <p style="margin:0 0 8px;font-size:22px;font-weight:700;color:#1E3A5F;">Olá, ${nomeCliente}!</p>
             <p style="margin:0 0 28px;font-size:15px;color:#5A6C7D;line-height:1.6;">
                 Sua reunião foi agendada com sucesso. Confira os detalhes abaixo e guarde o link de acesso.
             </p>
 
-            <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFB;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden;margin-bottom:28px;">
+            <!-- Card de detalhes -->
+            <table width="100%" cellpadding="0" cellspacing="0"
+                   style="background:#F8FAFB;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden;margin-bottom:28px;">
                 <tr>
                     <td style="padding:18px 22px;border-bottom:1px solid #E2E8F0;">
                         <p style="margin:0 0 3px;font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;">Assunto</p>
@@ -222,20 +235,23 @@ async function enviarEmailReuniao({ emailCliente, nomeCliente, tituloReuniao, da
                 </tr>
             </table>
 
+            <!-- CTA -->
             <p style="margin:0 0 20px;font-size:14px;color:#5A6C7D;text-align:center;">
-                No dia e horário da reunião, clique no botão abaixo para entrar na sala:
+                No dia e horário da reunião, acesse seu portal e clique em <strong>Entrar na Reunião</strong>:
             </p>
             <div style="text-align:center;margin-bottom:28px;">
-                <a href="${linkSala}"
-                   style="display:inline-block;background:linear-gradient(135deg,#4A90E2,#2A4A73);color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;padding:16px 40px;border-radius:10px;box-shadow:0 4px 14px rgba(74,144,226,0.35);">
-                    🎥 &nbsp; Entrar na Reunião
+                <a href="${linkPortal}"
+                   style="display:inline-block;background:#1E3A5F;color:#ffffff !important;text-decoration:none;font-size:15px;font-weight:700;padding:16px 40px;border-radius:10px;box-shadow:0 4px 14px rgba(30,58,95,0.35);">
+                    🎥 &nbsp; Acessar Meu Portal
                 </a>
                 <p style="margin:12px 0 0;font-size:12px;color:#94A3B8;">
-                    Ou acesse: <a href="${linkSala}" style="color:#4A90E2;word-break:break-all;">${linkSala}</a>
+                    Ou acesse: <a href="${linkPortal}" style="color:#4A90E2;word-break:break-all;">${linkPortal}</a>
                 </p>
             </div>
 
-            <table width="100%" cellpadding="0" cellspacing="0" style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;">
+            <!-- Dicas -->
+            <table width="100%" cellpadding="0" cellspacing="0"
+                   style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;">
                 <tr>
                     <td style="padding:18px 22px;">
                         <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#1D4ED8;">💡 Dicas para a reunião</p>
@@ -250,7 +266,8 @@ async function enviarEmailReuniao({ emailCliente, nomeCliente, tituloReuniao, da
             </table>
         </div>
 
-        <div style="background:#F8FAFB;border-top:1px solid #E2E8F0;padding:22px 40px;text-align:center;">
+        <!-- Rodapé -->
+        <div style="background:#F8FAFB;border-top:1px solid #E2E8F0;padding:22px 40px;text-align:center;border-radius:0 0 12px 12px;">
             <p style="margin:0 0 4px;font-size:13px;color:#5A6C7D;">
                 Este e-mail foi enviado por <strong>${nomeAdvogado}</strong> via LawTech Pro.
             </p>

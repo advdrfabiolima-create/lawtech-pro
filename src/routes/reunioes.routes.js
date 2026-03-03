@@ -281,9 +281,9 @@ router.delete('/reunioes/:id/excluir', async (req, res) => {
 
 // ── Helper interno: busca dados e dispara o e-mail ────────────────────────────
 async function _dispararEmailReuniao({ escritorio_id, usuario_id, cliente_id, reuniao }) {
-    // Busca e-mail e nome do cliente
+    // Busca e-mail, nome e token do portal do cliente
     const cliResult = await pool.query(
-        'SELECT nome, email FROM clientes WHERE id = $1 AND escritorio_id = $2',
+        'SELECT nome, email, portal_token FROM clientes WHERE id = $1 AND escritorio_id = $2',
         [cliente_id, escritorio_id]
     );
     const cliente = cliResult.rows[0];
@@ -299,13 +299,19 @@ async function _dispararEmailReuniao({ escritorio_id, usuario_id, cliente_id, re
     );
     const nomeAdvogado = advResult.rows[0]?.nome || 'Seu advogado';
 
+    // Monta link do portal do cliente (onde ele entra na reunião)
+    const appUrl = (process.env.APP_URL || 'https://www.lawtechpro.com.br').replace(/\/$/, '');
+    const linkPortal = cliente.portal_token
+        ? `${appUrl}/portal-cliente.html?token=${cliente.portal_token}`
+        : `${appUrl}/portal-cliente.html`;
+
     return enviarEmailReuniao({
         emailCliente:   cliente.email,
         nomeCliente:    cliente.nome || 'Cliente',
         tituloReuniao:  reuniao.titulo,
         dataHoraISO:    reuniao.data_hora,
         duracaoMinutos: reuniao.duracao_minutos || 60,
-        linkSala:       reuniao.daily_room_url,
+        linkPortal,
         nomeAdvogado,
     });
 }
