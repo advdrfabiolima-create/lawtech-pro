@@ -507,7 +507,7 @@ const TOKEN = localStorage.getItem('token');
         }
     }
 
-    // SUBSTITUIR APENAS A FUNÇÃO toggleRecording no seu reunioes.js
+// SUBSTITUIR APENAS A FUNÇÃO toggleRecording no seu reunioes.js
 
 async function toggleRecording() {
     const btn = document.getElementById('btnRecord');
@@ -548,8 +548,8 @@ async function toggleRecording() {
     const videoArea   = document.getElementById('videoArea');
 
     console.log('[Recording] Iniciando gravação...');
-    console.log('[Recording] Local video readyState:', localVideo.readyState);
-    console.log('[Recording] Remote video readyState:', remoteVideo.readyState);
+    console.log('[Recording] Local stream:', _localStream);
+    console.log('[Recording] Remote stream:', _remoteStream);
 
     // Canvas que substitui os vídeos na tela ao vivo
     _canvasEl = document.createElement('canvas');
@@ -561,7 +561,7 @@ async function toggleRecording() {
     remoteVideo.style.display = 'none';
     localVideo.style.display  = 'none';
 
-    const ctx = _canvasEl.getContext('2d', { willReadFrequently: false });
+    const ctx = _canvasEl.getContext('2d');
     const W = _canvasEl.width, H = _canvasEl.height;
 
     function loop() {
@@ -573,18 +573,19 @@ async function toggleRecording() {
 
     console.log('[Recording] Canvas criado e loop iniciado');
 
-    // Aguarda um frame para garantir que o canvas tenha conteúdo
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Aguarda renderização inicial
+    await new Promise(resolve => requestAnimationFrame(resolve));
 
     // Stream: canvas (video) + audio local + audio remoto
     let canvasStream;
     try {
-        canvasStream = _canvasEl.captureStream(30); // 30 FPS
-        console.log('[Recording] Canvas stream criado:', canvasStream);
-        console.log('[Recording] Canvas video tracks:', canvasStream.getVideoTracks().length);
+        // IMPORTANTE: frameRate precisa ser especificado para alguns navegadores
+        canvasStream = _canvasEl.captureStream(30);
+        console.log('[Recording] Canvas stream capturado');
+        console.log('[Recording] Canvas video tracks:', canvasStream.getVideoTracks());
     } catch (e) {
         console.error('[Recording] Erro ao capturar canvas stream:', e);
-        alert('Erro ao iniciar gravação. Navegador pode não suportar captureStream.');
+        alert('Erro ao iniciar gravação.');
         cancelAnimationFrame(_canvasAnimId);
         videoArea.removeChild(_canvasEl);
         remoteVideo.style.display = remoteVideo.srcObject ? 'block' : 'none';
@@ -592,32 +593,41 @@ async function toggleRecording() {
         return;
     }
 
-    // Adiciona áudio local
-    const localAudioTracks = _localStream.getAudioTracks();
-    console.log('[Recording] Local audio tracks:', localAudioTracks.length);
-    localAudioTracks.forEach(track => {
-        console.log('[Recording] Adicionando track local:', track.label, 'enabled:', track.enabled);
-        canvasStream.addTrack(track.clone());
+    // Adiciona áudio local (SEM clone)
+    console.log('[Recording] Adicionando áudio local...');
+    _localStream.getAudioTracks().forEach(track => {
+        console.log('[Recording] Track local:', track.label, track.readyState, track.enabled);
+        canvasStream.addTrack(track);
     });
 
-    // Adiciona áudio remoto
+    // Adiciona áudio remoto (SEM clone)
     if (_remoteStream) {
-        const remoteAudioTracks = _remoteStream.getAudioTracks();
-        console.log('[Recording] Remote audio tracks:', remoteAudioTracks.length);
-        remoteAudioTracks.forEach(track => {
-            console.log('[Recording] Adicionando track remoto:', track.label, 'enabled:', track.enabled);
-            canvasStream.addTrack(track.clone());
+        console.log('[Recording] Adicionando áudio remoto...');
+        _remoteStream.getAudioTracks().forEach(track => {
+            console.log('[Recording] Track remoto:', track.label, track.readyState, track.enabled);
+            canvasStream.addTrack(track);
         });
     }
 
-    console.log('[Recording] Total tracks no stream:', canvasStream.getTracks().length);
+    const allTracks = canvasStream.getTracks();
+    console.log('[Recording] Total de tracks:', allTracks.length);
+    allTracks.forEach(t => console.log('  -', t.kind, t.label, t.readyState));
 
-    // Escolhe o melhor codec disponível
+    // Verifica se tem pelo menos 1 track de vídeo
+    const videoTracks = canvasStream.getVideoTracks();
+    if (videoTracks.length === 0) {
+        alert('Erro: Canvas não produziu track de vídeo. Tente recarregar a página.');
+        cancelAnimationFrame(_canvasAnimId);
+        videoArea.removeChild(_canvasEl);
+        remoteVideo.style.display = remoteVideo.srcObject ? 'block' : 'none';
+        localVideo.style.display = 'block';
+        return;
+    }
+
+    // Codec
     const mimeTypes = [
         'video/webm;codecs=vp9,opus',
         'video/webm;codecs=vp8,opus',
-        'video/webm;codecs=vp9',
-        'video/webm;codecs=vp8',
         'video/webm'
     ];
 
@@ -631,7 +641,7 @@ async function toggleRecording() {
     }
 
     if (!selectedMimeType) {
-        alert('Seu navegador não suporta nenhum formato de gravação WebM.');
+        alert('Navegador não suporta gravação WebM.');
         cancelAnimationFrame(_canvasAnimId);
         videoArea.removeChild(_canvasEl);
         remoteVideo.style.display = remoteVideo.srcObject ? 'block' : 'none';
@@ -642,37 +652,51 @@ async function toggleRecording() {
     _recordedChunks = [];
     
     try {
-        _mediaRecorder = new MediaRecorder(canvasStream, {
+        const options = {
             mimeType: selectedMimeType,
-            videoBitsPerSecond: 2500000, // 2.5 Mbps
-            audioBitsPerSecond: 128000   // 128 kbps
-        });
+            videoBitsPerSecond: 2500000,
+            audioBitsPerSecond: 128000
+        };
         
-        console.log('[Recording] MediaRecorder criado');
+        console.log('[Recording] Criando MediaRecorder com opções:', options);
+        _mediaRecorder = new MediaRecorder(canvasStream, options);
+        
+        console.log('[Recording] MediaRecorder criado, state inicial:', _mediaRecorder.state);
     } catch(e) {
         console.error('[Recording] Erro ao criar MediaRecorder:', e);
-        alert('Erro ao criar gravador. Tente usar outro navegador (Chrome/Edge recomendado).');
-        cancelAnimationFrame(_canvasAnimId);
-        videoArea.removeChild(_canvasEl);
-        remoteVideo.style.display = remoteVideo.srcObject ? 'block' : 'none';
-        localVideo.style.display = 'block';
-        return;
+        
+        // Tenta sem as opções de bitrate
+        try {
+            console.log('[Recording] Tentando sem bitrate...');
+            _mediaRecorder = new MediaRecorder(canvasStream, { mimeType: selectedMimeType });
+            console.log('[Recording] MediaRecorder criado (sem bitrate), state:', _mediaRecorder.state);
+        } catch(e2) {
+            console.error('[Recording] Erro novamente:', e2);
+            alert('Erro ao criar gravador: ' + e2.message);
+            cancelAnimationFrame(_canvasAnimId);
+            videoArea.removeChild(_canvasEl);
+            remoteVideo.style.display = remoteVideo.srcObject ? 'block' : 'none';
+            localVideo.style.display = 'block';
+            return;
+        }
     }
 
     _mediaRecorder.ondataavailable = e => {
+        console.log('[Recording] ondataavailable chamado, data:', e.data);
         if (e.data && e.data.size > 0) {
-            console.log('[Recording] Chunk recebido:', e.data.size, 'bytes');
+            console.log('[Recording] ✓ Chunk válido recebido:', e.data.size, 'bytes');
             _recordedChunks.push(e.data);
         } else {
-            console.warn('[Recording] Chunk vazio recebido');
+            console.warn('[Recording] ✗ Chunk vazio ou inválido');
         }
     };
 
     _mediaRecorder.onstop = () => {
-        console.log('[Recording] Gravação parada. Total chunks:', _recordedChunks.length);
+        console.log('[Recording] onstop chamado');
+        console.log('[Recording] Total de chunks:', _recordedChunks.length);
         
         if (_recordedChunks.length === 0) {
-            alert('Nenhum dado foi gravado. Tente novamente.');
+            alert('Nenhum dado gravado. Verifique o console para detalhes.');
             return;
         }
 
@@ -680,13 +704,11 @@ async function toggleRecording() {
         console.log('[Recording] Tamanho total:', totalSize, 'bytes');
 
         if (totalSize === 0) {
-            alert('Gravação resultou em arquivo vazio. Verifique as permissões de câmera/microfone.');
+            alert('Gravação resultou em 0 bytes.');
             return;
         }
 
         const blob = new Blob(_recordedChunks, { type: selectedMimeType });
-        console.log('[Recording] Blob criado:', blob.size, 'bytes');
-        
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         const agora = new Date();
@@ -695,28 +717,37 @@ async function toggleRecording() {
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        
-        setTimeout(() => URL.revokeObjectURL(url), 100);
+        URL.revokeObjectURL(url);
         _recordedChunks = [];
         
-        mostrarToast('Download iniciado! Arquivo: ' + (totalSize / 1024 / 1024).toFixed(2) + ' MB');
+        mostrarToast('Download: ' + (totalSize / 1024 / 1024).toFixed(2) + ' MB');
     };
 
     _mediaRecorder.onerror = e => {
-        console.error('[Recording] Erro no MediaRecorder:', e);
-        alert('Erro durante a gravação: ' + (e.error?.message || 'Desconhecido'));
+        console.error('[Recording] MediaRecorder error:', e);
+        alert('Erro durante gravação: ' + (e.error?.message || e));
     };
 
     _mediaRecorder.onstart = () => {
-        console.log('[Recording] MediaRecorder iniciado, state:', _mediaRecorder.state);
+        console.log('[Recording] onstart chamado, state:', _mediaRecorder.state);
     };
 
     try {
-        _mediaRecorder.start(1000); // Chunks a cada 1 segundo
-        console.log('[Recording] MediaRecorder.start() chamado');
+        console.log('[Recording] Chamando start(1000)...');
+        _mediaRecorder.start(1000);
+        
+        // Aguarda um tick para verificar o state
+        setTimeout(() => {
+            console.log('[Recording] State após start:', _mediaRecorder.state);
+            if (_mediaRecorder.state !== 'recording') {
+                console.error('[Recording] ERRO: State não mudou para recording!');
+                alert('MediaRecorder não iniciou corretamente. State: ' + _mediaRecorder.state);
+            }
+        }, 100);
+        
     } catch (e) {
-        console.error('[Recording] Erro ao iniciar MediaRecorder:', e);
-        alert('Erro ao iniciar gravação: ' + e.message);
+        console.error('[Recording] Erro ao chamar start():', e);
+        alert('Erro ao iniciar: ' + e.message);
         cancelAnimationFrame(_canvasAnimId);
         videoArea.removeChild(_canvasEl);
         remoteVideo.style.display = remoteVideo.srcObject ? 'block' : 'none';
@@ -736,6 +767,11 @@ async function toggleRecording() {
         const s = String(segundos % 60).padStart(2, '0');
         const t = document.getElementById('recordingTimer');
         if (t) t.textContent = `${m}:${s}`;
+        
+        // Debug periódico
+        if (segundos % 5 === 0) {
+            console.log('[Recording] Gravando...', segundos, 's, chunks:', _recordedChunks.length, 'state:', _mediaRecorder?.state);
+        }
     }, 1000);
 
     btn.textContent = '⏹️ Parar';
