@@ -483,23 +483,43 @@ const TOKEN = localStorage.getItem('token');
     function _aplicarLayoutAoVivo(layout) {
         const remoteVideo = document.getElementById('remoteVideo');
         const localVideo  = document.getElementById('localVideo');
-        remoteVideo.style.cssText = '';
-        localVideo.style.cssText  = '';
-        if (remoteVideo.srcObject) remoteVideo.style.display = 'block';
-        const base = 'position:absolute; border-radius:10px; object-fit:cover;';
+
+        // Aplica propriedades individualmente — cssText completo apaga display e trava o stream
+        function _estilo(el, props) {
+            const reset = {
+                position: 'absolute', display: 'block', visibility: '',
+                top: '0', left: '0', right: '0', bottom: '0',
+                width: '100%', height: '100%',
+                borderRadius: '0', objectFit: 'cover', zIndex: '',
+                aspectRatio: '', border: '', boxShadow: ''
+            };
+            Object.assign(el.style, reset, props);
+            // Força retomada do vídeo após reposicionamento
+            if (el.paused && el.srcObject) el.play().catch(() => {});
+        }
+
         if (layout === 'sidebyside') {
-            remoteVideo.style.cssText = base + ' left:0; top:0; width:50%; height:100%; border-radius:0;';
-            localVideo.style.cssText  = base + ' right:0; top:0; width:50%; height:100%; border-radius:0;';
+            _estilo(remoteVideo, { right: '50%', left: '0',  width: '50%', height: '100%' });
+            _estilo(localVideo,  { left: '50%',  right: '0', width: '50%', height: '100%' });
         } else if (layout === 'focus_remote') {
-            remoteVideo.style.cssText = base + ' inset:0; width:100%; height:100%; border-radius:0;';
-            localVideo.style.cssText  = 'display:none;';
+            _estilo(remoteVideo, {});
+            Object.assign(localVideo.style, { display: 'none' });
+            if (remoteVideo.paused && remoteVideo.srcObject) remoteVideo.play().catch(() => {});
         } else if (layout === 'focus_local') {
-            localVideo.style.cssText  = base + ' inset:0; width:100%; height:100%; border-radius:0;';
-            remoteVideo.style.cssText = 'display:none;';
+            _estilo(localVideo, {});
+            Object.assign(remoteVideo.style, { display: 'none' });
+            if (remoteVideo.paused && remoteVideo.srcObject) remoteVideo.play().catch(() => {});
         } else {
-            // pip (padrão)
-            remoteVideo.style.cssText = base + ' inset:0; width:100%; height:100%; border-radius:0;';
-            localVideo.style.cssText  = base + ' bottom:80px; right:12px; width:22%; aspect-ratio:16/9; height:auto; border:2px solid rgba(255,255,255,0.25); box-shadow:0 4px 16px rgba(0,0,0,0.4); z-index:6;';
+            // PiP padrão: cliente em tela cheia, advogado no canto inferior direito
+            _estilo(remoteVideo, {});
+            _estilo(localVideo, {
+                top: 'auto', left: 'auto', right: '12px', bottom: '80px',
+                width: '22%', height: 'auto', aspectRatio: '16/9',
+                borderRadius: '10px',
+                border: '2px solid rgba(255,255,255,0.25)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+                zIndex: '6'
+            });
         }
     }
 
