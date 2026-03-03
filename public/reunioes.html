@@ -49,13 +49,9 @@
         @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-30px, 30px) scale(0.9); } }
         @keyframes slideInLeft { from { opacity: 0; transform: translateX(-100%); } to { opacity: 1; transform: translateX(0); } }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
-        /* Barra de seleção de layout da gravação */
-        #layoutBar { display: none; position: absolute; top: 12px; right: 12px; z-index: 30; background: rgba(15,23,42,0.88); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 8px 10px; gap: 6px; align-items: center; backdrop-filter: blur(8px); flex-wrap: wrap; }
-        #layoutBar span { font-size: 11px; color: #94a3b8; font-weight: 600; margin-right: 4px; white-space: nowrap; }
-        .btn-layout { background: rgba(255,255,255,0.08); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.12); padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: 0.2s; white-space: nowrap; }
-        .btn-layout:hover { background: rgba(255,255,255,0.18); }
-        .btn-layout.active { background: rgba(99,102,241,0.35); border-color: rgba(99,102,241,0.6); color: #a5b4fc; }
+        .btn-layout { background:rgba(255,255,255,0.08); color:#cbd5e1; border:1px solid rgba(255,255,255,0.12); padding:5px 11px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer; transition:0.2s; white-space:nowrap; }
+        .btn-layout:hover { background:rgba(255,255,255,0.18); }
+        .btn-layout.active { background:rgba(99,102,241,0.4); border-color:rgba(99,102,241,0.7); color:#a5b4fc; }
 
         /* Sidebar */
         .sidebar { width: 280px; background: var(--bg-secondary); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border-right: 1px solid var(--border-subtle); padding: 32px 24px; display: flex; flex-direction: column; height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -350,13 +346,13 @@
                     <span style="width:9px;height:9px;background:#fff;border-radius:50%;display:inline-block;animation:blink 1s infinite;"></span>
                     REC <span id="recordingTimer">00:00</span>
                 </div>
-                <!-- Barra de layouts da gravação -->
-                <div id="layoutBar">
-                    <span>🎬 Layout:</span>
-                    <button class="btn-layout active" id="layout_pip"          onclick="setRecordLayout('pip')">🖼️ PiP</button>
-                    <button class="btn-layout"         id="layout_sidebyside"  onclick="setRecordLayout('sidebyside')">⬛⬛ Lado a lado</button>
-                    <button class="btn-layout"         id="layout_focus_remote" onclick="setRecordLayout('focus_remote')">👤 Cliente grande</button>
-                    <button class="btn-layout"         id="layout_focus_local"  onclick="setRecordLayout('focus_local')">🧑‍💼 Você grande</button>
+                <!-- Barra de seleção de layout (aparece só durante gravação) -->
+                <div id="layoutBar" style="display:none; position:absolute; bottom:70px; left:50%; transform:translateX(-50%); z-index:30; background:rgba(15,23,42,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:8px 12px; gap:8px; align-items:center; backdrop-filter:blur(8px); flex-wrap:wrap; justify-content:center;">
+                    <span style="font-size:11px;color:#94a3b8;font-weight:600;">🎬 Layout:</span>
+                    <button class="btn-layout active" id="layout_pip"           onclick="setRecordLayout('pip')">🖼️ PiP</button>
+                    <button class="btn-layout"        id="layout_sidebyside"    onclick="setRecordLayout('sidebyside')">⬛⬛ Lado a lado</button>
+                    <button class="btn-layout"        id="layout_focus_remote"  onclick="setRecordLayout('focus_remote')">👤 Cliente</button>
+                    <button class="btn-layout"        id="layout_focus_local"   onclick="setRecordLayout('focus_local')">🧑‍💼 Você</button>
                 </div>
                 <video id="remoteVideo" autoplay playsinline></video>
                 <video id="localVideo" autoplay muted playsinline></video>
