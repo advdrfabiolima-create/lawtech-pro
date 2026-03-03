@@ -428,6 +428,110 @@ const TOKEN = localStorage.getItem('token');
         mostrarToast('Compartilhando tela com o cliente.');
     }
 
+    // ── Layout da gravação ─────────────────────────────────────────────────────
+    // Layouts: 'pip' (PiP), 'sidebyside' (lado a lado), 'focus_remote' (cliente grande), 'focus_local' (advogado grande)
+    let _recordLayout = 'pip';
+    let _canvasAnimFrame = null;
+
+    function setRecordLayout(layout) {
+        _recordLayout = layout;
+        // Atualiza botões ativos
+        document.querySelectorAll('.btn-layout').forEach(b => b.classList.remove('active'));
+        const btn = document.getElementById('layout_' + layout);
+        if (btn) btn.classList.add('active');
+        mostrarToast('Layout: ' + { pip: 'PiP (padrão)', sidebyside: 'Lado a lado', focus_remote: 'Cliente em destaque', focus_local: 'Você em destaque' }[layout]);
+    }
+
+    function desenharCanvas(ctx, canvas, localVideo, remoteVideo) {
+        const W = canvas.width;
+        const H = canvas.height;
+        const hasRemote = remoteVideo.srcObject && remoteVideo.readyState >= 2;
+        const hasLocal  = localVideo.srcObject  && localVideo.readyState  >= 2;
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, W, H);
+
+        if (_recordLayout === 'sidebyside') {
+            // Lado a lado: cliente à esquerda, advogado à direita
+            if (hasRemote) ctx.drawImage(remoteVideo, 0,     0, W/2, H);
+            if (hasLocal)  ctx.drawImage(localVideo,  W/2,   0, W/2, H);
+
+            // Labels
+            ctx.fillStyle = 'rgba(0,0,0,0.45)';
+            ctx.fillRect(8, H-32, 80, 24);
+            ctx.fillRect(W/2+8, H-32, 100, 24);
+            ctx.fillStyle = '#fff';
+            ctx.font = '13px sans-serif';
+            ctx.fillText('Cliente', 16, H-14);
+            ctx.fillText('Você', W/2+16, H-14);
+
+        } else if (_recordLayout === 'focus_remote') {
+            // Cliente ocupa tela toda, advogado em PiP menor no canto
+            if (hasRemote) ctx.drawImage(remoteVideo, 0, 0, W, H);
+            if (hasLocal) {
+                const pw = W * 0.22, ph = H * 0.22;
+                const px = W - pw - 16, py = H - ph - 16;
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(px, py, pw, ph, 10);
+                ctx.clip();
+                ctx.drawImage(localVideo, px, py, pw, ph);
+                ctx.restore();
+                ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.roundRect(px, py, pw, ph, 10); ctx.stroke();
+                // Label
+                ctx.fillStyle = 'rgba(0,0,0,0.55)';
+                ctx.fillRect(px+4, py+ph-22, 44, 18);
+                ctx.fillStyle = '#fff'; ctx.font = '11px sans-serif';
+                ctx.fillText('Você', px+8, py+ph-8);
+            }
+
+        } else if (_recordLayout === 'focus_local') {
+            // Advogado ocupa tela toda, cliente em PiP menor no canto
+            if (hasLocal)  ctx.drawImage(localVideo,  0, 0, W, H);
+            if (hasRemote) {
+                const pw = W * 0.22, ph = H * 0.22;
+                const px = W - pw - 16, py = H - ph - 16;
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(px, py, pw, ph, 10);
+                ctx.clip();
+                ctx.drawImage(remoteVideo, px, py, pw, ph);
+                ctx.restore();
+                ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.roundRect(px, py, pw, ph, 10); ctx.stroke();
+                ctx.fillStyle = 'rgba(0,0,0,0.55)';
+                ctx.fillRect(px+4, py+ph-22, 58, 18);
+                ctx.fillStyle = '#fff'; ctx.font = '11px sans-serif';
+                ctx.fillText('Cliente', px+8, py+ph-8);
+            }
+
+        } else {
+            // PiP (padrão): cliente em tela cheia, advogado em PiP no canto inferior direito
+            if (hasRemote) ctx.drawImage(remoteVideo, 0, 0, W, H);
+            else if (hasLocal) ctx.drawImage(localVideo, 0, 0, W, H);
+            if (hasRemote && hasLocal) {
+                const pw = W * 0.25, ph = H * 0.25;
+                const px = W - pw - 16, py = H - ph - 16;
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(px, py, pw, ph, 10);
+                ctx.clip();
+                ctx.drawImage(localVideo, px, py, pw, ph);
+                ctx.restore();
+                ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.roundRect(px, py, pw, ph, 10); ctx.stroke();
+                ctx.fillStyle = 'rgba(0,0,0,0.55)';
+                ctx.fillRect(px+4, py+ph-22, 44, 18);
+                ctx.fillStyle = '#fff'; ctx.font = '11px sans-serif';
+                ctx.fillText('Você', px+8, py+ph-8);
+            }
+        }
+    }
+
     async function toggleRecording() {
         const btn = document.getElementById('btnRecord');
 
@@ -435,14 +539,16 @@ const TOKEN = localStorage.getItem('token');
         if (_recording) {
             _recording = false;
             clearInterval(_recordingInterval);
+            if (_canvasAnimFrame) { cancelAnimationFrame(_canvasAnimFrame); _canvasAnimFrame = null; }
 
             if (_mediaRecorder && _mediaRecorder.state !== 'inactive') {
                 _mediaRecorder.stop();
             }
 
-            // Esconde aviso de gravação
             const aviso = document.getElementById('recordingBadge');
             if (aviso) aviso.style.display = 'none';
+            const layoutBar = document.getElementById('layoutBar');
+            if (layoutBar) layoutBar.style.display = 'none';
 
             btn.textContent = '⏺️ Gravar';
             btn.classList.remove('off');
@@ -456,21 +562,29 @@ const TOKEN = localStorage.getItem('token');
             return;
         }
 
-        // Combina stream local + remoto em um único canvas para gravar ambos
         const remoteVideo = document.getElementById('remoteVideo');
         const localVideo  = document.getElementById('localVideo');
 
-        // Cria stream combinado (local + remoto se disponível)
-        let streamParaGravar;
-        try {
-            // Tenta capturar a área do vídeo inteira via captureStream do canvas
-            const tracks = [..._localStream.getTracks()];
-            if (remoteVideo.srcObject) {
-                remoteVideo.srcObject.getAudioTracks().forEach(t => tracks.push(t));
-            }
-            streamParaGravar = new MediaStream(tracks);
-        } catch(e) {
-            streamParaGravar = _localStream;
+        // ── Canvas para compor os dois vídeos ──────────────────────────────────
+        const canvas = document.createElement('canvas');
+        canvas.width  = 1280;
+        canvas.height = 720;
+        const ctx = canvas.getContext('2d');
+
+        // Loop de renderização no canvas
+        function renderLoop() {
+            desenharCanvas(ctx, canvas, localVideo, remoteVideo);
+            _canvasAnimFrame = requestAnimationFrame(renderLoop);
+        }
+        renderLoop();
+
+        // Stream de vídeo do canvas
+        const canvasStream = canvas.captureStream(25); // 25fps
+
+        // Adiciona áudio: local + remoto
+        _localStream.getAudioTracks().forEach(t => canvasStream.addTrack(t));
+        if (remoteVideo.srcObject) {
+            remoteVideo.srcObject.getAudioTracks().forEach(t => canvasStream.addTrack(t));
         }
 
         // Escolhe melhor codec disponível
@@ -482,9 +596,10 @@ const TOKEN = localStorage.getItem('token');
 
         _recordedChunks = [];
         try {
-            _mediaRecorder = new MediaRecorder(streamParaGravar, mimeType ? { mimeType } : {});
+            _mediaRecorder = new MediaRecorder(canvasStream, mimeType ? { mimeType } : {});
         } catch(e) {
             alert('Seu navegador não suporta gravação de vídeo.');
+            cancelAnimationFrame(_canvasAnimFrame);
             return;
         }
 
@@ -505,14 +620,18 @@ const TOKEN = localStorage.getItem('token');
             _recordedChunks = [];
         };
 
-        _mediaRecorder.start(1000); // salva chunk a cada 1s
+        _mediaRecorder.start(1000);
         _recording = true;
 
-        // Mostra aviso discreto de gravação (visível só para o advogado)
+        // Mostra badge de gravação
         const aviso = document.getElementById('recordingBadge');
         if (aviso) aviso.style.display = 'flex';
 
-        // Cronômetro de gravação
+        // Mostra barra de layouts
+        const layoutBar = document.getElementById('layoutBar');
+        if (layoutBar) layoutBar.style.display = 'flex';
+
+        // Cronômetro
         let segundos = 0;
         _recordingInterval = setInterval(() => {
             segundos++;
@@ -524,7 +643,7 @@ const TOKEN = localStorage.getItem('token');
 
         btn.textContent = '⏹️ Parar';
         btn.classList.add('off');
-        mostrarToast('Gravação iniciada.');
+        mostrarToast('Gravação iniciada. Escolha o layout no painel acima.');
     }
 
     function fecharModalVideo() {
@@ -555,6 +674,7 @@ const TOKEN = localStorage.getItem('token');
         if (_recording) {
             _recording = false;
             clearInterval(_recordingInterval);
+            if (_canvasAnimFrame) { cancelAnimationFrame(_canvasAnimFrame); _canvasAnimFrame = null; }
             if (_mediaRecorder && _mediaRecorder.state !== 'inactive') _mediaRecorder.stop();
             const aviso = document.getElementById('recordingBadge');
             if (aviso) aviso.style.display = 'none';
