@@ -235,49 +235,88 @@ const TOKEN = localStorage.getItem('token');
 
         const uniqueId = 'lawtech-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
 
+        console.log('[PeerJS] Criando Peer com ID:', uniqueId);
+        
         _peer = new Peer(uniqueId, {
             host: 'lawtech-peerserver.onrender.com',
             port: 443,
             path: '/myapp',
             secure: true,
-            debug: 0
+            debug: 2  // Aumentado para debug mais detalhado
         });
 
         _peer.on('open', peerId => {
+            console.log('[PeerJS] Peer aberto, ID:', peerId);
             const shareLink = `${window.location.origin}/cliente-reuniao?roomId=${peerId}`;
             navigator.clipboard.writeText(shareLink).then(() => {
-                document.getElementById('videoStatus').textContent = 'Link copiado! Compartilhe com o cliente.';
+                document.getElementById('videoStatus').textContent = 'Sala aberta! Link copiado. Aguardando cliente...';
             }).catch(() => {
-                document.getElementById('videoStatus').textContent = `Link: ${shareLink}`;
+                document.getElementById('videoStatus').textContent = `Sala aberta! Compartilhe: ${shareLink}`;
             });
         });
 
         _peer.on('call', call => {
+            console.log('[PeerJS] Recebendo chamada do cliente...');
             call.answer(_localStream);
             _activeCall = call;
 
             call.on('stream', remoteStream => {
+                console.log('[PeerJS] Stream remoto recebido');
                 _remoteStream = remoteStream;
                 const remoteVideo = document.getElementById('remoteVideo');
                 remoteVideo.srcObject = remoteStream;
                 remoteVideo.style.display = 'block';
                 document.getElementById('videoWaitOverlay').style.display = 'none';
                 document.getElementById('videoStatus').textContent = 'Cliente conectado';
+                mostrarToast('Cliente entrou na reunião!');
             });
 
             call.on('close', () => {
+                console.log('[PeerJS] Chamada encerrada');
                 document.getElementById('remoteVideo').srcObject = null;
                 document.getElementById('remoteVideo').style.display = 'none';
                 document.getElementById('videoWaitOverlay').style.display = 'flex';
                 document.getElementById('videoStatus').textContent = 'Cliente desconectado.';
                 _remoteStream = null;
+                mostrarToast('Cliente saiu da reunião.');
             });
+
+            call.on('error', err => {
+                console.error('[PeerJS] Erro na chamada:', err);
+                mostrarToast('Erro na conexão com o cliente.');
+            });
+        });
+
+        _peer.on('connection', conn => {
+            console.log('[PeerJS] Nova conexão de dados recebida');
+            conn.on('open', () => {
+                console.log('[PeerJS] Conexão de dados aberta');
+            });
+        });
+
+        _peer.on('disconnected', () => {
+            console.log('[PeerJS] Peer desconectado do servidor');
+            document.getElementById('videoStatus').textContent = 'Desconectado do servidor. Reconectando...';
+            // Tenta reconectar
+            setTimeout(() => {
+                if (_peer && !_peer.destroyed) {
+                    _peer.reconnect();
+                }
+            }, 1000);
         });
 
         _peer.on('error', err => {
             console.error('[PeerJS] erro:', err);
             if (err.type === 'unavailable-id') {
                 document.getElementById('videoStatus').textContent = 'ID de sala já em uso. Tente novamente.';
+            } else if (err.type === 'peer-unavailable') {
+                document.getElementById('videoStatus').textContent = 'Cliente não encontrado. Verifique se ele entrou na sala.';
+            } else if (err.type === 'network') {
+                document.getElementById('videoStatus').textContent = 'Erro de rede. Verifique sua conexão.';
+            } else if (err.type === 'server-error') {
+                document.getElementById('videoStatus').textContent = 'Erro no servidor PeerJS. Tente novamente.';
+            } else {
+                document.getElementById('videoStatus').textContent = 'Erro: ' + err.type;
             }
         });
     }
