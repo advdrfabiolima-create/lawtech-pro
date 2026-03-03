@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const { criarSala } = require('../services/dailyService');
+const { enviarEmailReuniao } = require('../services/emailService');
 const logger = require('../utils/logger');
 const { getPagination, buildPage } = require('../utils/paginate');
 
@@ -33,7 +34,7 @@ router.get('/reunioes', async (req, res) => {
     }
 });
 
-// POST /api/reunioes — Cria reunião com sala Jitsi (sem API key)
+// POST /api/reunioes — Cria reunião e envia e-mail de convite ao cliente
 router.post('/reunioes', async (req, res) => {
     const escritorio_id = req.user.escritorio_id;
     const usuario_id = req.user.id;
@@ -60,8 +61,6 @@ router.post('/reunioes', async (req, res) => {
     }
 
     const duracao = parseInt(duracao_minutos) || 60;
-
-    // Gera sala Jitsi localmente — sem API, sem custo
     const jitsiRoom = criarSala(Date.now());
 
     try {
@@ -74,9 +73,20 @@ router.post('/reunioes', async (req, res) => {
         );
 
         const reuniao = result.rows[0];
+
         if (cliente_id) {
             const cli = await pool.query('SELECT nome FROM clientes WHERE id = $1', [cliente_id]);
             reuniao.cliente_nome = cli.rows[0]?.nome || null;
+        }
+
+        // Envia e-mail de convite ao cliente (sem await — não atrasa a resposta)
+        if (cliente_id) {
+            _dispararEmailReuniao({
+                escritorio_id,
+                usuario_id,
+                cliente_id,
+                reuniao
+            }).catch(err => logger.warn({ err: err.message }, '[Reuniões] Falha ao disparar e-mail de convite'));
         }
 
         res.json({ ok: true, reuniao });
@@ -107,7 +117,6 @@ router.get('/reunioes/:id/token', async (req, res) => {
             return res.status(400).json({ ok: false, erro: 'Esta reunião foi cancelada.' });
         }
 
-        // Gera peer ID único para o advogado (host) e persiste no banco
         const crypto = require('crypto');
         const peer_host_id = 'lt-' + crypto.randomBytes(10).toString('hex');
         await pool.query('UPDATE reunioes SET peer_host_id = $1 WHERE id = $2', [peer_host_id, id]);
@@ -116,6 +125,46 @@ router.get('/reunioes/:id/token', async (req, res) => {
     } catch (err) {
         logger.error({ err: err.message }, '[Reuniões] GET token erro');
         res.status(500).json({ ok: false, erro: 'Erro ao obter URL da sala.' });
+    }
+});
+
+// POST /api/reunioes/:id/reenviar-email — Reenvio manual do convite pelo advogado
+router.post('/reunioes/:id/reenviar-email', async (req, res) => {
+    const escritorio_id = req.user.escritorio_id;
+    const usuario_id = req.user.id;
+    const { id } = req.params;
+
+    try {
+        const result = await pool.query(
+            'SELECT * FROM reunioes WHERE id = $1 AND escritorio_id = $2',
+            [id, escritorio_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ ok: false, erro: 'Reunião não encontrada.' });
+        }
+
+        const reuniao = result.rows[0];
+
+        if (!reuniao.cliente_id) {
+            return res.status(400).json({ ok: false, erro: 'Reunião sem cliente associado.' });
+        }
+
+        const emailResult = await _dispararEmailReuniao({
+            escritorio_id,
+            usuario_id,
+            cliente_id: reuniao.cliente_id,
+            reuniao
+        });
+
+        if (!emailResult.ok) {
+            return res.status(400).json({ ok: false, erro: emailResult.erro });
+        }
+
+        res.json({ ok: true });
+    } catch (err) {
+        logger.error({ err: err.message }, '[Reuniões] POST reenviar-email erro');
+        res.status(500).json({ ok: false, erro: 'Erro interno.' });
     }
 });
 
@@ -229,5 +278,36 @@ router.delete('/reunioes/:id/excluir', async (req, res) => {
         res.status(500).json({ ok: false, erro: 'Erro interno.' });
     }
 });
+
+// ── Helper interno: busca dados e dispara o e-mail ────────────────────────────
+async function _dispararEmailReuniao({ escritorio_id, usuario_id, cliente_id, reuniao }) {
+    // Busca e-mail e nome do cliente
+    const cliResult = await pool.query(
+        'SELECT nome, email FROM clientes WHERE id = $1 AND escritorio_id = $2',
+        [cliente_id, escritorio_id]
+    );
+    const cliente = cliResult.rows[0];
+
+    if (!cliente?.email) {
+        return { ok: false, erro: 'Cliente sem e-mail cadastrado.' };
+    }
+
+    // Busca nome do advogado responsável
+    const advResult = await pool.query(
+        'SELECT nome FROM usuarios WHERE id = $1',
+        [usuario_id]
+    );
+    const nomeAdvogado = advResult.rows[0]?.nome || 'Seu advogado';
+
+    return enviarEmailReuniao({
+        emailCliente:   cliente.email,
+        nomeCliente:    cliente.nome || 'Cliente',
+        tituloReuniao:  reuniao.titulo,
+        dataHoraISO:    reuniao.data_hora,
+        duracaoMinutos: reuniao.duracao_minutos || 60,
+        linkSala:       reuniao.daily_room_url,
+        nomeAdvogado,
+    });
+}
 
 module.exports = router;
