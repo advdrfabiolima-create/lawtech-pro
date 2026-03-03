@@ -143,7 +143,6 @@ const TOKEN = localStorage.getItem('token');
         document.getElementById('reuniaoTitulo').value = '';
         document.getElementById('reuniaoDescricao').value = '';
         document.getElementById('reuniaoDuracao').value = '60';
-        // Pré-preenche data/hora com +1h (em hora local, não UTC)
         const agora = new Date(Date.now() + 60 * 60 * 1000);
         agora.setSeconds(0, 0);
         const _pad = n => String(n).padStart(2, '0');
@@ -158,7 +157,6 @@ const TOKEN = localStorage.getItem('token');
 
     async function criarReuniao() {
         const titulo = document.getElementById('reuniaoTitulo').value.trim();
-        // Converte datetime-local (sem fuso) para ISO UTC respeitando a hora local do navegador
         const data_hora = new Date(document.getElementById('reuniaoDataHora').value).toISOString();
         const cliente_id = document.getElementById('reuniaoClienteId').value || null;
         const descricao = document.getElementById('reuniaoDescricao').value.trim();
@@ -198,159 +196,176 @@ const TOKEN = localStorage.getItem('token');
     let _activeCall = null;
     let _localStream = null;
     let _remoteStream = null;
+    let _screenStream = null;
     let _muteOn = false;
     let _camOff = false;
     let _screenSharing = false;
-    let _screenStream = null;
-    let _recording = false;
+
+    // ---- Gravação ----
     let _mediaRecorder = null;
     let _recordedChunks = [];
+    let _recording = false;
     let _recordingInterval = null;
 
-    async function entrarReuniao(id, titulo) {
-        _notasReuniaoId = id;
-        const r = reunioes.find(x => x.id === id);
-        if (r && r.anotacoes) document.getElementById('notasTextarea').value = r.anotacoes;
+    // ---- Anotações ----
+    let _notasReuniaoId = null;
+    let _notasDebounce = null;
 
-        document.getElementById('videoTitulo').textContent = titulo || 'Reunião';
-        document.getElementById('modalVideo').classList.add('show');
-        document.getElementById('videoStatus').textContent = 'Inicializando...';
+    function toggleNotasPanel() {
+        const panel = document.getElementById('notesPanel');
+        const btn = document.getElementById('btnNotasToggle');
+        const isOpen = panel.classList.toggle('open');
+        btn.classList.toggle('active', isOpen);
+        if (isOpen) document.getElementById('notasTextarea').focus();
+    }
 
+    function onNotasInput() {
+        clearTimeout(_notasDebounce);
+        const status = document.getElementById('notasSaveStatus');
+        status.textContent = 'Digitando...';
+        status.className = 'notes-save-status';
+        _notasDebounce = setTimeout(salvarNotas, 1500);
+    }
+
+    async function salvarNotas() {
+        if (!_notasReuniaoId) return;
+        const texto = document.getElementById('notasTextarea').value;
+        const status = document.getElementById('notasSaveStatus');
         try {
-            _localStream = await navigator.mediaDevices.getUserMedia({
-                video: { width: 1280, height: 720 },
-                audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    autoGainControl: true
-                }
+            const res = await fetch(`/api/reunioes/${_notasReuniaoId}/anotacoes`, {
+                method: 'PATCH',
+                headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ anotacoes: texto })
             });
-        } catch (e) {
-            alert('Não foi possível acessar câmera/microfone. Verifique as permissões.');
-            fecharModalVideo();
-            return;
-        }
-
-        document.getElementById('localVideo').srcObject = _localStream;
-
-        const uniqueId = 'lawtech-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
-
-        console.log('[PeerJS] Criando Peer com ID:', uniqueId);
-        
-        _peer = new Peer(uniqueId, {
-            host: 'lawtech-peerserver.onrender.com',
-            port: 443,
-            path: '/myapp',
-            secure: true,
-            debug: 2  // Aumentado para debug mais detalhado
-        });
-
-        _peer.on('open', peerId => {
-            console.log('[PeerJS] Peer aberto, ID:', peerId);
-            const shareLink = `${window.location.origin}/cliente-reuniao?roomId=${peerId}`;
-            navigator.clipboard.writeText(shareLink).then(() => {
-                document.getElementById('videoStatus').textContent = 'Sala aberta! Link copiado. Aguardando cliente...';
-            }).catch(() => {
-                document.getElementById('videoStatus').textContent = `Sala aberta! Compartilhe: ${shareLink}`;
-            });
-        });
-
-        _peer.on('call', call => {
-            console.log('[PeerJS] Recebendo chamada do cliente...');
-            call.answer(_localStream);
-            _activeCall = call;
-
-            call.on('stream', remoteStream => {
-                console.log('[PeerJS] Stream remoto recebido');
-                _remoteStream = remoteStream;
-                const remoteVideo = document.getElementById('remoteVideo');
-                remoteVideo.srcObject = remoteStream;
-                remoteVideo.style.display = 'block';
-                document.getElementById('videoWaitOverlay').style.display = 'none';
-                document.getElementById('videoStatus').textContent = 'Cliente conectado';
-                mostrarToast('Cliente entrou na reunião!');
-            });
-
-            call.on('close', () => {
-                console.log('[PeerJS] Chamada encerrada');
-                document.getElementById('remoteVideo').srcObject = null;
-                document.getElementById('remoteVideo').style.display = 'none';
-                document.getElementById('videoWaitOverlay').style.display = 'flex';
-                document.getElementById('videoStatus').textContent = 'Cliente desconectado.';
-                _remoteStream = null;
-                mostrarToast('Cliente saiu da reunião.');
-            });
-
-            call.on('error', err => {
-                console.error('[PeerJS] Erro na chamada:', err);
-                mostrarToast('Erro na conexão com o cliente.');
-            });
-        });
-
-        _peer.on('connection', conn => {
-            console.log('[PeerJS] Nova conexão de dados recebida');
-            conn.on('open', () => {
-                console.log('[PeerJS] Conexão de dados aberta');
-            });
-        });
-
-        _peer.on('disconnected', () => {
-            console.log('[PeerJS] Peer desconectado do servidor');
-            document.getElementById('videoStatus').textContent = 'Desconectado do servidor. Reconectando...';
-            // Tenta reconectar
-            setTimeout(() => {
-                if (_peer && !_peer.destroyed) {
-                    _peer.reconnect();
-                }
-            }, 1000);
-        });
-
-        _peer.on('error', err => {
-            console.error('[PeerJS] erro:', err);
-            if (err.type === 'unavailable-id') {
-                document.getElementById('videoStatus').textContent = 'ID de sala já em uso. Tente novamente.';
-            } else if (err.type === 'peer-unavailable') {
-                document.getElementById('videoStatus').textContent = 'Cliente não encontrado. Verifique se ele entrou na sala.';
-            } else if (err.type === 'network') {
-                document.getElementById('videoStatus').textContent = 'Erro de rede. Verifique sua conexão.';
-            } else if (err.type === 'server-error') {
-                document.getElementById('videoStatus').textContent = 'Erro no servidor PeerJS. Tente novamente.';
+            const data = await res.json();
+            if (data.ok) {
+                status.textContent = '✓ Salvo';
+                status.className = 'notes-save-status saved';
+                const r = reunioes.find(x => x.id === _notasReuniaoId);
+                if (r) r.anotacoes = texto;
             } else {
-                document.getElementById('videoStatus').textContent = 'Erro: ' + err.type;
+                status.textContent = '✗ Erro ao salvar';
+                status.className = 'notes-save-status error';
             }
-        });
+        } catch (e) {
+            status.textContent = '✗ Sem conexão';
+            status.className = 'notes-save-status error';
+        }
+    }
+
+    function setVideoStatus(msg, connected = false) {
+        const el = document.getElementById('videoStatus');
+        el.textContent = msg;
+        el.classList.toggle('connected', connected);
+        document.getElementById('videoWaitMsg').textContent = msg;
+    }
+
+    async function entrarReuniao(id, titulo) {
+        try {
+            const res = await fetch(`/api/reunioes/${id}/token`, {
+                headers: { 'Authorization': 'Bearer ' + TOKEN }
+            });
+            const data = await res.json();
+            if (!data.ok) { alert('Erro: ' + (data.erro || 'Não foi possível acessar a sala.')); return; }
+
+            document.getElementById('videoTitulo').textContent = titulo || 'Reunião';
+            document.getElementById('modalVideo').classList.add('show');
+            lucide.createIcons();
+
+            // Carrega notas existentes
+            _notasReuniaoId = id;
+            const reuniaoAtual = reunioes.find(r => r.id === id);
+            document.getElementById('notasTextarea').value = reuniaoAtual?.anotacoes || '';
+            document.getElementById('notasSaveStatus').textContent = '';
+            document.getElementById('notasSaveStatus').className = 'notes-save-status';
+
+            setVideoStatus('Iniciando câmera...');
+            document.getElementById('videoWaitOverlay').style.display = 'flex';
+            document.getElementById('remoteVideo').style.display = 'none';
+
+            // Acessa câmera e microfone
+            try {
+                _localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 1280, height: 720 },
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                });
+                document.getElementById('localVideo').srcObject = _localStream;
+            } catch (e) {
+                fecharModalVideo();
+                alert('Permita o acesso à câmera e microfone no navegador e tente novamente.');
+                return;
+            }
+
+            setVideoStatus('Aguardando o cliente entrar...');
+
+            // Cria peer com ID gerado pelo servidor (único por sessão)
+            _peer = new Peer(data.peer_host_id, { debug: 0 });
+
+            _peer.on('open', () => {
+                console.log('[PeerJS] Host pronto. ID:', data.peer_host_id);
+            });
+
+            _peer.on('call', call => {
+                _activeCall = call;
+                call.answer(_localStream);
+                call.on('stream', remoteStream => {
+                    _remoteStream = remoteStream;
+                    const rv = document.getElementById('remoteVideo');
+                    rv.srcObject = remoteStream;
+                    rv.style.display = 'block';
+                    document.getElementById('videoWaitOverlay').style.display = 'none';
+                    setVideoStatus('Conectado', true);
+                });
+                call.on('close', () => {
+                    _remoteStream = null;
+                    document.getElementById('remoteVideo').style.display = 'none';
+                    document.getElementById('remoteVideo').srcObject = null;
+                    document.getElementById('videoWaitOverlay').style.display = 'flex';
+                    setVideoStatus('Cliente desconectou');
+                    _activeCall = null;
+                });
+                call.on('error', err => console.error('[PeerJS] call error:', err));
+            });
+
+            _peer.on('error', err => {
+                console.error('[PeerJS] erro:', err.type, err);
+                if (err.type === 'unavailable-id') {
+                    setVideoStatus('ID em uso. Feche e reabra a sala em alguns segundos.');
+                } else {
+                    setVideoStatus('Erro: ' + err.type);
+                }
+            });
+
+        } catch (e) {
+            console.error('[entrarReuniao]', e);
+            alert('Erro de conexão. Tente novamente.');
+        }
     }
 
     function toggleMute() {
-        const btn = document.getElementById('btnMute');
         if (!_localStream) return;
-
+        const track = _localStream.getAudioTracks()[0];
+        if (!track) return;
         _muteOn = !_muteOn;
-        _localStream.getAudioTracks().forEach(t => { t.enabled = !_muteOn; });
-
-        if (_muteOn) {
-            btn.textContent = '🔇 Mudo';
-            btn.classList.add('off');
-        } else {
-            btn.textContent = '🎤 Mudo';
-            btn.classList.remove('off');
-        }
+        track.enabled = !_muteOn;
+        const btn = document.getElementById('btnMute');
+        btn.textContent = _muteOn ? '🔇 Áudio' : '🎤 Mudo';
+        btn.classList.toggle('off', _muteOn);
     }
 
     function toggleCamera() {
-        const btn = document.getElementById('btnCam');
         if (!_localStream) return;
-
+        const track = _localStream.getVideoTracks()[0];
+        if (!track) return;
         _camOff = !_camOff;
-        _localStream.getVideoTracks().forEach(t => { t.enabled = !_camOff; });
-
-        if (_camOff) {
-            btn.textContent = '📷 Ligada';
-            btn.classList.add('off');
-        } else {
-            btn.textContent = '📷 Câmera';
-            btn.classList.remove('off');
-        }
+        track.enabled = !_camOff;
+        const btn = document.getElementById('btnCam');
+        btn.textContent = _camOff ? '🚫 Câmera' : '📷 Câmera';
+        btn.classList.toggle('off', _camOff);
     }
 
     async function toggleShareScreen() {
@@ -358,16 +373,13 @@ const TOKEN = localStorage.getItem('token');
 
         if (_screenSharing) {
             if (_screenStream) { _screenStream.getTracks().forEach(t => t.stop()); _screenStream = null; }
-
             document.getElementById('localVideo').srcObject = _localStream;
-
             if (_activeCall && _activeCall.peerConnection) {
                 const localVideoTrack = _localStream.getVideoTracks()[0];
                 const sender = _activeCall.peerConnection.getSenders()
                     .find(s => s.track && s.track.kind === 'video');
                 if (sender && localVideoTrack) await sender.replaceTrack(localVideoTrack);
             }
-
             _screenSharing = false;
             btn.textContent = '🖥️ Tela';
             btn.classList.remove('off');
@@ -381,24 +393,19 @@ const TOKEN = localStorage.getItem('token');
                 audio: false
             });
         } catch (e) {
-            // Usuário cancelou ou negou permissão
             return;
         }
 
         _screenSharing = true;
         const screenTrack = _screenStream.getVideoTracks()[0];
-
-        // Mostra a tela no vídeo local
         document.getElementById('localVideo').srcObject = _screenStream;
 
-        // Substitui a track enviada ao cliente via PeerJS
         if (_activeCall && _activeCall.peerConnection) {
             const sender = _activeCall.peerConnection.getSenders()
                 .find(s => s.track && s.track.kind === 'video');
             if (sender) await sender.replaceTrack(screenTrack);
         }
 
-        // Quando o usuário para pelo botão do navegador, sincroniza o estado
         screenTrack.addEventListener('ended', () => {
             if (_screenSharing) toggleShareScreen();
         });
@@ -432,11 +439,9 @@ const TOKEN = localStorage.getItem('token');
         let sx = 0, sy = 0, sw = video.videoWidth, sh = video.videoHeight;
         
         if (videoAspect > targetAspect) {
-            // Vídeo mais largo - crop nas laterais
             sw = video.videoHeight * targetAspect;
             sx = (video.videoWidth - sw) / 2;
         } else {
-            // Vídeo mais alto - crop em cima/baixo
             sh = video.videoWidth / targetAspect;
             sy = (video.videoHeight - sh) / 2;
         }
@@ -495,7 +500,6 @@ const TOKEN = localStorage.getItem('token');
             else if (hasR) drawVideoWithAspectRatio(ctx, remoteVideo, 0, 0, W, H);
             if (hasL) label('Você', 0, H - 50, 44);
         } else {
-            // pip (default)
             if (hasR) drawVideoWithAspectRatio(ctx, remoteVideo, 0, 0, W, H);
             else if (hasL) drawVideoWithAspectRatio(ctx, localVideo, 0, 0, W, H);
             if (hasR && hasL) pip(localVideo, W*0.75-16, H*0.72-16, W*0.23, H*0.26, 'Você');
@@ -539,7 +543,6 @@ const TOKEN = localStorage.getItem('token');
         const localVideo  = document.getElementById('localVideo');
         const videoArea   = document.getElementById('videoArea');
 
-        // Canvas que substitui os vídeos na tela ao vivo
         _canvasEl = document.createElement('canvas');
         _canvasEl.width  = 1280;
         _canvasEl.height = 720;
@@ -553,20 +556,18 @@ const TOKEN = localStorage.getItem('token');
         const W = _canvasEl.width, H = _canvasEl.height;
 
         function loop() {
-            if (!_recording) return; // Para a animação se a gravação for parada
+            if (!_recording) return; // CORREÇÃO: Para a animação se gravação parar
             _renderCanvas(ctx, W, H, localVideo, remoteVideo);
             _canvasAnimId = requestAnimationFrame(loop);
         }
         loop();
 
-        // CORREÇÃO: Captura de áudio aprimorada
-        const canvasStream = _canvasEl.captureStream(30); // Aumentado de 25 para 30 fps
+        // CORREÇÃO: Captura de áudio aprimorada com AudioContext
+        const canvasStream = _canvasEl.captureStream(30);
         
-        // Cria AudioContext para mixar os áudios
         const audioContext = new AudioContext();
         const audioDestination = audioContext.createMediaStreamDestination();
         
-        // Adiciona áudio local
         if (_localStream.getAudioTracks().length > 0) {
             const localAudioSource = audioContext.createMediaStreamSource(
                 new MediaStream(_localStream.getAudioTracks())
@@ -574,7 +575,6 @@ const TOKEN = localStorage.getItem('token');
             localAudioSource.connect(audioDestination);
         }
         
-        // Adiciona áudio remoto
         if (_remoteStream && _remoteStream.getAudioTracks().length > 0) {
             const remoteAudioSource = audioContext.createMediaStreamSource(
                 new MediaStream(_remoteStream.getAudioTracks())
@@ -582,7 +582,6 @@ const TOKEN = localStorage.getItem('token');
             remoteAudioSource.connect(audioDestination);
         }
         
-        // Adiciona as tracks de áudio mixadas ao stream do canvas
         audioDestination.stream.getAudioTracks().forEach(track => {
             canvasStream.addTrack(track);
         });
@@ -597,8 +596,8 @@ const TOKEN = localStorage.getItem('token');
         try {
             _mediaRecorder = new MediaRecorder(canvasStream, {
                 mimeType: mimeType || undefined,
-                videoBitsPerSecond: 2500000, // 2.5 Mbps para melhor qualidade
-                audioBitsPerSecond: 128000   // 128 kbps para áudio
+                videoBitsPerSecond: 2500000,
+                audioBitsPerSecond: 128000
             });
         } catch(e) {
             alert('Seu navegador não suporta gravação.');
@@ -621,7 +620,6 @@ const TOKEN = localStorage.getItem('token');
             URL.revokeObjectURL(url);
             _recordedChunks = [];
             
-            // Limpa o AudioContext
             if (audioContext.state !== 'closed') {
                 audioContext.close();
             }
@@ -648,7 +646,6 @@ const TOKEN = localStorage.getItem('token');
     }
 
     function fecharModalVideo() {
-        // Salva notas pendentes antes de fechar
         clearTimeout(_notasDebounce);
         if (_notasReuniaoId && document.getElementById('notasTextarea').value.trim()) {
             salvarNotas();
@@ -671,7 +668,6 @@ const TOKEN = localStorage.getItem('token');
         if (_screenStream) { _screenStream.getTracks().forEach(t => t.stop()); _screenStream = null; }
         _screenSharing = false;
 
-        // Para gravação se estiver ativa
         if (_recording) {
             _recording = false;
             clearInterval(_recordingInterval);
@@ -688,7 +684,6 @@ const TOKEN = localStorage.getItem('token');
             if (btnRec) { btnRec.textContent = '⏺️ Gravar'; btnRec.classList.remove('off'); }
         }
         _remoteStream = null;
-        // Fecha painel de notas
         document.getElementById('notesPanel').classList.remove('open');
         document.getElementById('btnNotasToggle').classList.remove('active');
         _muteOn = false; _camOff = false; _notasReuniaoId = null;
@@ -701,7 +696,6 @@ const TOKEN = localStorage.getItem('token');
         setTimeout(() => t.classList.remove('show'), 2500);
     }
 
-    // Atualizar status
     async function atualizarStatus(id, status) {
         const labels = { concluida: 'concluída', cancelada: 'cancelada' };
         if (!confirm(`Marcar reunião como ${labels[status] || status}?`)) return;
@@ -720,7 +714,6 @@ const TOKEN = localStorage.getItem('token');
         }
     }
 
-    // Cancelar reunião (marca como cancelada)
     async function cancelarReuniao(id) {
         if (!confirm('Cancelar esta reunião?')) return;
 
@@ -737,58 +730,6 @@ const TOKEN = localStorage.getItem('token');
         }
     }
 
-    // ── Painel de anotações durante a reunião ──
-    let _notasReuniaoId = null;
-    let _notasDebounce = null;
-
-    function toggleNotasPanel() {
-        const panel = document.getElementById('notesPanel');
-        const btn = document.getElementById('btnNotasToggle');
-        panel.classList.toggle('open');
-        btn.classList.toggle('active');
-        if (panel.classList.contains('open')) {
-            setTimeout(() => document.getElementById('notasTextarea').focus(), 100);
-        }
-    }
-
-    function onNotasInput() {
-        clearTimeout(_notasDebounce);
-        const status = document.getElementById('notasSaveStatus');
-        status.textContent = 'Salvando...';
-        status.style.opacity = '1';
-        _notasDebounce = setTimeout(() => {
-            salvarNotas();
-        }, 1500);
-    }
-
-    async function salvarNotas() {
-        if (!_notasReuniaoId) return;
-        const texto = document.getElementById('notasTextarea').value;
-        const status = document.getElementById('notasSaveStatus');
-
-        try {
-            const res = await fetch(`/api/reunioes/${_notasReuniaoId}/anotacoes`, {
-                method: 'PATCH',
-                headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ anotacoes: texto })
-            });
-            const data = await res.json();
-            if (data.ok) {
-                status.textContent = '✓ Salvo';
-                setTimeout(() => { status.style.opacity = '0'; }, 2000);
-                const r = reunioes.find(x => x.id === _notasReuniaoId);
-                if (r) r.anotacoes = texto;
-            } else {
-                status.textContent = '✗ Erro ao salvar';
-                setTimeout(() => { status.style.opacity = '0'; }, 3000);
-            }
-        } catch (e) {
-            status.textContent = '✗ Erro de conexão';
-            setTimeout(() => { status.style.opacity = '0'; }, 3000);
-        }
-    }
-
-    // ---- Modal de anotações (pós-reunião) ----
     let _notasModalId = null;
 
     function verNotasReuniao(id) {
@@ -838,7 +779,6 @@ const TOKEN = localStorage.getItem('token');
         }
     }
 
-    // Excluir permanentemente (apenas concluída/cancelada)
     async function excluirReuniao(id) {
         if (!confirm('Excluir permanentemente esta reunião? Esta ação não pode ser desfeita.')) return;
 
@@ -855,7 +795,6 @@ const TOKEN = localStorage.getItem('token');
         }
     }
 
-    // Fechar modais ao clicar fora
     document.getElementById('modalNovaReuniao').addEventListener('click', function(e) {
         if (e.target === this) fecharModalNovaReuniao();
     });
@@ -866,7 +805,6 @@ const TOKEN = localStorage.getItem('token');
         if (e.target === this) fecharModalNotas();
     });
 
-    // User menu
     function toggleUserMenu() {
         document.getElementById('userMenuDropdown').classList.toggle('show');
     }
@@ -886,7 +824,6 @@ const TOKEN = localStorage.getItem('token');
         document.getElementById('submenu-ia').classList.toggle('open');
     }
 
-    // Badge CRM
     function limparBolinha() {
         const dot = document.getElementById('dotNotificacao');
         if (dot) dot.style.display = 'none';
