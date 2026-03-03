@@ -507,143 +507,241 @@ const TOKEN = localStorage.getItem('token');
         }
     }
 
-    async function toggleRecording() {
-        const btn = document.getElementById('btnRecord');
+    // SUBSTITUIR APENAS A FUNÇÃO toggleRecording no seu reunioes.js
 
-        // --- PARAR gravação ---
-        if (_recording) {
-            _recording = false;
-            clearInterval(_recordingInterval);
-            if (_canvasAnimId) { cancelAnimationFrame(_canvasAnimId); _canvasAnimId = null; }
-            if (_mediaRecorder && _mediaRecorder.state !== 'inactive') _mediaRecorder.stop();
+async function toggleRecording() {
+    const btn = document.getElementById('btnRecord');
 
-            const videoArea = document.getElementById('videoArea');
-            if (_canvasEl && videoArea.contains(_canvasEl)) videoArea.removeChild(_canvasEl);
-            _canvasEl = null;
-            const remoteVideo = document.getElementById('remoteVideo');
-            const localVideo  = document.getElementById('localVideo');
-            remoteVideo.style.display = remoteVideo.srcObject ? 'block' : 'none';
-            localVideo.style.display = 'block';
-
-            document.getElementById('recordingBadge').style.display = 'none';
-            document.getElementById('layoutBar').style.display = 'none';
-            btn.textContent = '⏺️ Gravar';
-            btn.classList.remove('off');
-            mostrarToast('Gravação encerrada. Arquivo será baixado automaticamente.');
-            return;
+    // --- PARAR gravação ---
+    if (_recording) {
+        _recording = false;
+        clearInterval(_recordingInterval);
+        if (_canvasAnimId) { cancelAnimationFrame(_canvasAnimId); _canvasAnimId = null; }
+        if (_mediaRecorder && _mediaRecorder.state !== 'inactive') {
+            _mediaRecorder.stop();
         }
 
-        // --- INICIAR gravação ---
-        if (!_localStream) {
-            alert('Câmera não está ativa. Inicie a reunião antes de gravar.');
-            return;
-        }
-
+        const videoArea = document.getElementById('videoArea');
+        if (_canvasEl && videoArea.contains(_canvasEl)) videoArea.removeChild(_canvasEl);
+        _canvasEl = null;
         const remoteVideo = document.getElementById('remoteVideo');
         const localVideo  = document.getElementById('localVideo');
-        const videoArea   = document.getElementById('videoArea');
+        remoteVideo.style.display = remoteVideo.srcObject ? 'block' : 'none';
+        localVideo.style.display = 'block';
 
-        _canvasEl = document.createElement('canvas');
-        _canvasEl.width  = 1280;
-        _canvasEl.height = 720;
-        _canvasEl.style.cssText = 'width:100%;height:100%;object-fit:contain;position:absolute;inset:0;z-index:5;background:#0f172a;';
-        videoArea.appendChild(_canvasEl);
+        document.getElementById('recordingBadge').style.display = 'none';
+        document.getElementById('layoutBar').style.display = 'none';
+        btn.textContent = '⏺️ Gravar';
+        btn.classList.remove('off');
+        mostrarToast('Gravação encerrada. Arquivo será baixado automaticamente.');
+        return;
+    }
 
-        remoteVideo.style.display = 'none';
-        localVideo.style.display  = 'none';
+    // --- INICIAR gravação ---
+    if (!_localStream) {
+        alert('Câmera não está ativa. Inicie a reunião antes de gravar.');
+        return;
+    }
 
-        const ctx = _canvasEl.getContext('2d');
-        const W = _canvasEl.width, H = _canvasEl.height;
+    const remoteVideo = document.getElementById('remoteVideo');
+    const localVideo  = document.getElementById('localVideo');
+    const videoArea   = document.getElementById('videoArea');
 
-        function loop() {
-            if (!_recording) return; // CORREÇÃO: Para a animação se gravação parar
-            _renderCanvas(ctx, W, H, localVideo, remoteVideo);
-            _canvasAnimId = requestAnimationFrame(loop);
-        }
-        loop();
+    console.log('[Recording] Iniciando gravação...');
+    console.log('[Recording] Local video readyState:', localVideo.readyState);
+    console.log('[Recording] Remote video readyState:', remoteVideo.readyState);
 
-        // CORREÇÃO: Captura de áudio aprimorada com AudioContext
-        const canvasStream = _canvasEl.captureStream(30);
-        
-        const audioContext = new AudioContext();
-        const audioDestination = audioContext.createMediaStreamDestination();
-        
-        if (_localStream.getAudioTracks().length > 0) {
-            const localAudioSource = audioContext.createMediaStreamSource(
-                new MediaStream(_localStream.getAudioTracks())
-            );
-            localAudioSource.connect(audioDestination);
-        }
-        
-        if (_remoteStream && _remoteStream.getAudioTracks().length > 0) {
-            const remoteAudioSource = audioContext.createMediaStreamSource(
-                new MediaStream(_remoteStream.getAudioTracks())
-            );
-            remoteAudioSource.connect(audioDestination);
-        }
-        
-        audioDestination.stream.getAudioTracks().forEach(track => {
-            canvasStream.addTrack(track);
+    // Canvas que substitui os vídeos na tela ao vivo
+    _canvasEl = document.createElement('canvas');
+    _canvasEl.width  = 1280;
+    _canvasEl.height = 720;
+    _canvasEl.style.cssText = 'width:100%;height:100%;object-fit:contain;position:absolute;inset:0;z-index:5;background:#0f172a;';
+    videoArea.appendChild(_canvasEl);
+
+    remoteVideo.style.display = 'none';
+    localVideo.style.display  = 'none';
+
+    const ctx = _canvasEl.getContext('2d', { willReadFrequently: false });
+    const W = _canvasEl.width, H = _canvasEl.height;
+
+    function loop() {
+        if (!_recording) return; // Para se gravação parar
+        _renderCanvas(ctx, W, H, localVideo, remoteVideo);
+        _canvasAnimId = requestAnimationFrame(loop);
+    }
+    loop();
+
+    console.log('[Recording] Canvas criado e loop iniciado');
+
+    // Aguarda um frame para garantir que o canvas tenha conteúdo
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Stream: canvas (video) + audio local + audio remoto
+    let canvasStream;
+    try {
+        canvasStream = _canvasEl.captureStream(30); // 30 FPS
+        console.log('[Recording] Canvas stream criado:', canvasStream);
+        console.log('[Recording] Canvas video tracks:', canvasStream.getVideoTracks().length);
+    } catch (e) {
+        console.error('[Recording] Erro ao capturar canvas stream:', e);
+        alert('Erro ao iniciar gravação. Navegador pode não suportar captureStream.');
+        cancelAnimationFrame(_canvasAnimId);
+        videoArea.removeChild(_canvasEl);
+        remoteVideo.style.display = remoteVideo.srcObject ? 'block' : 'none';
+        localVideo.style.display = 'block';
+        return;
+    }
+
+    // Adiciona áudio local
+    const localAudioTracks = _localStream.getAudioTracks();
+    console.log('[Recording] Local audio tracks:', localAudioTracks.length);
+    localAudioTracks.forEach(track => {
+        console.log('[Recording] Adicionando track local:', track.label, 'enabled:', track.enabled);
+        canvasStream.addTrack(track.clone());
+    });
+
+    // Adiciona áudio remoto
+    if (_remoteStream) {
+        const remoteAudioTracks = _remoteStream.getAudioTracks();
+        console.log('[Recording] Remote audio tracks:', remoteAudioTracks.length);
+        remoteAudioTracks.forEach(track => {
+            console.log('[Recording] Adicionando track remoto:', track.label, 'enabled:', track.enabled);
+            canvasStream.addTrack(track.clone());
         });
+    }
 
-        const mimeType = [
-            'video/webm;codecs=vp9,opus',
-            'video/webm;codecs=vp8,opus',
-            'video/webm'
-        ].find(m => MediaRecorder.isTypeSupported(m)) || '';
+    console.log('[Recording] Total tracks no stream:', canvasStream.getTracks().length);
 
-        _recordedChunks = [];
-        try {
-            _mediaRecorder = new MediaRecorder(canvasStream, {
-                mimeType: mimeType || undefined,
-                videoBitsPerSecond: 2500000,
-                audioBitsPerSecond: 128000
-            });
-        } catch(e) {
-            alert('Seu navegador não suporta gravação.');
-            if (_canvasAnimId) cancelAnimationFrame(_canvasAnimId);
+    // Escolhe o melhor codec disponível
+    const mimeTypes = [
+        'video/webm;codecs=vp9,opus',
+        'video/webm;codecs=vp8,opus',
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8',
+        'video/webm'
+    ];
+
+    let selectedMimeType = '';
+    for (const type of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(type)) {
+            selectedMimeType = type;
+            console.log('[Recording] Codec selecionado:', type);
+            break;
+        }
+    }
+
+    if (!selectedMimeType) {
+        alert('Seu navegador não suporta nenhum formato de gravação WebM.');
+        cancelAnimationFrame(_canvasAnimId);
+        videoArea.removeChild(_canvasEl);
+        remoteVideo.style.display = remoteVideo.srcObject ? 'block' : 'none';
+        localVideo.style.display = 'block';
+        return;
+    }
+
+    _recordedChunks = [];
+    
+    try {
+        _mediaRecorder = new MediaRecorder(canvasStream, {
+            mimeType: selectedMimeType,
+            videoBitsPerSecond: 2500000, // 2.5 Mbps
+            audioBitsPerSecond: 128000   // 128 kbps
+        });
+        
+        console.log('[Recording] MediaRecorder criado');
+    } catch(e) {
+        console.error('[Recording] Erro ao criar MediaRecorder:', e);
+        alert('Erro ao criar gravador. Tente usar outro navegador (Chrome/Edge recomendado).');
+        cancelAnimationFrame(_canvasAnimId);
+        videoArea.removeChild(_canvasEl);
+        remoteVideo.style.display = remoteVideo.srcObject ? 'block' : 'none';
+        localVideo.style.display = 'block';
+        return;
+    }
+
+    _mediaRecorder.ondataavailable = e => {
+        if (e.data && e.data.size > 0) {
+            console.log('[Recording] Chunk recebido:', e.data.size, 'bytes');
+            _recordedChunks.push(e.data);
+        } else {
+            console.warn('[Recording] Chunk vazio recebido');
+        }
+    };
+
+    _mediaRecorder.onstop = () => {
+        console.log('[Recording] Gravação parada. Total chunks:', _recordedChunks.length);
+        
+        if (_recordedChunks.length === 0) {
+            alert('Nenhum dado foi gravado. Tente novamente.');
             return;
         }
 
-        _mediaRecorder.ondataavailable = e => {
-            if (e.data && e.data.size > 0) _recordedChunks.push(e.data);
-        };
+        const totalSize = _recordedChunks.reduce((acc, chunk) => acc + chunk.size, 0);
+        console.log('[Recording] Tamanho total:', totalSize, 'bytes');
 
-        _mediaRecorder.onstop = () => {
-            const blob = new Blob(_recordedChunks, { type: mimeType || 'video/webm' });
-            const url  = URL.createObjectURL(blob);
-            const a    = document.createElement('a');
-            const agora = new Date();
-            a.href     = url;
-            a.download = `reuniao_${agora.getFullYear()}${String(agora.getMonth()+1).padStart(2,'0')}${String(agora.getDate()).padStart(2,'0')}_${String(agora.getHours()).padStart(2,'0')}${String(agora.getMinutes()).padStart(2,'0')}.webm`;
-            a.click();
-            URL.revokeObjectURL(url);
-            _recordedChunks = [];
-            
-            if (audioContext.state !== 'closed') {
-                audioContext.close();
-            }
-        };
+        if (totalSize === 0) {
+            alert('Gravação resultou em arquivo vazio. Verifique as permissões de câmera/microfone.');
+            return;
+        }
 
-        _mediaRecorder.start(1000);
-        _recording = true;
+        const blob = new Blob(_recordedChunks, { type: selectedMimeType });
+        console.log('[Recording] Blob criado:', blob.size, 'bytes');
+        
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const agora = new Date();
+        a.href = url;
+        a.download = `reuniao_${agora.getFullYear()}${String(agora.getMonth()+1).padStart(2,'0')}${String(agora.getDate()).padStart(2,'0')}_${String(agora.getHours()).padStart(2,'0')}${String(agora.getMinutes()).padStart(2,'0')}.webm`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+        _recordedChunks = [];
+        
+        mostrarToast('Download iniciado! Arquivo: ' + (totalSize / 1024 / 1024).toFixed(2) + ' MB');
+    };
 
-        document.getElementById('recordingBadge').style.display = 'flex';
-        document.getElementById('layoutBar').style.display = 'flex';
+    _mediaRecorder.onerror = e => {
+        console.error('[Recording] Erro no MediaRecorder:', e);
+        alert('Erro durante a gravação: ' + (e.error?.message || 'Desconhecido'));
+    };
 
-        let segundos = 0;
-        _recordingInterval = setInterval(() => {
-            segundos++;
-            const m = String(Math.floor(segundos / 60)).padStart(2, '0');
-            const s = String(segundos % 60).padStart(2, '0');
-            const t = document.getElementById('recordingTimer');
-            if (t) t.textContent = `${m}:${s}`;
-        }, 1000);
+    _mediaRecorder.onstart = () => {
+        console.log('[Recording] MediaRecorder iniciado, state:', _mediaRecorder.state);
+    };
 
-        btn.textContent = '⏹️ Parar';
-        btn.classList.add('off');
-        mostrarToast('Gravação iniciada. Escolha o layout acima.');
+    try {
+        _mediaRecorder.start(1000); // Chunks a cada 1 segundo
+        console.log('[Recording] MediaRecorder.start() chamado');
+    } catch (e) {
+        console.error('[Recording] Erro ao iniciar MediaRecorder:', e);
+        alert('Erro ao iniciar gravação: ' + e.message);
+        cancelAnimationFrame(_canvasAnimId);
+        videoArea.removeChild(_canvasEl);
+        remoteVideo.style.display = remoteVideo.srcObject ? 'block' : 'none';
+        localVideo.style.display = 'block';
+        return;
     }
+
+    _recording = true;
+
+    document.getElementById('recordingBadge').style.display = 'flex';
+    document.getElementById('layoutBar').style.display = 'flex';
+
+    let segundos = 0;
+    _recordingInterval = setInterval(() => {
+        segundos++;
+        const m = String(Math.floor(segundos / 60)).padStart(2, '0');
+        const s = String(segundos % 60).padStart(2, '0');
+        const t = document.getElementById('recordingTimer');
+        if (t) t.textContent = `${m}:${s}`;
+    }, 1000);
+
+    btn.textContent = '⏹️ Parar';
+    btn.classList.add('off');
+    mostrarToast('Gravação iniciada. Escolha o layout acima.');
+}
 
     function fecharModalVideo() {
         clearTimeout(_notasDebounce);
