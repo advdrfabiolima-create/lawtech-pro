@@ -124,9 +124,16 @@ router.post('/ia/perguntar',
     planMiddleware.checkFeature('ia_juridica'),
     async (req, res) => {
         try {
-            const { pergunta, pdf } = req.body;
+            const { pergunta, historico, arquivo, pdf } = req.body;
+            // arquivo é o novo campo; pdf mantém retrocompatibilidade
+            const anexo = arquivo || pdf || null;
 
-            logger.info({ temPDF: !!pdf, tamanhoPergunta: pergunta?.length }, '[IA JURIDICA] Nova pergunta');
+            logger.info({
+                temAnexo: !!anexo,
+                tipoAnexo: anexo?.tipo || (anexo ? 'pdf' : null),
+                tamanhoPergunta: pergunta?.length,
+                historicoMsgs: (historico || []).length
+            }, '[IA JURIDICA] Nova pergunta');
 
             if (!pergunta || !pergunta.trim()) {
                 return res.status(400).json({ 
@@ -135,26 +142,21 @@ router.post('/ia/perguntar',
                 });
             }
 
-            if (pdf) {
-                if (!pdf.base64 || !pdf.nome) {
+            if (anexo) {
+                if (!anexo.base64 || !anexo.nome) {
                     return res.status(400).json({ 
-                        erro: 'PDF inválido',
-                        detalhe: 'O arquivo PDF está incompleto'
+                        erro: 'Arquivo inválido',
+                        detalhe: 'O arquivo está incompleto'
                     });
                 }
-
-                const estimatedSizeMB = (pdf.base64.length * 3/4) / (1024 * 1024);
+                const estimatedSizeMB = (anexo.base64.length * 3/4) / (1024 * 1024);
                 if (estimatedSizeMB > 15) {
                     return res.status(400).json({ 
-                        erro: 'PDF muito grande',
+                        erro: 'Arquivo muito grande',
                         detalhe: `O arquivo tem ${estimatedSizeMB.toFixed(2)}MB. Máximo: 15MB`
                     });
                 }
             }
-
-            const anthropic = new Anthropic({
-                apiKey: process.env.CLAUDE_API_KEY,
-            });
 
             if (!process.env.CLAUDE_API_KEY) {
                 return res.status(500).json({ 
@@ -162,6 +164,8 @@ router.post('/ia/perguntar',
                     detalhe: 'CLAUDE_API_KEY não configurada'
                 });
             }
+
+            const anthropic = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
 
             const systemPrompt = `Você é um advogado sênior brasileiro com expertise em:
 - Direito Civil e Processual Civil
@@ -177,42 +181,75 @@ Responda sempre:
 ✓ Com objetividade e clareza
 ✓ Referenciando jurisprudência relevante quando pertinente`;
 
+            // ── Montar histórico de mensagens ─────────────────────────
             const messages = [];
 
-            if (pdf && pdf.base64) {
-                messages.push({
-                    role: 'user',
-                    content: [
-                        {
-                            type: 'document',
-                            source: {
-                                type: 'base64',
-                                media_type: 'application/pdf',
-                                data: pdf.base64
+            // Adicionar histórico anterior (sem arquivos, só texto)
+            const hist = Array.isArray(historico) ? historico.slice(-20) : [];
+            hist.forEach(msg => {
+                if (msg.role && msg.content) {
+                    messages.push({ role: msg.role, content: String(msg.content) });
+                }
+            });
+
+            // Montar mensagem atual (com ou sem arquivo)
+            if (anexo && anexo.base64) {
+                const isDocx = anexo.tipo === 'docx' ||
+                    (anexo.nome && (anexo.nome.endsWith('.docx') || anexo.nome.endsWith('.doc')));
+
+                if (isDocx) {
+                    // DOCX: enviar como base64 com media_type correto
+                    messages.push({
+                        role: 'user',
+                        content: [
+                            {
+                                type: 'document',
+                                source: {
+                                    type: 'base64',
+                                    media_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                                    data: anexo.base64
+                                }
+                            },
+                            {
+                                type: 'text',
+                                text: `Documento Word anexado: ${anexo.nome}\n\nPergunta: ${pergunta}`
                             }
-                        },
-                        {
-                            type: 'text',
-                            text: `Documento anexado: ${pdf.nome}\n\nPergunta: ${pergunta}`
-                        }
-                    ]
-                });
+                        ]
+                    });
+                } else {
+                    // PDF
+                    messages.push({
+                        role: 'user',
+                        content: [
+                            {
+                                type: 'document',
+                                source: {
+                                    type: 'base64',
+                                    media_type: 'application/pdf',
+                                    data: anexo.base64
+                                }
+                            },
+                            {
+                                type: 'text',
+                                text: `Documento PDF anexado: ${anexo.nome}\n\nPergunta: ${pergunta}`
+                            }
+                        ]
+                    });
+                }
             } else {
-                messages.push({
-                    role: 'user',
-                    content: pergunta
-                });
+                messages.push({ role: 'user', content: pergunta });
             }
 
             const message = await anthropic.messages.create({
-                model: 'claude-haiku-4-5-20251001',
-                max_tokens: pdf ? 4096 : 2048,
+                model: 'claude-sonnet-4-6',
+                max_tokens: anexo ? 6000 : 4000,
                 temperature: 0.4,
                 system: systemPrompt,
                 messages: messages
             });
 
             const respostaIA = message.content[0].text;
+            logger.info({ tokens: message.usage }, '[IA JURIDICA] Resposta gerada');
 
             return res.json({ resposta: respostaIA });
 
@@ -220,14 +257,15 @@ Responda sempre:
             logger.error({ err: err.message }, 'Erro no assistente juridico');
 
             if (err.status === 401) {
-                return res.status(401).json({ 
-                    erro: 'Chave API da Claude inválida.'
-                });
+                return res.status(401).json({ erro: 'Chave API da Claude inválida.' });
             }
-
             if (err.status === 429) {
-                return res.status(429).json({ 
-                    erro: 'Muitas requisições. Aguarde um momento.'
+                return res.status(429).json({ erro: 'Muitas requisições. Aguarde um momento.' });
+            }
+            if (err.message && err.message.includes('100 PDF pages')) {
+                return res.status(400).json({
+                    erro: 'PDF com muitas páginas',
+                    detalhe: 'O PDF excede o limite de 100 páginas da API. Envie um documento menor.'
                 });
             }
 

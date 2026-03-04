@@ -39,6 +39,7 @@
     "helmet": "^8.1.0",
     "ioredis": "^5.10.0",
     "jsonwebtoken": "^9.0.3",
+    "mammoth": "^1.11.0",
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
     "node-pg-migrate": "^8.0.4",
