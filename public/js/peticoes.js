@@ -192,6 +192,32 @@ const token = localStorage.getItem('token');
     }
 
     // ==================== GERAR PETIÇÃO ====================
+
+    function renderMarkdown(texto) {
+        if (!texto) return '';
+        var html = texto;
+        html = html.split('&').join('&amp;');
+        html = html.split('<').join('&lt;');
+        html = html.split('>').join('&gt;');
+        // negrito **texto**
+        while (html.indexOf('**') !== -1) {
+            var a = html.indexOf('**');
+            var b = html.indexOf('**', a + 2);
+            if (b === -1) break;
+            html = html.slice(0, a) + '<strong>' + html.slice(a + 2, b) + '</strong>' + html.slice(b + 2);
+        }
+        // itálico *texto*
+        while (html.indexOf('*') !== -1) {
+            var a = html.indexOf('*');
+            var b = html.indexOf('*', a + 1);
+            if (b === -1) break;
+            html = html.slice(0, a) + '<em>' + html.slice(a + 1, b) + '</em>' + html.slice(b + 1);
+        }
+        html = html.split('\n\n').join('</p><p>');
+        html = html.split('\n').join('<br>');
+        return '<p>' + html + '</p>';
+    }
+
     document.getElementById('formPeticao').addEventListener('submit', async (e) => {
         e.preventDefault();
 
