@@ -17,5 +17,9 @@ async function executarScraperDJEN() {
 }
 
 module.exports = {
-  executarScraperDJEN
+  executarScraperDJEN,
+  buscarPublicacoesDJEN: async () => ({
+    ok: false,
+    erro: 'Scraper DJEN agora roda em worker externo'
+  })
 };
