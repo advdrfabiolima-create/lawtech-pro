@@ -16,7 +16,8 @@ const anthropic = new Anthropic({
     apiKey: process.env.CLAUDE_API_KEY
 });
 
-const uploadMiddleware = upload.array('documentos', 10);
+// Aceita qualquer campo de arquivo e filtra pelo nome no controller
+const uploadMiddleware = upload.any();
 
 function limparMarkdown(texto) {
     if (!texto) return texto;
@@ -67,7 +68,9 @@ class PeticoesController {
                 });
             }
 
-            logger.info({ tipo, autor, arquivos: (req.files || []).length }, '[PETIÇÕES] Gerando petição com IA...');
+            // Filtrar apenas arquivos do campo 'documentos' (ignora outros campos de arquivo)
+            const arquivosFiltrados = (req.files || []).filter(f => f.fieldname === 'documentos');
+            logger.info({ tipo, autor, arquivos: arquivosFiltrados.length }, '[PETIÇÕES] Gerando petição com IA...');
 
             // ===== PROMPT PARA CLAUDE =====
             const prompt = PeticoesController.construirPromptIA(tipo, {
@@ -79,11 +82,10 @@ class PeticoesController {
                 vara: vara || 'Vara competente'
             });
 
-            // ===== MONTAR CONTEÚDO (PDFs primeiro, depois prompt) =====
-            // IMPORTANTE: documentos devem vir ANTES do texto para a IA processar corretamente
-            const conteudoMensagem = [];
-            if (req.files && req.files.length > 0) {
-                req.files.forEach(function(file) {
+            // ===== MONTAR CONTEÚDO (prompt + PDFs) =====
+            const conteudoMensagem = [{ type: 'text', text: prompt }];
+            if (arquivosFiltrados.length > 0) {
+                arquivosFiltrados.forEach(function(file) {
                     conteudoMensagem.push({
                         type: 'document',
                         source: {
@@ -95,13 +97,12 @@ class PeticoesController {
                         context: 'Documento anexado pelo advogado contendo dados das partes e informações do caso'
                     });
                 });
-                logger.info({ qtd: req.files.length }, '[PETIÇÕES] PDFs enviados à IA');
+                logger.info({ qtd: arquivosFiltrados.length }, '[PETIÇÕES] PDFs enviados à IA');
             }
-            conteudoMensagem.push({ type: 'text', text: prompt });
 
             // ===== CHAMAR IA =====
             const message = await anthropic.messages.create({
-                model: 'claude-sonnet-4-6',
+                model: 'claude-sonnet-4-5-20250929',
                 max_tokens: 4096,
                 temperature: 0.3,
                 messages: [{
