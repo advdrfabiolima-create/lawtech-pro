@@ -1,5 +1,4 @@
-
-    const token = localStorage.getItem('token');
+const token = localStorage.getItem('token');
     if (!token) window.location.href = '/login.html';
 
     let peticaoAtual = null;
@@ -196,14 +195,19 @@
     document.getElementById('formPeticao').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const dados = {
-            tipo: document.getElementById('tipo').value,
-            autor: document.getElementById('autor').value,
-            reu: document.getElementById('reu').value || null,
-            resumo_fatos: document.getElementById('resumoFatos').value,
-            pedidos: document.getElementById('pedidos').value,
-            cidade: document.getElementById('cidade').value.split('/')[0]
-        };
+        // Montar FormData para enviar campos + PDFs anexados juntos
+        const formData = new FormData();
+        formData.append('tipo',         document.getElementById('tipo').value);
+        formData.append('autor',        document.getElementById('autor').value);
+        formData.append('reu',          document.getElementById('reu').value || '');
+        formData.append('resumo_fatos', document.getElementById('resumoFatos').value);
+        formData.append('pedidos',      document.getElementById('pedidos').value);
+        formData.append('cidade',       document.getElementById('cidade').value.split('/')[0]);
+
+        // Anexar PDFs (a IA vai ler o conteúdo deles)
+        arquivosPDF.forEach(function(file) {
+            formData.append('documentos', file);
+        });
 
         document.getElementById('formCard').style.display = 'none';
         document.getElementById('loading').classList.add('show');
@@ -212,10 +216,10 @@
             const res = await fetch('/api/peticoes/gerar', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
+                    // Content-Type NÃO definido: o browser define multipart/form-data automaticamente
                 },
-                body: JSON.stringify(dados)
+                body: formData
             });
 
             if (!res.ok) {
@@ -229,7 +233,7 @@
             document.getElementById('loading').classList.remove('show');
             document.getElementById('previewCard').classList.add('show');
             document.getElementById('previewTitulo').innerText = result.peticao.titulo;
-            document.getElementById('previewConteudo').innerText = result.peticao.conteudo;
+            document.getElementById('previewConteudo').innerHTML = renderMarkdown(result.peticao.conteudo);
         } catch (error) {
             alert('Erro: ' + error.message);
             document.getElementById('loading').classList.remove('show');

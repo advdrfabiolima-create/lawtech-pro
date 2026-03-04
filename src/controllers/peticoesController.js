@@ -7,12 +7,35 @@
 
 const pool = require('../config/db');
 const Anthropic = require('@anthropic-ai/sdk');
+const multer  = require('multer');
+const upload  = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 const PDFGeneratorService = require('../services/pdfGenerator.service');
 const logger = require('../utils/logger');
 
 const anthropic = new Anthropic({
     apiKey: process.env.CLAUDE_API_KEY
 });
+
+const uploadMiddleware = upload.array('documentos', 10);
+
+function limparMarkdown(texto) {
+    if (!texto) return texto;
+    return texto
+        .replace(/^#{1,6}\s+(.+)$/gm, function(_, t) { return t.toUpperCase(); })
+        .replace(/\*\*\*(.+?)\*\*\*/g, '$1')
+        .replace(/\*\*(.+?)\*\*/g, '$1')
+        .replace(/\*(.+?)\*/g, '$1')
+        .replace(/__(.+?)__/g, '$1')
+        .replace(/_(.+?)_/g, '$1')
+        .replace(/^[-*_]{3,}\s*$/gm, '')
+        .replace(/^>\s*/gm, '')
+        .replace(/^[\s]*[-*+]\s+/gm, '')
+        .replace(/^[\s]*\d+\.\s+/gm, '')
+        .replace(/\[(.+?)\]\(.+?\)/g, '$1')
+        .replace(/`(.+?)`/g, '$1')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+}
 
 class PeticoesController {
     
@@ -44,7 +67,7 @@ class PeticoesController {
                 });
             }
 
-            logger.info({ tipo, autor }, '[PETIÇÕES] Gerando petição com IA...');
+            logger.info({ tipo, autor, arquivos: (req.files || []).length }, '[PETIÇÕES] Gerando petição com IA...');
 
             // ===== PROMPT PARA CLAUDE =====
             const prompt = PeticoesController.construirPromptIA(tipo, {
@@ -56,18 +79,38 @@ class PeticoesController {
                 vara: vara || 'Vara competente'
             });
 
+            // ===== MONTAR CONTEÚDO (PDFs primeiro, depois prompt) =====
+            // IMPORTANTE: documentos devem vir ANTES do texto para a IA processar corretamente
+            const conteudoMensagem = [];
+            if (req.files && req.files.length > 0) {
+                req.files.forEach(function(file) {
+                    conteudoMensagem.push({
+                        type: 'document',
+                        source: {
+                            type: 'base64',
+                            media_type: 'application/pdf',
+                            data: file.buffer.toString('base64')
+                        },
+                        title: file.originalname,
+                        context: 'Documento anexado pelo advogado contendo dados das partes e informações do caso'
+                    });
+                });
+                logger.info({ qtd: req.files.length }, '[PETIÇÕES] PDFs enviados à IA');
+            }
+            conteudoMensagem.push({ type: 'text', text: prompt });
+
             // ===== CHAMAR IA =====
             const message = await anthropic.messages.create({
-                model: 'claude-sonnet-4-5-20250929',
+                model: 'claude-sonnet-4-6',
                 max_tokens: 4096,
-                temperature: 0.3, // Mais determinístico para textos jurídicos
+                temperature: 0.3,
                 messages: [{
                     role: 'user',
-                    content: prompt
+                    content: conteudoMensagem
                 }]
             });
 
-            const conteudoGerado = message.content[0].text;
+            const conteudoGerado = limparMarkdown(message.content[0].text);
 
             // ===== SALVAR NO BANCO =====
             const titulo = PeticoesController.gerarTituloPeticao(tipo, autor, reu);
@@ -337,113 +380,175 @@ class PeticoesController {
      * Construir prompt para IA baseado no tipo de petição
      */
     static construirPromptIA(tipo, dados) {
-        const promptsBase = {
-            inicial: `Você é um advogado especialista em elaborar petições iniciais.
 
-DADOS DA AÇÃO:
-- Autor: ${dados.autor}
-- Réu: ${dados.reu || 'A definir'}
-- Tribunal: ${dados.tribunal}
-- Vara: ${dados.vara}
+        const instrucaoBase = [
+            'REGRAS OBRIGATÓRIAS — SIGA À RISCA:',
+            'NUNCA use Markdown: proibido #, ##, **, *, ---, >, listas com hífen ou asterisco',
+            'Escreva em texto puro como documento jurídico impresso',
+            'Títulos de seções em LETRAS MAIÚSCULAS, ex: I – DOS FATOS',
+            'Parágrafos corridos sem marcadores de lista',
+            'Destaques feitos apenas com LETRAS MAIÚSCULAS, nunca com asteriscos',
+            'Citações de lei em parágrafo próprio, entre aspas simples',
+            'O documento deve parecer uma peça jurídica real pronta para protocolo'
+        ].join('\n');
 
-RESUMO DOS FATOS:
-${dados.resumo_fatos}
-
-PEDIDOS:
-${dados.pedidos}
-
-INSTRUÇÕES:
-Elabore uma PETIÇÃO INICIAL completa e profissional seguindo a estrutura:
-
-1. EXCELENTÍSSIMO SENHOR DOUTOR JUIZ DE DIREITO DA [VARA]
-
-2. Qualificação completa do autor (use dados fornecidos + crie CPF/RG/endereço fictícios realistas)
-
-3. DOS FATOS (narrativa detalhada e cronológica dos acontecimentos)
-
-4. DO DIREITO (fundamentação jurídica com citação de artigos de lei aplicáveis)
-
-5. DOS PEDIDOS (estruturado em itens claros)
-
-6. DO VALOR DA CAUSA (estime um valor razoável)
-
-7. DAS PROVAS (liste provas documentais e testemunhais pertinentes)
-
-Use linguagem jurídica formal, seja objetivo e fundamentado. Inclua artigos de lei relevantes (Código Civil, CLT, CDC conforme o caso).`,
-
-            contestacao: `Você é um advogado elaborando uma CONTESTAÇÃO.
-
-DADOS:
-- Contestante: ${dados.autor}
-- Parte Contrária: ${dados.reu}
-- Fatos Alegados pela Parte Contrária: ${dados.resumo_fatos}
-- Argumentos de Defesa: ${dados.pedidos}
-
-Elabore uma CONTESTAÇÃO completa com:
-1. Preliminares (se aplicável)
-2. Mérito (negativa dos fatos, apresentação da versão do contestante)
-3. Impugnação aos pedidos
-4. Pedidos finais
-
-Use linguagem técnica e seja rigoroso na defesa.`,
-
-            recurso: `Você é um advogado elaborando um RECURSO.
-
-DADOS:
-- Recorrente: ${dados.autor}
-- Recorrido: ${dados.reu}
-- Decisão Recorrida: ${dados.resumo_fatos}
-- Fundamentos do Recurso: ${dados.pedidos}
-
-Elabore um RECURSO DE APELAÇÃO com:
-1. Juízo de admissibilidade
-2. Razões de fato e de direito
-3. Demonstração do erro/injustiça da decisão
-4. Pedido de reforma
-
-Seja técnico e fundamentado.`,
-
-            intermediaria: `Você é um advogado elaborando uma PETIÇÃO INTERMEDIÁRIA.
-
-DADOS:
-- Requerente: ${dados.autor}
-- Parte Contrária: ${dados.reu || 'Outra parte'}
-- Contexto: ${dados.resumo_fatos}
-- Pedido: ${dados.pedidos}
-
-Elabore uma petição intermediária clara, objetiva e fundamentada.`
+        const tipoLabel = {
+            civel_inicial:               'PETIÇÃO INICIAL',
+            civel_intermediaria:         'PETIÇÃO INTERMEDIÁRIA',
+            civel_contestacao:           'CONTESTAÇÃO',
+            civel_replica:               'RÉPLICA',
+            civel_cumprimento:           'CUMPRIMENTO DE SENTENÇA',
+            civel_cautelar:              'MEDIDA CAUTELAR / TUTELA DE URGÊNCIA',
+            civel_juntada:               'PETIÇÃO DE JUNTADA',
+            civel_apelacao:              'APELAÇÃO CÍVEL',
+            civel_agravo:                'AGRAVO DE INSTRUMENTO',
+            civel_embargos_declaracao:   'EMBARGOS DE DECLARAÇÃO',
+            civel_embargos_execucao:     'EMBARGOS À EXECUÇÃO',
+            civel_impugnacao_calculos:   'IMPUGNAÇÃO AOS CÁLCULOS',
+            trab_reclamacao:             'RECLAMAÇÃO TRABALHISTA',
+            trab_homologacao_acordo:     'HOMOLOGAÇÃO DE ACORDO EXTRAJUDICIAL',
+            trab_consignacao:            'AÇÃO DE CONSIGNAÇÃO EM PAGAMENTO',
+            trab_inquerito_falta:        'INQUÉRITO PARA APURAÇÃO DE FALTA GRAVE',
+            trab_dano_moral:             'AÇÃO DE DANO MORAL',
+            trab_reversao_justa_causa:   'REVERSÃO DE JUSTA CAUSA',
+            trab_vinculo:                'RECONHECIMENTO DE VÍNCULO EMPREGATÍCIO',
+            trab_rescisao_indireta:      'RESCISÃO INDIRETA',
+            trab_contestacao:            'CONTESTAÇÃO TRABALHISTA',
+            trab_reconvencao:            'RECONVENÇÃO',
+            trab_impugnacao_laudo:       'IMPUGNAÇÃO AO LAUDO PERICIAL',
+            trab_acordo:                 'ACORDO JUDICIAL',
+            trab_recurso_ordinario:      'RECURSO ORDINÁRIO',
+            trab_recurso_revista:        'RECURSO DE REVISTA',
+            trab_agravo_peticao:         'AGRAVO DE PETIÇÃO',
+            penal_relaxamento:           'RELAXAMENTO DE PRISÃO EM FLAGRANTE',
+            penal_revogacao_preventiva:  'REVOGAÇÃO DE PRISÃO PREVENTIVA',
+            penal_liberdade_provisoria:  'LIBERDADE PROVISÓRIA',
+            penal_habeas_corpus:         'HABEAS CORPUS',
+            penal_resposta_acusacao:     'RESPOSTA À ACUSAÇÃO',
+            penal_defesa_previa:         'DEFESA PRÉVIA',
+            penal_queixa_crime:          'QUEIXA-CRIME',
+            penal_representacao:         'REPRESENTAÇÃO CRIMINAL',
+            penal_memoriais:             'MEMORIAIS / ALEGAÇÕES FINAIS',
+            penal_restituicao:           'RESTITUIÇÃO DE COISA APREENDIDA',
+            penal_provas:                'PEDIDO DE PRODUÇÃO DE PROVAS',
+            penal_apelacao:              'APELAÇÃO CRIMINAL',
+            penal_rese:                  'RECURSO EM SENTIDO ESTRITO',
+            inicial:                     'PETIÇÃO INICIAL',
+            contestacao:                 'CONTESTAÇÃO',
+            recurso:                     'RECURSO DE APELAÇÃO',
+            intermediaria:               'PETIÇÃO INTERMEDIÁRIA'
         };
 
-        return promptsBase[tipo] || promptsBase.intermediaria;
+        const label = tipoLabel[tipo] || 'PETIÇÃO';
+
+        const estrutura = [
+            'EXCELENTÍSSIMO(A) SENHOR(A) DOUTOR(A) JUIZ(ÍZA) DE DIREITO DA ' + dados.vara + ' DA COMARCA DE ' + dados.tribunal,
+            '',
+            '[Qualificação da parte em parágrafo corrido: nome, nacionalidade, estado civil, profissão, CPF, endereço — extraia dos documentos PDF anexados se disponíveis]',
+            '',
+            'vem, respeitosamente, à presença de Vossa Excelência, apresentar a presente ' + label + ', pelos fatos e fundamentos a seguir:',
+            '',
+            'I – DOS FATOS',
+            '',
+            '[Narrativa cronológica e detalhada em parágrafos corridos, sem marcadores de lista]',
+            '',
+            'II – DO DIREITO',
+            '',
+            '[Fundamentação jurídica com artigos do CC, CDC, CPC, CLT conforme o caso, em parágrafos corridos]',
+            '',
+            'III – DOS PEDIDOS',
+            '',
+            'Diante do exposto, requer a Vossa Excelência:',
+            'a) [pedido principal];',
+            'b) [pedidos acessórios];',
+            'c) A condenação em custas processuais e honorários advocatícios.',
+            '',
+            'IV – DO VALOR DA CAUSA',
+            '',
+            'Dá-se à causa o valor de R$ [valor estimado].',
+            '',
+            'Termos em que, pede deferimento.',
+            '',
+            'Local, ___ de ___ de 2026.',
+            '',
+            '_______________________________',
+            '[Nome do Advogado]',
+            'OAB/__ n. _____'
+        ].join('\n');
+
+        return 'Você é um advogado brasileiro sênior com 20 anos de experiência, especialista na elaboração de peças processuais.\n\n'
+            + instrucaoBase + '\n\n'
+            + 'DADOS DA PETIÇÃO:\n'
+            + '- Tipo: ' + label + '\n'
+            + '- Autor/Requerente: ' + dados.autor + '\n'
+            + '- Réu/Requerido: ' + (dados.reu || 'A ser qualificado') + '\n'
+            + '- Tribunal/Comarca: ' + dados.tribunal + '\n'
+            + '- Vara: ' + dados.vara + '\n\n'
+            + 'RESUMO DOS FATOS FORNECIDO PELO ADVOGADO:\n'
+            + dados.resumo_fatos + '\n\n'
+            + 'PEDIDOS FORMULADOS PELO ADVOGADO:\n'
+            + dados.pedidos + '\n\n'
+            + 'ATENÇÃO: Se houver documentos PDF anexados, extraia deles os dados de qualificação '
+            + 'das partes (nome completo, CPF, RG, endereço, estado civil, profissão) e use-os na petição.\n\n'
+            + 'ESTRUTURA DO DOCUMENTO:\n'
+            + estrutura + '\n\n'
+            + 'INSTRUÇÕES FINAIS:\n'
+            + '- Expanda cada seção com base nos dados fornecidos e nos documentos anexados\n'
+            + '- Cite artigos de lei, súmulas e jurisprudências pertinentes ao caso concreto\n'
+            + '- Mantenha linguagem jurídica formal e culta em todo o texto\n'
+            + '- O documento deve estar pronto para protocolo\n'
+            + '- NUNCA use #, ##, **, *, --- ou qualquer símbolo Markdown';
     }
 
-    /**
+        /**
      * Gerar título automático para a petição
      */
     static gerarTituloPeticao(tipo, autor, reu) {
         const tipoLabel = {
-            civel_inicial: 'PETIÇÃO INICIAL',
-            civel_intermediaria: 'PETIÇÃO INTERMEDIÁRIA',
-            civel_contestacao: 'CONTESTAÇÃO',
-            civel_replica: 'RÉPLICA',
-            civel_cumprimento: 'CUMPRIMENTO DE SENTENÇA',
-            civel_cautelar: 'TUTELA DE URGÊNCIA',
-            civel_juntada: 'PETIÇÃO DE JUNTADA',
-            civel_apelacao: 'APELAÇÃO',
-            civel_agravo: 'AGRAVO DE INSTRUMENTO',
-            civel_embargos_declaracao: 'EMBARGOS DE DECLARAÇÃO',
-            civel_embargos_execucao: 'EMBARGOS À EXECUÇÃO',
-            civel_impugnacao_calculos: 'IMPUGNAÇÃO AOS CÁLCULOS',
-            trab_reclamacao: 'RECLAMAÇÃO TRABALHISTA',
-            trab_contestacao: 'CONTESTAÇÃO TRABALHISTA',
-            trab_recurso_ordinario: 'RECURSO ORDINÁRIO',
-            trab_recurso_revista: 'RECURSO DE REVISTA',
-            penal_habeas_corpus: 'HABEAS CORPUS',
-            penal_apelacao: 'APELAÇÃO CRIMINAL',
-            inicial: 'PETIÇÃO INICIAL',
-            contestacao: 'CONTESTAÇÃO',
-            recurso: 'RECURSO DE APELAÇÃO',
-            intermediaria: 'PETIÇÃO INTERMEDIÁRIA'
+            civel_inicial:               'PETIÇÃO INICIAL',
+            civel_intermediaria:         'PETIÇÃO INTERMEDIÁRIA',
+            civel_contestacao:           'CONTESTAÇÃO',
+            civel_replica:               'RÉPLICA',
+            civel_cumprimento:           'CUMPRIMENTO DE SENTENÇA',
+            civel_cautelar:              'MEDIDA CAUTELAR / TUTELA DE URGÊNCIA',
+            civel_juntada:               'PETIÇÃO DE JUNTADA',
+            civel_apelacao:              'APELAÇÃO CÍVEL',
+            civel_agravo:                'AGRAVO DE INSTRUMENTO',
+            civel_embargos_declaracao:   'EMBARGOS DE DECLARAÇÃO',
+            civel_embargos_execucao:     'EMBARGOS À EXECUÇÃO',
+            civel_impugnacao_calculos:   'IMPUGNAÇÃO AOS CÁLCULOS',
+            trab_reclamacao:             'RECLAMAÇÃO TRABALHISTA',
+            trab_homologacao_acordo:     'HOMOLOGAÇÃO DE ACORDO EXTRAJUDICIAL',
+            trab_consignacao:            'AÇÃO DE CONSIGNAÇÃO EM PAGAMENTO',
+            trab_inquerito_falta:        'INQUÉRITO PARA APURAÇÃO DE FALTA GRAVE',
+            trab_dano_moral:             'AÇÃO DE DANO MORAL',
+            trab_reversao_justa_causa:   'REVERSÃO DE JUSTA CAUSA',
+            trab_vinculo:                'RECONHECIMENTO DE VÍNCULO EMPREGATÍCIO',
+            trab_rescisao_indireta:      'RESCISÃO INDIRETA',
+            trab_contestacao:            'CONTESTAÇÃO TRABALHISTA',
+            trab_reconvencao:            'RECONVENÇÃO',
+            trab_impugnacao_laudo:       'IMPUGNAÇÃO AO LAUDO PERICIAL',
+            trab_acordo:                 'ACORDO JUDICIAL',
+            trab_recurso_ordinario:      'RECURSO ORDINÁRIO',
+            trab_recurso_revista:        'RECURSO DE REVISTA',
+            trab_agravo_peticao:         'AGRAVO DE PETIÇÃO',
+            penal_relaxamento:           'RELAXAMENTO DE PRISÃO EM FLAGRANTE',
+            penal_revogacao_preventiva:  'REVOGAÇÃO DE PRISÃO PREVENTIVA',
+            penal_liberdade_provisoria:  'LIBERDADE PROVISÓRIA',
+            penal_habeas_corpus:         'HABEAS CORPUS',
+            penal_resposta_acusacao:     'RESPOSTA À ACUSAÇÃO',
+            penal_defesa_previa:         'DEFESA PRÉVIA',
+            penal_queixa_crime:          'QUEIXA-CRIME',
+            penal_representacao:         'REPRESENTAÇÃO CRIMINAL',
+            penal_memoriais:             'MEMORIAIS / ALEGAÇÕES FINAIS',
+            penal_restituicao:           'RESTITUIÇÃO DE COISA APREENDIDA',
+            penal_provas:                'PEDIDO DE PRODUÇÃO DE PROVAS',
+            penal_apelacao:              'APELAÇÃO CRIMINAL',
+            penal_rese:                  'RECURSO EM SENTIDO ESTRITO',
+            inicial:                     'PETIÇÃO INICIAL',
+            contestacao:                 'CONTESTAÇÃO',
+            recurso:                     'RECURSO DE APELAÇÃO',
+            intermediaria:               'PETIÇÃO INTERMEDIÁRIA'
         };
 
         const label = tipoLabel[tipo] || 'PETIÇÃO';
@@ -456,5 +561,7 @@ Elabore uma petição intermediária clara, objetiva e fundamentada.`
         return titulo;
     }
 }
+
+PeticoesController.uploadMiddleware = uploadMiddleware;
 
 module.exports = PeticoesController;

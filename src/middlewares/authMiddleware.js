@@ -7,6 +7,11 @@ let Sentry = null;
 try { Sentry = require('@sentry/node'); } catch (_) {}
 
 const authMiddleware = async (req, res, next) => {
+  // Suporte a token via query string (?token=...) para rotas abertas via window.open/nova aba
+  if (!req.headers.authorization && req.query.token) {
+    req.headers.authorization = 'Bearer ' + req.query.token;
+  }
+
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {

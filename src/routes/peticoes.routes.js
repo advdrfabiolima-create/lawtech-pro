@@ -22,7 +22,8 @@ const logger = require('../utils/logger');
 router.post('/gerar',
     authMiddleware,
     roleMiddleware('admin', 'operador'),
-    planMiddleware.checkFeature('ia_juridica'), // Requer plano Premium
+    planMiddleware.checkFeature('ia_juridica'),
+    PeticoesController.uploadMiddleware,   // processa multipart/form-data + PDFs
     PeticoesController.gerarPeticaoComIA
 );
 
