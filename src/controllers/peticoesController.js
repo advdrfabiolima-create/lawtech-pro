@@ -16,7 +16,8 @@ const anthropic = new Anthropic({
     apiKey: process.env.CLAUDE_API_KEY
 });
 
-const uploadMiddleware = upload.array('documentos', 10);
+// Aceita qualquer campo de arquivo — filtra por fieldname no handler
+const uploadMiddleware = upload.any();
 
 function limparMarkdown(texto) {
     if (!texto) return texto;
@@ -67,7 +68,8 @@ class PeticoesController {
                 });
             }
 
-            logger.info({ tipo, autor, arquivos: (req.files || []).length }, '[PETIÇÕES] Gerando petição com IA...');
+            const arquivosFiltrados = (req.files || []).filter(f => f.fieldname === 'documentos');
+            logger.info({ tipo, autor, arquivos: arquivosFiltrados.length }, '[PETIÇÕES] Gerando petição com IA...');
 
             // ===== PROMPT PARA CLAUDE =====
             const prompt = PeticoesController.construirPromptIA(tipo, {
@@ -79,10 +81,10 @@ class PeticoesController {
                 vara: vara || 'Vara competente'
             });
 
-            // ===== MONTAR CONTEÚDO (prompt + PDFs) =====
-            const conteudoMensagem = [{ type: 'text', text: prompt }];
-            if (req.files && req.files.length > 0) {
-                req.files.forEach(function(file) {
+            // ===== MONTAR CONTEÚDO (PDFs primeiro, depois prompt) =====
+            const conteudoMensagem = [];
+            if (arquivosFiltrados.length > 0) {
+                arquivosFiltrados.forEach(function(file) {
                     conteudoMensagem.push({
                         type: 'document',
                         source: {
@@ -94,8 +96,9 @@ class PeticoesController {
                         context: 'Documento anexado pelo advogado contendo dados das partes e informações do caso'
                     });
                 });
-                logger.info({ qtd: req.files.length }, '[PETIÇÕES] PDFs enviados à IA');
+                logger.info({ qtd: arquivosFiltrados.length }, '[PETIÇÕES] PDFs enviados à IA');
             }
+            conteudoMensagem.push({ type: 'text', text: prompt });
 
             // ===== CHAMAR IA =====
             const message = await anthropic.messages.create({

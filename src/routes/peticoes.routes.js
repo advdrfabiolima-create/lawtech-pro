@@ -21,9 +21,9 @@ const logger = require('../utils/logger');
  */
 router.post('/gerar',
     authMiddleware,
+    PeticoesController.uploadMiddleware,   // DEVE vir antes do planMiddleware (processa multipart antes que req.body seja lido)
     roleMiddleware('admin', 'operador'),
     planMiddleware.checkFeature('ia_juridica'),
-    PeticoesController.uploadMiddleware,   // processa multipart/form-data + PDFs
     PeticoesController.gerarPeticaoComIA
 );
 
