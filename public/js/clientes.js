@@ -138,15 +138,13 @@ const token = localStorage.getItem('token');
         // ============================================
         // CARREGAR CLIENTES - APENAS INICIAL
         // ============================================
-        async function carregarClientes(page = 1, search = '') {
+        async function carregarClientes(page = 1) {
     paginaAtual = page;
-    termoBusca = search;
     const tbody = document.getElementById('listaClientes');
     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#64748b;">Carregando...</td></tr>';
     try {
-        const searchQS = search ? `&search=${encodeURIComponent(search)}` : '';
         const [resClientes, resProcessos] = await Promise.all([
-            fetch(`/api/clientes?page=${page}&limit=${LIMITE_POR_PAGINA}${searchQS}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch(`/api/clientes?page=${page}&limit=${LIMITE_POR_PAGINA}`, { headers: { 'Authorization': `Bearer ${token}` } }),
             fetch('/api/processos?limit=200', { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
 
@@ -163,12 +161,9 @@ const token = localStorage.getItem('token');
         const todosProcessos = respProcessos.data || respProcessos;
 
         clientesCache = clientes;
-        // Só limpa o campo se não há busca ativa
-        if (!search) {
-            termoBusca = '';
-            const searchInput = document.getElementById('searchClientes');
-            if (searchInput) searchInput.value = '';
-        }
+        termoBusca = '';
+        const searchInput = document.getElementById('searchClientes');
+        if (searchInput) searchInput.value = '';
 
         document.getElementById('totalClientes').innerText = respClientes.total ?? clientes.length;
 
@@ -182,9 +177,6 @@ const token = localStorage.getItem('token');
         const totalItens = respClientes.total ?? clientes.length;
         const totalPags = respClientes.totalPages ?? Math.ceil(totalItens / LIMITE_POR_PAGINA);
         renderizarPaginacao(totalItens, page, totalPags);
-        // Always show pagination container when there are results
-        const paginacaoEl = document.getElementById('paginacaoClientes');
-        if (paginacaoEl) paginacaoEl.style.display = totalItens > 0 ? '' : 'none';
 
     } catch (err) {
         console.error("Erro ao carregar clientes:", err);
@@ -266,20 +258,20 @@ const token = localStorage.getItem('token');
             const left = Math.max(1, page - delta);
             const right = Math.min(totalPages, page + delta);
             let nums = '';
-            if (left > 1) nums += '<button onclick="carregarClientes(1, termoBusca)" class="pag-num' + (1===page?' pag-ativo':'') + '">1</button>';
+            if (left > 1) nums += '<button onclick="carregarClientes(1)" class="pag-num' + (1===page?' pag-ativo':'') + '">1</button>';
             if (left > 2) nums += '<span class="pag-ellipsis">…</span>';
             for (let i = left; i <= right; i++) {
-                nums += '<button onclick="carregarClientes(' + i + ', termoBusca)" class="pag-num' + (i===page?' pag-ativo':'') + '">' + i + '</button>';
+                nums += '<button onclick="carregarClientes(' + i + ')" class="pag-num' + (i===page?' pag-ativo':'') + '">' + i + '</button>';
             }
             if (right < totalPages - 1) nums += '<span class="pag-ellipsis">…</span>';
-            if (right < totalPages) nums += '<button onclick="carregarClientes(' + totalPages + ', termoBusca)" class="pag-num' + (totalPages===page?' pag-ativo':'') + '">' + totalPages + '</button>';
+            if (right < totalPages) nums += '<button onclick="carregarClientes(' + totalPages + ')" class="pag-num' + (totalPages===page?' pag-ativo':'') + '">' + totalPages + '</button>';
 
             container.innerHTML =
                 '<span class="pag-info">Mostrando <strong>' + inicio + '–' + fim + '</strong> de <strong>' + total + '</strong> clientes</span>' +
                 '<div class="pag-controles">' +
-                    '<button onclick="carregarClientes(' + (page-1) + ', termoBusca)" ' + (page<=1?'disabled':'') + ' class="pag-nav">← Anterior</button>' +
+                    '<button onclick="carregarClientes(' + (page-1) + ')" ' + (page<=1?'disabled':'') + ' class="pag-nav">← Anterior</button>' +
                     nums +
-                    '<button onclick="carregarClientes(' + (page+1) + ', termoBusca)" ' + (page>=totalPages?'disabled':'') + ' class="pag-nav">Próximo →</button>' +
+                    '<button onclick="carregarClientes(' + (page+1) + ')" ' + (page>=totalPages?'disabled':'') + ' class="pag-nav">Próximo →</button>' +
                 '</div>';
 
             container.classList.add('ativo');
@@ -324,7 +316,7 @@ const token = localStorage.getItem('token');
                             <i class="lucide lucide-link-2"></i>
                             <span>LINK</span>
                         </button>
-                            <button class="btn-action btn-contract" onclick="abrirModalContratos(${c.id}, '${c.nome.replace(/'/g, "\\'")}')" title="CONTRATOS DE HONORÁRIOS">
+                            <button class="btn-action btn-contract" onclick="abrirModalContratos(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}')" title="CONTRATOS DE HONORÁRIOS">
                                 <i class="lucide lucide-file-signature"></i>
                                 <span>CONTRATOS</span>
                             </button>
@@ -382,7 +374,7 @@ const token = localStorage.getItem('token');
                             <i class="lucide lucide-link-2"></i>
                             <span>LINK</span>
                         </button>
-                            <button class="btn-action btn-contract" onclick="abrirModalContratos(${c.id}, '${c.nome.replace(/'/g, "\\'")}')" title="CONTRATOS DE HONORÁRIOS">
+                            <button class="btn-action btn-contract" onclick="abrirModalContratos(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}')" title="CONTRATOS DE HONORÁRIOS">
                                 <i class="lucide lucide-file-signature"></i>
                                 <span>CONTRATOS</span>
                             </button>
@@ -440,14 +432,30 @@ const token = localStorage.getItem('token');
         // ============================================
         // FILTRAR CLIENTES
         // ============================================
-        let _searchDebounce = null;
-
+        let _buscaTimer = null;
         function filtrarClientes() {
-            clearTimeout(_searchDebounce);
-            _searchDebounce = setTimeout(async () => {
-                termoBusca = document.getElementById('searchClientes').value.trim();
-                await carregarClientes(1, termoBusca);
-            }, 300);
+            termoBusca = document.getElementById('searchClientes').value.trim();
+            const paginacaoEl = document.getElementById('paginacaoClientes');
+            if (!termoBusca) {
+                carregarClientes(1);
+                return;
+            }
+            clearTimeout(_buscaTimer);
+            _buscaTimer = setTimeout(async function() {
+                const tbody = document.getElementById('listaClientes');
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#64748b;">Buscando...</td></tr>';
+                if (paginacaoEl) paginacaoEl.classList.remove('ativo');
+                try {
+                    const res = await fetch(`/api/clientes?search=${encodeURIComponent(termoBusca)}&limit=200`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+                    const resultados = data.data || data;
+                    renderizarClientes(resultados);
+                } catch (err) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--danger);">❌ ERRO NA BUSCA</td></tr>';
+                }
+            }, 400);
         }
 
         // ============================================
@@ -994,8 +1002,7 @@ const token = localStorage.getItem('token');
                                 <i class="lucide lucide-file-text" style="width:13px;height:13px;"></i> VER TEMPLATE
                             </button>
                             ${c.tem_arquivo
-                                ? `<button onclick="_downloadContrato(${c.id})" style="${_btnSmall('#10b981')}"><i class="lucide lucide-download" style="width:13px;height:13px;"></i> BAIXAR PDF</button>
-                                   <button onclick="_abrirUpload(${c.id})" style="${_btnSmall('#6366f1')}"><i class="lucide lucide-upload" style="width:13px;height:13px;"></i> TROCAR PDF</button>`
+                                ? `<button onclick="_downloadContrato(${c.id})" style="${_btnSmall('#10b981')}"><i class="lucide lucide-download" style="width:13px;height:13px;"></i> BAIXAR PDF</button>`
                                 : `<button onclick="_abrirUpload(${c.id})" style="${_btnSmall('#6366f1')}"><i class="lucide lucide-upload" style="width:13px;height:13px;"></i> ENVIAR PDF ASSINADO</button>`
                             }
                             <button onclick="_editarContrato(${c.id},'${c.titulo.replace(/'/g,"\\'")}','${c.tipo_honorario}',${c.valor_fixo||'null'},${c.percentual_exito||'null'},'${c.data_assinatura||''}',${c.processo_id||'null'},'${(c.observacoes||'').replace(/'/g,"\\'")}','${c.status}')" style="${_btnSmall('#f59e0b')}">

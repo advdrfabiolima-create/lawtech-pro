@@ -119,8 +119,6 @@
 .sidebar {
     width: 280px;
     background: var(--bg-secondary);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-right: 1px solid var(--border-subtle);
     padding: 32px 24px;
     display: flex;
@@ -130,7 +128,6 @@
     left: 0;
     top: 0;
     z-index: 1000;
-    animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideInLeft {
@@ -349,7 +346,7 @@
         th { text-align: left; background: #f8fafc; color: var(--muted); padding: 10px 16px; border-bottom: 2px solid var(--border); font-size: 11px; text-transform: uppercase; font-weight: 700; }
         td { padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 13px; }
 
-        .modal { display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.7); z-index:10000; align-items:center; justify-content:center; backdrop-filter: blur(4px); }
+        .modal { display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.7); z-index:999999; align-items:center; justify-content:center; backdrop-filter: blur(4px); }
         .modal-content { background:#fff; width:100%; max-width:450px; padding:32px; border-radius:16px; max-height: 90vh; overflow-y: auto; }
 
         .form-group { margin-bottom: 15px; }
@@ -645,7 +642,60 @@ input[type="checkbox"] {
     accent-color: var(--accent-green);
 }
 
-/* Tabela do Relatório */
+
+        /* ── Seletor de Mês ── */
+        .mes-nav {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .mes-nav button {
+            background: none;
+            border: none;
+            padding: 10px 16px;
+            cursor: pointer;
+            color: var(--accent-blue);
+            font-size: 16px;
+            font-weight: 700;
+            transition: background 0.15s;
+            flex-shrink: 0;
+        }
+        .mes-nav button:hover { background: #f1f5f9; }
+        .mes-nav .mes-label {
+            flex: 1;
+            text-align: center;
+            font-weight: 800;
+            font-size: 14px;
+            color: var(--text-main);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 10px 0;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+        }
+        .mes-nav .mes-hoje {
+            padding: 10px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .mes-nav .mes-hoje:hover { background: #f1f5f9; }
+        .mes-vazio {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+        .mes-vazio i { font-size: 40px; display: block; margin-bottom: 12px; opacity: .4; }
+
+        /* Tabela do Relatório */
 .relatorio-table {
     width: 100%;
     border-collapse: collapse;
@@ -934,6 +984,14 @@ input, textarea, select {
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Navegador de Mês -->
+    <div class="mes-nav no-print">
+        <button onclick="navegarMes(-1)" title="Mês anterior">&#8249;</button>
+        <span class="mes-label" id="mesNavLabel">—</span>
+        <button onclick="navegarMes(1)" title="Próximo mês">&#8250;</button>
+        <span class="mes-hoje" onclick="irParaHoje()" title="Ir para o mês atual">Hoje</span>
     </div>
 
     <div class="filter-row no-print" style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 15px;">

@@ -45,6 +45,13 @@ async function listarLancamentos(req, res) {
         const { page, limit, offset } = getPagination(req.query);
         const escritorioId = req.user.escritorio_id;
 
+        // Filtro de mês/ano — padrão: mês atual
+        const hoje = new Date();
+        const mes = parseInt(req.query.mes) || (hoje.getMonth() + 1);
+        const ano = parseInt(req.query.ano) || hoje.getFullYear();
+        const dataInicio = `${ano}-${String(mes).padStart(2,'0')}-01`;
+        const dataFim    = new Date(ano, mes, 0).toISOString().split('T')[0]; // último dia do mês
+
         const [result, countResult] = await Promise.all([
             pool.query(`
                 SELECT f.*, c.nome AS cliente_nome
@@ -52,14 +59,16 @@ async function listarLancamentos(req, res) {
                 JOIN usuarios u ON u.id = f.usuario_id
                 LEFT JOIN clientes c ON c.id = f.cliente_id
                 WHERE u.escritorio_id = $1
+                  AND f.data_vencimento BETWEEN $4 AND $5
                 ORDER BY f.data_vencimento DESC
                 LIMIT $2 OFFSET $3
-            `, [escritorioId, limit, offset]),
+            `, [escritorioId, limit, offset, dataInicio, dataFim]),
             pool.query(`
                 SELECT COUNT(*) AS total FROM financeiro f
                 JOIN usuarios u ON u.id = f.usuario_id
                 WHERE u.escritorio_id = $1
-            `, [escritorioId])
+                  AND f.data_vencimento BETWEEN $2 AND $3
+            `, [escritorioId, dataInicio, dataFim])
         ]);
 
         const total = parseInt(countResult.rows[0].total);

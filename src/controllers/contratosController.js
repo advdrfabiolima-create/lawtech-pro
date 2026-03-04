@@ -258,100 +258,204 @@ async function gerarTemplate(req, res) {
             consultoria: 'Honorários de Consultoria', outros: 'Honorários'
         }[contrato.tipo_honorario] || 'Honorários Advocatícios';
 
+        const enderecoCliente = [cliente.endereco, cliente.cidade, cliente.estado].filter(Boolean).join(', ') || 'não informado';
+        const cidadeContrato = cliente.cidade || escritorio.cidade || 'domicílio do Contratante';
+
         const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<title>Contrato de Prestação de Serviços Advocatícios</title>
 <style>
-  body { font-family: Arial, sans-serif; font-size: 13px; color: #1a1a1a; margin: 40px; line-height: 1.7; }
-  h1 { text-align: center; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-  h2 { font-size: 13px; text-align: center; font-weight: normal; color: #555; margin-top: 0; }
-  .divider { border: none; border-top: 2px solid #1E3A5F; margin: 24px 0; }
-  .section-title { font-weight: bold; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; color: #1E3A5F; margin: 20px 0 6px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
-  table { width: 100%; border-collapse: collapse; margin: 8px 0; }
-  td { padding: 5px 8px; vertical-align: top; }
-  td:first-child { font-weight: bold; width: 40%; color: #444; }
-  .assinatura-area { margin-top: 60px; display: flex; justify-content: space-between; }
-  .assinatura-box { width: 44%; text-align: center; }
-  .assinatura-linha { border-top: 1px solid #333; padding-top: 6px; font-size: 12px; }
-  .obs { background: #f8f9fa; border-left: 3px solid #1E3A5F; padding: 10px 14px; margin-top: 12px; font-size: 12px; }
-  .rodape { text-align: center; font-size: 10px; color: #999; margin-top: 40px; }
-  p { text-align: justify; }
+  @page { margin: 2.5cm; }
+  body { font-family: 'Times New Roman', Times, serif; font-size: 13px; color: #1a1a1a; line-height: 1.8; max-width: 780px; margin: 0 auto; padding: 40px; }
+  .cabecalho { text-align: center; border-bottom: 3px double #1E3A5F; padding-bottom: 20px; margin-bottom: 28px; }
+  .cabecalho .escritorio-nome { font-size: 17px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; color: #1E3A5F; }
+  .cabecalho .escritorio-info { font-size: 11px; color: #666; margin-top: 4px; }
+  h1 { text-align: center; font-size: 15px; text-transform: uppercase; letter-spacing: 2px; margin: 24px 0 4px; font-weight: bold; }
+  h2 { font-size: 12px; text-align: center; font-weight: normal; color: #555; margin: 0 0 8px; font-style: italic; }
+  .numero-contrato { text-align: center; font-size: 11px; color: #888; margin-bottom: 20px; }
+  hr.divider { border: none; border-top: 1px solid #c0c0c0; margin: 20px 0; }
+  .clausula { margin: 18px 0; }
+  .clausula-titulo { font-weight: bold; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; color: #1E3A5F; margin-bottom: 8px; border-left: 3px solid #1E3A5F; padding-left: 10px; }
+  .clausula p { text-align: justify; margin: 6px 0; }
+  .partes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 14px 0; }
+  .parte-box { border: 1px solid #ddd; border-radius: 4px; padding: 14px; background: #fafafa; }
+  .parte-box .parte-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 6px; }
+  .parte-box .parte-nome { font-weight: bold; font-size: 14px; color: #1E3A5F; margin-bottom: 6px; }
+  .parte-box .parte-info { font-size: 12px; color: #444; line-height: 1.7; }
+  .honorarios-box { border: 2px solid #1E3A5F; border-radius: 4px; padding: 16px; background: #f0f4f8; margin: 14px 0; }
+  .honorarios-box .valor { font-size: 18px; font-weight: bold; color: #1E3A5F; }
+  .honorarios-box .modalidade { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+  .obs-box { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; margin: 14px 0; font-size: 12px; border-radius: 0 4px 4px 0; }
+  .assinatura-area { margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .assinatura-box { text-align: center; }
+  .assinatura-linha { border-top: 1px solid #333; padding-top: 8px; font-size: 12px; line-height: 1.8; }
+  .assinatura-cidade { text-align: center; margin-top: 50px; font-size: 12px; color: #444; margin-bottom: 10px; }
+  .rodape { text-align: center; font-size: 10px; color: #aaa; margin-top: 50px; border-top: 1px solid #eee; padding-top: 12px; }
+  .testemunhas { margin-top: 50px; }
+  .testemunha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 20px; }
 </style>
 </head>
 <body>
 
+<div class="cabecalho">
+  <div class="escritorio-nome">${escritorio.nome || 'Escritório de Advocacia'}</div>
+  <div class="escritorio-info">
+    ${escritorio.oab ? `OAB: ${escritorio.oab} &nbsp;|&nbsp; ` : ''}${escritorio.email ? `${escritorio.email} &nbsp;|&nbsp; ` : ''}${escritorio.telefone ? `${escritorio.telefone}` : ''}
+  </div>
+</div>
+
 <h1>Contrato de Prestação de Serviços Advocatícios</h1>
 <h2>${tipoLabel}</h2>
+<div class="numero-contrato">Contrato nº ${String(contrato.id).padStart(4,'0')}/${new Date().getFullYear()}</div>
 <hr class="divider">
 
-<div class="section-title">Identificação das Partes</div>
-<table>
-  <tr><td>Contratante:</td><td>${cliente.nome}</td></tr>
-  <tr><td>CPF/CNPJ:</td><td>${cliente.documento || '—'}</td></tr>
-  <tr><td>Endereço:</td><td>${[cliente.endereco, cliente.cidade, cliente.estado].filter(Boolean).join(', ') || '—'}</td></tr>
-  <tr><td>E-mail:</td><td>${cliente.email || '—'}</td></tr>
-  <tr><td>Telefone:</td><td>${cliente.telefone || '—'}</td></tr>
-</table>
+<div class="clausula">
+  <div class="clausula-titulo">Das Partes Contratantes</div>
+  <div class="partes-grid">
+    <div class="parte-box">
+      <div class="parte-label">Contratante</div>
+      <div class="parte-nome">${cliente.nome}</div>
+      <div class="parte-info">
+        CPF/CNPJ: ${cliente.documento || 'não informado'}<br>
+        Endereço: ${enderecoCliente}<br>
+        ${cliente.email ? `E-mail: ${cliente.email}<br>` : ''}${cliente.telefone ? `Telefone: ${cliente.telefone}` : ''}
+      </div>
+    </div>
+    <div class="parte-box">
+      <div class="parte-label">Contratado</div>
+      <div class="parte-nome" style="text-transform:uppercase;">${escritorio.nome || 'Escritório de Advocacia'}</div>
+      ${escritorio.advogado_responsavel ? `<div style="font-size:12px; color:#555; margin-bottom:6px;">${escritorio.advogado_responsavel}</div>` : ''}
+      <div class="parte-info">
+        ${escritorio.oab ? `OAB: ${escritorio.oab}<br>` : ''}${escritorio.email ? `E-mail: ${escritorio.email}<br>` : ''}${escritorio.telefone ? `Telefone: ${escritorio.telefone}` : ''}
+      </div>
+    </div>
+  </div>
+</div>
 
-<table style="margin-top:8px;">
-  <tr><td>Contratado:</td><td>${escritorio.nome || 'Escritório de Advocacia'}</td></tr>
-  ${escritorio.oab ? `<tr><td>OAB:</td><td>${escritorio.oab}</td></tr>` : ''}
-  ${escritorio.email ? `<tr><td>E-mail:</td><td>${escritorio.email}</td></tr>` : ''}
-  ${escritorio.telefone ? `<tr><td>Telefone:</td><td>${escritorio.telefone}</td></tr>` : ''}
-</table>
+<div class="clausula">
+  <div class="clausula-titulo">Cláusula 1ª — Do Objeto</div>
+  <p>O presente instrumento particular de prestação de serviços advocatícios tem por objeto a contratação do <strong>CONTRATADO</strong> pelo <strong>CONTRATANTE</strong> para a prestação de serviços jurídicos profissionais, consistentes no patrocínio, acompanhamento e defesa dos interesses do CONTRATANTE${contrato.processo_numero ? `, referente ao processo nº <strong>${contrato.processo_numero}</strong>` : ''}, compreendendo todos os atos, diligências e providências necessárias à condução da demanda, nos termos do instrumento denominado <strong>"${contrato.titulo}"</strong>.</p>
+  <p>Os serviços advocatícios ora contratados abrangem a prática de todos os atos processuais e extrajudiciais pertinentes ao objeto deste contrato, incluindo, sem limitação: elaboração de petições, recursos, memoriais e manifestações; participação em audiências; realização de diligências junto a órgãos públicos e privados; e acompanhamento processual em todas as instâncias competentes.</p>
+</div>
 
-<div class="section-title">Objeto do Contrato</div>
-<p>O presente instrumento tem por objeto a prestação de serviços advocatícios pelo Contratado ao Contratante, 
-referente ao processo${contrato.processo_numero ? ` nº <strong>${contrato.processo_numero}</strong>` : ' a ser identificado'}, 
-nos termos do <strong>${contrato.titulo}</strong>.</p>
+<div class="clausula">
+  <div class="clausula-titulo">Cláusula 2ª — Dos Honorários Advocatícios</div>
+  <div class="honorarios-box">
+    <div class="modalidade">Modalidade de Honorários</div>
+    <div class="valor">${valorTexto}</div>
+    <div style="font-size:12px; color:#555; margin-top:4px;">${tipoLabel}${contrato.data_assinatura ? ` — Vigência a partir de ${dataAssinatura}` : ''}</div>
+  </div>
+  <p>Os honorários advocatícios pactuados no presente instrumento são devidos em contraprestação aos serviços jurídicos ora contratados, nos termos do art. 22 e seguintes da Lei nº 8.906/1994 (Estatuto da Advocacia e da OAB) e do Código de Ética e Disciplina da Ordem dos Advogados do Brasil.</p>
+  ${(contrato.tipo_honorario === 'exito' || contrato.tipo_honorario === 'misto') ? `<p>Os honorários de êxito tornam-se devidos no momento em que houver decisão favorável ao CONTRATANTE, ainda que sujeita a recurso, compreendendo-se como êxito o resultado que atinja, total ou parcialmente, os objetivos pretendidos, inclusive por meio de acordo, transação ou desistência da parte contrária.</p>` : ''}
+  ${(contrato.tipo_honorario === 'fixo' || contrato.tipo_honorario === 'misto' || contrato.tipo_honorario === 'consultoria') ? `<p>O valor fixo pactuado deverá ser quitado conforme condições ajustadas entre as partes, sendo que o atraso no pagamento implicará incidência de multa moratória de 2% (dois por cento), acrescida de correção monetária pelo IPCA, a partir do vencimento.</p>` : ''}
+  <p>Os honorários sucumbenciais eventualmente fixados pelo juízo pertencem exclusivamente ao advogado, nos termos do art. 85, §14, do Código de Processo Civil, não se confundindo com os honorários ora contratados. As despesas processuais, custas judiciais e emolumentos não estão incluídos nos honorários pactuados, devendo ser custeados pelo CONTRATANTE.</p>
+</div>
 
-<div class="section-title">Honorários</div>
-<table>
-  <tr><td>Modalidade:</td><td>${tipoLabel}</td></tr>
-  <tr><td>Valor / Condições:</td><td>${valorTexto}</td></tr>
-  ${contrato.data_assinatura ? `<tr><td>Data de Vigência:</td><td>${dataAssinatura}</td></tr>` : ''}
-</table>
+<div class="clausula">
+  <div class="clausula-titulo">Cláusula 3ª — Das Obrigações do Contratado</div>
+  <p>O CONTRATADO, no exercício do mandato ora outorgado, obriga-se a:</p>
+  <p><strong>I.</strong> Prestar os serviços advocatícios com diligência, competência técnica e estrita observância dos princípios éticos previstos no Código de Ética e Disciplina da OAB e na Lei nº 8.906/1994;</p>
+  <p><strong>II.</strong> Manter o CONTRATANTE regularmente informado sobre o andamento do processo e dos atos praticados, inclusive comunicando decisões relevantes no prazo máximo de 48 (quarenta e oito) horas de seu conhecimento;</p>
+  <p><strong>III.</strong> Guardar sigilo absoluto sobre todas as informações e documentos que lhe forem confiados, em observância ao dever de sigilo profissional previsto no art. 34, VII, da Lei nº 8.906/1994;</p>
+  <p><strong>IV.</strong> Agir sempre no melhor interesse do CONTRATANTE, adotando as medidas jurídicas cabíveis para a defesa de seus direitos, sem incorrer em lide temerária ou prática de ato atentatório à dignidade da Justiça;</p>
+  <p><strong>V.</strong> Restituir ao CONTRATANTE, quando do encerramento do mandato, todos os documentos originais que lhe tenham sido entregues, no prazo de 10 (dez) dias úteis.</p>
+</div>
 
-${contrato.observacoes ? `
-<div class="section-title">Observações e Condições Específicas</div>
-<div class="obs">${contrato.observacoes.replace(/\n/g, '<br>')}</div>
-` : ''}
+<div class="clausula">
+  <div class="clausula-titulo">Cláusula 4ª — Das Obrigações do Contratante</div>
+  <p>O CONTRATANTE, por sua vez, obriga-se a:</p>
+  <p><strong>I.</strong> Fornecer ao CONTRATADO, com presteza e veracidade, todos os documentos, informações e esclarecimentos necessários à condução do processo, sendo integralmente responsável pela exatidão das informações prestadas;</p>
+  <p><strong>II.</strong> Efetuar o pagamento dos honorários advocatícios nas condições e prazos ajustados, bem como ressarcir as despesas processuais devidamente comprovadas;</p>
+  <p><strong>III.</strong> Comparecer às audiências, diligências e demais atos processuais para os quais for convocado, mediante comunicação prévia com antecedência mínima de 5 (cinco) dias úteis, salvo urgência justificada;</p>
+  <p><strong>IV.</strong> Abster-se de praticar atos que possam prejudicar o andamento do processo ou contratar outros profissionais para atuar na mesma causa sem prévia e expressa anuência do CONTRATADO;</p>
+  <p><strong>V.</strong> Comunicar ao CONTRATADO, no prazo de 48 (quarenta e oito) horas, qualquer fato superveniente que possa influenciar no andamento ou no desfecho da demanda.</p>
+</div>
 
-<div class="section-title">Cláusulas Gerais</div>
-<p><strong>1. Obrigações do Contratado:</strong> O advogado contratado obriga-se a prestar os serviços com diligência, 
-competência e ética profissional, mantendo o cliente informado sobre o andamento do processo.</p>
-<p><strong>2. Obrigações do Contratante:</strong> O contratante compromete-se a fornecer todos os documentos e 
-informações necessárias à condução do processo, além de efetuar o pagamento dos honorários nas condições ajustadas.</p>
-<p><strong>3. Rescisão:</strong> Qualquer das partes poderá rescindir o presente contrato mediante comunicação prévia 
-de 15 (quinze) dias, sendo devidos os honorários proporcionais ao trabalho já realizado.</p>
-<p><strong>4. Foro:</strong> Fica eleito o foro da comarca de ${cliente.cidade || 'domicílio do Contratante'} para 
-dirimir quaisquer dúvidas oriundas do presente contrato.</p>
+<div class="clausula">
+  <div class="clausula-titulo">Cláusula 5ª — Da Vigência e da Rescisão</div>
+  <p>O presente contrato vigorará pelo prazo necessário à conclusão dos serviços ora contratados, iniciando-se na data de sua assinatura.</p>
+  <p><strong>I.</strong> Em caso de rescisão por iniciativa do CONTRATANTE, serão devidos ao CONTRATADO os honorários proporcionais aos trabalhos realizados até a data da rescisão, calculados sobre o valor total pactuado, sem prejuízo do reembolso das despesas já efetuadas;</p>
+  <p><strong>II.</strong> Em caso de rescisão por iniciativa do CONTRATADO, este se obriga a comunicar o CONTRATANTE com antecedência suficiente para que providencie novo patrocinador, não podendo abandonar a causa em momento que cause prejuízo irreparável, conforme art. 5º, II, do Código de Ética da OAB;</p>
+  <p><strong>III.</strong> O inadimplemento dos honorários por prazo superior a 30 (trinta) dias, após prévia notificação, faculta ao CONTRATADO a rescisão imediata deste instrumento, sem prejuízo da cobrança judicial dos valores devidos.</p>
+</div>
+
+<div class="clausula">
+  <div class="clausula-titulo">Cláusula 6ª — Da Confidencialidade e Proteção de Dados</div>
+  <p>As partes comprometem-se a manter em absoluto sigilo todas as informações trocadas no âmbito deste contrato, ficando vedada a divulgação a terceiros, salvo mediante autorização expressa ou por determinação judicial.</p>
+  <p>O tratamento de dados pessoais realizado no âmbito deste instrumento observará as disposições da Lei nº 13.709/2018 (Lei Geral de Proteção de Dados Pessoais — LGPD), sendo os dados coletados utilizados exclusivamente para a finalidade de prestação dos serviços advocatícios ora contratados.</p>
+</div>
+
+<div class="clausula">
+  <div class="clausula-titulo">Cláusula 7ª — Das Disposições Gerais</div>
+  <p>O presente contrato é celebrado em caráter personalíssimo, sendo vedada a cessão ou transferência de quaisquer direitos ou obrigações sem o prévio e expresso consentimento da outra parte.</p>
+  <p>A tolerância de qualquer das partes quanto ao descumprimento de obrigação pela outra não constituirá novação, renúncia ou alteração do pactuado.</p>
+  <p>Este contrato constitui título executivo extrajudicial, nos termos do art. 784, inciso III, do Código de Processo Civil, obrigando as partes e seus sucessores a qualquer título.</p>
+  <p>A eventual invalidade de qualquer cláusula deste instrumento não contaminará as demais, que permanecerão válidas e eficazes em sua integralidade.</p>
+</div>
+
+${contrato.observacoes ? `<div class="clausula">
+  <div class="clausula-titulo">Cláusula 8ª — Das Condições Específicas</div>
+  <div class="obs-box">${contrato.observacoes.replace(/\n/g, '<br>')}</div>
+</div>` : ''}
+
+<div class="clausula">
+  <div class="clausula-titulo">Cláusula ${contrato.observacoes ? '9ª' : '8ª'} — Do Foro</div>
+  <p>Fica eleito o foro da Comarca de <strong>${cidadeContrato}</strong> para dirimir quaisquer controvérsias decorrentes do presente contrato, com expressa renúncia a qualquer outro, por mais privilegiado que seja.</p>
+  <p>E, por estarem assim justas e contratadas, as partes assinam o presente instrumento em 2 (duas) vias de igual teor e forma, na presença das testemunhas abaixo identificadas.</p>
+</div>
+
+<div class="assinatura-cidade">${cidadeContrato}, ${dataAssinatura}.</div>
 
 <div class="assinatura-area">
   <div class="assinatura-box">
+    <br><br>
     <div class="assinatura-linha">
-      ${cliente.nome}<br>
-      <small>CPF: ${cliente.documento || '—'}</small><br>
-      <small>Contratante</small>
+      <strong>${cliente.nome}</strong><br>
+      CPF/CNPJ: ${cliente.documento || '—'}<br>
+      <em>Contratante</em>
     </div>
   </div>
   <div class="assinatura-box">
+    <br><br>
     <div class="assinatura-linha">
-      ${escritorio.nome || 'Advogado(a)'}<br>
-      ${escritorio.oab ? `<small>${escritorio.oab}</small><br>` : ''}
-      <small>Contratado</small>
+      <strong style="text-transform:uppercase;">${escritorio.nome || 'Escritório de Advocacia'}</strong><br>
+      ${escritorio.advogado_responsavel ? `${escritorio.advogado_responsavel}<br>` : ''}
+      ${escritorio.oab ? `${escritorio.oab}<br>` : ''}<em>Contratado</em>
+    </div>
+  </div>
+</div>
+
+<div class="testemunhas">
+  <div class="clausula-titulo" style="font-size:11px; margin-top:40px;">Testemunhas</div>
+  <div class="testemunha-grid">
+    <div class="assinatura-box">
+      <br><br>
+      <div class="assinatura-linha">
+        Nome: ________________________________<br>
+        CPF: __________________________________<br>
+        <em>1ª Testemunha</em>
+      </div>
+    </div>
+    <div class="assinatura-box">
+      <br><br>
+      <div class="assinatura-linha">
+        Nome: ________________________________<br>
+        CPF: __________________________________<br>
+        <em>2ª Testemunha</em>
+      </div>
     </div>
   </div>
 </div>
 
 <div class="rodape">
-  ${escritorio.nome || ''} — Documento gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
+  ${escritorio.nome || ''} &nbsp;|&nbsp; Contrato nº ${String(contrato.id).padStart(4,'0')}/${new Date().getFullYear()} &nbsp;|&nbsp; Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}<br>
+  Documento gerado pelo sistema LawTech Pro — Este instrumento possui validade jurídica nos termos da legislação vigente.
 </div>
 
 </body>
-</html>`;
-
+</html>`
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.send(html);
 

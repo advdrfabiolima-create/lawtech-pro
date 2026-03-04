@@ -10,6 +10,14 @@ if (!API.getToken()) window.location.href = '/login.html';
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('📄 DOM carregado');
 
+            // Mover modalLogo para o body raiz — evita stacking context do sidebar
+            (function() {
+                var el = document.getElementById('modalLogo');
+                if (el && el.parentNode !== document.body) {
+                    document.body.appendChild(el);
+                }
+            })();
+
             setTimeout(async () => {
                 await inicializar();
                 await carregarClientesParaBoleto();
@@ -75,9 +83,37 @@ async function inicializar() {
 }
 
         async function carregarDados() {
-            const res = await API.get('/api/financeiro?limit=200');
+            if (!window._finMes) {
+                window._finMes = new Date().getMonth() + 1;
+                window._finAno = new Date().getFullYear();
+            }
+            const _m = window._finMes;
+            const _a = window._finAno;
+            const _MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                            'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+            const label = document.getElementById('mesNavLabel');
+            if (label) {
+                const hoje = new Date();
+                const eHoje = _m === (hoje.getMonth()+1) && _a === hoje.getFullYear();
+                label.textContent = _MESES[_m-1] + ' de ' + _a + (eHoje ? ' ✦' : '');
+            }
+            const res = await API.get('/api/financeiro?limit=200&mes=' + _m + '&ano=' + _a);
             const resp = await res.json();
             originalData = resp.data || resp;
+            if (!originalData || originalData.length === 0) {
+                document.getElementById('corpoTabela').innerHTML =
+                    '<tr><td colspan="8" style="text-align:center;padding:48px 20px;color:#94a3b8;">' +
+                    '<div style="font-size:36px;margin-bottom:12px;opacity:.4;">📭</div>' +
+                    'Nenhum lançamento em <strong>' + _MESES[_m-1] + ' de ' + _a + '</strong>' +
+                    '</td></tr>';
+                ['totalReceitas','totalDespesas','totalAReceber','totalAPagar'].forEach(function(id) {
+                    var el = document.getElementById(id); if (el) el.innerText = 'R$ 0';
+                });
+                var saldo = document.getElementById('saldoTotal');
+                if (saldo) saldo.innerText = 'R$ 0,00';
+                document.getElementById('listaCobrancaRapida').innerHTML = '';
+                return;
+            }
             renderizar(originalData);
         }
 
@@ -641,7 +677,10 @@ function debugLog(mensagem, dados) {
 
         // --- FUNÇÕES DE LOGO ---
         function abrirModalLogo() {
-            document.getElementById('modalLogo').style.display = 'flex';
+            console.log('🖼️ abrirModalLogo chamada');
+            var el = document.getElementById('modalLogo');
+            if (!el) { console.error('❌ modalLogo não encontrado no DOM'); return; }
+            el.style.display = 'flex';
         }
 
         function fecharModalLogo() {
@@ -1435,6 +1474,18 @@ window.confirmarBoleto             = confirmarBoleto;
 window.prepararRecibo              = prepararRecibo;
 window.fecharModalRecibo           = fecharModalRecibo;
 window.gerarRecibo                 = gerarRecibo;
+window.navegarMes = async function(delta) {
+    if (!window._finMes) { window._finMes = new Date().getMonth()+1; window._finAno = new Date().getFullYear(); }
+    window._finMes += delta;
+    if (window._finMes > 12) { window._finMes = 1; window._finAno++; }
+    if (window._finMes < 1)  { window._finMes = 12; window._finAno--; }
+    carregarDados();
+};
+window.irParaHoje = function() {
+    window._finMes = new Date().getMonth()+1;
+    window._finAno = new Date().getFullYear();
+    carregarDados();
+};
 window.abrirModalLogo              = abrirModalLogo;
 window.fecharModalLogo             = fecharModalLogo;
 window.uploadLogo                  = uploadLogo;
