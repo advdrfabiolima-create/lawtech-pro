@@ -1,5 +1,4 @@
-
-    // Inicializar Lucide Icons
+// Inicializar Lucide Icons
     lucide.createIcons();
 
     // Variáveis globais
@@ -982,7 +981,7 @@
     // =============================================
     let calMes = new Date().getMonth() + 1;
     let calAno = new Date().getFullYear();
-    let calDados = { prazos: [], feriados: [] };
+    let calDados = { prazos: [], feriados: [], compromissos: [] };
 
     function calMesAnterior() { calMes--; if (calMes < 1) { calMes = 12; calAno--; } renderizarCalendario(); }
     function calMesProximo() { calMes++; if (calMes > 12) { calMes = 1; calAno++; } renderizarCalendario(); }
@@ -998,6 +997,7 @@
                 calDados = data;
                 desenharGrid();
                 desenharFeriadosLista();
+                desenharCompromissosLista();
             }
         } catch (e) { console.error('Erro ao carregar calendário:', e); }
     }
@@ -1027,6 +1027,12 @@
             if (!prazosPorDia[d]) prazosPorDia[d] = [];
             prazosPorDia[d].push(p);
         });
+        const compromissosPorDia = {};
+        (calDados.compromissos || []).forEach(c => {
+            const d = new Date(c.data + 'T12:00:00').getDate();
+            if (!compromissosPorDia[d]) compromissosPorDia[d] = [];
+            compromissosPorDia[d].push(c);
+        });
 
         // Dias vazios antes
         for (let i = 0; i < primeiroDia; i++) html += '<div class="calendario-dia vazio"></div>';
@@ -1051,6 +1057,17 @@
                 });
             }
 
+            if (compromissosPorDia[dia]) {
+                const icones = { pagamento:'💰', reuniao:'📋', audiencia_externa:'⚖️', outro:'📌' };
+                compromissosPorDia[dia].forEach(c => {
+                    const ic  = icones[c.tipo] || '📅';
+                    const cls = 'dia-evento-compromisso-' + c.tipo;
+                    const gid = c.grupo_id || '';
+                    const ttl = c.titulo.replace(/'/g, '');
+                    const val = c.valor ? ' • R$' + parseFloat(c.valor).toLocaleString('pt-BR',{minimumFractionDigits:2}) : '';
+                    eventosHtml += `<div class="${cls}" title="${c.titulo}${val}" onclick="deletarCompromisso(${c.id},'${gid}',${c.total_parcelas},'${ttl}')">${ic} ${c.titulo}</div>`;
+                });
+            }
             html += `<div class="${classes}"><div class="dia-num">${dia}</div><div class="dia-eventos">${eventosHtml}</div></div>`;
         }
 
@@ -1134,6 +1151,134 @@
                 renderizarCalendario();
             } else { alert(data.erro || 'Erro'); }
         } catch (e) { alert('Erro de conexão'); }
+    }
+
+
+    // ============================================================
+    // COMPROMISSOS
+    // ============================================================
+
+    function desenharCompromissosLista() {
+        const container = document.getElementById('cal-compromissos-lista');
+        if (!container) return;
+        const lista = calDados.compromissos || [];
+        if (lista.length === 0) {
+            container.innerHTML = '<p style="color:var(--muted);font-size:13px;">Nenhum compromisso neste mês.</p>';
+            return;
+        }
+        const icones = { pagamento:'💰', reuniao:'📋', audiencia_externa:'⚖️', outro:'📌' };
+        container.innerHTML = lista.map(c => {
+            const dataFmt = new Date(c.data + 'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+            const ic      = icones[c.tipo] || '📅';
+            const valor   = c.valor
+                ? `<span style="color:var(--accent-green);font-weight:700;"> R$${parseFloat(c.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}</span>`
+                : '';
+            const detalhe = [c.cliente_nome, c.processo_numero].filter(Boolean).join(' · ');
+            const parcela = c.total_parcelas > 1
+                ? `<span style="font-size:10px;color:var(--muted);"> (${c.parcela_atual}/${c.total_parcelas})</span>`
+                : '';
+            const gid = c.grupo_id || '';
+            const ttl = c.titulo.replace(/'/g,'');
+            return `<div class="compromisso-item">
+                <span class="comp-data">${dataFmt}</span>
+                <div class="comp-info">
+                    <div class="comp-titulo">${ic} ${c.titulo}${parcela}${valor}</div>
+                    ${detalhe ? `<div class="comp-detalhe">${detalhe}</div>` : ''}
+                    ${c.observacao ? `<div class="comp-detalhe">${c.observacao}</div>` : ''}
+                </div>
+                <button class="comp-del" onclick="deletarCompromisso(${c.id},'${gid}',${c.total_parcelas},'${ttl}')" title="Remover">✕</button>
+            </div>`;
+        }).join('');
+    }
+
+    async function abrirModalCompromisso() {
+        const token = localStorage.getItem('token');
+        // Reset form
+        document.getElementById('compTitulo').value = '';
+        document.getElementById('compData').value   = '';
+        document.getElementById('compTipo').value   = 'pagamento';
+        document.getElementById('compValor').value  = '';
+        document.getElementById('compObservacao').value = '';
+        document.getElementById('compRecorrenteMeses').value = '1';
+        toggleCompCampos();
+
+        // Carrega lista de processos ativos para o select
+        try {
+            const res = await fetch('/api/processos?limit=200&status=ativo', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            const lista = data.data || data;
+            const sel = document.getElementById('compProcesso');
+            sel.innerHTML = '<option value="">— Nenhum —</option>' +
+                (Array.isArray(lista) ? lista : []).map(p =>
+                    `<option value="${p.id}">${p.numero}${p.cliente ? ' — ' + p.cliente : ''}</option>`
+                ).join('');
+        } catch (e) { /* silencioso */ }
+
+        document.getElementById('modalCompromisso').style.display = 'flex';
+    }
+
+    function toggleCompCampos() {
+        const tipo = document.getElementById('compTipo').value;
+        const isPagamento = tipo === 'pagamento';
+        document.getElementById('compValorGrupo').style.display      = isPagamento ? 'block' : 'none';
+        document.getElementById('compRecorrenteGrupo').style.display  = isPagamento ? 'block' : 'none';
+    }
+
+    async function salvarCompromisso() {
+        const token = localStorage.getItem('token');
+        const titulo = document.getElementById('compTitulo').value.trim();
+        const data   = document.getElementById('compData').value;
+        const tipo   = document.getElementById('compTipo').value;
+        const valor  = document.getElementById('compValor').value;
+        const obs    = document.getElementById('compObservacao').value.trim();
+        const meses  = parseInt(document.getElementById('compRecorrenteMeses').value) || 1;
+        const proc   = document.getElementById('compProcesso').value;
+
+        if (!titulo) return alert('Informe um título para o compromisso.');
+        if (!data)   return alert('Informe a data do compromisso.');
+
+        const body = { titulo, data, tipo, observacao: obs, recorrente_meses: meses };
+        if (valor) body.valor = parseFloat(valor);
+        if (proc)  body.processo_id = parseInt(proc);
+
+        try {
+            const res = await fetch('/api/calendario/compromissos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify(body)
+            });
+            const result = await res.json();
+            if (result.ok) {
+                document.getElementById('modalCompromisso').style.display = 'none';
+                if (result.total > 1)
+                    alert(`✅ ${result.total} parcelas criadas com sucesso!`);
+                renderizarCalendario();
+            } else {
+                alert(result.erro || 'Erro ao salvar compromisso.');
+            }
+        } catch (e) { alert('Erro de conexão ao salvar.'); }
+    }
+
+    async function deletarCompromisso(id, grupoId, totalParcelas, titulo) {
+        let todosGrupo = false;
+        if (totalParcelas > 1 && grupoId) {
+            todosGrupo = confirm(
+                `"${titulo}"\n\nEste compromisso faz parte de um grupo de ${totalParcelas} parcelas.\n\n` +
+                `OK → Remover TODAS as parcelas\nCancelar → Remover apenas esta`
+            );
+        } else {
+            if (!confirm(`Remover o compromisso "${titulo}"?`)) return;
+        }
+        const token = localStorage.getItem('token');
+        try {
+            await fetch('/api/calendario/compromissos/' + id + (todosGrupo ? '?todos_do_grupo=true' : ''), {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            renderizarCalendario();
+        } catch (e) { console.error('Erro ao deletar compromisso:', e); }
     }
 
         function aplicarPermissoesRoleUI(role) {

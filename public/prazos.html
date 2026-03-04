@@ -530,6 +530,34 @@
         }
         .btn-carregar-nacionais:hover { background: rgba(74,144,226,0.05); }
 
+        /* Chips de compromisso no calendário */
+        .dia-evento-compromisso-pagamento        { background:#52B788; color:white; font-size:9px; padding:2px 4px; border-radius:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+        .dia-evento-compromisso-reuniao          { background:#7E8CE0; color:white; font-size:9px; padding:2px 4px; border-radius:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+        .dia-evento-compromisso-audiencia_externa{ background:#F2A65A; color:white; font-size:9px; padding:2px 4px; border-radius:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+        .dia-evento-compromisso-outro            { background:#94a3b8; color:white; font-size:9px; padding:2px 4px; border-radius:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+
+        /* Lista de compromissos na sidebar */
+        .compromisso-item { display:flex; justify-content:space-between; align-items:flex-start; padding:10px 0; border-bottom:1px solid var(--border-subtle); font-size:13px; gap:6px; }
+        .compromisso-item:last-child { border-bottom:none; }
+        .compromisso-item .comp-data  { font-weight:700; font-size:12px; color:var(--accent-green); min-width:36px; flex-shrink:0; }
+        .compromisso-item .comp-info  { flex:1; min-width:0; }
+        .compromisso-item .comp-titulo  { color:var(--text-primary); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .compromisso-item .comp-detalhe { color:var(--muted); font-size:11px; margin-top:2px; }
+        .compromisso-item .comp-del { background:none; border:none; color:var(--accent-red); cursor:pointer; font-size:14px; opacity:.5; padding:0 2px; flex-shrink:0; }
+        .compromisso-item .comp-del:hover { opacity:1; }
+
+        /* Botão +Adicionar Compromisso */
+        .btn-add-compromisso { width:100%; margin-top:12px; padding:10px; background:var(--accent-green); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600; font-size:13px; }
+        .btn-add-compromisso:hover { opacity:.85; }
+
+        /* Modal Compromisso */
+        .modal-compromisso .modal-content { max-width:480px; }
+        .modal-compromisso label { display:block; font-size:12px; font-weight:700; color:var(--muted); margin-bottom:4px; margin-top:12px; }
+        .modal-compromisso input, .modal-compromisso select, .modal-compromisso textarea { width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; font-size:14px; box-sizing:border-box; font-family:inherit; }
+        .modal-compromisso textarea { resize:vertical; min-height:60px; }
+        .modal-compromisso .row-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        #compValorGrupo, #compRecorrenteGrupo { display:none; }
+
         /* Modal Feriado */
         .modal-feriado .modal-content { max-width: 420px; }
         .modal-feriado label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 4px; margin-top: 12px; }
@@ -944,7 +972,11 @@
                     <div class="calendario-grid" id="cal-grid"></div>
                 </div>
                 <div class="calendario-sidebar-panel">
-                    <h4>📌 Feriados e Suspensões do Mês</h4>
+                    <h4>📅 Compromissos do Mês</h4>
+                    <div id="cal-compromissos-lista"><p style="color:var(--muted); font-size:13px;">Nenhum compromisso neste mês.</p></div>
+                    <button class="btn-add-compromisso" onclick="abrirModalCompromisso()">+ Adicionar Compromisso</button>
+
+                    <h4 style="margin-top:24px; padding-top:16px; border-top:1px solid var(--border-subtle);">📌 Feriados e Suspensões do Mês</h4>
                     <div id="cal-feriados-lista"><p style="color:var(--muted); font-size:13px;">Nenhum feriado neste mês.</p></div>
                     <button class="btn-add-feriado" onclick="abrirModalFeriado()">+ Adicionar Feriado</button>
                     <button class="btn-carregar-nacionais" onclick="carregarFeriadosNacionais()">🇧🇷 Carregar Feriados Nacionais</button>
@@ -1060,6 +1092,71 @@
     </div>
 
     <!-- Modal Feriado -->
+    <!-- Modal Compromisso -->
+    <div id="modalCompromisso" class="modal modal-compromisso" style="display:none;">
+        <div class="modal-content">
+            <h3 style="margin-bottom:16px; color:var(--sidebar);">📅 Novo Compromisso</h3>
+
+            <label>TÍTULO</label>
+            <input id="compTitulo" placeholder="Ex: Parcela acordo Silva">
+
+            <div class="row-2">
+                <div>
+                    <label>DATA</label>
+                    <input type="date" id="compData">
+                </div>
+                <div>
+                    <label>TIPO</label>
+                    <select id="compTipo" onchange="toggleCompCampos()">
+                        <option value="pagamento">💰 Pagamento</option>
+                        <option value="reuniao">📋 Reunião</option>
+                        <option value="audiencia_externa">⚖️ Audiência Externa</option>
+                        <option value="outro">📌 Outro</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="compValorGrupo">
+                <label>VALOR (R$)</label>
+                <input type="number" id="compValor" placeholder="0,00" step="0.01" min="0">
+            </div>
+
+            <label>PROCESSO VINCULADO <span style="font-weight:400;font-size:11px;">(opcional)</span></label>
+            <select id="compProcesso">
+                <option value="">— Nenhum —</option>
+            </select>
+
+            <label>OBSERVAÇÃO <span style="font-weight:400;font-size:11px;">(opcional)</span></label>
+            <textarea id="compObservacao" placeholder="Referência do acordo, nº do processo, etc."></textarea>
+
+            <div id="compRecorrenteGrupo">
+                <label>PARCELAMENTO MENSAL</label>
+                <select id="compRecorrenteMeses">
+                    <option value="1">Não repetir — evento único</option>
+                    <option value="2">2 meses</option>
+                    <option value="3">3 meses</option>
+                    <option value="4">4 meses</option>
+                    <option value="6">6 meses</option>
+                    <option value="8">8 meses</option>
+                    <option value="10">10 meses</option>
+                    <option value="12">12 meses</option>
+                    <option value="18">18 meses</option>
+                    <option value="24">24 meses</option>
+                    <option value="36">36 meses</option>
+                    <option value="48">48 meses</option>
+                </select>
+                <p style="font-size:11px; color:var(--muted); margin-top:4px; margin-bottom:0;">
+                    Gera automaticamente uma entrada por mês na mesma data.
+                </p>
+            </div>
+
+            <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn-primary" onclick="salvarCompromisso()">Salvar</button>
+                <button class="btn-secondary" onclick="document.getElementById('modalCompromisso').style.display='none'">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modalFeriado" class="modal modal-feriado" style="display:none;">
         <div class="modal-content">
             <h3 style="margin-bottom:16px; color:var(--sidebar);">📅 Novo Feriado / Suspensão</h3>
