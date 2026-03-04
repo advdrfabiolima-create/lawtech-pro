@@ -16,8 +16,7 @@ const anthropic = new Anthropic({
     apiKey: process.env.CLAUDE_API_KEY
 });
 
-// Aceita qualquer campo de arquivo e filtra pelo nome no controller
-const uploadMiddleware = upload.any();
+const uploadMiddleware = upload.array('documentos', 10);
 
 function limparMarkdown(texto) {
     if (!texto) return texto;
@@ -68,9 +67,7 @@ class PeticoesController {
                 });
             }
 
-            // Filtrar apenas arquivos do campo 'documentos' (ignora outros campos de arquivo)
-            const arquivosFiltrados = (req.files || []).filter(f => f.fieldname === 'documentos');
-            logger.info({ tipo, autor, arquivos: arquivosFiltrados.length }, '[PETIÇÕES] Gerando petição com IA...');
+            logger.info({ tipo, autor, arquivos: (req.files || []).length }, '[PETIÇÕES] Gerando petição com IA...');
 
             // ===== PROMPT PARA CLAUDE =====
             const prompt = PeticoesController.construirPromptIA(tipo, {
@@ -84,8 +81,8 @@ class PeticoesController {
 
             // ===== MONTAR CONTEÚDO (prompt + PDFs) =====
             const conteudoMensagem = [{ type: 'text', text: prompt }];
-            if (arquivosFiltrados.length > 0) {
-                arquivosFiltrados.forEach(function(file) {
+            if (req.files && req.files.length > 0) {
+                req.files.forEach(function(file) {
                     conteudoMensagem.push({
                         type: 'document',
                         source: {
@@ -97,13 +94,13 @@ class PeticoesController {
                         context: 'Documento anexado pelo advogado contendo dados das partes e informações do caso'
                     });
                 });
-                logger.info({ qtd: arquivosFiltrados.length }, '[PETIÇÕES] PDFs enviados à IA');
+                logger.info({ qtd: req.files.length }, '[PETIÇÕES] PDFs enviados à IA');
             }
 
             // ===== CHAMAR IA =====
             const message = await anthropic.messages.create({
-                model: 'claude-sonnet-4-5-20250929',
-                max_tokens: 4096,
+                model: 'claude-sonnet-4-6',
+                max_tokens: 8000,
                 temperature: 0.3,
                 messages: [{
                     role: 'user',
