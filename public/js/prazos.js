@@ -1198,6 +1198,7 @@
         document.getElementById('compData').value   = '';
         document.getElementById('compTipo').value   = 'pagamento';
         document.getElementById('compValor').value  = '';
+        // reset mask
         document.getElementById('compObservacao').value = '';
         document.getElementById('compRecorrenteMeses').value = '1';
         toggleCompCampos();
@@ -1226,6 +1227,14 @@
         document.getElementById('compRecorrenteGrupo').style.display  = isPagamento ? 'block' : 'none';
     }
 
+
+    function mascaraValorComp(input) {
+        let v = input.value.replace(/\D/g, '');
+        if (!v) { input.value = ''; return; }
+        v = (parseInt(v, 10) / 100).toFixed(2);
+        input.value = parseFloat(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     async function salvarCompromisso() {
         const token = localStorage.getItem('token');
         const titulo = document.getElementById('compTitulo').value.trim();
@@ -1244,7 +1253,7 @@
         const clienteId = procSel.options[procSel.selectedIndex]?.dataset?.clienteId || '';
 
         const body = { titulo, data, tipo, observacao: obs, recorrente_meses: meses };
-        if (valor)     body.valor = parseFloat(valor);
+        if (valor)     body.valor = parseFloat(valor.replace(/\./g, '').replace(',', '.'));
         if (proc)      body.processo_id = parseInt(proc);
         if (clienteId) body.cliente_id  = parseInt(clienteId);
 
