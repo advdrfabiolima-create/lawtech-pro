@@ -162,52 +162,91 @@ router.get('/processos', authMiddleware, async (req, res) => {
   try {
     const { page, limit, offset } = getPagination(req.query);
     const escritorioId = req.user.escritorio_id;
-    const { status } = req.query;
+    const { status, busca, ufs } = req.query;
 
-    const whereStatus = status ? `AND p.status = $2` : '';
-    const params = status ? [escritorioId, status, limit, offset] : [escritorioId, limit, offset];
-    const limitIdx = status ? 3 : 2;
-    const offsetIdx = status ? 4 : 3;
+    // Monta WHERE dinâmico
+    const conditions = ['p.escritorio_id = $1'];
+    const params = [escritorioId];
+    let idx = 2;
 
-    const [result, countResult] = await Promise.all([
+    if (status) {
+      conditions.push(`p.status = $${idx++}`);
+      params.push(status);
+    }
+
+    if (busca && busca.trim()) {
+      const termo = '%' + busca.trim().toLowerCase() + '%';
+      conditions.push(`(LOWER(p.numero) LIKE $${idx} OR EXISTS (
+        SELECT 1 FROM partes_processo pp
+        WHERE pp.processo_id = p.id AND LOWER(pp.pessoa_nome) LIKE $${idx}
+      ))`);
+      params.push(termo);
+      idx++;
+    }
+
+    // ufs: lista separada por vírgula ex: "SP,RJ,MG" (filtro por região/estado)
+    if (ufs && ufs.trim()) {
+      const lista = ufs.split(',').map(u => u.trim().toUpperCase()).filter(Boolean);
+      if (lista.length > 0) {
+        const placeholders = lista.map((_, i) => `$${idx + i}`).join(', ');
+        conditions.push(`p.uf IN (${placeholders})`);
+        params.push(...lista);
+        idx += lista.length;
+      }
+    }
+
+    const whereClause = conditions.join(' AND ');
+    const countParams = [...params];
+    params.push(limit, offset);
+    const limitIdx = idx;
+    const offsetIdx = idx + 1;
+
+    const [result, countResult, metricasResult] = await Promise.all([
       pool.query(`
         SELECT
-          p.id,
-          p.numero,
-          p.esfera,
-          p.tribunal,
-          p.instancia,
-          p.uf,
-          p.status,
-          p.excluido_por,
-          p.data_exclusao,
+          p.id, p.numero, p.esfera, p.tribunal, p.instancia, p.uf, p.status,
+          p.excluido_por, p.data_exclusao,
           (SELECT pessoa_nome FROM partes_processo
-           WHERE processo_id = p.id AND polo = 'ativo' AND eh_principal = TRUE
-           LIMIT 1) as cliente,
+           WHERE processo_id = p.id AND polo = 'ativo' AND eh_principal = TRUE LIMIT 1) as cliente,
           (SELECT pessoa_id FROM partes_processo
-           WHERE processo_id = p.id AND polo = 'ativo' AND eh_principal = TRUE
-           LIMIT 1) as cliente_id,
+           WHERE processo_id = p.id AND polo = 'ativo' AND eh_principal = TRUE LIMIT 1) as cliente_id,
           (SELECT pessoa_nome FROM partes_processo
-           WHERE processo_id = p.id AND polo = 'passivo' AND eh_principal = TRUE
-           LIMIT 1) as parte_contraria,
-          (SELECT COUNT(*) FROM partes_processo
-           WHERE processo_id = p.id AND polo = 'ativo') as total_autores,
-          (SELECT COUNT(*) FROM partes_processo
-           WHERE processo_id = p.id AND polo = 'passivo') as total_reus
+           WHERE processo_id = p.id AND polo = 'passivo' AND eh_principal = TRUE LIMIT 1) as parte_contraria,
+          (SELECT COUNT(*) FROM partes_processo WHERE processo_id = p.id AND polo = 'ativo') as total_autores,
+          (SELECT COUNT(*) FROM partes_processo WHERE processo_id = p.id AND polo = 'passivo') as total_reus
         FROM processos p
-        WHERE p.escritorio_id = $1 ${whereStatus}
+        WHERE ${whereClause}
         ORDER BY p.id DESC
         LIMIT $${limitIdx} OFFSET $${offsetIdx}
       `, params),
       pool.query(
-        `SELECT COUNT(*) AS total FROM processos p WHERE p.escritorio_id = $1 ${whereStatus}`,
-        status ? [escritorioId, status] : [escritorioId]
-      )
+        `SELECT COUNT(*) AS total FROM processos p WHERE ${whereClause}`,
+        countParams
+      ),
+      pool.query(`
+        SELECT
+          COUNT(*) FILTER (WHERE status = 'ativo')     AS ativos,
+          COUNT(*) FILTER (WHERE status = 'arquivado') AS arquivados,
+          COUNT(*) FILTER (WHERE status = 'excluido')  AS excluidos,
+          COUNT(*)                                      AS total_geral,
+          COUNT(DISTINCT tribunal)                      AS tribunais
+        FROM processos WHERE escritorio_id = $1
+      `, [escritorioId])
     ]);
 
     const total = parseInt(countResult.rows[0].total);
-    logger.info({ count: result.rowCount, page }, 'Processos listados');
-    res.json(buildPage(result.rows, total, page, limit));
+    const metricas = metricasResult.rows[0];
+    const pagina = buildPage(result.rows, total, page, limit);
+    pagina.metricas = {
+      total:      parseInt(metricas.total_geral),
+      ativos:     parseInt(metricas.ativos),
+      arquivados: parseInt(metricas.arquivados),
+      excluidos:  parseInt(metricas.excluidos),
+      tribunais:  parseInt(metricas.tribunais)
+    };
+
+    logger.info({ count: result.rowCount, page, busca, ufs }, 'Processos listados');
+    res.json(pagina);
 
   } catch (err) {
     logger.error({ err: err.message }, 'Erro ao listar processos');

@@ -1,5 +1,4 @@
-
-    const token = localStorage.getItem('token');
+const token = localStorage.getItem('token');
     if (!token) window.location.href = '/login.html';
     
     let todosProcessos = [];
@@ -7,6 +6,14 @@
     let gerenciadorPartes = null;
     let poloAtual = null;
     let poloAtualEdicao = null;
+    // ── Paginação e filtros ──
+    let paginaAtualProcessos = 1;
+    let totalProcessosPaginados = 0;
+    let totalPaginasProcessos = 1;
+    const LIMITE_PROCESSOS = 50;
+    let termoBuscaProcessos = '';
+    let ufsFiltroAtual = '';   // UFs ativas (ex: "SP,RJ" ou "" para todas)
+    let buscaTimer = null;
 
     const regioesMap = {
         'SUL': ['PR', 'RS', 'SC'],
@@ -435,23 +442,51 @@ let gerenciadorPartesEdicao = null;
     // ============================================
     // PROCESSOS
     // ============================================
-    async function carregarProcessos() {
+    async function carregarProcessos(page, busca, ufs) {
+        page = (page !== undefined) ? page : paginaAtualProcessos;
+        busca = (busca !== undefined) ? busca : termoBuscaProcessos;
+        ufs = (ufs !== undefined) ? ufs : ufsFiltroAtual;
+        paginaAtualProcessos = page;
+        termoBuscaProcessos = busca;
+        ufsFiltroAtual = ufs;
+
+        const tabela = document.getElementById('listaProcessos');
+        if (tabela) tabela.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:50px;color:var(--muted);">Carregando...</td></tr>';
+
         try {
-            const response = await fetch('/api/processos?limit=200', {
+            const params = new URLSearchParams({ page, limit: LIMITE_PROCESSOS, status: abaAtual });
+            if (busca && busca.trim()) params.set('busca', busca.trim());
+            if (ufs && ufs.trim()) params.set('ufs', ufs.trim());
+
+            const response = await fetch('/api/processos?' + params.toString(), {
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
             });
 
             if (response.ok) {
-                const respProcessos = await response.json();
-                todosProcessos = respProcessos.data || respProcessos;
+                const resp = await response.json();
+                todosProcessos = resp.data || resp;
+                totalProcessosPaginados = resp.total ?? todosProcessos.length;
+                totalPaginasProcessos = resp.totalPages ?? Math.ceil(totalProcessosPaginados / LIMITE_PROCESSOS);
+
+                if (resp.metricas) {
+                    const m = resp.metricas;
+                    const el = (id) => document.getElementById(id);
+                    if (el('totalProcessosCard'))      el('totalProcessosCard').textContent      = m.total      || 0;
+                    if (el('processosAtivosCard'))     el('processosAtivosCard').textContent     = m.ativos     || 0;
+                    if (el('processosArquivadosCard')) el('processosArquivadosCard').textContent = m.arquivados || 0;
+                    if (el('tribunaisCard'))           el('tribunaisCard').textContent           = m.tribunais  || 0;
+                }
+
                 renderizarTabela(todosProcessos);
+                renderizarPaginacaoProcessos();
 
                 // Pré-filtrar se veio de /documentos-page com ?busca=NUMERO
                 const buscaParam = new URLSearchParams(window.location.search).get('busca');
-                if (buscaParam) {
+                if (buscaParam && !busca) {
                     const input = document.getElementById('searchProcessos');
-                    if (input) { input.value = buscaParam; filtrarProcessosTabela(); }
+                    if (input) input.value = buscaParam;
+                    carregarProcessos(1, buscaParam, '');
                 }
             } else {
                 console.error('Erro na resposta:', response.status);
@@ -462,29 +497,12 @@ let gerenciadorPartesEdicao = null;
     }
 
     function atualizarMetricas() {
-        const total = todosProcessos.length;
-        const ativos = todosProcessos.filter(p => {
-            const statusProcesso = (p.status || 'ativo').toLowerCase();
-            const statusAtividade = (p.status_atividade || p.status || 'ATIVO').toUpperCase();
-            return statusProcesso === 'ativo' && statusAtividade === 'ATIVO';
-        }).length;
-        const arquivados = todosProcessos.filter(p => p.status === 'arquivado').length;
-        const tribunais = new Set(todosProcessos.map(p => p.tribunal)).size;
-        
-        const totalCard = document.getElementById('totalProcessosCard');
-        const ativosCard = document.getElementById('processosAtivosCard');
-        const arquivadosCard = document.getElementById('processosArquivadosCard');
-        const tribunaisCard = document.getElementById('tribunaisCard');
-        
-        if (totalCard) totalCard.textContent = total;
-        if (ativosCard) ativosCard.textContent = ativos;
-        if (arquivadosCard) arquivadosCard.textContent = arquivados;
-        if (tribunaisCard) tribunaisCard.textContent = tribunais;
+        // Cards são atualizados via resp.metricas em carregarProcessos
     }
 
     function renderizarTabela(lista) {
         const tabela = document.getElementById('listaProcessos');
-        const listaFiltrada = lista.filter(p => (p.status || 'ativo').toLowerCase() === abaAtual);
+        const listaFiltrada = lista; // Servidor já filtra por status e UF
 
         // Atualizar métricas
         atualizarMetricas();
@@ -583,59 +601,71 @@ let gerenciadorPartesEdicao = null;
         abaAtual = aba;
         ['btnTabAtivo', 'btnTabArquivado', 'btnTabExcluido'].forEach(id => {
             const btn = document.getElementById(id);
-            if (btn) btn.classList.toggle('active', id === `btnTab${aba.charAt(0).toUpperCase() + aba.slice(1)}`);
+            if (btn) btn.classList.toggle('active', id === 'btnTab' + aba.charAt(0).toUpperCase() + aba.slice(1));
         });
-        renderizarTabela(todosProcessos);
-        setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 100);
+        const input = document.getElementById('searchProcessos');
+        const btnLimpar = document.getElementById('btnLimparBusca');
+        if (input) input.value = '';
+        if (btnLimpar) btnLimpar.style.display = 'none';
+        // Reset filtros ao mudar aba
+        ufsFiltroAtual = '';
+        document.querySelectorAll('#region-filter .btn-filter').forEach((btn, i) => {
+            btn.classList.toggle('active', i === 0); // reativa "TODOS"
+        });
+        const stateFilterDiv = document.getElementById('state-filter');
+        if (stateFilterDiv) stateFilterDiv.style.display = 'none';
+        carregarProcessos(1, '', '');
     }
 
     // ============================================
     // BUSCA/FILTRO DE PROCESSOS NA TABELA
     // ============================================
     function filtrarProcessosTabela() {
-        const termo = document.getElementById('searchProcessos').value.toLowerCase();
+        const termo = document.getElementById('searchProcessos').value;
         const btnLimpar = document.getElementById('btnLimparBusca');
-        
-        // Mostra/esconde botão de limpar
-        if (termo) {
-            btnLimpar.style.display = 'flex';
-        } else {
-            btnLimpar.style.display = 'none';
-        }
-        
-        // Filtra processos
-        const processosFiltrados = todosProcessos.filter(p => {
-            const numero = (p.numero || '').toLowerCase();
-            const cliente = (p.cliente || '').toLowerCase();
-            const parteContraria = (p.parte_contraria || '').toLowerCase();
-            
-            return numero.includes(termo) || 
-                   cliente.includes(termo) || 
-                   parteContraria.includes(termo);
-        });
-        
-        renderizarTabela(processosFiltrados);
-        
-        // Log para debug
-        if (termo) {
-            console.log(`🔍 Busca: "${termo}" | Encontrados: ${processosFiltrados.length} de ${todosProcessos.length}`);
-        }
+        if (btnLimpar) btnLimpar.style.display = termo ? 'flex' : 'none';
+        // Debounce 400ms — respeita filtro de UF ativo
+        clearTimeout(buscaTimer);
+        buscaTimer = setTimeout(() => { carregarProcessos(1, termo, ufsFiltroAtual); }, 400);
     }
 
     function limparBuscaProcessos() {
         const input = document.getElementById('searchProcessos');
         const btnLimpar = document.getElementById('btnLimparBusca');
-        
-        input.value = '';
-        btnLimpar.style.display = 'none';
-        
-        // Renderiza todos os processos novamente
-        renderizarTabela(todosProcessos);
-        
-        // Foca no input
-        input.focus();
-        
-        console.log('✨ Busca limpa - mostrando todos os processos');
+        if (input) input.value = '';
+        if (btnLimpar) btnLimpar.style.display = 'none';
+        if (input) input.focus();
+        // Mantém filtro de UF ativo ao limpar a busca
+        carregarProcessos(1, '', ufsFiltroAtual);
+    }
+
+    // ============================================
+    // PAGINAÇÃO
+    // ============================================
+    function renderizarPaginacaoProcessos() {
+        const container = document.getElementById('paginacaoProcessos');
+        if (!container) return;
+        const page = paginaAtualProcessos;
+        const totalPages = totalPaginasProcessos;
+        const total = totalProcessosPaginados;
+        if (!totalPages || totalPages <= 1) { container.classList.remove('ativo'); return; }
+        const inicio = ((page - 1) * LIMITE_PROCESSOS) + 1;
+        const fim = Math.min(page * LIMITE_PROCESSOS, total);
+        const delta = 2, left = Math.max(1, page - delta), right = Math.min(totalPages, page + delta);
+        let nums = '';
+        if (left > 1) nums += '<button onclick="carregarProcessos(1,termoBuscaProcessos,ufsFiltroAtual)" class="pag-num' + (1===page?' pag-ativo':'') + '">1</button>';
+        if (left > 2) nums += '<span class="pag-ellipsis">…</span>';
+        for (let i = left; i <= right; i++) nums += '<button onclick="carregarProcessos(' + i + ',termoBuscaProcessos,ufsFiltroAtual)" class="pag-num' + (i===page?' pag-ativo':'') + '">' + i + '</button>';
+        if (right < totalPages - 1) nums += '<span class="pag-ellipsis">…</span>';
+        if (right < totalPages) nums += '<button onclick="carregarProcessos(' + totalPages + ',termoBuscaProcessos,ufsFiltroAtual)" class="pag-num' + (totalPages===page?' pag-ativo':'') + '">' + totalPages + '</button>';
+        container.innerHTML =
+            '<span class="pag-info">Mostrando <strong>' + inicio + '–' + fim + '</strong> de <strong>' + total + '</strong> processos</span>' +
+            '<div class="pag-controles">' +
+            '<button onclick="carregarProcessos(' + (page-1) + ',termoBuscaProcessos,ufsFiltroAtual)" ' + (page<=1?'disabled':'') + ' class="pag-nav">← Anterior</button>' +
+            nums +
+            '<button onclick="carregarProcessos(' + (page+1) + ',termoBuscaProcessos,ufsFiltroAtual)" ' + (page>=totalPages?'disabled':'') + ' class="pag-nav">Próximo →</button>' +
+            '</div>';
+        container.classList.add('ativo');
     }
 
 
@@ -1595,10 +1625,12 @@ function obterTribunaisPorEsfera(esfera) {
 
         if (regiao === 'TODOS') {
             stateFilterDiv.style.display = 'none';
-            renderizarTabela(todosProcessos);
+            // Limpa UFs e recarrega todos
+            carregarProcessos(1, termoBuscaProcessos, '');
             return;
         }
 
+        // Monta botões de estado da região
         stateFilterDiv.style.display = 'flex';
         stateButtonsDiv.innerHTML = '';
         regioesMap[regiao].forEach(uf => {
@@ -1608,13 +1640,17 @@ function obterTribunaisPorEsfera(esfera) {
             btn.onclick = () => filtrarPorEstado(uf, btn);
             stateButtonsDiv.appendChild(btn);
         });
-        renderizarTabela(todosProcessos.filter(p => regioesMap[regiao].includes(p.uf)));
+
+        // Envia todas as UFs da região para o backend
+        const ufsRegiao = regioesMap[regiao].join(',');
+        carregarProcessos(1, termoBuscaProcessos, ufsRegiao);
     }
 
     function filtrarPorEstado(uf, elemento) {
         document.querySelectorAll('#state-buttons .btn-filter').forEach(btn => btn.classList.remove('active'));
         elemento.classList.add('active');
-        renderizarTabela(todosProcessos.filter(p => p.uf === uf));
+        // Filtra pelo estado específico no backend
+        carregarProcessos(1, termoBuscaProcessos, uf);
     }
 
     // ============================================
@@ -2055,4 +2091,3 @@ function obterTribunaisPorEsfera(esfera) {
             if (e.target === this) fecharAndamentos();
         });
     })();
-    
