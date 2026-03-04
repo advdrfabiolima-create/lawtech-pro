@@ -1065,7 +1065,7 @@
                     const gid = c.grupo_id || '';
                     const ttl = c.titulo.replace(/'/g, '');
                     const val = c.valor ? ' • R$' + parseFloat(c.valor).toLocaleString('pt-BR',{minimumFractionDigits:2}) : '';
-                    eventosHtml += `<div class="${cls}" title="${c.titulo}${val}" onclick="deletarCompromisso(${c.id},'${gid}',${c.total_parcelas},'${ttl}')">${ic} ${c.titulo}</div>`;
+                    eventosHtml += `<div class="${cls}" title="${c.titulo}${val}" onclick="abrirDetalheCompromisso(${c.id})">${ic} ${c.titulo}</div>`;
                 });
             }
             html += `<div class="${classes}"><div class="dia-num">${dia}</div><div class="dia-eventos">${eventosHtml}</div></div>`;
@@ -1210,9 +1210,9 @@
             const data = await res.json();
             const lista = data.data || data;
             const sel = document.getElementById('compProcesso');
-            sel.innerHTML = '<option value="">— Nenhum —</option>' +
+            sel.innerHTML = '<option value="" data-cliente-id="" data-cliente-nome="">— Nenhum —</option>' +
                 (Array.isArray(lista) ? lista : []).map(p =>
-                    `<option value="${p.id}">${p.numero}${p.cliente ? ' — ' + p.cliente : ''}</option>`
+                    `<option value="${p.id}" data-cliente-id="${p.cliente_id || ''}" data-cliente-nome="${p.cliente || ''}">${p.numero}${p.cliente ? ' — ' + p.cliente : ''}</option>`
                 ).join('');
         } catch (e) { /* silencioso */ }
 
@@ -1239,9 +1239,14 @@
         if (!titulo) return alert('Informe um título para o compromisso.');
         if (!data)   return alert('Informe a data do compromisso.');
 
+        // Capturar cliente_id do processo selecionado
+        const procSel = document.getElementById('compProcesso');
+        const clienteId = procSel.options[procSel.selectedIndex]?.dataset?.clienteId || '';
+
         const body = { titulo, data, tipo, observacao: obs, recorrente_meses: meses };
-        if (valor) body.valor = parseFloat(valor);
-        if (proc)  body.processo_id = parseInt(proc);
+        if (valor)     body.valor = parseFloat(valor);
+        if (proc)      body.processo_id = parseInt(proc);
+        if (clienteId) body.cliente_id  = parseInt(clienteId);
 
         try {
             const res = await fetch('/api/calendario/compromissos', {
@@ -1259,6 +1264,80 @@
                 alert(result.erro || 'Erro ao salvar compromisso.');
             }
         } catch (e) { alert('Erro de conexão ao salvar.'); }
+    }
+
+    let _compDetalheAtual = null;
+
+    function abrirDetalheCompromisso(id) {
+        const c = (calDados.compromissos || []).find(x => x.id === id);
+        if (!c) return;
+        _compDetalheAtual = c;
+
+        const icones   = { pagamento:'💰', reuniao:'📋', audiencia_externa:'⚖️', outro:'📌' };
+        const tipoLabel = { pagamento:'Pagamento', reuniao:'Reunião', audiencia_externa:'Audiência Externa', outro:'Outro' };
+
+        document.getElementById('detalheIcone').textContent    = icones[c.tipo] || '📅';
+        document.getElementById('detalheTitulo').textContent   = c.titulo;
+        document.getElementById('detalheSubtitulo').textContent = tipoLabel[c.tipo] || c.tipo;
+
+        // Data
+        const dataFmt = new Date(c.data + 'T12:00:00').toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+        document.getElementById('detalheData').textContent = dataFmt;
+
+        // Tipo
+        document.getElementById('detalheTipo').textContent = tipoLabel[c.tipo] || c.tipo;
+
+        // Valor
+        const valBloco = document.getElementById('detalheValorBloco');
+        if (c.valor) {
+            valBloco.style.display = 'block';
+            document.getElementById('detalheValor').textContent = 'R$ ' + parseFloat(c.valor).toLocaleString('pt-BR', { minimumFractionDigits:2 });
+        } else {
+            valBloco.style.display = 'none';
+        }
+
+        // Parcela
+        const parcBloco = document.getElementById('detalheParcelaBloco');
+        if (c.total_parcelas > 1) {
+            parcBloco.style.display = 'block';
+            document.getElementById('detalheParcela').textContent = c.parcela_atual + ' de ' + c.total_parcelas;
+        } else {
+            parcBloco.style.display = 'none';
+        }
+
+        // Processo + Cliente no mesmo bloco
+        const procBloco = document.getElementById('detalheProcessoBloco');
+        if (c.processo_numero || c.cliente_nome) {
+            procBloco.style.display = 'block';
+            const proc   = c.processo_numero || '';
+            const cliente = c.cliente_nome   || '';
+            document.getElementById('detalheProcesso').innerHTML =
+                (proc   ? `<span style="display:block;">${proc}</span>` : '') +
+                (cliente ? `<span style="display:block;font-size:12px;color:var(--muted);margin-top:3px;">👤 ${cliente}</span>` : '');
+        } else {
+            procBloco.style.display = 'none';
+        }
+
+        // Bloco de cliente separado — sempre oculto (já exibido junto ao processo)
+        document.getElementById('detalheClienteBloco').style.display = 'none';
+
+        // Observação
+        const obsBloco = document.getElementById('detalheObsBloco');
+        if (c.observacao) {
+            obsBloco.style.display = 'block';
+            document.getElementById('detalheObs').textContent = c.observacao;
+        } else {
+            obsBloco.style.display = 'none';
+        }
+
+        document.getElementById('modalDetalheComp').style.display = 'flex';
+    }
+
+    async function deletarDoDetalhe() {
+        if (!_compDetalheAtual) return;
+        const c = _compDetalheAtual;
+        document.getElementById('modalDetalheComp').style.display = 'none';
+        await deletarCompromisso(c.id, c.grupo_id || '', c.total_parcelas, c.titulo);
     }
 
     async function deletarCompromisso(id, grupoId, totalParcelas, titulo) {

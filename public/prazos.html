@@ -290,9 +290,9 @@
     font-weight: 500;
 }
         /* Área Principal */
-        .main { margin-left: 280px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; position: relative; z-index: 1; }
-        .header { background: var(--white); height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; }
-        .content { padding: 32px; }
+        .main { margin-left: 280px; flex: 1; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; z-index: 1; }
+        .header { background: var(--white); height: 72px; min-height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 900; }
+        .content { padding: 32px; flex: 1; overflow-y: auto; }
 
         /* Cards de Estatísticas */
         .stats-grid {
@@ -811,6 +811,22 @@
             .modal-content { max-width: 400px; width: 90%; }
         }
 
+
+        /* ── Modal Detalhes Compromisso ── */
+        .modal-detalhe-comp .modal-content { max-width: 460px; }
+        .detalhe-header { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+        .detalhe-icone  { font-size:28px; line-height:1; }
+        .detalhe-titulo { font-size:17px; font-weight:700; color:var(--text-primary); }
+        .detalhe-subtitulo { font-size:12px; color:var(--muted); margin-top:2px; }
+        .detalhe-grid   { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+        .detalhe-campo  { background:var(--bg); border:1px solid var(--border-subtle); border-radius:8px; padding:10px 12px; }
+        .detalhe-campo .label { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+        .detalhe-campo .valor { font-size:14px; font-weight:600; color:var(--text-primary); }
+        .detalhe-campo.destaque .valor { color:var(--accent-green); font-size:16px; }
+        .detalhe-campo.full { grid-column: 1 / -1; }
+        .detalhe-parcelas { display:flex; gap:4px; flex-wrap:wrap; margin-top:4px; }
+        .detalhe-parcelas span { background:var(--sidebar); color:#fff; font-size:10px; padding:2px 6px; border-radius:10px; }
+        .detalhe-actions { display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding-top:14px; border-top:1px solid var(--border-subtle); }
     </style>
     <link rel="stylesheet" href="mobile.css">
 </head>
@@ -1153,6 +1169,58 @@
             <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
                 <button class="btn-primary" onclick="salvarCompromisso()">Salvar</button>
                 <button class="btn-secondary" onclick="document.getElementById('modalCompromisso').style.display='none'">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal Detalhes Compromisso -->
+    <div id="modalDetalheComp" class="modal modal-detalhe-comp" style="display:none;">
+        <div class="modal-content">
+            <div class="detalhe-header">
+                <div class="detalhe-icone" id="detalheIcone">📅</div>
+                <div>
+                    <div class="detalhe-titulo" id="detalheTitulo">—</div>
+                    <div class="detalhe-subtitulo" id="detalheSubtitulo">—</div>
+                </div>
+            </div>
+
+            <div class="detalhe-grid">
+                <div class="detalhe-campo">
+                    <div class="label">Data</div>
+                    <div class="valor" id="detalheData">—</div>
+                </div>
+                <div class="detalhe-campo">
+                    <div class="label">Tipo</div>
+                    <div class="valor" id="detalheTipo">—</div>
+                </div>
+                <div class="detalhe-campo destaque" id="detalheValorBloco" style="display:none;">
+                    <div class="label">Valor</div>
+                    <div class="valor" id="detalheValor">—</div>
+                </div>
+                <div class="detalhe-campo" id="detalheParcelaBloco" style="display:none;">
+                    <div class="label">Parcela</div>
+                    <div class="valor" id="detalheParcela">—</div>
+                </div>
+                <div class="detalhe-campo full" id="detalheProcessoBloco" style="display:none;">
+                    <div class="label">Processo Vinculado</div>
+                    <div class="valor" id="detalheProcesso">—</div>
+                </div>
+                <div class="detalhe-campo full" id="detalheClienteBloco" style="display:none;">
+                    <div class="label">Cliente</div>
+                    <div class="valor" id="detalheCliente">—</div>
+                </div>
+                <div class="detalhe-campo full" id="detalheObsBloco" style="display:none;">
+                    <div class="label">Observação</div>
+                    <div class="valor" id="detalheObs" style="font-weight:400; font-size:13px; color:var(--muted);">—</div>
+                </div>
+            </div>
+
+            <div class="detalhe-actions">
+                <button class="btn-danger" id="detalheBtnDeletar" onclick="deletarDoDetalhe()" style="background:var(--accent-red);color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">
+                    🗑 Remover
+                </button>
+                <button class="btn-secondary" onclick="document.getElementById('modalDetalheComp').style.display='none'">Fechar</button>
             </div>
         </div>
     </div>

@@ -48,7 +48,7 @@ const calendarioController = {
             const mes = parseInt(req.query.mes) || (new Date().getMonth() + 1);
             const ano = parseInt(req.query.ano) || new Date().getFullYear();
             const result = await pool.query(`
-                SELECT id, titulo, TO_CHAR(data, 'YYYY-MM-DD') AS data, tipo, abrangencia, recorrente
+                SELECT id, titulo, data, tipo, abrangencia, recorrente
                 FROM feriados_suspensoes
                 WHERE escritorio_id = $1
                   AND EXTRACT(MONTH FROM data) = $2
@@ -134,7 +134,7 @@ const calendarioController = {
                 `, [escritorioId, mes, ano]),
 
                 pool.query(`
-                    SELECT id, titulo, TO_CHAR(data, 'YYYY-MM-DD') AS data, tipo, abrangencia, recorrente
+                    SELECT id, titulo, data, tipo, abrangencia, recorrente
                     FROM feriados_suspensoes
                     WHERE escritorio_id = $1
                       AND EXTRACT(MONTH FROM data) = $2
@@ -145,11 +145,12 @@ const calendarioController = {
                 pool.query(`
                     SELECT c.id, c.titulo, TO_CHAR(c.data, 'YYYY-MM-DD') AS data, c.tipo, c.valor,
                            c.observacao, c.parcela_atual, c.total_parcelas, c.grupo_id,
-                           cl.nome   AS cliente_nome,
+                           COALESCE(cl.nome, cl2.nome) AS cliente_nome,
                            pr.numero AS processo_numero
                     FROM compromissos c
-                    LEFT JOIN clientes  cl ON c.cliente_id  = cl.id
-                    LEFT JOIN processos pr ON c.processo_id = pr.id
+                    LEFT JOIN clientes  cl  ON c.cliente_id  = cl.id
+                    LEFT JOIN processos pr  ON c.processo_id = pr.id
+                    LEFT JOIN clientes  cl2 ON pr.cliente_id = cl2.id
                     WHERE c.escritorio_id = $1
                       AND EXTRACT(MONTH FROM c.data) = $2
                       AND EXTRACT(YEAR  FROM c.data) = $3
@@ -194,7 +195,7 @@ const calendarioController = {
                          processo_id, cliente_id, observacao,
                          parcela_atual, total_parcelas, grupo_id)
                     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
-                    RETURNING *, TO_CHAR(data, 'YYYY-MM-DD') AS data
+                    RETURNING *
                 `, [
                     escritorioId, tituloParc, dataStr, tipo,
                     valor       || null,
