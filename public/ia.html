@@ -292,6 +292,22 @@
         }
 
         /* Badge da Claude na mensagem */
+
+        /* Botão copiar resposta */
+        .btn-copiar-msg {
+            position: absolute;
+            bottom: 8px; right: 8px;
+            background: none; border: none;
+            cursor: pointer; padding: 4px 6px;
+            border-radius: 6px; opacity: 0;
+            transition: opacity .15s, background .15s;
+            display: flex; align-items: center; gap: 4px;
+            color: #94a3b8; font-size: 11px; font-family: inherit;
+        }
+        .ai-message:hover .btn-copiar-msg { opacity: 1; }
+        .btn-copiar-msg:hover { background: #f1f5f9; color: #475569; }
+        .btn-copiar-msg svg { width: 14px; height: 14px; }
+
         .ai-message::before {
             content: "LawTech IA";
             position: absolute;
@@ -715,7 +731,7 @@ input, textarea, select {
                 <input 
                     type="file" 
                     id="file-input" 
-                    accept=".pdf" 
+                    accept=".pdf,.docx,.doc" 
                     style="display: none;" 
                     onchange="handleFileSelect(event)"
                 >
@@ -735,6 +751,7 @@ input, textarea, select {
                     onkeypress="if(event.key === 'Enter') enviarPergunta()"
                     autocomplete="off"
                 >
+                <button type="button" onclick="limparHistorico()" title="Limpar conversa" style="padding:0 14px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:10px;cursor:pointer;color:#64748b;font-size:12px;font-weight:700;height:44px;white-space:nowrap;font-family:inherit;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">🗑️ LIMPAR</button>
                 <button id="btn-enviar" class="btn-send" onclick="enviarPergunta()">
                     ➤
                 </button>

@@ -1,10 +1,19 @@
-
-    const token = localStorage.getItem('token');
+const token = localStorage.getItem('token');
     if (!token) window.location.href = '/login.html';
 
     // ✅ VARIÁVEL PARA ARMAZENAR ARQUIVO
     let arquivoAnexado = null;
     let planoAtual = null;
+
+    // ✅ HISTÓRICO DE CONVERSA (memória entre mensagens)
+    let historicoConversa = [];
+
+    // ✅ LIMPAR HISTÓRICO
+    function limparHistorico() {
+        historicoConversa = [];
+        document.getElementById('chat-container').innerHTML = '';
+        console.log('🗑️ Histórico limpo');
+    }
 
     // ✅ FUNÇÃO PARA SELECIONAR ARQUIVO (PDF OU DOCX)
     function handleFileSelect(event) {
@@ -19,9 +28,14 @@
         });
 
         // Validar tipo
-        const tiposPermitidos = ['application/pdf'];
-        if (!tiposPermitidos.includes(file.type)) {
-            alert('❌ Apenas arquivos PDF são aceitos!');
+        const tiposPermitidos = [
+            'application/pdf',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/msword'
+        ];
+        const isDocx = file.type.includes('word') || file.name.endsWith('.docx') || file.name.endsWith('.doc');
+        if (!tiposPermitidos.includes(file.type) && !isDocx) {
+            alert('❌ Apenas arquivos PDF e DOCX são aceitos!');
             event.target.value = '';
             return;
         }
@@ -39,16 +53,18 @@
         reader.onload = function(e) {
             const base64 = e.target.result.split(',')[1];
             
+            const isDocxFile = file.name.endsWith('.docx') || file.name.endsWith('.doc') || file.type.includes('word');
             arquivoAnexado = {
                 nome: file.name,
                 tamanho: (file.size / 1024 / 1024).toFixed(2),
-                base64: base64
+                base64: base64,
+                tipo: isDocxFile ? 'docx' : 'pdf'
             };
 
             // Mostrar preview
             document.getElementById('file-name').textContent = file.name;
             document.getElementById('file-size').textContent = arquivoAnexado.tamanho + ' MB';
-            document.getElementById('file-icon-type').textContent = 'PDF';
+            document.getElementById('file-icon-type').textContent = file.name.endsWith('.docx') || file.name.endsWith('.doc') ? 'DOCX' : 'PDF';
             document.getElementById('file-preview').classList.add('active');
 
             console.log('✅ Arquivo carregado:', {
@@ -111,6 +127,36 @@
         }
     }
 
+
+    // ✅ COPIAR TEXTO DA MENSAGEM
+    function copiarMensagem(btn) {
+        const msg = btn.closest('.ai-message');
+        // Pegar texto sem o próprio botão
+        const clone = msg.cloneNode(true);
+        clone.querySelectorAll('.btn-copiar-msg').forEach(el => el.remove());
+        const texto = clone.innerText || clone.textContent || '';
+        navigator.clipboard.writeText(texto.trim()).then(() => {
+            btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Copiado!';
+            btn.style.opacity = '1';
+            btn.style.color = '#10b981';
+            setTimeout(() => {
+                btn.innerHTML = _iconeCopiar();
+                btn.style.color = '';
+                btn.style.opacity = '';
+            }, 2000);
+        }).catch(() => {
+            alert('Não foi possível copiar. Selecione o texto manualmente.');
+        });
+    }
+
+    function _iconeCopiar() {
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+    }
+
+    function _btnCopiar() {
+        return `<button class="btn-copiar-msg" onclick="copiarMensagem(this)" title="Copiar resposta">${_iconeCopiar()}</button>`;
+    }
+
     // 💬 Enviar pergunta para a Claude
     async function enviarPergunta() {
         const input = document.getElementById('pergunta');
@@ -142,18 +188,21 @@
         chat.scrollTop = chat.scrollHeight;
 
         try {
-            // ✅ CRIAR PAYLOAD COM OU SEM ARQUIVO
-            const payload = { pergunta };
+            // ✅ CRIAR PAYLOAD COM HISTÓRICO + ARQUIVO
+            const payload = { pergunta, historico: historicoConversa };
             
             if (arquivoAnexado) {
-                payload.pdf = {
+                payload.arquivo = {
                     nome: arquivoAnexado.nome,
-                    base64: arquivoAnexado.base64
+                    base64: arquivoAnexado.base64,
+                    tipo: arquivoAnexado.tipo || 'pdf'
                 };
-                console.log('📤 Enviando com PDF:', {
+                // Manter compatibilidade retroativa
+                payload.pdf = payload.arquivo;
+                console.log('📤 Enviando com arquivo:', {
                     nome: arquivoAnexado.nome,
-                    tamanho: arquivoAnexado.tamanho + ' MB',
-                    base64Length: arquivoAnexado.base64.length
+                    tipo: arquivoAnexado.tipo,
+                    tamanho: arquivoAnexado.tamanho + ' MB'
                 });
             }
 
@@ -178,7 +227,12 @@
             if (res.ok) {
                 // Converte Markdown para HTML
                 respostaHTML = marked.parse(data.resposta);
-                console.log('✅ Resposta da IA recebida com sucesso');
+                // Salvar no histórico
+                historicoConversa.push({ role: 'user', content: pergunta });
+                historicoConversa.push({ role: 'assistant', content: data.resposta });
+                // Limitar histórico a 20 mensagens (10 trocas) para não estourar tokens
+                if (historicoConversa.length > 20) historicoConversa = historicoConversa.slice(-20);
+                console.log('✅ Resposta da IA recebida. Histórico:', historicoConversa.length, 'msgs');
             } 
             else if (res.status === 403) {
                 respostaHTML = `
@@ -233,7 +287,7 @@
                 console.error('❌ Erro:', data);
             }
 
-            chat.innerHTML += `<div class="message ai-message">${respostaHTML}</div>`;
+            chat.innerHTML += `<div class="message ai-message">${respostaHTML}${_btnCopiar()}</div>`;
             
             // ✅ Remover arquivo após envio (sucesso ou erro)
             if (arquivoAnexado) {
