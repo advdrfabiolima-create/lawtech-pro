@@ -115,6 +115,7 @@ async function inicializar() {
                 return;
             }
             renderizar(originalData);
+            carregarSaldoReal(); // Atualiza cards com o mês selecionado
         }
 
         function renderizar(lista) {
@@ -994,7 +995,9 @@ async function confirmarBoleto() {
 
 async function carregarSaldoReal() {
     try {
-        const res = await fetch('/api/financeiro/saldo-real', { 
+        const mes = window._finMes || (new Date().getMonth() + 1);
+        const ano = window._finAno || new Date().getFullYear();
+        const res = await fetch(`/api/financeiro/saldo-real?mes=${mes}&ano=${ano}`, { 
             headers: { Authorization: `Bearer ${token}` } 
         });
         
