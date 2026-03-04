@@ -1,4 +1,3 @@
-
 !function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -11,35 +10,50 @@ fbq('init', '4408320902783347');
 fbq('track', 'PageView');
 
 
-        function formatarPreco(valor, isAnual) {
-            // Se for anual e não tiver vírgula, adiciona ,00
-            if (isAnual && !valor.includes(',')) {
-                valor = valor + ',00';
-            }
-            
-            // Separa a parte inteira dos centavos
+        function formatarPreco(valor) {
             const partes = valor.split(',');
             const inteiro = partes[0];
             const centavos = partes[1] || '00';
-            
-            // Retorna HTML com centavos menores
             return `${inteiro}<span style="font-size: 0.55em; vertical-align: super;">,${centavos}</span>`;
+        }
+
+        function calcularMensalAnual(totalAnual) {
+            // totalAnual é string ex: "999" ou "2999"
+            const total = parseFloat(totalAnual);
+            const mensal = total / 12;
+            // Formata com 2 casas decimais usando vírgula
+            return mensal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatarTotalAnual(totalAnual) {
+            const total = parseFloat(totalAnual);
+            return total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
         function toggleBilling() {
             const isAnnual = document.getElementById('billingToggle').checked;
             const amounts = document.querySelectorAll('.amount');
             const periods = document.querySelectorAll('.period');
+            const totaisAnuais = document.querySelectorAll('.total-anual');
             const labelMensal = document.getElementById('label-mensal');
             const labelAnual = document.getElementById('label-anual');
 
             amounts.forEach(amount => {
-                const value = isAnnual ? amount.dataset.anual : amount.dataset.mensal;
-                amount.innerHTML = formatarPreco(value, isAnnual);
+                if (isAnnual) {
+                    // Mostra o valor mensal equivalente (total/12)
+                    const mensalEquivalente = calcularMensalAnual(amount.dataset.anual);
+                    amount.innerHTML = formatarPreco(mensalEquivalente);
+                } else {
+                    amount.innerHTML = formatarPreco(amount.dataset.mensal);
+                }
             });
 
             periods.forEach(period => {
-                period.textContent = isAnnual ? '/ano' : '/mês';
+                period.textContent = '/mês';
+            });
+
+            totaisAnuais.forEach(el => {
+                el.style.display = isAnnual ? 'block' : 'none';
             });
 
             if (isAnnual) {
@@ -55,8 +69,7 @@ fbq('track', 'PageView');
         document.addEventListener('DOMContentLoaded', function() {
             const amounts = document.querySelectorAll('.amount');
             amounts.forEach(amount => {
-                const value = amount.dataset.mensal;
-                amount.innerHTML = formatarPreco(value, false);
+                amount.innerHTML = formatarPreco(amount.dataset.mensal);
             });
         });
 
@@ -236,4 +249,3 @@ fbq('track', 'PageView');
             alert('Mensagem enviada com sucesso! Em breve entraremos em contato.');
             this.reset();
         });
-    
