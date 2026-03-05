@@ -1145,12 +1145,24 @@ window.addEventListener('click', (e) => {
 function abrirRelatorioFaturamento() {
     const modal = document.getElementById('modalRelatorioFaturamento');
     if (!modal) { alert('Modal não encontrado'); return; }
-    // Garante que está diretamente no body
     if (modal.parentElement !== document.body) document.body.appendChild(modal);
     modal.removeAttribute('style');
     modal.setAttribute('style', 'display:flex !important; position:fixed !important; top:0 !important; left:0 !important; width:100vw !important; height:100vh !important; background:rgba(15,23,42,0.85) !important; z-index:2147483647 !important; align-items:center !important; justify-content:center !important;');
+    // Pré-seleciona mês atual
     const mesInput = document.getElementById('relatorioMes');
     if (mesInput) mesInput.value = new Date().toISOString().substring(0, 7);
+    // Pré-seleciona ano atual no select anual
+    const anoSelect = document.getElementById('relatorioAno');
+    if (anoSelect) {
+        const anoAtual = String(new Date().getFullYear());
+        const optExists = Array.from(anoSelect.options).some(o => o.value === anoAtual);
+        if (!optExists) {
+            const opt = document.createElement('option');
+            opt.value = anoAtual; opt.textContent = anoAtual;
+            anoSelect.insertBefore(opt, anoSelect.firstChild);
+        }
+        anoSelect.value = anoAtual;
+    }
 }
 
 function fecharRelatorioFaturamento() {

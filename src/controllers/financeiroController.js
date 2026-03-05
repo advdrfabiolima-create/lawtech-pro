@@ -218,7 +218,7 @@ async function gerarRelatorio(req, res) {
             JOIN usuarios u ON u.id = f.usuario_id
             LEFT JOIN clientes c ON c.id = f.cliente_id
             WHERE u.escritorio_id = $1
-              AND f.data_vencimento BETWEEN $2 AND $3
+              AND DATE(f.data_vencimento) BETWEEN $2::date AND $3::date
             ORDER BY f.data_vencimento ASC, f.tipo DESC
         `, [req.user.escritorio_id, dataInicio, dataFim]);
         res.json(result.rows);
