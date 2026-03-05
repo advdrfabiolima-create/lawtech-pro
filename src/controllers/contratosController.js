@@ -266,43 +266,64 @@ async function gerarTemplate(req, res) {
 <head>
 <meta charset="UTF-8">
 <title>Contrato de Prestação de Serviços Advocatícios</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
-  @page { margin: 2.5cm; }
-  body { font-family: 'Aptos', 'Plus Jakarta Sans', 'Calibri', 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #1a1a1a; line-height: 1.9; max-width: 780px; margin: 0 auto; padding: 40px; letter-spacing: normal; word-spacing: normal; }
-  .cabecalho { text-align: center; border-bottom: 3px double #1E3A5F; padding-bottom: 20px; margin-bottom: 28px; }
-  .cabecalho .escritorio-nome { font-size: 17px; font-weight: bold; text-transform: uppercase; color: #1E3A5F; }
-  .cabecalho .escritorio-info { font-size: 11px; color: #666; margin-top: 4px; }
-  h1 { text-align: center; font-size: 15px; text-transform: uppercase; margin: 24px 0 4px; font-weight: bold; }
-  h2 { font-size: 12px; text-align: center; font-weight: normal; color: #555; margin: 0 0 8px; font-style: italic; }
-  .numero-contrato { text-align: center; font-size: 11px; color: #888; margin-bottom: 20px; }
-  hr.divider { border: none; border-top: 1px solid #c0c0c0; margin: 20px 0; }
-  .clausula { margin: 18px 0; }
-  .clausula-titulo { font-weight: bold; text-transform: uppercase; font-size: 13px; color: #1E3A5F; margin-bottom: 8px; border-left: 3px solid #1E3A5F; padding-left: 10px; }
-  .clausula p { text-align: left; margin: 8px 0; }
-  .partes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 14px 0; }
-  .parte-box { border: 1px solid #ddd; border-radius: 4px; padding: 14px; background: #fafafa; }
-  .parte-box .parte-label { font-size: 10px; text-transform: uppercase; color: #888; margin-bottom: 6px; }
-  .parte-box .parte-nome { font-weight: bold; font-size: 14px; color: #1E3A5F; margin-bottom: 6px; }
-  .parte-box .parte-info { font-size: 13px; color: #444; line-height: 1.8; }
-  .honorarios-box { border: 2px solid #1E3A5F; border-radius: 4px; padding: 16px; background: #f0f4f8; margin: 14px 0; }
-  .honorarios-box .valor { font-size: 18px; font-weight: bold; color: #1E3A5F; }
-  .honorarios-box .modalidade { font-size: 11px; color: #666; text-transform: uppercase; }
-  .obs-box { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; margin: 14px 0; font-size: 13px; border-radius: 0 4px 4px 0; }
-  .assinatura-area { margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
-  .assinatura-box { text-align: center; }
-  .assinatura-linha { border-top: 1px solid #333; padding-top: 8px; font-size: 13px; line-height: 1.8; }
-  .assinatura-cidade { text-align: center; margin-top: 50px; font-size: 12px; color: #444; margin-bottom: 10px; }
-  .rodape { text-align: center; font-size: 10px; color: #aaa; margin-top: 50px; border-top: 1px solid #eee; padding-top: 12px; }
-  .testemunhas { margin-top: 50px; }
-  .testemunha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 20px; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  @page { size: A4; margin: 2cm 2.2cm; }
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11pt;
+    color: #111;
+    line-height: 1.7;
+    background: #fff;
+    word-spacing: 0;
+    letter-spacing: 0;
+  }
+  /* ── Cabeçalho ── */
+  .cabecalho { text-align: center; border-bottom: 3px double #1E3A5F; padding-bottom: 16px; margin-bottom: 22px; }
+  .cabecalho .escritorio-nome { font-size: 13pt; font-weight: bold; color: #1E3A5F; }
+  .cabecalho .escritorio-info { font-size: 9pt; color: #666; margin-top: 4px; }
+  /* ── Títulos ── */
+  h1 { text-align: center; font-size: 12pt; font-weight: bold; margin: 18px 0 4px; }
+  h2 { font-size: 10pt; text-align: center; font-weight: normal; color: #555; margin: 0 0 6px; font-style: italic; }
+  .numero-contrato { text-align: center; font-size: 9pt; color: #888; margin-bottom: 16px; }
+  hr.divider { border: none; border-top: 1px solid #bbb; margin: 14px 0; }
+  /* ── Cláusulas ── */
+  .clausula { margin: 14px 0; page-break-inside: avoid; }
+  .clausula-titulo {
+    font-size: 10pt; font-weight: bold; color: #1E3A5F;
+    border-left: 3px solid #1E3A5F; padding-left: 8px;
+    margin-bottom: 8px; page-break-after: avoid;
+  }
+  .clausula p { margin: 5px 0; font-size: 11pt; text-align: left; }
+  /* ── Partes ── */
+  .partes-grid { display: table; width: 100%; margin: 10px 0; border-collapse: separate; border-spacing: 12px 0; }
+  .parte-box { display: table-cell; width: 50%; border: 1px solid #ddd; padding: 10px 12px; background: #fafafa; vertical-align: top; }
+  .parte-box .parte-label { font-size: 8pt; color: #888; margin-bottom: 4px; }
+  .parte-box .parte-nome { font-weight: bold; font-size: 12pt; color: #1E3A5F; margin-bottom: 4px; }
+  .parte-box .parte-info { font-size: 10pt; color: #444; line-height: 1.6; }
+  /* ── Honorários ── */
+  .honorarios-box { border: 2px solid #1E3A5F; padding: 12px 14px; background: #f0f4f8; margin: 10px 0; page-break-inside: avoid; }
+  .honorarios-box .modalidade { font-size: 8pt; color: #666; margin-bottom: 4px; }
+  .honorarios-box .valor { font-size: 15pt; font-weight: bold; color: #1E3A5F; }
+  /* ── Observações ── */
+  .obs-box { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 10px 14px; margin: 10px 0; font-size: 10pt; }
+  /* ── Assinaturas ── */
+  .assinatura-cidade { text-align: center; margin-top: 36px; margin-bottom: 8px; font-size: 10pt; }
+  .assinatura-area { width: 100%; display: table; margin-top: 44px; page-break-inside: avoid; }
+  .assinatura-box { display: table-cell; width: 50%; text-align: center; padding: 0 20px; vertical-align: bottom; }
+  .assinatura-linha { border-top: 1px solid #333; padding-top: 6px; font-size: 10pt; line-height: 1.7; }
+  /* ── Testemunhas ── */
+  .testemunhas { margin-top: 36px; page-break-inside: avoid; }
+  .testemunha-grid { width: 100%; display: table; margin-top: 14px; }
+  .testemunha-grid .assinatura-box { padding: 0 20px; }
+  /* ── Rodapé ── */
+  .rodape { text-align: center; font-size: 8pt; color: #aaa; margin-top: 36px; border-top: 1px solid #eee; padding-top: 8px; }
+  /* ── Print ── */
   @media print {
-    @page { size: A4; margin: 2cm; }
-    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
-        letter-spacing: normal !important; word-spacing: normal !important; }
-    body { padding: 0; font-size: 13px; }
-    .clausula { page-break-inside: avoid; }
-    .assinatura-area, .testemunhas, .honorarios-box, .partes-grid { page-break-inside: avoid; }
+    @page { size: A4; margin: 2cm 2.2cm; }
+    body { font-size: 11pt; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .clausula, .honorarios-box, .partes-grid, .assinatura-area, .testemunhas { page-break-inside: avoid; }
     .clausula-titulo { page-break-after: avoid; }
   }
 </style>
