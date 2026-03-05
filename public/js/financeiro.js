@@ -1268,6 +1268,15 @@ async function buscarDadosRelatorio() {
     }
 }
 
+
+function formatarData(str) {
+    if (!str) return '—';
+    // Garante parse correto independente de timezone (adiciona T12:00:00 se vier só YYYY-MM-DD)
+    const s = String(str).substring(0, 10); // pega só YYYY-MM-DD
+    const [y, m, d] = s.split('-');
+    if (!y || !m || !d) return str;
+    return `${d.padStart(2,'0')}/${m.padStart(2,'0')}/${y}`;
+}
 function gerarHTMLRelatorio(dados) {
     const { periodo, lancamentos } = dados;
 
@@ -1575,7 +1584,7 @@ function gerarHTMLRelatorio(dados) {
                 <tbody>
                     ${lancamentos.map(l => {
                         const v = parseFloat(l.valor);
-                        const dt = new Date(l.data_vencimento + 'T12:00:00').toLocaleDateString('pt-BR');
+                        const dt = formatarData(l.data_vencimento);
                         return `<tr>
                             <td style="color:#6b7280;white-space:nowrap;">${dt}</td>
                             <td style="font-weight:500;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.descricao}</td>
@@ -1603,52 +1612,190 @@ function gerarHTMLRelatorio(dados) {
 
 
 async function gerarPDFRelatorio() {
-    // Captura o HTML já renderizado no modal de visualização
     const conteudo = document.getElementById('conteudoRelatorio');
     if (!conteudo || !conteudo.innerHTML.trim()) {
-        alert('⚠️ Visualize o relatório primeiro antes de gerar o PDF.');
+        alert('⚠️ Clique em VISUALIZAR primeiro para carregar o relatório.');
         return;
     }
 
-    const html = `<!DOCTYPE html>
+    // Mostra loading no botão
+    const btns = document.querySelectorAll('[onclick="gerarPDFRelatorio()"]');
+    btns.forEach(b => { b._orig = b.innerHTML; b.innerHTML = '⏳ Gerando PDF...'; b.disabled = true; });
+
+    try {
+        // Cria div oculta com todo o conteúdo formatado para captura
+        const wrapper = document.createElement('div');
+        wrapper.id = '_pdf_capture_area';
+        wrapper.style.cssText = `
+            position: fixed; left: -9999px; top: 0;
+            width: 860px; background: #fff;
+            font-family: 'Inter', Arial, sans-serif;
+            padding: 0; margin: 0;
+            z-index: -1;
+        `;
+        wrapper.innerHTML = conteudo.innerHTML;
+
+        // Injeta os estilos do relatório inline
+        const styleTag = document.createElement('style');
+        styleTag.textContent = `
+            #_pdf_capture_area * { box-sizing: border-box; }
+            #_pdf_capture_area .rel-wrap { font-family: Arial, sans-serif; color: #1a1a2e; background: #fff; }
+            #_pdf_capture_area .rel-header { background: #1E3A5F !important; color: #fff !important; padding: 32px 40px 24px; position: relative; overflow: hidden; }
+            #_pdf_capture_area .rel-header::after { content: ''; position: absolute; right: -40px; top: -40px; width: 200px; height: 200px; background: rgba(255,255,255,0.06); border-radius: 50%; }
+            #_pdf_capture_area .rel-header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+            #_pdf_capture_area .rel-logo { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+            #_pdf_capture_area .rel-logo span { opacity: 0.7; font-weight: 400; font-size: 13px; display: block; margin-top: 2px; }
+            #_pdf_capture_area .rel-periodo-badge { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; color: #fff; }
+            #_pdf_capture_area .rel-title { font-size: 28px; font-weight: 800; color: #fff; margin: 20px 0 4px; letter-spacing: -0.5px; }
+            #_pdf_capture_area .rel-subtitle { color: rgba(255,255,255,0.75); font-size: 13px; }
+            #_pdf_capture_area .rel-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 24px 40px; background: #f8fafc; border-left: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; }
+            #_pdf_capture_area .rel-kpi { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px 18px; position: relative; }
+            #_pdf_capture_area .rel-kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: #6b7280; margin-bottom: 8px; }
+            #_pdf_capture_area .rel-kpi-value { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+            #_pdf_capture_area .rel-kpi-sub { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+            #_pdf_capture_area .rel-kpi-dot { width: 8px; height: 8px; border-radius: 50%; position: absolute; top: 16px; right: 16px; }
+            #_pdf_capture_area .kpi-receita .rel-kpi-value { color: #16a34a; }
+            #_pdf_capture_area .kpi-receita .rel-kpi-dot { background: #16a34a; }
+            #_pdf_capture_area .kpi-despesa .rel-kpi-value { color: #dc2626; }
+            #_pdf_capture_area .kpi-despesa .rel-kpi-dot { background: #dc2626; }
+            #_pdf_capture_area .kpi-saldo .rel-kpi-value { color: #16a34a; }
+            #_pdf_capture_area .kpi-saldo .rel-kpi-dot { background: #16a34a; }
+            #_pdf_capture_area .kpi-margem .rel-kpi-value { color: #7c3aed; }
+            #_pdf_capture_area .kpi-margem .rel-kpi-dot { background: #7c3aed; }
+            #_pdf_capture_area .rel-body { padding: 28px 40px; border: 1px solid #e5e7eb; border-top: none; }
+            #_pdf_capture_area .rel-section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; display: flex; align-items: center; gap: 8px; margin: 0 0 14px; }
+            #_pdf_capture_area .rel-section-title::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
+            #_pdf_capture_area .rel-spark-wrap { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px 24px; margin-bottom: 24px; }
+            #_pdf_capture_area .rel-spark-legend { display: flex; gap: 20px; margin-bottom: 12px; font-size: 12px; }
+            #_pdf_capture_area .rel-spark-legend span { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+            #_pdf_capture_area .leg-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+            #_pdf_capture_area .rel-tops { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+            #_pdf_capture_area .rel-top-card { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 18px 20px; }
+            #_pdf_capture_area .rel-top-card h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin: 0 0 12px; }
+            #_pdf_capture_area .rel-top-card h4.rec { color: #16a34a; }
+            #_pdf_capture_area .rel-top-card h4.desp { color: #dc2626; }
+            #_pdf_capture_area .rel-top-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #e5e7eb; font-size: 12px; }
+            #_pdf_capture_area .rel-top-item:last-child { border-bottom: none; }
+            #_pdf_capture_area .rel-top-name { color: #374151; font-weight: 500; }
+            #_pdf_capture_area .rel-top-val { font-weight: 700; margin-left: 8px; }
+            #_pdf_capture_area .rel-top-val.rec { color: #16a34a; }
+            #_pdf_capture_area .rel-top-val.desp { color: #dc2626; }
+            #_pdf_capture_area .rel-month-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 13px; }
+            #_pdf_capture_area .rel-month-table th { background: #1E3A5F; color: #fff; padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+            #_pdf_capture_area .rel-month-table th:not(:first-child) { text-align: right; }
+            #_pdf_capture_area .rel-month-table td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; }
+            #_pdf_capture_area .rel-month-table td:not(:first-child) { text-align: right; font-weight: 600; }
+            #_pdf_capture_area .rel-detail-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+            #_pdf_capture_area .rel-detail-table thead th { background: #f1f5f9; color: #475569; padding: 9px 12px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
+            #_pdf_capture_area .rel-detail-table thead th:last-child, #_pdf_capture_area .rel-detail-table thead th:nth-child(4) { text-align: right; }
+            #_pdf_capture_area .rel-detail-table tbody td { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+            #_pdf_capture_area .rel-detail-table tbody td:last-child, #_pdf_capture_area .rel-detail-table tbody td:nth-child(4) { text-align: right; }
+            #_pdf_capture_area .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+            #_pdf_capture_area .badge-rec { background: #dcfce7; color: #16a34a; }
+            #_pdf_capture_area .badge-desp { background: #fee2e2; color: #dc2626; }
+            #_pdf_capture_area .badge-pago { background: #dcfce7; color: #15803d; }
+            #_pdf_capture_area .badge-pend { background: #fef3c7; color: #d97706; }
+            #_pdf_capture_area .rel-footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; font-size: 11px; color: #9ca3af; }
+        `;
+        document.head.appendChild(styleTag);
+        document.body.appendChild(wrapper);
+
+        // Aguarda render
+        await new Promise(r => setTimeout(r, 300));
+
+        // Captura com html2canvas
+        const canvas = await html2canvas(wrapper, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            width: 860,
+            windowWidth: 860
+        });
+
+        // Gera PDF com jsPDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pageW = doc.internal.pageSize.getWidth();
+        const pageH = doc.internal.pageSize.getHeight();
+        const margin = 8;
+        const usableW = pageW - margin * 2;
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const canvasRatio = canvas.height / canvas.width;
+        const totalImgH = usableW * canvasRatio;
+
+        let yOffset = 0;
+        let page = 0;
+        const pageImgH = pageH - margin * 2;
+
+        while (yOffset < totalImgH) {
+            if (page > 0) doc.addPage();
+            const srcY = (yOffset / totalImgH) * canvas.height;
+            const srcH = Math.min((pageImgH / totalImgH) * canvas.height, canvas.height - srcY);
+            const sliceCanvas = document.createElement('canvas');
+            sliceCanvas.width = canvas.width;
+            sliceCanvas.height = srcH;
+            const ctx = sliceCanvas.getContext('2d');
+            ctx.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+            const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.95);
+            const sliceH = (srcH / canvas.height) * totalImgH;
+            doc.addImage(sliceData, 'JPEG', margin, margin, usableW, sliceH);
+            yOffset += pageImgH;
+            page++;
+        }
+
+        // Nome do arquivo com período
+        const periodoEl = document.querySelector('#conteudoRelatorio .rel-periodo-badge');
+        const periodo = periodoEl ? periodoEl.textContent.trim().replace(/[^a-zA-Z0-9À-ÿ\s]/g, '').trim().replace(/\s+/g, '-') : new Date().toISOString().split('T')[0];
+        doc.save(`relatorio-financeiro-${periodo}.pdf`);
+
+    } catch (err) {
+        console.error('Erro ao gerar PDF:', err);
+        alert('Erro ao gerar PDF. Tente novamente.');
+    } finally {
+        // Limpa elementos temporários
+        const cap = document.getElementById('_pdf_capture_area');
+        if (cap) cap.remove();
+        const st = document.querySelector('style[data-pdf-style]');
+        if (st) st.remove();
+        btns.forEach(b => { b.innerHTML = b._orig; b.disabled = false; });
+    }
+}
+function imprimirInteligente() {
+    // Verifica se há relatório visualizado no modal
+    const conteudo = document.getElementById('conteudoRelatorio');
+    const temRelatorio = conteudo && conteudo.innerHTML.trim();
+
+    if (temRelatorio) {
+        // Imprime o layout profissional do relatório de faturamento
+        const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/>
 <title>Relatório de Faturamento — LawTech Pro</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  body { font-family: 'DM Sans', Arial, sans-serif; background: #fff; color: #1a1a2e; padding: 0; margin: 0; }
-  .page-wrap { max-width: 860px; margin: 0 auto; }
-
-  /* ── Todos os estilos do gerarHTMLRelatorio ── */
-  .rel-wrap { font-family: 'DM Sans', Arial, sans-serif; color: #1a1a2e; max-width: 860px; margin: 0 auto; background: #fff; }
-  .rel-header { background: linear-gradient(135deg, #1E3A5F 0%, #2563eb 100%); color: #fff; padding: 32px 40px 24px; border-radius: 12px 12px 0 0; position: relative; overflow: hidden; }
-  .rel-header::after { content: ''; position: absolute; right: -40px; top: -40px; width: 200px; height: 200px; background: rgba(255,255,255,0.06); border-radius: 50%; }
+  body { font-family: Arial, sans-serif; background: #fff; color: #1a1a2e; }
+  .rel-header { background: #1E3A5F !important; color: #fff !important; padding: 32px 40px 24px; position: relative; overflow: hidden; }
   .rel-header-top { display: flex; justify-content: space-between; align-items: flex-start; }
-  .rel-logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .rel-logo { font-size: 22px; font-weight: 800; color: #fff; }
   .rel-logo span { opacity: 0.7; font-weight: 400; font-size: 13px; display: block; margin-top: 2px; }
-  .rel-periodo-badge { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; }
-  .rel-title { font-size: 28px; font-weight: 800; margin: 20px 0 4px; letter-spacing: -0.5px; }
-  .rel-subtitle { opacity: 0.75; font-size: 13px; }
-  .total-anual { display: none; }
+  .rel-periodo-badge { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; color: #fff; }
+  .rel-title { font-size: 28px; font-weight: 800; color: #fff; margin: 20px 0 4px; }
+  .rel-subtitle { color: rgba(255,255,255,0.75); font-size: 13px; }
   .rel-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 24px 40px; background: #f8fafc; border-left: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; }
   .rel-kpi { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px 18px; position: relative; }
   .rel-kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: #6b7280; margin-bottom: 8px; }
-  .rel-kpi-value { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+  .rel-kpi-value { font-size: 20px; font-weight: 800; }
   .rel-kpi-sub { font-size: 11px; color: #9ca3af; margin-top: 4px; }
   .rel-kpi-dot { width: 8px; height: 8px; border-radius: 50%; position: absolute; top: 16px; right: 16px; }
-  .kpi-receita .rel-kpi-value { color: #16a34a; }
-  .kpi-receita .rel-kpi-dot { background: #16a34a; }
-  .kpi-despesa .rel-kpi-value { color: #dc2626; }
-  .kpi-despesa .rel-kpi-dot { background: #dc2626; }
-  .kpi-saldo .rel-kpi-value { color: #16a34a; }
-  .kpi-saldo .rel-kpi-dot { background: #16a34a; }
-  .kpi-margem .rel-kpi-value { color: #7c3aed; }
-  .kpi-margem .rel-kpi-dot { background: #7c3aed; }
+  .kpi-receita .rel-kpi-value { color: #16a34a; } .kpi-receita .rel-kpi-dot { background: #16a34a; }
+  .kpi-despesa .rel-kpi-value { color: #dc2626; } .kpi-despesa .rel-kpi-dot { background: #dc2626; }
+  .kpi-saldo .rel-kpi-value { color: #16a34a; } .kpi-saldo .rel-kpi-dot { background: #16a34a; }
+  .kpi-margem .rel-kpi-value { color: #7c3aed; } .kpi-margem .rel-kpi-dot { background: #7c3aed; }
   .rel-body { padding: 28px 40px; border: 1px solid #e5e7eb; border-top: none; }
-  .rel-section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
+  .rel-section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; display: flex; align-items: center; gap: 8px; margin: 0 0 14px; }
   .rel-section-title::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
   .rel-spark-wrap { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px 24px; margin-bottom: 24px; }
   .rel-spark-legend { display: flex; gap: 20px; margin-bottom: 12px; font-size: 12px; }
@@ -1656,66 +1803,45 @@ async function gerarPDFRelatorio() {
   .leg-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
   .rel-tops { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
   .rel-top-card { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 18px 20px; }
-  .rel-top-card h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin: 0 0 12px; }
-  .rel-top-card h4.rec { color: #16a34a; }
-  .rel-top-card h4.desp { color: #dc2626; }
-  .rel-top-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #e5e7eb; font-size: 12px; }
+  .rel-top-card h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; margin: 0 0 12px; }
+  .rel-top-card h4.rec { color: #16a34a; } .rel-top-card h4.desp { color: #dc2626; }
+  .rel-top-item { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #e5e7eb; font-size: 12px; }
   .rel-top-item:last-child { border-bottom: none; }
-  .rel-top-name { color: #374151; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
-  .rel-top-val { font-weight: 700; white-space: nowrap; margin-left: 8px; }
-  .rel-top-val.rec { color: #16a34a; }
-  .rel-top-val.desp { color: #dc2626; }
+  .rel-top-val { font-weight: 700; } .rel-top-val.rec { color: #16a34a; } .rel-top-val.desp { color: #dc2626; }
   .rel-month-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 13px; }
-  .rel-month-table th { background: #1E3A5F; color: #fff; padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .rel-month-table th { background: #1E3A5F !important; color: #fff !important; padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; }
   .rel-month-table th:not(:first-child) { text-align: right; }
   .rel-month-table td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; }
   .rel-month-table td:not(:first-child) { text-align: right; font-weight: 600; }
-  .rel-month-table tr:last-child td { border-bottom: none; font-weight: 700; background: #f8fafc; }
   .rel-detail-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .rel-detail-table thead th { background: #f1f5f9; color: #475569; padding: 9px 12px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .rel-detail-table thead th { background: #f1f5f9 !important; color: #475569; padding: 9px 12px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
   .rel-detail-table thead th:last-child, .rel-detail-table thead th:nth-child(4) { text-align: right; }
   .rel-detail-table tbody td { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
   .rel-detail-table tbody td:last-child, .rel-detail-table tbody td:nth-child(4) { text-align: right; }
-  .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-  .badge-rec { background: #dcfce7; color: #16a34a; }
-  .badge-desp { background: #fee2e2; color: #dc2626; }
-  .badge-pago { background: #dcfce7; color: #15803d; }
-  .badge-pend { background: #fef3c7; color: #d97706; }
-  .rel-footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #9ca3af; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+  .badge-rec { background: #dcfce7 !important; color: #16a34a; }
+  .badge-desp { background: #fee2e2 !important; color: #dc2626; }
+  .badge-pago { background: #dcfce7 !important; color: #15803d; }
+  .badge-pend { background: #fef3c7 !important; color: #d97706; }
+  .rel-footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; font-size: 11px; color: #9ca3af; }
   @media print {
     @page { margin: 12mm 10mm; size: A4; }
-    .rel-wrap { max-width: 100%; }
-    .rel-header { border-radius: 0; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body { margin: 0; }
   }
 </style>
 </head>
 <body>
-<div class="page-wrap">
-  ${conteudo.innerHTML}
-</div>
-<script>
-  window.onload = function() { setTimeout(function() { window.print(); }, 400); };
-<\/script>
+${conteudo.innerHTML}
+<script>window.onload = function() { setTimeout(function() { window.print(); window.close(); }, 400); };<\/script>
 </body>
 </html>`;
-
-    const win = window.open('', '_blank', 'width=920,height=750');
-    if (!win) { alert('Permita pop-ups para gerar o PDF.'); return; }
-    win.document.write(html);
-    win.document.close();
-}
-
-function imprimirInteligente() {
-    // Se o modal de visualização do relatório estiver aberto, imprime o relatório
-    const modalViz = document.getElementById('modalVisualizacaoRelatorio');
-    const conteudo = document.getElementById('conteudoRelatorio');
-    const modalAberto = modalViz && modalViz.style.display !== 'none' && conteudo && conteudo.innerHTML.trim();
-
-    if (modalAberto) {
-        // Usa a mesma janela profissional do gerarPDFRelatorio
-        gerarPDFRelatorio();
+        const win = window.open('', '_blank', 'width=920,height=750');
+        if (!win) { alert('Permita pop-ups para imprimir.'); return; }
+        win.document.write(html);
+        win.document.close();
     } else {
-        // Impressão normal da tabela
+        // Sem relatório carregado: imprime a tabela normal
         window.print();
     }
 }
