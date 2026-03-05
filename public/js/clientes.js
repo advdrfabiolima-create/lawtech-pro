@@ -999,7 +999,7 @@ const token = localStorage.getItem('token');
                         </div>
                         <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
                             <button onclick="_gerarTemplate(${c.id})" style="${_btnSmall('#3b82f6')}">
-                                <i class="lucide lucide-file-text" style="width:13px;height:13px;"></i> VER TEMPLATE
+                                <i class="lucide lucide-file-down" style="width:13px;height:13px;"></i> CONTRATO PDF
                             </button>
                             ${c.tem_arquivo
                                 ? `<button onclick="_downloadContrato(${c.id})" style="${_btnSmall('#10b981')}"><i class="lucide lucide-download" style="width:13px;height:13px;"></i> BAIXAR PDF</button>`

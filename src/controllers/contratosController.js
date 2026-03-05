@@ -269,6 +269,11 @@ async function gerarTemplate(req, res) {
 <style>
   @page { margin: 2.5cm; }
   body { font-family: 'Times New Roman', Times, serif; font-size: 13px; color: #1a1a1a; line-height: 1.8; max-width: 780px; margin: 0 auto; padding: 40px; }
+  @media print {
+    @page { margin: 18mm 15mm; size: A4; }
+    body { padding: 0; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  }
   .cabecalho { text-align: center; border-bottom: 3px double #1E3A5F; padding-bottom: 20px; margin-bottom: 28px; }
   .cabecalho .escritorio-nome { font-size: 17px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; color: #1E3A5F; }
   .cabecalho .escritorio-info { font-size: 11px; color: #666; margin-top: 4px; }
@@ -454,6 +459,9 @@ ${contrato.observacoes ? `<div class="clausula">
   Documento gerado pelo sistema LawTech Pro — Este instrumento possui validade jurídica nos termos da legislação vigente.
 </div>
 
+<script>
+  window.onload = function() { setTimeout(function() { window.print(); }, 500); };
+</script>
 </body>
 </html>`
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
