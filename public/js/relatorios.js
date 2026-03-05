@@ -1,4 +1,3 @@
-
 // ========== AUTH & GLOBALS ==========
 let abaAtual = 'financeiro';
 const chartInstances = {};
@@ -438,52 +437,222 @@ function carregarRelatorio() {
 
 // ========== EXPORTAR PDF ==========
 async function exportarPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('p', 'mm', 'a4');
-    const pageW = doc.internal.pageSize.getWidth();
+    // Coletar dados já carregados na tela
+    const abaLabels = {
+        financeiro: 'Financeiro',
+        prazos: 'Prazos',
+        processos: 'Processos',
+        produtividade: 'Produtividade',
+        crm: 'CRM'
+    };
+    const abaLabel = abaLabels[abaAtual] || abaAtual;
+    const periodoEl = document.getElementById('selectPeriodo');
+    const periodoLabel = periodoEl ? periodoEl.options[periodoEl.selectedIndex].text : '';
+    const dataGeracao = new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
-    doc.text('LawTech Pro - Relatório', pageW / 2, 20, { align: 'center' });
-
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    const abaLabel = abaAtual.charAt(0).toUpperCase() + abaAtual.slice(1);
-    doc.text(`Aba: ${abaLabel}  |  Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, pageW / 2, 30, { align: 'center' });
-
-    let yPos = 45;
-
-    // Render summary cards text
+    // Capturar KPIs
     const summaryEl = document.getElementById(`summary-${abaAtual}`);
-    const cards = summaryEl.querySelectorAll('.summary-card');
-    cards.forEach(card => {
-        const label = card.querySelector('.label').textContent;
-        const value = card.querySelector('.value').textContent;
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.text(`${label}: `, 15, yPos);
-        doc.setFont('helvetica', 'normal');
-        doc.text(value, 60, yPos);
-        yPos += 7;
-    });
-
-    yPos += 5;
-
-    // Render charts as images
-    const canvases = document.querySelectorAll(`#charts-${abaAtual} canvas`);
-    for (const canvas of canvases) {
-        if (yPos > 240) { doc.addPage(); yPos = 20; }
-        const imgData = canvas.toDataURL('image/png');
-        const ratio = canvas.width / canvas.height;
-        const imgW = pageW - 30;
-        const imgH = imgW / ratio;
-        doc.addImage(imgData, 'PNG', 15, yPos, imgW, Math.min(imgH, 120));
-        yPos += Math.min(imgH, 120) + 10;
+    const kpis = [];
+    if (summaryEl) {
+        summaryEl.querySelectorAll('.summary-card').forEach(card => {
+            const label = card.querySelector('.label')?.textContent || '';
+            const value = card.querySelector('.value')?.textContent || '';
+            const color = card.querySelector('.value')?.className?.match(/\b(green|blue|red|orange|purple)\b/)?.[1] || 'blue';
+            kpis.push({ label, value, color });
+        });
     }
 
-    doc.save(`relatorio-${abaAtual}-${new Date().toISOString().split('T')[0]}.pdf`);
-}
+    // Capturar gráficos como imagem (canvas → base64)
+    const chartsEl = document.getElementById(`charts-${abaAtual}`);
+    const graficos = [];
+    if (chartsEl) {
+        chartsEl.querySelectorAll('.chart-card').forEach(card => {
+            const titulo = card.querySelector('h3')?.textContent || '';
+            const canvas = card.querySelector('canvas');
+            if (canvas) {
+                const img = canvas.toDataURL('image/png', 1.0);
+                const isHorizontal = canvas.width < canvas.height || canvas.offsetWidth > canvas.offsetHeight;
+                graficos.push({ titulo, img, w: canvas.offsetWidth, h: canvas.offsetHeight });
+            }
+        });
+    }
 
+    // Cores dos KPIs
+    const corMap = {
+        green:  { bg: '#f0fdf4', border: '#bbf7d0', text: '#15803d', dot: '#22c55e' },
+        blue:   { bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8', dot: '#3b82f6' },
+        red:    { bg: '#fef2f2', border: '#fecaca', text: '#dc2626', dot: '#ef4444' },
+        orange: { bg: '#fff7ed', border: '#fed7aa', text: '#c2410c', dot: '#f97316' },
+        purple: { bg: '#faf5ff', border: '#e9d5ff', text: '#7c3aed', dot: '#a855f7' },
+    };
+
+    const kpisHTML = kpis.map(k => {
+        const c = corMap[k.color] || corMap.blue;
+        return `
+        <div style="flex:1;min-width:0;background:${c.bg};border:1.5px solid ${c.border};border-radius:10px;padding:16px 18px;position:relative;box-sizing:border-box;">
+            <div style="width:8px;height:8px;border-radius:50%;background:${c.dot};position:absolute;top:14px;right:14px;"></div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#6b7280;margin-bottom:8px;">${k.label}</div>
+            <div style="font-size:22px;font-weight:800;color:${c.text};letter-spacing:-0.5px;line-height:1;">${k.value}</div>
+        </div>`;
+    }).join('');
+
+    // Gráficos: 2 por linha, proporcional
+    let graficosHTML = '';
+    for (let i = 0; i < graficos.length; i += 2) {
+        const g1 = graficos[i];
+        const g2 = graficos[i + 1];
+        const renderGraf = (g) => `
+            <div style="flex:1;min-width:0;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:18px 20px;box-sizing:border-box;">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#9ca3af;margin-bottom:12px;">${g.titulo}</div>
+                <img src="${g.img}" style="width:100%;height:auto;display:block;border-radius:4px;" />
+            </div>`;
+        graficosHTML += `
+        <div style="display:flex;gap:16px;margin-bottom:16px;">
+            ${renderGraf(g1)}
+            ${g2 ? renderGraf(g2) : '<div style="flex:1;min-width:0;"></div>'}
+        </div>`;
+    }
+
+    const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<title>Relatório ${abaLabel} — LawTech Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: 'DM Sans', Arial, sans-serif; background: #fff; color: #1a1a2e; }
+
+  .page { max-width: 860px; margin: 0 auto; padding: 0; }
+
+  /* ── Cabeçalho ── */
+  .header {
+    background: #1E3A5F;
+    padding: 36px 44px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    right: -60px; top: -60px;
+    width: 260px; height: 260px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    right: 60px; bottom: -80px;
+    width: 180px; height: 180px;
+    background: rgba(74,144,226,0.12);
+    border-radius: 50%;
+  }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+  .logo { font-family: 'DM Serif Display', serif; font-size: 20px; color: #fff; letter-spacing: 0; }
+  .logo small { display: block; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 400; opacity: 0.55; margin-top: 2px; letter-spacing: 0.5px; }
+  .badge-aba { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #fff; }
+  .header-title { font-family: 'DM Serif Display', serif; font-size: 32px; color: #fff; letter-spacing: -0.5px; margin-bottom: 6px; }
+  .header-meta { color: rgba(255,255,255,0.55); font-size: 12px; display: flex; gap: 20px; align-items: center; }
+  .header-meta span { display: flex; align-items: center; gap: 5px; }
+  .header-meta span::before { content: '·'; }
+  .header-meta span:first-child::before { content: ''; }
+
+  /* ── Linha separadora decorativa ── */
+  .stripe { height: 4px; background: linear-gradient(90deg, #4A90E2 0%, #52B788 40%, #F2A65A 70%, #E76F51 100%); }
+
+  /* ── KPIs ── */
+  .kpi-section { background: #f8fafc; padding: 24px 44px; border-left: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; }
+  .kpi-row { display: flex; gap: 12px; }
+
+  /* ── Corpo ── */
+  .body { padding: 28px 44px 36px; border: 1px solid #e5e7eb; border-top: none; }
+
+  .section-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: #9ca3af;
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 18px; margin-top: 28px;
+  }
+  .section-label:first-child { margin-top: 0; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
+
+  /* ── Rodapé ── */
+  .footer {
+    padding: 16px 44px;
+    border: 1px solid #e5e7eb; border-top: none;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: #9ca3af;
+    border-radius: 0 0 8px 8px;
+  }
+  .footer-brand { font-weight: 700; color: #1E3A5F; }
+
+  @media print {
+    @page { margin: 10mm 8mm; size: A4; }
+    .page { max-width: 100%; }
+    .header { border-radius: 0; }
+    .footer { border-radius: 0; }
+    .kpi-section, .body, .footer { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .no-break { page-break-inside: avoid; }
+    button.btn-print { display: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Cabeçalho -->
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">LawTech Pro <small>Sistema Jurídico Inteligente</small></div>
+      <div class="badge-aba">Relatório de ${abaLabel}</div>
+    </div>
+    <div class="header-title">Relatório de ${abaLabel}</div>
+    <div class="header-meta">
+      <span>${dataGeracao}</span>
+      ${periodoLabel ? `<span>${periodoLabel}</span>` : ''}
+    </div>
+  </div>
+
+  <!-- Faixa colorida -->
+  <div class="stripe"></div>
+
+  <!-- KPIs -->
+  ${kpis.length ? `
+  <div class="kpi-section">
+    <div class="kpi-row">${kpisHTML}</div>
+  </div>` : ''}
+
+  <!-- Gráficos -->
+  <div class="body">
+    ${graficos.length ? `
+    <div class="section-label">Visualizações</div>
+    ${graficosHTML}` : '<p style="color:#9ca3af;text-align:center;padding:32px 0;">Nenhum gráfico disponível</p>'}
+  </div>
+
+  <!-- Rodapé -->
+  <div class="footer">
+    <span class="footer-brand">LawTech Pro</span>
+    <span>Relatório de ${abaLabel} · ${dataGeracao}</span>
+  </div>
+
+</div>
+
+<script>
+  window.onload = function() {
+    // Pequeno delay para garantir que as imagens carregaram
+    setTimeout(function() { window.print(); }, 400);
+  };
+<\/script>
+</body>
+</html>`;
+
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if (!win) { alert('Permita pop-ups para gerar o PDF.'); return; }
+    win.document.write(html);
+    win.document.close();
+}
 // ========== EXPORTAR CSV ==========
 function exportarCSV() {
     let csvContent = '\uFEFF'; // BOM UTF-8 for Excel

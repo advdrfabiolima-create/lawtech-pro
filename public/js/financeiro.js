@@ -115,7 +115,6 @@ async function inicializar() {
                 return;
             }
             renderizar(originalData);
-            carregarSaldoReal(); // Atualiza cards com o mês selecionado
         }
 
         function renderizar(lista) {
@@ -995,9 +994,7 @@ async function confirmarBoleto() {
 
 async function carregarSaldoReal() {
     try {
-        const mes = window._finMes || (new Date().getMonth() + 1);
-        const ano = window._finAno || new Date().getFullYear();
-        const res = await fetch(`/api/financeiro/saldo-real?mes=${mes}&ano=${ano}`, { 
+        const res = await fetch('/api/financeiro/saldo-real', { 
             headers: { Authorization: `Bearer ${token}` } 
         });
         
@@ -1269,168 +1266,337 @@ async function buscarDadosRelatorio() {
 
 function gerarHTMLRelatorio(dados) {
     const { periodo, lancamentos } = dados;
-    
-    // Calcular totais
-    let totalReceitas = 0;
-    let totalDespesas = 0;
-    
-    lancamentos.forEach(lanc => {
-        const valor = parseFloat(lanc.valor);
-        if (lanc.tipo === 'Receita') {
-            totalReceitas += valor;
+
+    let totalReceitas = 0, totalDespesas = 0;
+    let totalReceitasPagas = 0, totalReceitasPendentes = 0;
+    let totalDespesasPagas = 0, totalDespesasPendentes = 0;
+
+    lancamentos.forEach(l => {
+        const v = parseFloat(l.valor);
+        if (l.tipo === 'Receita') {
+            totalReceitas += v;
+            if (l.status === 'Pago') totalReceitasPagas += v;
+            else totalReceitasPendentes += v;
         } else {
-            totalDespesas += valor;
+            totalDespesas += v;
+            if (l.status === 'Pago') totalDespesasPagas += v;
+            else totalDespesasPendentes += v;
         }
     });
-    
-    const lucroLiquido = totalReceitas - totalDespesas;
-    
-    // Agrupar por mês (se for relatório anual)
+
+    const saldoLiquido = totalReceitasPagas - totalDespesasPagas;
+    const margem = totalReceitasPagas > 0 ? ((saldoLiquido / totalReceitasPagas) * 100).toFixed(1) : '0.0';
+
+    const fmt = v => 'R$ ' + parseFloat(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    // Agrupar por mês
     const porMes = {};
-    lancamentos.forEach(lanc => {
-        const mes = lanc.data_vencimento.substring(0, 7); // YYYY-MM
-        if (!porMes[mes]) {
-            porMes[mes] = { receitas: 0, despesas: 0 };
-        }
-        
-        const valor = parseFloat(lanc.valor);
-        if (lanc.tipo === 'Receita') {
-            porMes[mes].receitas += valor;
-        } else {
-            porMes[mes].despesas += valor;
-        }
+    lancamentos.forEach(l => {
+        const mes = l.data_vencimento.substring(0, 7);
+        if (!porMes[mes]) porMes[mes] = { receitas: 0, despesas: 0 };
+        const v = parseFloat(l.valor);
+        if (l.tipo === 'Receita') porMes[mes].receitas += v;
+        else porMes[mes].despesas += v;
     });
-    
-    let html = `
-        <div style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid var(--border-medium);">
-            <h2 style="font-size: 24px; font-weight: 900; margin-bottom: 8px;">Relatório de Faturamento</h2>
-            <p style="font-size: 16px; color: var(--text-secondary); font-weight: 600;">${periodo}</p>
-            <p style="font-size: 12px; color: var(--muted); margin-top: 8px;">Gerado em ${new Date().toLocaleString('pt-BR')}</p>
+
+    // Agrupar por beneficiário/descrição para top lançamentos
+    const porDesc = {};
+    lancamentos.forEach(l => {
+        const key = l.tipo === 'Receita' ? (l.beneficiario || l.descricao) : l.descricao;
+        if (!porDesc[key]) porDesc[key] = { tipo: l.tipo, total: 0, count: 0 };
+        porDesc[key].total += parseFloat(l.valor);
+        porDesc[key].count++;
+    });
+    const topReceitas = Object.entries(porDesc)
+        .filter(([,v]) => v.tipo === 'Receita')
+        .sort((a,b) => b[1].total - a[1].total)
+        .slice(0, 5);
+    const topDespesas = Object.entries(porDesc)
+        .filter(([,v]) => v.tipo === 'Despesa')
+        .sort((a,b) => b[1].total - a[1].total)
+        .slice(0, 5);
+
+    const mesesNome = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const isMultiMes = Object.keys(porMes).length > 1;
+
+    const saldoCor = saldoLiquido >= 0 ? '#16a34a' : '#dc2626';
+    const saldoBg  = saldoLiquido >= 0 ? '#f0fdf4' : '#fef2f2';
+    const saldoBorder = saldoLiquido >= 0 ? '#bbf7d0' : '#fecaca';
+
+    // Linha do tempo mensal (SVG sparkline simples)
+    let sparklineSVG = '';
+    const mesesKeys = Object.keys(porMes).sort();
+    if (mesesKeys.length > 1) {
+        const maxVal = Math.max(...mesesKeys.map(k => Math.max(porMes[k].receitas, porMes[k].despesas)));
+        const W = 420, H = 60, pad = 10;
+        const pts = (tipo) => mesesKeys.map((k,i) => {
+            const x = pad + (i / (mesesKeys.length - 1)) * (W - pad*2);
+            const y = H - pad - ((porMes[k][tipo] / maxVal) * (H - pad*2));
+            return `${x.toFixed(1)},${y.toFixed(1)}`;
+        }).join(' ');
+        sparklineSVG = `
+        <svg width="${W}" height="${H}" style="overflow:visible;">
+            <polyline points="${pts('receitas')}" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linejoin="round"/>
+            <polyline points="${pts('despesas')}" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linejoin="round"/>
+            ${mesesKeys.map((k,i) => {
+                const x = pad + (i / (mesesKeys.length-1)) * (W - pad*2);
+                const yr = H - pad - ((porMes[k].receitas / maxVal) * (H - pad*2));
+                const yd = H - pad - ((porMes[k].despesas / maxVal) * (H - pad*2));
+                const [,mn] = k.split('-');
+                return `<circle cx="${x.toFixed(1)}" cy="${yr.toFixed(1)}" r="3.5" fill="#16a34a"/>
+                        <circle cx="${x.toFixed(1)}" cy="${yd.toFixed(1)}" r="3.5" fill="#dc2626"/>
+                        <text x="${x.toFixed(1)}" y="${H}" text-anchor="middle" font-size="9" fill="#6b7280">${mesesNome[parseInt(mn)-1]}</text>`;
+            }).join('')}
+        </svg>`;
+    }
+
+    return `
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        .rel-wrap { font-family: 'Inter', Arial, sans-serif; color: #1a1a2e; max-width: 860px; margin: 0 auto; background: #fff; }
+
+        /* Cabeçalho */
+        .rel-header { background: linear-gradient(135deg, #1E3A5F 0%, #2563eb 100%); color: #fff; padding: 32px 40px 24px; border-radius: 12px 12px 0 0; position: relative; overflow: hidden; }
+        .rel-header::after { content: ''; position: absolute; right: -40px; top: -40px; width: 200px; height: 200px; background: rgba(255,255,255,0.06); border-radius: 50%; }
+        .rel-header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        .rel-logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+        .rel-logo span { opacity: 0.7; font-weight: 400; font-size: 13px; display: block; margin-top: 2px; }
+        .rel-periodo-badge { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+        .rel-title { font-size: 28px; font-weight: 800; margin: 20px 0 4px; letter-spacing: -0.5px; }
+        .rel-subtitle { opacity: 0.75; font-size: 13px; }
+
+        /* KPI cards */
+        .rel-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 24px 40px; background: #f8fafc; border-left: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; }
+        .rel-kpi { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px 18px; position: relative; }
+        .rel-kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: #6b7280; margin-bottom: 8px; }
+        .rel-kpi-value { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+        .rel-kpi-sub { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+        .rel-kpi-dot { width: 8px; height: 8px; border-radius: 50%; position: absolute; top: 16px; right: 16px; }
+        .kpi-receita .rel-kpi-value { color: #16a34a; }
+        .kpi-receita .rel-kpi-dot { background: #16a34a; }
+        .kpi-despesa .rel-kpi-value { color: #dc2626; }
+        .kpi-despesa .rel-kpi-dot { background: #dc2626; }
+        .kpi-saldo { border: 2px solid ${saldoBorder}; background: ${saldoBg}; }
+        .kpi-saldo .rel-kpi-value { color: ${saldoCor}; }
+        .kpi-saldo .rel-kpi-dot { background: ${saldoCor}; }
+        .kpi-margem .rel-kpi-value { color: #7c3aed; }
+        .kpi-margem .rel-kpi-dot { background: #7c3aed; }
+
+        /* Body */
+        .rel-body { padding: 28px 40px; border: 1px solid #e5e7eb; border-top: none; }
+        .rel-section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
+        .rel-section-title::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
+
+        /* Evolução mensal */
+        .rel-spark-wrap { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px 24px; margin-bottom: 24px; }
+        .rel-spark-legend { display: flex; gap: 20px; margin-bottom: 12px; font-size: 12px; }
+        .rel-spark-legend span { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+        .leg-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        /* Top lançamentos */
+        .rel-tops { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+        .rel-top-card { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 18px 20px; }
+        .rel-top-card h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin: 0 0 12px; }
+        .rel-top-card h4.rec { color: #16a34a; }
+        .rel-top-card h4.desp { color: #dc2626; }
+        .rel-top-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #e5e7eb; font-size: 12px; }
+        .rel-top-item:last-child { border-bottom: none; }
+        .rel-top-name { color: #374151; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+        .rel-top-val { font-weight: 700; white-space: nowrap; margin-left: 8px; }
+        .rel-top-val.rec { color: #16a34a; }
+        .rel-top-val.desp { color: #dc2626; }
+
+        /* Tabela mensal */
+        .rel-month-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 13px; }
+        .rel-month-table th { background: #1E3A5F; color: #fff; padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .rel-month-table th:not(:first-child) { text-align: right; }
+        .rel-month-table td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; }
+        .rel-month-table td:not(:first-child) { text-align: right; font-weight: 600; }
+        .rel-month-table tr:last-child td { border-bottom: none; font-weight: 700; background: #f8fafc; }
+        .rel-month-table tr:hover td { background: #f0f9ff; }
+
+        /* Tabela detalhada */
+        .rel-detail-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .rel-detail-table thead th { background: #f1f5f9; color: #475569; padding: 9px 12px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; }
+        .rel-detail-table thead th:last-child, .rel-detail-table thead th:nth-child(4) { text-align: right; }
+        .rel-detail-table tbody td { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        .rel-detail-table tbody td:last-child, .rel-detail-table tbody td:nth-child(4) { text-align: right; }
+        .rel-detail-table tbody tr:hover td { background: #f8fafc; }
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+        .badge-rec { background: #dcfce7; color: #16a34a; }
+        .badge-desp { background: #fee2e2; color: #dc2626; }
+        .badge-pago { background: #dcfce7; color: #15803d; }
+        .badge-pend { background: #fef3c7; color: #d97706; }
+
+        /* Rodapé */
+        .rel-footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #9ca3af; }
+
+        @media print {
+            @page { margin: 14mm 12mm; size: A4; }
+            .rel-wrap { max-width: 100%; }
+            .rel-header { border-radius: 0; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            .rel-kpi { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            .kpi-saldo { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            .rel-month-table th { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            .badge { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            .badge-rec, .badge-desp, .badge-pago, .badge-pend { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            tr { page-break-inside: avoid; }
+        }
+    </style>
+
+    <div class="rel-wrap">
+
+        <!-- Cabeçalho -->
+        <div class="rel-header">
+            <div class="rel-header-top">
+                <div class="rel-logo">LawTech Pro <span>Sistema Jurídico Inteligente</span></div>
+                <div class="rel-periodo-badge">📅 ${periodo}</div>
+            </div>
+            <div class="rel-title">Relatório Financeiro</div>
+            <div class="rel-subtitle">Gerado em ${new Date().toLocaleString('pt-BR')} &nbsp;·&nbsp; ${lancamentos.length} lançamento${lancamentos.length !== 1 ? 's' : ''}</div>
         </div>
-        
-        <!-- Resumo Geral -->
-        <div class="relatorio-resumo">
-            <h3 style="font-weight: 800; margin-bottom: 15px; text-align: center;">💰 Resumo Financeiro</h3>
-            <div class="relatorio-resumo-grid">
-                <div class="relatorio-resumo-item">
-                    <div class="relatorio-resumo-label">Total Receitas</div>
-                    <div class="relatorio-resumo-valor valor-positivo">R$ ${totalReceitas.toFixed(2).replace('.', ',')}</div>
-                </div>
-                <div class="relatorio-resumo-item">
-                    <div class="relatorio-resumo-label">Total Despesas</div>
-                    <div class="relatorio-resumo-valor valor-negativo">R$ ${totalDespesas.toFixed(2).replace('.', ',')}</div>
-                </div>
-                <div class="relatorio-resumo-item">
-                    <div class="relatorio-resumo-label">Lucro Líquido</div>
-                    <div class="relatorio-resumo-valor ${lucroLiquido >= 0 ? 'valor-positivo' : 'valor-negativo'}">
-                        R$ ${lucroLiquido.toFixed(2).replace('.', ',')}
-                    </div>
-                </div>
+
+        <!-- KPIs -->
+        <div class="rel-kpis">
+            <div class="rel-kpi kpi-receita">
+                <div class="rel-kpi-dot"></div>
+                <div class="rel-kpi-label">Receitas Recebidas</div>
+                <div class="rel-kpi-value">${fmt(totalReceitasPagas)}</div>
+                ${totalReceitasPendentes > 0 ? `<div class="rel-kpi-sub">+ ${fmt(totalReceitasPendentes)} a receber</div>` : '<div class="rel-kpi-sub">Sem pendências</div>'}
+            </div>
+            <div class="rel-kpi kpi-despesa">
+                <div class="rel-kpi-dot"></div>
+                <div class="rel-kpi-label">Despesas Pagas</div>
+                <div class="rel-kpi-value">${fmt(totalDespesasPagas)}</div>
+                ${totalDespesasPendentes > 0 ? `<div class="rel-kpi-sub">+ ${fmt(totalDespesasPendentes)} a pagar</div>` : '<div class="rel-kpi-sub">Sem pendências</div>'}
+            </div>
+            <div class="rel-kpi kpi-saldo">
+                <div class="rel-kpi-dot"></div>
+                <div class="rel-kpi-label">Saldo Líquido</div>
+                <div class="rel-kpi-value">${fmt(saldoLiquido)}</div>
+                <div class="rel-kpi-sub">${saldoLiquido >= 0 ? '▲ Resultado positivo' : '▼ Resultado negativo'}</div>
+            </div>
+            <div class="rel-kpi kpi-margem">
+                <div class="rel-kpi-dot"></div>
+                <div class="rel-kpi-label">Margem Líquida</div>
+                <div class="rel-kpi-value">${margem}%</div>
+                <div class="rel-kpi-sub">Sobre receitas recebidas</div>
             </div>
         </div>
-    `;
-    
-    // Se for anual, mostrar breakdown por mês
-    if (Object.keys(porMes).length > 1) {
-        html += `
-            <h3 style="font-weight: 800; margin: 30px 0 15px 0;">📅 Breakdown Mensal</h3>
-            <table class="relatorio-table">
+
+        <!-- Corpo -->
+        <div class="rel-body">
+
+            ${isMultiMes && sparklineSVG ? `
+            <div class="rel-section-title">Evolução Mensal</div>
+            <div class="rel-spark-wrap">
+                <div class="rel-spark-legend">
+                    <span><span class="leg-dot" style="background:#16a34a"></span>Receitas</span>
+                    <span><span class="leg-dot" style="background:#dc2626"></span>Despesas</span>
+                </div>
+                ${sparklineSVG}
+            </div>` : ''}
+
+            ${topReceitas.length > 0 || topDespesas.length > 0 ? `
+            <div class="rel-section-title">Principais Lançamentos</div>
+            <div class="rel-tops">
+                <div class="rel-top-card">
+                    <h4 class="rec">↑ Top Receitas</h4>
+                    ${topReceitas.map(([nome, v]) => `
+                    <div class="rel-top-item">
+                        <span class="rel-top-name">${nome}</span>
+                        <span class="rel-top-val rec">${fmt(v.total)}</span>
+                    </div>`).join('')}
+                    ${topReceitas.length === 0 ? '<div style="color:#9ca3af;font-size:12px;padding:8px 0;">Nenhuma receita</div>' : ''}
+                </div>
+                <div class="rel-top-card">
+                    <h4 class="desp">↓ Top Despesas</h4>
+                    ${topDespesas.map(([nome, v]) => `
+                    <div class="rel-top-item">
+                        <span class="rel-top-name">${nome}</span>
+                        <span class="rel-top-val desp">${fmt(v.total)}</span>
+                    </div>`).join('')}
+                    ${topDespesas.length === 0 ? '<div style="color:#9ca3af;font-size:12px;padding:8px 0;">Nenhuma despesa</div>' : ''}
+                </div>
+            </div>` : ''}
+
+            ${isMultiMes ? `
+            <div class="rel-section-title">Resumo por Mês</div>
+            <table class="rel-month-table">
                 <thead>
                     <tr>
                         <th>Mês</th>
-                        <th style="text-align: right;">Receitas</th>
-                        <th style="text-align: right;">Despesas</th>
-                        <th style="text-align: right;">Saldo</th>
+                        <th>Receitas</th>
+                        <th>Despesas</th>
+                        <th>Saldo</th>
+                        <th>Margem</th>
                     </tr>
                 </thead>
                 <tbody>
-        `;
-        
-        Object.keys(porMes).sort().forEach(mesKey => {
-            const mes = porMes[mesKey];
-            const saldo = mes.receitas - mes.despesas;
-            const [ano, mesNum] = mesKey.split('-');
-            const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-            const mesNome = `${meses[parseInt(mesNum) - 1]}/${ano}`;
-            
-            html += `
-                <tr>
-                    <td><strong>${mesNome}</strong></td>
-                    <td style="text-align: right; color: var(--accent-green);">R$ ${mes.receitas.toFixed(2).replace('.', ',')}</td>
-                    <td style="text-align: right; color: var(--accent-red);">R$ ${mes.despesas.toFixed(2).replace('.', ',')}</td>
-                    <td style="text-align: right; font-weight: 700; color: ${saldo >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'};">
-                        R$ ${saldo.toFixed(2).replace('.', ',')}
-                    </td>
-                </tr>
-            `;
-        });
-        
-        html += `
+                    ${mesesKeys.map(k => {
+                        const m = porMes[k];
+                        const s = m.receitas - m.despesas;
+                        const mg = m.receitas > 0 ? ((s/m.receitas)*100).toFixed(1) : '—';
+                        const [,mn] = k.split('-');
+                        return `<tr>
+                            <td><strong>${mesesNome[parseInt(mn)-1]}/${k.split('-')[0]}</strong></td>
+                            <td style="color:#16a34a">${fmt(m.receitas)}</td>
+                            <td style="color:#dc2626">${fmt(m.despesas)}</td>
+                            <td style="color:${s>=0?'#16a34a':'#dc2626'}">${fmt(s)}</td>
+                            <td style="color:#7c3aed">${mg !== '—' ? mg+'%' : '—'}</td>
+                        </tr>`;
+                    }).join('')}
+                    <tr>
+                        <td><strong>TOTAL</strong></td>
+                        <td style="color:#16a34a"><strong>${fmt(totalReceitas)}</strong></td>
+                        <td style="color:#dc2626"><strong>${fmt(totalDespesas)}</strong></td>
+                        <td style="color:${saldoLiquido>=0?'#16a34a':'#dc2626'}"><strong>${fmt(saldoLiquido)}</strong></td>
+                        <td style="color:#7c3aed"><strong>${margem}%</strong></td>
+                    </tr>
                 </tbody>
-            </table>
-        `;
-    }
-    
-    // Tabela detalhada de lançamentos
-    if (lancamentos.length > 0) {
-        html += `
-            <h3 style="font-weight: 800; margin: 30px 0 15px 0;">📋 Lançamentos Detalhados</h3>
-            <table class="relatorio-table">
+            </table>` : ''}
+
+            ${lancamentos.length > 0 ? `
+            <div class="rel-section-title">Lançamentos Detalhados</div>
+            <table class="rel-detail-table">
                 <thead>
                     <tr>
                         <th>Data</th>
                         <th>Descrição</th>
                         <th>Tipo</th>
-                        <th style="text-align: right;">Valor</th>
+                        <th>Valor</th>
                         <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
-        `;
-        
-        lancamentos.forEach(lanc => {
-            const valor = parseFloat(lanc.valor);
-            const corValor = lanc.tipo === 'Receita' ? 'var(--accent-green)' : 'var(--accent-red)';
-            const corStatus = lanc.status === 'Pago' ? 'var(--accent-green)' : 'var(--accent-orange)';
-            
-            html += `
-                <tr>
-                    <td>${new Date(lanc.data_vencimento).toLocaleDateString('pt-BR')}</td>
-                    <td>${lanc.descricao}</td>
-                    <td>
-                        <span style="padding: 4px 12px; background: ${lanc.tipo === 'Receita' ? '#d1fae5' : '#fee2e2'}; 
-                                     color: ${corValor}; border-radius: 20px; font-size: 11px; font-weight: 700;">
-                            ${lanc.tipo}
-                        </span>
-                    </td>
-                    <td style="text-align: right; font-weight: 700; color: ${corValor};">
-                        R$ ${valor.toFixed(2).replace('.', ',')}
-                    </td>
-                    <td>
-                        <span style="padding: 4px 12px; background: ${lanc.status === 'Pago' ? '#d1fae5' : '#fef3c7'}; 
-                                     color: ${corStatus}; border-radius: 20px; font-size: 11px; font-weight: 700;">
-                            ${lanc.status}
-                        </span>
-                    </td>
-                </tr>
-            `;
-        });
-        
-        html += `
+                    ${lancamentos.map(l => {
+                        const v = parseFloat(l.valor);
+                        const dt = new Date(l.data_vencimento + 'T12:00:00').toLocaleDateString('pt-BR');
+                        return `<tr>
+                            <td style="color:#6b7280;white-space:nowrap;">${dt}</td>
+                            <td style="font-weight:500;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.descricao}</td>
+                            <td><span class="badge ${l.tipo==='Receita'?'badge-rec':'badge-desp'}">${l.tipo}</span></td>
+                            <td style="font-weight:700;color:${l.tipo==='Receita'?'#16a34a':'#dc2626'};white-space:nowrap;">${fmt(v)}</td>
+                            <td><span class="badge ${l.status==='Pago'?'badge-pago':'badge-pend'}">${l.status}</span></td>
+                        </tr>`;
+                    }).join('')}
                 </tbody>
-            </table>
-        `;
-    } else {
-        html += `
-            <div style="text-align: center; padding: 60px 20px; color: var(--muted);">
-                <i data-lucide="inbox" style="width: 64px; height: 64px; margin-bottom: 20px; opacity: 0.3;"></i>
-                <p style="font-size: 16px; font-weight: 600;">Nenhum lançamento encontrado neste período</p>
+            </table>` : `
+            <div style="text-align:center;padding:48px 20px;color:#9ca3af;">
+                <div style="font-size:40px;margin-bottom:12px;">📭</div>
+                <p style="font-weight:600;">Nenhum lançamento encontrado neste período</p>
+            </div>`}
+
+            <div class="rel-footer">
+                <span>LawTech Pro — Sistema Jurídico Inteligente</span>
+                <span>Relatório Financeiro · ${periodo}</span>
             </div>
-        `;
-    }
-    
-    return html;
+
+        </div>
+    </div>
+    `;
 }
+
 
 async function gerarPDFRelatorio() {
     // Usando impressão do navegador como alternativa
