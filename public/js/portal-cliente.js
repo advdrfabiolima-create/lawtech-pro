@@ -222,7 +222,7 @@ const TIPO_META = {
                             <div class="timeline-date">${formatarData(a.data_andamento)}</div>
                             <span class="timeline-tipo" style="background:${bg};color:${cor};">${meta.label}</span>
                             <div class="timeline-titulo">${escapeHtml(a.titulo)}</div>
-                            ${a.descricao ? `<div class="timeline-descricao">${escapeHtml(a.descricao)}</div>` : ''}
+                            ${a.descricao ? `<div class="timeline-descricao" style="white-space:pre-wrap;">${escapeHtml(a.descricao)}</div>` : ''}
                         </div>`;
                     }).join('')}
                 </div>`;
@@ -276,7 +276,7 @@ const TIPO_META = {
                                 <span>${r.duracao_minutos || 60} min</span>
                                 ${badge}
                             </div>
-                            ${r.descricao ? `<div style="font-size:13px;color:#94a3b8;margin-top:6px;">${escapeHtml(r.descricao)}</div>` : ''}
+                            ${r.descricao ? `<div style="font-size:13px;color:#94a3b8;margin-top:6px;white-space:pre-wrap;">${escapeHtml(r.descricao)}</div>` : ''}
                         </div>
                         ${btnEntrar}
                     </div>`;
