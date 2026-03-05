@@ -269,7 +269,7 @@ async function gerarTemplate(req, res) {
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   @page { margin: 2.5cm; }
-  body { font-family: 'Aptos', 'Plus Jakarta Sans', 'Calibri', 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #1a1a1a; line-height: 1.8; max-width: 780px; margin: 0 auto; padding: 40px; }
+  body { font-family: 'Aptos', 'Plus Jakarta Sans', 'Calibri', 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #1a1a1a; line-height: 1.9; max-width: 780px; margin: 0 auto; padding: 40px; }
   .cabecalho { text-align: center; border-bottom: 3px double #1E3A5F; padding-bottom: 20px; margin-bottom: 28px; }
   .cabecalho .escritorio-nome { font-size: 17px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; color: #1E3A5F; }
   .cabecalho .escritorio-info { font-size: 11px; color: #666; margin-top: 4px; }
@@ -278,20 +278,20 @@ async function gerarTemplate(req, res) {
   .numero-contrato { text-align: center; font-size: 11px; color: #888; margin-bottom: 20px; }
   hr.divider { border: none; border-top: 1px solid #c0c0c0; margin: 20px 0; }
   .clausula { margin: 18px 0; }
-  .clausula-titulo { font-weight: bold; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; color: #1E3A5F; margin-bottom: 8px; border-left: 3px solid #1E3A5F; padding-left: 10px; }
-  .clausula p { text-align: justify; margin: 6px 0; }
+  .clausula-titulo { font-weight: bold; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; color: #1E3A5F; margin-bottom: 8px; border-left: 3px solid #1E3A5F; padding-left: 10px; }
+  .clausula p { text-align: left; margin: 8px 0; }
   .partes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 14px 0; }
   .parte-box { border: 1px solid #ddd; border-radius: 4px; padding: 14px; background: #fafafa; }
   .parte-box .parte-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 6px; }
   .parte-box .parte-nome { font-weight: bold; font-size: 14px; color: #1E3A5F; margin-bottom: 6px; }
-  .parte-box .parte-info { font-size: 12px; color: #444; line-height: 1.7; }
+  .parte-box .parte-info { font-size: 13px; color: #444; line-height: 1.8; }
   .honorarios-box { border: 2px solid #1E3A5F; border-radius: 4px; padding: 16px; background: #f0f4f8; margin: 14px 0; }
   .honorarios-box .valor { font-size: 18px; font-weight: bold; color: #1E3A5F; }
   .honorarios-box .modalidade { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
-  .obs-box { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; margin: 14px 0; font-size: 12px; border-radius: 0 4px 4px 0; }
+  .obs-box { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; margin: 14px 0; font-size: 13px; border-radius: 0 4px 4px 0; }
   .assinatura-area { margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
   .assinatura-box { text-align: center; }
-  .assinatura-linha { border-top: 1px solid #333; padding-top: 8px; font-size: 12px; line-height: 1.8; }
+  .assinatura-linha { border-top: 1px solid #333; padding-top: 8px; font-size: 13px; line-height: 1.8; }
   .assinatura-cidade { text-align: center; margin-top: 50px; font-size: 12px; color: #444; margin-bottom: 10px; }
   .rodape { text-align: center; font-size: 10px; color: #aaa; margin-top: 50px; border-top: 1px solid #eee; padding-top: 12px; }
   .testemunhas { margin-top: 50px; }

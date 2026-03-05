@@ -1053,43 +1053,68 @@ const token = localStorage.getItem('token');
                     setTimeout(resolve, 1000);
                 });
 
-                // 4. Captura com html2canvas
-                const canvas = await html2canvas(win.document.body, {
-                    scale: 2,
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff',
-                    width: 860,
-                    windowWidth: 900
-                });
-
-                win.close();
-
-                // 5. Gera PDF com jsPDF paginado
+                // 4. Captura cada bloco separadamente para evitar corte no meio do texto
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
                 const pageW   = doc.internal.pageSize.getWidth();
                 const pageH   = doc.internal.pageSize.getHeight();
-                const margin  = 10;
+                const margin  = 12;
                 const usableW = pageW - margin * 2;
-                const totalImgH = usableW * (canvas.height / canvas.width);
-                const pageImgH  = pageH - margin * 2;
+                const usableH = pageH - margin * 2;
 
-                let yOffset = 0, page = 0;
-                while (yOffset < totalImgH) {
-                    if (page > 0) doc.addPage();
-                    const srcY   = (yOffset / totalImgH) * canvas.height;
-                    const srcH   = Math.min((pageImgH / totalImgH) * canvas.height, canvas.height - srcY);
-                    const slice  = document.createElement('canvas');
-                    slice.width  = canvas.width;
-                    slice.height = srcH;
-                    slice.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
-                    const sliceH = (srcH / canvas.height) * totalImgH;
-                    doc.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, usableW, sliceH);
-                    yOffset += pageImgH;
-                    page++;
+                // Seleciona blocos de conteúdo — cada cláusula, cabeçalho, assinaturas
+                const blocos = win.document.querySelectorAll(
+                    '.cabecalho, h1, h2, .numero-contrato, hr, .clausula, .assinatura-cidade, .assinatura-area, .testemunhas, .rodape'
+                );
+
+                let curY = margin; // posição Y atual na página
+
+                for (const bloco of blocos) {
+                    // Captura o bloco com html2canvas
+                    const canvas = await html2canvas(bloco, {
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true,
+                        backgroundColor: '#ffffff',
+                        windowWidth: 900
+                    });
+
+                    if (canvas.width === 0 || canvas.height === 0) continue;
+
+                    // Altura do bloco em mm no PDF
+                    const blocoH = usableW * (canvas.height / canvas.width);
+
+                    // Se não cabe na página atual, adiciona nova página
+                    if (curY + blocoH > pageH - margin && curY > margin) {
+                        doc.addPage();
+                        curY = margin;
+                    }
+
+                    // Se o bloco é maior que a página inteira, fatia
+                    if (blocoH > usableH) {
+                        let srcYOffset = 0;
+                        while (srcYOffset < canvas.height) {
+                            const srcH = Math.min(
+                                (usableH / blocoH) * canvas.height,
+                                canvas.height - srcYOffset
+                            );
+                            const slice = document.createElement('canvas');
+                            slice.width = canvas.width;
+                            slice.height = srcH;
+                            slice.getContext('2d').drawImage(canvas, 0, srcYOffset, canvas.width, srcH, 0, 0, canvas.width, srcH);
+                            const sliceH = (srcH / canvas.height) * blocoH;
+                            doc.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', margin, curY, usableW, sliceH);
+                            srcYOffset += srcH;
+                            curY += sliceH;
+                            if (srcYOffset < canvas.height) { doc.addPage(); curY = margin; }
+                        }
+                    } else {
+                        doc.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, curY, usableW, blocoH);
+                        curY += blocoH + 1; // 1mm de respiro entre blocos
+                    }
                 }
 
+                win.close();
                 doc.save(`contrato-${contratoId}.pdf`);
 
             } catch (err) {
