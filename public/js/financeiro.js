@@ -994,7 +994,11 @@ async function confirmarBoleto() {
 
 async function carregarSaldoReal() {
     try {
-        const res = await fetch('/api/financeiro/saldo-real', { 
+        // Usa o mês/ano da navegação atual para filtrar os cards
+        const mes = window._finMes || (new Date().getMonth() + 1);
+        const ano = window._finAno || new Date().getFullYear();
+
+        const res = await fetch(`/api/financeiro/saldo-real?mes=${mes}&ano=${ano}`, { 
             headers: { Authorization: `Bearer ${token}` } 
         });
         
@@ -1599,10 +1603,121 @@ function gerarHTMLRelatorio(dados) {
 
 
 async function gerarPDFRelatorio() {
-    // Usando impressão do navegador como alternativa
-    // O backend pode implementar a rota /api/financeiro/relatorio-pdf futuramente
-    alert("📄 Use a opção Imprimir e salve como PDF no seu navegador.");
-    window.print();
+    // Captura o HTML já renderizado no modal de visualização
+    const conteudo = document.getElementById('conteudoRelatorio');
+    if (!conteudo || !conteudo.innerHTML.trim()) {
+        alert('⚠️ Visualize o relatório primeiro antes de gerar o PDF.');
+        return;
+    }
+
+    const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<title>Relatório de Faturamento — LawTech Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: 'DM Sans', Arial, sans-serif; background: #fff; color: #1a1a2e; padding: 0; margin: 0; }
+  .page-wrap { max-width: 860px; margin: 0 auto; }
+
+  /* ── Todos os estilos do gerarHTMLRelatorio ── */
+  .rel-wrap { font-family: 'DM Sans', Arial, sans-serif; color: #1a1a2e; max-width: 860px; margin: 0 auto; background: #fff; }
+  .rel-header { background: linear-gradient(135deg, #1E3A5F 0%, #2563eb 100%); color: #fff; padding: 32px 40px 24px; border-radius: 12px 12px 0 0; position: relative; overflow: hidden; }
+  .rel-header::after { content: ''; position: absolute; right: -40px; top: -40px; width: 200px; height: 200px; background: rgba(255,255,255,0.06); border-radius: 50%; }
+  .rel-header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .rel-logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .rel-logo span { opacity: 0.7; font-weight: 400; font-size: 13px; display: block; margin-top: 2px; }
+  .rel-periodo-badge { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  .rel-title { font-size: 28px; font-weight: 800; margin: 20px 0 4px; letter-spacing: -0.5px; }
+  .rel-subtitle { opacity: 0.75; font-size: 13px; }
+  .total-anual { display: none; }
+  .rel-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 24px 40px; background: #f8fafc; border-left: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb; }
+  .rel-kpi { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px 18px; position: relative; }
+  .rel-kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: #6b7280; margin-bottom: 8px; }
+  .rel-kpi-value { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+  .rel-kpi-sub { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+  .rel-kpi-dot { width: 8px; height: 8px; border-radius: 50%; position: absolute; top: 16px; right: 16px; }
+  .kpi-receita .rel-kpi-value { color: #16a34a; }
+  .kpi-receita .rel-kpi-dot { background: #16a34a; }
+  .kpi-despesa .rel-kpi-value { color: #dc2626; }
+  .kpi-despesa .rel-kpi-dot { background: #dc2626; }
+  .kpi-saldo .rel-kpi-value { color: #16a34a; }
+  .kpi-saldo .rel-kpi-dot { background: #16a34a; }
+  .kpi-margem .rel-kpi-value { color: #7c3aed; }
+  .kpi-margem .rel-kpi-dot { background: #7c3aed; }
+  .rel-body { padding: 28px 40px; border: 1px solid #e5e7eb; border-top: none; }
+  .rel-section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
+  .rel-section-title::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
+  .rel-spark-wrap { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px 24px; margin-bottom: 24px; }
+  .rel-spark-legend { display: flex; gap: 20px; margin-bottom: 12px; font-size: 12px; }
+  .rel-spark-legend span { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+  .leg-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .rel-tops { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .rel-top-card { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 18px 20px; }
+  .rel-top-card h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin: 0 0 12px; }
+  .rel-top-card h4.rec { color: #16a34a; }
+  .rel-top-card h4.desp { color: #dc2626; }
+  .rel-top-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #e5e7eb; font-size: 12px; }
+  .rel-top-item:last-child { border-bottom: none; }
+  .rel-top-name { color: #374151; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+  .rel-top-val { font-weight: 700; white-space: nowrap; margin-left: 8px; }
+  .rel-top-val.rec { color: #16a34a; }
+  .rel-top-val.desp { color: #dc2626; }
+  .rel-month-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 13px; }
+  .rel-month-table th { background: #1E3A5F; color: #fff; padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .rel-month-table th:not(:first-child) { text-align: right; }
+  .rel-month-table td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; }
+  .rel-month-table td:not(:first-child) { text-align: right; font-weight: 600; }
+  .rel-month-table tr:last-child td { border-bottom: none; font-weight: 700; background: #f8fafc; }
+  .rel-detail-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .rel-detail-table thead th { background: #f1f5f9; color: #475569; padding: 9px 12px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .rel-detail-table thead th:last-child, .rel-detail-table thead th:nth-child(4) { text-align: right; }
+  .rel-detail-table tbody td { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  .rel-detail-table tbody td:last-child, .rel-detail-table tbody td:nth-child(4) { text-align: right; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .badge-rec { background: #dcfce7; color: #16a34a; }
+  .badge-desp { background: #fee2e2; color: #dc2626; }
+  .badge-pago { background: #dcfce7; color: #15803d; }
+  .badge-pend { background: #fef3c7; color: #d97706; }
+  .rel-footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #9ca3af; }
+  @media print {
+    @page { margin: 12mm 10mm; size: A4; }
+    .rel-wrap { max-width: 100%; }
+    .rel-header { border-radius: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+  ${conteudo.innerHTML}
+</div>
+<script>
+  window.onload = function() { setTimeout(function() { window.print(); }, 400); };
+<\/script>
+</body>
+</html>`;
+
+    const win = window.open('', '_blank', 'width=920,height=750');
+    if (!win) { alert('Permita pop-ups para gerar o PDF.'); return; }
+    win.document.write(html);
+    win.document.close();
+}
+
+function imprimirInteligente() {
+    // Se o modal de visualização do relatório estiver aberto, imprime o relatório
+    const modalViz = document.getElementById('modalVisualizacaoRelatorio');
+    const conteudo = document.getElementById('conteudoRelatorio');
+    const modalAberto = modalViz && modalViz.style.display !== 'none' && conteudo && conteudo.innerHTML.trim();
+
+    if (modalAberto) {
+        // Usa a mesma janela profissional do gerarPDFRelatorio
+        gerarPDFRelatorio();
+    } else {
+        // Impressão normal da tabela
+        window.print();
+    }
 }
 function toggleIaMenu(event) {
     event.preventDefault(); // impede navegação imediata
@@ -1631,6 +1746,7 @@ window.fecharVisualizacaoRelatorio = fecharVisualizacaoRelatorio;
 window.atualizarCamposPeriodo      = atualizarCamposPeriodo;
 window.visualizarRelatorio         = visualizarRelatorio;
 window.gerarPDFRelatorio           = gerarPDFRelatorio;
+window.imprimirInteligente         = imprimirInteligente;
 window.abrirModalLancamento        = abrirModalLancamento;
 window.fecharModalLancamento       = fecharModalLancamento;
 window.salvarLancamento            = salvarLancamento;
@@ -1649,11 +1765,13 @@ window.navegarMes = async function(delta) {
     if (window._finMes > 12) { window._finMes = 1; window._finAno++; }
     if (window._finMes < 1)  { window._finMes = 12; window._finAno--; }
     carregarDados();
+    carregarSaldoReal();
 };
 window.irParaHoje = function() {
     window._finMes = new Date().getMonth()+1;
     window._finAno = new Date().getFullYear();
     carregarDados();
+    carregarSaldoReal();
 };
 window.abrirModalLogo              = abrirModalLogo;
 window.fecharModalLogo             = fecharModalLogo;

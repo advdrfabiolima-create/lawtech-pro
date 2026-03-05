@@ -171,14 +171,24 @@ async function excluirLancamento(req, res) {
 
 async function calcularSaldo(req, res) {
     try {
+        const mes = req.query.mes ? parseInt(req.query.mes) : null;
+        const ano = req.query.ano ? parseInt(req.query.ano) : null;
+
+        // Filtro de mês/ano quando informado
+        const filtroData = (mes && ano)
+            ? `AND EXTRACT(MONTH FROM data_vencimento) = ${mes} AND EXTRACT(YEAR FROM data_vencimento) = ${ano}`
+            : '';
+
         const result = await pool.query(`
             SELECT
                 COALESCE(SUM(CASE WHEN tipo = 'Receita' AND status = 'Pago' THEN valor ELSE 0 END), 0) as receitas_reais,
                 COALESCE(SUM(CASE WHEN tipo = 'Despesa' AND status = 'Pago' THEN valor ELSE 0 END), 0) as despesas_pagas,
                 COALESCE(SUM(CASE WHEN tipo = 'Receita' AND status != 'Pago' THEN valor ELSE 0 END), 0) as a_receber,
                 COALESCE(SUM(CASE WHEN tipo = 'Despesa' AND status != 'Pago' THEN valor ELSE 0 END), 0) as a_pagar
-            FROM financeiro WHERE usuario_id = $1
+            FROM financeiro
+            WHERE usuario_id = $1 ${filtroData}
         `, [req.user.id]);
+
         const row = result.rows[0];
         res.json({
             receitasReais: row.receitas_reais,
