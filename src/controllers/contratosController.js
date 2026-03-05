@@ -268,81 +268,98 @@ async function gerarTemplate(req, res) {
 <title>Contrato de Prestação de Serviços Advocatícios</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  @page { size: A4; margin: 2cm 2.2cm; }
+
+  @page { size: A4; margin: 2cm 2.5cm; }
+
   body {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 11pt;
     color: #111;
-    line-height: 1.7;
+    line-height: 1.6;
     background: #fff;
-    word-spacing: normal;
-    letter-spacing: normal;
-    /* Largura exata da área útil A4 com margens 2cm: 210mm - 4cm = 170mm ~ 643px a 96dpi */
-    max-width: 170mm;
-    margin: 0 auto;
-    padding: 10mm 0;
   }
+
   /* ── Cabeçalho ── */
-  .cabecalho { text-align: center; border-bottom: 3px double #1E3A5F; padding-bottom: 16px; margin-bottom: 22px; }
-  .cabecalho .escritorio-nome { font-size: 13pt; font-weight: bold; color: #1E3A5F; }
-  .cabecalho .escritorio-info { font-size: 9pt; color: #666; margin-top: 4px; }
+  .cabecalho { text-align: center; border-bottom: 3px double #1E3A5F; padding-bottom: 14px; margin-bottom: 20px; }
+  .escritorio-nome { font-size: 13pt; font-weight: bold; color: #1E3A5F; }
+  .escritorio-info { font-size: 9pt; color: #666; margin-top: 4px; }
+
   /* ── Títulos ── */
-  h1 { text-align: center; font-size: 12pt; font-weight: bold; margin: 18px 0 4px; }
+  h1 { text-align: center; font-size: 12pt; font-weight: bold; margin: 16px 0 4px; }
   h2 { font-size: 10pt; text-align: center; font-weight: normal; color: #555; margin: 0 0 6px; font-style: italic; }
-  .numero-contrato { text-align: center; font-size: 9pt; color: #888; margin-bottom: 16px; }
-  hr.divider { border: none; border-top: 1px solid #bbb; margin: 14px 0; }
+  .numero-contrato { text-align: center; font-size: 9pt; color: #888; margin-bottom: 14px; }
+
   /* ── Cláusulas ── */
   .clausula { margin: 0; }
   .clausula-titulo {
     font-size: 10pt; font-weight: bold; color: #1E3A5F;
     text-transform: uppercase;
     border-left: 3px solid #1E3A5F; padding-left: 8px;
-    margin: 20px 0 8px; page-break-after: avoid;
+    margin: 20px 0 8px;
+    page-break-after: avoid;
   }
-  .clausula p { margin: 5px 0 8px; font-size: 11pt; text-align: justify; hyphens: none; }
-  /* ── Partes ── */
-  .partes-grid { display: table; width: 100%; margin: 10px 0; border-collapse: separate; border-spacing: 12px 0; }
-  .parte-box { display: table-cell; width: 50%; border: 1px solid #ddd; padding: 10px 12px; background: #fafafa; vertical-align: top; }
-  .parte-box .parte-label { font-size: 8pt; color: #888; margin-bottom: 4px; }
-  .parte-box .parte-nome { font-weight: bold; font-size: 12pt; color: #1E3A5F; margin-bottom: 4px; }
-  .parte-box .parte-info { font-size: 10pt; color: #444; line-height: 1.6; }
+  .clausula p { margin: 0 0 8px; font-size: 11pt; text-align: justify; }
+
+  /* ── Partes (float layout) ── */
+  .partes-grid { width: 100%; overflow: hidden; margin: 10px 0; }
+  .parte-box {
+    float: left;
+    width: 48%;
+    border: 1px solid #ddd;
+    padding: 10px 12px;
+    background: #fafafa;
+  }
+  .parte-box:last-child { float: right; }
+  .partes-grid::after { content: ''; display: block; clear: both; }
+  .parte-label { font-size: 8pt; color: #888; margin-bottom: 4px; }
+  .parte-nome { font-weight: bold; font-size: 12pt; color: #1E3A5F; margin-bottom: 4px; }
+  .parte-info { font-size: 10pt; color: #444; line-height: 1.6; }
+
   /* ── Honorários ── */
-  .honorarios-box { border: 2px solid #1E3A5F; padding: 12px 14px; background: #f0f4f8; margin: 10px 0; page-break-inside: avoid; }
-  .honorarios-box .modalidade { font-size: 8pt; color: #666; margin-bottom: 4px; }
-  .honorarios-box .valor { font-size: 15pt; font-weight: bold; color: #1E3A5F; }
+  .honorarios-box { border: 2px solid #1E3A5F; padding: 12px 14px; background: #f0f4f8; margin: 10px 0; }
+  .modalidade { font-size: 8pt; color: #666; margin-bottom: 4px; }
+  .valor { font-size: 15pt; font-weight: bold; color: #1E3A5F; }
+
   /* ── Observações ── */
   .obs-box { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 10px 14px; margin: 10px 0; font-size: 10pt; }
-  /* ── Assinaturas ── */
-  .assinatura-cidade { text-align: center; margin-top: 36px; margin-bottom: 8px; font-size: 10pt; }
-  .assinatura-area { width: 100%; display: table; margin-top: 44px; page-break-inside: avoid; }
-  .assinatura-box { display: table-cell; width: 50%; text-align: center; padding: 0 20px; vertical-align: bottom; }
-  .assinatura-linha { border-top: 1px solid #333; padding-top: 6px; font-size: 10pt; line-height: 1.7; }
-  /* ── Testemunhas ── */
-  .testemunhas { margin-top: 36px; page-break-inside: avoid; }
-  .testemunha-grid { width: 100%; display: table; margin-top: 14px; }
-  .testemunha-grid .assinatura-box { padding: 0 20px; }
-  /* ── Rodapé ── */
-  .rodape {
-    text-align: center; font-size: 8pt; color: #aaa;
-    border-top: 1px solid #eee; padding-top: 6px;
-    /* Na tela: aparece após o conteúdo normalmente */
-    margin-top: 36px;
+
+  /* ── Assinaturas (float layout) ── */
+  .assinatura-cidade { text-align: center; margin-top: 32px; margin-bottom: 8px; font-size: 10pt; }
+  .assinatura-area { width: 100%; overflow: hidden; margin-top: 40px; }
+  .assinatura-box {
+    float: left;
+    width: 46%;
+    text-align: center;
   }
+  .assinatura-box:last-child { float: right; }
+  .assinatura-area::after { content: ''; display: block; clear: both; }
+  .assinatura-linha { border-top: 1px solid #333; padding-top: 6px; font-size: 10pt; line-height: 1.7; margin-top: 40px; }
+
+  /* ── Testemunhas (float layout) ── */
+  .testemunhas { margin-top: 32px; overflow: hidden; }
+  .testemunha-grid { width: 100%; overflow: hidden; margin-top: 12px; }
+  .testemunha-grid .assinatura-box { float: left; width: 46%; }
+  .testemunha-grid .assinatura-box:last-child { float: right; }
+  .testemunha-grid::after { content: ''; display: block; clear: both; }
+
+  /* ── Rodapé ── */
+  .rodape { text-align: center; font-size: 8pt; color: #aaa; margin-top: 32px; border-top: 1px solid #eee; padding-top: 8px; }
+
   /* ── Print ── */
   @media print {
-    @page { size: A4; margin: 2cm 2.2cm 2.8cm; }
-    body { font-size: 11pt; max-width: 100%; padding: 0; margin: 0; }
+    @page { size: A4; margin: 2cm 2.5cm 2.8cm; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    .honorarios-box, .partes-grid, .assinatura-area, .testemunhas { page-break-inside: avoid; }
-    .clausula-titulo, .clausula p { orphans: 3; widows: 3; }
+    .honorarios-box { page-break-inside: avoid; }
+    .partes-grid { page-break-inside: avoid; }
+    .assinatura-area { page-break-inside: avoid; }
+    .testemunhas { page-break-inside: avoid; }
     .clausula-titulo { page-break-after: avoid; }
+    .clausula p { orphans: 3; widows: 3; }
     .rodape {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: 0; left: 0; right: 0;
       margin-top: 0;
-      padding: 5px 10px 4px;
+      padding: 5px 20px 4px;
       background: #fff;
       border-top: 1px solid #eee;
     }
@@ -460,46 +477,47 @@ ${contrato.observacoes ? `<div class="clausula">
 
 <div class="assinatura-cidade">${cidadeContrato}, ${dataAssinatura}.</div>
 
-<div class="assinatura-area">
-  <div class="assinatura-box">
-    <br><br>
-    <div class="assinatura-linha">
-      <strong>${cliente.nome}</strong><br>
-      CPF/CNPJ: ${cliente.documento || '—'}<br>
-      <em>Contratante</em>
-    </div>
-  </div>
-  <div class="assinatura-box">
-    <br><br>
-    <div class="assinatura-linha">
-      <strong style="text-transform:uppercase;">${escritorio.nome || 'Escritório de Advocacia'}</strong><br>
-      ${escritorio.advogado_responsavel ? `${escritorio.advogado_responsavel}<br>` : ''}
-      ${escritorio.oab ? `${escritorio.oab}<br>` : ''}<em>Contratado</em>
-    </div>
-  </div>
-</div>
+<table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:50px; page-break-inside:avoid;">
+  <tr>
+    <td width="45%" style="text-align:center; vertical-align:bottom; padding-right:5%;">
+      <div style="border-top:1px solid #333; padding-top:8px; line-height:1.7; font-size:10pt;">
+        <strong>${cliente.nome}</strong><br>
+        CPF/CNPJ: ${cliente.documento || '—'}<br>
+        <em>Contratante</em>
+      </div>
+    </td>
+    <td width="10%"></td>
+    <td width="45%" style="text-align:center; vertical-align:bottom; padding-left:5%;">
+      <div style="border-top:1px solid #333; padding-top:8px; line-height:1.7; font-size:10pt;">
+        <strong style="text-transform:uppercase;">${escritorio.nome || 'Escritório de Advocacia'}</strong><br>
+        ${escritorio.advogado_responsavel ? `${escritorio.advogado_responsavel}<br>` : ''}
+        ${escritorio.oab ? `${escritorio.oab}<br>` : ''}<em>Contratado</em>
+      </div>
+    </td>
+  </tr>
+</table>
 
-<div class="testemunhas">
-  <div class="clausula-titulo" style="font-size:11px; margin-top:40px;">Testemunhas</div>
-  <div class="testemunha-grid">
-    <div class="assinatura-box">
-      <br><br>
-      <div class="assinatura-linha">
+<div class="clausula-titulo" style="margin-top:36px;">Testemunhas</div>
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:36px; page-break-inside:avoid;">
+  <tr>
+    <td width="45%" style="text-align:center; vertical-align:bottom; padding-right:5%;">
+      <div style="border-top:1px solid #333; padding-top:8px; line-height:1.9; font-size:10pt;">
         Nome: ________________________________<br>
-        CPF: __________________________________<br>
+        CPF: ___________________________________<br>
         <em>1ª Testemunha</em>
       </div>
-    </div>
-    <div class="assinatura-box">
-      <br><br>
-      <div class="assinatura-linha">
+    </td>
+    <td width="10%"></td>
+    <td width="45%" style="text-align:center; vertical-align:bottom; padding-left:5%;">
+      <div style="border-top:1px solid #333; padding-top:8px; line-height:1.9; font-size:10pt;">
         Nome: ________________________________<br>
-        CPF: __________________________________<br>
+        CPF: ___________________________________<br>
         <em>2ª Testemunha</em>
       </div>
-    </div>
-  </div>
-</div>
+    </td>
+  </tr>
+</table>
 
 <div class="rodape">
   ${escritorio.nome || ''} &nbsp;|&nbsp; Contrato nº ${String(contrato.id).padStart(4,'0')}/${new Date().getFullYear()} &nbsp;|&nbsp; Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}<br>
