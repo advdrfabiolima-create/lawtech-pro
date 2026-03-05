@@ -1627,18 +1627,23 @@ async function gerarPDFRelatorio() {
         const wrapper = document.createElement('div');
         wrapper.id = '_pdf_capture_area';
         wrapper.style.cssText = `
-            position: fixed; left: -9999px; top: 0;
+            position: fixed; left: 0; top: 0;
             width: 860px; background: #fff;
-            font-family: 'Inter', Arial, sans-serif;
+            font-family: Arial, sans-serif;
             padding: 0; margin: 0;
-            z-index: -1;
+            visibility: hidden;
+            pointer-events: none;
+            z-index: -9999;
+            letter-spacing: normal;
+            word-spacing: normal;
         `;
         wrapper.innerHTML = conteudo.innerHTML;
 
         // Injeta os estilos do relatório inline
         const styleTag = document.createElement('style');
         styleTag.textContent = `
-            #_pdf_capture_area * { box-sizing: border-box; }
+            #_pdf_capture_area * { box-sizing: border-box; letter-spacing: normal !important; word-spacing: normal !important; }
+            #_pdf_capture_area body, #_pdf_capture_area div, #_pdf_capture_area span, #_pdf_capture_area td, #_pdf_capture_area th, #_pdf_capture_area p { font-family: Arial, Helvetica, sans-serif !important; }
             #_pdf_capture_area .rel-wrap { font-family: Arial, sans-serif; color: #1a1a2e; background: #fff; }
             #_pdf_capture_area .rel-header { background: #1E3A5F !important; color: #fff !important; padding: 32px 40px 24px; position: relative; overflow: hidden; }
             #_pdf_capture_area .rel-header::after { content: ''; position: absolute; right: -40px; top: -40px; width: 200px; height: 200px; background: rgba(255,255,255,0.06); border-radius: 50%; }
@@ -1833,13 +1838,25 @@ function imprimirInteligente() {
 </head>
 <body>
 ${conteudo.innerHTML}
-<script>window.onload = function() { setTimeout(function() { window.print(); window.close(); }, 400); };<\/script>
+<script>/* print controlled by parent window */<\/script>
 </body>
 </html>`;
         const win = window.open('', '_blank', 'width=920,height=750');
         if (!win) { alert('Permita pop-ups para imprimir.'); return; }
         win.document.write(html);
         win.document.close();
+        // Chama window.print() da janela filha diretamente do contexto pai
+        // após garantir que o conteúdo foi renderizado
+        win.onload = function() {
+            setTimeout(function() {
+                win.focus();
+                win.print();
+            }, 350);
+        };
+        // Fallback: se onload já tiver disparado
+        if (win.document.readyState === 'complete') {
+            setTimeout(function() { win.focus(); win.print(); }, 400);
+        }
     } else {
         // Sem relatório carregado: imprime a tabela normal
         window.print();
