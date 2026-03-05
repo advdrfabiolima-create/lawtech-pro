@@ -322,15 +322,30 @@ async function gerarTemplate(req, res) {
   .testemunha-grid { width: 100%; display: table; margin-top: 14px; }
   .testemunha-grid .assinatura-box { padding: 0 20px; }
   /* ── Rodapé ── */
-  .rodape { text-align: center; font-size: 8pt; color: #aaa; margin-top: 36px; border-top: 1px solid #eee; padding-top: 8px; }
+  .rodape {
+    text-align: center; font-size: 8pt; color: #aaa;
+    border-top: 1px solid #eee; padding-top: 6px;
+    /* Na tela: aparece após o conteúdo normalmente */
+    margin-top: 36px;
+  }
   /* ── Print ── */
   @media print {
-    @page { size: A4; margin: 2cm 2.2cm; }
+    @page { size: A4; margin: 2cm 2.2cm 2.8cm; }
     body { font-size: 11pt; max-width: 100%; padding: 0; margin: 0; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     .honorarios-box, .partes-grid, .assinatura-area, .testemunhas { page-break-inside: avoid; }
     .clausula-titulo, .clausula p { orphans: 3; widows: 3; }
     .clausula-titulo { page-break-after: avoid; }
+    .rodape {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin-top: 0;
+      padding: 5px 10px 4px;
+      background: #fff;
+      border-top: 1px solid #eee;
+    }
   }
 </style>
 </head>
