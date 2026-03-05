@@ -1,18 +1,25 @@
-
 // FUNÇÃO PARA ALTERNAR PREÇOS (MENSAL/ANUAL)
 function alternarPrecos() {
     const isAnual = document.getElementById('billing-toggle').checked;
     const valores = document.querySelectorAll('.val');
     const periodos = document.querySelectorAll('.periodo');
+    const totaisAnuais = document.querySelectorAll('.total-anual');
     const labelMensal = document.getElementById('text-mensal');
     const labelAnual = document.getElementById('text-anual');
 
     valores.forEach(span => {
+        // No modo anual mostra o valor mensal equivalente (já armazenado em data-anual)
         span.innerText = isAnual ? span.getAttribute('data-anual') : span.getAttribute('data-mensal');
     });
 
+    // Período sempre /mês (exibimos o equivalente mensal mesmo no anual)
     periodos.forEach(small => {
-        small.innerText = isAnual ? '/ano' : '/mês';
+        small.innerText = '/mês';
+    });
+
+    // Mostra/oculta o total anual abaixo do preço
+    totaisAnuais.forEach(el => {
+        el.style.display = isAnual ? 'block' : 'none';
     });
 
     if (isAnual) {

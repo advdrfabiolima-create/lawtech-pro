@@ -213,6 +213,19 @@
       font-weight: 700;
     }
     
+    .total-anual {
+        display: none;
+        text-align: center;
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: -6px;
+        margin-bottom: 10px;
+        font-weight: 500;
+    }
+    .plano-card.premium-destaque .total-anual {
+        color: #92400e;
+        opacity: 0.8;
+    }
     .preco {
       font-size: 28px;
       font-weight: 800;
@@ -541,7 +554,8 @@
 
       <div class="plano-card">
         <h3>Básico</h3>
-        <p class="preco">R$ <span class="val" data-mensal="99,90" data-anual="999,00">99,90</span><small class="periodo" style="font-size: 15px; color: var(--muted); font-weight: 600;">/mês</small></p>
+        <p class="preco">R$ <span class="val" data-mensal="99,90" data-anual="83,25">99,90</span><small class="periodo" style="font-size: 15px; color: var(--muted); font-weight: 600;">/mês</small></p>
+        <div class="total-anual">R$ 999,00/ano cobrado anualmente</div>
         <p class="descricao">Ideal para quem está iniciando a digitalização do escritório.</p>
         <ul>
           <li>Até 3 usuários</li>
@@ -551,6 +565,7 @@
           <li>Gestão de Prazos - 10 mensais</li>
           <li>Audiências</li>
           <li>Suporte por email</li>
+          <li style="color:#7c3aed;font-weight:600;">🔏 Add-on: Assinatura Digital</li>
         </ul>
         <button id="btn-plano-Basico" class="btn secondary" onclick="abrirModalConfirmacao('Básico')">Selecionar Básico</button>
       </div>
@@ -558,7 +573,8 @@
       <div class="plano-card destaque">
         <span class="badge-destaque">⭐ Mais escolhido</span>
         <h3>Intermediário</h3>
-        <p class="preco">R$ <span class="val" data-mensal="149,90" data-anual="1.499,00">149,90</span><small class="periodo" style="font-size: 15px; color: var(--muted); font-weight: 600;">/mês</small></p>
+        <p class="preco">R$ <span class="val" data-mensal="149,90" data-anual="124,92">149,90</span><small class="periodo" style="font-size: 15px; color: var(--muted); font-weight: 600;">/mês</small></p>
+        <div class="total-anual">R$ 1.499,00/ano cobrado anualmente</div>
         <p class="descricao">A escolha perfeita para advogados autônomos de alta demanda.</p>
         <ul>
           <li>Tudo do plano Básico</li>
@@ -568,21 +584,24 @@
           <li>Relatórios avançados</li>
           <li>Suporte prioritário</li>
           <li>Integrações básicas</li>
+          <li style="color:#7c3aed;font-weight:600;">🔏 Add-on: Assinatura Digital</li>
         </ul>
         <button id="btn-plano-Intermediario" class="btn primary" onclick="abrirModalConfirmacao('Intermediário')">Selecionar plano</button>
       </div>
 
       <div class="plano-card">
         <h3>Avançado</h3>
-        <p class="preco">R$ <span class="val" data-mensal="199,90" data-anual="1.999,00">199,90</span><small class="periodo" style="font-size: 15px; color: var(--muted); font-weight: 600;">/mês</small></p>
+        <p class="preco">R$ <span class="val" data-mensal="199,90" data-anual="166,58">199,90</span><small class="periodo" style="font-size: 15px; color: var(--muted); font-weight: 600;">/mês</small></p>
+        <div class="total-anual">R$ 1.999,00/ano cobrado anualmente</div>
         <p class="descricao">Para sociedades de advogados em expansão acelerada.</p>
         <ul>
           <li>Tudo do Intermediário</li>
-          <li>Usuários ilimitados</li>
+          <li>Usuários e Processos ilimitados</li>
           <li>Até 500 prazos mensais</li>
           <li>Cálculos Jurídicos</li>
-          <li>Automações avançadas</li>
-          <li>API completa</li>
+          <li>GED — Gestão de Documentos</li>
+          <li>Reuniões por Vídeo</li>
+          <li style="color:#7c3aed;font-weight:600;">🔏 Add-on: Assinatura Digital</li>
         </ul>
         <button id="btn-plano-Avancado" class="btn primary" onclick="abrirModalConfirmacao('Avançado')">Selecionar plano</button>
       </div>
@@ -590,16 +609,17 @@
       <div class="plano-card premium premium-destaque">
         <span class="badge-premium">👑 Full Access</span>
         <h3>Premium</h3>
-        <p class="preco">R$ <span class="val" data-mensal="299,90" data-anual="2.999,00">299,90</span><small class="periodo" style="font-size: 15px; color: #92400e; font-weight: 600;">/mês</small></p>
+        <p class="preco">R$ <span class="val" data-mensal="299,90" data-anual="249,92">299,90</span><small class="periodo" style="font-size: 15px; color: #92400e; font-weight: 600;">/mês</small></p>
+        <div class="total-anual">R$ 2.999,00/ano cobrado anualmente</div>
         <p class="descricao">Controle total, automação e suporte prioritário.</p>
         <ul>
           <li>Tudo do Avançado</li>
-          <li>Usuários completamente ilimitados</li>
           <li>Prazos Ilimitados</li>
           <li>CRM Jurídico completo</li>
           <li>IA Jurídica integrada</li>
-          <li>Integração DJEN completa</li>
+          <li>Integração DJEN</li>
           <li>Alertas via WhatsApp</li>
+          <li style="color:#7c3aed;font-weight:600;">🔏 Add-on: Assinatura Digital</li>
         </ul>
         <button id="btn-plano-Premium" class="btn premium-btn" onclick="abrirModalConfirmacao('Premium')">Ativar Premium</button>
       </div>
