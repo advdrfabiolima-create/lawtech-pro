@@ -267,103 +267,34 @@ async function gerarTemplate(req, res) {
 <meta charset="UTF-8">
 <title>Contrato de Prestação de Serviços Advocatícios</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  @page { size: A4; margin: 2cm 2.5cm; }
-
-  body {
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 11pt;
-    color: #111;
-    line-height: 1.6;
-    background: #fff;
-  }
-
-  /* ── Cabeçalho ── */
-  .cabecalho { text-align: center; border-bottom: 3px double #1E3A5F; padding-bottom: 14px; margin-bottom: 20px; }
-  .escritorio-nome { font-size: 13pt; font-weight: bold; color: #1E3A5F; }
-  .escritorio-info { font-size: 9pt; color: #666; margin-top: 4px; }
-
-  /* ── Títulos ── */
-  h1 { text-align: center; font-size: 12pt; font-weight: bold; margin: 16px 0 4px; }
-  h2 { font-size: 10pt; text-align: center; font-weight: normal; color: #555; margin: 0 0 6px; font-style: italic; }
-  .numero-contrato { text-align: center; font-size: 9pt; color: #888; margin-bottom: 14px; }
-
-  /* ── Cláusulas ── */
-  .clausula { margin: 0; }
-  .clausula-titulo {
-    font-size: 10pt; font-weight: bold; color: #1E3A5F;
-    text-transform: uppercase;
-    border-left: 3px solid #1E3A5F; padding-left: 8px;
-    margin: 20px 0 8px;
-    page-break-after: avoid;
-  }
-  .clausula p { margin: 0 0 8px; font-size: 11pt; text-align: justify; }
-
-  /* ── Partes (float layout) ── */
-  .partes-grid { width: 100%; overflow: hidden; margin: 10px 0; }
-  .parte-box {
-    float: left;
-    width: 48%;
-    border: 1px solid #ddd;
-    padding: 10px 12px;
-    background: #fafafa;
-  }
-  .parte-box:last-child { float: right; }
-  .partes-grid::after { content: ''; display: block; clear: both; }
-  .parte-label { font-size: 8pt; color: #888; margin-bottom: 4px; }
-  .parte-nome { font-weight: bold; font-size: 12pt; color: #1E3A5F; margin-bottom: 4px; }
-  .parte-info { font-size: 10pt; color: #444; line-height: 1.6; }
-
-  /* ── Honorários ── */
-  .honorarios-box { border: 2px solid #1E3A5F; padding: 12px 14px; background: #f0f4f8; margin: 10px 0; }
-  .modalidade { font-size: 8pt; color: #666; margin-bottom: 4px; }
-  .valor { font-size: 15pt; font-weight: bold; color: #1E3A5F; }
-
-  /* ── Observações ── */
-  .obs-box { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 10px 14px; margin: 10px 0; font-size: 10pt; }
-
-  /* ── Assinaturas (float layout) ── */
-  .assinatura-cidade { text-align: center; margin-top: 32px; margin-bottom: 8px; font-size: 10pt; }
-  .assinatura-area { width: 100%; overflow: hidden; margin-top: 40px; }
-  .assinatura-box {
-    float: left;
-    width: 46%;
-    text-align: center;
-  }
-  .assinatura-box:last-child { float: right; }
-  .assinatura-area::after { content: ''; display: block; clear: both; }
-  .assinatura-linha { border-top: 1px solid #333; padding-top: 6px; font-size: 10pt; line-height: 1.7; margin-top: 40px; }
-
-  /* ── Testemunhas (float layout) ── */
-  .testemunhas { margin-top: 32px; overflow: hidden; }
-  .testemunha-grid { width: 100%; overflow: hidden; margin-top: 12px; }
-  .testemunha-grid .assinatura-box { float: left; width: 46%; }
-  .testemunha-grid .assinatura-box:last-child { float: right; }
-  .testemunha-grid::after { content: ''; display: block; clear: both; }
-
-  /* ── Rodapé ── */
-  .rodape { text-align: center; font-size: 8pt; color: #aaa; margin-top: 32px; border-top: 1px solid #eee; padding-top: 8px; }
-
-  /* ── Print ── */
-  @media print {
-    @page { size: A4; margin: 2cm 2.5cm 2.8cm; }
-    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    .honorarios-box { page-break-inside: avoid; }
-    .partes-grid { page-break-inside: avoid; }
-    .assinatura-area { page-break-inside: avoid; }
-    .testemunhas { page-break-inside: avoid; }
-    .clausula-titulo { page-break-after: avoid; }
-    .clausula p { orphans: 3; widows: 3; }
-    .rodape {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      margin-top: 0;
-      padding: 5px 20px 4px;
-      background: #fff;
-      border-top: 1px solid #eee;
-    }
-  }
+  @page { margin: 2.5cm; }
+  body { font-family: 'Times New Roman', Times, serif; font-size: 13px; color: #1a1a1a; line-height: 1.8; max-width: 780px; margin: 0 auto; padding: 40px; }
+  .cabecalho { text-align: center; border-bottom: 3px double #1E3A5F; padding-bottom: 20px; margin-bottom: 28px; }
+  .cabecalho .escritorio-nome { font-size: 17px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; color: #1E3A5F; }
+  .cabecalho .escritorio-info { font-size: 11px; color: #666; margin-top: 4px; }
+  h1 { text-align: center; font-size: 15px; text-transform: uppercase; letter-spacing: 2px; margin: 24px 0 4px; font-weight: bold; }
+  h2 { font-size: 12px; text-align: center; font-weight: normal; color: #555; margin: 0 0 8px; font-style: italic; }
+  .numero-contrato { text-align: center; font-size: 11px; color: #888; margin-bottom: 20px; }
+  hr.divider { border: none; border-top: 1px solid #c0c0c0; margin: 20px 0; }
+  .clausula { margin: 18px 0; }
+  .clausula-titulo { font-weight: bold; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; color: #1E3A5F; margin-bottom: 8px; border-left: 3px solid #1E3A5F; padding-left: 10px; }
+  .clausula p { text-align: justify; margin: 6px 0; }
+  .partes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 14px 0; }
+  .parte-box { border: 1px solid #ddd; border-radius: 4px; padding: 14px; background: #fafafa; }
+  .parte-box .parte-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 6px; }
+  .parte-box .parte-nome { font-weight: bold; font-size: 14px; color: #1E3A5F; margin-bottom: 6px; }
+  .parte-box .parte-info { font-size: 12px; color: #444; line-height: 1.7; }
+  .honorarios-box { border: 2px solid #1E3A5F; border-radius: 4px; padding: 16px; background: #f0f4f8; margin: 14px 0; }
+  .honorarios-box .valor { font-size: 18px; font-weight: bold; color: #1E3A5F; }
+  .honorarios-box .modalidade { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+  .obs-box { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; margin: 14px 0; font-size: 12px; border-radius: 0 4px 4px 0; }
+  .assinatura-area { margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .assinatura-box { text-align: center; }
+  .assinatura-linha { border-top: 1px solid #333; padding-top: 8px; font-size: 12px; line-height: 1.8; }
+  .assinatura-cidade { text-align: center; margin-top: 50px; font-size: 12px; color: #444; margin-bottom: 10px; }
+  .rodape { text-align: center; font-size: 10px; color: #aaa; margin-top: 50px; border-top: 1px solid #eee; padding-top: 12px; }
+  .testemunhas { margin-top: 50px; }
+  .testemunha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 20px; }
 </style>
 </head>
 <body>
@@ -477,47 +408,46 @@ ${contrato.observacoes ? `<div class="clausula">
 
 <div class="assinatura-cidade">${cidadeContrato}, ${dataAssinatura}.</div>
 
-<table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:50px; page-break-inside:avoid;">
-  <tr>
-    <td width="45%" style="text-align:center; vertical-align:bottom; padding-right:5%;">
-      <div style="border-top:1px solid #333; padding-top:8px; line-height:1.7; font-size:10pt;">
-        <strong>${cliente.nome}</strong><br>
-        CPF/CNPJ: ${cliente.documento || '—'}<br>
-        <em>Contratante</em>
-      </div>
-    </td>
-    <td width="10%"></td>
-    <td width="45%" style="text-align:center; vertical-align:bottom; padding-left:5%;">
-      <div style="border-top:1px solid #333; padding-top:8px; line-height:1.7; font-size:10pt;">
-        <strong style="text-transform:uppercase;">${escritorio.nome || 'Escritório de Advocacia'}</strong><br>
-        ${escritorio.advogado_responsavel ? `${escritorio.advogado_responsavel}<br>` : ''}
-        ${escritorio.oab ? `${escritorio.oab}<br>` : ''}<em>Contratado</em>
-      </div>
-    </td>
-  </tr>
-</table>
+<div class="assinatura-area">
+  <div class="assinatura-box">
+    <br><br>
+    <div class="assinatura-linha">
+      <strong>${cliente.nome}</strong><br>
+      CPF/CNPJ: ${cliente.documento || '—'}<br>
+      <em>Contratante</em>
+    </div>
+  </div>
+  <div class="assinatura-box">
+    <br><br>
+    <div class="assinatura-linha">
+      <strong style="text-transform:uppercase;">${escritorio.nome || 'Escritório de Advocacia'}</strong><br>
+      ${escritorio.advogado_responsavel ? `${escritorio.advogado_responsavel}<br>` : ''}
+      ${escritorio.oab ? `${escritorio.oab}<br>` : ''}<em>Contratado</em>
+    </div>
+  </div>
+</div>
 
-<div class="clausula-titulo" style="margin-top:36px;">Testemunhas</div>
-
-<table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:36px; page-break-inside:avoid;">
-  <tr>
-    <td width="45%" style="text-align:center; vertical-align:bottom; padding-right:5%;">
-      <div style="border-top:1px solid #333; padding-top:8px; line-height:1.9; font-size:10pt;">
+<div class="testemunhas">
+  <div class="clausula-titulo" style="font-size:11px; margin-top:40px;">Testemunhas</div>
+  <div class="testemunha-grid">
+    <div class="assinatura-box">
+      <br><br>
+      <div class="assinatura-linha">
         Nome: ________________________________<br>
-        CPF: ___________________________________<br>
+        CPF: __________________________________<br>
         <em>1ª Testemunha</em>
       </div>
-    </td>
-    <td width="10%"></td>
-    <td width="45%" style="text-align:center; vertical-align:bottom; padding-left:5%;">
-      <div style="border-top:1px solid #333; padding-top:8px; line-height:1.9; font-size:10pt;">
+    </div>
+    <div class="assinatura-box">
+      <br><br>
+      <div class="assinatura-linha">
         Nome: ________________________________<br>
-        CPF: ___________________________________<br>
+        CPF: __________________________________<br>
         <em>2ª Testemunha</em>
       </div>
-    </td>
-  </tr>
-</table>
+    </div>
+  </div>
+</div>
 
 <div class="rodape">
   ${escritorio.nome || ''} &nbsp;|&nbsp; Contrato nº ${String(contrato.id).padStart(4,'0')}/${new Date().getFullYear()} &nbsp;|&nbsp; Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}<br>
@@ -526,8 +456,238 @@ ${contrato.observacoes ? `<div class="clausula">
 
 </body>
 </html>`
-        res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        res.send(html);
+        // ── Gerar PDF com PDFKit ─────────────────────────────────────
+        const PDFDocument = require('pdfkit');
+        const doc = new PDFDocument({ size: 'A4', margins: { top: 56, bottom: 56, left: 65, right: 65 } });
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="contrato-${contrato.id}.pdf"`);
+        doc.pipe(res);
+
+        const W = doc.page.width - 65 - 65; // largura útil
+        const azul = '#1E3A5F';
+        const cinza = '#666666';
+        const preto = '#111111';
+
+        // ── Helpers ────────────────────────────────────────────────────────
+        function escreverParagrafo(texto, opts = {}) {
+            const { indent = 0, bold = false, size = 10.5, color = preto, align = 'justify', marginBottom = 6 } = opts;
+            doc.font(bold ? 'Helvetica-Bold' : 'Helvetica')
+               .fontSize(size).fillColor(color)
+               .text(texto, doc.page.margins.left + indent, doc.y, {
+                   width: W - indent, align, lineGap: 2
+               });
+            doc.moveDown(marginBottom / 12);
+        }
+
+        function tituloClausula(texto) {
+            doc.moveDown(0.6);
+            const y = doc.y;
+            // Barra azul lateral
+            doc.rect(doc.page.margins.left, y, 3, 13).fill(azul);
+            doc.font('Helvetica-Bold').fontSize(10).fillColor(azul)
+               .text(texto.toUpperCase(), doc.page.margins.left + 10, y + 1, { width: W - 10 });
+            doc.moveDown(0.5);
+        }
+
+        function linha() {
+            doc.moveDown(0.2);
+            doc.moveTo(doc.page.margins.left, doc.y)
+               .lineTo(doc.page.margins.left + W, doc.y)
+               .strokeColor('#cccccc').lineWidth(0.5).stroke();
+            doc.moveDown(0.4);
+        }
+
+        function rodape() {
+            const y = doc.page.height - 40;
+            doc.font('Helvetica').fontSize(7.5).fillColor('#aaaaaa')
+               .text(
+                  `${escritorio.nome || ''} | Contrato nº ${String(contrato.id).padStart(4,'0')}/${new Date().getFullYear()} | Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`,
+                  doc.page.margins.left, y, { width: W, align: 'center' }
+               )
+               .text('Documento gerado pelo sistema LawTech Pro — Este instrumento possui validade jurídica nos termos da legislação vigente.',
+                  doc.page.margins.left, y + 11, { width: W, align: 'center' }
+               );
+        }
+
+        doc.on('pageAdded', rodape);
+
+        // ── CABEÇALHO ──────────────────────────────────────────────────────
+        doc.font('Helvetica-Bold').fontSize(13).fillColor(azul)
+           .text(escritorio.nome || 'Escritório de Advocacia', { align: 'center' });
+        doc.moveDown(0.2);
+        const infoEsc = [escritorio.oab && `OAB: ${escritorio.oab}`, escritorio.email, escritorio.telefone].filter(Boolean).join('  |  ');
+        doc.font('Helvetica').fontSize(8.5).fillColor(cinza).text(infoEsc, { align: 'center' });
+        doc.moveDown(0.4);
+        doc.moveTo(doc.page.margins.left, doc.y).lineTo(doc.page.margins.left + W, doc.y).strokeColor(azul).lineWidth(2).stroke();
+        doc.moveDown(0.1);
+        doc.moveTo(doc.page.margins.left, doc.y).lineTo(doc.page.margins.left + W, doc.y).strokeColor(azul).lineWidth(0.5).stroke();
+        doc.moveDown(0.7);
+
+        // ── TÍTULO ─────────────────────────────────────────────────────────
+        doc.font('Helvetica-Bold').fontSize(12).fillColor(preto)
+           .text('Contrato de Prestação de Serviços Advocatícios', { align: 'center' });
+        doc.moveDown(0.2);
+        doc.font('Helvetica-Oblique').fontSize(10).fillColor(cinza)
+           .text(tipoLabel, { align: 'center' });
+        doc.moveDown(0.15);
+        doc.font('Helvetica').fontSize(9).fillColor('#888888')
+           .text(`Contrato nº ${String(contrato.id).padStart(4,'0')}/${new Date().getFullYear()}`, { align: 'center' });
+        doc.moveDown(0.6);
+        linha();
+
+        // ── DAS PARTES ─────────────────────────────────────────────────────
+        tituloClausula('Das Partes Contratantes');
+
+        const colW = (W - 12) / 2;
+        const colL = doc.page.margins.left;
+        const colR = colL + colW + 12;
+        const parteY = doc.y;
+
+        // Caixa Contratante
+        doc.rect(colL, parteY, colW, 88).fillColor('#fafafa').fill();
+        doc.rect(colL, parteY, colW, 88).strokeColor('#dddddd').lineWidth(0.5).stroke();
+        doc.font('Helvetica').fontSize(7.5).fillColor('#999999').text('CONTRATANTE', colL + 8, parteY + 7, { width: colW - 16 });
+        doc.font('Helvetica-Bold').fontSize(11).fillColor(azul).text(cliente.nome, colL + 8, parteY + 18, { width: colW - 16 });
+        const infoContratante = [`CPF/CNPJ: ${cliente.documento || 'não informado'}`, `Endereço: ${enderecoCliente}`, cliente.email && `E-mail: ${cliente.email}`, cliente.telefone && `Telefone: ${cliente.telefone}`].filter(Boolean).join('\n');
+        doc.font('Helvetica').fontSize(9).fillColor('#444444').text(infoContratante, colL + 8, parteY + 33, { width: colW - 16, lineGap: 1 });
+
+        // Caixa Contratado
+        doc.rect(colR, parteY, colW, 88).fillColor('#fafafa').fill();
+        doc.rect(colR, parteY, colW, 88).strokeColor('#dddddd').lineWidth(0.5).stroke();
+        doc.font('Helvetica').fontSize(7.5).fillColor('#999999').text('CONTRATADO', colR + 8, parteY + 7, { width: colW - 16 });
+        doc.font('Helvetica-Bold').fontSize(11).fillColor(azul).text((escritorio.nome || 'Escritório').toUpperCase(), colR + 8, parteY + 18, { width: colW - 16 });
+        const infoContratado = [escritorio.advogado_responsavel, escritorio.oab && `OAB: ${escritorio.oab}`, escritorio.email && `E-mail: ${escritorio.email}`, escritorio.telefone && `Telefone: ${escritorio.telefone}`].filter(Boolean).join('\n');
+        doc.font('Helvetica').fontSize(9).fillColor('#444444').text(infoContratado, colR + 8, parteY + 33, { width: colW - 16, lineGap: 1 });
+
+        doc.y = parteY + 94;
+
+        // ── CLÁUSULAS ──────────────────────────────────────────────────────
+        const clausulas = [
+          { titulo: 'Cláusula 1ª — Do Objeto', paragrafos: [
+            `O presente instrumento particular de prestação de serviços advocatícios tem por objeto a contratação do CONTRATADO pelo CONTRATANTE para a prestação de serviços jurídicos profissionais, consistentes no patrocínio, acompanhamento e defesa dos interesses do CONTRATANTE${contrato.processo_numero ? `, referente ao processo nº ${contrato.processo_numero}` : ''}, compreendendo todos os atos, diligências e providências necessárias à condução da demanda, nos termos do instrumento denominado "${contrato.titulo}".`,
+            `Os serviços advocatícios ora contratados abrangem a prática de todos os atos processuais e extrajudiciais pertinentes ao objeto deste contrato, incluindo, sem limitação: elaboração de petições, recursos, memoriais e manifestações; participação em audiências; realização de diligências junto a órgãos públicos e privados; e acompanhamento processual em todas as instâncias competentes.`
+          ]},
+          { titulo: 'Cláusula 3ª — Das Obrigações do Contratado', paragrafos: [
+            'O CONTRATADO, no exercício do mandato ora outorgado, obriga-se a:',
+            'I. Prestar os serviços advocatícios com diligência, competência técnica e estrita observância dos princípios éticos previstos no Código de Ética e Disciplina da OAB e na Lei nº 8.906/1994;',
+            'II. Manter o CONTRATANTE regularmente informado sobre o andamento do processo e dos atos praticados, inclusive comunicando decisões relevantes no prazo máximo de 48 (quarenta e oito) horas de seu conhecimento;',
+            'III. Guardar sigilo absoluto sobre todas as informações e documentos que lhe forem confiados, em observância ao dever de sigilo profissional previsto no art. 34, VII, da Lei nº 8.906/1994;',
+            'IV. Agir sempre no melhor interesse do CONTRATANTE, adotando as medidas jurídicas cabíveis para a defesa de seus direitos, sem incorrer em lide temerária ou prática de ato atentatório à dignidade da Justiça;',
+            'V. Restituir ao CONTRATANTE, quando do encerramento do mandato, todos os documentos originais que lhe tenham sido entregues, no prazo de 10 (dez) dias úteis.'
+          ]},
+          { titulo: 'Cláusula 4ª — Das Obrigações do Contratante', paragrafos: [
+            'O CONTRATANTE, por sua vez, obriga-se a:',
+            'I. Fornecer ao CONTRATADO, com presteza e veracidade, todos os documentos, informações e esclarecimentos necessários à condução do processo, sendo integralmente responsável pela exatidão das informações prestadas;',
+            'II. Efetuar o pagamento dos honorários advocatícios nas condições e prazos ajustados, bem como ressarcir as despesas processuais devidamente comprovadas;',
+            'III. Comparecer às audiências, diligências e demais atos processuais para os quais for convocado, mediante comunicação prévia com antecedência mínima de 5 (cinco) dias úteis, salvo urgência justificada;',
+            'IV. Abster-se de praticar atos que possam prejudicar o andamento do processo ou contratar outros profissionais para atuar na mesma causa sem prévia e expressa anuência do CONTRATADO;',
+            'V. Comunicar ao CONTRATADO, no prazo de 48 (quarenta e oito) horas, qualquer fato superveniente que possa influenciar no andamento ou no desfecho da demanda.'
+          ]},
+          { titulo: 'Cláusula 5ª — Da Vigência e da Rescisão', paragrafos: [
+            'O presente contrato vigorará pelo prazo necessário à conclusão dos serviços ora contratados, iniciando-se na data de sua assinatura.',
+            'I. Em caso de rescisão por iniciativa do CONTRATANTE, serão devidos ao CONTRATADO os honorários proporcionais aos trabalhos realizados até a data da rescisão, calculados sobre o valor total pactuado, sem prejuízo do reembolso das despesas já efetuadas;',
+            'II. Em caso de rescisão por iniciativa do CONTRATADO, este se obriga a comunicar o CONTRATANTE com antecedência suficiente para que providencie novo patrocinador, não podendo abandonar a causa em momento que cause prejuízo irreparável, conforme art. 5º, II, do Código de Ética da OAB;',
+            'III. O inadimplemento dos honorários por prazo superior a 30 (trinta) dias, após prévia notificação, faculta ao CONTRATADO a rescisão imediata deste instrumento, sem prejuízo da cobrança judicial dos valores devidos.'
+          ]},
+          { titulo: 'Cláusula 6ª — Da Confidencialidade e Proteção de Dados', paragrafos: [
+            'As partes comprometem-se a manter em absoluto sigilo todas as informações trocadas no âmbito deste contrato, ficando vedada a divulgação a terceiros, salvo mediante autorização expressa ou por determinação judicial.',
+            'O tratamento de dados pessoais realizado no âmbito deste instrumento observará as disposições da Lei nº 13.709/2018 (Lei Geral de Proteção de Dados Pessoais — LGPD), sendo os dados coletados utilizados exclusivamente para a finalidade de prestação dos serviços advocatícios ora contratados.'
+          ]},
+          { titulo: 'Cláusula 7ª — Das Disposições Gerais', paragrafos: [
+            'O presente contrato é celebrado em caráter personalíssimo, sendo vedada a cessão ou transferência de quaisquer direitos ou obrigações sem o prévio e expresso consentimento da outra parte.',
+            'A tolerância de qualquer das partes quanto ao descumprimento de obrigação pela outra não constituirá novação, renúncia ou alteração do pactuado.',
+            'Este contrato constitui título executivo extrajudicial, nos termos do art. 784, inciso III, do Código de Processo Civil, obrigando as partes e seus sucessores a qualquer título.',
+            'A eventual invalidade de qualquer cláusula deste instrumento não contaminará as demais, que permanecerão válidas e eficazes em sua integralidade.'
+          ]},
+        ];
+
+        // Cláusula 2 (honorários) — especial com caixa
+        tituloClausula('Cláusula 2ª — Dos Honorários Advocatícios');
+        // Caixa de honorários
+        doc.rect(colL, doc.y, W, 52).fillColor('#f0f4f8').fill();
+        doc.rect(colL, doc.y - 0, W, 52).strokeColor(azul).lineWidth(1.5).stroke();
+        const hY = doc.y + 7;
+        doc.font('Helvetica').fontSize(7.5).fillColor(cinza).text('MODALIDADE DE HONORÁRIOS', colL + 10, hY, { width: W - 20 });
+        doc.font('Helvetica-Bold').fontSize(14).fillColor(azul).text(valorTexto, colL + 10, hY + 12, { width: W - 20 });
+        doc.font('Helvetica').fontSize(8.5).fillColor(cinza).text(`${tipoLabel}${contrato.data_assinatura ? ` — Vigência a partir de ${dataAssinatura}` : ''}`, colL + 10, hY + 30, { width: W - 20 });
+        doc.y = doc.y + 60;
+
+        const honParas = [
+            'Os honorários advocatícios pactuados no presente instrumento são devidos em contraprestação aos serviços jurídicos ora contratados, nos termos do art. 22 e seguintes da Lei nº 8.906/1994 (Estatuto da Advocacia e da OAB) e do Código de Ética e Disciplina da Ordem dos Advogados do Brasil.',
+        ];
+        if (contrato.tipo_honorario === 'exito' || contrato.tipo_honorario === 'misto') {
+            honParas.push('Os honorários de êxito tornam-se devidos no momento em que houver decisão favorável ao CONTRATANTE, ainda que sujeita a recurso, compreendendo-se como êxito o resultado que atinja, total ou parcialmente, os objetivos pretendidos, inclusive por meio de acordo, transação ou desistência da parte contrária.');
+        }
+        if (['fixo','misto','consultoria'].includes(contrato.tipo_honorario)) {
+            honParas.push('O valor fixo pactuado deverá ser quitado conforme condições ajustadas entre as partes, sendo que o atraso no pagamento implicará incidência de multa moratória de 2% (dois por cento), acrescida de correção monetária pelo IPCA, a partir do vencimento.');
+        }
+        honParas.push('Os honorários sucumbenciais eventualmente fixados pelo juízo pertencem exclusivamente ao advogado, nos termos do art. 85, §14, do Código de Processo Civil, não se confundindo com os honorários ora contratados. As despesas processuais, custas judiciais e emolumentos não estão incluídos nos honorários pactuados, devendo ser custeados pelo CONTRATANTE.');
+        honParas.forEach(p => escreverParagrafo(p));
+
+        // Cláusulas restantes
+        clausulas.forEach(({ titulo, paragrafos }) => {
+            tituloClausula(titulo);
+            paragrafos.forEach(p => escreverParagrafo(p));
+        });
+
+        // Cláusula observações (se houver)
+        if (contrato.observacoes) {
+            tituloClausula('Cláusula 8ª — Das Condições Específicas');
+            escreverParagrafo(contrato.observacoes);
+        }
+
+        // Cláusula Foro
+        tituloClausula(`Cláusula ${contrato.observacoes ? '9ª' : '8ª'} — Do Foro`);
+        escreverParagrafo(`Fica eleito o foro da Comarca de ${cidadeContrato} para dirimir quaisquer controvérsias decorrentes do presente contrato, com expressa renúncia a qualquer outro, por mais privilegiado que seja.`);
+        escreverParagrafo('E, por estarem assim justas e contratadas, as partes assinam o presente instrumento em 2 (duas) vias de igual teor e forma, na presença das testemunhas abaixo identificadas.');
+
+        // ── ASSINATURAS ────────────────────────────────────────────────────
+        doc.moveDown(1);
+        doc.font('Helvetica').fontSize(10).fillColor('#444444')
+           .text(`${cidadeContrato}, ${dataAssinatura}.`, { align: 'center' });
+        doc.moveDown(2.5);
+
+        const assY = doc.y;
+        const assW = (W - 30) / 2;
+        const assL = doc.page.margins.left;
+        const assR = assL + assW + 30;
+
+        // Linha contratante
+        doc.moveTo(assL, assY).lineTo(assL + assW, assY).strokeColor('#333333').lineWidth(0.8).stroke();
+        doc.font('Helvetica-Bold').fontSize(10).fillColor(preto).text(cliente.nome, assL, assY + 6, { width: assW, align: 'center' });
+        doc.font('Helvetica').fontSize(9).fillColor('#555555').text(`CPF/CNPJ: ${cliente.documento || '—'}`, assL, assY + 19, { width: assW, align: 'center' });
+        doc.font('Helvetica-Oblique').fontSize(9).fillColor('#555555').text('Contratante', assL, assY + 31, { width: assW, align: 'center' });
+
+        // Linha contratado
+        doc.moveTo(assR, assY).lineTo(assR + assW, assY).strokeColor('#333333').lineWidth(0.8).stroke();
+        doc.font('Helvetica-Bold').fontSize(10).fillColor(preto).text((escritorio.nome || '').toUpperCase(), assR, assY + 6, { width: assW, align: 'center' });
+        if (escritorio.advogado_responsavel) doc.font('Helvetica').fontSize(9).fillColor('#555555').text(escritorio.advogado_responsavel, assR, assY + 19, { width: assW, align: 'center' });
+        doc.font('Helvetica').fontSize(9).fillColor('#555555').text(escritorio.oab || '', assR, assY + 31, { width: assW, align: 'center' });
+        doc.font('Helvetica-Oblique').fontSize(9).fillColor('#555555').text('Contratado', assR, assY + 43, { width: assW, align: 'center' });
+
+        // ── TESTEMUNHAS ────────────────────────────────────────────────────
+        doc.y = assY + 70;
+        doc.rect(doc.page.margins.left, doc.y, 3, 12).fill(azul);
+        doc.font('Helvetica-Bold').fontSize(10).fillColor(azul)
+           .text('TESTEMUNHAS', doc.page.margins.left + 10, doc.y + 1, { width: W - 10 });
+        doc.moveDown(2.5);
+
+        const testY = doc.y;
+        doc.moveTo(assL, testY).lineTo(assL + assW, testY).strokeColor('#333333').lineWidth(0.8).stroke();
+        doc.font('Helvetica').fontSize(9).fillColor('#555555')
+           .text('Nome: _______________________________', assL, testY + 6, { width: assW, align: 'center' })
+           .text('CPF: ________________________________', assL, testY + 19, { width: assW, align: 'center' });
+        doc.font('Helvetica-Oblique').fontSize(9).fillColor('#555555').text('1ª Testemunha', assL, testY + 32, { width: assW, align: 'center' });
+
+        doc.moveTo(assR, testY).lineTo(assR + assW, testY).strokeColor('#333333').lineWidth(0.8).stroke();
+        doc.font('Helvetica').fontSize(9).fillColor('#555555')
+           .text('Nome: _______________________________', assR, testY + 6, { width: assW, align: 'center' })
+           .text('CPF: ________________________________', assR, testY + 19, { width: assW, align: 'center' });
+        doc.font('Helvetica-Oblique').fontSize(9).fillColor('#555555').text('2ª Testemunha', assR, testY + 32, { width: assW, align: 'center' });
+
+        rodape();
+        doc.end();
 
     } catch (err) {
         logger.error({ err: err.message }, 'Contratos: erro ao gerar template');
