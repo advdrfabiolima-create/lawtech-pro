@@ -288,13 +288,13 @@ async function gerarTemplate(req, res) {
   .numero-contrato { text-align: center; font-size: 9pt; color: #888; margin-bottom: 16px; }
   hr.divider { border: none; border-top: 1px solid #bbb; margin: 14px 0; }
   /* ── Cláusulas ── */
-  .clausula { margin: 14px 0; page-break-inside: avoid; }
+  .clausula { margin: 0; }
   .clausula-titulo {
     font-size: 10pt; font-weight: bold; color: #1E3A5F;
     border-left: 3px solid #1E3A5F; padding-left: 8px;
-    margin-bottom: 8px; page-break-after: avoid;
+    margin: 18px 0 6px; page-break-after: avoid;
   }
-  .clausula p { margin: 5px 0; font-size: 11pt; text-align: left; }
+  .clausula p { margin: 5px 0 8px; font-size: 11pt; text-align: justify; hyphens: auto; }
   /* ── Partes ── */
   .partes-grid { display: table; width: 100%; margin: 10px 0; border-collapse: separate; border-spacing: 12px 0; }
   .parte-box { display: table-cell; width: 50%; border: 1px solid #ddd; padding: 10px 12px; background: #fafafa; vertical-align: top; }
@@ -323,7 +323,8 @@ async function gerarTemplate(req, res) {
     @page { size: A4; margin: 2cm 2.2cm; }
     body { font-size: 11pt; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    .clausula, .honorarios-box, .partes-grid, .assinatura-area, .testemunhas { page-break-inside: avoid; }
+    .honorarios-box, .partes-grid, .assinatura-area, .testemunhas { page-break-inside: avoid; }
+    .clausula-titulo, .clausula p { orphans: 3; widows: 3; }
     .clausula-titulo { page-break-after: avoid; }
   }
 </style>
