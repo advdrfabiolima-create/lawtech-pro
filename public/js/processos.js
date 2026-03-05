@@ -1910,7 +1910,7 @@ function obterTribunaisPorEsfera(esfera) {
                             ${a.visivel_cliente ? '<span style="font-size:10px;padding:1px 7px;border-radius:12px;background:#dcfce7;color:#16a34a;font-weight:600;">Visível cliente</span>' : ''}
                         </div>
                         <div class="and-text-livre" style="font-size:13px;font-weight:600;color:#1e293b;margin-bottom:${a.descricao ? '4px' : '0'};">${escapeHtml(a.titulo)}</div>
-                        ${a.descricao ? '<div class="and-text-livre" style="font-size:12px;color:#64748b;line-height:1.5;">' + escapeHtml(a.descricao) + '</div>' : ''}
+                        ${a.descricao ? '<div class="and-text-livre" style="font-size:12px;color:#64748b;line-height:1.5;white-space:pre-wrap;">' + escapeHtml(a.descricao) + '</div>' : ''}
                         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
                             <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;color:#64748b;">
                                 <input type="checkbox" ${a.visivel_cliente ? 'checked' : ''} onchange="toggleVisivelCliente(${a.id}, this)"
