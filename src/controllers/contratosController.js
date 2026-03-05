@@ -275,8 +275,12 @@ async function gerarTemplate(req, res) {
     color: #111;
     line-height: 1.7;
     background: #fff;
-    word-spacing: 0;
-    letter-spacing: 0;
+    word-spacing: normal;
+    letter-spacing: normal;
+    /* Largura exata da área útil A4 com margens 2cm: 210mm - 4cm = 170mm ~ 643px a 96dpi */
+    max-width: 170mm;
+    margin: 0 auto;
+    padding: 10mm 0;
   }
   /* ── Cabeçalho ── */
   .cabecalho { text-align: center; border-bottom: 3px double #1E3A5F; padding-bottom: 16px; margin-bottom: 22px; }
@@ -291,10 +295,11 @@ async function gerarTemplate(req, res) {
   .clausula { margin: 0; }
   .clausula-titulo {
     font-size: 10pt; font-weight: bold; color: #1E3A5F;
+    text-transform: uppercase;
     border-left: 3px solid #1E3A5F; padding-left: 8px;
-    margin: 18px 0 6px; page-break-after: avoid;
+    margin: 20px 0 8px; page-break-after: avoid;
   }
-  .clausula p { margin: 5px 0 8px; font-size: 11pt; text-align: justify; hyphens: auto; }
+  .clausula p { margin: 5px 0 8px; font-size: 11pt; text-align: justify; hyphens: none; }
   /* ── Partes ── */
   .partes-grid { display: table; width: 100%; margin: 10px 0; border-collapse: separate; border-spacing: 12px 0; }
   .parte-box { display: table-cell; width: 50%; border: 1px solid #ddd; padding: 10px 12px; background: #fafafa; vertical-align: top; }
@@ -321,7 +326,7 @@ async function gerarTemplate(req, res) {
   /* ── Print ── */
   @media print {
     @page { size: A4; margin: 2cm 2.2cm; }
-    body { font-size: 11pt; }
+    body { font-size: 11pt; max-width: 100%; padding: 0; margin: 0; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     .honorarios-box, .partes-grid, .assinatura-area, .testemunhas { page-break-inside: avoid; }
     .clausula-titulo, .clausula p { orphans: 3; widows: 3; }
