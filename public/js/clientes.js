@@ -999,7 +999,7 @@ const token = localStorage.getItem('token');
                         </div>
                         <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
                             <button onclick="_gerarTemplate(${c.id})" style="${_btnSmall('#3b82f6')}">
-                                <i class="lucide lucide-file-down" style="width:13px;height:13px;"></i> CONTRATO PDF
+                                <i class="lucide lucide-file-text" style="width:13px;height:13px;"></i> VER TEMPLATE
                             </button>
                             ${c.tem_arquivo
                                 ? `<button onclick="_downloadContrato(${c.id})" style="${_btnSmall('#10b981')}"><i class="lucide lucide-download" style="width:13px;height:13px;"></i> BAIXAR PDF</button>`
@@ -1028,10 +1028,76 @@ const token = localStorage.getItem('token');
             return `background:${color};color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit;text-transform:uppercase;`;
         }
 
-        // ── Abrir template em nova aba ───────────────────────────────
-        function _gerarTemplate(contratoId) {
+        // ── Gerar e baixar contrato como PDF ─────────────────────────
+        async function _gerarTemplate(contratoId) {
             const token = localStorage.getItem('token');
-            window.open(`/api/clientes/${_contratoClienteId}/contratos/${contratoId}/template?token=${token}`, '_blank');
+            const btn = document.querySelector(`[onclick="_gerarTemplate(${contratoId})"]`);
+            const origLabel = btn ? btn.innerHTML : '';
+            if (btn) { btn.innerHTML = '⏳ Gerando PDF...'; btn.disabled = true; }
+
+            try {
+                // 1. Busca o HTML do template no backend
+                const res = await fetch(`/api/clientes/${_contratoClienteId}/contratos/${contratoId}/template?token=${token}`);
+                if (!res.ok) throw new Error('Erro ao buscar template');
+                const templateHTML = await res.text();
+
+                // 2. Abre popup visível para html2canvas renderizar corretamente
+                const win = window.open('', '_blank', 'width=900,height=700,left=50,top=50');
+                if (!win) { alert('Permita pop-ups para gerar o PDF.'); return; }
+                win.document.write(templateHTML);
+                win.document.close();
+
+                // 3. Aguarda renderização completa
+                await new Promise(resolve => {
+                    win.onload = resolve;
+                    setTimeout(resolve, 1000);
+                });
+
+                // 4. Captura com html2canvas
+                const canvas = await html2canvas(win.document.body, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    width: 860,
+                    windowWidth: 900
+                });
+
+                win.close();
+
+                // 5. Gera PDF com jsPDF paginado
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                const pageW   = doc.internal.pageSize.getWidth();
+                const pageH   = doc.internal.pageSize.getHeight();
+                const margin  = 10;
+                const usableW = pageW - margin * 2;
+                const totalImgH = usableW * (canvas.height / canvas.width);
+                const pageImgH  = pageH - margin * 2;
+
+                let yOffset = 0, page = 0;
+                while (yOffset < totalImgH) {
+                    if (page > 0) doc.addPage();
+                    const srcY   = (yOffset / totalImgH) * canvas.height;
+                    const srcH   = Math.min((pageImgH / totalImgH) * canvas.height, canvas.height - srcY);
+                    const slice  = document.createElement('canvas');
+                    slice.width  = canvas.width;
+                    slice.height = srcH;
+                    slice.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+                    const sliceH = (srcH / canvas.height) * totalImgH;
+                    doc.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, usableW, sliceH);
+                    yOffset += pageImgH;
+                    page++;
+                }
+
+                doc.save(`contrato-${contratoId}.pdf`);
+
+            } catch (err) {
+                console.error('Erro ao gerar PDF do contrato:', err);
+                alert('Erro ao gerar PDF: ' + err.message);
+            } finally {
+                if (btn) { btn.innerHTML = origLabel; btn.disabled = false; }
+            }
         }
 
         // ── Download PDF assinado ────────────────────────────────────

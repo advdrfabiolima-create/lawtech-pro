@@ -266,14 +266,10 @@ async function gerarTemplate(req, res) {
 <head>
 <meta charset="UTF-8">
 <title>Contrato de Prestação de Serviços Advocatícios</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   @page { margin: 2.5cm; }
-  body { font-family: 'Times New Roman', Times, serif; font-size: 13px; color: #1a1a1a; line-height: 1.8; max-width: 780px; margin: 0 auto; padding: 40px; }
-  @media print {
-    @page { margin: 18mm 15mm; size: A4; }
-    body { padding: 0; }
-    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  }
+  body { font-family: 'Aptos', 'Plus Jakarta Sans', 'Calibri', 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #1a1a1a; line-height: 1.8; max-width: 780px; margin: 0 auto; padding: 40px; }
   .cabecalho { text-align: center; border-bottom: 3px double #1E3A5F; padding-bottom: 20px; margin-bottom: 28px; }
   .cabecalho .escritorio-nome { font-size: 17px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; color: #1E3A5F; }
   .cabecalho .escritorio-info { font-size: 11px; color: #666; margin-top: 4px; }
@@ -459,9 +455,6 @@ ${contrato.observacoes ? `<div class="clausula">
   Documento gerado pelo sistema LawTech Pro — Este instrumento possui validade jurídica nos termos da legislação vigente.
 </div>
 
-<script>
-  window.onload = function() { setTimeout(function() { window.print(); }, 500); };
-</script>
 </body>
 </html>`
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
