@@ -42,44 +42,6 @@ class PDFGeneratorService {
                 const stream = fs.createWriteStream(filepath);
                 doc.pipe(stream);
 
-                // ===== CABEÇALHO =====
-                doc.fontSize(10)
-                   .font('Helvetica')
-                   .text('PODER JUDICIÁRIO', { align: 'center' })
-                   .moveDown(0.3);
-
-                if (dados.tribunal) {
-                    doc.text(dados.tribunal.toUpperCase(), { align: 'center' })
-                       .moveDown(0.3);
-                }
-
-                if (dados.vara) {
-                    doc.text(dados.vara.toUpperCase(), { align: 'center' })
-                       .moveDown(1);
-                }
-
-                // ===== TÍTULO DA PETIÇÃO =====
-                doc.fontSize(12)
-                   .font('Helvetica-Bold')
-                   .text(dados.titulo.toUpperCase(), { align: 'center' })
-                   .moveDown(2);
-
-                // ===== QUALIFICAÇÃO DAS PARTES =====
-                doc.fontSize(11)
-                   .font('Helvetica-Bold')
-                   .text(`${dados.tipo === 'inicial' ? 'AUTOR(A)' : 'REQUERENTE'}:`, { continued: true })
-                   .font('Helvetica')
-                   .text(` ${dados.autor}`)
-                   .moveDown(0.5);
-
-                if (dados.reu) {
-                    doc.font('Helvetica-Bold')
-                       .text(`${dados.tipo === 'inicial' ? 'RÉU/RÉ' : 'REQUERIDO(A)'}:`, { continued: true })
-                       .font('Helvetica')
-                       .text(` ${dados.reu}`)
-                       .moveDown(1.5);
-                }
-
                 // ===== CONTEÚDO PRINCIPAL =====
                 const conteudo = dados.conteudo_editado || dados.conteudo_gerado;
                 
