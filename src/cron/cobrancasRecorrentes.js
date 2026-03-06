@@ -3,8 +3,13 @@ const pool = require('../config/db');
 const { decrypt } = require('../utils/crypto');
 const { tentarGatewayAlternativo } = require('../utils/gatewayFailover');
 const { processarCobrancaCartao } = require('../services/chargeService');
+const { enviarEmail } = require('../services/emailService');
 const logger = require('../utils/logger');
 const cache = require('../utils/cache');
+
+// Dunning schedule: intervalos em dias após cada falha
+// D+2 → D+5 → D+7 → Suspensão
+const DUNNING_INTERVALS_DIAS = [2, 3, 2]; // índice = retry_count na falha atual
 
 async function invalidarCacheEscritorio(escritorioId) {
     try {
@@ -23,9 +28,22 @@ async function invalidarCacheEscritorio(escritorioId) {
 ===================================================== */
 
 cron.schedule('0 8 * * *', async () => {
+    let cronLockAtivo = false;
+    try {
+        const { rows: lr } = await pool.query('SELECT pg_try_advisory_lock($1) as locked', [1002]);
+        cronLockAtivo = lr[0].locked;
+    } catch (lockErr) {
+        logger.error({ err: lockErr.message }, '[CRON RECORRENTE] Erro ao adquirir lock');
+        return;
+    }
+    if (!cronLockAtivo) {
+        logger.info('[CRON RECORRENTE] Outra instância já em execução — pulando.');
+        return;
+    }
+
     logger.info('\n💰 [CRON RECORRENTE] Verificando cobranças mensais...');
     logger.info(`Data/Hora: ${new Date().toLocaleString('pt-BR')}`);
-    
+
     try {
         // Buscar assinaturas que vencem hoje
         const result = await pool.query(`
@@ -150,7 +168,8 @@ cron.schedule('0 8 * * *', async () => {
                         await client.query(`
                             UPDATE escritorios
                             SET plano_financeiro_status = 'inadimplente',
-                                proxima_cobranca = NOW() + INTERVAL '3 days'
+                                proxima_cobranca = NOW() + INTERVAL '2 days',
+                                retry_count = 0
                             WHERE id = $1
                         `, [escritorio.id]);
 
@@ -170,6 +189,24 @@ cron.schedule('0 8 * * *', async () => {
                         await client.query('COMMIT');
                         await invalidarCacheEscritorio(escritorio.id);
                         logger.info(`   ❌ COBRANÇA RECUSADA: ${cobranca.erro}`);
+
+                        // Email: avisa que a cobrança falhou e haverá nova tentativa em 2 dias
+                        await enviarEmail({
+                            para: escritorio.email_responsavel,
+                            assunto: '⚠️ Falha na renovação — LawTech Pro',
+                            html: `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;">
+                                <div style="background:#1E3A5F;padding:24px;text-align:center;">
+                                    <img src="https://www.lawtechpro.com.br/Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro" style="max-width:160px;height:auto;" />
+                                </div>
+                                <div style="padding:28px 24px;background:#fff;">
+                                    <h2 style="color:#b91c1c;margin:0 0 16px;">Não foi possível renovar sua assinatura</h2>
+                                    <p style="color:#374151;font-size:14px;">Olá, <strong>${escritorio.nome}</strong>! Tentamos cobrar sua assinatura do plano <strong>${escritorio.plano_nome}</strong> (R$ ${escritorio.preco_mensal}/mês) mas o pagamento foi recusado.</p>
+                                    <p style="color:#374151;font-size:14px;">Faremos uma nova tentativa automaticamente <strong>em 2 dias</strong>. Enquanto isso, verifique os dados do seu cartão em Configurações → Pagamento.</p>
+                                    <p style="color:#6b7280;font-size:12px;margin-top:24px;">Tentativa 1 de 3. Em caso de dúvidas, entre em contato: contato@lawtechpro.com.br</p>
+                                </div>
+                            </div>`
+                        }).catch(() => {});
+
                         falhas++;
                     }
                 } catch (txErr) {
@@ -193,6 +230,8 @@ cron.schedule('0 8 * * *', async () => {
 
     } catch (err) {
         logger.error(`❌ [CRON RECORRENTE] Erro geral: ${err}`);
+    } finally {
+        if (cronLockAtivo) await pool.query('SELECT pg_advisory_unlock($1)', [1002]).catch(() => {});
     }
 });
 
@@ -250,8 +289,21 @@ cron.schedule('0 10 * * *', async () => {
 ===================================================== */
 
 cron.schedule('0 14 * * *', async () => {
+    let cronLockAtivo = false;
+    try {
+        const { rows: lr } = await pool.query('SELECT pg_try_advisory_lock($1) as locked', [1003]);
+        cronLockAtivo = lr[0].locked;
+    } catch (lockErr) {
+        logger.error({ err: lockErr.message }, '[CRON RETRY] Erro ao adquirir lock');
+        return;
+    }
+    if (!cronLockAtivo) {
+        logger.info('[CRON RETRY] Outra instância já em execução — pulando.');
+        return;
+    }
+
     logger.info('\n🔄 [CRON RETRY] Tentando reprocessar inadimplentes...');
-    
+
     try {
         const result = await pool.query(`
             SELECT 
@@ -262,7 +314,8 @@ cron.schedule('0 14 * * *', async () => {
                 u.email,
                 c.token as cartao_token,
                 c.gateway,
-                c.last4
+                c.last4,
+                COALESCE(e.retry_count, 0) as retry_count
             FROM escritorios e
             JOIN planos p ON e.plano_id = p.id
             JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
@@ -272,6 +325,7 @@ cron.schedule('0 14 * * *', async () => {
                 AND e.proxima_cobranca <= CURRENT_DATE
                 AND (e.renovacao_automatica IS NULL OR e.renovacao_automatica = true)
                 AND COALESCE(e.retry_count, 0) < 3
+            ORDER BY e.proxima_cobranca ASC
         `);
 
         logger.info(`📊 [CRON RETRY] ${result.rowCount} inadimplente(s) para tentar novamente`);
@@ -324,28 +378,100 @@ cron.schedule('0 14 * * *', async () => {
                     logger.info(`   ✅ APROVADO no retry!`);
 
                 } else {
-                    logger.info(`   ❌ Ainda recusado: ${cobranca.erro}`);
-                    await client.query('BEGIN');
-                    await client.query(`
-                        UPDATE escritorios
-                        SET proxima_cobranca = NOW() + INTERVAL '3 days',
-                            retry_count = COALESCE(retry_count, 0) + 1
-                        WHERE id = $1
-                    `, [esc.id]);
+                    const retryAtual = esc.retry_count; // 0, 1 ou 2
+                    logger.info(`   ❌ Ainda recusado (tentativa ${retryAtual + 1}/3): ${cobranca.erro}`);
 
-                    await client.query(`
-                        INSERT INTO transacoes
-                        (escritorio_id, gateway_id, gateway, valor, status, mensagem_erro, descricao, created_at)
-                        VALUES ($1, $2, $3, $4, 'recusada', $5, $6, NOW())
-                    `, [
-                        esc.id,
-                        cobranca.transacaoId || null,
-                        esc.gateway,
-                        valorEmCentavos,
-                        cobranca.erro,
-                        `Retry inadimplente - ${esc.plano_nome}`
-                    ]);
-                    await client.query('COMMIT');
+                    await client.query('BEGIN');
+
+                    if (retryAtual >= 2) {
+                        // 3ª falha — suspender a conta
+                        await client.query(`
+                            UPDATE escritorios
+                            SET plano_financeiro_status = 'suspenso',
+                                proxima_cobranca = NULL,
+                                retry_count = 3
+                            WHERE id = $1
+                        `, [esc.id]);
+
+                        await client.query(`
+                            INSERT INTO transacoes
+                            (escritorio_id, gateway_id, gateway, valor, status, mensagem_erro, descricao, created_at)
+                            VALUES ($1, $2, $3, $4, 'recusada', $5, $6, NOW())
+                        `, [
+                            esc.id,
+                            cobranca.transacaoId || null,
+                            esc.gateway,
+                            valorEmCentavos,
+                            cobranca.erro,
+                            `Retry 3 recusado — conta suspensa - ${esc.plano_nome}`
+                        ]);
+
+                        await client.query('COMMIT');
+                        await invalidarCacheEscritorio(esc.id);
+                        logger.warn(`   🔴 CONTA SUSPENSA: ${esc.email} após 3 falhas`);
+
+                        await enviarEmail({
+                            para: esc.email,
+                            assunto: '🚨 Conta suspensa — LawTech Pro',
+                            html: `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;">
+                                <div style="background:#1E3A5F;padding:24px;text-align:center;">
+                                    <img src="https://www.lawtechpro.com.br/Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro" style="max-width:160px;height:auto;" />
+                                </div>
+                                <div style="padding:28px 24px;background:#fff;">
+                                    <h2 style="color:#7f1d1d;margin:0 0 16px;">Sua conta foi suspensa</h2>
+                                    <p style="color:#374151;font-size:14px;">Olá, <strong>${esc.nome}</strong>. Realizamos 3 tentativas de cobrança do plano <strong>${esc.plano_nome}</strong> (R$ ${esc.preco_mensal}/mês), mas todas foram recusadas.</p>
+                                    <p style="color:#374151;font-size:14px;">Seu acesso ao LawTech Pro está <strong>temporariamente suspenso</strong>. Para reativar, atualize seu cartão em Configurações → Pagamento ou entre em contato conosco.</p>
+                                    <p style="color:#6b7280;font-size:12px;margin-top:24px;">Precisa de ajuda? contato@lawtechpro.com.br</p>
+                                </div>
+                            </div>`
+                        }).catch(() => {});
+
+                    } else {
+                        // 1ª ou 2ª falha — agendar próxima tentativa com intervalo do dunning
+                        const proximoIntervaloDias = DUNNING_INTERVALS_DIAS[retryAtual + 1];
+                        const tentativaNum = retryAtual + 2;
+                        const proximaTentativa = new Date();
+                        proximaTentativa.setDate(proximaTentativa.getDate() + proximoIntervaloDias);
+
+                        await client.query(`
+                            UPDATE escritorios
+                            SET proxima_cobranca = NOW() + ($2 * INTERVAL '1 day'),
+                                retry_count = $3
+                            WHERE id = $1
+                        `, [esc.id, proximoIntervaloDias, retryAtual + 1]);
+
+                        await client.query(`
+                            INSERT INTO transacoes
+                            (escritorio_id, gateway_id, gateway, valor, status, mensagem_erro, descricao, created_at)
+                            VALUES ($1, $2, $3, $4, 'recusada', $5, $6, NOW())
+                        `, [
+                            esc.id,
+                            cobranca.transacaoId || null,
+                            esc.gateway,
+                            valorEmCentavos,
+                            cobranca.erro,
+                            `Retry ${retryAtual + 1} recusado - ${esc.plano_nome}`
+                        ]);
+
+                        await client.query('COMMIT');
+                        logger.info(`   ⚠️ Agendando tentativa ${tentativaNum}/3 em ${proximoIntervaloDias} dias (${proximaTentativa.toLocaleDateString('pt-BR')})`);
+
+                        await enviarEmail({
+                            para: esc.email,
+                            assunto: `⚠️ Nova tentativa de cobrança em ${proximoIntervaloDias} dias — LawTech Pro`,
+                            html: `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;">
+                                <div style="background:#1E3A5F;padding:24px;text-align:center;">
+                                    <img src="https://www.lawtechpro.com.br/Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro" style="max-width:160px;height:auto;" />
+                                </div>
+                                <div style="padding:28px 24px;background:#fff;">
+                                    <h2 style="color:#b91c1c;margin:0 0 16px;">Cobrança recusada — nova tentativa agendada</h2>
+                                    <p style="color:#374151;font-size:14px;">Olá, <strong>${esc.nome}</strong>. A tentativa de cobrança do plano <strong>${esc.plano_nome}</strong> (R$ ${esc.preco_mensal}/mês) foi recusada novamente.</p>
+                                    <p style="color:#374151;font-size:14px;">Faremos mais uma tentativa em <strong>${proximoIntervaloDias} dias</strong> (${proximaTentativa.toLocaleDateString('pt-BR')}). Atualize seu cartão em Configurações → Pagamento para evitar a suspensão da conta.</p>
+                                    <p style="color:#6b7280;font-size:12px;margin-top:24px;">Tentativa ${retryAtual + 1} de 3. Dúvidas? contato@lawtechpro.com.br</p>
+                                </div>
+                            </div>`
+                        }).catch(() => {});
+                    }
                 }
             } catch (txErr) {
                 await client.query('ROLLBACK');
@@ -359,6 +485,8 @@ cron.schedule('0 14 * * *', async () => {
 
     } catch (err) {
         logger.error(`❌ [CRON RETRY] Erro: ${err}`);
+    } finally {
+        if (cronLockAtivo) await pool.query('SELECT pg_advisory_unlock($1)', [1003]).catch(() => {});
     }
 });
 

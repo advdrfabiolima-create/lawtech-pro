@@ -7,14 +7,6 @@ const roleMiddleware = require('../middlewares/roleMiddleware');
 const verificarPagamento = require('../middlewares/financeiroMiddleware');
 
 
-// Middleware: injeta token da query string no header Authorization
-// Necessário para rotas abertas via window.open (nova aba nao envia headers)
-function authQueryToken(req, res, next) {
-    if (!req.headers.authorization && req.query.token) {
-        req.headers.authorization = 'Bearer ' + req.query.token;
-    }
-    next();
-}
 // ================================
 // ROTAS DE CLIENTES
 // ================================
@@ -80,7 +72,6 @@ router.post(
 // Gerar template HTML
 router.get(
     '/clientes/:id/contratos/:contratoId/template',
-    authQueryToken,
     authMiddleware,
     verificarPagamento,
     contratosController.gerarTemplate
@@ -99,7 +90,6 @@ router.post(
 // Download PDF
 router.get(
     '/contratos/:contratoId/arquivo',
-    authQueryToken,
     authMiddleware,
     verificarPagamento,
     contratosController.downloadContrato

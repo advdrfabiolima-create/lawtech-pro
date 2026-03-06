@@ -40,17 +40,13 @@ router.post('/auth/convidar-funcionario', authMiddleware, roleMiddleware('admin'
             return res.status(404).json({ erro: 'Escritório não encontrado' });
         }
 
-        const planoId = escritorioResult.rows[0].plano_id;
+        // 2. Buscar slug do plano via JOIN (evita hardcode de IDs)
+        const planoResult = await pool.query(
+            'SELECT slug, nome FROM planos WHERE id = $1',
+            [escritorioResult.rows[0].plano_id]
+        );
 
-        // 2. Mapear plano_id para slug do plano
-        const planoMap = {
-            1: 'basico',
-            2: 'intermediario',
-            3: 'avancado',
-            4: 'premium'
-        };
-
-        const planoSlug = planoMap[planoId] || 'basico';
+        const planoSlug = planoResult.rows[0]?.slug || 'basico';
         const planoConfig = planLimits[planoSlug];
 
         if (!planoConfig) {

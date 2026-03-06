@@ -5,12 +5,13 @@ const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
 const logger = require('../utils/logger');
 const { getPagination, buildPage } = require('../utils/paginate');
+const { checkLimit } = require('../middlewares/planMiddleware');
 
 /**
  * CADASTRAR NOVO PROCESSO (COM MÚLTIPLAS PARTES)
  * POST /api/processos
  */
-router.post('/processos', authMiddleware, roleMiddleware('admin', 'operador'), async (req, res) => {
+router.post('/processos', authMiddleware, roleMiddleware('admin', 'operador'), checkLimit('processos'), async (req, res) => {
   const dadosRecebidos = req.body;
 
   logger.info({ dadosRecebidos }, 'POST /api/processos - Dados recebidos');

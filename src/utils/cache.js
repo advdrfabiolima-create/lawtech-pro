@@ -38,4 +38,14 @@ async function del(key) {
     }
 }
 
-module.exports = { get, set, del };
+async function ping() {
+    if (!client) return false;
+    try {
+        await client.ping();
+        return true;
+    } catch (_) {
+        return false;
+    }
+}
+
+module.exports = { get, set, del, ping };

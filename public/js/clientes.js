@@ -1029,15 +1029,23 @@ const token = localStorage.getItem('token');
         }
 
         // ── Abrir template em nova aba ───────────────────────────────
-        function _gerarTemplate(contratoId) {
-            const token = localStorage.getItem('token');
-            window.open(`/api/clientes/${_contratoClienteId}/contratos/${contratoId}/template?token=${token}`, '_blank');
+        async function _gerarTemplate(contratoId) {
+            const res = await API.get(`/api/clientes/${_contratoClienteId}/contratos/${contratoId}/template`);
+            if (!res) return;
+            const html = await res.text();
+            const win = window.open('', '_blank');
+            if (win) { win.document.write(html); win.document.close(); }
         }
 
         // ── Download PDF assinado ────────────────────────────────────
-        function _downloadContrato(contratoId) {
-            const token = localStorage.getItem('token');
-            window.open(`/api/contratos/${contratoId}/arquivo?token=${token}`, '_blank');
+        async function _downloadContrato(contratoId) {
+            const res = await API.get(`/api/contratos/${contratoId}/arquivo`);
+            if (!res || !res.ok) return;
+            const blob = await res.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl; a.download = `contrato_${contratoId}.pdf`; a.click();
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
         }
 
         // ── Upload PDF assinado ──────────────────────────────────────
@@ -1334,15 +1342,23 @@ const token = localStorage.getItem('token');
         }
 
         // ── Abrir template em nova aba ───────────────────────────────
-        function _gerarTemplate(contratoId) {
-            const token = localStorage.getItem('token');
-            window.open(`/api/clientes/${_contratoClienteId}/contratos/${contratoId}/template?token=${token}`, '_blank');
+        async function _gerarTemplate(contratoId) {
+            const res = await API.get(`/api/clientes/${_contratoClienteId}/contratos/${contratoId}/template`);
+            if (!res) return;
+            const html = await res.text();
+            const win = window.open('', '_blank');
+            if (win) { win.document.write(html); win.document.close(); }
         }
 
         // ── Download PDF assinado ────────────────────────────────────
-        function _downloadContrato(contratoId) {
-            const token = localStorage.getItem('token');
-            window.open(`/api/contratos/${contratoId}/arquivo?token=${token}`, '_blank');
+        async function _downloadContrato(contratoId) {
+            const res = await API.get(`/api/contratos/${contratoId}/arquivo`);
+            if (!res || !res.ok) return;
+            const blob = await res.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl; a.download = `contrato_${contratoId}.pdf`; a.click();
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
         }
 
         // ── Upload PDF assinado ──────────────────────────────────────

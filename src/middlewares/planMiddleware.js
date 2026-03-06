@@ -126,7 +126,7 @@ const checkLimit = (resourceType) => {
                     break;
                 case 'processos':
                     tableName = 'processos';
-                    queryCondition = 'WHERE escritorio_id = $1';
+                    queryCondition = "WHERE escritorio_id = $1 AND status != 'excluido'";
                     break;
                 default:
                     return next();

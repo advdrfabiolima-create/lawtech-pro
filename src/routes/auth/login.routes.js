@@ -9,6 +9,7 @@ const { registrarAudit, dadosReq } = require('../../utils/auditLog');
 const authMiddleware = require('../../middlewares/authMiddleware');
 const rateLimit = require('express-rate-limit');
 const logger = require('../../utils/logger');
+const cache = require('../../utils/cache');
 
 const limiterReenvio = rateLimit({
     windowMs: 60 * 60 * 1000,
@@ -369,6 +370,30 @@ router.post('/reenviar-verificacao', authMiddleware, limiterReenvio, async (req,
     } catch (err) {
         logger.error(`❌ [EMAIL-VERIFY] Erro ao reenviar: ${err.message}`);
         res.status(500).json({ ok: false, erro: 'Erro ao reenviar verificação' });
+    }
+});
+
+/* ======================================================
+   LOGOUT
+   POST /api/auth/logout
+===================================================== */
+
+router.post('/logout', authMiddleware, async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (token) {
+            const decoded = jwtVerify(token);
+            const remainingSecs = decoded.exp - Math.floor(Date.now() / 1000);
+            if (remainingSecs > 0) {
+                const tokenHash = crypto.createHash('sha256').update(token).digest('hex').slice(0, 16);
+                await cache.set(`jwt:blacklist:${tokenHash}`, '1', remainingSecs);
+            }
+        }
+        await cache.del(`auth:user:${req.user.id}`);
+        logger.info({ userId: req.user.id }, '[LOGOUT] Token revogado');
+        res.json({ ok: true, mensagem: 'Logout realizado com sucesso' });
+    } catch (_) {
+        res.json({ ok: true });
     }
 });
 

@@ -265,9 +265,39 @@ router.get('/documentos/:id/assinatura', async (req, res) => {
 //                   cancel/canceled (cancelado), deadline (expirado)
 router.post('/clicksign', async (req, res) => {
     try {
-        // Autenticação: o hook foi registrado sem authenticity_token,
-        // portanto nenhum token é enviado pelo ClickSign.
-        // A segurança é garantida pela obscuridade da URL /webhook/clicksign.
+        // ─── Validação HMAC ───────────────────────────────────────────────────
+        const webhookSecret = process.env.CLICKSIGN_WEBHOOK_SECRET;
+
+        if (!webhookSecret) {
+            if (process.env.NODE_ENV === 'production') {
+                // Em produção sem secret configurado, bloqueia tudo —
+                // aceitar eventos sem autenticação permite que qualquer pessoa
+                // altere o status de assinaturas enviando um POST para esta URL.
+                logger.error('[WEBHOOK/ClickSign] CLICKSIGN_WEBHOOK_SECRET ausente em produção — webhook bloqueado. Configure a variável de ambiente.');
+                return res.sendStatus(401);
+            }
+            // Em dev/sandbox: aceita sem validar, mas avisa claramente
+            logger.warn('[WEBHOOK/ClickSign] HMAC desativado (CLICKSIGN_WEBHOOK_SECRET não definido) — aceitável apenas em dev/sandbox');
+        } else {
+            const hmacHeader = req.headers['x-clicksign-hmac-sha256'];
+            if (!hmacHeader) {
+                logger.warn('[WEBHOOK/ClickSign] Header X-Clicksign-Hmac-SHA256 ausente — rejeitando');
+                return res.sendStatus(401);
+            }
+            const payload = req.rawBody || JSON.stringify(req.body);
+            const expectedHmac = crypto
+                .createHmac('sha256', webhookSecret)
+                .update(payload)
+                .digest('hex');
+            // Remove prefixo "sha256=" se presente, e usa comparação timing-safe
+            const a = Buffer.from(hmacHeader.replace(/^sha256=/, ''), 'hex');
+            const b = Buffer.from(expectedHmac, 'hex');
+            if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+                logger.warn({ hmacHeader }, '[WEBHOOK/ClickSign] HMAC inválido — payload possivelmente forjado');
+                return res.sendStatus(401);
+            }
+            logger.info('[WEBHOOK/ClickSign] HMAC validado');
+        }
 
         const event = req.body?.event;
         if (!event) return res.sendStatus(200);

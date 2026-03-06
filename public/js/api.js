@@ -19,6 +19,14 @@ const API = (() => {
         window.location.href = '/login.html';
     }
 
+    async function logout() {
+        try {
+            await request('POST', '/api/auth/logout', null, false);
+        } catch (_) {}
+        localStorage.removeItem('token');
+        window.location.href = '/login.html';
+    }
+
     async function request(method, url, body, isJson) {
         const headers = authHeaders(isJson && body ? { 'Content-Type': 'application/json' } : undefined);
         const opts = { method: method, headers: headers };
@@ -42,6 +50,7 @@ const API = (() => {
         delete: function(url)       { return request('DELETE', url, null,  false); },
         upload: function(url, fd)   { return request('POST',   url, fd,    false); },
         getToken:    getToken,
-        authHeaders: authHeaders
+        authHeaders: authHeaders,
+        logout:      logout
     };
 })();

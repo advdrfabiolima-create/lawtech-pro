@@ -2,16 +2,12 @@ const { verify: jwtVerify } = require('../config/jwt');
 const pool = require('../config/db');
 const logger = require('../utils/logger');
 const cache = require('../utils/cache');
+const crypto = require('crypto');
 
 let Sentry = null;
 try { Sentry = require('@sentry/node'); } catch (_) {}
 
 const authMiddleware = async (req, res, next) => {
-  // Suporte a token via query string (?token=...) para rotas abertas via window.open/nova aba
-  if (!req.headers.authorization && req.query.token) {
-    req.headers.authorization = 'Bearer ' + req.query.token;
-  }
-
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -22,6 +18,13 @@ const authMiddleware = async (req, res, next) => {
 
   try {
     const decoded = jwtVerify(token);
+
+    // ─── Blacklist: token revogado via logout ─────────────────────────────────
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex').slice(0, 16);
+    const blacklisted = await cache.get(`jwt:blacklist:${tokenHash}`);
+    if (blacklisted) {
+      return res.status(401).json({ ok: false, erro: 'Token revogado. Faça login novamente.' });
+    }
 
     if (decoded.scope === '2fa') {
       return res.status(401).json({ ok: false, erro: 'Token temporário. Complete a verificação 2FA.' });

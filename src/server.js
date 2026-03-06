@@ -73,6 +73,8 @@ const andamentosRoutes = require('./routes/andamentos.routes');
 const portalClienteRoutes = require('./routes/portalCliente.routes');
 const reunioesRoutes = require('./routes/reunioes.routes');
 const fileStorage = require('./utils/storage');
+const cache = require('./utils/cache');
+const { version: APP_VERSION } = require('../package.json');
 
 // --- 2. MIDDLEWARES DE AUTENTICAÃ‡ÃƒO ---
 const authMiddleware = require('./middlewares/authMiddleware');
@@ -262,6 +264,36 @@ if (!fileStorage.isR2Active()) {
     app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
     app.use('/logos', express.static(path.join(__dirname, 'uploads', 'logos')));
 }
+
+// --- 7b. HEALTH CHECK (público, fora do rate limiter /api) ---
+app.get('/health', async (req, res) => {
+    const checks = {};
+
+    // Banco de dados — crítico
+    try {
+        await pool.query('SELECT 1');
+        checks.database = 'ok';
+    } catch (_) {
+        checks.database = 'error';
+    }
+
+    // Redis — opcional
+    try {
+        const redisUp = await cache.ping();
+        checks.redis = redisUp ? 'ok' : (process.env.REDIS_URL ? 'error' : 'not_configured');
+    } catch (_) {
+        checks.redis = 'error';
+    }
+
+    const dbOk = checks.database === 'ok';
+    res.status(dbOk ? 200 : 503).json({
+        status: dbOk ? 'ok' : 'degraded',
+        version: APP_VERSION,
+        uptime: Math.floor(process.uptime()),
+        timestamp: new Date().toISOString(),
+        checks
+    });
+});
 
 // --- 8. APIs (ROTAS DE DADOS) ---
 app.use('/api/auth', authRoutes);

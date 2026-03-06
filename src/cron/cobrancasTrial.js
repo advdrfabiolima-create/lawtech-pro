@@ -19,6 +19,19 @@ async function invalidarCacheEscritorio(escritorioId) {
 
 /* ✅ CORREÇÃO 1: Cobra NO DIA que expira (não 1 dia antes) */
 cron.schedule('0 6 * * *', async () => {
+    let cronLockAtivo = false;
+    try {
+        const { rows: lr } = await pool.query('SELECT pg_try_advisory_lock($1) as locked', [1001]);
+        cronLockAtivo = lr[0].locked;
+    } catch (lockErr) {
+        logger.error({ err: lockErr.message }, '[CRON TRIAL] Erro ao adquirir lock');
+        return;
+    }
+    if (!cronLockAtivo) {
+        logger.info('[CRON TRIAL] Outra instância já em execução — pulando.');
+        return;
+    }
+
     logger.info('\n🔔 [CRON TRIAL] Verificando cobranças...');
 
     try {
@@ -186,6 +199,18 @@ cron.schedule('0 6 * * *', async () => {
                 vencimento.setDate(vencimento.getDate() + DIAS_PARA_SUSPENSAO);
                 const vencimentoStr = vencimento.toISOString().split('T')[0];
 
+                // Idempotência: verificar se já existe PIX gerado hoje para este escritório
+                const pixExistente = await pool.query(
+                    `SELECT id FROM transacoes
+                     WHERE escritorio_id = $1 AND status = 'pix_pendente'
+                     AND DATE(created_at) = CURRENT_DATE`,
+                    [esc.id]
+                );
+                if (pixExistente.rows.length > 0) {
+                    logger.info(`[PIX] QR já gerado hoje para ${esc.nome} — pulando`);
+                    continue;
+                }
+
                 // Criar cobrança PIX
                 const pagRes = await axios.post(`${ASAAS_BASE_URL}/payments`, {
                     customer: customerId,
@@ -197,6 +222,14 @@ cron.schedule('0 6 * * *', async () => {
                 }, { headers: getAsaasHeaders() });
 
                 const cobrancaId = pagRes.data.id;
+
+                // Registrar transação imediatamente — garante idempotência em caso de crash
+                await pool.query(
+                    `INSERT INTO transacoes
+                     (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
+                     VALUES ($1, $2, 'asaas', $3, 'pix_pendente', $4, NOW())`,
+                    [esc.id, cobrancaId, parseFloat(esc.preco_mensal), `PIX Trial - ${esc.plano_nome}`]
+                );
 
                 // Buscar QR Code
                 const qrRes = await axios.get(
@@ -241,6 +274,8 @@ cron.schedule('0 6 * * *', async () => {
 
     } catch (err) {
         logger.error(`❌ [CRON] Erro: ${err}`);
+    } finally {
+        if (cronLockAtivo) await pool.query('SELECT pg_advisory_unlock($1)', [1001]).catch(() => {});
     }
 });
 
