@@ -3,6 +3,14 @@
     let dadosSalvos = false;
     if (!token) window.location.href = '/login.html';
 
+    // 0. UTILITÁRIOS DE DELEGAÇÃO
+    function clicarElemento(id) {
+        const el = document.getElementById(id);
+        if (el) el.click();
+    }
+    function navegarPara(url) { window.location.href = url; }
+    function removerElemento(id) { const el = document.getElementById(id); if (el) el.remove(); }
+
     // 1. MÁSCARAS E UTILITÁRIOS
     function mascaraCEP(i) {
         let v = i.value.replace(/\D/g, ''); 
@@ -268,7 +276,8 @@ async function carregarInfoRodape() {
                     btnAcao.style.borderColor = "#bbf7d0";
                     btnAcao.style.color = "#16a34a";
                     btnAcao.innerHTML = '<i class="lucide lucide-check-circle" style="width: 18px; height: 18px;"></i> Reativar Assinatura';
-                    btnAcao.setAttribute("onclick", "reativarAssinatura()");
+                    btnAcao.setAttribute("data-action", "reativarAssinatura");
+                    btnAcao.removeAttribute("onclick");
                 }
 
                 // Reinicializa os ícones Lucide para renderizar o novo ícone de erro/check
@@ -440,7 +449,7 @@ async function carregarInfoRodape() {
 
     async function ativarFinanceiro() {
     try {
-        const btn = document.querySelector('button[onclick*="ativarFinanceiro"]'); // Busca pelo botão com onclick
+        const btn = document.getElementById('btnAtivarFaturamento');
         
         if (btn) {
             btn.disabled = true;
@@ -507,7 +516,7 @@ async function carregarInfoRodape() {
         alert('❌ ' + mensagemErro);
         
     } finally {
-        const btn = document.querySelector('button[onclick*="ativarFinanceiro"]');
+        const btn = document.getElementById('btnAtivarFaturamento');
         if (btn && !btn.innerHTML.includes('Ativado')) {
             btn.disabled = false;
             btn.innerText = "🚀 Ativar Faturamento";
@@ -559,7 +568,7 @@ async function carregarEquipe() {
                         <span style="background: #e0e7ff; color: #4338ca; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700;">
                             ${ (m.role || 'operador').toUpperCase() }
                         </span>
-                        <button onclick="excluirMembro(${m.id})" 
+                        <button data-action="excluirMembro" data-args='[${m.id}]'
                                 style="background: none; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center;">
                             <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
                         </button>
@@ -1059,6 +1068,42 @@ window.onload = () => {
     if (elemento) {
         elemento.disabled = true;
     }
+
+    // Inputs — oninput (máscaras)
+    const inputOab = document.getElementById('confOab');
+    if (inputOab) inputOab.addEventListener('input', function() { aplicarMascaraOAB(this); });
+
+    const inputRendaMensal = document.getElementById('confRendaMensal');
+    if (inputRendaMensal) inputRendaMensal.addEventListener('input', function() { mascaraMoeda(this); });
+
+    const inputDocumento = document.getElementById('confDocumento');
+    if (inputDocumento) inputDocumento.addEventListener('input', function() { aplicarMascaraDoc(this); });
+
+    const inputCep = document.getElementById('confCep');
+    if (inputCep) {
+        inputCep.addEventListener('input', function() { mascaraCEP(this); });
+        inputCep.addEventListener('blur', buscarCep);
+    }
+
+    // Input file — onchange
+    const logoFileInput = document.getElementById('logoFileInput');
+    if (logoFileInput) logoFileInput.addEventListener('change', function() { uploadLogo(this); });
+
+    // Radio buttons — onclick
+    document.querySelectorAll('input[name="tipoDoc"]').forEach(function(r) {
+        r.addEventListener('click', ajustarMascaraDoc);
+    });
+
+    // Input 2FA código — oninput (filtrar apenas dígitos)
+    const twofaCodigo = document.getElementById('twofaCodigoAtivacao');
+    if (twofaCodigo) twofaCodigo.addEventListener('input', function() { this.value = this.value.replace(/\D/g, ''); });
+
+    // Link IA — interceptar navegação para abrir submenu
+    const linkIa = document.querySelector('a[data-action="toggleIaMenu"]');
+    if (linkIa) {
+        linkIa.removeAttribute('data-action');
+        linkIa.addEventListener('click', function(e) { toggleIaMenu(e); });
+    }
 };
 
     window.onclick = (e) => {
@@ -1312,10 +1357,10 @@ window.addEventListener('DOMContentLoaded', () => {
                     • Suporte prioritário
                 </p>
             </div>
-            <button onclick="window.location.href='/planos-page'" style="background:linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color:#000; border:none; padding:14px 28px; border-radius:10px; font-weight:800; cursor:pointer; width:100%; margin-bottom:10px;">
+            <button data-action="navegarPara" data-args='["/planos-page"]' style="background:linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color:#000; border:none; padding:14px 28px; border-radius:10px; font-weight:800; cursor:pointer; width:100%; margin-bottom:10px;">
                 Ver Planos e Preços
             </button>
-            <button onclick="document.getElementById('overlay-upgrade').remove()" style="background:none; border:none; color:#64748b; cursor:pointer; font-weight:600; padding:8px;">
+            <button data-action="removerElemento" data-args='["overlay-upgrade"]' style="background:none; border:none; color:#64748b; cursor:pointer; font-weight:600; padding:8px;">
                 Depois
             </button>
         </div>`;
@@ -1383,10 +1428,10 @@ function exibirAssinaturaAtiva(user) {
     if (btnContainer) {
         btnContainer.style.display = 'block';
         btnContainer.innerHTML = `
-            <button onclick="cancelarAssinatura()" 
-                    style="width: 100%; background: #fef2f2; border: 2px solid #fecaca; color: #991b1b; 
-                           padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; 
-                           font-weight: 700; transition: all 0.3s; display: flex; align-items: center; 
+            <button data-action="cancelarAssinatura"
+                    style="width: 100%; background: #fef2f2; border: 2px solid #fecaca; color: #991b1b;
+                           padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 14px;
+                           font-weight: 700; transition: all 0.3s; display: flex; align-items: center;
                            justify-content: center; gap: 8px;">
                 <i class="lucide lucide-x-circle" style="width: 18px; height: 18px;"></i>
                 Cancelar Renovação Automática
@@ -1435,10 +1480,10 @@ function exibirTrialExpirado() {
     // Substituir botão por "Ativar Plano"
     if (btnContainer) {
         btnContainer.innerHTML = `
-            <button onclick="window.location.href='/planos-page'" 
-                    style="width: 100%; background: #dc2626; border: 2px solid #b91c1c; color: white; 
-                           padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; 
-                           font-weight: 700; transition: all 0.3s; display: flex; align-items: center; 
+            <button data-action="navegarPara" data-args='["/planos-page"]'
+                    style="width: 100%; background: #dc2626; border: 2px solid #b91c1c; color: white;
+                           padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 14px;
+                           font-weight: 700; transition: all 0.3s; display: flex; align-items: center;
                            justify-content: center; gap: 8px;">
                 <i class="lucide lucide-credit-card" style="width: 18px; height: 18px;"></i>
                 Ativar Meu Plano Agora
@@ -1483,10 +1528,10 @@ function exibirInadimplente() {
     // Substituir botão por "Regularizar"
     if (btnContainer) {
         btnContainer.innerHTML = `
-            <button onclick="window.location.href='/planos-page?action=pay'" 
-                    style="width: 100%; background: #f97316; border: 2px solid #ea580c; color: white; 
-                           padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; 
-                           font-weight: 700; transition: all 0.3s; display: flex; align-items: center; 
+            <button data-action="navegarPara" data-args='["/planos-page?action=pay"]'
+                    style="width: 100%; background: #f97316; border: 2px solid #ea580c; color: white;
+                           padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 14px;
+                           font-weight: 700; transition: all 0.3s; display: flex; align-items: center;
                            justify-content: center; gap: 8px;">
                 <i class="lucide lucide-credit-card" style="width: 18px; height: 18px;"></i>
                 Regularizar Pagamento

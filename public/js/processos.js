@@ -247,17 +247,18 @@ class GerenciadorPartes {
             return;
         }
 
+        const instanceName = this.instanceName;
         container.innerHTML = this.partesAtivo.map(parte => `
             <div class="parte-item ${parte.eh_principal ? 'principal' : ''}" data-id="${parte.id}">
                 <div class="parte-info">
-                    ${parte.eh_principal ? 
-                        '<span class="badge-principal">★ PRINCIPAL</span>' : 
-                        `<button class="btn-set-principal" onclick="${this.instanceName}.definirPrincipalAtivo(${parte.id})" title="Definir como principal">☆</button>`
+                    ${parte.eh_principal ?
+                        '<span class="badge-principal">★ PRINCIPAL</span>' :
+                        `<button class="btn-set-principal" data-action="${instanceName}_definirPrincipalAtivo" data-args='[${parte.id}]' title="Definir como principal">☆</button>`
                     }
                     <div class="parte-nome">${parte.pessoa_nome}</div>
                     <div class="parte-tipo">${this.formatarTipoParte(parte.tipo_parte)}</div>
                 </div>
-                <button class="btn-remover" onclick="${this.instanceName}.removerParteAtivo(${parte.id})" title="Remover parte">
+                <button class="btn-remover" data-action="${instanceName}_removerParteAtivo" data-args='[${parte.id}]' title="Remover parte">
                     <i data-lucide="x" style="width: 14px; height: 14px;"></i>
                 </button>
             </div>
@@ -285,17 +286,18 @@ class GerenciadorPartes {
             return;
         }
 
+        const instanceNameP = this.instanceName;
         container.innerHTML = this.partesPassivo.map(parte => `
             <div class="parte-item ${parte.eh_principal ? 'principal' : ''}" data-id="${parte.id}">
                 <div class="parte-info">
-                    ${parte.eh_principal ? 
-                        '<span class="badge-principal">★ PRINCIPAL</span>' : 
-                        `<button class="btn-set-principal" onclick="${this.instanceName}.definirPrincipalPassivo(${parte.id})" title="Definir como principal">☆</button>`
+                    ${parte.eh_principal ?
+                        '<span class="badge-principal">★ PRINCIPAL</span>' :
+                        `<button class="btn-set-principal" data-action="${instanceNameP}_definirPrincipalPassivo" data-args='[${parte.id}]' title="Definir como principal">☆</button>`
                     }
                     <div class="parte-nome">${parte.pessoa_nome}</div>
                     <div class="parte-tipo">${this.formatarTipoParte(parte.tipo_parte)}</div>
                 </div>
-                <button class="btn-remover" onclick="${this.instanceName}.removerPartePassivo(${parte.id})" title="Remover parte">
+                <button class="btn-remover" data-action="${instanceNameP}_removerPartePassivo" data-args='[${parte.id}]' title="Remover parte">
                     <i data-lucide="x" style="width: 14px; height: 14px;"></i>
                 </button>
             </div>
@@ -530,18 +532,16 @@ let gerenciadorPartesEdicao = null;
                 <td style="padding: 16px 12px; text-align: center; font-weight: 700; color: #4A90E2;">${p.uf || '--'}</td>
                 <td style="padding: 16px 12px; text-align: center;">
                     ${abaAtual === 'ativo' ? `
-                        <span onclick="alternarStatusProcesso(${p.id}, '${p.status_atividade || 'ATIVO'}')" 
-                              style="background: ${(p.status_atividade || 'ATIVO') === 'ATIVO' ? '#ecfdf5' : '#fef2f2'}; 
-                                     color: ${(p.status_atividade || 'ATIVO') === 'ATIVO' ? '#10b981' : '#ef4444'}; 
-                                     padding: 6px 12px; 
-                                     border-radius: 4px; 
-                                     font-size: 11px; 
-                                     font-weight: 700; 
-                                     cursor: pointer; 
+                        <span data-action="alternarStatusProcesso" data-args='[${p.id},"${(p.status_atividade || 'ATIVO')}"]'
+                              style="background: ${(p.status_atividade || 'ATIVO') === 'ATIVO' ? '#ecfdf5' : '#fef2f2'};
+                                     color: ${(p.status_atividade || 'ATIVO') === 'ATIVO' ? '#10b981' : '#ef4444'};
+                                     padding: 6px 12px;
+                                     border-radius: 4px;
+                                     font-size: 11px;
+                                     font-weight: 700;
+                                     cursor: pointer;
                                      transition: all 0.2s;
                                      display: inline-block;"
-                              onmouseover="this.style.opacity='0.7'"
-                              onmouseout="this.style.opacity='1'"
                               title="Clique para alternar status">
                             ${(p.status_atividade || 'ATIVO').toUpperCase()}
                         </span>
@@ -559,17 +559,17 @@ let gerenciadorPartesEdicao = null;
                 <td style="padding: 16px 12px; text-align: right;">
                     <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
                         ${abaAtual === 'ativo' ? `
-                            <button onclick="editarProcesso(${p.id})" title="Editar Processo" style="background:none;border:none;cursor:pointer;color:#5BA4DB;"><i data-lucide="edit" style="width:18px;"></i></button>
-                            <button onclick="arquivarProcesso(${p.id})" title="Arquivar" style="background:none;border:none;cursor:pointer;color:#f59e0b;"><i data-lucide="archive" style="width:18px;"></i></button>
-                            <button onclick="abrirAndamentos(${p.id}, '${(p.numero||'').replace(/'/g,"\\\'")}')" title="Andamentos" style="background:none;border:none;cursor:pointer;color:#6366f1;"><i data-lucide="clock" style="width:18px;height:18px;"></i></button>
-                            <button onclick="window.location.href='/documentos-page?processo_id=${p.id}'" title="Documentos" style="background:none;border:none;cursor:pointer;color:#7E8CE0;"><i data-lucide="folder-open" style="width:18px;height:18px;"></i></button>
-                            <button onclick="excluirProcesso(${p.id})" title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;"><i data-lucide="trash-2" style="width:18px;"></i></button>
+                            <button data-action="editarProcesso" data-args='[${p.id}]' title="Editar Processo" style="background:none;border:none;cursor:pointer;color:#5BA4DB;"><i data-lucide="edit" style="width:18px;"></i></button>
+                            <button data-action="arquivarProcesso" data-args='[${p.id}]' title="Arquivar" style="background:none;border:none;cursor:pointer;color:#f59e0b;"><i data-lucide="archive" style="width:18px;"></i></button>
+                            <button data-action="abrirAndamentos" data-args='[${p.id},"${(p.numero||'').replace(/"/g,'&quot;')}"]' title="Andamentos" style="background:none;border:none;cursor:pointer;color:#6366f1;"><i data-lucide="clock" style="width:18px;height:18px;"></i></button>
+                            <button data-action="irParaDocumentos" data-args='[${p.id}]' title="Documentos" style="background:none;border:none;cursor:pointer;color:#7E8CE0;"><i data-lucide="folder-open" style="width:18px;height:18px;"></i></button>
+                            <button data-action="excluirProcesso" data-args='[${p.id}]' title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;"><i data-lucide="trash-2" style="width:18px;"></i></button>
                         ` : abaAtual === 'arquivado' ? `
-                            <button onclick="editarProcesso(${p.id})" title="Editar Processo" style="background:none;border:none;cursor:pointer;color:#5BA4DB;"><i data-lucide="edit" style="width:18px;"></i></button>
-                            <button onclick="desarquivarProcesso(${p.id})" title="Desarquivar" style="background:none;border:none;cursor:pointer;color:#10b981;"><i data-lucide="refresh-cw" style="width:18px;"></i></button>
-                            <button onclick="abrirAndamentos(${p.id}, '${(p.numero||'').replace(/'/g,"\\\'")}')" title="Andamentos" style="background:none;border:none;cursor:pointer;color:#6366f1;"><i data-lucide="clock" style="width:18px;height:18px;"></i></button>
-                            <button onclick="window.location.href='/documentos-page?processo_id=${p.id}'" title="Documentos" style="background:none;border:none;cursor:pointer;color:#7E8CE0;"><i data-lucide="folder-open" style="width:18px;height:18px;"></i></button>
-                            <button onclick="excluirProcesso(${p.id})" title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;"><i data-lucide="trash-2" style="width:18px;"></i></button>
+                            <button data-action="editarProcesso" data-args='[${p.id}]' title="Editar Processo" style="background:none;border:none;cursor:pointer;color:#5BA4DB;"><i data-lucide="edit" style="width:18px;"></i></button>
+                            <button data-action="desarquivarProcesso" data-args='[${p.id}]' title="Desarquivar" style="background:none;border:none;cursor:pointer;color:#10b981;"><i data-lucide="refresh-cw" style="width:18px;"></i></button>
+                            <button data-action="abrirAndamentos" data-args='[${p.id},"${(p.numero||'').replace(/"/g,'&quot;')}"]' title="Andamentos" style="background:none;border:none;cursor:pointer;color:#6366f1;"><i data-lucide="clock" style="width:18px;height:18px;"></i></button>
+                            <button data-action="irParaDocumentos" data-args='[${p.id}]' title="Documentos" style="background:none;border:none;cursor:pointer;color:#7E8CE0;"><i data-lucide="folder-open" style="width:18px;height:18px;"></i></button>
+                            <button data-action="excluirProcesso" data-args='[${p.id}]' title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;"><i data-lucide="trash-2" style="width:18px;"></i></button>
                         ` : `
                             <div style="text-align: right; line-height: 1.3; min-width: 160px;">
                                 <div style="font-size: 9px; color: #94a3b8; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Auditado</div>
@@ -642,6 +642,11 @@ let gerenciadorPartesEdicao = null;
     // ============================================
     // PAGINAÇÃO
     // ============================================
+    function carregarProcessosPagina(pagina) {
+        carregarProcessos(pagina, termoBuscaProcessos, ufsFiltroAtual);
+    }
+    window.carregarProcessosPagina = carregarProcessosPagina;
+
     function renderizarPaginacaoProcessos() {
         const container = document.getElementById('paginacaoProcessos');
         if (!container) return;
@@ -653,17 +658,17 @@ let gerenciadorPartesEdicao = null;
         const fim = Math.min(page * LIMITE_PROCESSOS, total);
         const delta = 2, left = Math.max(1, page - delta), right = Math.min(totalPages, page + delta);
         let nums = '';
-        if (left > 1) nums += '<button onclick="carregarProcessos(1,termoBuscaProcessos,ufsFiltroAtual)" class="pag-num' + (1===page?' pag-ativo':'') + '">1</button>';
+        if (left > 1) nums += '<button data-action="carregarProcessosPagina" data-args=\'[1]\' class="pag-num' + (1===page?' pag-ativo':'') + '">1</button>';
         if (left > 2) nums += '<span class="pag-ellipsis">…</span>';
-        for (let i = left; i <= right; i++) nums += '<button onclick="carregarProcessos(' + i + ',termoBuscaProcessos,ufsFiltroAtual)" class="pag-num' + (i===page?' pag-ativo':'') + '">' + i + '</button>';
+        for (let i = left; i <= right; i++) nums += '<button data-action="carregarProcessosPagina" data-args=\'[' + i + ']\' class="pag-num' + (i===page?' pag-ativo':'') + '">' + i + '</button>';
         if (right < totalPages - 1) nums += '<span class="pag-ellipsis">…</span>';
-        if (right < totalPages) nums += '<button onclick="carregarProcessos(' + totalPages + ',termoBuscaProcessos,ufsFiltroAtual)" class="pag-num' + (totalPages===page?' pag-ativo':'') + '">' + totalPages + '</button>';
+        if (right < totalPages) nums += '<button data-action="carregarProcessosPagina" data-args=\'[' + totalPages + ']\' class="pag-num' + (totalPages===page?' pag-ativo':'') + '">' + totalPages + '</button>';
         container.innerHTML =
             '<span class="pag-info">Mostrando <strong>' + inicio + '–' + fim + '</strong> de <strong>' + total + '</strong> processos</span>' +
             '<div class="pag-controles">' +
-            '<button onclick="carregarProcessos(' + (page-1) + ',termoBuscaProcessos,ufsFiltroAtual)" ' + (page<=1?'disabled':'') + ' class="pag-nav">← Anterior</button>' +
+            '<button data-action="carregarProcessosPagina" data-args=\'[' + (page-1) + ']\' ' + (page<=1?'disabled':'') + ' class="pag-nav">← Anterior</button>' +
             nums +
-            '<button onclick="carregarProcessos(' + (page+1) + ',termoBuscaProcessos,ufsFiltroAtual)" ' + (page>=totalPages?'disabled':'') + ' class="pag-nav">Próximo →</button>' +
+            '<button data-action="carregarProcessosPagina" data-args=\'[' + (page+1) + ']\' ' + (page>=totalPages?'disabled':'') + ' class="pag-nav">Próximo →</button>' +
             '</div>';
         container.classList.add('ativo');
     }
@@ -1115,6 +1120,12 @@ let gerenciadorPartesEdicao = null;
         }
     }
 
+    function verProcessoConflito(id) {
+        document.getElementById('modalConflito').style.display = 'none';
+        abrirDetalhesProcesso(id);
+    }
+    window.verProcessoConflito = verProcessoConflito;
+
     function exibirAlertaConflito(processos, dadosParte, gerenciador) {
         const lista = processos.map(p =>
             `<li style="margin-bottom:6px;">
@@ -1122,7 +1133,7 @@ let gerenciadorPartesEdicao = null;
                 ${p.cliente ? ` — cliente: <em>${p.cliente}</em>` : ''}
                 ${p.esfera  ? ` (${p.esfera})` : ''}
                 <a href="javascript:void(0)"
-                   onclick="document.getElementById('modalConflito').style.display='none';abrirDetalhesProcesso(${p.id})"
+                   data-action="verProcessoConflito" data-args='[${p.id}]'
                    style="color:#1e3a8a;font-weight:600;margin-left:6px;text-decoration:underline;">
                    Ver →
                 </a>
@@ -1537,6 +1548,11 @@ function obterTribunaisPorEsfera(esfera) {
     // ============================================
     // AÇÕES DE PROCESSO
     // ============================================
+    function irParaDocumentos(id) {
+        window.location.href = '/documentos-page?processo_id=' + id;
+    }
+    window.irParaDocumentos = irParaDocumentos;
+
     async function arquivarProcesso(id) {
         if (!confirm("Deseja mover este processo para os Arquivados?")) return;
         try {
@@ -1752,18 +1768,69 @@ function obterTribunaisPorEsfera(esfera) {
     // ============================================
     document.addEventListener('DOMContentLoaded', () => {
         console.log('📄 DOM carregado');
-        
+
         // Verificar se IMask foi carregado
         if (typeof IMask !== 'undefined') {
             console.log('✅ IMask carregado com sucesso');
         } else {
             console.error('❌ IMask não foi carregado!');
         }
-        
+
+        // Listeners para inputs/selects que não usam data-action
+        const searchInput = document.getElementById('searchProcessos');
+        if (searchInput) searchInput.addEventListener('input', filtrarProcessosTabela);
+
+        const esferaSelect = document.getElementById('esfera');
+        if (esferaSelect) esferaSelect.addEventListener('change', atualizarTribunais);
+
+        const esferaEditSelect = document.getElementById('processoEditEsfera');
+        if (esferaEditSelect) esferaEditSelect.addEventListener('change', atualizarTribunaisEdicao);
+
+        const clienteSelectEl = document.getElementById('clienteSelect');
+        if (clienteSelectEl) clienteSelectEl.addEventListener('change', function() { preencherDadosCliente(this.value); });
+
+        const andTipoSelect = document.getElementById('andTipo');
+        if (andTipoSelect) andTipoSelect.addEventListener('change', function() { toggleAndTipoCustom(this.value); });
+
+        const formAdicionarParte = document.getElementById('formAdicionarParte');
+        if (formAdicionarParte) formAdicionarParte.addEventListener('submit', function(e) {
+            e.preventDefault();
+            adicionarParteFormulario();
+        });
+
+        const formAndamento = document.getElementById('formAndamento');
+        if (formAndamento) formAndamento.addEventListener('submit', function(e) {
+            registrarAndamento(e);
+        });
+
         setTimeout(() => {
             inicializar();
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }, 100);
+
+        // Registrar handlers de delegation para GerenciadorPartes (instâncias dinâmicas)
+        // O sistema de delegation chama window[fn], então precisamos registrar proxies
+        // para cada instância. Como os instanceName são fixos ('gerenciadorPartes' e
+        // 'gerenciadorPartesEdicao'), registramos funções com prefixo do instanceName.
+        const _gerenciadorProxies = ['gerenciadorPartes', 'gerenciadorPartesEdicao'];
+        _gerenciadorProxies.forEach(function(name) {
+            window[name + '_removerParteAtivo'] = function(id) {
+                const g = window[name];
+                if (g) g.removerParteAtivo(id);
+            };
+            window[name + '_removerPartePassivo'] = function(id) {
+                const g = window[name];
+                if (g) g.removerPartePassivo(id);
+            };
+            window[name + '_definirPrincipalAtivo'] = function(id) {
+                const g = window[name];
+                if (g) g.definirPrincipalAtivo(id);
+            };
+            window[name + '_definirPrincipalPassivo'] = function(id) {
+                const g = window[name];
+                if (g) g.definirPrincipalPassivo(id);
+            };
+        });
     });
 
     window.onload = () => {
@@ -1777,13 +1844,20 @@ function obterTribunaisPorEsfera(esfera) {
     submenu.classList.toggle('open');
 }
 
+    function toggleIaMenuLink(el) {
+        // el é o elemento passado pelo sistema de delegation
+        const submenu = document.getElementById('submenu-ia');
+        if (submenu) submenu.classList.toggle('open');
+    }
+    window.toggleIaMenuLink = toggleIaMenuLink;
+
         function aplicarPermissoesRoleUI(role) {
             if (role === 'admin') return;
             const s = document.createElement('style');
             if (role === 'operador') {
-                s.textContent = 'button[onclick*="excluirProcesso"],button[onclick*="/excluir"] { display: none !important; }';
+                s.textContent = 'button[data-action="excluirProcesso"] { display: none !important; }';
             } else {
-                s.textContent = 'button[onclick*="abrirModalProcesso"], button[onclick*="excluirProcesso"], button[onclick*="/excluir"], .btn-arquivar, .btn-desarquivar { display: none !important; }';
+                s.textContent = 'button[data-action="abrirModalProcesso"], button[data-action="excluirProcesso"], .btn-arquivar, .btn-desarquivar { display: none !important; }';
             }
             document.head.appendChild(s);
         }
@@ -1913,13 +1987,13 @@ function obterTribunaisPorEsfera(esfera) {
                         ${a.descricao ? '<div class="and-text-livre" style="font-size:12px;color:#64748b;line-height:1.5;white-space:pre-wrap;">' + escapeHtml(a.descricao) + '</div>' : ''}
                         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
                             <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;color:#64748b;">
-                                <input type="checkbox" ${a.visivel_cliente ? 'checked' : ''} onchange="toggleVisivelCliente(${a.id}, this)"
+                                <input type="checkbox" ${a.visivel_cliente ? 'checked' : ''} data-action="toggleVisivelClienteCheck" data-args='[${a.id}]'
                                     style="width:12px;height:12px;accent-color:#6366f1;">
                                 Visível no Portal
                             </label>
                             <div style="display:flex;gap:4px;">
-                                ${podeEditar ? `<button onclick="editarAndamento(${a.id})" title="Editar" style="background:none;border:none;cursor:pointer;color:#3b82f6;padding:2px;"><i data-lucide="pencil" style="width:14px;height:14px;"></i></button>` : ''}
-                                ${podeExcluir ? `<button onclick="excluirAndamento(${a.id})" title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:2px;"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>` : ''}
+                                ${podeEditar ? `<button data-action="editarAndamento" data-args='[${a.id}]' title="Editar" style="background:none;border:none;cursor:pointer;color:#3b82f6;padding:2px;"><i data-lucide="pencil" style="width:14px;height:14px;"></i></button>` : ''}
+                                ${podeExcluir ? `<button data-action="excluirAndamento" data-args='[${a.id}]' title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:2px;"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>` : ''}
                             </div>
                         </div>
                     </div>
@@ -2064,6 +2138,10 @@ function obterTribunaisPorEsfera(esfera) {
                 }
             })
             .catch(() => alert('Erro de conexão.'));
+        };
+
+        window.toggleVisivelClienteCheck = function(id, el) {
+            window.toggleVisivelCliente(id, el);
         };
 
         window.toggleVisivelCliente = function(id, checkbox) {

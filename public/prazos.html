@@ -848,7 +848,7 @@
         <div class="menu-item-with-submenu">
 
     <!-- LINK PRINCIPAL (IA PAGE) -->
-    <a href="/ia-page" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
+    <a href="/ia-page" id="linkIaMenu" style="display:flex; align-items:center; gap:10px;">
         <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
         IA Jurídica
         <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">
@@ -879,7 +879,7 @@
         <a href="/config-page" id="guia-config">
             <i class="lucide lucide-settings"></i> Configurações
         </a>
-        <a href="/crm-page" class="btn-crm-gold-nav" onclick="limparBolinha()">
+        <a href="/crm-page" class="btn-crm-gold-nav" data-action="limparBolinha">
             <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
             <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
         </a>
@@ -905,12 +905,12 @@
     <div style="display:flex; gap:20px; align-items:center;">
         <div style="position: relative; display: flex; align-items: center; gap: 12px;">
             <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
-            <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
+            <div data-action="toggleUserMenu" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
                 --
             </div>
             <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
                 <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
-                <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
+                <a href="#" data-action="logout" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
             </div>
         </div>
     </div>
@@ -956,15 +956,15 @@
             <!-- Filtros -->
             <div class="filters-section">
                 <div class="filters-tabs">
-                    <button class="filter-tab active" data-filter="todos" onclick="filtrarPrazos('todos', this)">Todos</button>
-                    <button class="filter-tab" data-filter="vencidos" onclick="filtrarPrazos('vencidos', this)">Vencidos</button>
-                    <button class="filter-tab" data-filter="hoje" onclick="filtrarPrazos('hoje', this)">Hoje</button>
-                    <button class="filter-tab" data-filter="esta-semana" onclick="filtrarPrazos('esta-semana', this)">Esta Semana</button>
-                    <button class="filter-tab" data-filter="concluidos" onclick="filtrarPrazos('concluidos', this)">Concluídos</button>
-                    <button class="filter-tab" data-filter="calendario" onclick="filtrarPrazos('calendario', this)">📅 Calendário</button>
+                    <button class="filter-tab active" data-filter="todos" data-action="filtrarPrazos" data-args='["todos"]'>Todos</button>
+                    <button class="filter-tab" data-filter="vencidos" data-action="filtrarPrazos" data-args='["vencidos"]'>Vencidos</button>
+                    <button class="filter-tab" data-filter="hoje" data-action="filtrarPrazos" data-args='["hoje"]'>Hoje</button>
+                    <button class="filter-tab" data-filter="esta-semana" data-action="filtrarPrazos" data-args='["esta-semana"]'>Esta Semana</button>
+                    <button class="filter-tab" data-filter="concluidos" data-action="filtrarPrazos" data-args='["concluidos"]'>Concluídos</button>
+                    <button class="filter-tab" data-filter="calendario" data-action="filtrarPrazos" data-args='["calendario"]'>📅 Calendário</button>
                 </div>
                 <div class="filters-actions">
-                    <button class="btn-primary" onclick="abrirModalPrazo()">
+                    <button class="btn-primary" data-action="abrirModalPrazo">
                         <i data-lucide="plus"></i>
                         NOVO PRAZO
                     </button>
@@ -981,21 +981,21 @@
             <div class="calendario-container" id="secao-calendario">
                 <div class="calendario-grid-wrapper">
                     <div class="calendario-nav">
-                        <button onclick="calMesAnterior()">◀ Anterior</button>
+                        <button data-action="calMesAnterior">◀ Anterior</button>
                         <h3 id="cal-mes-titulo">Fevereiro 2026</h3>
-                        <button onclick="calMesProximo()">Próximo ▶</button>
+                        <button data-action="calMesProximo">Próximo ▶</button>
                     </div>
                     <div class="calendario-grid" id="cal-grid"></div>
                 </div>
                 <div class="calendario-sidebar-panel">
                     <h4>📅 Compromissos do Mês</h4>
                     <div id="cal-compromissos-lista"><p style="color:var(--muted); font-size:13px;">Nenhum compromisso neste mês.</p></div>
-                    <button class="btn-add-compromisso" onclick="abrirModalCompromisso()">+ Adicionar Compromisso</button>
+                    <button class="btn-add-compromisso" data-action="abrirModalCompromisso">+ Adicionar Compromisso</button>
 
                     <h4 style="margin-top:24px; padding-top:16px; border-top:1px solid var(--border-subtle);">📌 Feriados e Suspensões do Mês</h4>
                     <div id="cal-feriados-lista"><p style="color:var(--muted); font-size:13px;">Nenhum feriado neste mês.</p></div>
-                    <button class="btn-add-feriado" onclick="abrirModalFeriado()">+ Adicionar Feriado</button>
-                    <button class="btn-carregar-nacionais" onclick="carregarFeriadosNacionais()">🇧🇷 Carregar Feriados Nacionais</button>
+                    <button class="btn-add-feriado" data-action="abrirModalFeriado">+ Adicionar Feriado</button>
+                    <button class="btn-carregar-nacionais" data-action="carregarFeriadosNacionais">🇧🇷 Carregar Feriados Nacionais</button>
                 </div>
             </div>
         </div>
@@ -1054,10 +1054,10 @@
                 <div style="margin-top: 10px;">
                     <!-- Área de upload (quando não tem PDF) -->
                     <div id="uploadArea" style="display: block;">
-                        <div style="text-align: center; padding: 20px; border: 2px dashed var(--border); border-radius: 8px; cursor: pointer;" onclick="document.getElementById('pdfInput').click()">
+                        <div id="uploadAreaClickZone" style="text-align: center; padding: 20px; border: 2px dashed var(--border); border-radius: 8px; cursor: pointer;" data-action="clicarElemento" data-args='["pdfInput"]'>
                             <i data-lucide="upload" style="width: 32px; height: 32px; margin: 0 auto 10px; color: var(--primary);"></i>
                             <p style="font-size: 13px; color: var(--muted);">Clique para anexar PDF</p>
-                            <input type="file" id="pdfInput" accept="application/pdf" style="display: none;" onchange="uploadPDF()" />
+                            <input type="file" id="pdfInput" accept="application/pdf" style="display: none;" />
                         </div>
                     </div>
 
@@ -1072,10 +1072,10 @@
                                 </div>
                             </div>
                             <div style="display: flex; gap: 8px;">
-                                <button type="button" onclick="visualizarPDF()" title="Visualizar PDF" style="background: #f1f5f9; border: 1px solid var(--border); padding: 8px; border-radius: 6px; cursor: pointer;">
+                                <button type="button" data-action="visualizarPDF" title="Visualizar PDF" style="background: #f1f5f9; border: 1px solid var(--border); padding: 8px; border-radius: 6px; cursor: pointer;">
                                     <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
                                 </button>
-                                <button type="button" onclick="deletarPDF()" title="Remover PDF" style="background: #fef2f2; border: 1px solid #fecaca; padding: 8px; border-radius: 6px; cursor: pointer; color: var(--danger);">
+                                <button type="button" data-action="deletarPDF" title="Remover PDF" style="background: #fef2f2; border: 1px solid #fecaca; padding: 8px; border-radius: 6px; cursor: pointer; color: var(--danger);">
                                     <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
                                 </button>
                             </div>
@@ -1087,8 +1087,8 @@
             
             <!-- Botões de Ação -->
             <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:10px;">
-                <button class="btn-primary" onclick="salvarPrazo()">Salvar Prazo</button>
-                <button class="btn-secondary" onclick="fecharModalPrazo()">Cancelar</button>
+                <button class="btn-primary" data-action="salvarPrazo">Salvar Prazo</button>
+                <button class="btn-secondary" data-action="fecharModalPrazo">Cancelar</button>
             </div>
         </div>
     </div>
@@ -1102,7 +1102,7 @@
             </h2>
             <div id="aiResponseContent" style="white-space: pre-wrap; line-height: 1.8; color: #334155; font-size: 15px;"></div>
             <div style="margin-top: 20px; text-align: right;">
-                <button class="btn-secondary" onclick="document.getElementById('modalIA').style.display='none'">Fechar</button>
+                <button class="btn-secondary" data-action="fecharElemento" data-args='["modalIA"]'>Fechar</button>
             </div>
         </div>
     </div>
@@ -1123,7 +1123,7 @@
                 </div>
                 <div>
                     <label>TIPO</label>
-                    <select id="compTipo" onchange="toggleCompCampos()">
+                    <select id="compTipo">
                         <option value="pagamento">💰 Pagamento</option>
                         <option value="reuniao">📋 Reunião</option>
                         <option value="audiencia_externa">⚖️ Audiência Externa</option>
@@ -1134,7 +1134,7 @@
 
             <div id="compValorGrupo">
                 <label>VALOR (R$)</label>
-                <input type="text" id="compValor" placeholder="0,00" inputmode="numeric" autocomplete="off" oninput="mascaraValorComp(this)">
+                <input type="text" id="compValor" placeholder="0,00" inputmode="numeric" autocomplete="off">
             </div>
 
             <label>PROCESSO VINCULADO <span style="font-weight:400;font-size:11px;">(opcional)</span></label>
@@ -1167,8 +1167,8 @@
             </div>
 
             <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
-                <button class="btn-primary" onclick="salvarCompromisso()">Salvar</button>
-                <button class="btn-secondary" onclick="document.getElementById('modalCompromisso').style.display='none'">Cancelar</button>
+                <button class="btn-primary" data-action="salvarCompromisso">Salvar</button>
+                <button class="btn-secondary" data-action="fecharElemento" data-args='["modalCompromisso"]'>Cancelar</button>
             </div>
         </div>
     </div>
@@ -1217,10 +1217,10 @@
             </div>
 
             <div class="detalhe-actions">
-                <button class="btn-danger" id="detalheBtnDeletar" onclick="deletarDoDetalhe()" style="background:var(--accent-red);color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">
+                <button class="btn-danger" id="detalheBtnDeletar" data-action="deletarDoDetalhe" style="background:var(--accent-red);color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">
                     🗑 Remover
                 </button>
-                <button class="btn-secondary" onclick="document.getElementById('modalDetalheComp').style.display='none'">Fechar</button>
+                <button class="btn-secondary" data-action="fecharElemento" data-args='["modalDetalheComp"]'>Fechar</button>
             </div>
         </div>
     </div>
@@ -1248,8 +1248,8 @@
                 <label style="margin:0; font-size:13px;">Recorrente (todo ano)</label>
             </div>
             <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
-                <button class="btn-primary" onclick="salvarFeriado()">Salvar</button>
-                <button class="btn-secondary" onclick="document.getElementById('modalFeriado').style.display='none'">Cancelar</button>
+                <button class="btn-primary" data-action="salvarFeriado">Salvar</button>
+                <button class="btn-secondary" data-action="fecharElemento" data-args='["modalFeriado"]'>Cancelar</button>
             </div>
         </div>
     </div>

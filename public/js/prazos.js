@@ -13,6 +13,23 @@
     document.addEventListener('DOMContentLoaded', async () => {
         await carregarInfoRodape();
         await carregarPrazosModernos();
+
+        // Listener para link IA (substitui onclick inline com event.preventDefault)
+        const linkIaMenuEl = document.getElementById('linkIaMenu');
+        if (linkIaMenuEl) linkIaMenuEl.addEventListener('click', function(e) { toggleIaMenu(e); });
+
+        // Listener para select compTipo (substitui onchange inline)
+        const compTipoEl = document.getElementById('compTipo');
+        if (compTipoEl) compTipoEl.addEventListener('change', function() { toggleCompCampos(); });
+
+        // Listener para input compValor (substitui oninput inline)
+        const compValorEl = document.getElementById('compValor');
+        if (compValorEl) compValorEl.addEventListener('input', function() { mascaraValorComp(this); });
+
+        // Listener para input pdfInput (substitui onchange inline)
+        const pdfInputEl = document.getElementById('pdfInput');
+        if (pdfInputEl) pdfInputEl.addEventListener('change', function() { uploadPDF(); });
+
     });
 
     // Carregar informações do rodapé e usuário
@@ -112,10 +129,10 @@
                         const dataConclusao = p.concluido_em ? new Date(p.concluido_em).toLocaleDateString('pt-BR') : 'N/A';
                         
                         container.innerHTML += `
-                        <div class="prazo concluido" 
-                             onclick="exibirObservacaoAtualizada(${p.id})" 
+                        <div class="prazo concluido"
+                             data-action="exibirObservacaoAtualizada" data-args='[${p.id}]'
                              style="cursor:pointer; opacity:0.85;" data-prazo-id="${p.id}">
-                            
+
                             <div style="flex: 1;">
                                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                                     <strong style="font-size: 15px; color: var(--sidebar);">${p.tipo || 'Prazo'}</strong>
@@ -123,7 +140,7 @@
                                         ✅ CONCLUÍDO
                                     </span>
                                 </div>
-                                
+
                                 <div style="display: flex; flex-direction: column; gap: 6px;">
                                     <div style="display: flex; align-items: center; gap: 6px;">
                                         <i data-lucide="user" style="width: 14px; color: var(--muted);"></i>
@@ -142,13 +159,13 @@
                                 </small>
                             </div>
 
-                            <div class="actions-prazo" onclick="event.stopPropagation()">
+                            <div class="actions-prazo stop-propagation">
                                 ${(p.tem_anexo || p.anexo_pdf) ? `
-                                <button onclick="visualizarAnexoPrazo(${p.id})" class="btn-action view" title="Visualizar Anexo" style="color: #8b5cf6;">
+                                <button data-action="visualizarAnexoPrazo" data-args='[${p.id}]' class="btn-action view" title="Visualizar Anexo" style="color: #8b5cf6;">
                                     <i data-lucide="paperclip"></i>
                                 </button>
                                 ` : ''}
-                                <button onclick="excluirPrazo(${p.id})" class="btn-action danger" title="Excluir">
+                                <button data-action="excluirPrazo" data-args='[${p.id}]' class="btn-action danger" title="Excluir">
                                     <i data-lucide="trash-2"></i>
                                 </button>
                             </div>
@@ -176,10 +193,10 @@
                         const urgencia = calcularUrgencia(p.data_limite);
 
                         container.innerHTML += `
-                        <div class="prazo ${classeCard}" 
-                             onclick="exibirObservacaoAtualizada(${p.id})" 
+                        <div class="prazo ${classeCard}"
+                             data-action="exibirObservacaoAtualizada" data-args='[${p.id}]'
                              style="cursor:pointer;" data-prazo-id="${p.id}">
-                            
+
                             <div style="flex: 1;">
                                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                                     <strong style="font-size: 15px; color: var(--sidebar);">${p.tipo || 'Prazo'}</strong>
@@ -188,7 +205,7 @@
                                     </span>
                                     ${urgencia ? `<span class="badge ${urgencia.classe}">${urgencia.label}</span>` : ''}
                                 </div>
-                                
+
                                 <div style="display: flex; flex-direction: column; gap: 6px;">
                                     <div style="display: flex; align-items: center; gap: 6px;">
                                         <i data-lucide="user" style="width: 14px; color: var(--muted);"></i>
@@ -207,19 +224,19 @@
                                 </small>
                             </div>
 
-                            <div class="actions-prazo" onclick="event.stopPropagation()">
-                                <button onclick="concluirPrazo(${p.id})" class="btn-action success" title="Concluir">
+                            <div class="actions-prazo stop-propagation">
+                                <button data-action="concluirPrazo" data-args='[${p.id}]' class="btn-action success" title="Concluir">
                                     <i data-lucide="check-circle"></i>
                                 </button>
-                                <button onclick="editarPrazo(${p.id})" class="btn-action edit" title="Editar">
+                                <button data-action="editarPrazo" data-args='[${p.id}]' class="btn-action edit" title="Editar">
                                     <i data-lucide="edit-3"></i>
                                 </button>
                                 ${(p.tem_anexo || p.anexo_pdf) ? `
-                                <button onclick="visualizarAnexoPrazo(${p.id})" class="btn-action view" title="Visualizar Anexo" style="color: #8b5cf6;">
+                                <button data-action="visualizarAnexoPrazo" data-args='[${p.id}]' class="btn-action view" title="Visualizar Anexo" style="color: #8b5cf6;">
                                     <i data-lucide="paperclip"></i>
                                 </button>
                                 ` : ''}
-                                <button onclick="excluirPrazo(${p.id})" class="btn-action danger" title="Excluir">
+                                <button data-action="excluirPrazo" data-args='[${p.id}]' class="btn-action danger" title="Excluir">
                                     <i data-lucide="trash-2"></i>
                                 </button>
                             </div>
@@ -340,14 +357,24 @@
         verDetalhesPrazo(texto);
     }
 
-    function mostrarLoader() { 
+    function mostrarLoader() {
         const loader = document.getElementById('loader');
-        if (loader) loader.style.display = 'flex'; 
+        if (loader) loader.style.display = 'flex';
     }
-    
-    function esconderLoader() { 
+
+    function esconderLoader() {
         const loader = document.getElementById('loader');
-        if (loader) loader.style.display = 'none'; 
+        if (loader) loader.style.display = 'none';
+    }
+
+    function fecharElemento(id) {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    }
+
+    function clicarElemento(id) {
+        const el = document.getElementById(id);
+        if (el) el.click();
     }
 
     // Abrir modal
@@ -1065,7 +1092,7 @@
                     const gid = c.grupo_id || '';
                     const ttl = c.titulo.replace(/'/g, '');
                     const val = c.valor ? ' • R$' + parseFloat(c.valor).toLocaleString('pt-BR',{minimumFractionDigits:2}) : '';
-                    eventosHtml += `<div class="${cls}" title="${c.titulo}${val}" onclick="abrirDetalheCompromisso(${c.id})">${ic} ${c.titulo}</div>`;
+                    eventosHtml += `<div class="${cls}" title="${c.titulo}${val}" data-action="abrirDetalheCompromisso" data-args='[${c.id}]'>${ic} ${c.titulo}</div>`;
                 });
             }
             html += `<div class="${classes}"><div class="dia-num">${dia}</div><div class="dia-eventos">${eventosHtml}</div></div>`;
@@ -1087,7 +1114,7 @@
             return `<div class="feriado-item">
                 <span class="feriado-data">${dataFmt}</span>
                 <span class="feriado-titulo">${badge} ${f.titulo}</span>
-                <button class="feriado-del" onclick="deletarFeriado(${f.id})" title="Remover">✕</button>
+                <button class="feriado-del" data-action="deletarFeriado" data-args='[${f.id}]' title="Remover">✕</button>
             </div>`;
         }).join('');
     }
@@ -1186,7 +1213,7 @@
                     ${detalhe ? `<div class="comp-detalhe">${detalhe}</div>` : ''}
                     ${c.observacao ? `<div class="comp-detalhe">${c.observacao}</div>` : ''}
                 </div>
-                <button class="comp-del" onclick="deletarCompromisso(${c.id},'${gid}',${c.total_parcelas},'${ttl}')" title="Remover">✕</button>
+                <button class="comp-del" data-action="deletarCompromisso" data-args='[${c.id},"${gid}",${c.total_parcelas},"${ttl}"]' title="Remover">✕</button>
             </div>`;
         }).join('');
     }

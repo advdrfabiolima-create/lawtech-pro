@@ -4,7 +4,25 @@
  * Incluir ANTES de qualquer script de página.
  */
 
-// Interceptor global de 401 — captura fetch() direto em qualquer página
+// ─── Event delegation global ──────────────────────────────────────────────────
+// Botões com data-action="fn" (+ data-args='[...]' opcional) são despachados
+// para window.fn(...args, elemento). Substitui onclick="fn(args)" no HTML.
+// Usado para eliminar unsafe-inline do CSP (scriptSrcAttr).
+document.addEventListener('click', function (e) {
+    const el = e.target.closest('[data-action]');
+    if (!el) return;
+    const fn = el.dataset.action;
+    if (typeof window[fn] !== 'function') return;
+    let args = [];
+    if (el.dataset.args) {
+        try { args = JSON.parse(el.dataset.args); } catch (_) {}
+    }
+    args.push(el); // elemento sempre disponível como último argumento
+    window[fn](...args);
+});
+
+// ─── Interceptor global de 401 ────────────────────────────────────────────────
+// captura fetch() direto em qualquer página
 (function () {
     const _fetch = window.fetch;
     window.fetch = async function (url, opts) {

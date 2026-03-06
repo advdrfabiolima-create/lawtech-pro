@@ -1477,7 +1477,7 @@ input, textarea, select {
  <div class="menu-item-with-submenu">
 
     <!-- LINK PRINCIPAL (IA PAGE) -->
-    <a href="/ia-page" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
+    <a href="/ia-page" data-action="toggleIaMenuLink" style="display:flex; align-items:center; gap:10px;">
         <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
         IA Jurídica
         <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">
@@ -1508,7 +1508,7 @@ input, textarea, select {
         <a href="/config-page" id="guia-config">
             <i class="lucide lucide-settings"></i> Configurações
         </a>
-        <a href="/crm-page" class="btn-crm-gold-nav" onclick="limparBolinha()">
+        <a href="/crm-page" class="btn-crm-gold-nav" data-action="limparBolinha">
             <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
             <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
         </a>
@@ -1533,16 +1533,16 @@ input, textarea, select {
             </div>
             
             <div style="display:flex; gap:20px; align-items:center;">
-                <button class="btn-primary" onclick="abrirModalProcesso()">+ Novo Processo</button>
+                <button class="btn-primary" data-action="abrirModalProcesso">+ Novo Processo</button>
                 
                 <div style="position: relative; display: flex; align-items: center; gap: 12px;">
                     <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
-                    <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
+                    <div data-action="toggleUserMenu" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
                         --
                     </div>
                     <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 4px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
                         <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
-                        <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
+                        <a href="#" data-action="logout" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
                     </div>
                 </div>
             </div>
@@ -1615,12 +1615,12 @@ input, textarea, select {
             <div class="filters-container">
                 <div id="region-filter" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
                     <span class="filter-label">Filtrar por Região:</span>
-                    <button class="btn-filter active" onclick="filtrarRegiao('TODOS', this)">Todos</button>
-                    <button class="btn-filter" onclick="filtrarRegiao('SUL', this)">Sul</button>
-                    <button class="btn-filter" onclick="filtrarRegiao('SUDESTE', this)">Sudeste</button>
-                    <button class="btn-filter" onclick="filtrarRegiao('CENTRO', this)">Centro-Oeste</button>
-                    <button class="btn-filter" onclick="filtrarRegiao('NORDESTE', this)">Nordeste</button>
-                    <button class="btn-filter" onclick="filtrarRegiao('NORTE', this)">Norte</button>
+                    <button class="btn-filter active" data-action="filtrarRegiao" data-args='["TODOS"]'>Todos</button>
+                    <button class="btn-filter" data-action="filtrarRegiao" data-args='["SUL"]'>Sul</button>
+                    <button class="btn-filter" data-action="filtrarRegiao" data-args='["SUDESTE"]'>Sudeste</button>
+                    <button class="btn-filter" data-action="filtrarRegiao" data-args='["CENTRO"]'>Centro-Oeste</button>
+                    <button class="btn-filter" data-action="filtrarRegiao" data-args='["NORDESTE"]'>Nordeste</button>
+                    <button class="btn-filter" data-action="filtrarRegiao" data-args='["NORTE"]'>Norte</button>
                 </div>
                 <div id="state-filter" style="display: none; gap: 10px; align-items: center; padding-top: 15px; margin-top: 15px; border-top: 1px solid var(--border);">
                     <span class="filter-label">Estados:</span>
@@ -1631,9 +1631,9 @@ input, textarea, select {
             <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
                 <!-- Abas de Status -->
                 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                    <button id="btnTabAtivo" 
-                            class="aba-btn ${abaAtual === 'ativo' ? 'active' : ''}" 
-                            onclick="mudarAba('ativo')">
+                    <button id="btnTabAtivo"
+                            class="aba-btn ${abaAtual === 'ativo' ? 'active' : ''}"
+                            data-action="mudarAba" data-args='["ativo"]'>
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
                             <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
                             <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
@@ -1641,9 +1641,9 @@ input, textarea, select {
                         Processos Ativos
                     </button>
                     
-                    <button id="btnTabArquivado" 
-                            class="aba-btn ${abaAtual === 'arquivado' ? 'active' : ''}" 
-                            onclick="mudarAba('arquivado')">
+                    <button id="btnTabArquivado"
+                            class="aba-btn ${abaAtual === 'arquivado' ? 'active' : ''}"
+                            data-action="mudarAba" data-args='["arquivado"]'>
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;">
                             <rect width="20" height="5" x="2" y="3" rx="1"/>
                             <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/>
@@ -1652,9 +1652,9 @@ input, textarea, select {
                         Arquivados
                     </button>
                     
-                    <button id="btnTabExcluido" 
-                            class="aba-btn ${abaAtual === 'excluido' ? 'active' : ''}" 
-                            onclick="mudarAba('excluido')">
+                    <button id="btnTabExcluido"
+                            class="aba-btn ${abaAtual === 'excluido' ? 'active' : ''}"
+                            data-action="mudarAba" data-args='["excluido"]'>
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;">
                             <path d="M3 6h18"/>
                             <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
@@ -1673,12 +1673,11 @@ input, textarea, select {
                         id="searchProcessos" 
                         class="search-processos-input"
                         placeholder="BUSCAR POR NÚMERO OU PARTE..."
-                        oninput="filtrarProcessosTabela()"
                     />
-                    <button 
-                        id="btnLimparBusca" 
+                    <button
+                        id="btnLimparBusca"
                         class="btn-limpar-busca"
-                        onclick="limparBuscaProcessos()"
+                        data-action="limparBuscaProcessos"
                         style="display: none;"
                         title="Limpar busca"
                     >
@@ -1737,7 +1736,7 @@ input, textarea, select {
                 👤 Polo Ativo (Cliente/Autor)
                 <span class="contador-partes" id="contadorAtivo">0</span>
             </h4>
-            <button type="button" class="btn-add-parte" onclick="abrirModalAdicionarParte('ativo')">
+            <button type="button" class="btn-add-parte" data-action="abrirModalAdicionarParte" data-args='["ativo"]'>
                 <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
                 Adicionar
             </button>
@@ -1752,7 +1751,7 @@ input, textarea, select {
                 ⚖️ Polo Passivo (Parte Contrária/Réu)
                 <span class="contador-partes" id="contadorPassivo">0</span>
             </h4>
-            <button type="button" class="btn-add-parte" onclick="abrirModalAdicionarParte('passivo')">
+            <button type="button" class="btn-add-parte" data-action="abrirModalAdicionarParte" data-args='["passivo"]'>
                 <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
                 Adicionar
             </button>
@@ -1763,10 +1762,9 @@ input, textarea, select {
 <div class="campo-grid-2">
     <div>
         <label class="label-moderno label-obrigatorio">Esfera</label>
-        <select 
-            id="esfera" 
+        <select
+            id="esfera"
             class="select-moderno"
-            onchange="atualizarTribunais()"
             required
         >
             <option value="">Selecione...</option>
@@ -1826,11 +1824,9 @@ input, textarea, select {
         </select>
     </div>
     <div style="align-self: end;">
-        <button 
+        <button
             type="submit"
             style="background: #10b981; color: white; padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; transition: all 0.2s ease;"
-            onmouseover="this.style.background='#059669'"
-            onmouseout="this.style.background='#10b981'"
         >
             ✓ Cadastrar
         </button>
@@ -1839,12 +1835,10 @@ input, textarea, select {
 
 <!-- Botão Cancelar (separado) -->
 <div style="margin-top: 12px;">
-    <button 
+    <button
         type="button"
-        onclick="fecharModalProcesso()" 
+        data-action="fecharModalProcesso"
         style="background: #e5e7eb; color: #374151; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; transition: all 0.2s ease;"
-        onmouseover="this.style.background='#d1d5db'"
-        onmouseout="this.style.background='#e5e7eb'"
     >
         Cancelar
     </button>
@@ -1860,14 +1854,13 @@ input, textarea, select {
             <span id="tituloModalParte">Adicionar Parte</span>
         </h3>
         
-       <form id="formAdicionarParte" onsubmit="event.preventDefault(); adicionarParteFormulario();">
+       <form id="formAdicionarParte">
             <!-- Seleção de Cliente Existente -->
             <div style="margin-bottom: 16px;">
                 <label style="display:block; font-size:11px; font-weight:700; color: #7B8794; margin-bottom:6px; text-transform:uppercase;">
                     Cliente Cadastrado (Opcional)
                 </label>
-                <select id="clienteSelect" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:4px;" 
-                        onchange="preencherDadosCliente(this.value)">
+                <select id="clienteSelect" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:4px;">
                     <option value="">Selecionar cliente ou digitar manualmente</option>
                 </select>
             </div>
@@ -1896,7 +1889,7 @@ input, textarea, select {
                 <button type="submit" style="flex:1; background:#4A90E2; color:white; border:none; padding:10px; border-radius:4px; font-weight:600; cursor:pointer;">
                     Adicionar
                 </button>
-                <button type="button" onclick="fecharModalAdicionarParte()" 
+                <button type="button" data-action="fecharModalAdicionarParte"
                         style="flex:1; background:#f1f5f9; color:#5A6C7D; border:none; padding:10px; border-radius:4px; font-weight:600; cursor:pointer;">
                     Cancelar
                 </button>
@@ -1931,7 +1924,7 @@ input, textarea, select {
                         👤 Polo Ativo (Cliente/Autor)
                         <span class="contador-partes" id="contadorAtivoEdicao">0</span>
                     </h4>
-                    <button type="button" class="btn-add-parte" onclick="abrirModalAdicionarParteEdicao('ativo')">
+                    <button type="button" class="btn-add-parte" data-action="abrirModalAdicionarParteEdicao" data-args='["ativo"]'>
                         <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
                         Adicionar
                     </button>
@@ -1946,7 +1939,7 @@ input, textarea, select {
                         ⚖️ Polo Passivo (Parte Contrária/Réu)
                         <span class="contador-partes" id="contadorPassivoEdicao">0</span>
                     </h4>
-                    <button type="button" class="btn-add-parte" onclick="abrirModalAdicionarParteEdicao('passivo')">
+                    <button type="button" class="btn-add-parte" data-action="abrirModalAdicionarParteEdicao" data-args='["passivo"]'>
                         <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
                         Adicionar
                     </button>
@@ -1958,10 +1951,9 @@ input, textarea, select {
             <div class="campo-grid-2">
     <div>
         <label class="label-moderno label-obrigatorio">Esfera</label>
-        <select 
-            id="processoEditEsfera" 
+        <select
+            id="processoEditEsfera"
             class="select-moderno"
-            onchange="atualizarTribunaisEdicao()"
             required
         >
             <option value="">Selecione...</option>
@@ -2021,24 +2013,20 @@ input, textarea, select {
         </select>
     </div>
     <div style="align-self: end;">
-        <button 
-            class="btn-primary" 
-            onclick="salvarEdicaoProcesso()"
+        <button
+            class="btn-primary"
+            data-action="salvarEdicaoProcesso"
             style="background: #4A90E2; color: white; padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; transition: all 0.2s ease;"
-            onmouseover="this.style.background='#1d4ed8'"
-            onmouseout="this.style.background='#4A90E2'"
         >
             💾 Salvar
         </button>
     </div>
 </div>
 <div style="margin-top: 12px;">
-    <button 
-        class="btn-secondary" 
-        onclick="fecharModalEdicaoProcesso()"
+    <button
+        class="btn-secondary"
+        data-action="fecharModalEdicaoProcesso"
         style="background: #e5e7eb; color: #374151; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; transition: all 0.2s ease;"
-        onmouseover="this.style.background='#d1d5db'"
-        onmouseout="this.style.background='#e5e7eb'"
     >
         Cancelar
     </button>
@@ -2060,7 +2048,7 @@ input, textarea, select {
                         <div id="andamentosNumeroProcesso" style="font-size:12px;color:#64748b;margin-top:1px;"></div>
                     </div>
                 </div>
-                <button onclick="fecharAndamentos()" style="background:none;border:none;cursor:pointer;color:#94a3b8;padding:4px;">
+                <button data-action="fecharAndamentos" style="background:none;border:none;cursor:pointer;color:#94a3b8;padding:4px;">
                     <i data-lucide="x" style="width:20px;height:20px;"></i>
                 </button>
             </div>
@@ -2068,7 +2056,7 @@ input, textarea, select {
             <!-- Form Registrar -->
             <div style="padding:18px 24px;border-bottom:1px solid #f1f5f9;flex-shrink:0;background:#f8fafc;border-radius:0 0 0 0;">
                 <div id="andFormTitulo" style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;">Registrar Andamento</div>
-                <form id="formAndamento" onsubmit="registrarAndamento(event)" autocomplete="off">
+                <form id="formAndamento" autocomplete="off">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
                         <div>
                             <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Data *</label>
@@ -2077,7 +2065,7 @@ input, textarea, select {
                         </div>
                         <div>
                             <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Tipo</label>
-                            <select id="andTipo" onchange="toggleAndTipoCustom(this.value)" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;color:#1e293b;box-sizing:border-box;">
+                            <select id="andTipo" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;color:#1e293b;box-sizing:border-box;">
                                 <option value="distribuicao">Distribuição</option>
                                 <option value="despacho">Despacho</option>
                                 <option value="decisao">Decisão</option>
@@ -2114,7 +2102,7 @@ input, textarea, select {
                             Visível ao cliente (Portal)
                         </label>
                         <div style="display:flex;gap:8px;align-items:center;">
-                            <button type="button" id="btnCancelarEdicao" onclick="cancelarEdicaoAndamento()"
+                            <button type="button" id="btnCancelarEdicao" data-action="cancelarEdicaoAndamento"
                                 style="display:none;padding:8px 14px;background:#f1f5f9;color:#64748b;border:1px solid #d1d5db;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">
                                 Cancelar
                             </button>
