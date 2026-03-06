@@ -16,15 +16,24 @@
       "ilimitado": false
     },
     "funcionalidades": {
+      "gestao_clientes": true,
+      "gestao_processos": true,
+      "controle_prazos": true,
+      "audiencias": true,
+      "contratos_honorarios": true,
+      "financeiro": false,
+      "relatorios_avancados": false,
+      "calculos": false,
+      "ged": false,
+      "reunioes_video": false,
+      "chat_interno": false,
       "crm": false,
       "ia_juridica": false,
-      "calculos": false,
-      "financeiro_avancado": false,
-      "sincronizacao_djen": true,
-      "prazos_basico": true,
-      "processos_basico": true,
-      "clientes_basico": true,
-      "audiencias_basico": true
+      "integracao_djen": true,
+      "alertas_whatsapp": false,
+      "assinatura_digital_addon": true,
+      "suporte_email": true,
+      "suporte_prioritario": false
     }
   },
   "intermediario": {
@@ -40,21 +49,28 @@
       "ilimitado": false
     },
     "processos": {
-      "max": -1,
-      "ilimitado": true
+      "max": 100,
+      "ilimitado": false
     },
     "funcionalidades": {
+      "gestao_clientes": true,
+      "gestao_processos": true,
+      "controle_prazos": true,
+      "audiencias": true,
+      "contratos_honorarios": true,
+      "financeiro": true,
+      "relatorios_avancados": true,
+      "calculos": false,
+      "ged": false,
+      "reunioes_video": false,
+      "chat_interno": true,
       "crm": false,
       "ia_juridica": false,
-      "calculos": false,
-      "sincronizacao_djen": true,
-      "financeiro_avancado": true,
-      "prazos_basico": true,
-      "processos_basico": true,
-      "clientes_basico": true,
-      "audiencias_basico": true,
-      "relatorios_avancados": true,
-      "integrações_basicas": true
+      "integracao_djen": true,
+      "alertas_whatsapp": false,
+      "assinatura_digital_addon": true,
+      "suporte_email": true,
+      "suporte_prioritario": true
     }
   },
   "avancado": {
@@ -74,19 +90,24 @@
       "ilimitado": true
     },
     "funcionalidades": {
-      "crm": false,
-      "ia_juridica": false,
-      "sincronizacao_djen": true,
-      "calculos": true,
-      "financeiro_avancado": true,
-      "prazos_basico": true,
-      "processos_basico": true,
-      "clientes_basico": true,
-      "audiencias_basico": true,
+      "gestao_clientes": true,
+      "gestao_processos": true,
+      "controle_prazos": true,
+      "audiencias": true,
+      "contratos_honorarios": true,
+      "financeiro": true,
       "relatorios_avancados": true,
-      "integrações_basicas": true,
-      "api_completa": true,
-      "automacoes_avancadas": true
+      "calculos": true,
+      "ged": true,
+      "reunioes_video": true,
+      "chat_interno": true,
+      "crm": true,
+      "ia_juridica": false,
+      "integracao_djen": true,
+      "alertas_whatsapp": false,
+      "assinatura_digital_addon": true,
+      "suporte_email": true,
+      "suporte_prioritario": true
     }
   },
   "premium": {
@@ -105,22 +126,24 @@
       "ilimitado": true
     },
     "funcionalidades": {
+      "gestao_clientes": true,
+      "gestao_processos": true,
+      "controle_prazos": true,
+      "audiencias": true,
+      "contratos_honorarios": true,
+      "financeiro": true,
+      "relatorios_avancados": true,
+      "calculos": true,
+      "ged": true,
+      "reunioes_video": true,
+      "chat_interno": true,
       "crm": true,
       "ia_juridica": true,
-      "calculos": true,
-      "financeiro_avancado": true,
-      "prazos_basico": true,
-      "processos_basico": true,
-      "clientes_basico": true,
-      "audiencias_basico": true,
-      "relatorios_avancados": true,
-      "integrações_basicas": true,
-      "api_completa": true,
-      "automacoes_avancadas": true,
-      "alertas_whatsapp": true,
       "integracao_djen": true,
-      "suporte_24_7": true,
-      "sincronizacao_djen": true
+      "alertas_whatsapp": true,
+      "assinatura_digital_addon": true,
+      "suporte_email": true,
+      "suporte_prioritario": true
     }
   }
 }

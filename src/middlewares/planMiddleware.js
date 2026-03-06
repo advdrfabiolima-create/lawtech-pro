@@ -30,9 +30,10 @@ const checkFeature = (featureName) => {
             );
 
             if (result.rows.length === 0) {
-                return res.status(403).json({ 
-                    error: 'Plano não identificado',
-                    upgrade_required: true 
+                return res.status(403).json({
+                    ok: false,
+                    erro: 'Plano não identificado',
+                    upgrade_required: true
                 });
             }
 
@@ -40,8 +41,9 @@ const checkFeature = (featureName) => {
             const planoConfig = planLimits[planoSlug];
 
             if (!planoConfig) {
-                return res.status(500).json({ 
-                    error: 'Configuração de plano inválida' 
+                return res.status(500).json({
+                    ok: false,
+                    erro: 'Configuração de plano inválida'
                 });
             }
 
@@ -50,7 +52,8 @@ const checkFeature = (featureName) => {
 
             if (!featureEnabled) {
                 return res.status(402).json({
-                    error: 'Funcionalidade não disponível no seu plano',
+                    ok: false,
+                    erro: 'Funcionalidade não disponível no seu plano',
                     feature: featureName,
                     current_plan: planoConfig.nome,
                     upgrade_required: true,
@@ -66,7 +69,8 @@ const checkFeature = (featureName) => {
         } catch (err) {
             logger.error({ err: err.message }, 'Erro ao verificar funcionalidade');
             return res.status(500).json({
-                error: 'Erro ao verificar permissões de plano'
+                ok: false,
+                erro: 'Erro ao verificar permissões de plano'
             });
         }
     };
@@ -90,8 +94,9 @@ const checkLimit = (resourceType) => {
             );
 
             if (planoResult.rows.length === 0) {
-                return res.status(403).json({ 
-                    error: 'Plano não identificado' 
+                return res.status(403).json({
+                    ok: false,
+                    erro: 'Plano não identificado'
                 });
             }
 
@@ -151,7 +156,8 @@ const checkLimit = (resourceType) => {
             if (currentCount >= maxAllowed) {
                 logger.warn({ resourceType, currentCount, maxAllowed }, '[PLAN MIDDLEWARE] Limite atingido');
                 return res.status(402).json({
-                    error: 'Limite do plano atingido',
+                    ok: false,
+                    erro: 'Limite do plano atingido',
                     resource: resourceType,
                     current: currentCount,
                     max: maxAllowed,
@@ -176,7 +182,8 @@ const checkLimit = (resourceType) => {
         } catch (err) {
             logger.error({ err: err.message }, '[PLAN MIDDLEWARE] Erro ao verificar limite');
             return res.status(500).json({
-                error: 'Erro ao verificar limite de recursos'
+                ok: false,
+                erro: 'Erro ao verificar limite de recursos'
             });
         }
     };
@@ -199,8 +206,9 @@ const getPlanInfo = async (req, res, next) => {
         );
 
         if (result.rows.length === 0) {
-            return res.status(403).json({ 
-                error: 'Plano não identificado' 
+            return res.status(403).json({
+                ok: false,
+                erro: 'Plano não identificado'
             });
         }
 
@@ -246,8 +254,9 @@ const getPlanInfo = async (req, res, next) => {
 
     } catch (err) {
         logger.error({ err: err.message }, 'Erro ao obter informacoes do plano');
-        return res.status(500).json({ 
-            error: 'Erro ao carregar informações do plano' 
+        return res.status(500).json({
+            ok: false,
+            erro: 'Erro ao carregar informações do plano'
         });
     }
 };

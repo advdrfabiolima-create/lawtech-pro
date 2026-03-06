@@ -5,6 +5,10 @@ const { criarSala } = require('../services/dailyService');
 const { enviarEmailReuniao } = require('../services/emailService');
 const logger = require('../utils/logger');
 const { getPagination, buildPage } = require('../utils/paginate');
+const { checkFeature } = require('../middlewares/planMiddleware');
+
+// Gating: apenas planos Avançado e Premium têm acesso a Reuniões por Vídeo
+router.use(checkFeature('reunioes_video'));
 
 // GET /api/reunioes — Lista reuniões do escritório (paginado)
 router.get('/reunioes', async (req, res) => {
