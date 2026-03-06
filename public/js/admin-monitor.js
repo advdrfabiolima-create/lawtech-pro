@@ -588,7 +588,7 @@ function renderizarTabelaInadimplentes(lista) {
                 <td>R$ ${parseFloat(item.valor_mensalidade || 0).toFixed(2)}</td>
                 <td>${item.total_processos}</td>
                 <td>
-                    <button class="btn-action" onclick="contatarEscritorio(${item.id})" title="Entrar em contato">
+                    <button class="btn-action" data-action="contatarEscritorio" data-args='[${item.id}]' title="Entrar em contato">
                         📧
                     </button>
                 </td>
@@ -689,7 +689,7 @@ function renderizarTabelaUpgrade(lista) {
                     </span>
                 </td>
                 <td>
-                    <button class="btn-action" onclick="oferecerUpgrade(${item.id})" title="Oferecer upgrade">
+                    <button class="btn-action" data-action="oferecerUpgrade" data-args='[${item.id}]' title="Oferecer upgrade">
                         🚀
                     </button>
                 </td>
@@ -1014,4 +1014,35 @@ function filtrarAudit() {
     }
 }
 
-    
+// ==========================================
+// HELPERS DE DELEGAÇÃO
+// ==========================================
+
+function navegarPara(url) { window.location.href = url; }
+function removerElemento(id) { const el = document.getElementById(id); if (el) el.remove(); }
+function clicarElemento(id) { const el = document.getElementById(id); if (el) el.click(); }
+
+// ==========================================
+// LISTENERS DE INPUT/CHANGE (DOMContentLoaded)
+// ==========================================
+
+document.addEventListener('DOMContentLoaded', function () {
+    const filtroBusca = document.getElementById('filtroBuscaEscritorio');
+    if (filtroBusca) filtroBusca.addEventListener('input', filtrarEscritorios);
+
+    const filtroPlano = document.getElementById('filtroPlanoEscritorio');
+    if (filtroPlano) filtroPlano.addEventListener('change', filtrarEscritorios);
+
+    const filtroServico = document.getElementById('filtroServico');
+    if (filtroServico) filtroServico.addEventListener('change', filtrarLogs);
+
+    const filtroErro = document.getElementById('filtroErro');
+    if (filtroErro) filtroErro.addEventListener('change', filtrarLogs);
+
+    const filtroData = document.getElementById('filtroData');
+    if (filtroData) filtroData.addEventListener('change', filtrarLogs);
+
+    const filtroTipoEvento = document.getElementById('filtroTipoEvento');
+    if (filtroTipoEvento) filtroTipoEvento.addEventListener('change', filtrarAudit);
+});
+

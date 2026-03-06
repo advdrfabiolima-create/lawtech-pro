@@ -27,6 +27,30 @@ if (!API.getToken()) window.location.href = '/login.html';
                 await carregarAssinaturaAtual();
                 await carregarClientesParaLancamento();
             }, 100);
+
+            // Listener especial para toggleIaMenu (precisa do Event original)
+            const lia = document.getElementById('linkIaMenu');
+            if (lia) lia.addEventListener('click', toggleIaMenu);
+
+            // Listeners para selects estáticos (onchange removidos do HTML)
+            const addTipoEl = document.getElementById('addTipo');
+            if (addTipoEl) addTipoEl.addEventListener('change', function() { toggleParteAdicionar(); });
+
+            const editTipoEl = document.getElementById('editTipo');
+            if (editTipoEl) editTipoEl.addEventListener('change', function() { toggleParteEditar(); });
+
+            const reciboClienteSelectEl = document.getElementById('reciboClienteSelect');
+            if (reciboClienteSelectEl) reciboClienteSelectEl.addEventListener('change', function() { preencherDadosCliente(); });
+
+            const relatorioTipoEl = document.getElementById('relatorioTipo');
+            if (relatorioTipoEl) relatorioTipoEl.addEventListener('change', function() { atualizarCamposPeriodo(); });
+
+            // Listeners para inputs de arquivo (onchange removidos do HTML)
+            const logoInputEl = document.getElementById('logoInput');
+            if (logoInputEl) logoInputEl.addEventListener('change', function() { uploadLogo(); });
+
+            const assinaturaInputEl = document.getElementById('assinaturaInput');
+            if (assinaturaInputEl) assinaturaInputEl.addEventListener('change', function() { uploadAssinatura(); });
         });
 
         ['modalRelatorioFaturamento', 'modalVisualizacaoRelatorio'].forEach(id => {
@@ -149,16 +173,16 @@ async function inicializar() {
                             Vence: ${new Date(item.data_vencimento).toLocaleDateString('pt-BR')}
                         </div>
                     </div>
-                    <button class="btn-mini-boleto" onclick="prepararBoleto(${item.id}, '${item.descricao}', ${v})">
+                    <button class="btn-mini-boleto" data-action="prepararBoleto" data-args='[${item.id}, ${JSON.stringify(item.descricao)}, ${v}]'>
                         <i data-lucide="barcode"></i> BOLETO
                     </button>
                 </div>`;
         }
 
-        const btnPagar = !isP ? `<button onclick="marcarComoPago(${item.id})" style="background: var(--accent-green); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; margin-right: 6px;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='var(--accent-green)'" title="Marcar como Pago"><i data-lucide="check" style="width:14px; height:14px;"></i></button>` : '';
-        const btnRecibo = (isP && item.tipo === 'Receita') ? `<button onclick="prepararRecibo(${item.id})" style="background: var(--accent-purple); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; margin-right: 6px;" onmouseover="this.style.background='#7c3aed'" onmouseout="this.style.background='var(--accent-purple)'" title="Emitir Recibo"><i data-lucide="file-text" style="width:14px; height:14px;"></i></button>` : '';
-        const btnEditar = `<button onclick="editarLancamento(${item.id})" style="background: var(--accent-blue); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; margin-right: 6px;" onmouseover="this.style.background='var(--accent-blue-light)'" onmouseout="this.style.background='var(--accent-blue)'" title="Editar"><i data-lucide="pencil" style="width:14px; height:14px;"></i></button>`;
-        const btnExcluir = `<button onclick="deletar(${item.id})" style="background: var(--accent-red); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='var(--accent-red)'" title="Excluir"><i data-lucide="trash-2" style="width:14px; height:14px;"></i></button>`;
+        const btnPagar = !isP ? `<button data-action="marcarComoPago" data-args='[${item.id}]' style="background: var(--accent-green); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; margin-right: 6px;" title="Marcar como Pago"><i data-lucide="check" style="width:14px; height:14px;"></i></button>` : '';
+        const btnRecibo = (isP && item.tipo === 'Receita') ? `<button data-action="prepararRecibo" data-args='[${item.id}]' style="background: var(--accent-purple); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; margin-right: 6px;" title="Emitir Recibo"><i data-lucide="file-text" style="width:14px; height:14px;"></i></button>` : '';
+        const btnEditar = `<button data-action="editarLancamento" data-args='[${item.id}]' style="background: var(--accent-blue); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; margin-right: 6px;" title="Editar"><i data-lucide="pencil" style="width:14px; height:14px;"></i></button>`;
+        const btnExcluir = `<button data-action="deletar" data-args='[${item.id}]' style="background: var(--accent-red); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;" title="Excluir"><i data-lucide="trash-2" style="width:14px; height:14px;"></i></button>`;
 
         const clienteLabel = (item.tipo === 'Receita' && item.cliente_nome)
             ? `<span style="font-size:11px;color:var(--text-main);font-weight:600;">${item.cliente_nome}</span>`
@@ -614,7 +638,7 @@ function debugLog(mensagem, dados) {
             document.getElementById('modalRecibo').style.display = 'none';
         }
 
-        async function gerarRecibo() {
+        async function gerarRecibo(el) {
             const dados = {
                 lancamentoId: document.getElementById('reciboLancamentoId').value,
                 numeroRecibo: document.getElementById('reciboNumero').value,
@@ -629,7 +653,7 @@ function debugLog(mensagem, dados) {
                 return alert('⚠️ Preencha todos os campos obrigatórios: Nome do Cliente, Valor e Descrição');
             }
 
-            const btn = event.target;
+            const btn = el || document.querySelector('[data-action="gerarRecibo"]');
             const textoOriginal = btn.innerHTML;
 
             try {
@@ -1128,10 +1152,10 @@ window.addEventListener('click', (e) => {
                         • Suporte prioritário
                     </p>
                 </div>
-                <button onclick="window.location.href='/planos-page'" style="background:linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color:#000; border:none; padding:14px 28px; border-radius:10px; font-weight:800; cursor:pointer; width:100%; margin-bottom:10px;">
+                <button data-action="navegarPara" data-args='["/planos-page"]' style="background:linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color:#000; border:none; padding:14px 28px; border-radius:10px; font-weight:800; cursor:pointer; width:100%; margin-bottom:10px;">
                     Ver Planos e Preços
                 </button>
-                <button onclick="document.getElementById('overlay-upgrade').remove()" style="background:none; border:none; color:#64748b; cursor:pointer; font-weight:600; padding:8px;">
+                <button data-action="removerElemento" data-args='["overlay-upgrade"]' style="background:none; border:none; color:#64748b; cursor:pointer; font-weight:600; padding:8px;">
                     Depois
                 </button>
             </div>`;
@@ -1630,7 +1654,7 @@ async function gerarPDFRelatorio() {
         return;
     }
 
-    const btns = document.querySelectorAll('[onclick="gerarPDFRelatorio()"]');
+    const btns = document.querySelectorAll('[data-action="gerarPDFRelatorio"]');
     btns.forEach(b => { b._orig = b.innerHTML; b.innerHTML = '⏳ Gerando PDF...'; b.disabled = true; });
 
     // Monta o CSS completo do relatório
@@ -1770,7 +1794,7 @@ async function gerarPDFRelatorio() {
 }
 async function imprimirInteligente() {
     // Sempre busca os dados ATUAIS do modal (filtros e mês selecionados agora)
-    const btnImprimir = document.querySelector('[onclick="imprimirInteligente()"]');
+    const btnImprimir = document.querySelector('[data-action="imprimirInteligente"]');
     if (btnImprimir) { btnImprimir._orig = btnImprimir.innerHTML; btnImprimir.innerHTML = '⏳ Preparando...'; btnImprimir.disabled = true; }
 
     try {
@@ -1872,15 +1896,23 @@ function toggleIaMenu(event) {
             if (role === 'admin') return;
             const s = document.createElement('style');
             if (role === 'operador') {
-                s.textContent = `button[onclick*='deletar('] { display: none !important; }`;
+                s.textContent = `button[data-action='deletar'] { display: none !important; }`;
             } else {
-                s.textContent = `button[onclick*='deletar('], button[onclick*='editarLancamento'], button[onclick*='abrirModalLancamento'] { display: none !important; }`;
+                s.textContent = `button[data-action='deletar'], button[data-action='editarLancamento'], button[data-action='abrirModalLancamento'] { display: none !important; }`;
             }
             document.head.appendChild(s);
         }
     
 
 (function(){var t=localStorage.getItem('token');if(!t)return;function checkChat(){fetch('/api/chat/nao-lidas',{headers:{Authorization:'Bearer '+t}}).then(function(r){return r.json()}).then(function(d){if(d.ok){var total=Object.values(d.naoLidas).reduce(function(a,b){return a+b},0);var b=document.getElementById('chatBadge');if(b){b.style.display=total>0?'inline-flex':'none';b.textContent=total>99?'99+':total}}}).catch(function(){})}checkChat();setInterval(checkChat,30000)})();
+
+// --- HELPERS DE EVENT DELEGATION ---
+function navegarPara(url) { window.location.href = url; }
+function removerElemento(id) { const el = document.getElementById(id); if (el) el.remove(); }
+function clicarElemento(id) { const el = document.getElementById(id); if (el) el.click(); }
+
+function fecharModalCobranca() { document.getElementById('modalCobranca').style.display = 'none'; }
+function fecharModalEditarLancamento() { document.getElementById('modalEditarLancamento').style.display = 'none'; }
 
 // Cola isso no final do financeiro.js
 window.abrirRelatorioFaturamento   = abrirRelatorioFaturamento;
@@ -1928,3 +1960,8 @@ window.toggleIaMenu                = toggleIaMenu;
 window.logout                      = logout;
 window.rolarParaTabela             = rolarParaTabela;
 window.limparBolinha               = limparBolinha;
+window.navegarPara                 = navegarPara;
+window.removerElemento             = removerElemento;
+window.clicarElemento              = clicarElemento;
+window.fecharModalCobranca         = fecharModalCobranca;
+window.fecharModalEditarLancamento = fecharModalEditarLancamento;

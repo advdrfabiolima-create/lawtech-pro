@@ -469,7 +469,7 @@
         }
 
         /* Prevenir hover escuro no item do toggle */
-        .dropdown-menu a[onclick*="resetarTour"]:hover {
+        .dropdown-menu a[data-action="resetarTour"]:hover {
             background: rgba(0, 0, 0, 0.03);
         }
 
@@ -1572,7 +1572,7 @@ input, textarea, select {
             </div>
         </div>
 
-        <button type="button" class="btn-primary" onclick="fecharModalBoasVindas()">
+        <button type="button" class="btn-primary" data-action="fecharModalBoasVindas">
             🚀 Começar a Usar
         </button>
     </div>
@@ -1594,7 +1594,7 @@ input, textarea, select {
 <div class="menu-item-with-submenu">
 
     <!-- LINK PRINCIPAL (apenas abre/fecha submenu) -->
-    <a href="#" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
+    <a href="#" id="linkIaMenu" style="display:flex; align-items:center; gap:10px;">
         <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
         IA Jurídica
         <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">
@@ -1624,7 +1624,7 @@ input, textarea, select {
             <a href="/config-page" id="guia-config">
                 <i class="lucide lucide-settings"></i> Configurações
             </a>
-            <a href="/crm-page" class="btn-crm-gold-nav" onclick="limparBolinha()">
+            <a href="/crm-page" class="btn-crm-gold-nav" data-action="limparBolinha">
                 <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
                 <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
             </a>
@@ -1653,14 +1653,14 @@ input, textarea, select {
             </div>
             
             <div style="display:flex; gap:20px; align-items:center;">
-                <div id="notif-container" onclick="toggleNotifDropdown()" style="position:relative; cursor:pointer; padding:8px; border-radius:8px; transition:0.2s;">
+                <div id="notif-container" data-action="toggleNotifDropdown" style="position:relative; cursor:pointer; padding:8px; border-radius:8px; transition:0.2s;">
                     <i class="lucide lucide-bell" style="width:20px; color:var(--muted);"></i>
                     <span id="notif-count" style="display:none; position:absolute; top:2px; right:2px; background:var(--danger); color:white; font-size:9px; font-weight:800; padding:2px 4px; border-radius:10px; border:2px solid white;">0</span>
                     <!-- Dropdown de Notificações -->
                     <div id="notif-dropdown" style="display:none; position:absolute; top:42px; right:0; width:360px; max-height:440px; background:white; border:1px solid var(--border); border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,0.12); z-index:2000; overflow:hidden;">
                         <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-bottom:1px solid var(--border);">
                             <span style="font-weight:700; font-size:14px; color:var(--text-primary);">Notificações</span>
-                            <button onclick="marcarTodasLidas(event)" style="background:none; border:none; color:var(--accent-blue); font-size:12px; font-weight:600; cursor:pointer;">Marcar todas como lidas</button>
+                            <button id="btnMarcarTodasLidas" style="background:none; border:none; color:var(--accent-blue); font-size:12px; font-weight:600; cursor:pointer;">Marcar todas como lidas</button>
                         </div>
                         <div id="notif-list" style="max-height:360px; overflow-y:auto; padding:4px 0;">
                             <p style="text-align:center; color:var(--muted); padding:24px; font-size:13px;">Nenhuma notificação.</p>
@@ -1669,7 +1669,7 @@ input, textarea, select {
                 </div>
 
                 <div class="user-profile" style="position:relative;">
-    <div class="user-profile-nav" onclick="toggleUserMenu()" style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+    <div class="user-profile-nav" id="btnUserMenu" style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
         <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--text-main);">Advogado</span>
         <div id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 2px solid var(--white); box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-transform: uppercase; font-size: 13px;">
             --
@@ -1681,17 +1681,17 @@ input, textarea, select {
     <a href="/planos-page"><i class="lucide lucide-award" style="width:16px;"></i> Meu Plano</a>
     
     <div id="guia-tour-switch" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; transition: background 0.2s; background: transparent;">
-        <a href="javascript:void(0)" onclick="resetarTour()" style="padding: 0; margin: 0; flex-grow: 1; display: flex; align-items: center; border:none; background:none; color: var(--text-secondary);">
+        <a href="javascript:void(0)" data-action="resetarTour" style="padding: 0; margin: 0; flex-grow: 1; display: flex; align-items: center; border:none; background:none; color: var(--text-secondary);">
             <i class="lucide lucide-help-circle" style="width:16px; margin-right: 8px; color: var(--text-secondary);"></i> Ver Tour
         </a>
         <label class="switch-mini" title="Ativar/Desativar Auto-start">
-            <input type="checkbox" id="switchTourNav" onchange="alternarAutoStart(this.checked)">
+            <input type="checkbox" id="switchTourNav">
             <span class="slider-mini round"></span>
         </label>
     </div>
 
     <div style="border-top:1px solid var(--border); margin:4px 0;"></div>
-    <a href="javascript:void(0)" onclick="logout()" style="color:var(--danger);">
+    <a href="javascript:void(0)" data-action="logout" style="color:var(--danger);">
         <i class="lucide lucide-log-out" style="width:16px;"></i> Sair
     </a>
 </div>
@@ -1700,19 +1700,19 @@ input, textarea, select {
 
         <main class="content">
     <div class="cards">
-        <div class="card" onclick="window.location.href='/prazos-page'" style="cursor:pointer; border-left:5px solid var(--danger);">
+        <div class="card" data-action="navegarPara" data-args='["/prazos-page"]' style="cursor:pointer; border-left:5px solid var(--danger);">
             <small>Prazos Vencidos</small>
             <h2 id="count-vencidos">0</h2>
         </div>
-        <div class="card" onclick="window.location.href='/audiencias-page'" style="cursor:pointer; border-left:5px solid var(--primary);">
+        <div class="card" data-action="navegarPara" data-args='["/audiencias-page"]' style="cursor:pointer; border-left:5px solid var(--primary);">
             <small>Audiências</small>
             <h2 id="totalAudiencias">0</h2>
         </div>
-        <div class="card" onclick="window.location.href='/prazos-page'" style="cursor:pointer; border-left:5px solid var(--danger);">
+        <div class="card" data-action="navegarPara" data-args='["/prazos-page"]' style="cursor:pointer; border-left:5px solid var(--danger);">
             <small>Prazos da Semana</small>
             <h2 id="count-semana">0</h2>
         </div>
-        <div class="card" onclick="window.location.href='/prazos-page'" style="cursor:pointer; border-left:5px solid var(--success);">
+        <div class="card" data-action="navegarPara" data-args='["/prazos-page"]' style="cursor:pointer; border-left:5px solid var(--success);">
             <small>Total de Prazos</small>
             <h2 id="count-total-prazos">0</h2>
         </div>
@@ -1720,7 +1720,7 @@ input, textarea, select {
 
     <div class="dash-grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
         <!-- CARD CÁLCULOS - AZUL DESTAQUE -->
-        <div class="card card-blue-highlight" onclick="window.location.href='/calculos-page'" style="cursor:pointer;">
+        <div class="card card-blue-highlight" data-action="navegarPara" data-args='["/calculos-page"]' style="cursor:pointer;">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                 <div style="background: rgba(255,255,255,0.2); padding: 12px; border-radius: 8px;">
                     <i data-lucide="calculator" style="width: 24px; height: 24px; color: white;"></i>
@@ -1734,7 +1734,7 @@ input, textarea, select {
         </div>
 
         <!-- CARD ASSISTENTE IA - AZUL DESTAQUE -->
-        <div class="card card-blue-highlight" onclick="window.location.href='/peticoes.html'" style="cursor:pointer; background: linear-gradient(135deg, #4A90E2 0%, #5BA4DB 100%);">
+        <div class="card card-blue-highlight" data-action="navegarPara" data-args='["/peticoes.html"]' style="cursor:pointer; background: linear-gradient(135deg, #4A90E2 0%, #5BA4DB 100%);">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                 <div style="background: rgba(255,255,255,0.25); padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                     <i data-lucide="sparkles" style="width: 24px; height: 24px; color: #FFD700;"></i>
@@ -1752,7 +1752,7 @@ input, textarea, select {
 
     <!-- SEÇÃO CRM - 4 CARDS AZUIS CLAROS -->
     <div class="dash-grid-crm" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
-        <div class="card card-stat-blue" id="guia-crm" onclick="window.location.href='/crm-page'" style="cursor:pointer;">
+        <div class="card card-stat-blue" id="guia-crm" data-action="navegarPara" data-args='["/crm-page"]' style="cursor:pointer;">
             <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">
                 <small style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Novos Leads</small>
                 <div style="background: #4A90E2; color: white; font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 4px;">CRM</div>
@@ -1763,7 +1763,7 @@ input, textarea, select {
             </p>
         </div>
 
-        <div class="card card-stat-blue" onclick="window.location.href='/crm-page'" style="cursor:pointer; background: #FFF4E6; border-color: #FFD8A8;">
+        <div class="card card-stat-blue" data-action="navegarPara" data-args='["/crm-page"]' style="cursor:pointer; background: #FFF4E6; border-color: #FFD8A8;">
             <small style="color: #B8752E; font-size: 11px; font-weight: 700; text-transform: uppercase;">Em Triagem</small>
             <h2 id="crm-triagem-count" style="font-size: 36px; font-weight: 800; color: #D97706; margin: 8px 0;">0</h2>
             <p style="font-size: 11px; color: #B8752E; margin-top: 8px; display:flex; align-items:center; gap:6px;">
@@ -1771,7 +1771,7 @@ input, textarea, select {
             </p>
         </div>
 
-        <div class="card card-stat-blue" onclick="window.location.href='/crm-page'" style="cursor:pointer;">
+        <div class="card card-stat-blue" data-action="navegarPara" data-args='["/crm-page"]' style="cursor:pointer;">
             <small style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Propostas Enviadas</small>
             <h2 id="crm-proposta-count" style="font-size: 36px; font-weight: 800; margin: 8px 0;">0</h2>
             <p style="font-size: 11px; margin-top: 8px; display:flex; align-items:center; gap:6px;">
@@ -1779,7 +1779,7 @@ input, textarea, select {
             </p>
         </div>
 
-        <div class="card card-stat-blue" onclick="window.location.href='/crm-page'" style="cursor:pointer; background: #E8F5E9; border-color: #A5D6A7;">
+        <div class="card card-stat-blue" data-action="navegarPara" data-args='["/crm-page"]' style="cursor:pointer; background: #E8F5E9; border-color: #A5D6A7;">
             <small style="color: #2E7D32; font-size: 11px; font-weight: 700; text-transform: uppercase;">Contratos Ganhos</small>
             <h2 id="crm-ganho-count" style="font-size: 36px; font-weight: 800; color: #16a34a; margin: 8px 0;">0</h2>
             <p style="font-size: 11px; color: #2E7D32; margin-top: 8px; display:flex; align-items:center; gap:6px;">
@@ -1789,7 +1789,7 @@ input, textarea, select {
     </div>
 
     <!-- CARD TRIBUNAIS (LARGURA TOTAL) -->
-    <div class="card" onclick="window.location.href='/tribunais-page'" style="cursor:pointer; margin-bottom:24px; border-left: 4px solid #4A90E2;">
+    <div class="card" data-action="navegarPara" data-args='["/tribunais-page"]' style="cursor:pointer; margin-bottom:24px; border-left: 4px solid #4A90E2;">
         <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:16px;">
             <div>
                 <small style="color: var(--text-tertiary); font-size:11px; font-weight:700; text-transform:uppercase;">Consultas Institucionais</small>
@@ -1850,7 +1850,7 @@ input, textarea, select {
         </div>
         <div style="display: flex; gap: 10px; margin-top: 12px; background: #FFFFFF; padding: 12px; border-radius: 6px; border: 1px solid #D0E7F9;">
             <input type="text" id="linkCaptura" readonly style="flex: 1; background: #F8FAFB; border: 1px solid #D0E7F9; padding: 10px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #4A6B8A; font-family: 'JetBrains Mono', monospace;"/>
-            <button onclick="copiarLink()" style="background: #4A90E2; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; flex-shrink: 0;" onmouseover="this.style.background='#5BA4DB'" onmouseout="this.style.background='#4A90E2'">
+            <button id="btnCopiarLink" data-action="copiarLink" style="background: #4A90E2; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; flex-shrink: 0;">
                 <i data-lucide="copy" style="width: 16px; height: 16px;"></i>
             </button>
         </div>
@@ -1872,11 +1872,10 @@ input, textarea, select {
             
             <div style="width: 1px; height: 20px; background: var(--border-medium); margin: 0 5px;"></div>
 
-            <input type="text" id="termoPesquisa" placeholder="Digite os termos da busca..." 
-                style="flex:1; border:none; background:transparent; outline:none; font-size:13px; padding: 5px;"
-                onkeypress="if(event.key === 'Enter') executarBusca()">
+            <input type="text" id="termoPesquisa" placeholder="Digite os termos da busca..."
+                style="flex:1; border:none; background:transparent; outline:none; font-size:13px; padding: 5px;">
             
-            <button onclick="executarBusca()" style="background:var(--success); color:white; border:none; width: 45px; height: 38px; border-radius:8px; cursor:pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+            <button data-action="executarBusca" style="background:var(--success); color:white; border:none; width: 45px; height: 38px; border-radius:8px; cursor:pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
                 <i data-lucide="search" style="color: white !important;"></i>
             </button>
         </div>

@@ -876,7 +876,7 @@ input, textarea, select {
  <div class="menu-item-with-submenu">
 
     <!-- LINK PRINCIPAL (IA PAGE) -->
-    <a href="/ia-page" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
+    <a href="/ia-page" id="linkIaMenu" style="display:flex; align-items:center; gap:10px;">
         <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
         IA Jurídica
         <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">
@@ -907,7 +907,7 @@ input, textarea, select {
         <a href="/config-page" id="guia-config">
             <i class="lucide lucide-settings"></i> Configurações
         </a>
-        <a href="/crm-page" class="btn-crm-gold-nav" onclick="limparBolinha()">
+        <a href="/crm-page" class="btn-crm-gold-nav" data-action="limparBolinha">
             <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
             <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
         </a>
@@ -929,17 +929,17 @@ input, textarea, select {
     <h2>💰 Fluxo de Caixa Estratégico</h2>
     
     <div style="display:flex; gap:20px; align-items:center;">
-        <button class="btn-mini-boleto" style="padding: 10px 20px; font-size: 13px;" onclick="abrirModalLancamento()">+ Novo Lançamento</button>
-        <button class="btn-upload" onclick="abrirModalLogo()">
+        <button class="btn-mini-boleto" style="padding: 10px 20px; font-size: 13px;" data-action="abrirModalLancamento">+ Novo Lançamento</button>
+        <button class="btn-upload" data-action="abrirModalLogo">
             <i class="lucide lucide-image"></i> Logo
         </button>
 
         <div style="position: relative; display: flex; align-items: center; gap: 12px;">
             <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Advogado</span>
-            <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">--</div>
+            <div data-action="toggleUserMenu" id="userCircle" style="width: 38px; height: 38px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">--</div>
             <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border-medium); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
                 <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-primary); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border-medium);">👤 Meus Dados</a>
-                <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--accent-red); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
+                <a href="#" data-action="logout" style="display: block; padding: 10px 16px; color: var(--accent-red); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
             </div>
         </div>
     </div>
@@ -966,7 +966,7 @@ input, textarea, select {
         <div class="card-center">
             <div class="card-title" style="color: var(--primary);"><i class="lucide lucide-barcode"></i> Cobranças</div>
             <div class="billing-list" id="listaCobrancaRapida"></div>
-            <button class="btn-filter" style="width:100%; margin-top:10px; border-style: dashed;" onclick="rolarParaTabela()">Ver todas ↓</button>
+            <button class="btn-filter" style="width:100%; margin-top:10px; border-style: dashed;" data-action="rolarParaTabela">Ver todas ↓</button>
         </div>
 
         <div class="card-center">
@@ -990,18 +990,18 @@ input, textarea, select {
 
     <!-- Navegador de Mês -->
     <div class="mes-nav no-print">
-        <button onclick="navegarMes(-1)" title="Mês anterior">&#8249;</button>
+        <button data-action="navegarMes" data-args="[-1]" title="Mês anterior">&#8249;</button>
         <span class="mes-label" id="mesNavLabel">—</span>
-        <button onclick="navegarMes(1)" title="Próximo mês">&#8250;</button>
-        <span class="mes-hoje" onclick="irParaHoje()" title="Ir para o mês atual">Hoje</span>
+        <button data-action="navegarMes" data-args="[1]" title="Próximo mês">&#8250;</button>
+        <span class="mes-hoje" data-action="irParaHoje" title="Ir para o mês atual">Hoje</span>
     </div>
 
     <div class="filter-row no-print" style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 15px;">
         <button class="btn-filter active"><i class="lucide lucide-list" style="width: 14px;"></i> Lançamentos</button>
-        <button class="btn-filter" onclick="imprimirInteligente()" style="">
+        <button class="btn-filter" data-action="imprimirInteligente" style="">
             <i class="lucide lucide-printer" style="width: 14px;"></i> Imprimir
-        </button> 
-        <button class="btn-filter" onclick="abrirRelatorioFaturamento()" style="">
+        </button>
+        <button class="btn-filter" data-action="abrirRelatorioFaturamento" style="">
     <i class="lucide lucide-bar-chart-3" style="width: 14px;"></i> Relatório de Faturamento
 </button>
     </div>
@@ -1040,7 +1040,7 @@ input, textarea, select {
             </div>
             <div class="form-group">
                 <label>TIPO</label>
-                <select id="addTipo" onchange="toggleParteAdicionar()">
+                <select id="addTipo">
                     <option value="Receita">Receita (Honorários/Entrada)</option>
                     <option value="Despesa">Despesa (Custas/Saída)</option>
                 </select>
@@ -1069,8 +1069,8 @@ input, textarea, select {
         Identifique para quem esta despesa foi paga.
     </small>
 </div>
-            <button class="btn-mini-boleto" style="width: 100%; padding: 14px; font-size: 14px; justify-content: center;" onclick="salvarLancamento()">SALVAR NO FLUXO</button>
-            <button style="width: 100%; margin-top: 10px; background: none; border: none; color: var(--muted); cursor: pointer;" onclick="fecharModalLancamento()">Cancelar</button>
+            <button class="btn-mini-boleto" style="width: 100%; padding: 14px; font-size: 14px; justify-content: center;" data-action="salvarLancamento">SALVAR NO FLUXO</button>
+            <button style="width: 100%; margin-top: 10px; background: none; border: none; color: var(--muted); cursor: pointer;" data-action="fecharModalLancamento">Cancelar</button>
         </div>
     </div>
 
@@ -1090,9 +1090,9 @@ input, textarea, select {
                 <div style="flex:1"><label style="font-size:11px; font-weight:700;">JUROS (1%)</label><input type="number" id="cobJuros" value="1.00" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;"></div>
             </div>
 
-            <button class="btn-mini-boleto" style="width:100%; justify-content:center; padding:14px; font-size:14px;" onclick="confirmarBoleto()">GERAR E ENVIAR BOLETO</button>
-            <button style="width:100%; margin-top:10px; background:#f1f5f9; border:none; color:var(--text-main); padding:12px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600;" 
-                    onclick="document.getElementById('modalCobranca').style.display='none'">
+            <button class="btn-mini-boleto" style="width:100%; justify-content:center; padding:14px; font-size:14px;" data-action="confirmarBoleto">GERAR E ENVIAR BOLETO</button>
+            <button style="width:100%; margin-top:10px; background:#f1f5f9; border:none; color:var(--text-main); padding:12px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600;"
+                    data-action="fecharModalCobranca">
                 CANCELAR E VOLTAR
             </button>
         </div>
@@ -1112,7 +1112,7 @@ input, textarea, select {
         </div>
         <div class="form-group">
             <label>TIPO</label>
-            <select id="editTipo" onchange="toggleParteEditar()">
+            <select id="editTipo">
                 <option value="Receita">Receita</option>
                 <option value="Despesa">Despesa</option>
             </select>
@@ -1148,8 +1148,8 @@ input, textarea, select {
            placeholder="Ex: João Eletricista, Escritório X Ltda."
            style="width:100%;padding:10px 14px;border:1px solid var(--border-medium);border-radius:8px;font-size:13px;background:var(--bg-card);color:var(--text-main);">
 </div>
-        <button class="btn-mini-boleto" style="width: 100%; padding: 14px; font-size: 14px; justify-content: center;" onclick="atualizarLancamento()">SALVAR ALTERAÇÕES</button>
-        <button style="width: 100%; margin-top: 10px; background: none; border: none; color: var(--muted); cursor: pointer;" onclick="document.getElementById('modalEditarLancamento').style.display='none'">Cancelar</button>
+        <button class="btn-mini-boleto" style="width: 100%; padding: 14px; font-size: 14px; justify-content: center;" data-action="atualizarLancamento">SALVAR ALTERAÇÕES</button>
+        <button style="width: 100%; margin-top: 10px; background: none; border: none; color: var(--muted); cursor: pointer;" data-action="fecharModalEditarLancamento">Cancelar</button>
     </div>
 </div>
 
@@ -1181,7 +1181,7 @@ input, textarea, select {
     </div>
     <div class="form-group">
         <label>SELECIONAR CLIENTE CADASTRADO</label>
-        <select id="reciboClienteSelect" onchange="preencherDadosCliente()" style="width:100%; padding:10px 14px; border:1px solid var(--border-medium); border-radius:8px; font-size:13px; background:var(--bg-card); color:var(--text-main);">
+        <select id="reciboClienteSelect" style="width:100%; padding:10px 14px; border:1px solid var(--border-medium); border-radius:8px; font-size:13px; background:var(--bg-card); color:var(--text-main);">
             <option value="">Selecione um cliente ou preencha manualmente abaixo</option>
         </select>
     </div>
@@ -1222,10 +1222,10 @@ input, textarea, select {
 
             <input type="hidden" id="reciboLancamentoId">
 
-            <button class="btn-mini-boleto" style="width: 100%; padding: 14px; font-size: 14px; justify-content: center;" onclick="gerarRecibo()">
+            <button class="btn-mini-boleto" style="width: 100%; padding: 14px; font-size: 14px; justify-content: center;" data-action="gerarRecibo">
                 <i class="lucide lucide-file-text"></i> GERAR RECIBO EM PDF
             </button>
-            <button style="width: 100%; margin-top: 10px; background: none; border: none; color: var(--muted); cursor: pointer;" onclick="fecharModalRecibo()">Cancelar</button>
+            <button style="width: 100%; margin-top: 10px; background: none; border: none; color: var(--muted); cursor: pointer;" data-action="fecharModalRecibo">Cancelar</button>
         </div>
     </div>
 
@@ -1247,14 +1247,13 @@ input, textarea, select {
         </div>
 
         <div style="text-align: center; margin: 20px 0;">
-            <input 
-                type="file" 
-                id="logoInput" 
-                accept="image/png,image/jpeg,image/jpg" 
-                style="display: none;" 
-                onchange="uploadLogo()"
+            <input
+                type="file"
+                id="logoInput"
+                accept="image/png,image/jpeg,image/jpg"
+                style="display: none;"
             >
-            <button class="btn-upload" onclick="document.getElementById('logoInput').click()">
+            <button class="btn-upload" data-action="clicarElemento" data-args='["logoInput"]'>
                 <i class="lucide lucide-upload"></i> Selecionar Logo
             </button>
         </div>
@@ -1279,17 +1278,16 @@ input, textarea, select {
         </div>
 
         <div style="text-align: center; margin: 20px 0;">
-            <input 
-                type="file" 
-                id="assinaturaInput" 
-                accept="image/png,image/jpeg,image/jpg" 
-                style="display: none;" 
-                onchange="uploadAssinatura()"
+            <input
+                type="file"
+                id="assinaturaInput"
+                accept="image/png,image/jpeg,image/jpg"
+                style="display: none;"
             >
-            <button 
-                class="btn-upload" 
-                style="background: var(--accent-green);" 
-                onclick="document.getElementById('assinaturaInput').click()"
+            <button
+                class="btn-upload"
+                style="background: var(--accent-green);"
+                data-action="clicarElemento" data-args='["assinaturaInput"]'
             >
                 <i class="lucide lucide-upload"></i> Selecionar Assinatura
             </button>
@@ -1299,9 +1297,9 @@ input, textarea, select {
             Formatos aceitos: PNG ou JPG (fundo transparente recomendado)
         </p>
 
-        <button 
-            style="width: 100%; margin-top: 25px; background: #f1f5f9; border: none; color: var(--text-main); padding: 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600;" 
-            onclick="fecharModalLogo()"
+        <button
+            style="width: 100%; margin-top: 25px; background: #f1f5f9; border: none; color: var(--text-main); padding: 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600;"
+            data-action="fecharModalLogo"
         >
             FECHAR
         </button>
@@ -1321,7 +1319,7 @@ input, textarea, select {
         <!-- Tipo de Período -->
         <div class="form-group">
             <label>TIPO DE RELATÓRIO</label>
-            <select id="relatorioTipo" onchange="atualizarCamposPeriodo()">
+            <select id="relatorioTipo">
                 <option value="mensal">📅 Mensal (escolha o mês)</option>
                 <option value="anual">📆 Anual (escolha o ano)</option>
                 <option value="personalizado">🔧 Período Personalizado</option>
@@ -1381,15 +1379,15 @@ input, textarea, select {
 
         <!-- Botões de Ação -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px;">
-            <button class="btn-mini-boleto" style="padding: 14px; font-size: 14px; justify-content: center; background: var(--accent-blue);" onclick="visualizarRelatorio()">
+            <button class="btn-mini-boleto" style="padding: 14px; font-size: 14px; justify-content: center; background: var(--accent-blue);" data-action="visualizarRelatorio">
                 <i class="lucide lucide-eye"></i> VISUALIZAR
             </button>
-            <button class="btn-mini-boleto" style="padding: 14px; font-size: 14px; justify-content: center;" onclick="gerarPDFRelatorio()">
+            <button class="btn-mini-boleto" style="padding: 14px; font-size: 14px; justify-content: center;" data-action="gerarPDFRelatorio">
                 <i class="lucide lucide-download"></i> GERAR PDF
             </button>
         </div>
 
-        <button style="width: 100%; margin-top: 15px; background: none; border: none; color: var(--muted); cursor: pointer; font-weight: 600;" onclick="fecharRelatorioFaturamento()">
+        <button style="width: 100%; margin-top: 15px; background: none; border: none; color: var(--muted); cursor: pointer; font-weight: 600;" data-action="fecharRelatorioFaturamento">
             Cancelar
         </button>
     </div>
@@ -1400,16 +1398,16 @@ input, textarea, select {
     <div style="background:#fff;width:90%;max-width:900px;padding:32px;border-radius:16px;max-height:90vh;overflow-y:auto;position:relative;z-index:999999;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
             <h3 style="font-weight: 800;">📊 Relatório de Faturamento</h3>
-            <button onclick="fecharVisualizacaoRelatorio()" style="background: none; border: none; cursor: pointer; font-size: 24px; color: var(--muted);">&times;</button>
+            <button data-action="fecharVisualizacaoRelatorio" style="background: none; border: none; cursor: pointer; font-size: 24px; color: var(--muted);">&times;</button>
         </div>
         
         <div id="conteudoRelatorio"></div>
 
         <div style="display: flex; gap: 15px; margin-top: 30px;">
-            <button class="btn-mini-boleto" style="flex: 1; padding: 14px; justify-content: center;" onclick="gerarPDFRelatorio()">
+            <button class="btn-mini-boleto" style="flex: 1; padding: 14px; justify-content: center;" data-action="gerarPDFRelatorio">
                 <i class="lucide lucide-download"></i> BAIXAR PDF
             </button>
-            <button style="flex: 1; padding: 14px; background: #f1f5f9; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;" onclick="fecharVisualizacaoRelatorio()">
+            <button style="flex: 1; padding: 14px; background: #f1f5f9; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;" data-action="fecharVisualizacaoRelatorio">
                 FECHAR
             </button>
         </div>

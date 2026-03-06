@@ -1,4 +1,13 @@
 
+// ─── Helpers globais ──────────────────────────────────────────────────────────
+function navegarPara(url) { window.location.href = url; }
+function removerElemento(id) { const el = document.getElementById(id); if (el) el.remove(); }
+function clicarElemento(id) { const el = document.getElementById(id); if (el) el.click(); }
+function toggleUserDropdown() {
+    const dd = document.getElementById('userDropdown');
+    if (dd) dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
+}
+
 // ─── Estado ───────────────────────────────────────────────────────────────────
 const token = localStorage.getItem('token');
 let userRole = '';
@@ -77,6 +86,30 @@ window.onload = async () => {
         history.replaceState(null, '', url.toString());
     }
 };
+
+// ─── DOMContentLoaded listeners ───────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+    // toggleIaMenu especial
+    const lia = document.getElementById('linkIaMenu');
+    if (lia) lia.addEventListener('click', toggleIaMenu);
+
+    // Filtros
+    const buscaEl = document.getElementById('busca');
+    if (buscaEl) buscaEl.addEventListener('input', filtrar);
+
+    const filtroCatEl = document.getElementById('filtroCategoria');
+    if (filtroCatEl) filtroCatEl.addEventListener('change', filtrar);
+
+    const filtroModeloEl = document.getElementById('filtroModelo');
+    if (filtroModeloEl) filtroModeloEl.addEventListener('change', filtrar);
+
+    // File inputs
+    const fileInputEl = document.getElementById('fileInput');
+    if (fileInputEl) fileInputEl.addEventListener('change', function () { onFileSelect(this); });
+
+    const fileInputNVEl = document.getElementById('fileInputNV');
+    if (fileInputNVEl) fileInputNVEl.addEventListener('change', function () { onFileSelectNV(this); });
+});
 
 // ─── Info do processo ─────────────────────────────────────────────────────────
 async function carregarInfoProcesso(id) {
@@ -172,7 +205,7 @@ function renderizarTabela(lista) {
         const totalV = parseInt(d.total_versoes) || 1;
         const versaoExibida = `v${d.versao}`;
         const btnMaisVersoes = totalV > 1
-            ? `<button class="btn-icon" onclick="abrirVersoes(${d.id})" title="Ver ${totalV} versão(ões)" style="font-size:11px;font-weight:700;color:var(--primary);">(+${totalV - 1})</button>`
+            ? `<button class="btn-icon" data-action="abrirVersoes" data-args='[${d.id}]' title="Ver ${totalV} versão(ões)" style="font-size:11px;font-weight:700;color:var(--primary);">(+${totalV - 1})</button>`
             : '';
 
         const processoCol = d.eh_modelo
@@ -182,27 +215,27 @@ function renderizarTabela(lista) {
                 : '<span style="color:#94a3b8;">—</span>');
 
         const excluirBtn = userRole === 'admin'
-            ? `<button class="btn-icon danger" onclick="excluirDocumento(${d.id})" title="Excluir"><i data-lucide="trash-2" style="width:15px;height:15px;"></i></button>`
+            ? `<button class="btn-icon danger" data-action="excluirDocumento" data-args='[${d.id}]' title="Excluir"><i data-lucide="trash-2" style="width:15px;height:15px;"></i></button>`
             : '';
 
         let btnAssinar = '';
         if (d.mimetype === 'application/pdf') {
             if (!addonClicksign.api_key_configurada) {
                 // Sem chave: direciona para Configurações
-                btnAssinar = `<button class="btn-icon" onclick="abrirModalAddon()" title="Configure sua chave ClickSign em Configurações" style="color:#7c3aed;"><i data-lucide="settings" style="width:15px;height:15px;"></i></button>`;
+                btnAssinar = `<button class="btn-icon" data-action="abrirModalAddon" title="Configure sua chave ClickSign em Configurações" style="color:#7c3aed;"><i data-lucide="settings" style="width:15px;height:15px;"></i></button>`;
             } else {
                 // Chave configurada: botão disponível para qualquer PDF
                 const tip = d.processo_id ? 'Assinatura Digital' : 'Assinatura Digital (signatário manual)';
-                btnAssinar = `<button class="btn-icon" onclick="abrirModalAssinar(${d.id}, ${d.processo_id || 'null'})" title="${tip}" style="color:#7c3aed;"><i data-lucide="pen-line" style="width:15px;height:15px;"></i></button>`;
+                btnAssinar = `<button class="btn-icon" data-action="abrirModalAssinar" data-args='[${d.id}, ${d.processo_id || 'null'}]' title="${tip}" style="color:#7c3aed;"><i data-lucide="pen-line" style="width:15px;height:15px;"></i></button>`;
             }
         }
 
         const btnVerificarStatus = (d.assinatura_id && (d.assinatura_status === 'enviado' || d.assinatura_status === 'em_assinatura'))
-            ? `<button class="btn-icon" onclick="verificarStatusAssinatura(${d.assinatura_id}, ${d.id})" title="Verificar status da assinatura" style="color:#d97706;"><i data-lucide="refresh-cw" style="width:14px;height:14px;"></i></button>`
+            ? `<button class="btn-icon" data-action="verificarStatusAssinatura" data-args='[${d.assinatura_id}, ${d.id}]' title="Verificar status da assinatura" style="color:#d97706;"><i data-lucide="refresh-cw" style="width:14px;height:14px;"></i></button>`
             : '';
 
         const btnBaixarAssinado = (d.assinatura_id && d.assinatura_status === 'concluido')
-            ? `<button class="btn-icon" onclick="baixarDocumentoAssinado(${d.assinatura_id})" title="Baixar documento assinado" style="color:#16a34a;"><i data-lucide="file-check" style="width:15px;height:15px;"></i></button>`
+            ? `<button class="btn-icon" data-action="baixarDocumentoAssinado" data-args='[${d.assinatura_id}]' title="Baixar documento assinado" style="color:#16a34a;"><i data-lucide="file-check" style="width:15px;height:15px;"></i></button>`
             : '';
 
         const assinaturaBadge = d.assinatura_status === 'concluido'
@@ -230,9 +263,9 @@ function renderizarTabela(lista) {
             <td style="white-space:nowrap;color:#64748b;">${data}</td>
             <td>
                 <div style="display:flex;gap:4px;justify-content:flex-end;align-items:center;">
-                    <button class="btn-icon" onclick="baixarDoc(${d.id}, '${escAtr(d.arquivo_original)}')" title="Download / Visualizar"><i data-lucide="download" style="width:15px;height:15px;"></i></button>
-                    <button class="btn-icon" onclick="abrirEditar(${d.id})" title="Editar metadados"><i data-lucide="edit" style="width:15px;height:15px;"></i></button>
-                    <button class="btn-icon" onclick="abrirNovaVersao(${d.id})" title="Upload nova versão"><i data-lucide="upload" style="width:15px;height:15px;"></i></button>
+                    <button class="btn-icon" data-action="baixarDoc" data-args='[${d.id}, ${JSON.stringify(d.arquivo_original || '')}]' title="Download / Visualizar"><i data-lucide="download" style="width:15px;height:15px;"></i></button>
+                    <button class="btn-icon" data-action="abrirEditar" data-args='[${d.id}]' title="Editar metadados"><i data-lucide="edit" style="width:15px;height:15px;"></i></button>
+                    <button class="btn-icon" data-action="abrirNovaVersao" data-args='[${d.id}]' title="Upload nova versão"><i data-lucide="upload" style="width:15px;height:15px;"></i></button>
                     ${btnAssinar}
                     ${btnVerificarStatus}
                     ${btnBaixarAssinado}
@@ -483,7 +516,7 @@ async function abrirVersoes(id) {
                         ${v.usuario_nome || '—'}
                     </div>
                 </div>
-                <button class="btn-icon" onclick="baixarDoc(${v.id}, '${escAtr(v.arquivo_original)}')" title="Download">
+                <button class="btn-icon" data-action="baixarDoc" data-args='[${v.id}, ${JSON.stringify(v.arquivo_original || '')}]' title="Download">
                     <i data-lucide="download" style="width:15px;height:15px;"></i>
                 </button>
             </div>
@@ -704,7 +737,7 @@ function adicionarLinhaSignatario(nome = '', email = '') {
             <input type="email" class="sign-email" placeholder="email@exemplo.com" value="${emailEsc}"
                 style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;background:#f8fafc;box-sizing:border-box;">
         </div>
-        <button type="button" onclick="removerLinhaSignatario(this)"
+        <button type="button" data-action="removerLinhaSignatario"
             style="padding:6px 8px;border:none;background:none;cursor:pointer;color:#ef4444;font-size:20px;line-height:1;margin-top:14px;" title="Remover">&times;</button>
     `;
     list.appendChild(row);
@@ -860,10 +893,10 @@ function exibirAvisoUpgrade(mensagem) {
         <div style="font-size:50px;">🚀</div>
         <h3 style="margin-top:15px;color:#0f172a;">Recurso não disponível</h3>
         <p style="color:#64748b;margin:15px 0 25px 0;line-height:1.6;">${mensagem}</p>
-        <button onclick="window.location.href='/planos-page'" style="background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#000;border:none;padding:14px 28px;border-radius:10px;font-weight:800;cursor:pointer;width:100%;margin-bottom:10px;">
+        <button data-action="navegarPara" data-args='["/planos-page"]' style="background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#000;border:none;padding:14px 28px;border-radius:10px;font-weight:800;cursor:pointer;width:100%;margin-bottom:10px;">
             Ver Planos e Preços
         </button>
-        <button onclick="document.getElementById('overlay-upgrade').remove()" style="background:none;border:none;color:#64748b;cursor:pointer;font-weight:600;padding:8px;">
+        <button data-action="removerElemento" data-args='["overlay-upgrade"]' style="background:none;border:none;color:#64748b;cursor:pointer;font-weight:600;padding:8px;">
             Depois
         </button>
     </div>`;

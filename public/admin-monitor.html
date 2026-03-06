@@ -1094,7 +1094,7 @@
                         <span id="statusText">SISTEMA ONLINE</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 10px;">
-    <button class="btn-refresh" onclick="gerarRelatorioMensal()">
+    <button class="btn-refresh" data-action="gerarRelatorioMensal">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff4757" stroke-width="2">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
             <polyline points="14 2 14 8 20 8"></polyline>
@@ -1104,7 +1104,7 @@
         <span>RELATÓRIO PDF</span>
     </button>
 
-    <button class="btn-refresh" onclick="atualizarDados()">
+    <button class="btn-refresh" data-action="atualizarDados">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
         </svg>
@@ -1118,22 +1118,22 @@
         <!-- Tabs Navigation -->
         <nav class="tabs-nav">
             <div class="tabs-container mb-4">
-    <button class="tab-btn active" onclick="trocarAba('overview', 0)">
+    <button class="tab-btn active" data-action="trocarAba" data-args='["overview", 0]'>
         <i class="bi bi-speedometer2 me-2"></i>OVERVIEW
     </button>
-    <button class="tab-btn" onclick="trocarAba('escritorios', 1)">
+    <button class="tab-btn" data-action="trocarAba" data-args='["escritorios", 1]'>
         <i class="bi bi-building me-2"></i>ESCRITÓRIOS
     </button>
-    <button class="tab-btn" onclick="trocarAba('inadimplencia', 2)">
+    <button class="tab-btn" data-action="trocarAba" data-args='["inadimplencia", 2]'>
         <i class="bi bi-cash-stack me-2"></i>INADIMPLÊNCIA
     </button>
-    <button class="tab-btn" onclick="trocarAba('upgrade', 3)">
+    <button class="tab-btn" data-action="trocarAba" data-args='["upgrade", 3]'>
         <i class="bi bi-graph-up-arrow me-2"></i>UPGRADES
     </button>
-    <button class="tab-btn" onclick="trocarAba('logs', 4)">
+    <button class="tab-btn" data-action="trocarAba" data-args='["logs", 4]'>
         <i class="bi bi-bug me-2"></i>LOGS DE ERRO
     </button>
-    <button class="tab-btn" onclick="trocarAba('audit', 5)">
+    <button class="tab-btn" data-action="trocarAba" data-args='["audit", 5]'>
         <i class="bi bi-journal-text me-2"></i>REGISTRO DE AUDITORIA
     </button>
 </div>
@@ -1335,10 +1335,10 @@
             Filtrar Saúde:
         </span>
         <div class="btn-group shadow-sm" id="grupo-filtros-saude" style="border: 1px solid #333; border-radius: 6px; overflow: hidden;">
-            <button onclick="filtrarSaude('todos', this)" class="btn-saude active">TODOS</button>
-            <button onclick="filtrarSaude('critico', this)" class="btn-saude text-danger">⚠️ CRÍTICOS</button>
-            <button onclick="filtrarSaude('alerta', this)" class="btn-saude text-warning">ALERTAS</button>
-            <button onclick="filtrarSaude('saudavel', this)" class="btn-saude text-success">SAUDÁVEIS</button>
+            <button data-action="filtrarSaude" data-args='["todos"]' class="btn-saude active">TODOS</button>
+            <button data-action="filtrarSaude" data-args='["critico"]' class="btn-saude text-danger">⚠️ CRÍTICOS</button>
+            <button data-action="filtrarSaude" data-args='["alerta"]' class="btn-saude text-warning">ALERTAS</button>
+            <button data-action="filtrarSaude" data-args='["saudavel"]' class="btn-saude text-success">SAUDÁVEIS</button>
         </div>
     </div>
 </div>
@@ -1468,11 +1468,11 @@
                     <div class="filters-grid">
                         <div class="filter-group">
                             <label>Buscar Escritório</label>
-                            <input type="text" class="filter-input" id="filtroBuscaEscritorio" placeholder="Nome ou OAB..." oninput="filtrarEscritorios()">
+                            <input type="text" class="filter-input" id="filtroBuscaEscritorio" placeholder="Nome ou OAB...">
                         </div>
                         <div class="filter-group">
                             <label>Filtrar por Plano</label>
-                            <select class="filter-select" id="filtroPlanoEscritorio" onchange="filtrarEscritorios()">
+                            <select class="filter-select" id="filtroPlanoEscritorio">
                                 <option value="">Todos os Planos</option>
                                 <option value="BASICO">Básico</option>
                                 <option value="INTERMEDIARIO">Intermediário</option>
@@ -1482,7 +1482,7 @@
                         </div>
                     </div>
                     <div class="filters-actions">
-                        <button class="btn-action" onclick="exportarCSV()">
+                        <button class="btn-action" data-action="exportarCSV">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
                             </svg>
@@ -1547,7 +1547,7 @@
                 <span class="title-icon">💳</span>
                 <span>CONTROLE DE INADIMPLÊNCIA</span>
             </div>
-            <button class="btn-export" onclick="exportarInadimplencia()">
+            <button class="btn-export" data-action="exportarInadimplencia">
                 <svg width="16" height="16" viewBox="0 0 24 24">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
                 </svg>
@@ -1602,7 +1602,7 @@
                 <span class="title-icon">🚀</span>
                 <span>OPORTUNIDADES DE UPGRADE</span>
             </div>
-            <button class="btn-export" onclick="exportarUpgrade()">
+            <button class="btn-export" data-action="exportarUpgrade">
                 <svg width="16" height="16" viewBox="0 0 24 24">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
                 </svg>
@@ -1658,14 +1658,14 @@
                 <span>LOG DE EVENTOS IMPORTANTES</span>
             </div>
             <div class="filters-grid">
-                <select class="filter-input" id="filtroTipoEvento" onchange="filtrarAudit()">
+                <select class="filter-input" id="filtroTipoEvento">
                     <option value="">Todos os Eventos</option>
                     <option value="novo_cadastro">Novos Cadastros</option>
                     <option value="upgrade">Upgrades</option>
                     <option value="milestone">Milestones</option>
                     <option value="status_pagamento">Pagamentos</option>
                 </select>
-                <button class="btn-export" onclick="exportarAudit()">
+                <button class="btn-export" data-action="exportarAudit">
                     <svg width="16" height="16" viewBox="0 0 24 24">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
                     </svg>
@@ -1765,7 +1765,7 @@
                     <div class="filters-grid">
                         <div class="filter-group">
                             <label>Serviço</label>
-                            <select class="filter-select" id="filtroServico" onchange="filtrarLogs()">
+                            <select class="filter-select" id="filtroServico">
                                 <option value="">Todos os Serviços</option>
                                 <option value="Autenticação">🔐 Autenticação</option>
                                 <option value="Prazos">📅 Prazos</option>
@@ -1775,7 +1775,7 @@
                         </div>
                         <div class="filter-group">
                             <label>Tipo de Erro</label>
-                            <select class="filter-select" id="filtroErro" onchange="filtrarLogs()">
+                            <select class="filter-select" id="filtroErro">
                                 <option value="">Todos os Erros</option>
                                 <option value="LOGIN_FAILED">Login Failed</option>
                                 <option value="DATABASE_ERROR">Database Error</option>
@@ -1784,11 +1784,11 @@
                         </div>
                         <div class="filter-group">
                             <label>Data</label>
-                            <input type="date" class="filter-input" id="filtroData" onchange="filtrarLogs()">
+                            <input type="date" class="filter-input" id="filtroData">
                         </div>
                     </div>
                     <div class="filters-actions">
-                        <button class="btn-action" onclick="exportarCSV()">
+                        <button class="btn-action" data-action="exportarCSV">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
                             </svg>
@@ -1797,7 +1797,7 @@
                     </div>
                 </div>
 
-                
+
 
                 <!-- Table -->
                 <div class="table-card">

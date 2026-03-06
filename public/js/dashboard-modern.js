@@ -515,7 +515,7 @@ containerGeral.innerHTML += `
                 </div>
             </div>
         </div>
-        <button class="btn-concluir-dash" onclick="concluirPrazoDash(${p.id})">
+        <button class="btn-concluir-dash" data-action="concluirPrazoDash" data-args='[${p.id}]'>
             <i class="lucide lucide-check-circle-2" style="width:20px;"></i>
         </button>
     </div>`;
@@ -800,7 +800,7 @@ async function carregarNotificacoes() {
         lista.innerHTML = data.notificacoes.map(n => {
             const tempo = tempoRelativo(n.enviada_em);
             const bgLida = n.lida ? '' : 'background:#f0f7ff;';
-            return `<div onclick="clicarNotificacao(${n.id}, event)" style="padding:12px 16px; border-bottom:1px solid var(--border-subtle); cursor:pointer; transition:background 0.2s; ${bgLida}" onmouseover="this.style.background='#f8fafb'" onmouseout="this.style.background='${n.lida ? '' : '#f0f7ff'}'">
+            return `<div data-action="clicarNotificacao" data-args='[${n.id}]' style="padding:12px 16px; border-bottom:1px solid var(--border-subtle); cursor:pointer; transition:background 0.2s; ${bgLida}">
                 <div style="font-size:13px; font-weight:${n.lida ? '400' : '600'}; color:var(--text-primary); margin-bottom:2px;">${n.titulo || 'Notificação'}</div>
                 <div style="font-size:12px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${n.mensagem || ''}</div>
                 <div style="font-size:11px; color:var(--muted); margin-top:4px;">${tempo}</div>
@@ -821,8 +821,7 @@ function tempoRelativo(dataStr) {
     return `há ${diffD}d`;
 }
 
-async function clicarNotificacao(id, event) {
-    event.stopPropagation();
+async function clicarNotificacao(id) {
     try {
         await API.put(`/api/notificacoes/${id}/lida`, {});
     } catch (e) {}
@@ -869,3 +868,43 @@ setInterval(atualizarBadgeNotif, 60000);
 
 
 (function(){var t=localStorage.getItem('token');if(!t)return;function checkChat(){fetch('/api/chat/nao-lidas',{headers:{Authorization:'Bearer '+t}}).then(function(r){return r.json()}).then(function(d){if(d.ok){var total=Object.values(d.naoLidas).reduce(function(a,b){return a+b},0);var b=document.getElementById('chatBadge');if(b){b.style.display=total>0?'inline-flex':'none';b.textContent=total>99?'99+':total}}}).catch(function(){})}checkChat();setInterval(checkChat,30000)})();
+
+// ============================================================
+// HELPERS PARA EVENT DELEGATION
+// ============================================================
+function navegarPara(url) { window.location.href = url; }
+function removerElemento(id) { const el = document.getElementById(id); if (el) el.remove(); }
+function clicarElemento(id) { const el = document.getElementById(id); if (el) el.click(); }
+
+// ============================================================
+// LISTENERS MIGRADOS DE INLINE HANDLERS
+// ============================================================
+document.addEventListener('DOMContentLoaded', function () {
+    // toggleIaMenu — link especial com id
+    const lia = document.getElementById('linkIaMenu');
+    if (lia) lia.addEventListener('click', toggleIaMenu);
+
+    // toggleUserMenu — botão do avatar
+    const btnUserMenu = document.getElementById('btnUserMenu');
+    if (btnUserMenu) btnUserMenu.addEventListener('click', toggleUserMenu);
+
+    // switchTourNav — onchange para alternarAutoStart
+    const switchTour = document.getElementById('switchTourNav');
+    if (switchTour) switchTour.addEventListener('change', function () { alternarAutoStart(this.checked); });
+
+    // termoPesquisa — onkeypress Enter para executarBusca
+    const termoPesquisa = document.getElementById('termoPesquisa');
+    if (termoPesquisa) termoPesquisa.addEventListener('keypress', function (e) { if (e.key === 'Enter') executarBusca(); });
+
+    // btnMarcarTodasLidas — stopPropagation necessário
+    const btnMarcar = document.getElementById('btnMarcarTodasLidas');
+    if (btnMarcar) btnMarcar.addEventListener('click', function (e) { e.stopPropagation(); marcarTodasLidas(e); });
+
+    // btnCopiarLink — hover via CSS é suficiente; o data-action já trata o click
+    // Hover visual para o botão de copiar link
+    const btnCopiar = document.getElementById('btnCopiarLink');
+    if (btnCopiar) {
+        btnCopiar.addEventListener('mouseover', function () { this.style.background = '#5BA4DB'; });
+        btnCopiar.addEventListener('mouseout', function () { this.style.background = '#4A90E2'; });
+    }
+});
