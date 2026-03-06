@@ -148,26 +148,6 @@ class PDFGeneratorService {
     }
 
     /**
-     * Assinar PDF com certificado digital A1
-     * (Placeholder - requer biblioteca específica para assinatura)
-     */
-    static async assinarPDF(pdfPath, certificado) {
-        // TODO: Implementar assinatura digital real
-        // Requer biblioteca como node-signpdf ou jsrsasign
-        
-        console.log('[PDF] Assinatura digital - implementação futura');
-        console.log('[PDF] Certificado:', certificado ? 'Presente' : 'Ausente');
-        
-        // Por enquanto, retorna o mesmo arquivo
-        return {
-            success: true,
-            filepath: pdfPath,
-            assinado: false,
-            mensagem: 'Assinatura digital será implementada com certificado A1'
-        };
-    }
-
-    /**
      * Deletar arquivo PDF
      */
     static async deletarPDF(filename) {

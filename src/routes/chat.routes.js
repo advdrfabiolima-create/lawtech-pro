@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
+const { checkFeature } = require('../middlewares/planMiddleware');
 const controller = require('../controllers/chatController');
 const fileStorage = require('../utils/storage');
 const logger = require('../utils/logger');
@@ -32,16 +33,19 @@ const upload = multer({
     limits: { fileSize: 10 * 1024 * 1024 } // 10MB
 });
 
+// ─── Feature gate: chat disponível apenas em planos com chat_interno ──────────
+router.use(authMiddleware, checkFeature('chat_interno'));
+
 // ─── Rotas de mensagens (sem arquivo) ────────────────────────────────────────
-router.get('/chat/mensagens', authMiddleware, controller.listarMensagens);
-router.post('/chat/mensagens', authMiddleware, controller.enviarMensagem);
-router.get('/chat/usuarios', authMiddleware, controller.listarUsuarios);
-router.get('/chat/nao-lidas', authMiddleware, controller.contarNaoLidas);
-router.put('/chat/mensagens/ler', authMiddleware, controller.marcarComoLidas);
-router.put('/chat/heartbeat', authMiddleware, controller.heartbeat);
+router.get('/chat/mensagens', controller.listarMensagens);
+router.post('/chat/mensagens', controller.enviarMensagem);
+router.get('/chat/usuarios', controller.listarUsuarios);
+router.get('/chat/nao-lidas', controller.contarNaoLidas);
+router.put('/chat/mensagens/ler', controller.marcarComoLidas);
+router.put('/chat/heartbeat', controller.heartbeat);
 
 // ─── POST /chat/mensagens/arquivo ─────────────────────────────────────────────
-router.post('/chat/mensagens/arquivo', authMiddleware, upload.single('arquivo'), async (req, res) => {
+router.post('/chat/mensagens/arquivo', upload.single('arquivo'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ ok: false, erro: 'Nenhum arquivo enviado.' });
 

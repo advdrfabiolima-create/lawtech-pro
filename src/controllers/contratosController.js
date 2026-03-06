@@ -518,7 +518,7 @@ async function gerarTemplate(req, res) {
   /* ── Rodapé ── */
   .rodape-wrapper {
     margin-top: auto;
-    padding-top: 200px;
+    padding-top: 100px;
   }
   .rodape {
     text-align: center;

@@ -3,7 +3,7 @@ const pool = require('../config/db');
 const axios = require('axios');
 const { decrypt } = require('../utils/crypto');
 const { tentarGatewayAlternativo } = require('../utils/gatewayFailover');
-const { enviarEmailCobrancaPix } = require('../services/emailService');
+const { enviarEmailCobrancaPix, enviarEmail } = require('../services/emailService');
 const { getAsaasHeaders, processarCobrancaCartao, ASAAS_BASE_URL } = require('../services/chargeService');
 const logger = require('../utils/logger');
 const cache = require('../utils/cache');
@@ -284,7 +284,7 @@ cron.schedule('0 9 * * *', async () => {
     
     try {
         const result = await pool.query(`
-            SELECT e.nome, u.email, p.nome as plano_nome
+            SELECT e.nome, e.trial_expira_em, u.email, p.nome as plano_nome
             FROM escritorios e
             JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
             JOIN planos p ON e.plano_id = p.id
@@ -295,7 +295,26 @@ cron.schedule('0 9 * * *', async () => {
         logger.info(`📧 ${result.rowCount} aviso(s) para enviar`);
         for (const esc of result.rows) {
             logger.info(`📧 Aviso: ${esc.email}`);
-            // TODO: Implementar email
+            const dataExpiracao = new Date(esc.trial_expira_em).toLocaleDateString('pt-BR');
+            enviarEmail({
+                para: esc.email,
+                assunto: `⚠️ Seu período de teste expira em 2 dias — LawTech Pro`,
+                html: `
+                    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;">
+                        <h2 style="color:#f59e0b;">Seu trial está quase encerrando</h2>
+                        <p>Olá, <strong>${esc.nome}</strong>!</p>
+                        <p>Seu período de teste gratuito do plano <strong>${esc.plano_nome}</strong> expira em <strong>${dataExpiracao}</strong>.</p>
+                        <p>Para continuar utilizando o LawTech Pro sem interrupções, assine agora.</p>
+                        <div style="text-align:center;margin:30px 0;">
+                            <a href="${process.env.BASE_URL || 'https://www.lawtechpro.com.br'}/planos-page"
+                               style="background:#f59e0b;color:#000;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;">
+                                Ver Planos e Preços
+                            </a>
+                        </div>
+                        <p style="color:#64748b;font-size:13px;">Após a expiração você terá 3 dias de período de graça antes do bloqueio total.</p>
+                    </div>
+                `
+            }).catch(e => logger.warn({ err: e.message, email: esc.email }, '[CRON TRIAL] Falha ao enviar aviso'));
         }
         logger.info('✅ Avisos processados\n');
     } catch (err) {

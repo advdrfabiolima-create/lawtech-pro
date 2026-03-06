@@ -99,6 +99,14 @@ async function carregarDocumentos() {
         if (processoId) url += `processo_id=${processoId}&`;
 
         const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+
+        if (res.status === 402) {
+            const data = await res.json();
+            const msg = data.message || data.erro || 'O módulo de Documentos (GED) não está disponível no seu plano atual.';
+            exibirAvisoUpgrade(msg);
+            return;
+        }
+
         if (!res.ok) throw new Error(await res.text());
 
         todosDocumentos = await res.json();
@@ -840,6 +848,26 @@ function mostrarToastAddon(mensagem) {
     toast.style.opacity = '1';
     clearTimeout(toast._timeout);
     toast._timeout = setTimeout(() => { toast.style.opacity = '0'; }, 5000);
+}
+
+// ─── Aviso de upgrade de plano ────────────────────────────────────────────────
+function exibirAvisoUpgrade(mensagem) {
+    const overlay = document.createElement('div');
+    overlay.id = 'overlay-upgrade';
+    overlay.style = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:20000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(5px);';
+    overlay.innerHTML = `
+    <div style="background:#fff;padding:40px;border-radius:20px;text-align:center;max-width:400px;">
+        <div style="font-size:50px;">🚀</div>
+        <h3 style="margin-top:15px;color:#0f172a;">Recurso não disponível</h3>
+        <p style="color:#64748b;margin:15px 0 25px 0;line-height:1.6;">${mensagem}</p>
+        <button onclick="window.location.href='/planos-page'" style="background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#000;border:none;padding:14px 28px;border-radius:10px;font-weight:800;cursor:pointer;width:100%;margin-bottom:10px;">
+            Ver Planos e Preços
+        </button>
+        <button onclick="document.getElementById('overlay-upgrade').remove()" style="background:none;border:none;color:#64748b;cursor:pointer;font-weight:600;padding:8px;">
+            Depois
+        </button>
+    </div>`;
+    document.body.appendChild(overlay);
 }
 
 // ─── Modal helpers ────────────────────────────────────────────────────────────
