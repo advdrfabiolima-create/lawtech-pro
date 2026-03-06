@@ -227,6 +227,7 @@ const paymentLimiter = rateLimit({
 app.use('/api/pagamentos/assinar-plano', paymentLimiter);
 app.use('/api/pagamentos/cobrar-renovacao', paymentLimiter);
 app.use('/api/pagamentos/salvar-cartao', paymentLimiter);
+app.use('/api/pagamentos/reativar-suspenso', paymentLimiter);
 
 // Rate limiting para pagamento de trial expirado (permite polling PIX a cada 5s)
 const trialPaymentLimiter = rateLimit({

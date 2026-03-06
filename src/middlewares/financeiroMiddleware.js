@@ -15,23 +15,32 @@ async function verificarPagamento(req, res, next) {
     const status = rows[0].plano_financeiro_status;
     const statusPermitidos = ['ativo', 'pago'];
 
-    // Trial é permitido apenas se ainda não expirou
+    // Trial: permitido dentro do grace period de 3 dias após expiração (igual ao authMiddleware)
     if (status === 'trial') {
         const agora = new Date();
         const expiracao = rows[0].trial_expira_em ? new Date(rows[0].trial_expira_em) : null;
 
-        if (expiracao && expiracao >= agora) {
-            return next();
-        }
+        if (!expiracao) return next(); // sem data definida = sem bloqueio
+
+        const diasRestantes = Math.ceil((expiracao - agora) / (1000 * 60 * 60 * 24));
+
+        if (diasRestantes > -3) return next(); // dentro do grace period
 
         return res.status(402).json({
-            erro: 'Período de teste expirado. Assine um plano para continuar.'
+            ok: false,
+            erro: 'Período de teste expirado. Assine um plano para continuar.',
+            upgrade_required: true
         });
     }
 
     if (!statusPermitidos.includes(status)) {
         return res.status(402).json({
-            erro: 'Pagamento pendente ou suspenso'
+            ok: false,
+            erro: status === 'suspenso'
+                ? 'Conta suspensa por inadimplência. Regularize seu pagamento em Configurações → Pagamento.'
+                : 'Pagamento pendente. Regularize sua assinatura para continuar.',
+            upgrade_required: true,
+            status
         });
     }
 
