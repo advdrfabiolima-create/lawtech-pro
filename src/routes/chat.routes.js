@@ -14,37 +14,36 @@ const fileFilter = (req, file, cb) => {
         'application/pdf',
         'application/msword',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'image/jpeg',
-        'image/jpg',
-        'image/png',
+        'image/jpeg', 'image/jpg', 'image/png',
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     ];
-    if (allowed.includes(file.mimetype)) {
-        cb(null, true);
-    } else {
-        cb(new Error('Tipo de arquivo não permitido. Aceitos: PDF, DOC, DOCX, JPG, PNG, XLS, XLSX'), false);
-    }
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Tipo de arquivo não permitido. Aceitos: PDF, DOC, DOCX, JPG, PNG, XLS, XLSX'), false);
 };
 
 const upload = multer({
     storage: multer.memoryStorage(),
     fileFilter,
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+    limits: { fileSize: 10 * 1024 * 1024 } // 10 MB
 });
 
-// ─── Feature gate: chat disponível apenas em planos com chat_interno ──────────
+// ─── Feature gate ─────────────────────────────────────────────────────────────
 router.use(authMiddleware, checkFeature('chat_interno'));
 
-// ─── Rotas de mensagens (sem arquivo) ────────────────────────────────────────
-router.get('/chat/mensagens', controller.listarMensagens);
-router.post('/chat/mensagens', controller.enviarMensagem);
-router.get('/chat/usuarios', controller.listarUsuarios);
-router.get('/chat/nao-lidas', controller.contarNaoLidas);
-router.put('/chat/mensagens/ler', controller.marcarComoLidas);
-router.put('/chat/heartbeat', controller.heartbeat);
+// ─── Rotas principais ─────────────────────────────────────────────────────────
+router.get('/chat/mensagens',          controller.listarMensagens);
+router.post('/chat/mensagens',         controller.enviarMensagem);
+router.get('/chat/usuarios',           controller.listarUsuarios);
+router.get('/chat/nao-lidas',          controller.contarNaoLidas);
+router.put('/chat/mensagens/ler',      controller.marcarComoLidas);
+router.put('/chat/heartbeat',          controller.heartbeat);
 
-// ─── POST /chat/mensagens/arquivo ─────────────────────────────────────────────
+// ─── Thread / tópico ──────────────────────────────────────────────────────────
+// GET /api/chat/thread/:msgId  — busca as respostas de um tópico específico
+router.get('/chat/thread/:msgId', controller.listarThread);
+
+// ─── Arquivo ─────────────────────────────────────────────────────────────────
 router.post('/chat/mensagens/arquivo', upload.single('arquivo'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ ok: false, erro: 'Nenhum arquivo enviado.' });
@@ -54,7 +53,6 @@ router.post('/chat/mensagens/arquivo', upload.single('arquivo'), async (req, res
         const { destinatario_id } = req.body;
         const destId = destinatario_id ? parseInt(destinatario_id) : null;
 
-        // Gera chave única e faz upload para R2 ou disco
         const key = `chat/chat_${Date.now()}_${req.file.originalname}`;
         await fileStorage.upload(req.file.buffer, key, req.file.mimetype);
 
@@ -85,7 +83,6 @@ router.post('/chat/mensagens/arquivo', upload.single('arquivo'), async (req, res
     }
 });
 
-// ─── GET /chat/arquivo/:id ────────────────────────────────────────────────────
 router.get('/chat/arquivo/:id', authMiddleware, controller.baixarArquivo);
 
 module.exports = router;

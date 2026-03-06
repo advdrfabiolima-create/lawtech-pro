@@ -66,7 +66,7 @@
         @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-30px, 30px) scale(0.9); } }
         @keyframes slideInLeft { from { opacity: 0; transform: translateX(-100%); } to { opacity: 1; transform: translateX(0); } }
 
-        /* Sidebar */
+        /* ── SIDEBAR ─────────────────────────────────────────────────────────── */
         .sidebar {
             width: 280px; background: var(--bg-secondary); backdrop-filter: blur(20px) saturate(180%);
             border-right: 1px solid var(--border-subtle); padding: 32px 24px; display: flex; flex-direction: column;
@@ -95,7 +95,7 @@
         .footer-info-row span:first-child { text-transform: uppercase; color: var(--text-tertiary); font-weight: 700; min-width: 65px; }
         .keep-lowercase { text-transform: lowercase !important; color: #cbd5e1; font-weight: 500; }
 
-        /* Main */
+        /* ── MAIN ────────────────────────────────────────────────────────────── */
         .main { margin-left: 280px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; z-index: 1; }
         .header { background: var(--white); height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; flex-shrink: 0; }
 
@@ -105,25 +105,38 @@
         .submenu.open { display: flex; }
         .submenu a { font-size: 13px !important; padding: 10px 16px !important; }
 
-        /* Chat Layout */
-        .chat-container {
-            display: flex; flex: 1; overflow: hidden;
-        }
+        /* ── CHAT LAYOUT ─────────────────────────────────────────────────────── */
+        .chat-container { display: flex; flex: 1; overflow: hidden; }
 
-        /* Conversations Panel */
+        /* ── CONVERSATIONS PANEL ─────────────────────────────────────────────── */
         .conversations-panel {
             width: 280px; min-width: 280px; background: var(--white);
-            border-right: 1px solid var(--border); display: flex; flex-direction: column;
-            overflow: hidden;
+            border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden;
         }
         .conversations-header {
-            padding: 20px; border-bottom: 1px solid var(--border);
-            font-size: 14px; font-weight: 700; color: var(--text-primary);
-            display: flex; align-items: center; gap: 8px;
+            padding: 16px 20px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
         }
-        .conversations-list {
-            flex: 1; overflow-y: auto; padding: 8px;
+        .conversations-header-title { font-size: 14px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+
+        /* Search box in conversations panel */
+        .search-box-panel {
+            padding: 10px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0;
         }
+        .search-box-panel input {
+            width: 100%; padding: 7px 12px 7px 32px; border-radius: 20px;
+            border: 1px solid var(--border); background: var(--bg-primary);
+            font-size: 12px; color: var(--text-primary); outline: none;
+            transition: border-color var(--transition-base);
+        }
+        .search-box-panel input:focus { border-color: var(--accent-blue); }
+        .search-box-wrapper { position: relative; }
+        .search-box-wrapper .search-icon {
+            position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+            color: var(--text-tertiary); pointer-events: none; width: 14px; height: 14px;
+        }
+
+        .conversations-list { flex: 1; overflow-y: auto; padding: 8px; }
         .conversation-item {
             display: flex; align-items: center; gap: 12px; padding: 12px 14px;
             border-radius: 10px; cursor: pointer; transition: all var(--transition-base);
@@ -131,101 +144,439 @@
         }
         .conversation-item:hover { background: rgba(74, 144, 226, 0.06); }
         .conversation-item.active { background: rgba(74, 144, 226, 0.1); border: 1px solid rgba(74, 144, 226, 0.2); }
-        .conversation-item .conv-icon {
+        .conv-icon {
             width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center;
             justify-content: center; font-size: 16px; font-weight: 700; flex-shrink: 0;
+            position: relative;
         }
-        .conv-icon.geral { background: linear-gradient(135deg, #4A90E2, #357ABD); color: white; }
-        .conv-icon.dm { background: linear-gradient(135deg, #7E8CE0, #6366f1); color: white; }
-        .conversation-item .conv-info { flex: 1; min-width: 0; }
-        .conversation-item .conv-name { font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .conversation-item .conv-preview { font-size: 11px; color: var(--text-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .conv-icon.geral { background: linear-gradient(135deg, #1E3A5F, #4A90E2); color: white; }
+        .conv-icon.dm { background: linear-gradient(135deg, #7E8CE0, #4A90E2); color: white; font-size: 13px; }
+        .conv-info { flex: 1; min-width: 0; }
+        .conv-name { font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .conv-preview { font-size: 11px; color: var(--text-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
         .badge-nao-lida {
             background: var(--accent-red); color: white; font-size: 10px; font-weight: 700;
-            min-width: 20px; height: 20px; border-radius: 10px; display: flex;
-            align-items: center; justify-content: center; padding: 0 6px; flex-shrink: 0;
+            padding: 2px 6px; border-radius: 10px; min-width: 18px; text-align: center; flex-shrink: 0;
         }
-        .badge-nao-lida.hidden { display: none; }
+        .online-dot {
+            width: 10px; height: 10px; background: #22c55e; border-radius: 50%;
+            position: absolute; bottom: 1px; right: 1px; border: 2px solid var(--white);
+            box-shadow: 0 0 6px rgba(34,197,94,0.5);
+        }
 
-        /* Messages Area */
+
+
+        /* ── MESSAGES AREA ───────────────────────────────────────────────────── */
         .messages-area {
-            flex: 1; display: flex; flex-direction: column; overflow: hidden;
+            flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0;
+            background: #e8edf3;
         }
-        .messages-header {
-            padding: 16px 24px; border-bottom: 1px solid var(--border);
-            background: var(--white); display: flex; align-items: center; gap: 12px;
-            font-size: 15px; font-weight: 600; color: var(--text-primary); flex-shrink: 0;
-        }
-        .messages-header .header-icon {
-            width: 36px; height: 36px; border-radius: 50%; display: flex;
-            align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
-        }
-        .messages-list {
-            flex: 1; overflow-y: auto; padding: 24px; display: flex;
-            flex-direction: column; gap: 12px;
-        }
-        .message-bubble {
-            max-width: 65%; padding: 12px 16px; border-radius: 16px;
-            font-size: 13px; line-height: 1.5; position: relative; word-wrap: break-word;
-        }
-        .message-bubble.mine {
-            align-self: flex-end; background: linear-gradient(135deg, #4A90E2, #357ABD);
-            color: white; border-bottom-right-radius: 4px;
-        }
-        .message-bubble.theirs {
-            align-self: flex-start; background: #f1f5f9;
-            color: var(--text-primary); border-bottom-left-radius: 4px;
-        }
-        .message-sender {
-            font-size: 11px; font-weight: 700; margin-bottom: 4px;
-        }
-        .message-bubble.mine .message-sender { color: rgba(255,255,255,0.8); }
-        .message-bubble.theirs .message-sender { color: var(--accent-blue); }
-        .message-time {
-            font-size: 10px; margin-top: 4px; opacity: 0.7;
-        }
-        .message-bubble.mine .message-time { text-align: right; color: rgba(255,255,255,0.7); }
-        .message-bubble.theirs .message-time { color: var(--text-tertiary); }
-        .message-text { white-space: pre-wrap; }
 
-        /* Input Area */
-        .input-area {
-            padding: 16px 24px; border-top: 1px solid var(--border);
-            background: var(--white); display: flex; gap: 12px; align-items: flex-end; flex-shrink: 0;
+        /* Header estilo WhatsApp — faixa azul escura */
+        .messages-header {
+            background: linear-gradient(135deg, #1E3A5F 0%, #2A4A73 100%);
+            padding: 12px 20px; border-bottom: none;
+            display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
         }
-        .input-area textarea {
-            flex: 1; padding: 12px 16px; border: 1px solid var(--border); border-radius: 12px;
-            font-size: 13px; resize: none; outline: none; background: var(--bg);
-            color: var(--text-main); font-family: 'Outfit', sans-serif; max-height: 120px;
-            min-height: 44px; line-height: 1.4;
+        .messages-header-info { flex: 1; min-width: 0; }
+        .messages-header-title { font-size: 15px; font-weight: 700; color: #fff; }
+        .messages-header-subtitle { font-size: 11px; color: rgba(255,255,255,0.65); margin-top: 1px; }
+        .messages-header-actions { display: flex; gap: 8px; align-items: center; }
+        .header-action-btn {
+            width: 34px; height: 34px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1); cursor: pointer; display: flex; align-items: center; justify-content: center;
+            color: rgba(255,255,255,0.85); transition: all var(--transition-base);
         }
-        .input-area textarea:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px var(--accent-blue-glow); }
-        .btn-enviar {
-            padding: 12px 20px; border-radius: 12px; border: none; cursor: pointer;
-            background: var(--accent-blue); color: white; font-weight: 700; font-size: 13px;
-            transition: all var(--transition-base); display: flex; align-items: center; gap: 6px;
-            height: 44px; font-family: 'Outfit', sans-serif;
+        .header-action-btn:hover { background: rgba(255,255,255,0.2); color: #fff; border-color: rgba(255,255,255,0.4); }
+        .header-action-btn.active { background: rgba(255,255,255,0.25); color: #fff; }
+
+        /* Avatar no header — borda branca */
+        .messages-header .conv-icon {
+            width: 40px; height: 40px; font-size: 15px;
+            border: 2px solid rgba(255,255,255,0.35);
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
         }
-        .btn-enviar:hover { background: var(--accent-blue-light); transform: translateY(-1px); }
-        .btn-enviar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .btn-anexo {
-            width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--border);
-            background: var(--bg); cursor: pointer;
-            display: flex; align-items: center; justify-content: center; transition: all var(--transition-base);
-            flex-shrink: 0; font-size: 20px;
+
+        /* ── FUNDO COM MARCA D'ÁGUA ──────────────────────────────────────────── */
+        .messages-list {
+            flex: 1; overflow-y: auto; padding: 20px 24px;
+            display: flex; flex-direction: column; gap: 4px;
+            position: relative;
+
+            /* Fundo claro acinzentado similar ao WhatsApp */
+            background-color: #dce4ee;
+
+            /* Marca d'água repetida via SVG inline codificado */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='80' viewBox='0 0 200 80'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Georgia%2C serif' font-size='13' font-weight='700' fill='%231E3A5F' opacity='0.07' transform='rotate(-20%2C100%2C40)'%3ELawTech Pro%3C/text%3E%3C/svg%3E");
+            background-size: 200px 80px;
         }
-        .btn-anexo:hover { background: var(--accent-blue-glow); border-color: var(--accent-blue); transform: scale(1.05); }
+        .messages-list::-webkit-scrollbar { width: 5px; }
+        .messages-list::-webkit-scrollbar-thumb { background: rgba(30,58,95,0.18); border-radius: 3px; }
+        .messages-list::-webkit-scrollbar-track { background: transparent; }
+
+        /* ── DATE SEPARATOR ─────────────────────────────────────────────────── */
+        .date-separator {
+            display: flex; align-items: center; justify-content: center; margin: 14px 0; flex-shrink: 0;
+        }
+        .date-separator span {
+            font-size: 11px; font-weight: 600; color: #4a6080;
+            background: rgba(255,255,255,0.82); padding: 3px 14px; border-radius: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08); backdrop-filter: blur(4px);
+            white-space: nowrap; letter-spacing: 0.02em;
+        }
+
+        /* ── MESSAGE BUBBLES — estilo WhatsApp ──────────────────────────────── */
+        .message-bubble {
+            max-width: 65%; display: flex; flex-direction: column; gap: 2px;
+            animation: msgIn 0.18s cubic-bezier(0.2, 0.8, 0.4, 1);
+        }
+        @keyframes msgIn { from { opacity: 0; transform: scale(0.96) translateY(4px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .message-bubble.mine { align-self: flex-end; align-items: flex-end; }
+        .message-bubble.theirs { align-self: flex-start; align-items: flex-start; }
+
+        /* Nome do remetente (apenas em grupos / chat geral) */
+        .message-sender {
+            font-size: 11px; font-weight: 700; color: #4A90E2;
+            margin-bottom: 1px; padding: 0 6px; letter-spacing: 0.01em;
+        }
+        .message-bubble.mine .message-sender { display: none; } /* Não mostra "Você" na própria mensagem */
+
+        /* Balão principal */
+        .message-content-wrap {
+            position: relative; padding: 8px 14px 6px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+        }
+
+        /* Balão DELES — branco com rabinho esquerdo */
+        .message-bubble.theirs .message-content-wrap {
+            background: #ffffff;
+            border-radius: 0px 18px 18px 18px;
+            border: none;
+            color: #2C3E50;
+        }
+        .message-bubble.theirs .message-content-wrap::before {
+            content: '';
+            position: absolute; top: 0; left: -8px;
+            width: 0; height: 0;
+            border-top: 8px solid #ffffff;
+            border-left: 8px solid transparent;
+        }
+
+        /* Balão MEU — azul gradiente com rabinho direito */
+        .message-bubble.mine .message-content-wrap {
+            background: linear-gradient(145deg, #2563eb, #4A90E2);
+            border-radius: 18px 0px 18px 18px;
+            border: none;
+            color: white;
+        }
+        .message-bubble.mine .message-content-wrap::after {
+            content: '';
+            position: absolute; top: 0; right: -8px;
+            width: 0; height: 0;
+            border-top: 8px solid #2563eb;
+            border-right: 8px solid transparent;
+        }
+
+        .message-text {
+            font-size: 13.5px; line-height: 1.5; word-break: break-word; text-transform: none;
+        }
+        .message-bubble.theirs .message-text { color: #1a2a3a; }
+        .message-bubble.mine .message-text { color: #fff; }
+
+        /* Mensagem composta apenas por emojis — exibe grande, sem balão */
+        .message-text.emoji-only {
+            font-size: 48px;
+            line-height: 1.15;
+            background: none !important;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+        }
+        /* Remove o fundo do balão quando é só emoji */
+        .message-content-wrap:has(.emoji-only) {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 2px 4px;
+        }
+        .message-content-wrap:has(.emoji-only)::before,
+        .message-content-wrap:has(.emoji-only)::after {
+            display: none !important;
+        }
+
+        /* Mentions highlight */
+        .mention { font-weight: 700; cursor: pointer; }
+        .message-bubble.theirs .mention { color: #2563eb; }
+        .message-bubble.mine .mention { color: #bfdbfe; }
+
+        /* Rodapé da mensagem: hora + checkmark — integrado ao balão */
+        .message-footer {
+            display: flex; align-items: center; gap: 3px;
+            justify-content: flex-end; margin-top: 3px;
+        }
+        .message-time { font-size: 10px; }
+        .message-bubble.theirs .message-time { color: #8a9bb0; }
+        .message-bubble.mine .message-time { color: rgba(255,255,255,0.65); }
+        .read-receipt { display: flex; align-items: center; }
+        .read-receipt svg { width: 14px; height: 14px; }
+        .read-receipt.delivered svg { color: rgba(255,255,255,0.6); }
+        .read-receipt.read svg { color: #a5f3c0; }
+
+        /* Reply / thread */
+        .reply-quote {
+            background: rgba(0,0,0,0.07); border-left: 3px solid rgba(255,255,255,0.5);
+            border-radius: 6px; padding: 5px 10px; margin-bottom: 5px; font-size: 11px; cursor: pointer;
+        }
+        .message-bubble.theirs .reply-quote { background: rgba(74,144,226,0.1); border-color: #4A90E2; }
+        .reply-quote-author { font-weight: 700; margin-bottom: 1px; }
+        .reply-quote-text { opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Thread indicator */
+        .thread-indicator {
+            display: inline-flex; align-items: center; gap: 4px; font-size: 11px;
+            color: var(--accent-blue); cursor: pointer; padding: 3px 8px; border-radius: 10px;
+            background: rgba(74,144,226,0.08); border: 1px solid rgba(74,144,226,0.2);
+            margin-top: 4px; transition: all var(--transition-base);
+        }
+        .thread-indicator:hover { background: rgba(74,144,226,0.15); }
+        .message-bubble.mine .thread-indicator { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); }
+
+        /* Message actions on hover */
+        .message-actions-row {
+            display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; pointer-events: none;
+            align-items: center; margin-bottom: 2px;
+        }
+        .message-bubble:hover .message-actions-row { opacity: 1; pointer-events: auto; }
+        .message-bubble.mine .message-actions-row { flex-direction: row-reverse; }
+        .msg-action-btn {
+            background: var(--white); border: 1px solid var(--border); border-radius: 6px;
+            padding: 3px 7px; font-size: 11px; cursor: pointer; color: var(--text-secondary);
+            transition: all 0.15s; display: flex; align-items: center; gap: 3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .msg-action-btn:hover { background: var(--bg-primary); color: var(--accent-blue); border-color: var(--accent-blue); }
+
+        /* File attachment */
         .file-attachment {
             display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px;
-            background: rgba(255,255,255,0.15); border-radius: 8px; text-decoration: none;
-            color: inherit; font-size: 12px; font-weight: 600; transition: all var(--transition-base);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(74,144,226,0.08); border: 1px solid rgba(74,144,226,0.15);
+            border-radius: 8px; color: var(--accent-blue); text-decoration: none;
+            font-size: 12px; font-weight: 500; transition: all 0.15s; max-width: 100%;
         }
-        .message-bubble.theirs .file-attachment { background: rgba(74,144,226,0.08); border-color: rgba(74,144,226,0.15); color: var(--accent-blue); }
-        .message-bubble.mine .file-attachment { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.2); color: white; }
-        .file-attachment:hover { opacity: 0.8; transform: translateY(-1px); }
+        .message-bubble.mine .file-attachment { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.3); color: white; }
+        .file-attachment:hover { opacity: 0.85; transform: translateY(-1px); }
 
-        /* Empty State */
+        /* Typing indicator — balão estilo WhatsApp */
+        .typing-indicator {
+            display: none; align-items: center; gap: 6px; align-self: flex-start;
+            padding: 8px 14px; margin: 0 0 4px 0;
+            background: #ffffff; border-radius: 0 16px 16px 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1); font-size: 11px; color: #8a9bb0;
+        }
+        .typing-indicator::before {
+            content: '';
+            position: absolute; top: 0; left: -8px;
+            width: 0; height: 0;
+            border-top: 8px solid #ffffff;
+            border-left: 8px solid transparent;
+        }
+        .typing-indicator.visible { display: flex; position: relative; }
+        .typing-dots { display: flex; gap: 3px; }
+        .typing-dot {
+            width: 7px; height: 7px; border-radius: 50%; background: #9aacbf;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-5px); opacity: 1; } }
+
+
+
+
+        /* ── INPUT AREA ──────────────────────────────────────────────────────── */
+        .input-area {
+            background: #d0d9e5;
+            border-top: 1px solid rgba(30,58,95,0.1);
+            padding: 10px 14px; flex-shrink: 0; position: relative;
+        }
+
+        /* Reply preview bar */
+        .reply-preview-bar {
+            display: none; align-items: center; gap: 10px; padding: 7px 12px; margin-bottom: 8px;
+            background: rgba(255,255,255,0.7); border-left: 3px solid var(--accent-blue);
+            border-radius: 0 8px 8px 0; font-size: 12px;
+            backdrop-filter: blur(4px);
+        }
+        .reply-preview-bar.visible { display: flex; }
+        .reply-preview-content { flex: 1; min-width: 0; }
+        .reply-preview-author { font-weight: 700; color: var(--accent-blue); font-size: 11px; }
+        .reply-preview-text { color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .reply-preview-close { cursor: pointer; color: var(--text-tertiary); flex-shrink: 0; padding: 2px; }
+        .reply-preview-close:hover { color: var(--accent-red); }
+
+        /* Mention suggestions dropdown */
+        .mention-suggestions {
+            position: absolute; bottom: 100%; left: 14px; right: 14px; max-height: 160px; overflow-y: auto;
+            background: var(--white); border: 1px solid var(--border); border-radius: 10px 10px 0 0;
+            box-shadow: 0 -8px 20px rgba(0,0,0,0.1); display: none; z-index: 10;
+        }
+        .mention-suggestions.visible { display: block; }
+        .mention-suggestion-item {
+            display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer;
+            transition: background 0.15s; font-size: 13px;
+        }
+        .mention-suggestion-item:hover, .mention-suggestion-item.selected { background: rgba(74,144,226,0.08); }
+        .mention-suggestion-item .mention-avatar {
+            width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #7E8CE0, #4A90E2);
+            display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 700;
+        }
+
+        .input-toolbar { display: flex; align-items: center; gap: 8px; }
+
+        /* Campo de texto — pill arredondado estilo WhatsApp */
+        .input-main {
+            flex: 1; display: flex; align-items: flex-end; gap: 6px;
+            background: #ffffff; border: none; border-radius: 24px;
+            padding: 8px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: box-shadow 0.2s;
+        }
+        .input-main:focus-within { box-shadow: 0 1px 8px rgba(74,144,226,0.25); }
+
+        #inputMensagem {
+            flex: 1; background: none; border: none; outline: none; resize: none;
+            font-size: 13.5px; line-height: 1.5; color: var(--text-main);
+            font-family: 'Outfit', sans-serif; max-height: 120px; min-height: 22px;
+            text-transform: none;
+        }
+        #inputMensagem::placeholder { color: #9aacbf; }
+
+        .input-icon-btn {
+            width: 32px; height: 32px; border-radius: 50%; border: none; background: transparent;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            color: #7a95af; transition: all 0.15s; flex-shrink: 0; font-size: 17px;
+        }
+
+        .input-icon-btn:hover { background: rgba(74,144,226,0.12); color: var(--accent-blue); }
+
+        /* Botão Enviar — círculo azul estilo WhatsApp */
+        .btn-enviar {
+            background: linear-gradient(135deg, #1E3A5F, #2563eb);
+            color: white; border: none; border-radius: 50%;
+            width: 44px; height: 44px; min-width: 44px;
+            font-size: 0; /* esconde o texto "Enviar" */
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(37,99,235,0.4);
+        }
+        .btn-enviar svg { width: 18px; height: 18px; }
+        .btn-enviar:hover { background: linear-gradient(135deg, #2A4A73, #3b82f6); transform: scale(1.07); box-shadow: 0 4px 14px rgba(37,99,235,0.5); }
+        .btn-enviar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* ── EMOJI PICKER ────────────────────────────────────────────────────── */
+        .input-area { position: relative; }
+        .emoji-picker {
+            position: absolute; bottom: calc(100% + 6px); left: 12px; width: 320px;
+            background: var(--white); border: 1px solid var(--border); border-radius: 12px;
+            box-shadow: 0 -4px 30px rgba(0,0,0,0.13); padding: 10px; z-index: 200;
+            display: none;
+        }
+        .emoji-picker.visible { display: block; animation: emojiIn 0.18s ease-out; }
+        @keyframes emojiIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .emoji-search { width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 12px; margin-bottom: 8px; outline: none; }
+        .emoji-search:focus { border-color: var(--accent-blue); }
+        .emoji-categories { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+        .emoji-cat-btn { background: none; border: none; font-size: 18px; cursor: pointer; padding: 4px 6px; border-radius: 6px; transition: background 0.15s; }
+        .emoji-cat-btn:hover, .emoji-cat-btn.active { background: rgba(74,144,226,0.1); }
+        .emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; max-height: 180px; overflow-y: auto; }
+        .emoji-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 4px; border-radius: 6px; transition: background 0.15s; text-align: center; }
+        .emoji-btn:hover { background: rgba(74,144,226,0.1); transform: scale(1.2); }
+
+        /* ── SEARCH PANEL ────────────────────────────────────────────────────── */
+        .search-panel {
+            width: 0; background: #f0f4f8; border-left: 1px solid rgba(30,58,95,0.12);
+            display: flex; flex-direction: column; overflow: hidden;
+            transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .search-panel.open { width: 300px; min-width: 300px; }
+        .search-panel-header {
+            padding: 16px 20px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+        }
+        .search-panel-title { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+        .search-panel-close { cursor: pointer; color: var(--text-tertiary); }
+        .search-panel-close:hover { color: var(--text-primary); }
+        .search-panel input {
+            margin: 12px; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border);
+            font-size: 13px; outline: none; transition: border-color var(--transition-base);
+        }
+        .search-panel input:focus { border-color: var(--accent-blue); }
+        .search-results { flex: 1; overflow-y: auto; padding: 4px 12px 12px; }
+        .search-result-item {
+            padding: 10px 12px; border-radius: 8px; cursor: pointer; margin-bottom: 6px;
+            border: 1px solid var(--border); transition: all 0.15s;
+        }
+        .search-result-item:hover { background: rgba(74,144,226,0.06); border-color: rgba(74,144,226,0.2); }
+        .search-result-sender { font-size: 11px; font-weight: 700; color: var(--accent-blue); margin-bottom: 2px; }
+        .search-result-text { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; word-break: break-word; }
+        .search-result-text mark { background: rgba(244,208,111,0.4); color: inherit; border-radius: 2px; padding: 0 2px; }
+        .search-result-time { font-size: 10px; color: var(--text-tertiary); }
+
+        /* ── SCHEDULE MODAL ──────────────────────────────────────────────────── */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 2000;
+            display: none; align-items: center; justify-content: center; backdrop-filter: blur(3px);
+        }
+        .modal-overlay.visible { display: flex; }
+        .modal-box {
+            background: var(--white); border-radius: 16px; padding: 28px; width: 460px; max-width: 90vw;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.18); animation: modalIn 0.22s ease-out;
+        }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .modal-title { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+        .modal-field { margin-bottom: 14px; }
+        .modal-field label { font-size: 12px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .modal-field input, .modal-field select, .modal-field textarea {
+            width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border);
+            font-size: 13px; font-family: 'Outfit', sans-serif; outline: none; color: var(--text-main);
+            transition: border-color var(--transition-base); background: var(--bg-primary);
+        }
+        .modal-field input:focus, .modal-field select:focus, .modal-field textarea:focus { border-color: var(--accent-blue); background: white; }
+        .modal-field textarea { resize: vertical; min-height: 80px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .btn-modal-cancel { padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 13px; cursor: pointer; color: var(--text-secondary); transition: all 0.15s; }
+        .btn-modal-cancel:hover { background: var(--bg-primary); }
+        .btn-modal-confirm { padding: 8px 18px; border-radius: 8px; border: none; background: var(--accent-blue); color: white; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+        .btn-modal-confirm:hover { background: #3a7fd6; }
+
+        /* ── THREAD PANEL ────────────────────────────────────────────────────── */
+        .thread-panel {
+            width: 0; background: var(--bg-primary); border-left: 1px solid var(--border);
+            display: flex; flex-direction: column; overflow: hidden;
+            transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .thread-panel.open { width: 340px; min-width: 340px; }
+        .thread-panel-header {
+            padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--white);
+            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+        }
+        .thread-panel-title { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+        .thread-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+        .thread-input-area { padding: 12px; border-top: 1px solid var(--border); background: var(--white); }
+        .thread-input-row { display: flex; gap: 8px; align-items: flex-end; }
+        .thread-input {
+            flex: 1; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border);
+            font-size: 13px; font-family: 'Outfit', sans-serif; outline: none; resize: none; min-height: 38px; max-height: 100px;
+            transition: border-color var(--transition-base);
+        }
+        .thread-input:focus { border-color: var(--accent-blue); }
+        .thread-send-btn {
+            background: var(--accent-blue); color: white; border: none; border-radius: 8px;
+            width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; flex-shrink: 0; transition: background 0.15s;
+        }
+        .thread-send-btn:hover { background: #3a7fd6; }
+
+        /* ── EMPTY STATE ─────────────────────────────────────────────────────── */
         .empty-chat {
             flex: 1; display: flex; align-items: center; justify-content: center;
             flex-direction: column; color: var(--text-tertiary); gap: 12px; padding: 40px;
@@ -233,26 +584,36 @@
         .empty-chat i { font-size: 64px; opacity: 0.3; }
         .empty-chat p { font-size: 14px; text-align: center; }
 
-        /* Padronizacao LawTech Pro - Caixa Alta Global */
+        /* ── TOAST NOTIFICATION ──────────────────────────────────────────────── */
+        .toast {
+            position: fixed; bottom: 24px; right: 24px; background: #1E3A5F; color: white;
+            padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2); z-index: 9999; display: flex; align-items: center; gap: 8px;
+            transform: translateY(20px); opacity: 0; transition: all 0.3s; pointer-events: none;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { background: #166534; }
+        .toast.error { background: #7f1d1d; }
+
+        /* ── GLOBAL ──────────────────────────────────────────────────────────── */
         body { text-transform: uppercase; }
         input, select { text-transform: uppercase; }
         textarea { text-transform: none; }
         .message-text { text-transform: none; }
+        .conv-preview { text-transform: none; }
+        .modal-field input, .modal-field textarea { text-transform: none; }
 
-        /* Online badge */
-        .online-dot {
-            width: 10px; height: 10px; background: #22c55e; border-radius: 50%;
-            position: absolute; bottom: 2px; right: 2px; border: 2px solid var(--white);
-            box-shadow: 0 0 6px rgba(34,197,94,0.5);
+        /* ── RESPONSIVE ──────────────────────────────────────────────────────── */
+        @media (max-width: 900px) {
+            .thread-panel.open { width: 0; display: none; }
+            .search-panel.open { width: 260px; min-width: 260px; }
         }
-        .conv-icon { position: relative; }
-
-        /* Responsive */
         @media (max-width: 768px) {
             .sidebar { display: none; }
             .main { margin-left: 0; }
             .header { padding: 0 16px; }
-            .conversations-panel { width: 220px; min-width: 220px; }
+            .conversations-panel { width: 200px; min-width: 200px; }
+            .search-panel.open { width: 0; display: none; }
         }
     </style>
     <link rel="stylesheet" href="mobile.css">
@@ -286,11 +647,9 @@
             <a href="/chat-page" class="active"><i class="lucide lucide-message-circle"></i> 💬 Chat</a>
             <a href="/relatorios-page"><i class="lucide lucide-bar-chart-3"></i> Relatorios</a>
             <a href="/documentos-page"><i class="lucide lucide-folder-open"></i> Documentos (GED)</a>
-        <a href="/reunioes-page"><i class="lucide lucide-video"></i> Reuniões</a>
+            <a href="/reunioes-page"><i class="lucide lucide-video"></i> Reuniões</a>
             <a href="/planos-page"><i class="lucide lucide-award"></i> Gestao de Planos</a>
-            <a href="/config-page" id="guia-config">
-                <i class="lucide lucide-settings"></i> Configuracoes
-            </a>
+            <a href="/config-page" id="guia-config"><i class="lucide lucide-settings"></i> Configuracoes</a>
             <a href="/crm-page" class="btn-crm-gold-nav" onclick="limparBolinha()">
                 <i class="lucide lucide-trending-up"></i> CRM PROSPECCAO
                 <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
@@ -315,12 +674,19 @@
             <div style="display:flex; gap:20px; align-items:center;">
                 <div style="position: relative; display: flex; align-items: center; gap: 12px;">
                     <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
-                    <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
-                        --
-                    </div>
-                    <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
-                        <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
-                        <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
+                    <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase; overflow: hidden; padding: 0;">--</div>
+                    <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); width: 200px; z-index: 1001; overflow: hidden;">
+                        <div style="padding: 12px 16px 10px; border-bottom: 1px solid var(--border); background: linear-gradient(135deg,#1E3A5F,#2563eb);">
+                            <div id="dropdownAvatarWrap" style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.2);margin:0 auto 6px;overflow:hidden;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.4);">
+                                <span id="dropdownAvatarPlaceholder" style="color:white;font-size:16px;font-weight:700;">--</span>
+                            </div>
+                            <div id="dropdownUserName" style="text-align:center;color:white;font-size:12px;font-weight:600;"></div>
+                        </div>
+                        <a href="#" onclick="abrirModalAvatar(); toggleUserMenu(); return false;" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; color: var(--accent-blue); text-decoration: none; font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--border);">
+                            👤 Escolher Avatar
+                        </a>
+                        <a href="/config-page" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">⚙️ Meus Dados</a>
+                        <a href="#" onclick="logout()" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
                     </div>
                 </div>
             </div>
@@ -331,12 +697,18 @@
             <!-- Conversations Panel -->
             <div class="conversations-panel">
                 <div class="conversations-header">
-                    <i class="lucide lucide-message-square" style="width:18px; height:18px; color: var(--accent-blue);"></i>
-                    Conversas
+                    <span class="conversations-header-title">
+                        <i class="lucide lucide-message-square" style="width:16px;height:16px;color:var(--accent-blue);"></i>
+                        Conversas
+                    </span>
                 </div>
-                <div class="conversations-list" id="conversationsList">
-                    <!-- Filled by JS -->
+                <div class="search-box-panel">
+                    <div class="search-box-wrapper">
+                        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                        <input type="text" id="filterConversas" placeholder="Filtrar..." oninput="filtrarConversas(this.value)">
+                    </div>
                 </div>
+                <div class="conversations-list" id="conversationsList"></div>
             </div>
 
             <!-- Messages Area -->
@@ -346,12 +718,116 @@
                     <p>Selecione uma conversa para começar</p>
                 </div>
             </div>
+
+            <!-- Search Panel -->
+            <div class="search-panel" id="searchPanel">
+                <div class="search-panel-header">
+                    <span class="search-panel-title">🔍 Pesquisar Mensagens</span>
+                    <span class="search-panel-close" onclick="fecharSearchPanel()">✕</span>
+                </div>
+                <input type="text" id="searchInput" placeholder="Buscar mensagens..." oninput="pesquisarMensagens(this.value)" style="text-transform:none;">
+                <div class="search-results" id="searchResults">
+                    <div style="font-size:12px; color:var(--text-tertiary); text-align:center; padding:20px;">
+                        Digite para pesquisar no histórico
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thread Panel -->
+            <div class="thread-panel" id="threadPanel">
+                <div class="thread-panel-header">
+                    <span class="thread-panel-title">💬 Tópico</span>
+                    <span style="cursor:pointer; color:var(--text-tertiary);" onclick="fecharThreadPanel()">✕</span>
+                </div>
+                <div class="thread-messages" id="threadMessages"></div>
+                <div class="thread-input-area">
+                    <div style="font-size:11px; color:var(--text-tertiary); margin-bottom:6px;">Respondendo no tópico</div>
+                    <div class="thread-input-row">
+                        <textarea class="thread-input" id="threadInput" placeholder="Responder no tópico..." rows="1"
+                            onkeydown="onThreadKeyDown(event)" oninput="autoResizeEl(this)"></textarea>
+                        <button class="thread-send-btn" onclick="enviarRespostaThread()">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
+    <!-- Schedule Meeting Modal -->
+    <div class="modal-overlay" id="scheduleModal">
+        <div class="modal-box">
+            <div class="modal-title">📅 Agendar Reunião</div>
+            <div class="modal-field">
+                <label>Título da Reunião</label>
+                <input type="text" id="meetingTitle" placeholder="Ex: Reunião de alinhamento">
+            </div>
+            <div class="modal-field">
+                <label>Participantes</label>
+                <input type="text" id="meetingParticipants" placeholder="Nome dos participantes" readonly>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="modal-field">
+                    <label>Data</label>
+                    <input type="date" id="meetingDate">
+                </div>
+                <div class="modal-field">
+                    <label>Horário</label>
+                    <input type="time" id="meetingTime">
+                </div>
+            </div>
+            <div class="modal-field">
+                <label>Descrição / Pauta</label>
+                <textarea id="meetingDesc" placeholder="Descreva a pauta da reunião..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal-cancel" onclick="fecharModal('scheduleModal')">Cancelar</button>
+                <button class="btn-modal-confirm" onclick="confirmarAgendamento()">📅 Agendar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Task/Doc Modal -->
+    <div class="modal-overlay" id="shareModal">
+        <div class="modal-box">
+            <div class="modal-title" id="shareModalTitle">📋 Compartilhar Tarefa</div>
+            <div class="modal-field">
+                <label>Tipo</label>
+                <select id="shareType" onchange="updateShareModal()">
+                    <option value="tarefa">📋 Tarefa</option>
+                    <option value="documento">📄 Documento</option>
+                    <option value="processo">⚖️ Processo</option>
+                </select>
+            </div>
+            <div class="modal-field">
+                <label>Título</label>
+                <input type="text" id="shareTitle" placeholder="Título do item">
+            </div>
+            <div class="modal-field">
+                <label>Descrição / Detalhes</label>
+                <textarea id="shareDesc" placeholder="Adicione detalhes..."></textarea>
+            </div>
+            <div class="modal-field" id="sharePriorityField">
+                <label>Prioridade</label>
+                <select id="sharePriority">
+                    <option value="baixa">🟢 Baixa</option>
+                    <option value="media" selected>🟡 Média</option>
+                    <option value="alta">🔴 Alta</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal-cancel" onclick="fecharModal('shareModal')">Cancelar</button>
+                <button class="btn-modal-confirm" onclick="confirmarCompartilhamento()">Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
 
     <script src="mobile.js"></script>
     <script src="/js/api.js"></script>
+    <script src="/js/avatars.js"></script>
     <script src="/js/chat.js"></script>
 </body>
 </html>
