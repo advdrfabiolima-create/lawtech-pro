@@ -244,17 +244,19 @@ cron.schedule('0 10 * * *', async () => {
     
     try {
         const result = await pool.query(`
-            SELECT 
-                e.id, 
-                e.nome, 
+            SELECT
+                e.id,
+                e.nome,
                 e.proxima_cobranca,
                 u.email,
                 p.nome as plano_nome,
                 p.preco_mensal,
-                DATE_PART('day', e.proxima_cobranca - CURRENT_DATE) as dias_ate_vencimento
+                c.last4,
+                c.brand
             FROM escritorios e
             JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
             JOIN planos p ON e.plano_id = p.id
+            LEFT JOIN cartoes c ON c.escritorio_id = e.id
             WHERE e.plano_financeiro_status = 'pago'
             AND e.proxima_cobranca = CURRENT_DATE + INTERVAL '3 days'
             AND (e.renovacao_automatica IS NULL OR e.renovacao_automatica = true)
@@ -263,18 +265,42 @@ cron.schedule('0 10 * * *', async () => {
         logger.info(`📊 [CRON LEMBRETE] ${result.rowCount} lembrete(s) para enviar`);
 
         for (const escritorio of result.rows) {
-            logger.info(`📧 Lembrete: ${escritorio.email}`);
-            logger.info(`   Cobrança em: ${new Date(escritorio.proxima_cobranca).toLocaleDateString('pt-BR')}`);
-            logger.info(`   Valor: R$ ${escritorio.preco_mensal}`);
-            
-            // TODO: Enviar email de lembrete
-            // await enviarEmailLembrete({
-            //     email: escritorio.email,
-            //     nome: escritorio.nome,
-            //     plano: escritorio.plano_nome,
-            //     valor: escritorio.preco_mensal,
-            //     data_cobranca: escritorio.proxima_cobranca
-            // });
+            const dataCobranca = new Date(escritorio.proxima_cobranca).toLocaleDateString('pt-BR');
+            logger.info(`📧 Lembrete: ${escritorio.email} — cobrança em ${dataCobranca}`);
+
+            await enviarEmail({
+                para: escritorio.email,
+                assunto: '📅 Sua assinatura vence em 3 dias — LawTech Pro',
+                html: `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;">
+                    <div style="background:#1E3A5F;padding:24px;text-align:center;">
+                        <img src="https://www.lawtechpro.com.br/Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro" style="max-width:160px;height:auto;" />
+                    </div>
+                    <div style="padding:28px 24px;background:#fff;">
+                        <h2 style="color:#1E3A5F;margin:0 0 16px;">Lembrete de cobrança</h2>
+                        <p style="color:#374151;font-size:14px;">Olá, <strong>${escritorio.nome}</strong>! Sua assinatura do plano <strong>${escritorio.plano_nome}</strong> será renovada automaticamente em <strong>${dataCobranca}</strong>.</p>
+                        <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;">
+                            <tr style="background:#f3f4f6;">
+                                <td style="padding:10px 14px;color:#6b7280;">Plano</td>
+                                <td style="padding:10px 14px;color:#111827;font-weight:600;">${escritorio.plano_nome}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:10px 14px;color:#6b7280;">Valor</td>
+                                <td style="padding:10px 14px;color:#111827;font-weight:600;">R$ ${escritorio.preco_mensal}/mês</td>
+                            </tr>
+                            <tr style="background:#f3f4f6;">
+                                <td style="padding:10px 14px;color:#6b7280;">Data da cobrança</td>
+                                <td style="padding:10px 14px;color:#111827;font-weight:600;">${dataCobranca}</td>
+                            </tr>
+                            ${escritorio.last4 ? `<tr>
+                                <td style="padding:10px 14px;color:#6b7280;">Cartão</td>
+                                <td style="padding:10px 14px;color:#111827;font-weight:600;">${escritorio.brand || ''} **** ${escritorio.last4}</td>
+                            </tr>` : ''}
+                        </table>
+                        <p style="color:#6b7280;font-size:13px;">Caso queira cancelar ou alterar seu plano, acesse Configurações → Pagamento antes da data de cobrança.</p>
+                        <p style="color:#6b7280;font-size:12px;margin-top:24px;">Dúvidas? contato@lawtechpro.com.br</p>
+                    </div>
+                </div>`
+            }).catch(err => logger.warn({ err: err.message, email: escritorio.email }, '[CRON LEMBRETE] Falha ao enviar email'));
         }
 
         logger.info('✅ [CRON LEMBRETE] Lembretes processados\n');

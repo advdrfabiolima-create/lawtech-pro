@@ -11,6 +11,7 @@ const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
 const logger = require('../utils/logger');
+const { enviarEmail } = require('../services/emailService');
 
 /* ======================================================
    🗑️ CANCELAR RENOVAÇÃO AUTOMÁTICA
@@ -57,9 +58,28 @@ router.post('/cancelar-assinatura', authMiddleware, roleMiddleware('admin'), asy
 
         logger.info({ email: req.user.email, acesso_ate: proxima_cobranca }, '[CANCELAMENTO] Renovacao automatica desativada');
 
-        // TODO: Enviar email de confirmação de cancelamento
+        const dataAcesso = proxima_cobranca
+            ? new Date(proxima_cobranca).toLocaleDateString('pt-BR')
+            : 'fim do período atual';
 
-        res.json({ 
+        enviarEmail({
+            para: req.user.email,
+            assunto: 'Renovação automática cancelada — LawTech Pro',
+            html: `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;">
+                <div style="background:#1E3A5F;padding:24px;text-align:center;">
+                    <img src="https://www.lawtechpro.com.br/Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro" style="max-width:160px;height:auto;" />
+                </div>
+                <div style="padding:28px 24px;background:#fff;">
+                    <h2 style="color:#1E3A5F;margin:0 0 16px;">Cancelamento confirmado</h2>
+                    <p style="color:#374151;font-size:14px;">Olá! A renovação automática da sua assinatura foi <strong>cancelada com sucesso</strong>.</p>
+                    <p style="color:#374151;font-size:14px;">Seu acesso ao LawTech Pro permanece ativo até <strong>${dataAcesso}</strong>. Após essa data, sem pagamento, o acesso será encerrado.</p>
+                    <p style="color:#374151;font-size:14px;">Se mudar de ideia, você pode reativar a renovação automática a qualquer momento em <strong>Configurações → Pagamento</strong>.</p>
+                    <p style="color:#6b7280;font-size:12px;margin-top:24px;">Dúvidas? contato@lawtechpro.com.br</p>
+                </div>
+            </div>`
+        }).catch(err => logger.warn({ err: err.message }, '[CANCELAMENTO] Falha ao enviar email de confirmação'));
+
+        res.json({
             ok: true, 
             mensagem: 'Renovação automática cancelada com sucesso',
             acesso_ate: proxima_cobranca,
@@ -120,9 +140,28 @@ router.post('/reativar-assinatura', authMiddleware, roleMiddleware('admin'), asy
 
         logger.info({ email: req.user.email, proxima_cobranca }, '[REATIVACAO] Renovacao automatica reativada');
 
-        // TODO: Enviar email de confirmação
+        const dataProxima = proxima_cobranca
+            ? new Date(proxima_cobranca).toLocaleDateString('pt-BR')
+            : null;
 
-        res.json({ 
+        enviarEmail({
+            para: req.user.email,
+            assunto: 'Renovação automática reativada — LawTech Pro',
+            html: `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;">
+                <div style="background:#1E3A5F;padding:24px;text-align:center;">
+                    <img src="https://www.lawtechpro.com.br/Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro" style="max-width:160px;height:auto;" />
+                </div>
+                <div style="padding:28px 24px;background:#fff;">
+                    <h2 style="color:#1E3A5F;margin:0 0 16px;">Renovação automática reativada</h2>
+                    <p style="color:#374151;font-size:14px;">Olá! Sua renovação automática foi <strong>reativada com sucesso</strong>.</p>
+                    ${dataProxima ? `<p style="color:#374151;font-size:14px;">Sua próxima cobrança está prevista para <strong>${dataProxima}</strong>. O valor será debitado automaticamente no cartão cadastrado.</p>` : ''}
+                    <p style="color:#374151;font-size:14px;">Para gerenciar sua assinatura, acesse <strong>Configurações → Pagamento</strong>.</p>
+                    <p style="color:#6b7280;font-size:12px;margin-top:24px;">Dúvidas? contato@lawtechpro.com.br</p>
+                </div>
+            </div>`
+        }).catch(err => logger.warn({ err: err.message }, '[REATIVACAO] Falha ao enviar email de confirmação'));
+
+        res.json({
             ok: true, 
             mensagem: 'Renovação automática reativada com sucesso',
             proxima_cobranca: proxima_cobranca,
