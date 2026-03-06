@@ -1005,7 +1005,7 @@ const token = localStorage.getItem('token');
                                 ? `<button onclick="_downloadContrato(${c.id})" style="${_btnSmall('#10b981')}"><i class="lucide lucide-download" style="width:13px;height:13px;"></i> BAIXAR PDF</button>`
                                 : `<button onclick="_abrirUpload(${c.id})" style="${_btnSmall('#6366f1')}"><i class="lucide lucide-upload" style="width:13px;height:13px;"></i> ENVIAR PDF ASSINADO</button>`
                             }
-                            <button onclick="_editarContrato(${c.id},'${c.titulo.replace(/'/g,"\\'")}','${c.tipo_honorario}',${c.valor_fixo||'null'},${c.percentual_exito||'null'},'${c.data_assinatura||''}',${c.processo_id||'null'},'${(c.observacoes||'').replace(/'/g,"\\'")}','${c.status}')" style="${_btnSmall('#f59e0b')}">
+                            <button onclick="_editarContrato(${c.id},'${c.titulo.replace(/'/g,"\\'")}','${c.tipo_honorario}',${c.valor_fixo||'null'},${c.percentual_exito||'null'},'${c.data_assinatura||''}',${c.processo_id||'null'},'${(c.observacoes||'').replace(/'/g,"\\'")}','${c.status}','${c.forma_pagamento||''}','${c.vencimento_pgto||''}','${c.num_parcelas||''}')" style="${_btnSmall('#f59e0b')}">
                                 <i class="lucide lucide-pencil" style="width:13px;height:13px;"></i> EDITAR
                             </button>
                             <button onclick="_excluirContrato(${c.id},'${c.titulo.replace(/'/g,"\\'")}')\" style="${_btnSmall('#ef4444')}">
@@ -1093,7 +1093,7 @@ const token = localStorage.getItem('token');
         }
 
         // ── Editar contrato ──────────────────────────────────────────
-        async function _editarContrato(id, titulo, tipo, valorFixo, percentual, dataAss, processoId, obs, status) {
+        async function _editarContrato(id, titulo, tipo, valorFixo, percentual, dataAss, processoId, obs, status, formaPgto, vencPgto, numParcelas) {
             _contratoEditandoId = id;
             document.getElementById('tituloFormContrato').innerHTML =
                 '<i class="lucide lucide-pencil"></i> EDITAR CONTRATO';
@@ -1101,12 +1101,15 @@ const token = localStorage.getItem('token');
 
             await _carregarProcessosSelect(processoId);
 
-            document.getElementById('ctTitulo').value         = titulo || '';
-            document.getElementById('ctTipo').value           = tipo   || '';
-            document.getElementById('ctValorFixo').value      = valorFixo   || '';
-            document.getElementById('ctPercentual').value     = percentual  || '';
-            document.getElementById('ctDataAssinatura').value = dataAss ? dataAss.split('T')[0] : '';
-            document.getElementById('ctObs').value            = obs    || '';
+            document.getElementById('ctTitulo').value          = titulo     || '';
+            document.getElementById('ctTipo').value            = tipo       || '';
+            document.getElementById('ctValorFixo').value       = valorFixo  || '';
+            document.getElementById('ctPercentual').value      = percentual || '';
+            document.getElementById('ctDataAssinatura').value  = dataAss ? dataAss.split('T')[0] : '';
+            document.getElementById('ctObs').value             = obs        || '';
+            document.getElementById('ctFormaPagamento').value  = formaPgto  || '';
+            document.getElementById('ctVencimento').value      = vencPgto   || 'assinatura';
+            document.getElementById('ctParcelas').value        = numParcelas || '2';
 
             atualizarCamposHonorario();
             document.getElementById('modalFormContrato').style.display = 'flex';
@@ -1120,9 +1123,23 @@ const token = localStorage.getItem('token');
 
         function atualizarCamposHonorario() {
             const tipo = document.getElementById('ctTipo').value;
-            document.getElementById('campoValorFixo').style.display  = ['fixo','misto','consultoria'].includes(tipo) ? '' : 'none';
-            document.getElementById('campoPercentual').style.display = ['exito','misto'].includes(tipo)             ? '' : 'none';
+            const temFixo = ['fixo','misto','consultoria'].includes(tipo);
+            document.getElementById('campoValorFixo').style.display    = temFixo                        ? '' : 'none';
+            document.getElementById('campoPercentual').style.display   = ['exito','misto'].includes(tipo) ? '' : 'none';
+            document.getElementById('campoPagamento').style.display    = temFixo                        ? '' : 'none';
+            document.getElementById('campoVencimento').style.display   = temFixo                        ? '' : 'none';
+            // Parcelamento só aparece se vencimento = parcelado
+            const venc = document.getElementById('ctVencimento').value;
+            document.getElementById('campoParcelamento').style.display = (temFixo && venc === 'parcelado') ? '' : 'none';
         }
+
+        // Listener para mostrar/ocultar campo de parcelas dinamicamente
+        document.getElementById('ctVencimento').addEventListener('change', function() {
+            const tipo = document.getElementById('ctTipo').value;
+            const temFixo = ['fixo','misto','consultoria'].includes(tipo);
+            document.getElementById('campoParcelamento').style.display =
+                (temFixo && this.value === 'parcelado') ? '' : 'none';
+        });
 
         async function _carregarProcessosSelect(selecionado) {
             const sel = document.getElementById('ctProcesso');
@@ -1144,14 +1161,20 @@ const token = localStorage.getItem('token');
         // ── Submeter formulário ──────────────────────────────────────
         document.getElementById('formContrato').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const _tipo = document.getElementById('ctTipo').value;
+            const _temFixo = ['fixo','misto','consultoria'].includes(_tipo);
             const payload = {
                 titulo:           document.getElementById('ctTitulo').value,
-                tipo_honorario:   document.getElementById('ctTipo').value,
+                tipo_honorario:   _tipo,
                 valor_fixo:       document.getElementById('ctValorFixo').value   || null,
                 percentual_exito: document.getElementById('ctPercentual').value  || null,
                 data_assinatura:  document.getElementById('ctDataAssinatura').value || null,
                 processo_id:      document.getElementById('ctProcesso').value    || null,
                 observacoes:      document.getElementById('ctObs').value         || null,
+                forma_pagamento:  _temFixo ? (document.getElementById('ctFormaPagamento').value || null) : null,
+                vencimento_pgto:  _temFixo ? (document.getElementById('ctVencimento').value || null) : null,
+                num_parcelas:     (_temFixo && document.getElementById('ctVencimento').value === 'parcelado')
+                                    ? (document.getElementById('ctParcelas').value || null) : null,
             };
 
             try {
@@ -1287,7 +1310,7 @@ const token = localStorage.getItem('token');
                                 ? `<button onclick="_downloadContrato(${c.id})" style="${_btnSmall('#10b981')}"><i class="lucide lucide-download" style="width:13px;height:13px;"></i> BAIXAR PDF</button>`
                                 : `<button onclick="_abrirUpload(${c.id})" style="${_btnSmall('#6366f1')}"><i class="lucide lucide-upload" style="width:13px;height:13px;"></i> ENVIAR PDF ASSINADO</button>`
                             }
-                            <button onclick="_editarContrato(${c.id},'${c.titulo.replace(/'/g,"\\'")}','${c.tipo_honorario}',${c.valor_fixo||'null'},${c.percentual_exito||'null'},'${c.data_assinatura||''}',${c.processo_id||'null'},'${(c.observacoes||'').replace(/'/g,"\\'")}','${c.status}')" style="${_btnSmall('#f59e0b')}">
+                            <button onclick="_editarContrato(${c.id},'${c.titulo.replace(/'/g,"\\'")}','${c.tipo_honorario}',${c.valor_fixo||'null'},${c.percentual_exito||'null'},'${c.data_assinatura||''}',${c.processo_id||'null'},'${(c.observacoes||'').replace(/'/g,"\\'")}','${c.status}','${c.forma_pagamento||''}','${c.vencimento_pgto||''}','${c.num_parcelas||''}')" style="${_btnSmall('#f59e0b')}">
                                 <i class="lucide lucide-pencil" style="width:13px;height:13px;"></i> EDITAR
                             </button>
                             <button onclick="_excluirContrato(${c.id},'${c.titulo.replace(/'/g,"\\'")}')\" style="${_btnSmall('#ef4444')}">
@@ -1375,7 +1398,7 @@ const token = localStorage.getItem('token');
         }
 
         // ── Editar contrato ──────────────────────────────────────────
-        async function _editarContrato(id, titulo, tipo, valorFixo, percentual, dataAss, processoId, obs, status) {
+        async function _editarContrato(id, titulo, tipo, valorFixo, percentual, dataAss, processoId, obs, status, formaPgto, vencPgto, numParcelas) {
             _contratoEditandoId = id;
             document.getElementById('tituloFormContrato').innerHTML =
                 '<i class="lucide lucide-pencil"></i> EDITAR CONTRATO';
@@ -1383,12 +1406,15 @@ const token = localStorage.getItem('token');
 
             await _carregarProcessosSelect(processoId);
 
-            document.getElementById('ctTitulo').value         = titulo || '';
-            document.getElementById('ctTipo').value           = tipo   || '';
-            document.getElementById('ctValorFixo').value      = valorFixo   || '';
-            document.getElementById('ctPercentual').value     = percentual  || '';
-            document.getElementById('ctDataAssinatura').value = dataAss ? dataAss.split('T')[0] : '';
-            document.getElementById('ctObs').value            = obs    || '';
+            document.getElementById('ctTitulo').value          = titulo     || '';
+            document.getElementById('ctTipo').value            = tipo       || '';
+            document.getElementById('ctValorFixo').value       = valorFixo  || '';
+            document.getElementById('ctPercentual').value      = percentual || '';
+            document.getElementById('ctDataAssinatura').value  = dataAss ? dataAss.split('T')[0] : '';
+            document.getElementById('ctObs').value             = obs        || '';
+            document.getElementById('ctFormaPagamento').value  = formaPgto  || '';
+            document.getElementById('ctVencimento').value      = vencPgto   || 'assinatura';
+            document.getElementById('ctParcelas').value        = numParcelas || '2';
 
             atualizarCamposHonorario();
             document.getElementById('modalFormContrato').style.display = 'flex';
@@ -1402,9 +1428,23 @@ const token = localStorage.getItem('token');
 
         function atualizarCamposHonorario() {
             const tipo = document.getElementById('ctTipo').value;
-            document.getElementById('campoValorFixo').style.display  = ['fixo','misto','consultoria'].includes(tipo) ? '' : 'none';
-            document.getElementById('campoPercentual').style.display = ['exito','misto'].includes(tipo)             ? '' : 'none';
+            const temFixo = ['fixo','misto','consultoria'].includes(tipo);
+            document.getElementById('campoValorFixo').style.display    = temFixo                        ? '' : 'none';
+            document.getElementById('campoPercentual').style.display   = ['exito','misto'].includes(tipo) ? '' : 'none';
+            document.getElementById('campoPagamento').style.display    = temFixo                        ? '' : 'none';
+            document.getElementById('campoVencimento').style.display   = temFixo                        ? '' : 'none';
+            // Parcelamento só aparece se vencimento = parcelado
+            const venc = document.getElementById('ctVencimento').value;
+            document.getElementById('campoParcelamento').style.display = (temFixo && venc === 'parcelado') ? '' : 'none';
         }
+
+        // Listener para mostrar/ocultar campo de parcelas dinamicamente
+        document.getElementById('ctVencimento').addEventListener('change', function() {
+            const tipo = document.getElementById('ctTipo').value;
+            const temFixo = ['fixo','misto','consultoria'].includes(tipo);
+            document.getElementById('campoParcelamento').style.display =
+                (temFixo && this.value === 'parcelado') ? '' : 'none';
+        });
 
         async function _carregarProcessosSelect(selecionado) {
             const sel = document.getElementById('ctProcesso');
@@ -1426,14 +1466,20 @@ const token = localStorage.getItem('token');
         // ── Submeter formulário ──────────────────────────────────────
         document.getElementById('formContrato').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const _tipo = document.getElementById('ctTipo').value;
+            const _temFixo = ['fixo','misto','consultoria'].includes(_tipo);
             const payload = {
                 titulo:           document.getElementById('ctTitulo').value,
-                tipo_honorario:   document.getElementById('ctTipo').value,
+                tipo_honorario:   _tipo,
                 valor_fixo:       document.getElementById('ctValorFixo').value   || null,
                 percentual_exito: document.getElementById('ctPercentual').value  || null,
                 data_assinatura:  document.getElementById('ctDataAssinatura').value || null,
                 processo_id:      document.getElementById('ctProcesso').value    || null,
                 observacoes:      document.getElementById('ctObs').value         || null,
+                forma_pagamento:  _temFixo ? (document.getElementById('ctFormaPagamento').value || null) : null,
+                vencimento_pgto:  _temFixo ? (document.getElementById('ctVencimento').value || null) : null,
+                num_parcelas:     (_temFixo && document.getElementById('ctVencimento').value === 'parcelado')
+                                    ? (document.getElementById('ctParcelas').value || null) : null,
             };
 
             try {
