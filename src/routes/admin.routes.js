@@ -146,7 +146,7 @@ router.get('/stats', async (req, res) => {
         });
     } catch (err) {
         logger.error({ err: err.message }, 'Erro nas estatísticas admin');
-        res.status(500).json({ ok: false, error: 'Erro interno do servidor' });
+        res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
     }
 });
 
@@ -219,7 +219,7 @@ router.get('/escritorios', async (req, res) => {
         });
     } catch (err) {
         logger.error({ err: err.message }, 'Erro na lista de escritórios');
-        res.status(500).json({ ok: false, error: 'Erro interno do servidor' });
+        res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
     }
 });
 
@@ -394,7 +394,7 @@ router.get('/no-limite', async (req, res) => {
         res.json({ ok: true, total: escritoriosComLimites.length, escritorios: escritoriosComLimites });
     } catch (err) {
         logger.error({ err: err.message }, 'Erro ao buscar escritórios no limite');
-        res.status(500).json({ ok: false, error: 'Erro interno do servidor' });
+        res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
     }
 });
 
@@ -433,7 +433,7 @@ router.get('/inadimplencia', async (req, res) => {
         res.json({ ok: true, total: result.rowCount, inadimplentes: result.rows });
     } catch (err) {
         logger.error({ err: err.message }, 'Erro ao buscar inadimplentes');
-        res.status(500).json({ ok: false, error: 'Erro interno do servidor' });
+        res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
     }
 });
 
@@ -461,7 +461,7 @@ router.get('/crescimento', async (req, res) => {
         });
     } catch (err) {
         logger.error({ err: err.message }, 'Erro no gráfico de crescimento');
-        res.status(500).json({ ok: false, error: 'Erro interno do servidor' });
+        res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
     }
 });
 

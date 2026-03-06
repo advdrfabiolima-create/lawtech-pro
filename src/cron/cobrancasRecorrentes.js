@@ -205,7 +205,7 @@ cron.schedule('0 8 * * *', async () => {
                                     <p style="color:#6b7280;font-size:12px;margin-top:24px;">Tentativa 1 de 3. Em caso de dúvidas, entre em contato: contato@lawtechpro.com.br</p>
                                 </div>
                             </div>`
-                        }).catch(() => {});
+                        }).catch(e => logger.warn({ err: e.message, escritorioId: escritorio.id }, '[CRON RECORRENTE] Falha ao enviar email de cobrança recusada'));
 
                         falhas++;
                     }

@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const pool = require('../config/db');
 const { enviarAlertaPrazo } = require('../services/emailService');
+const logger = require('../utils/logger');
 
 /**
  * Motor de Agendamentos LawTech Pro
@@ -17,31 +18,31 @@ const iniciarAgendamentos = () => {
             AND status = 'aberto'
         `);
         } catch (error) {
-            console.error('❌ Erro no cron de prazos:', error.message);
+            logger.error({ err: error.message }, '[CRON PRAZOS] Erro no cron de atualização de status');
         }
     });
 
     // --- TAREFA 3: VERIFICAR EXPIRAÇÃO DO TRIAL ---
 cron.schedule('0 0 * * *', async () => {  // Todo dia à meia-noite
     try {
-        console.log('🔒 Verificando trials expirados...');
-        
+        logger.info('[CRON TRIALS] Verificando trials expirados...');
+
         await pool.query(`
-            UPDATE escritorios 
+            UPDATE escritorios
             SET plano_financeiro_status = 'trial_expirado'
-            WHERE trial_expira_em < CURRENT_DATE 
+            WHERE trial_expira_em < CURRENT_DATE
             AND plano_financeiro_status = 'ativo'
         `);
-        
-        console.log('✅ Verificação de trials concluída.');
+
+        logger.info('[CRON TRIALS] Verificação de trials concluída');
     } catch (error) {
-        console.error('❌ Erro ao verificar trials:', error.message);
+        logger.error({ err: error.message }, '[CRON TRIALS] Erro ao verificar trials');
     }
 });
 
     // --- TAREFA 4: ALERTAS INTELIGENTES DE PRAZOS (8h, seg-sex) ---
     cron.schedule('0 8 * * 1-5', async () => {
-        console.log('🔔 [ALERTAS] Iniciando verificação de prazos...');
+        logger.info('[CRON ALERTAS] Iniciando verificação de prazos...');
         try {
             // Buscar todos os escritórios com config (ou usar defaults)
             const escritorios = await pool.query('SELECT DISTINCT escritorio_id FROM usuarios');
@@ -124,13 +125,13 @@ cron.schedule('0 0 * * *', async () => {  // Todo dia à meia-noite
                 }
             }
 
-            console.log('✅ [ALERTAS] Verificação de prazos concluída.');
+            logger.info('[CRON ALERTAS] Verificação de prazos concluída');
         } catch (error) {
-            console.error('❌ [ALERTAS] Erro:', error.message);
+            logger.error({ err: error.message }, '[CRON ALERTAS] Erro na verificação de prazos');
         }
     });
 
-    console.log('🚀 Motor LawTech Pro Ativado');
+    logger.info('[CRON] Motor LawTech Pro Ativado');
 };
 
 module.exports = { iniciarAgendamentos };
