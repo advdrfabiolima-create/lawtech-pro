@@ -10,6 +10,14 @@ const { checkFeature } = require('../middlewares/planMiddleware');
 // Gating: apenas planos Avançado e Premium têm acesso a Reuniões por Vídeo
 router.use(checkFeature('reunioes_video'));
 
+// Valida que :id é um inteiro em todas as rotas deste router
+router.param('id', (req, res, next, val) => {
+    const id = parseInt(val, 10);
+    if (isNaN(id)) return res.status(400).json({ ok: false, erro: 'ID inválido' });
+    req.params.id = id;
+    next();
+});
+
 // GET /api/reunioes — Lista reuniões do escritório (paginado)
 router.get('/reunioes', async (req, res) => {
     const escritorio_id = req.user.escritorio_id;

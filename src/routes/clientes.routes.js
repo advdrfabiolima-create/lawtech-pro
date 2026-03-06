@@ -6,6 +6,13 @@ const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
 const verificarPagamento = require('../middlewares/financeiroMiddleware');
 
+// Valida que :id é um inteiro em todas as rotas deste router
+router.param('id', (req, res, next, val) => {
+    const id = parseInt(val, 10);
+    if (isNaN(id)) return res.status(400).json({ ok: false, erro: 'ID inválido' });
+    req.params.id = id;
+    next();
+});
 
 // ================================
 // ROTAS DE CLIENTES

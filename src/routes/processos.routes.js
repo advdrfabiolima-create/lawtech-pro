@@ -7,6 +7,14 @@ const logger = require('../utils/logger');
 const { getPagination, buildPage } = require('../utils/paginate');
 const { checkLimit } = require('../middlewares/planMiddleware');
 
+// Valida que :id é um inteiro em todas as rotas deste router
+router.param('id', (req, res, next, val) => {
+  const id = parseInt(val, 10);
+  if (isNaN(id)) return res.status(400).json({ ok: false, erro: 'ID inválido' });
+  req.params.id = id;
+  next();
+});
+
 /**
  * CADASTRAR NOVO PROCESSO (COM MÚLTIPLAS PARTES)
  * POST /api/processos
@@ -207,15 +215,34 @@ router.get('/processos', authMiddleware, async (req, res) => {
         SELECT
           p.id, p.numero, p.esfera, p.tribunal, p.instancia, p.uf, p.status,
           p.excluido_por, p.data_exclusao,
-          (SELECT pessoa_nome FROM partes_processo
-           WHERE processo_id = p.id AND polo = 'ativo' AND eh_principal = TRUE LIMIT 1) as cliente,
-          (SELECT pessoa_id FROM partes_processo
-           WHERE processo_id = p.id AND polo = 'ativo' AND eh_principal = TRUE LIMIT 1) as cliente_id,
-          (SELECT pessoa_nome FROM partes_processo
-           WHERE processo_id = p.id AND polo = 'passivo' AND eh_principal = TRUE LIMIT 1) as parte_contraria,
-          (SELECT COUNT(*) FROM partes_processo WHERE processo_id = p.id AND polo = 'ativo') as total_autores,
-          (SELECT COUNT(*) FROM partes_processo WHERE processo_id = p.id AND polo = 'passivo') as total_reus
+          pp_ativo.pessoa_nome   AS cliente,
+          pp_ativo.pessoa_id     AS cliente_id,
+          pp_passivo.pessoa_nome AS parte_contraria,
+          COALESCE(cnt_ativo.total,   0) AS total_autores,
+          COALESCE(cnt_passivo.total, 0) AS total_reus
         FROM processos p
+        LEFT JOIN LATERAL (
+          SELECT pessoa_nome, pessoa_id
+          FROM partes_processo
+          WHERE processo_id = p.id AND polo = 'ativo' AND eh_principal = TRUE
+          ORDER BY id LIMIT 1
+        ) pp_ativo ON TRUE
+        LEFT JOIN LATERAL (
+          SELECT pessoa_nome
+          FROM partes_processo
+          WHERE processo_id = p.id AND polo = 'passivo' AND eh_principal = TRUE
+          ORDER BY id LIMIT 1
+        ) pp_passivo ON TRUE
+        LEFT JOIN (
+          SELECT processo_id, COUNT(*) AS total
+          FROM partes_processo WHERE polo = 'ativo'
+          GROUP BY processo_id
+        ) cnt_ativo ON cnt_ativo.processo_id = p.id
+        LEFT JOIN (
+          SELECT processo_id, COUNT(*) AS total
+          FROM partes_processo WHERE polo = 'passivo'
+          GROUP BY processo_id
+        ) cnt_passivo ON cnt_passivo.processo_id = p.id
         WHERE ${whereClause}
         ORDER BY p.id DESC
         LIMIT $${limitIdx} OFFSET $${offsetIdx}

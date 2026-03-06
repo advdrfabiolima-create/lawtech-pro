@@ -3,6 +3,26 @@
  * Centraliza: Authorization header, tratamento de 401, e métodos HTTP.
  * Incluir ANTES de qualquer script de página.
  */
+
+// Interceptor global de 401 — captura fetch() direto em qualquer página
+(function () {
+    const _fetch = window.fetch;
+    window.fetch = async function (url, opts) {
+        const res = await _fetch(url, opts);
+        if (
+            res.status === 401 &&
+            typeof url === 'string' &&
+            url.startsWith('/api/') &&
+            !url.startsWith('/api/auth/') &&
+            localStorage.getItem('token')
+        ) {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
+        return res;
+    };
+})();
+
 const API = (() => {
     function getToken() {
         return localStorage.getItem('token');
