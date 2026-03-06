@@ -1002,7 +1002,7 @@ const token = localStorage.getItem('token');
                                 <i class="lucide lucide-file-down" style="width:13px;height:13px;"></i> BAIXAR CONTRATO PDF
                             </button>
                             ${c.tem_arquivo
-                                ? `<button onclick="_downloadContrato(${c.id})" style="${_btnSmall('#10b981')}"><i class="lucide lucide-download" style="width:13px;height:13px;"></i> BAIXAR PDF</button>`
+                                ? `<button onclick="_downloadContrato(${c.id})" style="${_btnSmall('#10b981')}"><i class="lucide lucide-download" style="width:13px;height:13px;"></i> BAIXAR CONTRATO ASSINADO</button>`
                                 : `<button onclick="_abrirUpload(${c.id})" style="${_btnSmall('#6366f1')}"><i class="lucide lucide-upload" style="width:13px;height:13px;"></i> ENVIAR PDF ASSINADO</button>`
                             }
                             <button onclick="_editarContrato(${c.id},'${c.titulo.replace(/'/g,"\\'")}','${c.tipo_honorario}',${c.valor_fixo||'null'},${c.percentual_exito||'null'},'${c.data_assinatura||''}',${c.processo_id||'null'},'${(c.observacoes||'').replace(/'/g,"\\'")}','${c.status}','${c.forma_pagamento||''}','${c.vencimento_pgto||''}','${c.num_parcelas||''}')" style="${_btnSmall('#f59e0b')}">
@@ -1307,7 +1307,7 @@ const token = localStorage.getItem('token');
                                 <i class="lucide lucide-file-down" style="width:13px;height:13px;"></i> BAIXAR CONTRATO PDF
                             </button>
                             ${c.tem_arquivo
-                                ? `<button onclick="_downloadContrato(${c.id})" style="${_btnSmall('#10b981')}"><i class="lucide lucide-download" style="width:13px;height:13px;"></i> BAIXAR PDF</button>`
+                                ? `<button onclick="_downloadContrato(${c.id})" style="${_btnSmall('#10b981')}"><i class="lucide lucide-download" style="width:13px;height:13px;"></i> BAIXAR CONTRATO ASSINADO</button>`
                                 : `<button onclick="_abrirUpload(${c.id})" style="${_btnSmall('#6366f1')}"><i class="lucide lucide-upload" style="width:13px;height:13px;"></i> ENVIAR PDF ASSINADO</button>`
                             }
                             <button onclick="_editarContrato(${c.id},'${c.titulo.replace(/'/g,"\\'")}','${c.tipo_honorario}',${c.valor_fixo||'null'},${c.percentual_exito||'null'},'${c.data_assinatura||''}',${c.processo_id||'null'},'${(c.observacoes||'').replace(/'/g,"\\'")}','${c.status}','${c.forma_pagamento||''}','${c.vencimento_pgto||''}','${c.num_parcelas||''}')" style="${_btnSmall('#f59e0b')}">
