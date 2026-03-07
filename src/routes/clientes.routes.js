@@ -5,6 +5,7 @@ const clientesController = require('../controllers/clientesController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
 const verificarPagamento = require('../middlewares/financeiroMiddleware');
+const { checkLimit } = require('../middlewares/planMiddleware');
 
 // Valida que :id é um inteiro em todas as rotas deste router
 router.param('id', (req, res, next, val) => {
@@ -32,6 +33,7 @@ router.post(
     authMiddleware,
     roleMiddleware('admin', 'operador'),
     verificarPagamento,
+    checkLimit('clientes'),
     clientesController.criarCliente
 );
 

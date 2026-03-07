@@ -133,12 +133,16 @@ const checkLimit = (resourceType) => {
                     tableName = 'processos';
                     queryCondition = "WHERE escritorio_id = $1 AND status != 'excluido'";
                     break;
+                case 'clientes':
+                    tableName = 'clientes';
+                    queryCondition = 'WHERE escritorio_id = $1';
+                    break;
                 default:
                     return next();
             }
 
             // Validação extra: garantir que tableName é um dos valores esperados
-            const tabelasPermitidas = ['prazos', 'usuarios', 'processos'];
+            const tabelasPermitidas = ['prazos', 'usuarios', 'processos', 'clientes'];
             if (!tabelasPermitidas.includes(tableName)) {
                 logger.error({ tableName }, '[PLAN MIDDLEWARE] Tabela nao permitida');
                 return res.status(500).json({ ok: false, erro: 'Erro interno na verificação de limites' });
