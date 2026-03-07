@@ -325,6 +325,7 @@ router.put('/marcar-boas-vindas', async (req, res) => {
    🧪 ROTA PARA RESETAR PRIMEIRO ACESSO (APENAS TESTES)
 ===================================================== */
 router.put('/resetar-boas-vindas', async (req, res) => {
+    if (process.env.NODE_ENV === 'production') return res.status(404).json({ ok: false, erro: 'Não encontrado' });
     try {
         const authHeader = req.headers.authorization;
         if (!authHeader) return res.status(401).json({ ok: false, erro: 'Token não fornecido' });
@@ -350,6 +351,7 @@ router.put('/resetar-boas-vindas', async (req, res) => {
    🧪 ROTA PARA EXPIRAR TRIAL (APENAS DESENVOLVIMENTO)
 ===================================================== */
 router.post('/expirar-trial-teste', async (req, res) => {
+    if (process.env.NODE_ENV === 'production') return res.status(404).json({ ok: false, erro: 'Não encontrado' });
     try {
         const { email } = req.body;
 
@@ -393,6 +395,7 @@ router.post('/expirar-trial-teste', async (req, res) => {
    🧪 ROTA PARA VERIFICAR STATUS DO TRIAL (APENAS DESENVOLVIMENTO)
 ===================================================== */
 router.post('/verificar-status-trial', async (req, res) => {
+    if (process.env.NODE_ENV === 'production') return res.status(404).json({ ok: false, erro: 'Não encontrado' });
     try {
         const { email } = req.body;
 
