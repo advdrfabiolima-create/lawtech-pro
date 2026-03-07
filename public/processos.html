@@ -1610,6 +1610,30 @@ input, textarea, select {
         .pag-num:hover:not(.pag-ativo) { background:#1e3a5f; color:#fff; border-color:#1e3a5f; }
         .pag-ativo { background:#1e3a5f !important; color:#fff !important; border-color:#1e3a5f !important; }
         .pag-ellipsis { font-size:13px; color:#94a3b8; padding:0 4px; line-height:32px; }
+
+        /* ── Dropdown de ações da tabela ── */
+        .proc-actions-toggle {
+            background: none; border: 1px solid #e2e8f0; cursor: pointer;
+            color: #5A6C7D; border-radius: 6px; padding: 5px 7px; line-height: 0;
+            transition: background 0.15s, color 0.15s;
+        }
+        .proc-actions-toggle:hover { background: #f1f5f9; color: #1e3a5f; }
+        .proc-actions-menu {
+            display: none; position: absolute; right: 0; top: calc(100% + 4px);
+            background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 9999;
+            min-width: 175px; overflow: hidden;
+        }
+        .proc-actions-menu button {
+            display: flex; align-items: center; gap: 9px; width: 100%;
+            padding: 10px 14px; background: none; border: none; cursor: pointer;
+            font-size: 13px; font-weight: 500; color: #334155; text-align: left;
+            transition: background 0.12s;
+        }
+        .proc-actions-menu button:hover { background: #f8fafc; }
+        .proc-actions-menu button.danger { color: #ef4444; }
+        .proc-actions-menu button.danger:hover { background: #fff5f5; }
+        .proc-actions-menu hr { margin: 4px 0; border: none; border-top: 1px solid #f1f5f9; }
     </style>
             
             <div class="filters-container">
@@ -1687,22 +1711,21 @@ input, textarea, select {
             </div>
 
             <div class="card" style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 1200px;">
+                <table style="width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 1050px;">
                     <thead>
                         <tr style="background: #f1f5f9; color: #7B8794; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">
-                            <th style="width: 22%; padding: 16px 12px; text-align: left;">Nº Processo (CNJ)</th>
-                            <th style="width: 18%; padding: 16px 12px; text-align: left;">Cliente</th>
-                            <th style="width: 14%; padding: 16px 12px; text-align: left;">Parte Contrária</th>
+                            <th style="width: 24%; padding: 16px 12px; text-align: left;">Nº Processo (CNJ)</th>
+                            <th style="width: 20%; padding: 16px 12px; text-align: left;">Cliente</th>
+                            <th style="width: 15%; padding: 16px 12px; text-align: left;">Parte Contrária</th>
                             <th style="width: 12%; padding: 16px 12px; text-align: left;">Esfera</th>
-                            <th style="width: 12%; padding: 16px 12px; text-align: left;">Tribunal</th>
-                            <th style="width: 10%; padding: 16px 12px; text-align: center;">Instância / Grau</th>
-                            <th style="width: 8%; padding: 16px 12px; text-align: center;">UF</th>
-                            <th style="width: 10%; padding: 16px 12px; text-align: center;">Status</th>
-                            <th style="width: 10%; padding: 16px 12px; text-align: right;">Ações</th>
+                            <th style="width: 13%; padding: 16px 12px; text-align: left;">Tribunal</th>
+                            <th style="width: 9%; padding: 16px 12px; text-align: center;">Instância / Grau</th>
+                            <th style="width: 5%; padding: 16px 12px; text-align: center;">UF</th>
+                            <th style="width: 2%; padding: 16px 12px; text-align: right;"></th>
                         </tr>
                     </thead>
                     <tbody id="listaProcessos">
-                        <tr><td colspan="9" style="text-align:center; padding:50px; color:var(--muted);">Carregando sua base de processos...</td></tr>
+                        <tr><td colspan="8" style="text-align:center; padding:50px; color:var(--muted);">Carregando sua base de processos...</td></tr>
                     </tbody>
                 </table>
             </div>

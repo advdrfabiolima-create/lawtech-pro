@@ -453,7 +453,7 @@ let gerenciadorPartesEdicao = null;
         ufsFiltroAtual = ufs;
 
         const tabela = document.getElementById('listaProcessos');
-        if (tabela) tabela.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:50px;color:var(--muted);">Carregando...</td></tr>';
+        if (tabela) tabela.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:50px;color:var(--muted);">Carregando...</td></tr>';
 
         try {
             const params = new URLSearchParams({ page, limit: LIMITE_PROCESSOS, status: abaAtual });
@@ -510,7 +510,7 @@ let gerenciadorPartesEdicao = null;
         atualizarMetricas();
 
         if (listaFiltrada.length === 0) {
-            tabela.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:50px; color:var(--muted);">Nenhum processo encontrado.</td></tr>`;
+            tabela.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:50px; color:var(--muted);">Nenhum processo encontrado.</td></tr>`;
             return;
         }
 
@@ -530,72 +530,79 @@ let gerenciadorPartesEdicao = null;
                 <td style="padding: 16px 12px; font-weight: 500;">${formatarTribunal(p.tribunal) || '—'}</td>
                 <td style="padding: 16px 12px; text-align: center; font-weight: 600;">${formatarInstancia(p.instancia)}</td>
                 <td style="padding: 16px 12px; text-align: center; font-weight: 700; color: #4A90E2;">${p.uf || '--'}</td>
-                <td style="padding: 16px 12px; text-align: center;">
-                    ${abaAtual === 'ativo' ? `
-                        <span data-action="alternarStatusProcesso" data-args='[${p.id},"${(p.status_atividade || 'ATIVO')}"]'
-                              style="background: ${(p.status_atividade || 'ATIVO') === 'ATIVO' ? '#ecfdf5' : '#fef2f2'};
-                                     color: ${(p.status_atividade || 'ATIVO') === 'ATIVO' ? '#10b981' : '#ef4444'};
-                                     padding: 6px 12px;
-                                     border-radius: 4px;
-                                     font-size: 11px;
-                                     font-weight: 700;
-                                     cursor: pointer;
-                                     transition: all 0.2s;
-                                     display: inline-block;"
-                              title="Clique para alternar status">
-                            ${(p.status_atividade || 'ATIVO').toUpperCase()}
-                        </span>
-                    ` : `
-                        <span style="background: ${abaAtual === 'excluido' ? '#fee2e2' : '#ecfdf5'}; 
-                                     color: ${abaAtual === 'excluido' ? '#ef4444' : '#10b981'}; 
-                                     padding: 6px 12px; 
-                                     border-radius: 4px; 
-                                     font-size: 11px; 
-                                     font-weight: 700;">
-                            ${(p.status || 'ATIVO').toUpperCase()}
-                        </span>
-                    `}
-                </td>
                 <td style="padding: 16px 12px; text-align: right;">
-                    <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
-                        ${abaAtual === 'ativo' ? `
-                            <button data-action="editarProcesso" data-args='[${p.id}]' title="Editar Processo" style="background:none;border:none;cursor:pointer;color:#5BA4DB;"><i data-lucide="edit" style="width:18px;"></i></button>
-                            <button data-action="arquivarProcesso" data-args='[${p.id}]' title="Arquivar" style="background:none;border:none;cursor:pointer;color:#f59e0b;"><i data-lucide="archive" style="width:18px;"></i></button>
-                            <button data-action="abrirAndamentos" data-args='[${p.id},"${(p.numero||'').replace(/"/g,'&quot;')}"]' title="Andamentos" style="background:none;border:none;cursor:pointer;color:#6366f1;"><i data-lucide="clock" style="width:18px;height:18px;"></i></button>
-                            <button data-action="irParaDocumentos" data-args='[${p.id}]' title="Documentos" style="background:none;border:none;cursor:pointer;color:#7E8CE0;"><i data-lucide="folder-open" style="width:18px;height:18px;"></i></button>
-                            <button data-action="excluirProcesso" data-args='[${p.id}]' title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;"><i data-lucide="trash-2" style="width:18px;"></i></button>
-                        ` : abaAtual === 'arquivado' ? `
-                            <button data-action="editarProcesso" data-args='[${p.id}]' title="Editar Processo" style="background:none;border:none;cursor:pointer;color:#5BA4DB;"><i data-lucide="edit" style="width:18px;"></i></button>
-                            <button data-action="desarquivarProcesso" data-args='[${p.id}]' title="Desarquivar" style="background:none;border:none;cursor:pointer;color:#10b981;"><i data-lucide="refresh-cw" style="width:18px;"></i></button>
-                            <button data-action="abrirAndamentos" data-args='[${p.id},"${(p.numero||'').replace(/"/g,'&quot;')}"]' title="Andamentos" style="background:none;border:none;cursor:pointer;color:#6366f1;"><i data-lucide="clock" style="width:18px;height:18px;"></i></button>
-                            <button data-action="irParaDocumentos" data-args='[${p.id}]' title="Documentos" style="background:none;border:none;cursor:pointer;color:#7E8CE0;"><i data-lucide="folder-open" style="width:18px;height:18px;"></i></button>
-                            <button data-action="excluirProcesso" data-args='[${p.id}]' title="Excluir" style="background:none;border:none;cursor:pointer;color:#ef4444;"><i data-lucide="trash-2" style="width:18px;"></i></button>
-                        ` : `
-                            <div style="text-align: right; line-height: 1.3; min-width: 160px;">
-                                <div style="font-size: 9px; color: #94a3b8; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Auditado</div>
-                                <div style="font-size: 11px; color: #ef4444; font-weight: 600; margin-bottom: 2px;">
-                                    ${p.excluido_por ? (p.excluido_por.includes('@') ? p.excluido_por.split('@')[0] : p.excluido_por) : 'Sistema'}
-                                </div>
-                                <div style="font-size: 10px; color: #7B8794; font-weight: 500;">
-                                    ${p.data_exclusao ? (() => {
-                                        let data = new Date(p.data_exclusao);
-                                        if (p.data_exclusao.includes('Z') || data.getTimezoneOffset() === 0) {
-                                            data.setHours(data.getHours() - 3);
-                                        }
-                                        return data.toLocaleString('pt-BR', {
-                                            day: '2-digit', month: '2-digit', year: 'numeric',
-                                            hour: '2-digit', minute: '2-digit', hour12: false
-                                        });
-                                    })() : 'Data não registrada'}
-                                </div>
+                    ${abaAtual === 'excluido' ? `
+                        <div style="text-align: right; line-height: 1.3;">
+                            <div style="font-size: 9px; color: #94a3b8; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Auditado</div>
+                            <div style="font-size: 11px; color: #ef4444; font-weight: 600; margin-bottom: 2px;">
+                                ${p.excluido_por ? (p.excluido_por.includes('@') ? p.excluido_por.split('@')[0] : p.excluido_por) : 'Sistema'}
                             </div>
-                        `}
-                    </div>
+                            <div style="font-size: 10px; color: #7B8794; font-weight: 500;">
+                                ${p.data_exclusao ? (() => {
+                                    let data = new Date(p.data_exclusao);
+                                    if (p.data_exclusao.includes('Z') || data.getTimezoneOffset() === 0) {
+                                        data.setHours(data.getHours() - 3);
+                                    }
+                                    return data.toLocaleString('pt-BR', {
+                                        day: '2-digit', month: '2-digit', year: 'numeric',
+                                        hour: '2-digit', minute: '2-digit', hour12: false
+                                    });
+                                })() : 'Data não registrada'}
+                            </div>
+                        </div>
+                    ` : `
+                        <div style="position: relative; display: inline-block;">
+                            <button class="proc-actions-toggle" data-action="toggleDropdown" data-args='[${p.id}]' title="Ações">
+                                <i data-lucide="more-vertical" style="width:16px;height:16px;"></i>
+                            </button>
+                            <div id="proc-menu-${p.id}" class="proc-actions-menu">
+                                <button data-action="editarProcesso" data-args='[${p.id}]'>
+                                    <i data-lucide="edit" style="width:14px;height:14px;color:#5BA4DB;"></i> Editar
+                                </button>
+                                ${abaAtual === 'ativo' ? `
+                                <button data-action="arquivarProcesso" data-args='[${p.id}]'>
+                                    <i data-lucide="archive" style="width:14px;height:14px;color:#f59e0b;"></i> Arquivar
+                                </button>
+                                ` : `
+                                <button data-action="desarquivarProcesso" data-args='[${p.id}]'>
+                                    <i data-lucide="refresh-cw" style="width:14px;height:14px;color:#10b981;"></i> Desarquivar
+                                </button>
+                                `}
+                                <button data-action="abrirAndamentos" data-args='[${p.id},"${(p.numero||'').replace(/"/g,'&quot;')}"]'>
+                                    <i data-lucide="clock" style="width:14px;height:14px;color:#6366f1;"></i> Andamentos
+                                </button>
+                                <button data-action="irParaDocumentos" data-args='[${p.id}]'>
+                                    <i data-lucide="folder-open" style="width:14px;height:14px;color:#7E8CE0;"></i> Documentos
+                                </button>
+                                <hr>
+                                <button class="danger" data-action="excluirProcesso" data-args='[${p.id}]'>
+                                    <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Excluir
+                                </button>
+                            </div>
+                        </div>
+                    `}
                 </td>
             </tr>
         `).join('');
         lucide.createIcons();
     }
+
+    // ── Dropdown de ações da tabela ──────────────────────────────────────────
+    window.toggleDropdown = function(id) {
+        const menu = document.getElementById('proc-menu-' + id);
+        if (!menu) return;
+        const isOpen = menu.style.display === 'block';
+        // Fecha todos os outros menus abertos
+        document.querySelectorAll('.proc-actions-menu').forEach(m => { m.style.display = 'none'; });
+        if (!isOpen) menu.style.display = 'block';
+    };
+
+    // Fecha dropdowns ao clicar fora
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.proc-actions-toggle') && !e.target.closest('.proc-actions-menu')) {
+            document.querySelectorAll('.proc-actions-menu').forEach(m => { m.style.display = 'none'; });
+        }
+    });
 
     function mudarAba(aba) {
         abaAtual = aba;
