@@ -173,12 +173,11 @@ router.get('/clientes/:clienteId/procuracoes/:id/template', async (req, res) => 
         if (!cliente) return res.status(404).json({ erro: 'Cliente não encontrado' });
 
         const { rows: eRows } = await pool.query(
-            `SELECT e.nome, e.advogado_responsavel, e.oab, e.endereco, e.cidade,
-                    e.estado, e.cep, e.email
-             FROM escritorios e
-             JOIN usuarios u ON u.escritorio_id = e.id
-             WHERE u.id = $1`,
-            [req.user.id]
+            `SELECT nome, advogado_responsavel, oab, endereco, cidade,
+                    estado, cep, email, logo_base64
+             FROM escritorios
+             WHERE id = $1`,
+            [escritorioId]
         );
         const escritorio = eRows[0] || {};
 
@@ -191,14 +190,14 @@ router.get('/clientes/:clienteId/procuracoes/:id/template', async (req, res) => 
         }
 
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        res.send(gerarHtmlProcuracao({ proc, cliente, escritorio, processoNum }));
+        res.send(gerarHtmlProcuracao({ proc, cliente, escritorio, processoNum, logoBase64: escritorio.logo_base64 || null }));
     } catch (err) {
         console.error('GET template procuracao:', err);
         res.status(500).json({ erro: 'Erro ao gerar template' });
     }
 });
 
-function gerarHtmlProcuracao({ proc, cliente, escritorio, processoNum }) {
+function gerarHtmlProcuracao({ proc, cliente, escritorio, processoNum, logoBase64 }) {
     const poderes = typeof proc.poderes === 'string' ? JSON.parse(proc.poderes) : (proc.poderes || {});
 
     const tipoLabel = {
@@ -263,6 +262,9 @@ function gerarHtmlProcuracao({ proc, cliente, escritorio, processoNum }) {
   .page { width: 21cm; min-height: 29.7cm; margin: 0 auto; padding: 2.5cm 3cm 3cm 3cm; }
   h1 { text-align: center; font-size: 14pt; font-weight: bold; margin-bottom: 2em; letter-spacing: 1px; }
   p { text-align: justify; line-height: 1.8; margin-bottom: 1em; }
+  .cabecalho-logo { text-align: center; margin-bottom: 1.2cm; }
+  .cabecalho-logo img { max-width: 320px; max-height: 90px; width: auto; height: auto; object-fit: contain; display: block; margin: 0 auto; }
+  .cabecalho-linha { border: none; border-top: 1px solid #999; margin: 0.4cm 0 1.2cm 0; }
   .assinatura { margin-top: 4cm; text-align: center; }
   .assinatura .linha { border-top: 1px solid #000; width: 10cm; margin: 0 auto 6px auto; }
   .assinatura p { text-align: center; margin: 0; line-height: 1.6; }
@@ -283,6 +285,7 @@ function gerarHtmlProcuracao({ proc, cliente, escritorio, processoNum }) {
       🖨️ Imprimir / Salvar PDF
     </button>
   </div>
+  ${logoBase64 ? `<div class="cabecalho-logo"><img src="${logoBase64}" alt="Logo ${escNome}"></div><hr class="cabecalho-linha">` : ''}
   <h1>PROCURAÇÃO ${tipoLabel[proc.tipo] || proc.tipo.toUpperCase()}</h1>
   <p style="text-indent:4cm;">
     <strong>${cliente.nome.toUpperCase()}</strong>${nacStr}${ecStr}${profStr}${rgCliente}${docCliente}${endCliente}.
