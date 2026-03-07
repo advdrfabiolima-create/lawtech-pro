@@ -1583,9 +1583,9 @@ input, textarea, select {
 
         <main class="content">
             <!-- Cards + Mapa — layout lado a lado -->
-            <div style="display:grid; grid-template-columns:268px 310px; gap:16px; margin-bottom:16px; align-items:start;">
+            <div style="display:flex; flex-direction:row; gap:16px; margin-bottom:16px; align-items:flex-start;">
                 <!-- Cards 2×2 -->
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; flex:0 0 268px; width:268px;">
                 <div class="stat-card" style="background: linear-gradient(135deg,#667eea,#764ba2); border-radius:10px; padding:14px 18px; box-shadow:0 2px 8px rgba(102,126,234,0.3); transition:all 0.3s ease; display:flex; align-items:center; gap:14px;">
                     <i data-lucide="folder" style="color:rgba(255,255,255,0.85);width:22px;height:22px;flex-shrink:0;"></i>
                     <div>
@@ -1617,7 +1617,7 @@ input, textarea, select {
                 </div><!-- /cards grid -->
 
                 <!-- Mapa Interativo do Brasil -->
-                <div class="filters-container" style="margin-bottom:0; padding:10px 14px;">
+                <div class="filters-container" style="flex:0 0 310px; width:310px; margin-bottom:0; padding:10px 14px;">
                     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
                         <span class="filter-label" style="margin:0;">Filtrar por Região</span>
                         <button class="btn-filter active" id="btnTodosRegiao" data-action="filtrarRegiao" data-args='["TODOS"]'>Todos</button>
