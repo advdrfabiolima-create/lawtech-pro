@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { breakers } = require('../utils/circuitBreaker');
 
 const BREVO_URL = 'https://api.brevo.com/v3/smtp/email';
 
@@ -20,12 +21,12 @@ async function enviarEmail({ para, assunto, texto, html }) {
     if (!config) return;
 
     try {
-        await axios.post(BREVO_URL, {
+        await breakers.brevo.call(() => axios.post(BREVO_URL, {
             sender: { name: 'LawTech Pro', email: config.sender },
             to: [{ email: para }],
             subject: assunto,
             htmlContent: html || `<p>${texto || ''}</p>`
-        }, { headers: { 'api-key': config.apiKey } });
+        }, { headers: { 'api-key': config.apiKey } }));
 
         console.log(`📧 Email enviado para ${para}`);
     } catch (error) {
@@ -82,12 +83,12 @@ async function enviarAlertaPrazo(email, dadosPrazo) {
             </div>
         </div>`;
 
-        await axios.post(BREVO_URL, {
+        await breakers.brevo.call(() => axios.post(BREVO_URL, {
             sender: { name: 'LawTech Pro', email: config.sender },
             to: [{ email }],
             subject: `⚖️ ${textoUrgencia} — ${tipo || 'Prazo'} ${processo ? '(' + processo + ')' : ''}`,
             htmlContent: html
-        }, { headers: { 'api-key': config.apiKey } });
+        }, { headers: { 'api-key': config.apiKey } }));
 
         console.log(`📧 Alerta de prazo enviado para ${email}`);
         return { ok: true };
@@ -155,12 +156,12 @@ async function enviarEmailCobrancaPix(email, dados) {
     </div>`;
 
     try {
-        await axios.post(BREVO_URL, {
+        await breakers.brevo.call(() => axios.post(BREVO_URL, {
             sender: { name: 'LawTech Pro', email: config.sender },
             to: [{ email }],
             subject: `💳 Seu trial encerrou — Pague via PIX e continue usando o LawTech Pro`,
             htmlContent: html
-        }, { headers: { 'api-key': config.apiKey } });
+        }, { headers: { 'api-key': config.apiKey } }));
         console.log(`📧 [PIX COBRANÇA] E-mail enviado para ${email}`);
     } catch (err) {
         console.error('❌ Erro ao enviar e-mail PIX cobrança:', err.response?.data || err.message);
@@ -276,12 +277,12 @@ async function enviarEmailReuniao({ emailCliente, nomeCliente, tituloReuniao, da
     </div>`;
 
     try {
-        await axios.post(BREVO_URL, {
+        await breakers.brevo.call(() => axios.post(BREVO_URL, {
             sender: { name: 'LawTech Pro', email: config.sender },
             to: [{ email: emailCliente }],
             subject: `📅 Reunião agendada: ${tituloReuniao}`,
             htmlContent: html
-        }, { headers: { 'api-key': config.apiKey } });
+        }, { headers: { 'api-key': config.apiKey } }));
 
         console.log(`📧 [Reunião] Convite enviado para ${emailCliente}`);
         return { ok: true };

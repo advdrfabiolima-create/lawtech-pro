@@ -1,5 +1,6 @@
 const axios = require('axios');
 const fs = require('fs');
+const { breakers } = require('../utils/circuitBreaker');
 
 const BASE_URL = process.env.CLICKSIGN_ENV === 'production'
     ? 'https://app.clicksign.com'
@@ -41,7 +42,7 @@ async function uploadDocumento(filePathOrBuffer, nomeOriginal, deadline, mimetyp
         }
     };
 
-    const res = await csApi().post(`/api/v1/documents?access_token=${key}`, body);
+    const res = await breakers.clicksign.call(() => csApi().post(`/api/v1/documents?access_token=${key}`, body));
     return res.data.document.key;
 }
 
@@ -61,7 +62,7 @@ async function criarSignatario(email, nome, apiKey) {
         }
     };
 
-    const res = await csApi().post(`/api/v1/signers?access_token=${key}`, body);
+    const res = await breakers.clicksign.call(() => csApi().post(`/api/v1/signers?access_token=${key}`, body));
     return res.data.signer.key;
 }
 
@@ -81,7 +82,7 @@ async function adicionarSignatario(documentKey, signerKey, mensagem, apiKey) {
         }
     };
 
-    const res = await csApi().post(`/api/v1/lists?access_token=${key}`, body);
+    const res = await breakers.clicksign.call(() => csApi().post(`/api/v1/lists?access_token=${key}`, body));
     const list = res.data.list;
     return {
         requestSignatureKey: list.request_signature_key,
@@ -100,7 +101,7 @@ async function notificarSignatario(requestSignatureKey, mensagem, apiKey) {
         message: mensagem || null
     };
 
-    await csApi().patch(`/api/v1/notifications?access_token=${key}`, body);
+    await breakers.clicksign.call(() => csApi().patch(`/api/v1/notifications?access_token=${key}`, body));
 }
 
 /**
@@ -110,7 +111,7 @@ async function notificarSignatario(requestSignatureKey, mensagem, apiKey) {
  */
 async function buscarStatus(documentKey, apiKey) {
     const key = apiKey || DEFAULT_API_KEY();
-    const res = await csApi().get(`/api/v1/documents/${documentKey}?access_token=${key}`);
+    const res = await breakers.clicksign.call(() => csApi().get(`/api/v1/documents/${documentKey}?access_token=${key}`));
     const doc = res.data.document;
     return {
         status: doc.status,
@@ -124,7 +125,7 @@ async function buscarStatus(documentKey, apiKey) {
  */
 async function cancelarDocumento(documentKey, apiKey) {
     const key = apiKey || DEFAULT_API_KEY();
-    await csApi().patch(`/api/v1/documents/${documentKey}/cancel?access_token=${key}`, {});
+    await breakers.clicksign.call(() => csApi().patch(`/api/v1/documents/${documentKey}/cancel?access_token=${key}`, {}));
 }
 
 /**
@@ -136,7 +137,7 @@ async function downloadDocumentoAssinado(documentKey, apiKey) {
     const key = apiKey || DEFAULT_API_KEY();
 
     // 1. Busca metadados completos do documento
-    const metaRes = await csApi().get(`/api/v1/documents/${documentKey}?access_token=${key}`);
+    const metaRes = await breakers.clicksign.call(() => csApi().get(`/api/v1/documents/${documentKey}?access_token=${key}`));
     const doc = metaRes.data.document;
 
     // 2. Tenta obter a URL de download dos metadados
@@ -150,13 +151,13 @@ async function downloadDocumentoAssinado(documentKey, apiKey) {
 
     let fileBuffer;
     if (downloadUrl) {
-        const fileRes = await axios.get(downloadUrl, { responseType: 'arraybuffer' });
+        const fileRes = await breakers.clicksign.call(() => axios.get(downloadUrl, { responseType: 'arraybuffer' }));
         fileBuffer = Buffer.from(fileRes.data);
     } else {
-        const directRes = await csApi().get(
+        const directRes = await breakers.clicksign.call(() => csApi().get(
             `/api/v1/documents/${documentKey}/download?access_token=${key}`,
             { responseType: 'arraybuffer' }
-        );
+        ));
         const contentType = directRes.headers['content-type'] || '';
         if (!contentType.includes('pdf') && !contentType.includes('octet-stream')) {
             throw new Error(`ClickSign retornou conteúdo inesperado (${contentType}). O documento pode ainda estar em processamento.`);

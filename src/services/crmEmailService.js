@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { breakers } = require('../utils/circuitBreaker');
 
 const BREVO_URL = 'https://api.brevo.com/v3/smtp/email';
 
@@ -16,12 +17,12 @@ async function enviarEmailCRM({ para, assunto, html }) {
     const config = getBrevoConfig();
     if (!config) return false;
     try {
-        await axios.post(BREVO_URL, {
+        await breakers.brevo.call(() => axios.post(BREVO_URL, {
             sender: { name: 'LawTech Pro', email: config.sender },
             to: [{ email: para }],
             subject: assunto,
             htmlContent: html
-        }, { headers: { 'api-key': config.apiKey } });
+        }, { headers: { 'api-key': config.apiKey } }));
         console.log(`📧 [CRM] E-mail enviado para ${para} — ${assunto}`);
         return true;
     } catch (error) {

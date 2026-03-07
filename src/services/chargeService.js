@@ -7,6 +7,7 @@ const axios = require('axios');
 const pool = require('../config/db');
 const { withRetry } = require('../utils/retry');
 const logger = require('../utils/logger');
+const { breakers } = require('../utils/circuitBreaker');
 
 const ASAAS_ENV = process.env.ASAAS_ENV || 'production';
 const ASAAS_BASE_URL = ASAAS_ENV === 'sandbox'
@@ -83,7 +84,7 @@ async function cobrarViaAsaas(customerId, valor, descricao, escritorioId, asaasC
 
         if (!creditCardToken) throw new Error('Token do cartão não encontrado');
 
-        const response = await axios.post(
+        const response = await breakers.asaas.call(() => axios.post(
             `${ASAAS_BASE_URL}/payments`,
             {
                 customer: customerId,
@@ -95,7 +96,7 @@ async function cobrarViaAsaas(customerId, valor, descricao, escritorioId, asaasC
                 creditCardToken
             },
             { headers: getAsaasHeaders() }
-        );
+        ));
 
         const aprovado = ['CONFIRMED', 'RECEIVED', 'RECEIVED_IN_CASH'].includes(response.data.status);
         return {

@@ -75,6 +75,7 @@ const portalClienteRoutes = require('./routes/portalCliente.routes');
 const reunioesRoutes = require('./routes/reunioes.routes');
 const fileStorage = require('./utils/storage');
 const cache = require('./utils/cache');
+const { breakers } = require('./utils/circuitBreaker');
 const { version: APP_VERSION } = require('../package.json');
 
 // --- 2. MIDDLEWARES DE AUTENTICAÃ‡ÃƒO ---
@@ -286,6 +287,11 @@ app.get('/health', async (req, res) => {
     } catch (_) {
         checks.redis = 'error';
     }
+
+    // Circuit breakers — estado de cada API externa
+    checks.circuit_breakers = Object.fromEntries(
+        Object.entries(breakers).map(([name, cb]) => [name, cb.getStatus()])
+    );
 
     const dbOk = checks.database === 'ok';
     res.status(dbOk ? 200 : 503).json({
