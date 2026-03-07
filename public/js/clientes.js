@@ -210,22 +210,22 @@ const token = localStorage.getItem('token');
                             </button>
                             <div class="menu-acoes">
                                 <button data-action="visualizarProcessosCliente" data-args='[${c.id}, ${JSON.stringify(c.nome)}]'>
-                                    <i class="lucide lucide-eye"></i> Ver processos
+                                    <i data-lucide="eye" style="width:14px;height:14px;color:#52B788;"></i> Ver processos
                                 </button>
                                 <button data-action="gerarLinkPortal" data-args='[${c.id}, ${JSON.stringify(c.nome)}]'>
-                                    <i class="lucide lucide-link-2"></i> Link portal
+                                    <i data-lucide="link-2" style="width:14px;height:14px;color:#4A90E2;"></i> Link portal
                                 </button>
                                 <button data-action="abrirModalContratos" data-args='[${c.id}, ${JSON.stringify(c.nome)}]'>
-                                    <i class="lucide lucide-file-signature"></i> Contratos
+                                    <i data-lucide="file-signature" style="width:14px;height:14px;color:#7E8CE0;"></i> Contratos
                                 </button>
                                 <button data-action="abrirModalProcuracoes" data-args='[${c.id}, ${JSON.stringify(c.nome)}]'>
-                                    <i class="lucide lucide-scroll-text"></i> Procurações
+                                    <i data-lucide="scroll-text" style="width:14px;height:14px;color:#F2A65A;"></i> Procurações
                                 </button>
                                 <button class="btn-menu-edit" data-action="prepararEdicao" data-args='[${c.id}, ${JSON.stringify(c.nome)}, ${JSON.stringify(c.documento)}, ${JSON.stringify(c.email)}, ${JSON.stringify(c.telefone || "")}, ${JSON.stringify(c.cep || "")}, ${JSON.stringify(c.endereco || "")}, ${JSON.stringify(c.cidade || "")}, ${JSON.stringify(c.estado || "")}, ${JSON.stringify(c.tipo_pessoa || "fisica")}, ${JSON.stringify(c.data_nascimento || "")}]'>
-                                    <i class="lucide lucide-pencil"></i> Editar
+                                    <i data-lucide="pencil" style="width:14px;height:14px;color:#5BA4DB;"></i> Editar
                                 </button>
                                 <button class="btn-menu-delete" data-action="excluirCliente" data-args='[${c.id}]'>
-                                    <i class="lucide lucide-trash-2"></i> Excluir
+                                    <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Excluir
                                 </button>
                             </div>
                         </div>
@@ -304,22 +304,22 @@ const token = localStorage.getItem('token');
                         </button>
                         <div class="menu-acoes">
                             <button data-action="visualizarProcessosCliente" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}]'>
-                                <i class="lucide lucide-eye"></i> Ver processos
+                                <i data-lucide="eye" style="width:14px;height:14px;color:#52B788;"></i> Ver processos
                             </button>
                             <button data-action="gerarLinkPortal" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}]'>
-                                <i class="lucide lucide-link-2"></i> Link portal
+                                <i data-lucide="link-2" style="width:14px;height:14px;color:#4A90E2;"></i> Link portal
                             </button>
                             <button data-action="abrirModalContratos" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}]'>
-                                <i class="lucide lucide-file-signature"></i> Contratos
+                                <i data-lucide="file-signature" style="width:14px;height:14px;color:#7E8CE0;"></i> Contratos
                             </button>
                             <button data-action="abrirModalProcuracoes" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}]'>
-                                <i class="lucide lucide-scroll-text"></i> Procurações
+                                <i data-lucide="scroll-text" style="width:14px;height:14px;color:#F2A65A;"></i> Procurações
                             </button>
                             <button class="btn-menu-edit" data-action="prepararEdicao" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}, ${JSON.stringify(cliente.documento)}, ${JSON.stringify(cliente.email)}, ${JSON.stringify(cliente.telefone || "")}, ${JSON.stringify(cliente.cep || "")}, ${JSON.stringify(cliente.endereco || "")}, ${JSON.stringify(cliente.cidade || "")}, ${JSON.stringify(cliente.estado || "")}, ${JSON.stringify(cliente.tipo_pessoa || "fisica")}, ${JSON.stringify(cliente.data_nascimento || "")}]'>
-                                <i class="lucide lucide-pencil"></i> Editar
+                                <i data-lucide="pencil" style="width:14px;height:14px;color:#5BA4DB;"></i> Editar
                             </button>
                             <button class="btn-menu-delete" data-action="excluirCliente" data-args='[${cliente.id}]'>
-                                <i class="lucide lucide-trash-2"></i> Excluir
+                                <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Excluir
                             </button>
                         </div>
                     </div>
@@ -359,22 +359,22 @@ const token = localStorage.getItem('token');
                         </button>
                         <div class="menu-acoes">
                             <button data-action="visualizarProcessosCliente" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}]'>
-                                <i class="lucide lucide-eye"></i> Ver processos
+                                <i data-lucide="eye" style="width:14px;height:14px;color:#52B788;"></i> Ver processos
                             </button>
                             <button data-action="gerarLinkPortal" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}]'>
-                                <i class="lucide lucide-link-2"></i> Link portal
+                                <i data-lucide="link-2" style="width:14px;height:14px;color:#4A90E2;"></i> Link portal
                             </button>
                             <button data-action="abrirModalContratos" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}]'>
-                                <i class="lucide lucide-file-signature"></i> Contratos
+                                <i data-lucide="file-signature" style="width:14px;height:14px;color:#7E8CE0;"></i> Contratos
                             </button>
                             <button data-action="abrirModalProcuracoes" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}]'>
-                                <i class="lucide lucide-scroll-text"></i> Procurações
+                                <i data-lucide="scroll-text" style="width:14px;height:14px;color:#F2A65A;"></i> Procurações
                             </button>
                             <button class="btn-menu-edit" data-action="prepararEdicao" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}, ${JSON.stringify(cliente.documento)}, ${JSON.stringify(cliente.email)}, ${JSON.stringify(cliente.telefone || "")}, ${JSON.stringify(cliente.cep || "")}, ${JSON.stringify(cliente.endereco || "")}, ${JSON.stringify(cliente.cidade || "")}, ${JSON.stringify(cliente.estado || "")}, ${JSON.stringify(cliente.tipo_pessoa || "fisica")}, ${JSON.stringify(cliente.data_nascimento || "")}]'>
-                                <i class="lucide lucide-pencil"></i> Editar
+                                <i data-lucide="pencil" style="width:14px;height:14px;color:#5BA4DB;"></i> Editar
                             </button>
                             <button class="btn-menu-delete" data-action="excluirCliente" data-args='[${cliente.id}]'>
-                                <i class="lucide lucide-trash-2"></i> Excluir
+                                <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Excluir
                             </button>
                         </div>
                     </div>
