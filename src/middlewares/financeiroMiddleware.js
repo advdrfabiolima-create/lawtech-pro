@@ -24,7 +24,7 @@ async function verificarPagamento(req, res, next) {
 
         const diasRestantes = Math.ceil((expiracao - agora) / (1000 * 60 * 60 * 24));
 
-        if (diasRestantes > -3) return next(); // dentro do grace period
+        if (diasRestantes >= -3) return next(); // dentro do grace period (3 dias: -1, -2, -3)
 
         return res.status(402).json({
             ok: false,

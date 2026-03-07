@@ -2,7 +2,7 @@ require('dotenv').config();
 
 // ── Validação de variáveis de ambiente ────────────────────────────────────────
 const _REQUIRED = ['DATABASE_URL', 'JWT_SECRET', 'ENCRYPTION_KEY'];
-const _CRITICAL = ['BREVO_API_KEY', 'MASTER_EMAIL', 'MASTER_PASSWORD'];
+const _CRITICAL = ['BREVO_API_KEY', 'MASTER_EMAIL', 'MASTER_PASSWORD', 'ASAAS_WEBHOOK_TOKEN'];
 const _missing = _REQUIRED.filter(v => !process.env[v]);
 if (_missing.length > 0) {
     console.error(`[FATAL] Variáveis obrigatórias ausentes: ${_missing.join(', ')}`);
