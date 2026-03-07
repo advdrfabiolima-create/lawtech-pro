@@ -1404,7 +1404,7 @@
                     <div class="toolbar">
                         <div class="search-box">
                             <i class="lucide lucide-search"></i>
-                            <input type="text" placeholder="BUSCAR AUDIÊNCIA..." />
+                            <input type="text" id="buscaAudiencia" placeholder="BUSCAR POR CLIENTE OU Nº DO PROCESSO..." oninput="filtrarAudiencias()" />
                         </div>
                         <button class="btn-primary" data-action="abrirModal">
                             <i class="lucide lucide-plus"></i>
@@ -1414,19 +1414,20 @@
 
                     <!-- Tabela Agendadas -->
                     <div class="table-container">
-                        <table>
+                        <table style="table-layout:fixed; width:100%;">
                             <thead>
                                 <tr>
-                                    <th>DATA/HORA</th>
-                                    <th>PROCESSO</th>
-                                    <th>TIPO</th>
-                                    <th>LOCAL/LINK</th>
-                                    <th style="text-align: center;">AÇÕES</th>
+                                    <th style="width:140px;">DATA/HORA</th>
+                                    <th style="width:20%;">PROCESSO / CLIENTE</th>
+                                    <th style="width:22%;">PARTE CONTRÁRIA</th>
+                                    <th style="width:110px;">TIPO</th>
+                                    <th style="width:18%;">LOCAL/LINK</th>
+                                    <th style="text-align: center; width:90px;">AÇÕES</th>
                                 </tr>
                             </thead>
                             <tbody id="listaAudiencias">
                                 <tr>
-                                    <td colspan="5" style="text-align: center; padding: 60px 20px; color: var(--text-tertiary);">
+                                    <td colspan="6" style="text-align: center; padding: 60px 20px; color: var(--text-tertiary);">
                                         <i class="lucide lucide-loader" style="font-size: 32px; animation: spin 1s linear infinite;"></i>
                                         <p style="margin-top: 16px; font-weight: 600;">CARREGANDO AUDIÊNCIAS...</p>
                                     </td>
@@ -1441,19 +1442,20 @@
                 <div id="abaRealizadas" class="tab-content">
                     <!-- Tabela Realizadas -->
                     <div class="table-container">
-                        <table>
+                        <table style="table-layout:fixed; width:100%;">
                             <thead>
                                 <tr>
-                                    <th>DATA/HORA</th>
-                                    <th>PROCESSO</th>
-                                    <th>TIPO</th>
-                                    <th>LOCAL/LINK</th>
-                                    <th style="text-align: center;">AÇÕES</th>
+                                    <th style="width:140px;">DATA/HORA</th>
+                                    <th style="width:20%;">PROCESSO / CLIENTE</th>
+                                    <th style="width:22%;">PARTE CONTRÁRIA</th>
+                                    <th style="width:110px;">TIPO</th>
+                                    <th style="width:18%;">LOCAL/LINK</th>
+                                    <th style="text-align: center; width:90px;">AÇÕES</th>
                                 </tr>
                             </thead>
                             <tbody id="listaAudienciasRealizadas">
                                 <tr>
-                                    <td colspan="5" style="text-align: center; padding: 60px 20px; color: var(--text-tertiary);">
+                                    <td colspan="6" style="text-align: center; padding: 60px 20px; color: var(--text-tertiary);">
                                         <i class="lucide lucide-loader" style="font-size: 32px; animation: spin 1s linear infinite;"></i>
                                         <p style="margin-top: 16px; font-weight: 600;">CARREGANDO AUDIÊNCIAS...</p>
                                     </td>

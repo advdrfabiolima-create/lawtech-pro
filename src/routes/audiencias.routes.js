@@ -18,6 +18,7 @@ router.get('/audiencias', authMiddleware, async (req, res) => {
             SELECT a.*,
                    p.numero as processo_numero,
                    COALESCE(c.nome, p.cliente) as cliente,
+                   p.parte_contraria,
                    c.telefone,
                    a.ata_audiencia,
                    u.nome as cadastrado_por

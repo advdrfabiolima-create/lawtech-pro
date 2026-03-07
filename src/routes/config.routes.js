@@ -365,4 +365,136 @@ router.delete('/config/logo', authMiddleware, async (req, res) => {
     }
 });
 
+
+// ============================================================
+// ROTAS Z-API (WhatsApp Business — BYOK)
+// Cada escritório guarda suas próprias credenciais no banco.
+// ============================================================
+
+/**
+ * GET /api/config/zapi — Retorna status (sem expor as credenciais)
+ */
+router.get("/config/zapi", authMiddleware, async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT
+                zapi_instance_id IS NOT NULL AND zapi_instance_id != '' AS configurado,
+                zapi_followup_dias_lead     AS dias_lead,
+                zapi_followup_dias_triagem  AS dias_triagem,
+                zapi_followup_dias_proposta AS dias_proposta
+             FROM escritorios WHERE id = $1`,
+            [req.user.escritorio_id]
+        );
+        const row = result.rows[0] || {};
+        res.json({
+            configurado:   row.configurado || false,
+            dias_lead:     row.dias_lead     || 3,
+            dias_triagem:  row.dias_triagem  || 5,
+            dias_proposta: row.dias_proposta || 4
+        });
+    } catch (err) {
+        logger.error({ err: err.message }, "[ZAPI] Erro ao buscar config");
+        res.status(500).json({ erro: "Erro ao buscar configuração" });
+    }
+});
+
+/**
+ * PATCH /api/config/zapi — Salva credenciais e dias de follow-up
+ */
+router.patch("/config/zapi", authMiddleware, roleMiddleware("admin"), async (req, res) => {
+    try {
+        const {
+            instance_id, token: zapToken, client_token,
+            dias_lead, dias_triagem, dias_proposta
+        } = req.body;
+
+        const escritorioId = req.user.escritorio_id;
+
+        const sets = [];
+        const vals = [];
+        let i = 1;
+
+        if (instance_id  !== undefined) { sets.push(`zapi_instance_id   = $${i++}`); vals.push(instance_id  || null); }
+        if (zapToken     !== undefined) { sets.push(`zapi_token         = $${i++}`); vals.push(zapToken     || null); }
+        if (client_token !== undefined) { sets.push(`zapi_client_token  = $${i++}`); vals.push(client_token || null); }
+        if (dias_lead     != null)      { sets.push(`zapi_followup_dias_lead     = $${i++}`); vals.push(dias_lead);     }
+        if (dias_triagem  != null)      { sets.push(`zapi_followup_dias_triagem  = $${i++}`); vals.push(dias_triagem);  }
+        if (dias_proposta != null)      { sets.push(`zapi_followup_dias_proposta = $${i++}`); vals.push(dias_proposta); }
+
+        if (sets.length === 0) {
+            return res.status(400).json({ erro: "Nenhum campo enviado para atualizar." });
+        }
+
+        vals.push(escritorioId);
+        await pool.query(
+            `UPDATE escritorios SET ${sets.join(", ")} WHERE id = $${i}`,
+            vals
+        );
+
+        logger.info({ escritorioId }, "[ZAPI] Config salva");
+        res.json({ ok: true, mensagem: "Configuração WhatsApp salva com sucesso!" });
+    } catch (err) {
+        logger.error({ err: err.message }, "[ZAPI] Erro ao salvar config");
+        res.status(500).json({ erro: "Erro ao salvar configuração" });
+    }
+});
+
+/**
+ * DELETE /api/config/zapi — Remove credenciais
+ */
+router.delete("/config/zapi", authMiddleware, roleMiddleware("admin"), async (req, res) => {
+    try {
+        await pool.query(
+            `UPDATE escritorios SET
+                zapi_instance_id  = NULL,
+                zapi_token        = NULL,
+                zapi_client_token = NULL
+             WHERE id = $1`,
+            [req.user.escritorio_id]
+        );
+        logger.info({ escritorioId: req.user.escritorio_id }, "[ZAPI] Credenciais removidas");
+        res.json({ ok: true });
+    } catch (err) {
+        logger.error({ err: err.message }, "[ZAPI] Erro ao remover config");
+        res.status(500).json({ erro: "Erro ao remover configuração" });
+    }
+});
+
+/**
+ * POST /api/config/zapi/testar — Testa se a instância está ativa
+ */
+router.post("/config/zapi/testar", authMiddleware, async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT zapi_instance_id, zapi_token, zapi_client_token
+             FROM escritorios WHERE id = $1`,
+            [req.user.escritorio_id]
+        );
+
+        const row = result.rows[0];
+        if (!row?.zapi_instance_id || !row?.zapi_token || !row?.zapi_client_token) {
+            return res.status(400).json({ ok: false, erro: "Credenciais não configuradas." });
+        }
+
+        const url = `https://api.z-api.io/instances/${row.zapi_instance_id}/token/${row.zapi_token}/status`;
+        const testRes = await axios.get(url, {
+            headers: { "Client-Token": row.zapi_client_token },
+            timeout: 8000
+        });
+
+        const connected = testRes.data?.connected === true || testRes.data?.status === "connected";
+        if (connected) {
+            res.json({ ok: true });
+        } else {
+            res.json({ ok: false, erro: "Instância desconectada. Escaneie o QR Code novamente na Z-API." });
+        }
+    } catch (err) {
+        logger.error({ err: err.message }, "[ZAPI] Erro ao testar");
+        const msg = err.response?.status === 401
+            ? "Credenciais inválidas. Verifique Instance ID, Token e Client-Token."
+            : "Não foi possível conectar à Z-API. Verifique as credenciais.";
+        res.status(200).json({ ok: false, erro: msg });
+    }
+});
+
 module.exports = router;

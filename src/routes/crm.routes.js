@@ -4,9 +4,11 @@ const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
 const planMiddleware = require('../middlewares/planMiddleware');
 const crmEmailService = require('../services/crmEmailService');
+const zap = require('../services/zapService');            // ← Z-API
+const { executarFollowUp } = require('../jobs/followUpJob'); // ← Follow-up manual
 const logger = require('../utils/logger');
 
-logger.info('CRM routes carregadas - Versao 4.0 AUTOMACAO');
+logger.info('CRM routes carregadas - Versao 5.0 WHATSAPP');
 
 const crmController = require('../controllers/crmController');
 router.post('/proposta/:id/completar-dados', crmController.completarDadosLead);
@@ -53,7 +55,7 @@ async function buscarInfoEscritorio(escritorioId) {
     return result.rows[0] || {};
 }
 
-// ─── GET /leads/:id/atividades — REGISTRADA ANTES DE QUALQUER ROTA COM :id ────
+// ─── GET /leads/:id/atividades ─────────────────────────────────────────────────
 router.get('/leads/:id/atividades',
     async (req, res) => {
         try {
@@ -105,7 +107,6 @@ router.get('/leads',
                 pool.query('SELECT COUNT(*) AS total FROM leads WHERE escritorio_id = $1', [escritorioId])
             ]);
             const total = parseInt(countResult.rows[0].total);
-            logger.info({ count: resultado.rows.length, page }, 'GET /leads: leads retornados');
             res.json(buildPage(resultado.rows, total, page, limit));
         } catch (err) {
             logger.error({ err: err.message }, 'GET /leads erro');
@@ -116,7 +117,6 @@ router.get('/leads',
 
 // ─── POST /teste-post ──────────────────────────────────────────────────────────
 router.post('/teste-post', (req, res) => {
-    logger.info('Rota de teste CRM executada');
     res.json({ ok: true, mensagem: 'Rota de teste funcionou!' });
 });
 
@@ -124,19 +124,13 @@ router.post('/teste-post', (req, res) => {
 router.post('/leads',
     authMiddleware,
     planMiddleware.checkFeature('crm'),
-    (req, res, next) => {
-        logger.info({ userId: req.user?.id, body: req.body }, 'POST /leads handler executado');
-        next();
-    },
     async (req, res) => {
         try {
             const { nome, email, telefone, interesse } = req.body;
             const escritorioId = req.user.escritorio_id;
 
-            logger.info({ nome, email, telefone, interesse, escritorioId }, 'POST /leads dados recebidos');
-
             if (!nome || !telefone) {
-                return res.status(400).json({ ok: false, error: 'Campos obrigatorios' });
+                return res.status(400).json({ ok: false, error: 'Campos obrigatórios ausentes' });
             }
 
             const interesseFinal = interesse && interesse.trim() !== '' ? interesse.trim() : 'Não informado';
@@ -150,33 +144,36 @@ router.post('/leads',
             const lead = result.rows[0];
             const leadId = lead.id;
 
-            // Registrar atividade de criação
             await registrarAtividade(leadId, escritorioId, 'criado', 'Lead criado via Manual');
 
-            // Calcular e persistir score
             const score = calcularScore(lead);
             await pool.query('UPDATE leads SET score = $1 WHERE id = $2', [score, leadId]);
 
-            // Buscar info do escritório (uma vez para reuso)
             const info = await buscarInfoEscritorio(escritorioId);
 
-            // E-mail de boas-vindas ao lead
+            // ── E-mail de boas-vindas ──────────────────────────────────────────
             if (lead.email) {
                 await crmEmailService.enviarBoasVindasLead({
-                    nomeAdvogado: info.nome_advogado || 'Advogado',
+                    nomeAdvogado:  info.nome_advogado  || 'Advogado',
                     nomeEscritorio: info.nome_escritorio || 'Escritório',
-                    nomeLead: lead.nome,
-                    emailLead: lead.email,
+                    nomeLead:      lead.nome,
+                    emailLead:     lead.email,
                     areaInteresse: lead.assunto
                 });
                 await registrarAtividade(leadId, escritorioId, 'email_enviado', 'E-mail de boas-vindas enviado');
-                await pool.query(
-                    'UPDATE leads SET email_boas_vindas_enviado = TRUE WHERE id = $1',
-                    [leadId]
-                );
+                await pool.query('UPDATE leads SET email_boas_vindas_enviado = TRUE WHERE id = $1', [leadId]);
             }
 
-            // Notificação in-app para o advogado
+            // ── WhatsApp de boas-vindas ────────────────────────────────────────
+            if (lead.telefone) {
+                const msgWpp = zap.msgBoasVindas(lead.nome, lead.assunto, info.nome_escritorio);
+                const wppOk  = await zap.enviarMensagem(escritorioId, lead.telefone, msgWpp);
+                if (wppOk) {
+                    await registrarAtividade(leadId, escritorioId, 'whatsapp_enviado', 'WhatsApp de boas-vindas enviado automaticamente');
+                }
+            }
+
+            // ── Notificação in-app ─────────────────────────────────────────────
             if (info.usuario_id) {
                 try {
                     await pool.query(`
@@ -189,11 +186,10 @@ router.post('/leads',
                         `Novo lead cadastrado — ${lead.assunto || 'interesse não informado'}`
                     ]);
                 } catch (e) {
-                    logger.warn({ err: e.message }, 'CRM: notificacao in-app falhou');
+                    logger.warn({ err: e.message }, 'CRM: notificação in-app falhou');
                 }
             }
 
-            logger.info({ leadId, score, assunto: lead.assunto }, 'POST /leads: lead criado');
             res.status(201).json({ ok: true, lead: { ...lead, score } });
 
         } catch (err) {
@@ -203,8 +199,6 @@ router.post('/leads',
     }
 );
 
-logger.info('CRM: rota POST /leads registrada no Express');
-
 // ─── GET /metricas ─────────────────────────────────────────────────────────────
 router.get('/metricas',
     authMiddleware,
@@ -212,7 +206,6 @@ router.get('/metricas',
     async (req, res) => {
         try {
             const id = req.user.escritorio_id;
-            logger.info({ escritorioId: id }, 'GET /metricas calculando metricas');
             const query = `
                 SELECT
                     COUNT(*) FILTER (WHERE status IN ('Novo', 'Novo Lead')) as leads,
@@ -222,7 +215,6 @@ router.get('/metricas',
                 FROM leads WHERE escritorio_id = $1
             `;
             const result = await pool.query(query, [id]);
-            logger.info({ metricas: result.rows[0] }, 'GET /metricas calculadas');
             res.json(result.rows[0]);
         } catch (err) {
             logger.error({ err: err.message }, 'GET /metricas erro');
@@ -241,9 +233,6 @@ router.patch('/lead/:id/status',
             const { status } = req.body;
             const escritorioId = req.user.escritorio_id;
 
-            logger.info({ id, status, escritorioId }, 'PATCH /lead/:id/status atualizando status');
-
-            // Buscar status anterior
             const anterior = await pool.query(
                 'SELECT status FROM leads WHERE id = $1 AND escritorio_id = $2',
                 [id, escritorioId]
@@ -258,7 +247,6 @@ router.patch('/lead/:id/status',
             await registrarAtividade(id, escritorioId, 'status_alterado',
                 `Etapa alterada: ${statusAnterior} → ${status}`);
 
-            // Buscar lead atualizado para score e e-mail
             const leadResult = await pool.query('SELECT * FROM leads WHERE id = $1', [id]);
             const lead = leadResult.rows[0];
 
@@ -266,35 +254,51 @@ router.patch('/lead/:id/status',
                 const score = calcularScore(lead);
                 await pool.query('UPDATE leads SET score = $1 WHERE id = $2', [score, id]);
 
-                // Mapear status para etapa de e-mail
-                const mapeamento = {
-                    'Reuniao': 'triagem',
-                    'Reunião': 'triagem',
-                    'Proposta': 'proposta',
-                    'Ganho': 'ganho'
-                };
-                const etapa = mapeamento[status];
+                const info = await buscarInfoEscritorio(escritorioId);
 
-                if (etapa && lead.email) {
-                    const info = await buscarInfoEscritorio(escritorioId);
-                    const linkFicha = etapa === 'ganho'
+                // ── E-mail por etapa ──────────────────────────────────────────
+                const mapeamentoEmail = { 'Reuniao': 'triagem', 'Reunião': 'triagem', 'Proposta': 'proposta', 'Ganho': 'ganho' };
+                const etapaEmail = mapeamentoEmail[status];
+
+                if (etapaEmail && lead.email) {
+                    const linkFicha = etapaEmail === 'ganho'
                         ? `https://lawtechpro.com.br/ficha-cliente.html?leadId=${id}`
                         : null;
                     await crmEmailService.enviarEmailEtapa({
-                        etapa,
-                        nomeAdvogado: info.nome_advogado || 'Advogado',
+                        etapa:          etapaEmail,
+                        nomeAdvogado:   info.nome_advogado   || 'Advogado',
                         nomeEscritorio: info.nome_escritorio || 'Escritório',
-                        nomeLead: lead.nome,
-                        emailLead: lead.email,
-                        areaInteresse: lead.assunto,
+                        nomeLead:       lead.nome,
+                        emailLead:      lead.email,
+                        areaInteresse:  lead.assunto,
                         linkFicha
                     });
-                    await registrarAtividade(id, escritorioId, 'email_enviado',
-                        `E-mail de ${etapa} enviado`);
+                    await registrarAtividade(id, escritorioId, 'email_enviado', `E-mail de ${etapaEmail} enviado`);
+                }
+
+                // ── WhatsApp por etapa ────────────────────────────────────────
+                if (lead.telefone) {
+                    let msgWpp = null;
+
+                    if (status === 'Reunião' || status === 'Reuniao') {
+                        msgWpp = zap.msgTriagem(lead.nome, info.nome_advogado, info.nome_escritorio);
+                    } else if (status === 'Proposta') {
+                        msgWpp = zap.msgProposta(lead.nome, lead.assunto, info.nome_escritorio);
+                    } else if (status === 'Ganho') {
+                        const linkFicha = `https://lawtechpro.com.br/ficha-cliente.html?leadId=${id}`;
+                        msgWpp = zap.msgGanho(lead.nome, linkFicha, info.nome_escritorio);
+                    }
+
+                    if (msgWpp) {
+                        const wppOk = await zap.enviarMensagem(escritorioId, lead.telefone, msgWpp);
+                        if (wppOk) {
+                            await registrarAtividade(id, escritorioId, 'whatsapp_enviado',
+                                `WhatsApp automático enviado — etapa: ${status}`);
+                        }
+                    }
                 }
             }
 
-            logger.info({ id, status }, 'PATCH /lead/:id/status atualizado com sucesso');
             res.json({ ok: true });
         } catch (err) {
             logger.error({ err: err.message }, 'PATCH /lead/:id/status erro');
@@ -313,13 +317,10 @@ router.put('/leads/:id/notas',
             const { notas } = req.body;
             const escritorioId = req.user.escritorio_id;
 
-            logger.info({ id, notasLength: notas?.length, escritorioId }, 'PUT /leads/:id/notas salvando notas');
-
             await pool.query(
                 'UPDATE leads SET mensagem = $1 WHERE id = $2 AND escritorio_id = $3',
                 [notas, id, escritorioId]
             );
-
             await registrarAtividade(id, escritorioId, 'nota_salva', 'Nota atualizada');
 
             const leadResult = await pool.query('SELECT * FROM leads WHERE id = $1', [id]);
@@ -329,7 +330,6 @@ router.put('/leads/:id/notas',
                 await pool.query('UPDATE leads SET score = $1 WHERE id = $2', [score, id]);
             }
 
-            logger.info({ id }, 'PUT /leads/:id/notas salvas com sucesso');
             res.json({ ok: true });
         } catch (err) {
             logger.error({ err: err.message }, 'PUT /leads/:id/notas erro');
@@ -347,24 +347,108 @@ router.delete('/leads/:id',
             const { id } = req.params;
             const escritorioId = req.user.escritorio_id;
 
-            logger.info({ id, escritorioId }, 'DELETE /leads/:id excluindo lead');
-
             const result = await pool.query(
                 'DELETE FROM leads WHERE id = $1 AND escritorio_id = $2 RETURNING *',
                 [id, escritorioId]
             );
 
             if (result.rowCount === 0) {
-                logger.warn({ id }, 'DELETE /leads/:id lead nao encontrado');
-                return res.status(404).json({ ok: false, erro: 'Lead nao encontrado' });
+                return res.status(404).json({ ok: false, erro: 'Lead não encontrado' });
             }
 
-            logger.info({ id }, 'DELETE /leads/:id lead excluido com sucesso');
             res.json({ ok: true });
         } catch (err) {
             logger.error({ err: err.message }, 'DELETE /leads/:id erro');
             res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
         }
+    }
+);
+
+// ─── POST /webhook/lead — Endpoint público para captura externa ────────────────
+// Recebe leads de: formulários do site, Instagram Lead Ads, Google Ads, Typeform, etc.
+// Protegido por WEBHOOK_SECRET no header Authorization
+//
+// Exemplo de chamada:
+//   POST https://seu-app.railway.app/api/crm/webhook/lead
+//   Authorization: Bearer SEU_WEBHOOK_SECRET
+//   { "nome": "João", "telefone": "71999999999", "assunto": "Trabalhista", "origem": "Instagram" }
+//
+router.post('/webhook/lead', async (req, res) => {
+    // Valida secret
+    const auth = (req.headers['authorization'] || '').replace('Bearer ', '').trim();
+    if (!process.env.WEBHOOK_SECRET || auth !== process.env.WEBHOOK_SECRET) {
+        logger.warn({ ip: req.ip }, '[WEBHOOK] Tentativa sem secret válido');
+        return res.status(401).json({ ok: false, erro: 'Não autorizado' });
+    }
+
+    const { nome, telefone, email, assunto, origem, escritorio_id } = req.body;
+
+    if (!nome || !telefone) {
+        return res.status(400).json({ ok: false, erro: 'nome e telefone são obrigatórios' });
+    }
+
+    // Usa escritorio_id do body OU fallback para o escritório padrão (ID 1)
+    const escritorioId = parseInt(escritorio_id, 10) || 1;
+    const origemFinal  = origem || 'Webhook';
+    const assuntoFinal = assunto || 'Não informado';
+
+    try {
+        // Cria o lead
+        const result = await pool.query(
+            `INSERT INTO leads (escritorio_id, nome, email, telefone, assunto, status, origem, ultima_movimentacao)
+             VALUES ($1, $2, $3, $4, $5, 'Novo', $6, NOW()) RETURNING *`,
+            [escritorioId, nome.trim(), email?.trim() || null, telefone.trim(), assuntoFinal, origemFinal]
+        );
+
+        const lead   = result.rows[0];
+        const leadId = lead.id;
+
+        await registrarAtividade(leadId, escritorioId, 'criado', `Lead recebido via Webhook — origem: ${origemFinal}`);
+
+        const score = calcularScore(lead);
+        await pool.query('UPDATE leads SET score = $1 WHERE id = $2', [score, leadId]);
+
+        const info = await buscarInfoEscritorio(escritorioId);
+
+        // WhatsApp de boas-vindas
+        if (lead.telefone) {
+            const msgWpp = zap.msgBoasVindas(lead.nome, lead.assunto, info.nome_escritorio);
+            const wppOk  = await zap.enviarMensagem(escritorioId, lead.telefone, msgWpp);
+            if (wppOk) {
+                await registrarAtividade(leadId, escritorioId, 'whatsapp_enviado', 'WhatsApp de boas-vindas enviado via Webhook');
+            }
+        }
+
+        // E-mail de boas-vindas
+        if (lead.email) {
+            await crmEmailService.enviarBoasVindasLead({
+                nomeAdvogado:   info.nome_advogado   || 'Advogado',
+                nomeEscritorio: info.nome_escritorio || 'Escritório',
+                nomeLead:       lead.nome,
+                emailLead:      lead.email,
+                areaInteresse:  lead.assunto
+            }).catch(e => logger.warn({ err: e.message }, '[WEBHOOK] E-mail falhou'));
+        }
+
+        logger.info({ leadId, origem: origemFinal }, '[WEBHOOK] Lead criado com sucesso');
+        res.status(201).json({ ok: true, leadId });
+
+    } catch (err) {
+        logger.error({ err: err.message }, '[WEBHOOK] Erro ao criar lead');
+        res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
+    }
+});
+
+// ─── POST /followup/executar — Disparo manual do job (apenas admin) ───────────
+router.post('/followup/executar',
+    authMiddleware,
+    async (req, res) => {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ ok: false, erro: 'Apenas admins podem executar o follow-up manualmente' });
+        }
+        logger.info({ userId: req.user.id }, '[FOLLOWUP] Disparo manual solicitado');
+        executarFollowUp(); // roda em background, não aguarda
+        res.json({ ok: true, mensagem: 'Job de follow-up iniciado em background' });
     }
 );
 
