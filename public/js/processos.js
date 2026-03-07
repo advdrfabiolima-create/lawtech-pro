@@ -567,7 +567,7 @@ let gerenciadorPartesEdicao = null;
                         </div>
                     ` : `
                         <div style="position: relative; display: inline-block;">
-                            <button class="proc-actions-toggle" data-action="toggleDropdown" data-args='[${p.id}]' title="Ações">
+                            <button class="proc-actions-toggle" data-action="toggleDropdown" title="Ações">
                                 <i data-lucide="more-vertical" style="width:16px;height:16px;"></i>
                             </button>
                             <div id="proc-menu-${p.id}" class="proc-actions-menu">
@@ -603,19 +603,38 @@ let gerenciadorPartesEdicao = null;
     }
 
     // ── Dropdown de ações da tabela ──────────────────────────────────────────
-    window.toggleDropdown = function(id) {
-        const menu = document.getElementById('proc-menu-' + id);
+    window.toggleDropdown = function(btn) {
+        // Garante que btn seja sempre o <button>, mesmo se o clique veio no ícone filho
+        btn = btn.closest('.proc-actions-toggle') || btn;
+        const menu = btn.nextElementSibling;
         if (!menu) return;
-        const isOpen = menu.style.display === 'block';
-        // Fecha todos os outros menus abertos
-        document.querySelectorAll('.proc-actions-menu').forEach(m => { m.style.display = 'none'; });
-        if (!isOpen) menu.style.display = 'block';
+
+        const isOpen = menu.dataset.open === '1';
+
+        document.querySelectorAll('.proc-actions-menu[data-open="1"]').forEach(m => {
+            m.style.display = 'none';
+            m.dataset.open = '0';
+        });
+
+        if (!isOpen) {
+            const rect = btn.getBoundingClientRect();
+            // Usa position:fixed para ancorar à viewport, evitando deslocamento por scroll
+            menu.style.position = 'fixed';
+            menu.style.top      = (rect.bottom + 4) + 'px';
+            menu.style.right    = (window.innerWidth - rect.right) + 'px';
+            menu.style.left     = 'auto';
+            menu.style.display  = 'block';
+            menu.dataset.open   = '1';
+        }
     };
 
-    // Fecha dropdowns ao clicar fora
+    // Fecha ao clicar fora
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.proc-actions-toggle') && !e.target.closest('.proc-actions-menu')) {
-            document.querySelectorAll('.proc-actions-menu').forEach(m => { m.style.display = 'none'; });
+            document.querySelectorAll('.proc-actions-menu[data-open="1"]').forEach(m => {
+                m.style.display = 'none';
+                m.dataset.open = '0';
+            });
         }
     });
 

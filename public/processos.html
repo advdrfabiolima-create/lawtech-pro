@@ -315,7 +315,8 @@
         }
 
         /* Tabela de Elite */
-        .card { background: var(--white); border-radius: var(--radius); padding: 0; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; }
+        .card { background: var(--white); border-radius: var(--radius); padding: 0; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: visible; }
+        .card-table-scroll { overflow-x: auto; overflow-y: visible; border-radius: var(--radius); }
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; color: var(--muted); padding: 16px 24px; border-bottom: 2px solid var(--border); font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
         td { padding: 16px 24px; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-main); }
@@ -1483,7 +1484,7 @@ input, textarea, select {
         /* ── Dropdown de ações da tabela ── */
         .proc-actions-toggle { background:none; border:1px solid #e2e8f0; cursor:pointer; color:#5A6C7D; border-radius:6px; padding:5px 7px; line-height:0; transition:background 0.15s,color 0.15s; }
         .proc-actions-toggle:hover { background:#f1f5f9; color:#1e3a5f; }
-        .proc-actions-menu { display:none; position:absolute; right:0; top:calc(100% + 4px); background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:9999; min-width:175px; overflow:hidden; }
+        .proc-actions-menu { display:none; position:fixed; background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:99999; min-width:175px; overflow:hidden; }
         .proc-actions-menu button { display:flex; align-items:center; gap:9px; width:100%; padding:10px 14px; background:none; border:none; cursor:pointer; font-size:13px; font-weight:500; color:#334155; text-align:left; transition:background 0.12s; }
         .proc-actions-menu button:hover { background:#f8fafc; }
         .proc-actions-menu button.danger { color:#ef4444; }
@@ -1704,7 +1705,7 @@ input, textarea, select {
 
             </div><!-- /faixa inferior -->
 
-            <div class="card" style="overflow-x: auto;">
+            <div class="card card-table-scroll">
                 <table style="width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 1050px;">
                     <thead>
                         <tr style="background: #f1f5f9; color: #7B8794; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">
