@@ -212,10 +212,10 @@ function gerarHtmlProcuracao({ proc, cliente, escritorio, processoNum, logoBase6
     const dataExtenso = `${dataObj.getDate()} de ${meses[dataObj.getMonth()]} de ${dataObj.getFullYear()}`;
 
     const docCliente = cliente.documento
-        ? `, inscrito no ${cliente.tipo_pessoa === 'juridica' ? 'CNPJ' : 'CPF'} nº ${cliente.documento}` : '';
-    const rgCliente  = cliente.rg ? `, portador da cédula de identidade RG nº ${cliente.rg}` : '';
+        ? `, inscrito(a) no ${cliente.tipo_pessoa === 'juridica' ? 'CNPJ' : 'CPF'} nº ${cliente.documento}` : '';
+    const rgCliente  = cliente.rg ? `, portador(a) da cédula de identidade RG nº ${cliente.rg}` : '';
     const endCliente = cliente.endereco
-        ? `, residente e domiciliado na ${cliente.endereco}${cliente.cidade ? ', ' + cliente.cidade : ''}${cliente.estado ? '/' + cliente.estado : ''}` : '';
+        ? `, residente e domiciliado(a) na ${cliente.endereco}${cliente.cidade ? ', ' + cliente.cidade : ''}${cliente.estado ? '/' + cliente.estado : ''}` : '';
 
     // Dados pessoais do outorgante (da procuração, não do cadastro)
     const nacStr  = proc.nacionalidade ? `, ${proc.nacionalidade}` : '';
