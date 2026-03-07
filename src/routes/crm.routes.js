@@ -4,11 +4,7 @@ const pool = require('../config/db');
 const authMiddleware = require('../middlewares/authMiddleware');
 const planMiddleware = require('../middlewares/planMiddleware');
 const crmEmailService = require('../services/crmEmailService');
-const zap = require('../services/zapService');            // ← Z-API
-const { executarFollowUp } = require('../jobs/followUpJob'); // ← Follow-up manual
 const logger = require('../utils/logger');
-
-logger.info('CRM routes carregadas - Versao 5.0 WHATSAPP');
 
 const crmController = require('../controllers/crmController');
 router.post('/proposta/:id/completar-dados', crmController.completarDadosLead);
@@ -164,15 +160,6 @@ router.post('/leads',
                 await pool.query('UPDATE leads SET email_boas_vindas_enviado = TRUE WHERE id = $1', [leadId]);
             }
 
-            // ── WhatsApp de boas-vindas ────────────────────────────────────────
-            if (lead.telefone) {
-                const msgWpp = zap.msgBoasVindas(lead.nome, lead.assunto, info.nome_escritorio);
-                const wppOk  = await zap.enviarMensagem(escritorioId, lead.telefone, msgWpp);
-                if (wppOk) {
-                    await registrarAtividade(leadId, escritorioId, 'whatsapp_enviado', 'WhatsApp de boas-vindas enviado automaticamente');
-                }
-            }
-
             // ── Notificação in-app ─────────────────────────────────────────────
             if (info.usuario_id) {
                 try {
@@ -276,27 +263,6 @@ router.patch('/lead/:id/status',
                     await registrarAtividade(id, escritorioId, 'email_enviado', `E-mail de ${etapaEmail} enviado`);
                 }
 
-                // ── WhatsApp por etapa ────────────────────────────────────────
-                if (lead.telefone) {
-                    let msgWpp = null;
-
-                    if (status === 'Reunião' || status === 'Reuniao') {
-                        msgWpp = zap.msgTriagem(lead.nome, info.nome_advogado, info.nome_escritorio);
-                    } else if (status === 'Proposta') {
-                        msgWpp = zap.msgProposta(lead.nome, lead.assunto, info.nome_escritorio);
-                    } else if (status === 'Ganho') {
-                        const linkFicha = `https://lawtechpro.com.br/ficha-cliente.html?leadId=${id}`;
-                        msgWpp = zap.msgGanho(lead.nome, linkFicha, info.nome_escritorio);
-                    }
-
-                    if (msgWpp) {
-                        const wppOk = await zap.enviarMensagem(escritorioId, lead.telefone, msgWpp);
-                        if (wppOk) {
-                            await registrarAtividade(id, escritorioId, 'whatsapp_enviado',
-                                `WhatsApp automático enviado — etapa: ${status}`);
-                        }
-                    }
-                }
             }
 
             res.json({ ok: true });
@@ -410,14 +376,6 @@ router.post('/webhook/lead', async (req, res) => {
 
         const info = await buscarInfoEscritorio(escritorioId);
 
-        // WhatsApp de boas-vindas
-        if (lead.telefone) {
-            const msgWpp = zap.msgBoasVindas(lead.nome, lead.assunto, info.nome_escritorio);
-            const wppOk  = await zap.enviarMensagem(escritorioId, lead.telefone, msgWpp);
-            if (wppOk) {
-                await registrarAtividade(leadId, escritorioId, 'whatsapp_enviado', 'WhatsApp de boas-vindas enviado via Webhook');
-            }
-        }
 
         // E-mail de boas-vindas
         if (lead.email) {
@@ -438,18 +396,5 @@ router.post('/webhook/lead', async (req, res) => {
         res.status(500).json({ ok: false, erro: 'Erro interno do servidor' });
     }
 });
-
-// ─── POST /followup/executar — Disparo manual do job (apenas admin) ───────────
-router.post('/followup/executar',
-    authMiddleware,
-    async (req, res) => {
-        if (req.user.role !== 'admin') {
-            return res.status(403).json({ ok: false, erro: 'Apenas admins podem executar o follow-up manualmente' });
-        }
-        logger.info({ userId: req.user.id }, '[FOLLOWUP] Disparo manual solicitado');
-        executarFollowUp(); // roda em background, não aguarda
-        res.json({ ok: true, mensagem: 'Job de follow-up iniciado em background' });
-    }
-);
 
 module.exports = router;

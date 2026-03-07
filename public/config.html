@@ -815,138 +815,53 @@ input, textarea, select {
         </div>
     </div>
 
-    <!-- WhatsApp Business — Z-API (BYOK) -->
+    <!-- WhatsApp Bot — Meta Cloud API -->
     <div class="card" id="card-whatsapp">
         <div class="card-title">
-            <i data-lucide="message-circle"></i> WhatsApp Business — Automação CRM
+            <i data-lucide="message-circle"></i> WhatsApp Bot — Meta Cloud API
         </div>
 
-        <div id="whatsapp-loading" style="color:var(--muted);font-size:14px;">Carregando...</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+            <span id="whatsapp-bot-badge" style="display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;background:#d1fae5;color:#065f46;">
+                ✅ Bot ativo
+            </span>
+        </div>
 
-        <div id="whatsapp-conteudo" style="display:none;">
-
-            <!-- Aviso: integração opcional -->
-            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;margin-bottom:18px;display:flex;align-items:flex-start;gap:12px;">
-                <span style="font-size:20px;flex-shrink:0;">ℹ️</span>
-                <div>
-                    <div style="font-size:12px;font-weight:700;color:#1e40af;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">Recurso opcional</div>
-                    <p style="font-size:13px;color:#1e3a8a;margin:0;line-height:1.6;">
-                        Esta integração é <strong>opcional</strong>. O CRM já funciona com envio <strong>manual de WhatsApp</strong> (abrindo conversa diretamente) e <strong>automação interna de e-mails</strong> em todas as etapas do funil — sem precisar configurar nada aqui.
-                        A Z-API adiciona o disparo <strong>automático e silencioso</strong> de mensagens WhatsApp pelo sistema.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Badges de status -->
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
-                <span id="zapi-badge-status" style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;"></span>
-                <span id="zapi-badge-chave" style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;"></span>
-            </div>
-
-            <!-- Explicação + botão guia PDF -->
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap;">
-                <p style="font-size:13px;color:var(--muted);margin:0;line-height:1.6;flex:1;min-width:200px;">
-                    Conecte o WhatsApp Business do escritório para enviar mensagens automáticas ao criar leads, mover etapas no CRM e reengajar contatos sem resposta.
-                    As credenciais ficam salvas exclusivamente na sua conta.
-                    Obtenha em <strong><a href="https://app.z-api.io" target="_blank" rel="noopener noreferrer" style="color:var(--primary);">app.z-api.io</a></strong>.
-                </p>
-                <a href="/guia_zapi_lawtech.pdf" target="_blank" rel="noopener noreferrer"
-                   style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;background:linear-gradient(135deg,#16a34a,#15803d);color:white;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(22,163,74,0.3);">
-                    <i data-lucide="book-open" style="width:16px;height:16px;"></i>
-                    Ver Guia de Configuração (PDF)
-                </a>
-            </div>
-
-            <!-- Aviso Client-Token -->
-            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 14px;margin-bottom:18px;">
-                <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:4px;">⚠️ Atenção — onde encontrar o Client-Token</div>
-                <p style="font-size:12px;color:#78350f;margin:0;line-height:1.6;">
-                    O Client-Token <strong>não está em "Dados da conta"</strong>. Caminho correto:
-                    <strong>Menu esquerdo → Segurança → Bloco "3. Token de segurança da conta" → clique em "Configurar agora"</strong>.
-                    O valor começa com "Fb3..." ou similar.
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 16px;margin-bottom:18px;display:flex;align-items:flex-start;gap:12px;">
+            <span style="font-size:20px;flex-shrink:0;">🤖</span>
+            <div>
+                <div style="font-size:12px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">Bot integrado com IA</div>
+                <p style="font-size:13px;color:#14532d;margin:0;line-height:1.6;">
+                    O sistema utiliza a <strong>Meta Cloud API</strong> (gratuita até 1.000 conversas/mês) com IA Claude para atender leads automaticamente no WhatsApp.
+                    O bot recepciona, qualifica o caso, responde dúvidas jurídicas gerais e transfere para um advogado quando necessário.
                 </p>
             </div>
+        </div>
 
-            <!-- Campo Instance ID -->
-            <div style="margin-bottom:14px;">
-                <label style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:6px;">
-                    Instance ID
-                </label>
-                <div style="display:flex;gap:8px;align-items:center;">
-                    <input type="password" id="zapiInstanceIdInput" placeholder="Ex: 3D5F2A1B..."
-                        style="flex:1;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:monospace;background:#f8fafc;">
-                    <button data-action="toggleVerZapiInstanceId" title="Mostrar/ocultar"
-                        style="padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;cursor:pointer;font-size:14px;">👁</button>
-                </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:18px;">
+            <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">
+                Fluxo do Bot
             </div>
+            <ul style="font-size:13px;color:var(--muted);line-height:2;padding-left:18px;margin:0;">
+                <li>Lead envia mensagem no WhatsApp do escritório</li>
+                <li>Bot responde com IA (Claude) — apresenta, qualifica e orienta</li>
+                <li>Se o lead pedir atendimento humano, o bot transfere e notifica o advogado</li>
+                <li>Lead é criado automaticamente no CRM ao primeiro contato</li>
+                <li>Histórico de conversa salvo e acessível no painel</li>
+            </ul>
+        </div>
 
-            <!-- Campo Token -->
-            <div style="margin-bottom:14px;">
-                <label style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:6px;">
-                    Token da Instância
-                </label>
-                <div style="display:flex;gap:8px;align-items:center;">
-                    <input type="password" id="zapiTokenInput" placeholder="Ex: A1B2C3D4..."
-                        style="flex:1;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:monospace;background:#f8fafc;">
-                    <button data-action="toggleVerZapiToken" title="Mostrar/ocultar"
-                        style="padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;cursor:pointer;font-size:14px;">👁</button>
-                </div>
-            </div>
-
-            <!-- Campo Client Token -->
-            <div style="margin-bottom:18px;">
-                <label style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:6px;">
-                    Client-Token da Conta
-                </label>
-                <div style="display:flex;gap:8px;align-items:center;">
-                    <input type="password" id="zapiClientTokenInput" placeholder="Ex: Fc57e..."
-                        style="flex:1;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:monospace;background:#f8fafc;">
-                    <button data-action="toggleVerZapiClientToken" title="Mostrar/ocultar"
-                        style="padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;cursor:pointer;font-size:14px;">👁</button>
-                </div>
-            </div>
-
-            <!-- Dias de follow-up -->
-            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:18px;">
-                <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">
-                    Follow-up Automático — Dias sem resposta
-                </div>
-                <div style="display:flex;gap:16px;flex-wrap:wrap;">
-                    <div style="flex:1;min-width:100px;">
-                        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">Novo Lead</label>
-                        <input type="number" id="zapiDiasLead" value="3" min="1" max="30"
-                            style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;text-align:center;">
-                    </div>
-                    <div style="flex:1;min-width:100px;">
-                        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">Em Triagem</label>
-                        <input type="number" id="zapiDiasTriagem" value="5" min="1" max="30"
-                            style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;text-align:center;">
-                    </div>
-                    <div style="flex:1;min-width:100px;">
-                        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">Em Proposta</label>
-                        <input type="number" id="zapiDiasProposta" value="4" min="1" max="30"
-                            style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;text-align:center;">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Botões -->
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                <button data-action="salvarConfigZapi" id="btnSalvarZapi"
-                    style="padding:10px 22px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">
-                    💾 Salvar Configuração
-                </button>
-                <button data-action="testarZapi" id="btnTestarZapi"
-                    style="padding:10px 18px;background:#f0fdf4;color:#166534;border:2px solid #bbf7d0;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;display:none;">
-                    📱 Testar Conexão
-                </button>
-                <button data-action="removerConfigZapi" id="btnRemoverZapi"
-                    style="padding:10px 18px;background:#fef2f2;color:#991b1b;border:2px solid #fecaca;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;display:none;">
-                    Remover
-                </button>
-            </div>
-
-            <p id="zapi-msg" style="display:none;margin-top:12px;font-size:13px;font-weight:600;"></p>
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;">
+            <div style="font-size:12px;font-weight:700;color:#1e40af;margin-bottom:6px;">Configuração via variáveis de ambiente (Railway)</div>
+            <p style="font-size:13px;color:#1e3a8a;margin:0 0 8px 0;line-height:1.6;">
+                As credenciais da Meta Cloud API são configuradas diretamente no servidor. Consulte o guia de configuração inicial para obter os valores no painel do Meta Developers.
+            </p>
+            <code style="font-size:12px;color:#1e40af;background:#dbeafe;padding:8px 12px;border-radius:6px;display:block;line-height:1.8;">
+                META_WHATSAPP_TOKEN=EAA...<br>
+                META_PHONE_NUMBER_ID=...<br>
+                META_WHATSAPP_BUSINESS_ID=...<br>
+                META_VERIFY_TOKEN=lawtech_webhook_2026
+            </code>
         </div>
     </div>
 
