@@ -1736,15 +1736,17 @@ function obterTribunaisPorEsfera(esfera) {
 
         let geoData;
         try {
+            console.log('[Mapa] Carregando GeoJSON...');
             const res = await fetch('https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson');
             if (!res.ok) throw new Error('HTTP ' + res.status);
             geoData = await res.json();
-        } catch {
-            svg.innerHTML = '<text x="200" y="190" text-anchor="middle" fill="#94a3b8" font-size="12" font-family="Outfit,sans-serif">Use os botões acima para filtrar por região</text>';
-            // Fallback: show text buttons in legenda
+            console.log('[Mapa] GeoJSON carregado:', geoData.features?.length, 'estados. Props ex:', JSON.stringify(geoData.features?.[0]?.properties));
+        } catch (err) {
+            console.error('[Mapa] Erro ao carregar GeoJSON:', err.message);
+            svg.innerHTML = '<text x="200" y="190" text-anchor="middle" fill="#94a3b8" font-size="12" font-family="Outfit,sans-serif">Use os badges acima para filtrar por região</text>';
             if (legenda) {
                 legenda.querySelectorAll('.mapa-reg-badge').forEach(b => {
-                    b.style.padding = '5px 14px';
+                    b.style.padding = '6px 16px';
                     b.style.fontSize = '12px';
                 });
             }

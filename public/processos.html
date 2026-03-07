@@ -1456,6 +1456,39 @@ input, textarea, select {
     font-size: 13px;
     margin-top: 4px;
 }
+
+        /* ── Stat cards hover ── */
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important; }
+
+        /* ── Paginação ── */
+        #paginacaoProcessos { display:none; align-items:center; justify-content:space-between; padding:14px 20px; background:#fff; border:1px solid #e2e8f0; border-top:none; border-radius:0 0 10px 10px; flex-wrap:wrap; gap:10px; font-family:inherit; margin-bottom:24px; }
+        #paginacaoProcessos.ativo { display:flex; }
+        .pag-info { font-size:12px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:.5px; }
+        .pag-info strong { color:#1e293b; }
+        .pag-controles { display:flex; align-items:center; gap:6px; }
+        .pag-nav { padding:6px 14px; font-size:12px; font-weight:700; border:1px solid #cbd5e1; border-radius:8px; background:#f8fafc; color:#475569; cursor:pointer; text-transform:uppercase; letter-spacing:.5px; transition:all .15s; font-family:inherit; }
+        .pag-nav:hover:not(:disabled) { background:#1e3a5f; color:#fff; border-color:#1e3a5f; }
+        .pag-nav:disabled { opacity:.4; cursor:not-allowed; }
+        .pag-num { width:32px; height:32px; font-size:12px; font-weight:700; border:1px solid #cbd5e1; border-radius:8px; background:#f8fafc; color:#475569; cursor:pointer; transition:all .15s; font-family:inherit; }
+        .pag-num:hover:not(.pag-ativo) { background:#1e3a5f; color:#fff; border-color:#1e3a5f; }
+        .pag-ativo { background:#1e3a5f !important; color:#fff !important; border-color:#1e3a5f !important; }
+        .pag-ellipsis { font-size:13px; color:#94a3b8; padding:0 4px; line-height:32px; }
+
+        /* ── Mapa do Brasil ── */
+        .mapa-reg-badge { font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; cursor:pointer; transition:all 0.2s; user-select:none; display:inline-block; }
+        .mapa-reg-badge:hover { filter:brightness(1.1); transform:scale(1.05); }
+        .mapa-reg-badge.inativo { opacity:0.35; }
+        #brasil-svg path { transition:opacity 0.2s; }
+
+        /* ── Dropdown de ações da tabela ── */
+        .proc-actions-toggle { background:none; border:1px solid #e2e8f0; cursor:pointer; color:#5A6C7D; border-radius:6px; padding:5px 7px; line-height:0; transition:background 0.15s,color 0.15s; }
+        .proc-actions-toggle:hover { background:#f1f5f9; color:#1e3a5f; }
+        .proc-actions-menu { display:none; position:absolute; right:0; top:calc(100% + 4px); background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:9999; min-width:175px; overflow:hidden; }
+        .proc-actions-menu button { display:flex; align-items:center; gap:9px; width:100%; padding:10px 14px; background:none; border:none; cursor:pointer; font-size:13px; font-weight:500; color:#334155; text-align:left; transition:background 0.12s; }
+        .proc-actions-menu button:hover { background:#f8fafc; }
+        .proc-actions-menu button.danger { color:#ef4444; }
+        .proc-actions-menu button.danger:hover { background:#fff5f5; }
+        .proc-actions-menu hr { margin:4px 0; border:none; border-top:1px solid #f1f5f9; }
     </style>
     <link rel="stylesheet" href="mobile.css">
 </head>
@@ -1550,9 +1583,9 @@ input, textarea, select {
 
         <main class="content">
             <!-- Cards + Mapa — layout lado a lado -->
-            <div style="display:flex; gap:16px; margin-bottom:16px; align-items:start;">
+            <div style="display:grid; grid-template-columns:268px 1fr; gap:16px; margin-bottom:16px; align-items:start;">
                 <!-- Cards 2×2 -->
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; flex-shrink:0; width:268px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                 <div class="stat-card" style="background: linear-gradient(135deg,#667eea,#764ba2); border-radius:10px; padding:14px 18px; box-shadow:0 2px 8px rgba(102,126,234,0.3); transition:all 0.3s ease; display:flex; align-items:center; gap:14px;">
                     <i data-lucide="folder" style="color:rgba(255,255,255,0.85);width:22px;height:22px;flex-shrink:0;"></i>
                     <div>
@@ -1583,57 +1616,6 @@ input, textarea, select {
                 </div>
                 </div><!-- /cards grid -->
 
-            <style>
-                .stat-card:hover {
-                    transform: translateY(-4px);
-                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
-                }
-            
-        #paginacaoProcessos { display:none; align-items:center; justify-content:space-between; padding:14px 20px; background:#fff; border:1px solid #e2e8f0; border-top:none; border-radius:0 0 10px 10px; flex-wrap:wrap; gap:10px; font-family:inherit; margin-bottom:24px; }
-        #paginacaoProcessos.ativo { display:flex; }
-        .pag-info { font-size:12px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:.5px; }
-        .pag-info strong { color:#1e293b; }
-        .pag-controles { display:flex; align-items:center; gap:6px; }
-        .pag-nav { padding:6px 14px; font-size:12px; font-weight:700; border:1px solid #cbd5e1; border-radius:8px; background:#f8fafc; color:#475569; cursor:pointer; text-transform:uppercase; letter-spacing:.5px; transition:all .15s; font-family:inherit; }
-        .pag-nav:hover:not(:disabled) { background:#1e3a5f; color:#fff; border-color:#1e3a5f; }
-        .pag-nav:disabled { opacity:.4; cursor:not-allowed; }
-        .pag-num { width:32px; height:32px; font-size:12px; font-weight:700; border:1px solid #cbd5e1; border-radius:8px; background:#f8fafc; color:#475569; cursor:pointer; transition:all .15s; font-family:inherit; }
-        .pag-num:hover:not(.pag-ativo) { background:#1e3a5f; color:#fff; border-color:#1e3a5f; }
-        .pag-ativo { background:#1e3a5f !important; color:#fff !important; border-color:#1e3a5f !important; }
-        .pag-ellipsis { font-size:13px; color:#94a3b8; padding:0 4px; line-height:32px; }
-
-        /* ── Mapa do Brasil ── */
-        .mapa-reg-badge { font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; cursor:pointer; transition:all 0.2s; user-select:none; display:inline-block; }
-        .mapa-reg-badge:hover { filter:brightness(1.1); transform:scale(1.05); }
-        .mapa-reg-badge.inativo { opacity:0.35; }
-        #brasil-svg path { transition:opacity 0.2s, stroke-width 0.15s; }
-
-        /* ── Dropdown de ações da tabela ── */
-        .proc-actions-toggle {
-            background: none; border: 1px solid #e2e8f0; cursor: pointer;
-            color: #5A6C7D; border-radius: 6px; padding: 5px 7px; line-height: 0;
-            transition: background 0.15s, color 0.15s;
-        }
-        .proc-actions-toggle:hover { background: #f1f5f9; color: #1e3a5f; }
-        .proc-actions-menu {
-            display: none; position: absolute; right: 0; top: calc(100% + 4px);
-            background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 9999;
-            min-width: 175px; overflow: hidden;
-        }
-        .proc-actions-menu button {
-            display: flex; align-items: center; gap: 9px; width: 100%;
-            padding: 10px 14px; background: none; border: none; cursor: pointer;
-            font-size: 13px; font-weight: 500; color: #334155; text-align: left;
-            transition: background 0.12s;
-        }
-        .proc-actions-menu button:hover { background: #f8fafc; }
-        .proc-actions-menu button.danger { color: #ef4444; }
-        .proc-actions-menu button.danger:hover { background: #fff5f5; }
-        .proc-actions-menu hr { margin: 4px 0; border: none; border-top: 1px solid #f1f5f9; }
-
-    </style>
-            
                 <!-- Mapa Interativo do Brasil -->
                 <div class="filters-container" style="flex:1; min-width:0; margin-bottom:0; padding:14px 18px;">
                     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
