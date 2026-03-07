@@ -169,7 +169,7 @@ app.use(helmet({
                 "https://cdnjs.cloudflare.com",
                 "https://js.stripe.com"
             ],
-            scriptSrcAttr: ["'unsafe-inline'"], // permite onclick/onsubmit inline nas páginas ainda não migradas
+            scriptSrcAttr: [], // sem inline handlers — todos os scripts são externos
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
             imgSrc: ["'self'", "data:", "https:"],
             connectSrc: [

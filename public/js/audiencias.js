@@ -593,6 +593,9 @@
             if (linkIaMenu) linkIaMenu.addEventListener('click', toggleIaMenu);
 
             // onchange nos selects do modal de nova audiência
+            const buscaAudiencia = document.getElementById('buscaAudiencia');
+            if (buscaAudiencia) buscaAudiencia.addEventListener('input', filtrarAudiencias);
+
             const audProcesso = document.getElementById('audProcesso');
             if (audProcesso) audProcesso.addEventListener('change', carregarDadosProcesso);
 

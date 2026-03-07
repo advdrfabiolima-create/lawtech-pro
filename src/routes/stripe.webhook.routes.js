@@ -69,9 +69,11 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                         if (process.env.BREVO_API_KEY && process.env.BREVO_SENDER) {
                             try {
                                 const escritorioInfo = await client.query(
-                                    `SELECT e.nome AS escritorio_nome, u.nome AS usuario_nome, u.email, e.plano
+                                    `SELECT e.nome AS escritorio_nome, u.nome AS usuario_nome, u.email,
+                                            p.nome AS plano_nome
                                      FROM escritorios e
                                      LEFT JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
+                                     LEFT JOIN planos p ON e.plano_id = p.id
                                      WHERE e.id = $1 LIMIT 1`,
                                     [escritorioId]
                                 );
@@ -96,7 +98,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                                                 <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;width:120px;">Valor</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#065F46;font-weight:700;font-size:18px;">${valorFormatado}</td></tr>
                                                 <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;">Cliente</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#2D3748;">${info.usuario_nome || '—'}</td></tr>
                                                 <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;">E-mail</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#2D3748;">${info.email || '—'}</td></tr>
-                                                <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;">Plano</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#2D3748;">${info.plano || '—'}</td></tr>
+                                                <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;">Plano</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#2D3748;">${info.plano_nome || '—'}</td></tr>
                                                 <tr><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#7B8794;font-weight:600;">Gateway ID</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#2D3748;font-family:monospace;font-size:12px;">${paymentIntent.id}</td></tr>
                                                 <tr><td style="padding:10px 12px;color:#7B8794;font-weight:600;">Data</td><td style="padding:10px 12px;color:#2D3748;">${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</td></tr>
                                             </table>
