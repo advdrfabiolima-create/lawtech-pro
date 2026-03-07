@@ -65,35 +65,8 @@ const TIPO_META = {
             portalToken = data.token;
             sessionStorage.setItem('portalToken', portalToken);
 
-            // Preenche header
+            // Preenche nome do cliente no header
             document.getElementById('clienteNome').textContent = data.nome || '—';
-
-            const nomeEsc = data.escritorio?.nome || 'Escritório';
-            document.getElementById('escritorioNome').textContent = nomeEsc;
-            if (data.escritorio?.advogado) {
-                document.getElementById('escritorioAdvogado').textContent = 'Dr(a). ' + data.escritorio.advogado;
-            }
-
-            // Logo ou iniciais — prioriza base64 (persiste no banco entre deploys)
-            const logoBase64  = data.escritorio?.logo_base64;
-            const logoArquivo = data.escritorio?.logo_arquivo;
-            const logoImg     = document.getElementById('logoImg');
-            const logoIniciais = document.getElementById('logoIniciais');
-            const logoSrc = logoBase64 || (logoArquivo ? '/' + logoArquivo : null);
-            if (logoSrc) {
-                logoImg.src = logoSrc;
-                logoImg.style.display = 'block';
-                logoIniciais.style.display = 'none';
-                logoImg.onerror = () => {
-                    logoImg.style.display = 'none';
-                    logoIniciais.style.display = 'block';
-                    const iniciais = nomeEsc.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
-                    logoIniciais.textContent = iniciais || 'L';
-                };
-            } else {
-                const iniciais = nomeEsc.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
-                logoIniciais.textContent = iniciais || 'L';
-            }
 
             document.getElementById('telaLoading').style.display = 'none';
             document.getElementById('telaPortal').classList.add('show');
