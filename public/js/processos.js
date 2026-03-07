@@ -1647,7 +1647,6 @@ function obterTribunaisPorEsfera(esfera) {
 
         if (regiao === 'TODOS') {
             stateFilterDiv.style.display = 'none';
-            // Limpa UFs e recarrega todos
             carregarProcessos(1, termoBuscaProcessos, '');
             return;
         }
@@ -1663,7 +1662,6 @@ function obterTribunaisPorEsfera(esfera) {
             stateButtonsDiv.appendChild(btn);
         });
 
-        // Envia todas as UFs da região para o backend
         const ufsRegiao = regioesMap[regiao].join(',');
         carregarProcessos(1, termoBuscaProcessos, ufsRegiao);
     }
