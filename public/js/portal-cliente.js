@@ -150,7 +150,7 @@ const TIPO_META = {
 
         return `
         <div class="processo-card" id="card-${p.id}">
-            <div class="processo-header" onclick="toggleAndamentos(${p.id}, this)">
+            <div class="processo-header" data-processo-id="${p.id}">
                 <div class="processo-info">
                     <div class="processo-numero">${p.numero || '—'}</div>
                     ${(p.polo_ativo || p.polo_passivo) ? `
@@ -264,7 +264,7 @@ const TIPO_META = {
                     ? '<span class="badge-reuniao badge-agendada">Agendada</span>'
                     : '<span class="badge-reuniao badge-concluida">Concluída</span>';
                 const btnEntrar = r.status === 'agendada'
-                    ? `<button class="btn-entrar-reuniao" onclick="entrarReuniaoPortal(${r.id}, '${r.titulo.replace(/'/g, "\\'")}')">▶ Entrar na Reunião</button>`
+                    ? `<button class="btn-entrar-reuniao" data-id="${r.id}" data-titulo="${escapeHtml(r.titulo)}">▶ Entrar na Reunião</button>`
                     : '';
                 return `
                     <div class="reuniao-card">
@@ -456,4 +456,19 @@ const TIPO_META = {
         document.getElementById('btnFecharPortalVideo').addEventListener('click', fecharPortalVideo);
         document.getElementById('portalBtnMute').addEventListener('click', togglePortalMute);
         document.getElementById('portalBtnCam').addEventListener('click', togglePortalCamera);
+
+        // Delegation: clique no cabeçalho do processo → abre/fecha andamentos
+        document.getElementById('listaProcessos').addEventListener('click', function(e) {
+            const header = e.target.closest('.processo-header');
+            if (!header) return;
+            const id = header.dataset.processoId;
+            if (id) toggleAndamentos(id, header);
+        });
+
+        // Delegation: clique em "Entrar na Reunião"
+        document.getElementById('listaReunioes').addEventListener('click', function(e) {
+            const btn = e.target.closest('.btn-entrar-reuniao');
+            if (!btn) return;
+            entrarReuniaoPortal(btn.dataset.id, btn.dataset.titulo);
+        });
     });
