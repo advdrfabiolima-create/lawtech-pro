@@ -36,6 +36,7 @@ const pool = require('./config/db');
 const logger = require('./utils/logger');
 const requestLogger = require('./middlewares/requestLogger');
 const recibosRoutes = require('./routes/recibos.routes');
+const procuracoesRoutes = require('./routes/procuracoes.routes');
 
 // --- 1. IMPORTAÃ‡ÃƒO DE ROTAS ---
 const authRoutes = require('./routes/auth.routes');
@@ -311,6 +312,7 @@ app.use('/api', audienciasRoutes);
 app.use('/api', planosRoutes);
 app.use('/api', authMiddleware, verificarPagamento, financeiroRoutes);
 app.use('/api', authMiddleware, verificarPagamento, clientesRoutes);
+app.use('/api', authMiddleware, verificarPagamento, procuracoesRoutes);
 app.use('/api', configRoutes);
 app.use('/api', usuariosRoutes);
 app.use('/api/pagamentos', pagamentosRoutes);

@@ -700,6 +700,26 @@ document.addEventListener('DOMContentLoaded', () => {
     carregarInfoRodape();
     carregarRelatorio();
     lucide.createIcons();
+
+    document.getElementById('linkIaMenu').addEventListener('click', toggleIaMenu);
+    document.getElementById('userCircle').addEventListener('click', toggleUserMenu);
+    document.getElementById('selectPeriodo').addEventListener('change', onPeriodoChange);
+
+    // data-action buttons
+    document.querySelectorAll('[data-action]').forEach(el => {
+        el.addEventListener('click', (e) => {
+            const action = el.dataset.action;
+            if (action === 'logout') { e.preventDefault(); logout(); }
+            else if (action === 'limparBolinha') limparBolinha();
+            else if (action === 'carregarRelatorio') carregarRelatorio();
+            else if (action === 'exportarPDF') exportarPDF();
+            else if (action === 'exportarCSV') exportarCSV();
+            else if (action === 'trocarAba') {
+                const args = JSON.parse(el.dataset.args || '[]');
+                trocarAba(args[0], el);
+            }
+        });
+    });
 });
 
 

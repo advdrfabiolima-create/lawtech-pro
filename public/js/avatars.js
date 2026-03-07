@@ -40,11 +40,19 @@ function _base(sk, hr, ey, opts = {}) {
   const s = SKIN[sk] || SKIN.claro;
   const h = HAIR[hr] || HAIR.castanho;
   const e = EYES[ey] || EYES.castanho;
-  const { glasses = false, beard = false, earring = false, hairStyle = 'curto', lipstick = false } = opts;
+  const { glasses = false, beard = false, earring = false, hairStyle = 'curto', lipstick = false, wrinkles = false, goatee = false, mustache = false, suit = false, glasses_round = false } = opts;
 
   // ── Corpo / pescoço ──
   const neck = `<rect x="32" y="54" width="16" height="10" rx="4" fill="${s.base}"/>`;
-  const body = `<rect x="14" y="63" width="52" height="20" rx="10" fill="#2A4A73"/>`;
+  // Corpo: terno ou padrão
+  const body = suit
+    ? `<rect x="14" y="63" width="52" height="20" rx="10" fill="#1a2a3a"/>
+       <rect x="33" y="61" width="14" height="20" fill="#f0f0f0"/>
+       <path d="M33 61 L36 70 L40 65 L44 70 L47 61Z" fill="#f0f0f0"/>
+       <path d="M33 61 L28 58 L14 63 L14 83 L30 83 L30 70Z" fill="#1e3a5a"/>
+       <path d="M47 61 L52 58 L66 63 L66 83 L50 83 L50 70Z" fill="#1e3a5a"/>
+       <rect x="37" y="65" width="6" height="14" rx="1" fill="#c0392b"/>`
+    : `<rect x="14" y="63" width="52" height="20" rx="10" fill="#2A4A73"/>`;
 
   // ── Rosto ──
   const face = `<ellipse cx="40" cy="38" rx="20" ry="22" fill="${s.base}"/>`;
@@ -81,6 +89,16 @@ function _base(sk, hr, ey, opts = {}) {
                 <ellipse cx="20" cy="39" rx="2" ry="2.8" fill="${s.sombra}" opacity="0.3"/>
                 <ellipse cx="60" cy="39" rx="2" ry="2.8" fill="${s.sombra}" opacity="0.3"/>`;
 
+  // ── Rugas ──
+  const wrinklesEl = wrinkles
+    ? `<path d="M25 35 Q27 33 29 35" stroke="${s.sombra}" stroke-width="0.8" fill="none" opacity="0.6"/>
+       <path d="M51 35 Q53 33 55 35" stroke="${s.sombra}" stroke-width="0.8" fill="none" opacity="0.6"/>
+       <path d="M33 44 Q35 43 37 44" stroke="${s.sombra}" stroke-width="0.7" fill="none" opacity="0.5"/>
+       <path d="M43 44 Q45 43 47 44" stroke="${s.sombra}" stroke-width="0.7" fill="none" opacity="0.5"/>
+       <path d="M36 51 Q40 52 44 51" stroke="${s.sombra}" stroke-width="0.7" fill="none" opacity="0.45"/>
+       <path d="M30 38 Q31 36 32 38" stroke="${s.sombra}" stroke-width="0.6" fill="none" opacity="0.4"/>
+       <path d="M48 38 Q49 36 50 38" stroke="${s.sombra}" stroke-width="0.6" fill="none" opacity="0.4"/>` : '';
+
   // ── Óculos ──
   const glassesEl = glasses ? `
     <rect x="27.5" y="33.5" width="11" height="8" rx="3" fill="none" stroke="#2A4A73" stroke-width="1.5" opacity="0.85"/>
@@ -88,15 +106,28 @@ function _base(sk, hr, ey, opts = {}) {
     <line x1="38.5" y1="37.5" x2="41.5" y2="37.5" stroke="#2A4A73" stroke-width="1.3" opacity="0.85"/>
     <line x1="23.5" y1="37" x2="27.5" y2="37" stroke="#2A4A73" stroke-width="1.3" opacity="0.85"/>
     <line x1="52.5" y1="37" x2="56.5" y2="37" stroke="#2A4A73" stroke-width="1.3" opacity="0.85"/>` : '';
+  const glassesRoundEl = glasses_round
+    ? `<circle cx="33" cy="37" r="5" fill="none" stroke="#8B6914" stroke-width="1.6" opacity="0.85"/>
+       <circle cx="47" cy="37" r="5" fill="none" stroke="#8B6914" stroke-width="1.6" opacity="0.85"/>
+       <line x1="38" y1="37" x2="42" y2="37" stroke="#8B6914" stroke-width="1.3" opacity="0.85"/>
+       <line x1="23.5" y1="37" x2="28" y2="37" stroke="#8B6914" stroke-width="1.3" opacity="0.85"/>
+       <line x1="52" y1="37" x2="56.5" y2="37" stroke="#8B6914" stroke-width="1.3" opacity="0.85"/>` : '';
 
   // ── Brinco ──
   const earringEl = earring ? `
     <circle cx="60" cy="45" r="2" fill="#F4D06F" stroke="#c9a500" stroke-width="0.5"/>
     <circle cx="20" cy="45" r="2" fill="#F4D06F" stroke="#c9a500" stroke-width="0.5"/>` : '';
 
-  // ── Barba ──
-  const beardEl = beard ? `
-    <path d="M24 46 Q40 58 56 46 Q52 56 40 59 Q28 56 24 46Z" fill="${h}" opacity="0.55"/>` : '';
+  // ── Barbas ──
+  const beardEl = beard
+    ? `<path d="M24 46 Q40 58 56 46 Q52 56 40 59 Q28 56 24 46Z" fill="${h}" opacity="0.55"/>` : '';
+  // Cavanhaque: só queixo
+  const goateeEl = goatee
+    ? `<ellipse cx="40" cy="54" rx="6" ry="4.5" fill="${h}" opacity="0.65"/>
+       <ellipse cx="40" cy="50" rx="4" ry="2.5" fill="${h}" opacity="0.45"/>` : '';
+  // Bigode
+  const mustacheEl = mustache
+    ? `<path d="M33 47 Q37 45 40 47 Q43 45 47 47 Q44 50 40 49 Q36 50 33 47Z" fill="${h}" opacity="0.7"/>` : '';
 
   // ── Cabelos por estilo ──
   let hairEl = '';
@@ -147,12 +178,16 @@ function _base(sk, hr, ey, opts = {}) {
     ${ears}
     ${face}
     ${cheeks}
+    ${wrinklesEl}
     ${nose}
     ${brows}
     ${eyesAll}
     ${glassesEl}
+    ${glassesRoundEl}
     ${mouth}
     ${beardEl}
+    ${goateeEl}
+    ${mustacheEl}
     ${earringEl}
     ${neck}
     ${body}
@@ -204,7 +239,50 @@ const AVATAR_CATALOG = [
   { id:'f14', label:'Mulher branca sênior', gender:'f', sk:'claro',  hr:'branco',   ey:'azul',     opts:{ hairStyle:'medio',   gender:'f', glasses:true  }, bg:'#EDE7F6' },
   { id:'f15', label:'Mulher brinco',        gender:'f', sk:'medio',  hr:'preto',    ey:'castanho', opts:{ hairStyle:'cacheado', gender:'f', earring:true, lipstick:true }, bg:'#E8EAF6' },
   { id:'f16', label:'Mulher morena trança', gender:'f', sk:'escuro', hr:'castanho', ey:'mel',      opts:{ hairStyle:'tranca',  gender:'f', earring:true  }, bg:'#FFFDE7' },
+
+  // ── MASCULINOS NOVOS (m17–m32) ─────────────────────────────────────────────
+  // Idosos com rugas
+  { id:'m17', label:'Advogado sênior',        gender:'m', sk:'claro',  hr:'branco',   ey:'azul',     opts:{ hairStyle:'curto',  gender:'m', glasses:true,  wrinkles:true, suit:true },             bg:'#E8EAF6' },
+  { id:'m18', label:'Juiz experiente',        gender:'m', sk:'claro',  hr:'grisalho', ey:'castanho', opts:{ hairStyle:'curto',  gender:'m', wrinkles:true, suit:true },                             bg:'#EDE7F6' },
+  { id:'m19', label:'Sênior moreno',          gender:'m', sk:'medio',  hr:'grisalho', ey:'castanho', opts:{ hairStyle:'careca', gender:'m', wrinkles:true, glasses:true },                         bg:'#FDF4E7' },
+  { id:'m20', label:'Sênior pele escura',     gender:'m', sk:'escuro', hr:'branco',   ey:'castanho', opts:{ hairStyle:'raspado',gender:'m', wrinkles:true },                                       bg:'#E1F5FE' },
+  { id:'m21', label:'Sênior oliva c/ óculos', gender:'m', sk:'oliva',  hr:'grisalho', ey:'mel',      opts:{ hairStyle:'curto',  gender:'m', wrinkles:true, glasses_round:true },                   bg:'#F9FBE7' },
+  { id:'m22', label:'Sênior careca rugas',    gender:'m', sk:'claro',  hr:'careca',   ey:'azul',     opts:{ hairStyle:'careca', gender:'m', wrinkles:true, suit:true },                            bg:'#ECEFF1' },
+  // Barbas elaboradas
+  { id:'m23', label:'Cavanhaque elegante',    gender:'m', sk:'claro',  hr:'castanho', ey:'castanho', opts:{ hairStyle:'curto',  gender:'m', goatee:true,   suit:true },                            bg:'#D1FAE5' },
+  { id:'m24', label:'Bigode clássico',        gender:'m', sk:'medio',  hr:'preto',    ey:'preto',    opts:{ hairStyle:'curto',  gender:'m', mustache:true },                                       bg:'#FEF3C7' },
+  { id:'m25', label:'Bigode + óculos',        gender:'m', sk:'claro',  hr:'grisalho', ey:'azul',     opts:{ hairStyle:'curto',  gender:'m', mustache:true, glasses:true },                        bg:'#DBEAFE' },
+  { id:'m26', label:'Cavanhaque ruivo',       gender:'m', sk:'claro',  hr:'ruivo',    ey:'verde',    opts:{ hairStyle:'medio',  gender:'m', goatee:true },                                         bg:'#FFE4E6' },
+  { id:'m27', label:'Bigode moreno',          gender:'m', sk:'moreno', hr:'preto',    ey:'preto',    opts:{ hairStyle:'raspado',gender:'m', mustache:true },                                       bg:'#C7F2E0' },
+  { id:'m28', label:'Cavanhaque escuro',      gender:'m', sk:'escuro', hr:'preto',    ey:'preto',    opts:{ hairStyle:'curto',  gender:'m', goatee:true },                                         bg:'#FCE4EC' },
+  // De terno e gravata
+  { id:'m29', label:'Advogado terno azul',    gender:'m', sk:'claro',  hr:'castanho', ey:'castanho', opts:{ hairStyle:'curto',  gender:'m', suit:true },                                           bg:'#DBEAFE' },
+  { id:'m30', label:'Advogado terno moreno',  gender:'m', sk:'medio',  hr:'preto',    ey:'preto',    opts:{ hairStyle:'curto',  gender:'m', suit:true },                                           bg:'#FEF3C7' },
+  { id:'m31', label:'Terno c/ óculos',        gender:'m', sk:'claro',  hr:'loiro',    ey:'azul',     opts:{ hairStyle:'curto',  gender:'m', suit:true, glasses:true },                             bg:'#E0E7FF' },
+  { id:'m32', label:'Terno pele escura',      gender:'m', sk:'escuro', hr:'preto',    ey:'castanho', opts:{ hairStyle:'curto',  gender:'m', suit:true },                                           bg:'#E8F5E9' },
+
+  // ── FEMININAS NOVAS (f17–f32) ───────────────────────────────────────────────
+  // Idosas com rugas
+  { id:'f17', label:'Advogada sênior',        gender:'f', sk:'claro',  hr:'branco',   ey:'azul',     opts:{ hairStyle:'medio',  gender:'f', wrinkles:true, glasses:true,  lipstick:true },         bg:'#EDE7F6' },
+  { id:'f18', label:'Juíza experiente',       gender:'f', sk:'claro',  hr:'grisalho', ey:'castanho', opts:{ hairStyle:'coque',  gender:'f', wrinkles:true, suit:true },                            bg:'#E8EAF6' },
+  { id:'f19', label:'Sênior morena',          gender:'f', sk:'medio',  hr:'grisalho', ey:'mel',      opts:{ hairStyle:'medio',  gender:'f', wrinkles:true },                                       bg:'#FFF3E0' },
+  { id:'f20', label:'Sênior pele escura',     gender:'f', sk:'escuro', hr:'branco',   ey:'castanho', opts:{ hairStyle:'medio',  gender:'f', wrinkles:true, earring:true },                         bg:'#E1F5FE' },
+  { id:'f21', label:'Sênior c/ óculos redondos', gender:'f', sk:'oliva', hr:'grisalho', ey:'mel',   opts:{ hairStyle:'medio',  gender:'f', wrinkles:true, glasses_round:true },                   bg:'#F9FBE7' },
+  { id:'f22', label:'Sênior loira rugas',     gender:'f', sk:'claro',  hr:'branco',   ey:'azul',     opts:{ hairStyle:'longo',  gender:'f', wrinkles:true, lipstick:true },                        bg:'#ECEFF1' },
+  // De terno
+  { id:'f23', label:'Advogada terno',         gender:'f', sk:'claro',  hr:'castanho', ey:'castanho', opts:{ hairStyle:'coque',  gender:'f', suit:true },                                           bg:'#FCE4EC' },
+  { id:'f24', label:'Advogada terno morena',  gender:'f', sk:'medio',  hr:'preto',    ey:'preto',    opts:{ hairStyle:'coque',  gender:'f', suit:true, lipstick:true },                            bg:'#F3E5F5' },
+  { id:'f25', label:'Terno pele escura',      gender:'f', sk:'escuro', hr:'preto',    ey:'castanho', opts:{ hairStyle:'coque',  gender:'f', suit:true },                                           bg:'#FFF3E0' },
+  { id:'f26', label:'Terno loira',            gender:'f', sk:'claro',  hr:'loiro',    ey:'azul',     opts:{ hairStyle:'longo',  gender:'f', suit:true, lipstick:true },                            bg:'#DBEAFE' },
+  // Novos estilos e combinações
+  { id:'f27', label:'Óculos redondos',        gender:'f', sk:'claro',  hr:'castanho', ey:'mel',      opts:{ hairStyle:'longo',  gender:'f', glasses_round:true },                                  bg:'#FFF9C4' },
+  { id:'f28', label:'Óculos redondos ruiva',  gender:'f', sk:'claro',  hr:'ruivo',    ey:'verde',    opts:{ hairStyle:'medio',  gender:'f', glasses_round:true, lipstick:true },                   bg:'#E8F5E9' },
+  { id:'f29', label:'Cacheada oliva',         gender:'f', sk:'oliva',  hr:'castanho', ey:'mel',      opts:{ hairStyle:'cacheado',gender:'f', earring:true },                                       bg:'#FDE7F3' },
+  { id:'f30', label:'Trança loira',           gender:'f', sk:'claro',  hr:'loiro',    ey:'azul',     opts:{ hairStyle:'tranca', gender:'f', lipstick:true },                                       bg:'#E0F7FA' },
+  { id:'f31', label:'Sênior terno óculos',    gender:'f', sk:'claro',  hr:'grisalho', ey:'castanho', opts:{ hairStyle:'coque',  gender:'f', wrinkles:true, glasses:true, suit:true },              bg:'#E2F0D9' },
+  { id:'f32', label:'Morena terno brinco',    gender:'f', sk:'moreno', hr:'preto',    ey:'preto',    opts:{ hairStyle:'coque',  gender:'f', suit:true, earring:true, lipstick:true },               bg:'#FFF8E1' },
 ];
+
 
 // ─── Gera o SVG de um avatar pelo id ──────────────────────────────────────────
 function getAvatarSVG(id, size = 80) {
@@ -385,7 +463,7 @@ function abrirModalAvatar() {
       <!-- Header -->
       <div id="avatarModalHeader">
         <h2>👤 Escolher Avatar</h2>
-        <button id="avatarModalClose" onclick="fecharModalAvatar()">✕</button>
+        <button id="avatarModalClose">✕</button>
       </div>
 
       <!-- Preview do selecionado -->
@@ -399,13 +477,16 @@ function abrirModalAvatar() {
 
       <!-- Filtros -->
       <div id="avatarModalFilters">
-        <button class="av-filter-btn active" data-filter="todos" onclick="filtrarAvatares('todos', this)">Todos</button>
-        <button class="av-filter-btn" data-filter="m" onclick="filtrarAvatares('m', this)">👨 Masculinos</button>
-        <button class="av-filter-btn" data-filter="f" onclick="filtrarAvatares('f', this)">👩 Femininos</button>
-        <button class="av-filter-btn" data-filter="oculos" onclick="filtrarAvatares('oculos', this)">🕶️ Óculos</button>
-        <button class="av-filter-btn" data-filter="cacheado" onclick="filtrarAvatares('cacheado', this)">🌀 Cacheado</button>
-        <button class="av-filter-btn" data-filter="loiro" onclick="filtrarAvatares('loiro', this)">🌾 Loiro(a)</button>
-        <button class="av-filter-btn" data-filter="ruivo" onclick="filtrarAvatares('ruivo', this)">🦊 Ruivo(a)</button>
+        <button class="av-filter-btn active" data-filter="todos">Todos</button>
+        <button class="av-filter-btn" data-filter="m">👨 Masculinos</button>
+        <button class="av-filter-btn" data-filter="f">👩 Femininos</button>
+        <button class="av-filter-btn" data-filter="terno">👔 Terno</button>
+        <button class="av-filter-btn" data-filter="senior">🧓 Sênior</button>
+        <button class="av-filter-btn" data-filter="barba">🧔 Barba</button>
+        <button class="av-filter-btn" data-filter="oculos">🕶️ Óculos</button>
+        <button class="av-filter-btn" data-filter="cacheado">🌀 Cacheado</button>
+        <button class="av-filter-btn" data-filter="loiro">🌾 Loiro(a)</button>
+        <button class="av-filter-btn" data-filter="ruivo">🦊 Ruivo(a)</button>
       </div>
 
       <!-- Grade de avatares -->
@@ -414,15 +495,31 @@ function abrirModalAvatar() {
       <!-- Footer -->
       <div id="avatarModalFooter">
         <small>Seu avatar aparecerá no chat e no perfil</small>
-        <button id="btnConfirmarAvatar" onclick="confirmarAvatar()" disabled>✔ Confirmar</button>
+        <button id="btnConfirmarAvatar" disabled>✔ Confirmar</button>
       </div>
     </div>
   `;
 
   document.body.appendChild(modal);
 
-  // Fechar clicando fora
+  // Fechar clicando fora ou no botão X
   modal.addEventListener('click', (e) => { if (e.target === modal) fecharModalAvatar(); });
+  document.getElementById('avatarModalClose').addEventListener('click', fecharModalAvatar);
+
+  // Event delegation para filtros
+  document.getElementById('avatarModalFilters').addEventListener('click', (e) => {
+    const btn = e.target.closest('.av-filter-btn');
+    if (btn) filtrarAvatares(btn.dataset.filter, btn);
+  });
+
+  // Event delegation para seleção de avatar no grid
+  document.getElementById('avatarModalGrid').addEventListener('click', (e) => {
+    const item = e.target.closest('.av-item');
+    if (item) _selecionarAvatarModal(item.dataset.id);
+  });
+
+  // Confirmar avatar
+  document.getElementById('btnConfirmarAvatar').addEventListener('click', confirmarAvatar);
 
   // Renderiza todos inicialmente
   _renderGridAvatares(AVATAR_CATALOG);
@@ -444,7 +541,10 @@ function filtrarAvatares(filtro, btn) {
   let lista = AVATAR_CATALOG;
   if (filtro === 'm') lista = AVATAR_CATALOG.filter(a => a.gender === 'm');
   else if (filtro === 'f') lista = AVATAR_CATALOG.filter(a => a.gender === 'f');
-  else if (filtro === 'oculos') lista = AVATAR_CATALOG.filter(a => a.opts.glasses);
+  else if (filtro === 'terno') lista = AVATAR_CATALOG.filter(a => a.opts.suit);
+  else if (filtro === 'senior') lista = AVATAR_CATALOG.filter(a => a.opts.wrinkles);
+  else if (filtro === 'barba') lista = AVATAR_CATALOG.filter(a => a.opts.beard || a.opts.goatee || a.opts.mustache);
+  else if (filtro === 'oculos') lista = AVATAR_CATALOG.filter(a => a.opts.glasses || a.opts.glasses_round);
   else if (filtro === 'cacheado') lista = AVATAR_CATALOG.filter(a => a.opts.hairStyle === 'cacheado');
   else if (filtro === 'loiro') lista = AVATAR_CATALOG.filter(a => a.hr === 'loiro');
   else if (filtro === 'ruivo') lista = AVATAR_CATALOG.filter(a => a.hr === 'ruivo');
@@ -465,7 +565,7 @@ function _renderGridAvatares(lista) {
     const dataUrl = getAvatarDataUrl(av.id, 64);
     const isSelected = av.id === _avatarSelecionado ? 'selected' : '';
     return `
-      <div class="av-item ${isSelected}" data-id="${av.id}" onclick="_selecionarAvatarModal('${av.id}')">
+      <div class="av-item ${isSelected}" data-id="${av.id}">
         <span class="av-check">✔</span>
         <img src="${dataUrl}" alt="${av.label}" loading="lazy"/>
         <span>${av.label}</span>
@@ -533,7 +633,7 @@ function atualizarAvatarUI(avatarId) {
   // Troca o círculo de iniciais no header pelo avatar
   const circulo = document.getElementById('userCircle');
   if (circulo) {
-    circulo.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="avatar"/>`;
+    circulo.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;pointer-events:none;" alt="avatar"/>`;
     circulo.style.padding = '0';
     circulo.style.overflow = 'hidden';
   }
