@@ -259,7 +259,7 @@ function gerarHtmlProcuracao({ proc, cliente, escritorio, processoNum, logoBase6
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; color: #000; background: #fff; }
-  .page { width: 21cm; min-height: 29.7cm; margin: 0 auto; padding: 1.5cm 3cm 3cm 3cm; }
+  .page { width: 21cm; min-height: 29.7cm; margin: 0 auto; padding: 1.5cm 2cm 2cm 2cm; }
   h1 { text-align: center; font-size: 14pt; font-weight: bold; margin-bottom: 2em; letter-spacing: 1px; }
   p { text-align: justify; line-height: 1.8; margin-bottom: 1em; }
   .cabecalho-logo { text-align: center; margin-bottom: 0.5cm; }
