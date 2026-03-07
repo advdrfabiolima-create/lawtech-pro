@@ -259,12 +259,12 @@ function gerarHtmlProcuracao({ proc, cliente, escritorio, processoNum, logoBase6
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; color: #000; background: #fff; }
-  .page { width: 21cm; min-height: 29.7cm; margin: 0 auto; padding: 2.5cm 3cm 3cm 3cm; }
+  .page { width: 21cm; min-height: 29.7cm; margin: 0 auto; padding: 1.5cm 3cm 3cm 3cm; }
   h1 { text-align: center; font-size: 14pt; font-weight: bold; margin-bottom: 2em; letter-spacing: 1px; }
   p { text-align: justify; line-height: 1.8; margin-bottom: 1em; }
-  .cabecalho-logo { text-align: center; margin-bottom: 1.2cm; }
+  .cabecalho-logo { text-align: center; margin-bottom: 0.5cm; }
   .cabecalho-logo img { width: 100%; height: 120px; object-fit: contain; object-position: center; display: block; }
-  .cabecalho-linha { border: none; border-top: 1px solid #999; margin: 0.4cm 0 1.2cm 0; }
+  .cabecalho-linha { border: none; border-top: 1px solid #999; margin: 0.3cm 0 0.8cm 0; }
   .assinatura { margin-top: 4cm; text-align: center; }
   .assinatura .linha { border-top: 1px solid #000; width: 10cm; margin: 0 auto 6px auto; }
   .assinatura p { text-align: center; margin: 0; line-height: 1.6; }
