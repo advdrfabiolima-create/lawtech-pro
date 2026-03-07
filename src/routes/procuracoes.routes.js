@@ -268,11 +268,18 @@ function gerarHtmlProcuracao({ proc, cliente, escritorio, processoNum }) {
   .assinatura p { text-align: center; margin: 0; line-height: 1.6; }
   @media print { .no-print { display: none; } }
 </style>
+<script>
+  window.onload = function() {
+    document.getElementById('btnImprimir').addEventListener('click', function() {
+      window.print();
+    });
+  };
+</script>
 </head>
 <body>
 <div class="page">
   <div class="no-print" style="text-align:right;margin-bottom:16px;">
-    <button onclick="window.print()" style="padding:8px 20px;background:#1E3A5F;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-family:sans-serif;">
+    <button id="btnImprimir" style="padding:8px 20px;background:#1E3A5F;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-family:sans-serif;">
       🖨️ Imprimir / Salvar PDF
     </button>
   </div>
