@@ -21,7 +21,18 @@
                 const m = document.getElementById('userDropdown');
                 if (m) m.style.display = 'none';
             }
+            if (!e.target.closest('.action-menu')) {
+                document.querySelectorAll('.dropdown-menu.open').forEach(m => m.classList.remove('open'));
+            }
         });
+
+        // Toggle dropdown de ações da linha
+        function toggleDropdown(btn) {
+            const menu = btn.nextElementSibling;
+            const isOpen = menu.classList.contains('open');
+            document.querySelectorAll('.dropdown-menu.open').forEach(m => m.classList.remove('open'));
+            if (!isOpen) menu.classList.add('open');
+        }
         
         // Logout
         function logout() {
@@ -178,10 +189,15 @@
                     <td><span style="background:#f1f5f9;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;">${(a.tipo_audiencia||a.tipo||'AUDIÊNCIA').toUpperCase()}</span></td>
                     <td style="font-size:12px;color:var(--muted);max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.local_virtual||a.local||'---'}</td>
                     <td><div class="action-buttons">
-                        <button class="btn-action btn-whatsapp" data-action="avisarZap" data-args='[${JSON.stringify(a.cliente||'')},${JSON.stringify(a.processo_numero||'')},${JSON.stringify(a.tipo_audiencia||'')},${JSON.stringify(a.data_audiencia||'')},${JSON.stringify(a.hora_audiencia||'')},${JSON.stringify(a.local_virtual||'')},${JSON.stringify(a.telefone||'')}]'><i class="lucide lucide-message-circle"></i><span>WHATSAPP</span></button>
-                        <button class="btn-action btn-link-edit" data-local-id="${a.id}" data-local-valor="${(a.local_virtual||'').replace(/"/g,'&quot;')}" data-action="abrirModalEditarLocalSeguro"><i class="lucide lucide-link"></i><span>EDITAR LINK</span></button>
-                        <button class="btn-action btn-realizada" data-action="abrirModalRegistrarAta" data-args='[${a.id}]'><i class="lucide lucide-check"></i><span>REALIZADA</span></button>
-                        <button class="btn-action btn-delete" data-action="excluirAudiencia" data-args='[${a.id}]'><i class="lucide lucide-trash-2"></i><span>EXCLUIR</span></button>
+                        <button class="btn-action btn-whatsapp btn-zap-icon" data-action="avisarZap" data-args='[${JSON.stringify(a.cliente||'')},${JSON.stringify(a.processo_numero||'')},${JSON.stringify(a.tipo_audiencia||'')},${JSON.stringify(a.data_audiencia||'')},${JSON.stringify(a.hora_audiencia||'')},${JSON.stringify(a.local_virtual||'')},${JSON.stringify(a.telefone||'')}]' title="Avisar pelo WhatsApp"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></button>
+                        <div class="action-menu">
+                            <button class="btn-toggle-menu" data-action="toggleDropdown"><i data-lucide="more-vertical"></i></button>
+                            <div class="dropdown-menu">
+                                <button class="dropdown-item" data-local-id="${a.id}" data-local-valor="${(a.local_virtual||'').replace(/"/g,'&quot;')}" data-action="abrirModalEditarLocalSeguro"><i data-lucide="link" style="color:#6366f1;"></i> Editar Link</button>
+                                <button class="dropdown-item" data-action="abrirModalRegistrarAta" data-args='[${a.id}]'><i data-lucide="check-circle" style="color:#52B788;"></i> Realizada</button>
+                                <button class="dropdown-item btn-menu-delete" data-action="excluirAudiencia" data-args='[${a.id}]'><i data-lucide="trash-2"></i> Excluir</button>
+                            </div>
+                        </div>
                     </div></td>
                 </tr>`;
             }).join('');
@@ -212,8 +228,13 @@
                     <td><span style="background:#f1f5f9;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;">${(a.tipo_audiencia||a.tipo||'AUDIÊNCIA').toUpperCase()}</span></td>
                     <td style="font-size:12px;color:var(--muted);max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.local_virtual||a.local||'---'}</td>
                     <td><div class="action-buttons">
-                        <button class="btn-action btn-edit" data-ata-id="${a.id}" data-ata-texto="${(a.ata_audiencia||'').replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}" data-action="abrirModalVerAtaSeguro"><i class="lucide lucide-file-text"></i><span>VER ATA</span></button>
-                        <button class="btn-action btn-delete" data-action="excluirAudiencia" data-args='[${a.id}]'><i class="lucide lucide-trash-2"></i><span>EXCLUIR</span></button>
+                        <div class="action-menu">
+                            <button class="btn-toggle-menu" data-action="toggleDropdown"><i data-lucide="more-vertical"></i></button>
+                            <div class="dropdown-menu">
+                                <button class="dropdown-item" data-ata-id="${a.id}" data-ata-texto="${(a.ata_audiencia||'').replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}" data-action="abrirModalVerAtaSeguro"><i data-lucide="file-text" style="color:#f59e0b;"></i> Ver Ata</button>
+                                <button class="dropdown-item btn-menu-delete" data-action="excluirAudiencia" data-args='[${a.id}]'><i data-lucide="trash-2"></i> Excluir</button>
+                            </div>
+                        </div>
                     </div></td>
                 </tr>`;
             }).join('');
@@ -624,10 +645,10 @@
             if (role === 'admin') return;
             const s = document.createElement('style');
             if (role === 'operador') {
-                s.textContent = `.btn-action.btn-delete { display: none !important; }`;
+                s.textContent = `.dropdown-item.btn-menu-delete { display: none !important; }`;
             } else {
-                // visualizador: esconde delete, criar e editar link
-                s.textContent = `.btn-action.btn-delete, .btn-action.btn-link-edit, button[data-action='abrirModal'] { display: none !important; }`;
+                // visualizador: esconde delete, editar link e criar
+                s.textContent = `.dropdown-item.btn-menu-delete, button[data-action='abrirModalEditarLocalSeguro'], button[data-action='abrirModal'] { display: none !important; }`;
             }
             document.head.appendChild(s);
         }

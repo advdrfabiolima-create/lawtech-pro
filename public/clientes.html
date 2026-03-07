@@ -481,11 +481,14 @@
             background: linear-gradient(135deg, #5B9FD8 0%, #4A90E2 100%);
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 6px;
-            padding: 24px;
+            padding: 14px 18px;
             position: relative;
             overflow: hidden;
             transition: all var(--transition-base);
             box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 14px;
         }
 
         .stat-card::before {
@@ -522,14 +525,14 @@
         }
 
         .stat-card-icon {
-            width: 48px;
-            height: 48px;
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
             background: rgba(255, 255, 255, 0.25);
-            border-radius: 6px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 16px;
             backdrop-filter: blur(10px);
             position: relative;
             z-index: 2;
@@ -553,11 +556,11 @@
         }
 
         .stat-card-value {
-            font-size: 36px;
+            font-size: 26px;
             font-weight: 800;
             color: white;
             line-height: 1;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             position: relative;
             z-index: 2;
         }
@@ -1180,40 +1183,46 @@
 <div class="stats-container">
     <!-- Card 1: Total de Clientes -->
     <div class="stat-card">
-        <div class="stat-card-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #4A90E2, #5BA4DB); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div class="stat-card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
             </svg>
         </div>
-        <div class="stat-card-value" id="totalClientes">0</div>
-        <div class="stat-card-label">TOTAL DE CLIENTES</div>
+        <div style="position:relative; z-index:2;">
+            <div class="stat-card-value" id="totalClientes">0</div>
+            <div class="stat-card-label">TOTAL DE CLIENTES</div>
+        </div>
     </div>
 
     <!-- Card 2: Clientes Ativos -->
     <div class="stat-card green">
-        <div class="stat-card-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #52B788, #40916C); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div class="stat-card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
                 <polyline points="17 11 19 13 23 9"></polyline>
             </svg>
         </div>
-        <div class="stat-card-value" id="clientesAtivos">0</div>
-        <div class="stat-card-label">CLIENTES COM PROCESSOS</div>
+        <div style="position:relative; z-index:2;">
+            <div class="stat-card-value" id="clientesAtivos">0</div>
+            <div class="stat-card-label">CLIENTES COM PROCESSOS</div>
+        </div>
     </div>
 
     <!-- Card 3: Processos -->
     <div class="stat-card">
-        <div class="stat-card-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #7E8CE0, #6366F1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div class="stat-card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
             </svg>
         </div>
-        <div class="stat-card-value" id="processosVinculados">0</div>
-        <div class="stat-card-label">PROCESSOS VINCULADOS</div>
+        <div style="position:relative; z-index:2;">
+            <div class="stat-card-value" id="processosVinculados">0</div>
+            <div class="stat-card-label">PROCESSOS VINCULADOS</div>
+        </div>
     </div>
 </div>
 
