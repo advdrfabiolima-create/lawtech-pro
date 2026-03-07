@@ -265,7 +265,7 @@ function gerarHtmlProcuracao({ proc, cliente, escritorio, processoNum, logoBase6
   .cabecalho-logo { text-align: center; margin-bottom: 0.5cm; }
   .cabecalho-logo img { width: 100%; height: 120px; object-fit: contain; object-position: center; display: block; }
   .cabecalho-linha { border: none; border-top: 1px solid #999; margin: 0.3cm 0 0.8cm 0; }
-  .assinatura { margin-top: 4cm; text-align: center; }
+  .assinatura { margin-top: 1.5cm; text-align: center; }
   .assinatura .linha { border-top: 1px solid #000; width: 10cm; margin: 0 auto 6px auto; }
   .assinatura p { text-align: center; margin: 0; line-height: 1.6; }
   @media print { .no-print { display: none; } }
@@ -290,7 +290,7 @@ function gerarHtmlProcuracao({ proc, cliente, escritorio, processoNum, logoBase6
   </p>
   ${clausulaObjeto}
   ${proc.obs ? `<p style="text-indent:4cm;"><em>Observação: ${proc.obs}</em></p>` : ''}
-  <p style="text-align:center; margin-top: 2em;">
+  <p style="text-align:center; margin-top: 1em;">
     ${proc.cidade_assinatura || escCidade || '_______________'}, ${dataExtenso}.
   </p>
   <div class="assinatura">
