@@ -268,12 +268,8 @@
             .main { margin-left: 220px; }
             .stats-row { grid-template-columns: repeat(3, 1fr); }
         }
-        @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .main { margin-left: 0; }
-            .stats-row { grid-template-columns: 1fr; }
-        }
     </style>
+    <link rel="stylesheet" href="/mobile.css">
 </head>
 <body>
 
@@ -673,5 +669,6 @@
 </div>
     <script src="/js/api.js"></script>
     <script src="/js/documentos.js"></script>
+    <script src="/mobile.js" defer></script>
 </body>
 </html>
