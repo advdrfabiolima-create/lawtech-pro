@@ -1091,7 +1091,12 @@ const token = localStorage.getItem('token');
             if (!res) return;
             const html = await res.text();
             const win = window.open('', '_blank');
-            if (win) { win.document.write(html); win.document.close(); }
+            if (win) {
+                win.document.write(html);
+                win.document.close();
+                const btn = win.document.getElementById('btnImprimir');
+                if (btn) btn.addEventListener('click', function() { win.print(); });
+            }
         }
 
         // ── Download PDF assinado ────────────────────────────────────
@@ -1505,7 +1510,12 @@ const token = localStorage.getItem('token');
             if (!res) return;
             const html = await res.text();
             const win = window.open('', '_blank');
-            if (win) { win.document.write(html); win.document.close(); }
+            if (win) {
+                win.document.write(html);
+                win.document.close();
+                const btn = win.document.getElementById('btnImprimir');
+                if (btn) btn.addEventListener('click', function() { win.print(); });
+            }
         }
 
         // ── Excluir procuração ───────────────────────────────────────

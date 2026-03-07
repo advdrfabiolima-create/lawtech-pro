@@ -270,13 +270,6 @@ function gerarHtmlProcuracao({ proc, cliente, escritorio, processoNum, logoBase6
   .assinatura p { text-align: center; margin: 0; line-height: 1.6; }
   @media print { .no-print { display: none; } }
 </style>
-<script>
-  window.onload = function() {
-    document.getElementById('btnImprimir').addEventListener('click', function() {
-      window.print();
-    });
-  };
-</script>
 </head>
 <body>
 <div class="page">
