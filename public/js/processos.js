@@ -23,6 +23,19 @@ const token = localStorage.getItem('token');
         'NORTE': ['AC', 'AM', 'AP', 'PA', 'RO', 'RR', 'TO']
     };
 
+    const REGION_COLORS = {
+        'NORTE':    '#1a9850',
+        'NORDESTE': '#f4a261',
+        'CENTRO':   '#e63946',
+        'SUDESTE':  '#457b9d',
+        'SUL':      '#9c27b0'
+    };
+
+    const REGION_NAMES = {
+        'NORTE': 'Norte', 'NORDESTE': 'Nordeste',
+        'CENTRO': 'Centro-Oeste', 'SUDESTE': 'Sudeste', 'SUL': 'Sul'
+    };
+
     // ============================================
     // CLASSE GERENCIADOR DE PARTES
     // ============================================
@@ -430,8 +443,11 @@ let gerenciadorPartesEdicao = null;
 
             // 3. Carrega processos
             await carregarProcessos();
-            
-            // 4. Inicializar gerenciador de partes
+
+            // 4. Mapa interativo do Brasil (não bloqueia)
+            iniciarMapaBrasil();
+
+            // 5. Inicializar gerenciador de partes
             gerenciadorPartes = new GerenciadorPartes('listaPartesAtivo', 'listaPartesPassivo');
             await carregarClientesParaSelect();
             console.log('✅ Gerenciador de partes inicializado');
@@ -1639,38 +1655,171 @@ function obterTribunaisPorEsfera(esfera) {
     // ============================================
     // FILTROS
     // ============================================
-    function filtrarRegiao(regiao, elemento) {
-        document.querySelectorAll('#region-filter .btn-filter').forEach(btn => btn.classList.remove('active'));
-        elemento.classList.add('active');
+    function filtrarRegiao(regiao) {
+        // Chamada apenas pelo botão "Todos" via data-action
+        const btnTodos = document.getElementById('btnTodosRegiao');
+        if (btnTodos) btnTodos.classList.toggle('active', regiao === 'TODOS');
+
+        atualizarDestaqueMapa(regiao);
+
         const stateFilterDiv = document.getElementById('state-filter');
-        const stateButtonsDiv = document.getElementById('state-buttons');
+        if (stateFilterDiv) stateFilterDiv.style.display = 'none';
 
-        if (regiao === 'TODOS') {
-            stateFilterDiv.style.display = 'none';
-            carregarProcessos(1, termoBuscaProcessos, '');
-            return;
-        }
-
-        // Monta botões de estado da região
-        stateFilterDiv.style.display = 'flex';
-        stateButtonsDiv.innerHTML = '';
-        regioesMap[regiao].forEach(uf => {
-            const btn = document.createElement('button');
-            btn.className = 'btn-filter';
-            btn.innerText = uf;
-            btn.onclick = () => filtrarPorEstado(uf, btn);
-            stateButtonsDiv.appendChild(btn);
-        });
-
-        const ufsRegiao = regioesMap[regiao].join(',');
-        carregarProcessos(1, termoBuscaProcessos, ufsRegiao);
+        carregarProcessos(1, termoBuscaProcessos, '');
     }
 
     function filtrarPorEstado(uf, elemento) {
         document.querySelectorAll('#state-buttons .btn-filter').forEach(btn => btn.classList.remove('active'));
         elemento.classList.add('active');
-        // Filtra pelo estado específico no backend
         carregarProcessos(1, termoBuscaProcessos, uf);
+    }
+
+    function filtrarRegiaoMapa(regiao) {
+        // Reseta o botão Todos
+        const btnTodos = document.getElementById('btnTodosRegiao');
+        if (btnTodos) btnTodos.classList.remove('active');
+
+        atualizarDestaqueMapa(regiao);
+
+        // Monta botões de estados da região
+        const stateFilterDiv = document.getElementById('state-filter');
+        const stateButtonsDiv = document.getElementById('state-buttons');
+        if (stateFilterDiv) stateFilterDiv.style.display = 'flex';
+        if (stateButtonsDiv) {
+            stateButtonsDiv.innerHTML = '';
+            (regioesMap[regiao] || []).forEach(uf => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-filter';
+                btn.innerText = uf;
+                btn.addEventListener('click', () => filtrarPorEstado(uf, btn));
+                stateButtonsDiv.appendChild(btn);
+            });
+        }
+
+        const ufsRegiao = (regioesMap[regiao] || []).join(',');
+        carregarProcessos(1, termoBuscaProcessos, ufsRegiao);
+    }
+
+    function atualizarDestaqueMapa(regiao) {
+        document.querySelectorAll('#brasil-svg path[data-regiao]').forEach(path => {
+            const r = path.getAttribute('data-regiao');
+            path.setAttribute('opacity', (regiao === 'TODOS' || r === regiao) ? '1' : '0.3');
+        });
+        document.querySelectorAll('.mapa-reg-badge').forEach(badge => {
+            badge.classList.toggle('inativo', regiao !== 'TODOS' && badge.dataset.regiao !== regiao);
+        });
+    }
+
+    async function iniciarMapaBrasil() {
+        const svg = document.getElementById('brasil-svg');
+        if (!svg) return;
+
+        // Build UF → region lookup
+        const ufToRegiao = {};
+        Object.entries(regioesMap).forEach(([reg, ufs]) => ufs.forEach(uf => ufToRegiao[uf] = reg));
+
+        // Build legend
+        const legenda = document.getElementById('mapa-legenda');
+        if (legenda) {
+            legenda.innerHTML = '';
+            Object.entries(REGION_NAMES).forEach(([reg, nome]) => {
+                const badge = document.createElement('span');
+                badge.className = 'mapa-reg-badge';
+                badge.dataset.regiao = reg;
+                badge.textContent = nome;
+                badge.style.background = REGION_COLORS[reg];
+                badge.style.color = '#fff';
+                badge.addEventListener('click', () => filtrarRegiaoMapa(reg));
+                legenda.appendChild(badge);
+            });
+        }
+
+        let geoData;
+        try {
+            const res = await fetch('https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            geoData = await res.json();
+        } catch {
+            svg.innerHTML = '<text x="200" y="190" text-anchor="middle" fill="#94a3b8" font-size="12" font-family="Outfit,sans-serif">Use os botões acima para filtrar por região</text>';
+            // Fallback: show text buttons in legenda
+            if (legenda) {
+                legenda.querySelectorAll('.mapa-reg-badge').forEach(b => {
+                    b.style.padding = '5px 14px';
+                    b.style.fontSize = '12px';
+                });
+            }
+            return;
+        }
+
+        // Calculate bounding box
+        let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+        for (const feat of geoData.features) {
+            const flat = feat.geometry.type === 'MultiPolygon'
+                ? feat.geometry.coordinates.flat(2)
+                : feat.geometry.coordinates.flat(1);
+            for (const [lon, lat] of flat) {
+                if (lon < minLon) minLon = lon;
+                if (lon > maxLon) maxLon = lon;
+                if (lat < minLat) minLat = lat;
+                if (lat > maxLat) maxLat = lat;
+            }
+        }
+
+        const W = 400, H = 380, PAD = 14;
+        const scaleX = (W - PAD * 2) / (maxLon - minLon);
+        const scaleY = (H - PAD * 2) / (maxLat - minLat);
+        const scale = Math.min(scaleX, scaleY);
+        const offX = PAD + ((W - PAD * 2) - (maxLon - minLon) * scale) / 2;
+        const offY = PAD + ((H - PAD * 2) - (maxLat - minLat) * scale) / 2;
+
+        function proj(lon, lat) {
+            return [(offX + (lon - minLon) * scale).toFixed(1), (H - offY - (lat - minLat) * scale).toFixed(1)];
+        }
+
+        function ringsToPath(rings) {
+            return rings.map(ring =>
+                ring.map(([lon, lat], i) => {
+                    const [x, y] = proj(lon, lat);
+                    return `${i === 0 ? 'M' : 'L'}${x},${y}`;
+                }).join(' ') + ' Z'
+            ).join(' ');
+        }
+
+        svg.innerHTML = '';
+
+        for (const feat of geoData.features) {
+            const props = feat.properties;
+            const sigla = (props.sigla || props.Sigla || props.abbrev_state || props.SIGLA || '').toUpperCase().trim();
+            const regiao = ufToRegiao[sigla] || 'OUTROS';
+            const color = REGION_COLORS[regiao] || '#adb5bd';
+
+            let d = '';
+            if (feat.geometry.type === 'Polygon') {
+                d = ringsToPath(feat.geometry.coordinates);
+            } else if (feat.geometry.type === 'MultiPolygon') {
+                d = feat.geometry.coordinates.map(poly => ringsToPath(poly)).join(' ');
+            }
+            if (!d) continue;
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', d);
+            path.setAttribute('fill', color);
+            path.setAttribute('stroke', '#fff');
+            path.setAttribute('stroke-width', '0.8');
+            path.setAttribute('data-regiao', regiao);
+            path.setAttribute('data-sigla', sigla);
+            path.style.cursor = regiao !== 'OUTROS' ? 'pointer' : 'default';
+
+            const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+            title.textContent = `${sigla}${REGION_NAMES[regiao] ? ' — ' + REGION_NAMES[regiao] : ''}`;
+            path.appendChild(title);
+
+            if (regiao !== 'OUTROS') {
+                path.addEventListener('click', () => filtrarRegiaoMapa(regiao));
+            }
+
+            svg.appendChild(path);
+        }
     }
 
     // ============================================

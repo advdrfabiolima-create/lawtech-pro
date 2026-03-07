@@ -178,8 +178,9 @@ app.use(helmet({
     "https://api.asaas.com",
     "https://sandbox.asaas.com",
     "https://*.peerjs.com",
-    "wss://*.peerjs.com",      // WebSocket do PeerJS
-    "https://unpkg.com"        // source maps do unpkg
+    "wss://*.peerjs.com",
+    "https://unpkg.com",
+    "https://raw.githubusercontent.com"   // GeoJSON mapa do Brasil
 ],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
             frameSrc: ["'self'", "https://*.daily.co", "https://js.stripe.com"],

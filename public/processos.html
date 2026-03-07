@@ -1549,8 +1549,10 @@ input, textarea, select {
         </header>
 
         <main class="content">
-            <!-- Cards de Estatísticas — 2×2 -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+            <!-- Cards + Mapa — layout lado a lado -->
+            <div style="display:flex; gap:16px; margin-bottom:16px; align-items:start;">
+                <!-- Cards 2×2 -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; flex-shrink:0; width:268px;">
                 <div class="stat-card" style="background: linear-gradient(135deg,#667eea,#764ba2); border-radius:10px; padding:14px 18px; box-shadow:0 2px 8px rgba(102,126,234,0.3); transition:all 0.3s ease; display:flex; align-items:center; gap:14px;">
                     <i data-lucide="folder" style="color:rgba(255,255,255,0.85);width:22px;height:22px;flex-shrink:0;"></i>
                     <div>
@@ -1579,7 +1581,7 @@ input, textarea, select {
                         <div style="font-size:11px;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-top:3px;">Tribunais</div>
                     </div>
                 </div>
-            </div>
+                </div><!-- /cards grid -->
 
             <style>
                 .stat-card:hover {
@@ -1599,6 +1601,12 @@ input, textarea, select {
         .pag-num:hover:not(.pag-ativo) { background:#1e3a5f; color:#fff; border-color:#1e3a5f; }
         .pag-ativo { background:#1e3a5f !important; color:#fff !important; border-color:#1e3a5f !important; }
         .pag-ellipsis { font-size:13px; color:#94a3b8; padding:0 4px; line-height:32px; }
+
+        /* ── Mapa do Brasil ── */
+        .mapa-reg-badge { font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; cursor:pointer; transition:all 0.2s; user-select:none; display:inline-block; }
+        .mapa-reg-badge:hover { filter:brightness(1.1); transform:scale(1.05); }
+        .mapa-reg-badge.inativo { opacity:0.35; }
+        #brasil-svg path { transition:opacity 0.2s, stroke-width 0.15s; }
 
         /* ── Dropdown de ações da tabela ── */
         .proc-actions-toggle {
@@ -1626,21 +1634,27 @@ input, textarea, select {
 
     </style>
             
-            <div class="filters-container">
-                <div id="region-filter" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                    <span class="filter-label">Filtrar por Região:</span>
-                    <button class="btn-filter active" data-action="filtrarRegiao" data-args='["TODOS"]'>Todos</button>
-                    <button class="btn-filter" data-action="filtrarRegiao" data-args='["SUL"]'>Sul</button>
-                    <button class="btn-filter" data-action="filtrarRegiao" data-args='["SUDESTE"]'>Sudeste</button>
-                    <button class="btn-filter" data-action="filtrarRegiao" data-args='["CENTRO"]'>Centro-Oeste</button>
-                    <button class="btn-filter" data-action="filtrarRegiao" data-args='["NORDESTE"]'>Nordeste</button>
-                    <button class="btn-filter" data-action="filtrarRegiao" data-args='["NORTE"]'>Norte</button>
+                <!-- Mapa Interativo do Brasil -->
+                <div class="filters-container" style="flex:1; min-width:0; margin-bottom:0; padding:14px 18px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                        <span class="filter-label" style="margin:0;">Filtrar por Região</span>
+                        <button class="btn-filter active" id="btnTodosRegiao" data-action="filtrarRegiao" data-args='["TODOS"]'>Todos</button>
+                    </div>
+                    <!-- Legenda das regiões (preenchida via JS) -->
+                    <div id="mapa-legenda" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;"></div>
+                    <!-- SVG do mapa (renderizado via JS com GeoJSON) -->
+                    <div style="text-align:center;">
+                        <svg id="brasil-svg" viewBox="0 0 400 380" style="width:100%; max-height:230px; display:block; margin:0 auto; cursor:default;">
+                            <text x="200" y="190" text-anchor="middle" fill="#94a3b8" font-size="13" font-family="Outfit,sans-serif">Carregando mapa...</text>
+                        </svg>
+                    </div>
+                    <!-- Filtro de estados da região selecionada -->
+                    <div id="state-filter" style="display:none; gap:10px; align-items:center; padding-top:12px; margin-top:12px; border-top:1px solid var(--border);">
+                        <span class="filter-label">Estados:</span>
+                        <div id="state-buttons" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+                    </div>
                 </div>
-                <div id="state-filter" style="display: none; gap: 10px; align-items: center; padding-top: 15px; margin-top: 15px; border-top: 1px solid var(--border);">
-                    <span class="filter-label">Estados:</span>
-                    <div id="state-buttons" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
-                </div>
-            </div>
+            </div><!-- /painel cards+mapa -->
 
             <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
                 <!-- Abas de Status -->
