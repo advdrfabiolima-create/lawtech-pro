@@ -60,6 +60,7 @@ const peticoesRoutes = require('./routes/peticoes.routes');
 const syncRoutes = require('./routes/sync.routes');
 const assinaturaRoutes = require('./routes/assinatura_routes');
 const stripeWebhookRoutes = require('./routes/stripe.webhook.routes');
+const whatsappRoutes = require('./routes/whatsapp.routes');
 const lgpdRoutes = require('./routes/lgpd.routes');
 const calendarioRoutes = require('./routes/calendario.routes');
 const notificacoesRoutes = require('./routes/notificacoes.routes');
@@ -107,6 +108,9 @@ if (process.env.NODE_ENV === 'production') {
 // --- 4b. 🔴 WEBHOOK DO STRIPE (ANTES DOS MIDDLEWARES DE PARSING) ---
 // CRÍTICO: Esta rota DEVE vir ANTES do express.json() para receber raw body
 app.use('/webhook', stripeWebhookRoutes);
+
+// --- 4b2. WEBHOOK WHATSAPP (Meta Cloud API) ---
+app.use('/webhook', whatsappRoutes);
 
 // --- 4c. WEBHOOK CLICKSIGN — captura raw body para verificação HMAC ---
 // Deve vir ANTES do express.json() para ter acesso ao body bruto
@@ -520,6 +524,23 @@ require('./cron/crmFollowup');
         } catch (migrErr) {
             logger.warn({ err: migrErr.message }, '[SISTEMA] Migração clicksign_api_key (sem ENCRYPTION_KEY?)');
         }
+
+        // Tabela para histórico do bot WhatsApp
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS whatsapp_conversas (
+                id              SERIAL PRIMARY KEY,
+                escritorio_id   INTEGER NOT NULL,
+                telefone        VARCHAR(30) NOT NULL,
+                lead_id         INTEGER REFERENCES leads(id) ON DELETE SET NULL,
+                mensagens       JSONB DEFAULT '[]',
+                status          VARCHAR(20) DEFAULT 'bot',
+                nome_contato    VARCHAR(200),
+                criado_em       TIMESTAMPTZ DEFAULT NOW(),
+                atualizado_em   TIMESTAMPTZ DEFAULT NOW(),
+                UNIQUE(escritorio_id, telefone)
+            )
+        `);
+        logger.info('✅ [SISTEMA] Tabela whatsapp_conversas verificada.');
 
         iniciarAgendamentos();
 
