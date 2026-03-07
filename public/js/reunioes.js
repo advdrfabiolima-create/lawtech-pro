@@ -1,6 +1,11 @@
 const TOKEN = localStorage.getItem('token');
     if (!TOKEN) { window.location.href = '/login'; }
 
+    // ── Helpers obrigatórios ───────────────────────────────────────────────────
+    function navegarPara(url) { window.location.href = url; }
+    function removerElemento(id) { const el = document.getElementById(id); if (el) el.remove(); }
+    function clicarElemento(id) { const el = document.getElementById(id); if (el) el.click(); }
+
     let reunioes = [];
 
     // Inicialização
@@ -8,6 +13,18 @@ const TOKEN = localStorage.getItem('token');
         lucide.createIcons();
         await Promise.all([carregarPerfil(), carregarClientes(), carregarReunioes()]);
         verificarBolinhaCRM();
+
+        // toggleIaMenu — precisa do Event nativo para preventDefault
+        const linkIaMenu = document.getElementById('linkIaMenu');
+        if (linkIaMenu) linkIaMenu.addEventListener('click', toggleIaMenu);
+
+        // toggleUserMenu — usa id direto para stopPropagation funcionar
+        const userCircle = document.getElementById('userCircle');
+        if (userCircle) userCircle.addEventListener('click', toggleUserMenu);
+
+        // oninput do textarea de anotações (dentro do modal de vídeo)
+        const notasTextarea = document.getElementById('notasTextarea');
+        if (notasTextarea) notasTextarea.addEventListener('input', onNotasInput);
     });
 
     async function carregarPerfil() {
@@ -86,14 +103,16 @@ const TOKEN = localStorage.getItem('token');
             <div style="font-size:50px;">🚀</div>
             <h3 style="margin-top:15px;color:#0f172a;">Recurso não disponível</h3>
             <p style="color:#64748b;margin:15px 0 25px 0;line-height:1.6;">${mensagem}</p>
-            <button onclick="window.location.href='/planos-page'" style="background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#000;border:none;padding:14px 28px;border-radius:10px;font-weight:800;cursor:pointer;width:100%;margin-bottom:10px;">
+            <button id="btnUpgradePlanos" style="background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#000;border:none;padding:14px 28px;border-radius:10px;font-weight:800;cursor:pointer;width:100%;margin-bottom:10px;">
                 Ver Planos e Preços
             </button>
-            <button onclick="document.getElementById('overlay-upgrade').remove()" style="background:none;border:none;color:#64748b;cursor:pointer;font-weight:600;padding:8px;">
+            <button id="btnUpgradeDepois" style="background:none;border:none;color:#64748b;cursor:pointer;font-weight:600;padding:8px;">
                 Depois
             </button>
         </div>`;
         document.body.appendChild(overlay);
+        document.getElementById('btnUpgradePlanos').addEventListener('click', function() { window.location.href = '/planos-page'; });
+        document.getElementById('btnUpgradeDepois').addEventListener('click', function() { removerElemento('overlay-upgrade'); });
     }
 
     function renderReunioes() {
@@ -119,25 +138,25 @@ const TOKEN = localStorage.getItem('token');
                 <td>${badgeStatus(r.status)}</td>
                 <td style="text-align:right; white-space:nowrap;">
                     ${r.anotacoes ? `
-                        <button class="btn-icon" title="Ver anotações" onclick="verNotasReuniao(${r.id})" style="color:#f59e0b;">
+                        <button class="btn-icon" title="Ver anotações" data-action="verNotasReuniao" data-args='[${r.id}]' style="color:#f59e0b;">
                             <i data-lucide="file-text" style="width:18px;height:18px;"></i>
                         </button>
                     ` : ''}
                     ${r.status === 'agendada' ? `
-                        <button class="btn-icon" title="Reenviar convite por e-mail" onclick="reenviarEmail(${r.id})" style="color:#4A90E2;">
+                        <button class="btn-icon" title="Reenviar convite por e-mail" data-action="reenviarEmail" data-args='[${r.id}]' style="color:#4A90E2;">
                             <i data-lucide="mail" style="width:18px;height:18px;"></i>
                         </button>
-                        <button class="btn-icon" title="Entrar na Reunião" onclick="entrarReuniao(${r.id}, '${escapeHtml(r.titulo)}')" style="color:#6366f1;">
+                        <button class="btn-icon" title="Entrar na Reunião" data-action="entrarReuniao" data-args='[${r.id}, ${JSON.stringify(r.titulo)}]' style="color:#6366f1;">
                             <i data-lucide="video" style="width:18px;height:18px;"></i>
                         </button>
-                        <button class="btn-icon" title="Concluir" onclick="atualizarStatus(${r.id}, 'concluida')" style="color:#16a34a;">
+                        <button class="btn-icon" title="Concluir" data-action="atualizarStatus" data-args='[${r.id}, "concluida"]' style="color:#16a34a;">
                             <i data-lucide="check-circle" style="width:18px;height:18px;"></i>
                         </button>
-                        <button class="btn-icon" title="Cancelar Reunião" onclick="cancelarReuniao(${r.id})" style="color:#dc2626;">
+                        <button class="btn-icon" title="Cancelar Reunião" data-action="cancelarReuniao" data-args='[${r.id}]' style="color:#dc2626;">
                             <i data-lucide="trash-2" style="width:18px;height:18px;"></i>
                         </button>
                     ` : `
-                        <button class="btn-icon" title="Excluir permanentemente" onclick="excluirReuniao(${r.id})" style="color:#dc2626;">
+                        <button class="btn-icon" title="Excluir permanentemente" data-action="excluirReuniao" data-args='[${r.id}]' style="color:#dc2626;">
                             <i data-lucide="trash-2" style="width:18px;height:18px;"></i>
                         </button>
                     `}

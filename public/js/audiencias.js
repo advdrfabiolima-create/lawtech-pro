@@ -1,8 +1,13 @@
 // ========== VERSÃO ATUALIZADA - 13/02/2026 11:30 ==========
         console.log('🎯 AUDIENCIAS.HTML CARREGADO - VERSÃO 13/02/2026 11:30');
         console.log('✅ Função abrirModalRegistrarAta: ', typeof abrirModalRegistrarAta !== 'undefined' ? 'EXISTE' : 'NÃO EXISTE');
-        
+
         if (!API.getToken()) window.location.href = '/login';
+
+        // ── Helpers obrigatórios ─────────────────────────────────────────────
+        function navegarPara(url) { window.location.href = url; }
+        function removerElemento(id) { const el = document.getElementById(id); if (el) el.remove(); }
+        function clicarElemento(id) { const el = document.getElementById(id); if (el) el.click(); }
 
         // Toggle menu do usuário
         function toggleUserMenu() {
@@ -123,20 +128,20 @@
             const right  = Math.min(totalPags, pagina + delta);
 
             let nums = '';
-            if (left > 1)  nums += `<button onclick="${callbackFn}(1)" class="pag-num${1===pagina?' pag-ativo':''}">1</button>`;
+            if (left > 1)  nums += `<button data-action="${callbackFn}" data-args='[1]' class="pag-num${1===pagina?' pag-ativo':''}">1</button>`;
             if (left > 2)  nums += '<span class="pag-ellipsis">…</span>';
             for (let i = left; i <= right; i++) {
-                nums += `<button onclick="${callbackFn}(${i})" class="pag-num${i===pagina?' pag-ativo':''}">${i}</button>`;
+                nums += `<button data-action="${callbackFn}" data-args='[${i}]' class="pag-num${i===pagina?' pag-ativo':''}">${i}</button>`;
             }
             if (right < totalPags - 1) nums += '<span class="pag-ellipsis">…</span>';
-            if (right < totalPags)     nums += `<button onclick="${callbackFn}(${totalPags})" class="pag-num${totalPags===pagina?' pag-ativo':''}">${totalPags}</button>`;
+            if (right < totalPags)     nums += `<button data-action="${callbackFn}" data-args='[${totalPags}]' class="pag-num${totalPags===pagina?' pag-ativo':''}">${totalPags}</button>`;
 
             container.innerHTML =
                 `<span class="pag-info">Mostrando <strong>${inicio}–${fim}</strong> de <strong>${total}</strong></span>` +
                 `<div class="pag-controles">` +
-                    `<button onclick="${callbackFn}(${pagina-1})" ${pagina<=1?'disabled':''} class="pag-nav">← Anterior</button>` +
+                    `<button data-action="${callbackFn}" data-args='[${pagina-1}]' ${pagina<=1?'disabled':''} class="pag-nav">← Anterior</button>` +
                     nums +
-                    `<button onclick="${callbackFn}(${pagina+1})" ${pagina>=totalPags?'disabled':''} class="pag-nav">Próximo →</button>` +
+                    `<button data-action="${callbackFn}" data-args='[${pagina+1}]' ${pagina>=totalPags?'disabled':''} class="pag-nav">Próximo →</button>` +
                 `</div>`;
             container.classList.add('ativo');
         }
@@ -173,10 +178,10 @@
                     <td><span style="background:#f1f5f9;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;">${(a.tipo_audiencia||a.tipo||'AUDIÊNCIA').toUpperCase()}</span></td>
                     <td style="font-size:12px;color:var(--muted);max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.local_virtual||a.local||'---'}</td>
                     <td><div class="action-buttons">
-                        <button class="btn-action btn-whatsapp" onclick="avisarZap('${a.cliente}','${a.processo_numero}','${a.tipo_audiencia}','${a.data_audiencia}','${a.hora_audiencia}','${a.local_virtual}','${a.telefone}')"><i class="lucide lucide-message-circle"></i><span>WHATSAPP</span></button>
-                        <button class="btn-action btn-link-edit" data-local-id="${a.id}" data-local-valor="${(a.local_virtual||'').replace(/"/g,'&quot;')}" onclick="abrirModalEditarLocalSeguro(this)"><i class="lucide lucide-link"></i><span>EDITAR LINK</span></button>
-                        <button class="btn-action btn-realizada" onclick="abrirModalRegistrarAta(${a.id})"><i class="lucide lucide-check"></i><span>REALIZADA</span></button>
-                        <button class="btn-action btn-delete" onclick="excluirAudiencia(${a.id})"><i class="lucide lucide-trash-2"></i><span>EXCLUIR</span></button>
+                        <button class="btn-action btn-whatsapp" data-action="avisarZap" data-args='[${JSON.stringify(a.cliente||'')},${JSON.stringify(a.processo_numero||'')},${JSON.stringify(a.tipo_audiencia||'')},${JSON.stringify(a.data_audiencia||'')},${JSON.stringify(a.hora_audiencia||'')},${JSON.stringify(a.local_virtual||'')},${JSON.stringify(a.telefone||'')}]'><i class="lucide lucide-message-circle"></i><span>WHATSAPP</span></button>
+                        <button class="btn-action btn-link-edit" data-local-id="${a.id}" data-local-valor="${(a.local_virtual||'').replace(/"/g,'&quot;')}" data-action="abrirModalEditarLocalSeguro"><i class="lucide lucide-link"></i><span>EDITAR LINK</span></button>
+                        <button class="btn-action btn-realizada" data-action="abrirModalRegistrarAta" data-args='[${a.id}]'><i class="lucide lucide-check"></i><span>REALIZADA</span></button>
+                        <button class="btn-action btn-delete" data-action="excluirAudiencia" data-args='[${a.id}]'><i class="lucide lucide-trash-2"></i><span>EXCLUIR</span></button>
                     </div></td>
                 </tr>`;
             }).join('');
@@ -207,8 +212,8 @@
                     <td><span style="background:#f1f5f9;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;">${(a.tipo_audiencia||a.tipo||'AUDIÊNCIA').toUpperCase()}</span></td>
                     <td style="font-size:12px;color:var(--muted);max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.local_virtual||a.local||'---'}</td>
                     <td><div class="action-buttons">
-                        <button class="btn-action btn-edit" data-ata-id="${a.id}" data-ata-texto="${(a.ata_audiencia||'').replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}" onclick="abrirModalVerAtaSeguro(this)"><i class="lucide lucide-file-text"></i><span>VER ATA</span></button>
-                        <button class="btn-action btn-delete" onclick="excluirAudiencia(${a.id})"><i class="lucide lucide-trash-2"></i><span>EXCLUIR</span></button>
+                        <button class="btn-action btn-edit" data-ata-id="${a.id}" data-ata-texto="${(a.ata_audiencia||'').replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}" data-action="abrirModalVerAtaSeguro"><i class="lucide lucide-file-text"></i><span>VER ATA</span></button>
+                        <button class="btn-action btn-delete" data-action="excluirAudiencia" data-args='[${a.id}]'><i class="lucide lucide-trash-2"></i><span>EXCLUIR</span></button>
                     </div></td>
                 </tr>`;
             }).join('');
@@ -535,6 +540,27 @@
             window.open(url, '_blank');
         }
 
+        // ── Listeners migrados de inline handlers ────────────────────────────
+        document.addEventListener('DOMContentLoaded', function() {
+            // toggleIaMenu — regra especial
+            const linkIaMenu = document.getElementById('linkIaMenu');
+            if (linkIaMenu) linkIaMenu.addEventListener('click', toggleIaMenu);
+
+            // onchange nos selects do modal de nova audiência
+            const audProcesso = document.getElementById('audProcesso');
+            if (audProcesso) audProcesso.addEventListener('change', carregarDadosProcesso);
+
+            const audCliente = document.getElementById('audCliente');
+            if (audCliente) audCliente.addEventListener('change', preencherTelefoneCliente);
+
+            // onsubmit nos formulários de ata e editar local
+            const formAta = document.getElementById('formAta');
+            if (formAta) formAta.addEventListener('submit', salvarAta);
+
+            const formEditarLocal = document.getElementById('formEditarLocal');
+            if (formEditarLocal) formEditarLocal.addEventListener('submit', salvarLocalAudiencia);
+        });
+
         // Inicialização
         window.onload = async () => {
             await carregarInfoUsuario();
@@ -601,7 +627,7 @@
                 s.textContent = `.btn-action.btn-delete { display: none !important; }`;
             } else {
                 // visualizador: esconde delete, criar e editar link
-                s.textContent = `.btn-action.btn-delete, .btn-action.btn-link-edit, button[onclick*='abrirModal()'] { display: none !important; }`;
+                s.textContent = `.btn-action.btn-delete, .btn-action.btn-link-edit, button[data-action='abrirModal'] { display: none !important; }`;
             }
             document.head.appendChild(s);
         }

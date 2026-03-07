@@ -65,12 +65,37 @@ fbq('track', 'PageView');
             }
         }
 
+        // ====== HELPERS OBRIGATÓRIOS ======
+        function navegarPara(url) { window.location.href = url; }
+        function removerElemento(id) { const el = document.getElementById(id); if (el) el.remove(); }
+        function clicarElemento(id) { const el = document.getElementById(id); if (el) el.click(); }
+
+        // ====== DELEGAÇÃO DE EVENTOS data-action ======
+        document.addEventListener('click', function(e) {
+            const el = e.target.closest('[data-action]');
+            if (!el) return;
+            const fn = el.dataset.action;
+            if (typeof window[fn] !== 'function') return;
+            let args = [];
+            if (el.dataset.args) { try { args = JSON.parse(el.dataset.args); } catch(_) {} }
+            args.push(el);
+            window[fn](...args);
+        });
+
         // Formata os preços na inicialização
         document.addEventListener('DOMContentLoaded', function() {
             const amounts = document.querySelectorAll('.amount');
             amounts.forEach(amount => {
                 amount.innerHTML = formatarPreco(amount.dataset.mensal);
             });
+
+            // billingToggle change listener (migrado de onchange inline)
+            const billingToggle = document.getElementById('billingToggle');
+            if (billingToggle) billingToggle.addEventListener('change', toggleBilling);
+
+            // Formulário de contato submit listener (migrado de onsubmit inline)
+            const contatoForm = document.getElementById('contatoForm');
+            if (contatoForm) contatoForm.addEventListener('submit', enviarContato);
         });
 
         function iniciarTeste(plano) {
@@ -226,26 +251,3 @@ fbq('track', 'PageView');
             e.target.value = valor;
         });
 
-        // Validação do formulário
-        document.getElementById('contatoForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const nome = document.getElementById('contatoNome').value.trim();
-            const email = document.getElementById('contatoEmail').value.trim();
-            const telefone = document.getElementById('contatoTelefone').value.trim();
-            const mensagem = document.getElementById('contatoMensagem').value.trim();
-            
-            if (!nome || !email || !telefone || !mensagem) {
-                alert('Por favor, preencha todos os campos obrigatórios.');
-                return;
-            }
-            
-            if (!email.includes('@') || !email.includes('.')) {
-                alert('Por favor, insira um e-mail válido.');
-                return;
-            }
-            
-            // Aqui você pode adicionar a lógica para enviar o formulário
-            alert('Mensagem enviada com sucesso! Em breve entraremos em contato.');
-            this.reset();
-        });

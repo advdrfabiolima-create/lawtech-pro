@@ -1183,7 +1183,7 @@
 <div class="menu-item-with-submenu">
 
     <!-- LINK PRINCIPAL (IA PAGE) -->
-    <a href="/ia-page" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
+    <a href="/ia-page" id="linkIaMenu" style="display:flex; align-items:center; gap:10px;">
         <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
         IA Jurídica
         <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">
@@ -1214,7 +1214,7 @@
         <a href="/config-page" id="guia-config">
             <i class="lucide lucide-settings"></i> Configurações
         </a>
-        <a href="/crm-page" class="btn-crm-gold-nav" onclick="limparBolinha()">
+        <a href="/crm-page" class="btn-crm-gold-nav" data-action="limparBolinha">
             <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
             <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
         </a>
@@ -1243,12 +1243,12 @@
             
             <div class="user-menu">
                 <span id="userNameHeader">ADVOGADO</span>
-                <div onclick="toggleUserMenu()" id="userCircle">
+                <div data-action="toggleUserMenu" id="userCircle">
                     --
                 </div>
                 <div id="userDropdown">
                     <a href="/config-page"><i class="lucide lucide-user"></i> MEUS DADOS</a>
-                    <a href="#" onclick="logout()"><i class="lucide lucide-log-out"></i> SAIR</a>
+                    <a href="#" data-action="logout"><i class="lucide lucide-log-out"></i> SAIR</a>
                 </div>
             </div>
         </header>
@@ -1290,10 +1290,10 @@
             <div class="main-content">
                 <!-- Abas -->
                 <div class="tabs">
-                    <button class="tab active" onclick="trocarAba('agendadas')">
+                    <button class="tab active" data-action="trocarAba" data-args='["agendadas"]'>
                         AGENDADAS <span class="tab-badge" id="contadorFuturas">0</span>
                     </button>
-                    <button class="tab" onclick="trocarAba('realizadas')">
+                    <button class="tab" data-action="trocarAba" data-args='["realizadas"]'>
                         REALIZADAS <span class="tab-badge" id="contadorRealizadas">0</span>
                     </button>
                 </div>
@@ -1306,7 +1306,7 @@
                             <i class="lucide lucide-search"></i>
                             <input type="text" placeholder="BUSCAR AUDIÊNCIA..." />
                         </div>
-                        <button class="btn-primary" onclick="abrirModal()">
+                        <button class="btn-primary" data-action="abrirModal">
                             <i class="lucide lucide-plus"></i>
                             NOVA AUDIÊNCIA
                         </button>
@@ -1372,21 +1372,21 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2><i class="lucide lucide-calendar-plus"></i> NOVA AUDIÊNCIA</h2>
-                <button class="close" onclick="fecharModal()">×</button>
+                <button class="close" data-action="fecharModal">×</button>
             </div>
             <form id="formAudiencia">
                 <div class="modal-body">
                     <div class="form-grid">
                         <div class="form-group">
                             <label>NÚMERO DO PROCESSO *</label>
-                            <select id="audProcesso" required onchange="carregarDadosProcesso()">
+                            <select id="audProcesso" required>
                                 <option value="">SELECIONE UM PROCESSO</option>
                             </select>
                         </div>
 
                         <div class="form-group">
                             <label>CLIENTE</label>
-                            <select id="audCliente" onchange="preencherTelefoneCliente()">
+                            <select id="audCliente">
                                 <option value="">SELECIONE UM CLIENTE</option>
                             </select>
                         </div>
@@ -1431,7 +1431,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="fecharModal()">CANCELAR</button>
+                    <button type="button" class="btn-secondary" data-action="fecharModal">CANCELAR</button>
                     <button type="submit" class="btn-primary">
                         <i class="lucide lucide-save"></i>
                         SALVAR AUDIÊNCIA
@@ -1446,9 +1446,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2><i class="lucide lucide-file-text"></i> <span id="tituloModalAta">ATA DA AUDIÊNCIA</span></h2>
-                <button class="close" onclick="fecharModalAta()">×</button>
+                <button class="close" data-action="fecharModalAta">×</button>
             </div>
-            <form id="formAta" onsubmit="salvarAta(event)">
+            <form id="formAta">
                 <div class="modal-body">
                     <div class="form-group full-width">
                         <label>REGISTRE O QUE OCORREU NA AUDIÊNCIA *</label>
@@ -1456,7 +1456,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="fecharModalAta()">CANCELAR</button>
+                    <button type="button" class="btn-secondary" data-action="fecharModalAta">CANCELAR</button>
                     <button type="submit" class="btn-primary">
                         <i class="lucide lucide-save"></i>
                         <span id="textoSalvarAta">SALVAR ATA</span>
@@ -1471,9 +1471,9 @@
         <div class="modal-content" style="max-width:500px;">
             <div class="modal-header">
                 <h2><i class="lucide lucide-link"></i> EDITAR ENDEREÇO / LINK</h2>
-                <button class="close" onclick="fecharModalEditarLocal()">×</button>
+                <button class="close" data-action="fecharModalEditarLocal">×</button>
             </div>
-            <form id="formEditarLocal" onsubmit="salvarLocalAudiencia(event)">
+            <form id="formEditarLocal">
                 <div class="modal-body">
                     <div class="form-group full-width">
                         <label>ENDEREÇO OU LINK DA AUDIÊNCIA VIRTUAL</label>
@@ -1481,7 +1481,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="fecharModalEditarLocal()">CANCELAR</button>
+                    <button type="button" class="btn-secondary" data-action="fecharModalEditarLocal">CANCELAR</button>
                     <button type="submit" class="btn-primary">
                         <i class="lucide lucide-save"></i>
                         SALVAR

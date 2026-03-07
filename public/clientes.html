@@ -671,9 +671,9 @@
             border-bottom: 2px solid var(--border-medium);
         }
 
-        thead th:nth-child(4) {
-            width: 160px; /* Aumentando largura da coluna TELEFONE */
-        }
+        thead th:nth-child(4) { width: 140px; } /* TELEFONE */
+        thead th:nth-child(5) { min-width: 180px; } /* CIDADE/UF — mais espaço */
+        thead th:nth-child(6) { width: 56px; text-align: center; } /* AÇÕES */
 
         tbody tr {
             border-bottom: 1px solid var(--border-subtle);
@@ -691,145 +691,74 @@
             color: var(--text-primary);
         }
 
-        /* STATUS MODERNO */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
+        /* DROPDOWN DE AÇÕES ⋮ */
+        .td-acoes { width: 56px; text-align: center; }
+
+        .dropdown-acoes { position: relative; display: inline-block; }
+
+        .btn-menu-acoes {
+            width: 34px;
+            height: 34px;
             border-radius: 8px;
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            transition: all var(--transition-base);
-        }
-
-        .status-badge i {
-            font-size: 12px;
-        }
-
-        .status-ativo {
-            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-            color: #065f46;
-            border: 1px solid #6ee7b7;
-        }
-
-        .status-inativo {
-            background: linear-gradient(135deg, #fee2e2, #fecaca);
-            color: #991b1b;
-            border: 1px solid #fca5a5;
-        }
-
-        .status-badge:hover {
-            transform: scale(1.05);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        /* BOTÕES DE AÇÃO MODERNOS */
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-action {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 700;
+            border: 1px solid var(--border-medium);
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            transition: all var(--transition-base);
-            position: relative;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+        .btn-menu-acoes:hover {
+            background: #1E3A5F;
+            color: #fff;
+            border-color: #1E3A5F;
+            box-shadow: 0 2px 8px rgba(30,58,95,0.18);
+        }
+        .btn-menu-acoes i { font-size: 16px; pointer-events: none; }
+
+        .menu-acoes {
+            display: none;
+            position: fixed;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-medium);
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.13);
+            min-width: 180px;
+            z-index: 9999;
             overflow: hidden;
+            animation: dropIn 0.15s ease-out;
         }
-
-        .btn-action::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.3s, height 0.3s;
+        @keyframes dropIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
-
-        .btn-action:hover::before {
-            width: 120px;
-            height: 120px;
+        .menu-acoes button {
+            width: 100%;
+            padding: 10px 16px;
+            background: none;
+            border: none;
+            border-bottom: 1px solid var(--border-subtle);
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-align: left;
+            transition: background var(--transition-fast);
         }
-
-        .btn-action i {
-            font-size: 14px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .btn-action span {
-            position: relative;
-            z-index: 1;
-        }
-
-        .btn-view {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-view:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-
-        .btn-edit {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-edit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-        }
-
-        .btn-delete {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-delete:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-        }
-
-        .btn-portal {
-            background: linear-gradient(135deg, #6366f1, #4f46e5);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-portal:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-        }
-
-
-        .btn-contract {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-contract:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
+        .menu-acoes button:last-child { border-bottom: none; }
+        .menu-acoes button:hover { background: #f0f6ff; }
+        .menu-acoes button i { font-size: 15px; color: var(--text-secondary); flex-shrink: 0; }
+        .menu-acoes button:hover i { color: #1E3A5F; }
+        .menu-acoes .btn-menu-edit:hover  { background: #fffbeb; }
+        .menu-acoes .btn-menu-edit:hover i { color: #d97706; }
+        .menu-acoes .btn-menu-delete { color: #dc2626; }
+        .menu-acoes .btn-menu-delete i { color: #dc2626; }
+        .menu-acoes .btn-menu-delete:hover { background: #fff1f1; }
 
         /* Modal */
         .modal {
@@ -1163,7 +1092,7 @@
  <div class="menu-item-with-submenu">
 
     <!-- LINK PRINCIPAL (IA PAGE) -->
-    <a href="/ia-page" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
+    <a href="/ia-page" id="linkIaMenu" style="display:flex; align-items:center; gap:10px;">
         <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
         IA Jurídica
         <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">
@@ -1194,7 +1123,7 @@
         <a href="/config-page" id="guia-config">
             <i class="lucide lucide-settings"></i> Configurações
         </a>
-        <a href="/crm-page" class="btn-crm-gold-nav" onclick="limparBolinha()">
+        <a href="/crm-page" class="btn-crm-gold-nav" data-action="limparBolinha">
             <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
             <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
         </a>
@@ -1225,7 +1154,7 @@
         <div style="position: relative; display: flex; align-items: center; gap: 12px;">
             <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
             
-            <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
+            <div data-action="toggleUserMenu" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
                 --
             </div>
             
@@ -1233,7 +1162,7 @@
                 <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">
                     👤 Meus Dados
                 </a>
-                <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">
+                <a href="#" data-action="logout" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">
                     🚪 Sair
                 </a>
             </div>
@@ -1294,14 +1223,14 @@
             <div class="toolbar">
                 <div class="search-box" style="max-width: 350px;">
                     <i class="lucide lucide-search"></i>
-                    <input type="text" id="searchClientes" placeholder="BUSCAR CLIENTE..." onkeyup="filtrarClientes()" />
+                    <input type="text" id="searchClientes" placeholder="BUSCAR CLIENTE..." />
                 </div>
                 <div style="display: flex; gap: 12px;">
-                    <button class="btn-secondary" onclick="exportarCSV()" title="Exportar clientes para CSV">
+                    <button class="btn-secondary" data-action="exportarCSV" title="Exportar clientes para CSV">
                         <i class="lucide lucide-download"></i>
                         BACKUP CSV
                     </button>
-                    <button class="btn-primary" onclick="abrirModal()">
+                    <button class="btn-primary" data-action="abrirModal">
                         <i class="lucide lucide-user-plus"></i>
                         NOVO CLIENTE
                     </button>
@@ -1318,7 +1247,6 @@
                             <th>EMAIL</th>
                             <th>TELEFONE</th>
                             <th>CIDADE/UF</th>
-                            <th>STATUS</th>
                             <th>AÇÕES</th>
                         </tr>
                     </thead>
@@ -1343,7 +1271,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalTitle"><i class="lucide lucide-user-plus"></i>NOVO CLIENTE</h2>
-                <button class="close" onclick="fecharModal()">×</button>
+                <button class="close" data-action="fecharModal">×</button>
             </div>
             <form id="formCliente">
                 <div class="modal-body">
@@ -1352,11 +1280,11 @@
                             <label>TIPO DE PESSOA</label>
                             <div class="radio-group">
                                 <label>
-                                    <input type="radio" name="tipoPessoa" id="cliTipoFisica" value="fisica" checked onchange="alternarCamposPessoa('fisica')" />
+                                    <input type="radio" name="tipoPessoa" id="cliTipoFisica" value="fisica" checked />
                                     <span>PESSOA FÍSICA</span>
                                 </label>
                                 <label>
-                                    <input type="radio" name="tipoPessoa" id="cliTipoJuridica" value="juridica" onchange="alternarCamposPessoa('juridica')" />
+                                    <input type="radio" name="tipoPessoa" id="cliTipoJuridica" value="juridica" />
                                     <span>PESSOA JURÍDICA</span>
                                 </label>
                             </div>
@@ -1389,7 +1317,7 @@
 
                         <div class="form-group">
                             <label>CEP</label>
-                            <input type="text" id="cliCep" onblur="buscarEnderecoPorCep(this.value)" />
+                            <input type="text" id="cliCep" />
                         </div>
 
                         <div class="form-group">
@@ -1438,7 +1366,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="fecharModal()">CANCELAR</button>
+                    <button type="button" class="btn-secondary" data-action="fecharModal">CANCELAR</button>
                     <button type="submit" class="btn-primary">
                         <i class="lucide lucide-save"></i>
                         SALVAR CLIENTE
@@ -1453,7 +1381,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="tituloModalProcessos"><i class="lucide lucide-briefcase"></i>PROCESSOS DO CLIENTE</h2>
-                <button class="close" onclick="fecharModalProcessos()">×</button>
+                <button class="close" data-action="fecharModalProcessos">×</button>
             </div>
             <div class="modal-body">
                 <div id="listaProcessosCliente"></div>
@@ -1466,7 +1394,7 @@
         <div class="modal-content" style="max-width: 860px;">
             <div class="modal-header">
                 <h2 id="tituloModalContratos"><i class="lucide lucide-file-signature"></i> CONTRATOS DE HONORÁRIOS</h2>
-                <button class="close" onclick="fecharModalContratos()">×</button>
+                <button class="close" data-action="fecharModalContratos">×</button>
             </div>
             <div class="modal-body" id="corpoModalContratos">
                 <!-- Preenchido via JS -->
@@ -1479,7 +1407,7 @@
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
                 <h2 id="tituloFormContrato"><i class="lucide lucide-plus-circle"></i> NOVO CONTRATO</h2>
-                <button class="close" onclick="fecharModalFormContrato()">×</button>
+                <button class="close" data-action="fecharModalFormContrato">×</button>
             </div>
             <form id="formContrato">
                 <div class="modal-body">
@@ -1490,7 +1418,7 @@
                         </div>
                         <div class="form-group">
                             <label>TIPO DE HONORÁRIO *</label>
-                            <select id="ctTipo" required onchange="atualizarCamposHonorario()">
+                            <select id="ctTipo" required>
                                 <option value="">SELECIONE</option>
                                 <option value="fixo">HONORÁRIOS FIXOS</option>
                                 <option value="exito">HONORÁRIOS DE ÊXITO</option>
@@ -1558,7 +1486,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="fecharModalFormContrato()">CANCELAR</button>
+                    <button type="button" class="btn-secondary" data-action="fecharModalFormContrato">CANCELAR</button>
                     <button type="submit" class="btn-primary">
                         <i class="lucide lucide-save"></i>
                         <span id="textoSalvarContrato">SALVAR CONTRATO</span>
@@ -1573,7 +1501,7 @@
         <div class="modal-content" style="max-width: 480px;">
             <div class="modal-header">
                 <h2><i class="lucide lucide-upload"></i> ENVIAR PDF ASSINADO</h2>
-                <button class="close" onclick="fecharModalUpload()">×</button>
+                <button class="close" data-action="fecharModalUpload">×</button>
             </div>
             <div class="modal-body">
                 <p style="color:var(--text-secondary); font-size:13px; margin-bottom:20px;">
@@ -1585,8 +1513,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="fecharModalUpload()">CANCELAR</button>
-                <button type="button" class="btn-primary" onclick="confirmarUploadContrato()">
+                <button type="button" class="btn-secondary" data-action="fecharModalUpload">CANCELAR</button>
+                <button type="button" class="btn-primary" data-action="confirmarUploadContrato">
                     <i class="lucide lucide-upload"></i>
                     ENVIAR PDF
                 </button>
@@ -1594,6 +1522,138 @@
         </div>
     </div>
 
+
+    <!-- =====================================================
+         MODAL 1 — Listagem de Procurações do Cliente
+    ====================================================== -->
+    <div class="modal" id="modalProcuracoes">
+        <div class="modal-content" style="max-width: 860px;">
+            <div class="modal-header">
+                <h2 id="tituloModalProcuracoes"><i class="lucide lucide-scroll-text"></i> PROCURAÇÕES</h2>
+                <button class="close" data-action="fecharModalProcuracoes">×</button>
+            </div>
+            <div class="modal-body" id="corpoModalProcuracoes">
+                <!-- Preenchido via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================
+         MODAL 2 — Formulário Novo/Editar Procuração
+    ====================================================== -->
+    <div class="modal" id="modalFormProcuracao">
+        <div class="modal-content" style="max-width: 660px;">
+            <div class="modal-header">
+                <h2 id="tituloFormProcuracao"><i class="lucide lucide-plus-circle"></i> NOVA PROCURAÇÃO</h2>
+                <button class="close" data-action="fecharModalFormProcuracao">×</button>
+            </div>
+            <form id="formProcuracao">
+                <div class="modal-body">
+                    <div class="form-grid">
+
+                        <!-- Tipo -->
+                        <div class="form-group full-width">
+                            <label>TIPO DE PROCURAÇÃO *</label>
+                            <select id="prTipo" required>
+                                <option value="">SELECIONE</option>
+                                <option value="ad_judicia">AD JUDICIA (JUDICIAL)</option>
+                                <option value="extrajudicial">EXTRAJUDICIAL</option>
+                                <option value="ad_judicia_extrajudicial">AD JUDICIA + EXTRAJUDICIAL</option>
+                            </select>
+                        </div>
+
+                        <!-- Finalidade -->
+                        <div class="form-group full-width">
+                            <label>FINALIDADE / OBJETO *</label>
+                            <input type="text" id="prFinalidade" placeholder="Ex: Ação de Cobrança de Condomínio" required />
+                        </div>
+
+                        <!-- Nacionalidade / Estado Civil / Profissão -->
+                        <div class="form-group">
+                            <label>NACIONALIDADE</label>
+                            <input type="text" id="prNacionalidade" placeholder="Ex: brasileira" />
+                        </div>
+                        <div class="form-group">
+                            <label>ESTADO CIVIL</label>
+                            <select id="prEstadoCivil">
+                                <option value="">NÃO INFORMAR</option>
+                                <option value="solteiro(a)">SOLTEIRO(A)</option>
+                                <option value="casado(a)">CASADO(A)</option>
+                                <option value="divorciado(a)">DIVORCIADO(A)</option>
+                                <option value="viúvo(a)">VIÚVO(A)</option>
+                                <option value="união estável">UNIÃO ESTÁVEL</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>PROFISSÃO</label>
+                            <input type="text" id="prProfissao" placeholder="Ex: comerciante" />
+                        </div>
+
+                        <!-- Parte contrária -->
+                        <div class="form-group full-width" id="campoParte" style="display:none;">
+                            <label>PARTE CONTRÁRIA (RÉUS)</label>
+                            <textarea id="prParteContraria" rows="2"
+                                placeholder="Ex: CONDOMÍNIO XYZ, CNPJ nº 00.000.000/0001-00, com sede na Rua ABC, nº 1, Cidade/UF"></textarea>
+                        </div>
+
+                        <!-- Poderes especiais checkboxes -->
+                        <div class="form-group full-width">
+                            <label>PODERES ESPECIAIS</label>
+                            <div style="display:flex; flex-wrap:wrap; gap:10px 24px; margin-top:4px;">
+                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;text-transform:none;">
+                                    <input type="checkbox" id="prDesistir" checked> Desistir / Transigir
+                                </label>
+                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;text-transform:none;">
+                                    <input type="checkbox" id="prReceberValores" checked> Receber valores / dar quitação
+                                </label>
+                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;text-transform:none;">
+                                    <input type="checkbox" id="prJusticaGratuita" checked> Requerer Justiça Gratuita
+                                </label>
+                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;text-transform:none;">
+                                    <input type="checkbox" id="prSubstabelecer" checked> Substabelecer
+                                </label>
+                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;text-transform:none;">
+                                    <input type="checkbox" id="prIrrevogavel" checked> Irretratável e Irrevogável
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Cidade/Data -->
+                        <div class="form-group">
+                            <label>CIDADE DE ASSINATURA *</label>
+                            <input type="text" id="prCidadeAssinatura" placeholder="Ex: Feira de Santana" required />
+                        </div>
+                        <div class="form-group">
+                            <label>DATA DE ASSINATURA</label>
+                            <input type="date" id="prDataAssinatura" />
+                        </div>
+
+                        <!-- Processo vinculado -->
+                        <div class="form-group full-width">
+                            <label>PROCESSO VINCULADO (OPCIONAL)</label>
+                            <select id="prProcesso">
+                                <option value="">SEM PROCESSO VINCULADO</option>
+                            </select>
+                        </div>
+
+                        <!-- Observações -->
+                        <div class="form-group full-width">
+                            <label>OBSERVAÇÕES ADICIONAIS</label>
+                            <textarea id="prObs" rows="2" placeholder="Informações complementares..."></textarea>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" data-action="fecharModalFormProcuracao">CANCELAR</button>
+                    <button type="submit" class="btn-primary">
+                        <i class="lucide lucide-save"></i>
+                        <span id="textoSalvarProcuracao">SALVAR PROCURAÇÃO</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.451.0/dist/umd/lucide.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

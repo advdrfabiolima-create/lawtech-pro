@@ -204,7 +204,7 @@
         <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
         <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
         <div class="menu-item-with-submenu">
-            <a href="/ia-page" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
+            <a href="/ia-page" id="linkIaMenu" style="display:flex; align-items:center; gap:10px;">
                 <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
                 IA Jurídica
                 <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">PREMIUM</span>
@@ -220,7 +220,7 @@
         <a href="/reunioes-page" class="active"><i class="lucide lucide-video"></i> Reuniões</a>
         <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
         <a href="/config-page" id="guia-config"><i class="lucide lucide-settings"></i> Configurações</a>
-        <a href="/crm-page" class="btn-crm-gold-nav" onclick="limparBolinha()">
+        <a href="/crm-page" class="btn-crm-gold-nav" data-action="limparBolinha">
             <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
             <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
         </a>
@@ -243,13 +243,13 @@
             <h2 style="font-size: 18px; font-weight: 700;">🎥 Reuniões com Clientes</h2>
         </div>
         <div style="display:flex; gap:20px; align-items:center;">
-            <button class="btn-primary" onclick="abrirModalNovaReuniao()">+ Nova Reunião</button>
+            <button class="btn-primary" data-action="abrirModalNovaReuniao">+ Nova Reunião</button>
             <div style="position: relative; display: flex; align-items: center; gap: 12px;">
                 <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
-                <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">A</div>
+                <div id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">A</div>
                 <div class="user-menu-dropdown" id="userMenuDropdown">
                     <a href="/config-page">Configurações</a>
-                    <a href="#" onclick="logout()">Sair</a>
+                    <a href="#" data-action="logout">Sair</a>
                 </div>
             </div>
         </div>
@@ -310,8 +310,8 @@
             </div>
         </div>
         <div class="modal-actions">
-            <button class="btn-secondary" onclick="fecharModalNovaReuniao()">Cancelar</button>
-            <button class="btn-primary" onclick="criarReuniao()" id="btnCriarReuniao">Criar Reunião</button>
+            <button class="btn-secondary" data-action="fecharModalNovaReuniao">Cancelar</button>
+            <button class="btn-primary" data-action="criarReuniao" id="btnCriarReuniao">Criar Reunião</button>
         </div>
     </div>
 </div>
@@ -325,8 +325,8 @@
                 <img src="Logo LawTech Pro_transparente.png" class="modal-video-logo" alt="LawTech Pro">
                 <span id="videoTitulo">Reunião</span>
             </div>
-            <button class="btn-vcall-notes" id="btnNotasToggle" onclick="toggleNotasPanel()" title="Anotações da reunião">📝 Notas</button>
-            <button class="btn-vcall-end" onclick="fecharModalVideo()">✕ Encerrar</button>
+            <button class="btn-vcall-notes" id="btnNotasToggle" data-action="toggleNotasPanel" title="Anotações da reunião">📝 Notas</button>
+            <button class="btn-vcall-end" data-action="fecharModalVideo">✕ Encerrar</button>
         </div>
         <!-- Corpo: vídeo + painel de notas -->
         <div id="videoBody">
@@ -349,26 +349,26 @@
                 <!-- Barra de seleção de layout (aparece só durante gravação) -->
                 <div id="layoutBar" style="display:flex; position:absolute; bottom:70px; left:50%; transform:translateX(-50%); z-index:30; background:rgba(15,23,42,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:8px 12px; gap:8px; align-items:center; backdrop-filter:blur(8px); flex-wrap:wrap; justify-content:center;">
                     <span style="font-size:11px;color:#94a3b8;font-weight:600;">🖥️ Layout:</span>
-                    <button class="btn-layout active" id="layout_pip"           onclick="setRecordLayout('pip')">🖼️ PiP</button>
-                    <button class="btn-layout"        id="layout_sidebyside"    onclick="setRecordLayout('sidebyside')">⬛⬛ Lado a lado</button>
-                    <button class="btn-layout"        id="layout_focus_remote"  onclick="setRecordLayout('focus_remote')">👤 Cliente</button>
-                    <button class="btn-layout"        id="layout_focus_local"   onclick="setRecordLayout('focus_local')">🧑‍💼 Você</button>
+                    <button class="btn-layout active" id="layout_pip"           data-action="setRecordLayout" data-args='["pip"]'>🖼️ PiP</button>
+                    <button class="btn-layout"        id="layout_sidebyside"    data-action="setRecordLayout" data-args='["sidebyside"]'>⬛⬛ Lado a lado</button>
+                    <button class="btn-layout"        id="layout_focus_remote"  data-action="setRecordLayout" data-args='["focus_remote"]'>👤 Cliente</button>
+                    <button class="btn-layout"        id="layout_focus_local"   data-action="setRecordLayout" data-args='["focus_local"]'>🧑‍💼 Você</button>
                 </div>
                 <video id="remoteVideo" autoplay playsinline></video>
                 <video id="localVideo" autoplay muted playsinline></video>
                 <!-- Controles flutuantes na base -->
                 <div id="videoControls">
                     <span class="video-status-badge" id="videoStatus">Iniciando...</span>
-                    <button class="btn-vcall" id="btnMute" onclick="toggleMute()">🎤 Mudo</button>
-                    <button class="btn-vcall" id="btnCam" onclick="toggleCamera()">📷 Câmera</button>
-                    <button class="btn-vcall" id="btnScreen" onclick="toggleShareScreen()">🖥️ Tela</button>
-                    <button class="btn-vcall" id="btnRecord" onclick="toggleRecording()">⏺️ Gravar</button>
+                    <button class="btn-vcall" id="btnMute" data-action="toggleMute">🎤 Mudo</button>
+                    <button class="btn-vcall" id="btnCam" data-action="toggleCamera">📷 Câmera</button>
+                    <button class="btn-vcall" id="btnScreen" data-action="toggleShareScreen">🖥️ Tela</button>
+                    <button class="btn-vcall" id="btnRecord" data-action="toggleRecording">⏺️ Gravar</button>
                 </div>
             </div>
             <!-- Painel de anotações -->
             <div id="notesPanel">
                 <div class="notes-panel-header">📝 Anotações da Reunião</div>
-                <textarea id="notasTextarea" placeholder="Digite aqui suas anotações durante a reunião..." oninput="onNotasInput()"></textarea>
+                <textarea id="notasTextarea" placeholder="Digite aqui suas anotações durante a reunião..."></textarea>
                 <div class="notes-save-status" id="notasSaveStatus"></div>
             </div>
         </div>
@@ -385,8 +385,8 @@
         </div>
         <textarea id="notasModalTexto" placeholder="Nenhuma anotação registrada para esta reunião."></textarea>
         <div class="modal-actions">
-            <button class="btn-secondary" onclick="fecharModalNotas()">Fechar</button>
-            <button class="btn-primary" onclick="salvarNotasModal()" id="btnSalvarNotasModal">Salvar alterações</button>
+            <button class="btn-secondary" data-action="fecharModalNotas">Fechar</button>
+            <button class="btn-primary" data-action="salvarNotasModal" id="btnSalvarNotasModal">Salvar alterações</button>
         </div>
     </div>
 </div>

@@ -141,7 +141,7 @@ const token = localStorage.getItem('token');
         async function carregarClientes(page = 1) {
     paginaAtual = page;
     const tbody = document.getElementById('listaClientes');
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#64748b;">Carregando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#64748b;">Carregando...</td></tr>';
     try {
         const [resClientes, resProcessos] = await Promise.all([
             fetch(`/api/clientes?page=${page}&limit=${LIMITE_POR_PAGINA}`, { headers: { 'Authorization': `Bearer ${token}` } }),
@@ -180,7 +180,7 @@ const token = localStorage.getItem('token');
 
     } catch (err) {
         console.error("Erro ao carregar clientes:", err);
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px; color:var(--danger); font-weight:600;">❌ ERRO AO CARREGAR CLIENTES</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--danger); font-weight:600;">❌ ERRO AO CARREGAR CLIENTES</td></tr>';
     }
 }
 
@@ -191,7 +191,7 @@ const token = localStorage.getItem('token');
             const tbody = document.getElementById('listaClientes');
             
             if (clientes.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:60px 20px; color:var(--text-tertiary);"><i class="lucide lucide-user-x" style="font-size:48px; margin-bottom:16px;"></i><p style="font-weight:600; font-size:16px;">NENHUM CLIENTE CADASTRADO</p><p style="font-size:13px; margin-top:8px;">CLIQUE EM "NOVO CLIENTE" PARA COMEÇAR</p></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:60px 20px; color:var(--text-tertiary);"><i class="lucide lucide-user-x" style="font-size:48px; margin-bottom:16px;"></i><p style="font-weight:600; font-size:16px;">NENHUM CLIENTE CADASTRADO</p><p style="font-size:13px; margin-top:8px;">CLIQUE EM "NOVO CLIENTE" PARA COMEÇAR</p></td></tr>';
                 lucide.createIcons();
                 return;
             }
@@ -203,34 +203,31 @@ const token = localStorage.getItem('token');
                     <td style="color:var(--text-secondary);">${c.email}</td>
                     <td style="color:var(--text-secondary);">${c.telefone || '---'}</td>
                     <td style="color:var(--text-secondary);">${c.cidade || '---'}${c.estado ? '/' + c.estado : ''}</td>
-                    <td>
-                        <span class="status-badge status-ativo">
-                            <i class="lucide lucide-check-circle"></i>
-                            ATIVO
-                        </span>
-                    </td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn-action btn-view" onclick="visualizarProcessosCliente(${c.id}, '${c.nome.replace(/'/g, "\\'")}')" title="VER PROCESSOS">
-                                <i class="lucide lucide-eye"></i>
-                                <span>VER</span>
+                    <td class="td-acoes">
+                        <div class="dropdown-acoes">
+                            <button class="btn-menu-acoes" data-action="toggleDropdown" title="Ações">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
                             </button>
-                            <button class="btn-action btn-portal" onclick="gerarLinkPortal(${c.id}, '${c.nome.replace(/'/g, "\\'")}')" title="LINK PORTAL DO CLIENTE">
-                                <i class="lucide lucide-link-2"></i>
-                                <span>LINK</span>
-                            </button>
-                            <button class="btn-action btn-contract" onclick="abrirModalContratos(${c.id}, '${c.nome.replace(/'/g, "\\'")}')" title="CONTRATOS DE HONORÁRIOS">
-                                <i class="lucide lucide-file-signature"></i>
-                                <span>CONTRATOS</span>
-                            </button>
-                            <button class="btn-action btn-edit" onclick="prepararEdicao(${c.id}, '${c.nome.replace(/'/g, "\\'")}', '${c.documento}', '${c.email}', '${c.telefone || ''}', '${c.cep || ''}', '${c.endereco || ''}', '${c.cidade || ''}', '${c.estado || ''}', '${c.tipo_pessoa || 'fisica'}', '${c.data_nascimento || ''}')" title="EDITAR">
-                                <i class="lucide lucide-pencil"></i>
-                                <span>EDITAR</span>
-                            </button>
-                            <button class="btn-action btn-delete" onclick="excluirCliente(${c.id})" title="EXCLUIR">
-                                <i class="lucide lucide-trash-2"></i>
-                                <span>EXCLUIR</span>
-                            </button>
+                            <div class="menu-acoes">
+                                <button data-action="visualizarProcessosCliente" data-args='[${c.id}, ${JSON.stringify(c.nome)}]'>
+                                    <i class="lucide lucide-eye"></i> Ver processos
+                                </button>
+                                <button data-action="gerarLinkPortal" data-args='[${c.id}, ${JSON.stringify(c.nome)}]'>
+                                    <i class="lucide lucide-link-2"></i> Link portal
+                                </button>
+                                <button data-action="abrirModalContratos" data-args='[${c.id}, ${JSON.stringify(c.nome)}]'>
+                                    <i class="lucide lucide-file-signature"></i> Contratos
+                                </button>
+                                <button data-action="abrirModalProcuracoes" data-args='[${c.id}, ${JSON.stringify(c.nome)}]'>
+                                    <i class="lucide lucide-scroll-text"></i> Procurações
+                                </button>
+                                <button class="btn-menu-edit" data-action="prepararEdicao" data-args='[${c.id}, ${JSON.stringify(c.nome)}, ${JSON.stringify(c.documento)}, ${JSON.stringify(c.email)}, ${JSON.stringify(c.telefone || "")}, ${JSON.stringify(c.cep || "")}, ${JSON.stringify(c.endereco || "")}, ${JSON.stringify(c.cidade || "")}, ${JSON.stringify(c.estado || "")}, ${JSON.stringify(c.tipo_pessoa || "fisica")}, ${JSON.stringify(c.data_nascimento || "")}]'>
+                                    <i class="lucide lucide-pencil"></i> Editar
+                                </button>
+                                <button class="btn-menu-delete" data-action="excluirCliente" data-args='[${c.id}]'>
+                                    <i class="lucide lucide-trash-2"></i> Excluir
+                                </button>
+                            </div>
                         </div>
                     </td>
                 </tr>
@@ -258,20 +255,20 @@ const token = localStorage.getItem('token');
             const left = Math.max(1, page - delta);
             const right = Math.min(totalPages, page + delta);
             let nums = '';
-            if (left > 1) nums += '<button onclick="carregarClientes(1)" class="pag-num' + (1===page?' pag-ativo':'') + '">1</button>';
+            if (left > 1) nums += '<button data-action="carregarClientes" data-args=\'[1]\' class="pag-num' + (1===page?' pag-ativo':'') + '">1</button>';
             if (left > 2) nums += '<span class="pag-ellipsis">…</span>';
             for (let i = left; i <= right; i++) {
-                nums += '<button onclick="carregarClientes(' + i + ')" class="pag-num' + (i===page?' pag-ativo':'') + '">' + i + '</button>';
+                nums += '<button data-action="carregarClientes" data-args=\'[' + i + ']\' class="pag-num' + (i===page?' pag-ativo':'') + '">' + i + '</button>';
             }
             if (right < totalPages - 1) nums += '<span class="pag-ellipsis">…</span>';
-            if (right < totalPages) nums += '<button onclick="carregarClientes(' + totalPages + ')" class="pag-num' + (totalPages===page?' pag-ativo':'') + '">' + totalPages + '</button>';
+            if (right < totalPages) nums += '<button data-action="carregarClientes" data-args=\'[' + totalPages + ']\' class="pag-num' + (totalPages===page?' pag-ativo':'') + '">' + totalPages + '</button>';
 
             container.innerHTML =
                 '<span class="pag-info">Mostrando <strong>' + inicio + '–' + fim + '</strong> de <strong>' + total + '</strong> clientes</span>' +
                 '<div class="pag-controles">' +
-                    '<button onclick="carregarClientes(' + (page-1) + ')" ' + (page<=1?'disabled':'') + ' class="pag-nav">← Anterior</button>' +
+                    '<button data-action="carregarClientes" data-args=\'[' + (page-1) + ']\' ' + (page<=1?'disabled':'') + ' class="pag-nav">← Anterior</button>' +
                     nums +
-                    '<button onclick="carregarClientes(' + (page+1) + ')" ' + (page>=totalPages?'disabled':'') + ' class="pag-nav">Próximo →</button>' +
+                    '<button data-action="carregarClientes" data-args=\'[' + (page+1) + ']\' ' + (page>=totalPages?'disabled':'') + ' class="pag-nav">Próximo →</button>' +
                 '</div>';
 
             container.classList.add('ativo');
@@ -284,7 +281,7 @@ const token = localStorage.getItem('token');
             const tbody = document.getElementById('listaClientes');
             
             // Remove mensagem "nenhum cliente" se existir
-            const mensagemVazia = tbody.querySelector('tr td[colspan="7"]');
+            const mensagemVazia = tbody.querySelector('tr td[colspan="6"]');
             if (mensagemVazia) {
                 tbody.innerHTML = '';
             }
@@ -300,34 +297,31 @@ const token = localStorage.getItem('token');
                 <td style="color:var(--text-secondary);">${cliente.email}</td>
                 <td style="color:var(--text-secondary);">${cliente.telefone || '---'}</td>
                 <td style="color:var(--text-secondary);">${cliente.cidade || '---'}${cliente.estado ? '/' + cliente.estado : ''}</td>
-                <td>
-                    <span class="status-badge status-ativo">
-                        <i class="lucide lucide-check-circle"></i>
-                        ATIVO
-                    </span>
-                </td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-action btn-view" onclick="visualizarProcessosCliente(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}')" title="VER PROCESSOS">
-                            <i class="lucide lucide-eye"></i>
-                            <span>VER</span>
+                <td class="td-acoes">
+                    <div class="dropdown-acoes">
+                        <button class="btn-menu-acoes" data-action="toggleDropdown" title="Ações">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
                         </button>
-                        <button class="btn-action btn-portal" onclick="gerarLinkPortal(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}')" title="LINK PORTAL DO CLIENTE">
-                            <i class="lucide lucide-link-2"></i>
-                            <span>LINK</span>
-                        </button>
-                            <button class="btn-action btn-contract" onclick="abrirModalContratos(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}')" title="CONTRATOS DE HONORÁRIOS">
-                                <i class="lucide lucide-file-signature"></i>
-                                <span>CONTRATOS</span>
+                        <div class="menu-acoes">
+                            <button data-action="visualizarProcessosCliente" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}]'>
+                                <i class="lucide lucide-eye"></i> Ver processos
                             </button>
-                        <button class="btn-action btn-edit" onclick="prepararEdicao(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}', '${cliente.documento}', '${cliente.email}', '${cliente.telefone || ''}', '${cliente.cep || ''}', '${cliente.endereco || ''}', '${cliente.cidade || ''}', '${cliente.estado || ''}', '${cliente.tipo_pessoa || 'fisica'}', '${cliente.data_nascimento || ''}')" title="EDITAR">
-                            <i class="lucide lucide-pencil"></i>
-                            <span>EDITAR</span>
-                        </button>
-                        <button class="btn-action btn-delete" onclick="excluirCliente(${cliente.id})" title="EXCLUIR">
-                            <i class="lucide lucide-trash-2"></i>
-                            <span>EXCLUIR</span>
-                        </button>
+                            <button data-action="gerarLinkPortal" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}]'>
+                                <i class="lucide lucide-link-2"></i> Link portal
+                            </button>
+                            <button data-action="abrirModalContratos" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}]'>
+                                <i class="lucide lucide-file-signature"></i> Contratos
+                            </button>
+                            <button data-action="abrirModalProcuracoes" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}]'>
+                                <i class="lucide lucide-scroll-text"></i> Procurações
+                            </button>
+                            <button class="btn-menu-edit" data-action="prepararEdicao" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}, ${JSON.stringify(cliente.documento)}, ${JSON.stringify(cliente.email)}, ${JSON.stringify(cliente.telefone || "")}, ${JSON.stringify(cliente.cep || "")}, ${JSON.stringify(cliente.endereco || "")}, ${JSON.stringify(cliente.cidade || "")}, ${JSON.stringify(cliente.estado || "")}, ${JSON.stringify(cliente.tipo_pessoa || "fisica")}, ${JSON.stringify(cliente.data_nascimento || "")}]'>
+                                <i class="lucide lucide-pencil"></i> Editar
+                            </button>
+                            <button class="btn-menu-delete" data-action="excluirCliente" data-args='[${cliente.id}]'>
+                                <i class="lucide lucide-trash-2"></i> Excluir
+                            </button>
+                        </div>
                     </div>
                 </td>
             `;
@@ -358,34 +352,31 @@ const token = localStorage.getItem('token');
                 <td style="color:var(--text-secondary);">${cliente.email}</td>
                 <td style="color:var(--text-secondary);">${cliente.telefone || '---'}</td>
                 <td style="color:var(--text-secondary);">${cliente.cidade || '---'}${cliente.estado ? '/' + cliente.estado : ''}</td>
-                <td>
-                    <span class="status-badge status-ativo">
-                        <i class="lucide lucide-check-circle"></i>
-                        ATIVO
-                    </span>
-                </td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-action btn-view" onclick="visualizarProcessosCliente(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}')" title="VER PROCESSOS">
-                            <i class="lucide lucide-eye"></i>
-                            <span>VER</span>
+                <td class="td-acoes">
+                    <div class="dropdown-acoes">
+                        <button class="btn-menu-acoes" data-action="toggleDropdown" title="Ações">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
                         </button>
-                        <button class="btn-action btn-portal" onclick="gerarLinkPortal(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}')" title="LINK PORTAL DO CLIENTE">
-                            <i class="lucide lucide-link-2"></i>
-                            <span>LINK</span>
-                        </button>
-                            <button class="btn-action btn-contract" onclick="abrirModalContratos(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}')" title="CONTRATOS DE HONORÁRIOS">
-                                <i class="lucide lucide-file-signature"></i>
-                                <span>CONTRATOS</span>
+                        <div class="menu-acoes">
+                            <button data-action="visualizarProcessosCliente" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}]'>
+                                <i class="lucide lucide-eye"></i> Ver processos
                             </button>
-                        <button class="btn-action btn-edit" onclick="prepararEdicao(${cliente.id}, '${cliente.nome.replace(/'/g, "\\'")}', '${cliente.documento}', '${cliente.email}', '${cliente.telefone || ''}', '${cliente.cep || ''}', '${cliente.endereco || ''}', '${cliente.cidade || ''}', '${cliente.estado || ''}', '${cliente.tipo_pessoa || 'fisica'}', '${cliente.data_nascimento || ''}')" title="EDITAR">
-                            <i class="lucide lucide-pencil"></i>
-                            <span>EDITAR</span>
-                        </button>
-                        <button class="btn-action btn-delete" onclick="excluirCliente(${cliente.id})" title="EXCLUIR">
-                            <i class="lucide lucide-trash-2"></i>
-                            <span>EXCLUIR</span>
-                        </button>
+                            <button data-action="gerarLinkPortal" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}]'>
+                                <i class="lucide lucide-link-2"></i> Link portal
+                            </button>
+                            <button data-action="abrirModalContratos" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}]'>
+                                <i class="lucide lucide-file-signature"></i> Contratos
+                            </button>
+                            <button data-action="abrirModalProcuracoes" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}]'>
+                                <i class="lucide lucide-scroll-text"></i> Procurações
+                            </button>
+                            <button class="btn-menu-edit" data-action="prepararEdicao" data-args='[${cliente.id}, ${JSON.stringify(cliente.nome)}, ${JSON.stringify(cliente.documento)}, ${JSON.stringify(cliente.email)}, ${JSON.stringify(cliente.telefone || "")}, ${JSON.stringify(cliente.cep || "")}, ${JSON.stringify(cliente.endereco || "")}, ${JSON.stringify(cliente.cidade || "")}, ${JSON.stringify(cliente.estado || "")}, ${JSON.stringify(cliente.tipo_pessoa || "fisica")}, ${JSON.stringify(cliente.data_nascimento || "")}]'>
+                                <i class="lucide lucide-pencil"></i> Editar
+                            </button>
+                            <button class="btn-menu-delete" data-action="excluirCliente" data-args='[${cliente.id}]'>
+                                <i class="lucide lucide-trash-2"></i> Excluir
+                            </button>
+                        </div>
                     </div>
                 </td>
             `;
@@ -423,7 +414,7 @@ const token = localStorage.getItem('token');
                 // Se não houver mais clientes, mostra mensagem
                 const tbody = document.getElementById('listaClientes');
                 if (tbody.children.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:60px 20px; color:var(--text-tertiary);"><i class="lucide lucide-user-x" style="font-size:48px; margin-bottom:16px;"></i><p style="font-weight:600; font-size:16px;">NENHUM CLIENTE CADASTRADO</p><p style="font-size:13px; margin-top:8px;">CLIQUE EM "NOVO CLIENTE" PARA COMEÇAR</p></td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:60px 20px; color:var(--text-tertiary);"><i class="lucide lucide-user-x" style="font-size:48px; margin-bottom:16px;"></i><p style="font-weight:600; font-size:16px;">NENHUM CLIENTE CADASTRADO</p><p style="font-size:13px; margin-top:8px;">CLIQUE EM "NOVO CLIENTE" PARA COMEÇAR</p></td></tr>';
                     lucide.createIcons();
                 }
             }, 300);
@@ -443,7 +434,7 @@ const token = localStorage.getItem('token');
             clearTimeout(_buscaTimer);
             _buscaTimer = setTimeout(async function() {
                 const tbody = document.getElementById('listaClientes');
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#64748b;">Buscando...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#64748b;">Buscando...</td></tr>';
                 if (paginacaoEl) paginacaoEl.classList.remove('ativo');
                 try {
                     const res = await fetch(`/api/clientes?search=${encodeURIComponent(termoBusca)}&limit=200`, {
@@ -453,10 +444,42 @@ const token = localStorage.getItem('token');
                     const resultados = data.data || data;
                     renderizarClientes(resultados);
                 } catch (err) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--danger);">❌ ERRO NA BUSCA</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--danger);">❌ ERRO NA BUSCA</td></tr>';
                 }
             }, 400);
         }
+
+
+        // ============================================
+        // DROPDOWN DE AÇÕES — abrir/fechar/fechar ao clicar fora
+        // ============================================
+        function toggleDropdown(btn) {
+            const menu = btn.nextElementSibling;
+            const isOpen = menu.dataset.open === '1';
+
+            document.querySelectorAll('.menu-acoes[data-open="1"]').forEach(m => {
+                m.style.display = 'none';
+                m.dataset.open = '0';
+            });
+
+            if (!isOpen) {
+                const rect = btn.getBoundingClientRect();
+                menu.style.display = 'block';
+                menu.style.top     = (rect.bottom + 6) + 'px';
+                menu.style.right   = (window.innerWidth - rect.right) + 'px';
+                menu.style.left    = 'auto';
+                menu.dataset.open  = '1';
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.dropdown-acoes')) {
+                document.querySelectorAll('.menu-acoes[data-open="1"]').forEach(m => {
+                    m.style.display = 'none';
+                    m.dataset.open = '0';
+                });
+            }
+        });
 
         // ============================================
         // MODAL
@@ -883,13 +906,47 @@ const token = localStorage.getItem('token');
     submenu.classList.toggle('open');
 }
 
+        // ============================================
+        // HELPERS OBRIGATÓRIOS
+        // ============================================
+        function navegarPara(url) { window.location.href = url; }
+        function removerElemento(id) { const el = document.getElementById(id); if (el) el.remove(); }
+        function clicarElemento(id) { const el = document.getElementById(id); if (el) el.click(); }
+
+        // ============================================
+        // DOM CONTENT LOADED — event listeners migrados
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // toggleIaMenu — sidebar IA link
+            const linkIaMenu = document.getElementById('linkIaMenu');
+            if (linkIaMenu) linkIaMenu.addEventListener('click', toggleIaMenu);
+
+            // filtrarClientes — search input
+            const searchClientes = document.getElementById('searchClientes');
+            if (searchClientes) searchClientes.addEventListener('keyup', filtrarClientes);
+
+            // alternarCamposPessoa — radio buttons tipo pessoa
+            const cliTipoFisica = document.getElementById('cliTipoFisica');
+            if (cliTipoFisica) cliTipoFisica.addEventListener('change', function() { alternarCamposPessoa('fisica'); });
+            const cliTipoJuridica = document.getElementById('cliTipoJuridica');
+            if (cliTipoJuridica) cliTipoJuridica.addEventListener('change', function() { alternarCamposPessoa('juridica'); });
+
+            // buscarEnderecoPorCep — CEP input blur
+            const cliCep = document.getElementById('cliCep');
+            if (cliCep) cliCep.addEventListener('blur', function() { buscarEnderecoPorCep(this.value); });
+
+            // atualizarCamposHonorario — tipo honorário select
+            const ctTipo = document.getElementById('ctTipo');
+            if (ctTipo) ctTipo.addEventListener('change', atualizarCamposHonorario);
+        });
+
         function aplicarPermissoesRoleUI(role) {
             if (role === 'admin') return;
             const s = document.createElement('style');
             if (role === 'operador') {
                 s.textContent = '.btn-action.btn-delete { display: none !important; }';
             } else {
-                s.textContent = '.btn-action.btn-edit, .btn-action.btn-delete, button[onclick*="abrirModal()"] { display: none !important; }';
+                s.textContent = '.btn-action.btn-edit, .btn-action.btn-delete, button[data-action="abrirModal"] { display: none !important; }';
             }
             document.head.appendChild(s);
         }
@@ -950,7 +1007,7 @@ const token = localStorage.getItem('token');
                         <span style="font-size:13px;color:var(--text-secondary);font-weight:600;">
                             ${data.length} contrato${data.length !== 1 ? 's' : ''} cadastrado${data.length !== 1 ? 's' : ''}
                         </span>
-                        <button class="btn-primary" style="padding:8px 18px;font-size:12px;" onclick="abrirNovoContrato()">
+                        <button class="btn-primary" style="padding:8px 18px;font-size:12px;" data-action="abrirNovoContrato">
                             <i class="lucide lucide-plus"></i> NOVO CONTRATO
                         </button>
                     </div>`;
@@ -998,17 +1055,17 @@ const token = localStorage.getItem('token');
                             <span style="background:${statusColor[c.status]||'#6b7280'};color:#fff;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;text-transform:uppercase;flex-shrink:0;">${c.status}</span>
                         </div>
                         <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
-                            <button onclick="_gerarTemplate(${c.id})" style="${_btnSmall('#3b82f6')}">
+                            <button data-action="_gerarTemplate" data-args='[${c.id}]' style="${_btnSmall('#3b82f6')}">
                                 <i class="lucide lucide-file-down" style="width:13px;height:13px;"></i> BAIXAR CONTRATO PDF
                             </button>
                             ${c.tem_arquivo
-                                ? `<button onclick="_downloadContrato(${c.id})" style="${_btnSmall('#10b981')}"><i class="lucide lucide-download" style="width:13px;height:13px;"></i> BAIXAR CONTRATO ASSINADO</button>`
-                                : `<button onclick="_abrirUpload(${c.id})" style="${_btnSmall('#6366f1')}"><i class="lucide lucide-upload" style="width:13px;height:13px;"></i> ENVIAR PDF ASSINADO</button>`
+                                ? `<button data-action="_downloadContrato" data-args='[${c.id}]' style="${_btnSmall('#10b981')}"><i class="lucide lucide-download" style="width:13px;height:13px;"></i> BAIXAR CONTRATO ASSINADO</button>`
+                                : `<button data-action="_abrirUpload" data-args='[${c.id}]' style="${_btnSmall('#6366f1')}"><i class="lucide lucide-upload" style="width:13px;height:13px;"></i> ENVIAR PDF ASSINADO</button>`
                             }
-                            <button onclick="_editarContrato(${c.id},'${c.titulo.replace(/'/g,"\\'")}','${c.tipo_honorario}',${c.valor_fixo||'null'},${c.percentual_exito||'null'},'${c.data_assinatura||''}',${c.processo_id||'null'},'${(c.observacoes||'').replace(/'/g,"\\'")}','${c.status}','${c.forma_pagamento||''}','${c.vencimento_pgto||''}','${c.num_parcelas||''}')" style="${_btnSmall('#f59e0b')}">
+                            <button data-action="_editarContrato" data-args='${JSON.stringify([c.id, c.titulo, c.tipo_honorario, c.valor_fixo||null, c.percentual_exito||null, c.data_assinatura||'', c.processo_id||null, c.observacoes||'', c.status, c.forma_pagamento||'', c.vencimento_pgto||'', c.num_parcelas||'']).replace(/'/g, "&#39;")}' style="${_btnSmall('#f59e0b')}">
                                 <i class="lucide lucide-pencil" style="width:13px;height:13px;"></i> EDITAR
                             </button>
-                            <button onclick="_excluirContrato(${c.id},'${c.titulo.replace(/'/g,"\\'")}')\" style="${_btnSmall('#ef4444')}">
+                            <button data-action="_excluirContrato" data-args='${JSON.stringify([c.id, c.titulo]).replace(/'/g, "&#39;")}' style="${_btnSmall('#ef4444')}">
                                 <i class="lucide lucide-trash-2" style="width:13px;height:13px;"></i> EXCLUIR
                             </button>
                         </div>
@@ -1214,114 +1271,98 @@ const token = localStorage.getItem('token');
                 console.error('Excluir contrato:', err);
                 alert('❌ Erro de conexão ao excluir.');
             }
-                // ── Baixar contrato PDF direto do backend ───────────────────
-        function _gerarTemplate(contratoId) {
-            const token = localStorage.getItem('token');
-            const btn = document.querySelector(`[onclick="_gerarTemplate(${contratoId})"]`);
-            if (btn) { btn._orig = btn.innerHTML; btn.innerHTML = '⏳ Gerando...'; btn.disabled = true; setTimeout(() => { btn.innerHTML = btn._orig; btn.disabled = false; }, 4000); }
-            // Download direto — backend retorna application/pdf
-            const a = document.createElement('a');
-            a.href = `/api/clientes/${_contratoClienteId}/contratos/${contratoId}/template?token=${token}`;
-            a.download = `contrato-${contratoId}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
         }
 
+        // ============================================================
+        // PROCURAÇÕES
+        // ============================================================
+        let _procuracaoClienteId   = null;
+        let _procuracaoClienteNome = null;
+        let _procuracaoEditandoId  = null;
+
         // ── Abrir modal de listagem ──────────────────────────────────
-        async function abrirModalContratos(clienteId, clienteNome) {
-            _contratoClienteId   = clienteId;
-            _contratoClienteNome = clienteNome;
-
-            document.getElementById('tituloModalContratos').innerHTML =
-                `<i class="lucide lucide-file-signature"></i> CONTRATOS — ${clienteNome}`;
-
-            document.getElementById('corpoModalContratos').innerHTML =
+        async function abrirModalProcuracoes(clienteId, clienteNome) {
+            _procuracaoClienteId   = clienteId;
+            _procuracaoClienteNome = clienteNome;
+            document.getElementById('tituloModalProcuracoes').innerHTML =
+                `<i class="lucide lucide-scroll-text"></i> PROCURAÇÕES — ${clienteNome}`;
+            document.getElementById('corpoModalProcuracoes').innerHTML =
                 '<p style="text-align:center;padding:32px;color:var(--muted);">CARREGANDO...</p>';
-            document.getElementById('modalContratos').style.display = 'flex';
-
-            await _carregarListaContratos();
+            document.getElementById('modalProcuracoes').style.display = 'flex';
+            await _carregarListaProcuracoes();
             lucide.createIcons();
         }
 
-        function fecharModalContratos() {
-            document.getElementById('modalContratos').style.display = 'none';
-            _contratoClienteId   = null;
-            _contratoClienteNome = null;
+        function fecharModalProcuracoes() {
+            document.getElementById('modalProcuracoes').style.display = 'none';
+            _procuracaoClienteId   = null;
+            _procuracaoClienteNome = null;
         }
 
         // ── Carregar e renderizar lista ──────────────────────────────
-        async function _carregarListaContratos() {
+        async function _carregarListaProcuracoes() {
             try {
-                const res  = await API.get(`/api/clientes/${_contratoClienteId}/contratos`);
+                const res  = await API.get(`/api/clientes/${_procuracaoClienteId}/procuracoes`);
+                if (!res || res.status === 404) {
+                    document.getElementById('corpoModalProcuracoes').innerHTML =
+                        '<p style="color:var(--danger);text-align:center;padding:32px;font-weight:600;">❌ ROTA NÃO ENCONTRADA — registre procuracoes.routes.js no servidor.</p>';
+                    return;
+                }
                 const data = await res.json();
-
-                const corpo = document.getElementById('corpoModalContratos');
+                const corpo = document.getElementById('corpoModalProcuracoes');
 
                 const header = `
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
                         <span style="font-size:13px;color:var(--text-secondary);font-weight:600;">
-                            ${data.length} contrato${data.length !== 1 ? 's' : ''} cadastrado${data.length !== 1 ? 's' : ''}
+                            ${data.length} procuração${data.length !== 1 ? 'ões' : ''} cadastrada${data.length !== 1 ? 's' : ''}
                         </span>
-                        <button class="btn-primary" style="padding:8px 18px;font-size:12px;" onclick="abrirNovoContrato()">
-                            <i class="lucide lucide-plus"></i> NOVO CONTRATO
+                        <button class="btn-primary" style="padding:8px 18px;font-size:12px;" data-action="abrirNovaProcuracao">
+                            <i class="lucide lucide-plus"></i> NOVA PROCURAÇÃO
                         </button>
                     </div>`;
 
                 if (!data || data.length === 0) {
                     corpo.innerHTML = header + `
                         <div style="text-align:center;padding:48px 20px;color:var(--muted);">
-                            <i class="lucide lucide-file-x" style="font-size:48px;margin-bottom:12px;display:block;"></i>
-                            <p style="font-weight:600;">NENHUM CONTRATO CADASTRADO</p>
-                            <p style="font-size:12px;margin-top:4px;">Clique em "NOVO CONTRATO" para começar.</p>
+                            <i class="lucide lucide-scroll-text" style="font-size:48px;margin-bottom:12px;display:block;"></i>
+                            <p style="font-weight:600;">NENHUMA PROCURAÇÃO CADASTRADA</p>
+                            <p style="font-size:12px;margin-top:4px;">Clique em "NOVA PROCURAÇÃO" para começar.</p>
                         </div>`;
                     lucide.createIcons();
                     return;
                 }
 
-                const tipoLabel = { fixo:'Fixo', exito:'Êxito', misto:'Misto', consultoria:'Consultoria', outros:'Outros' };
-                const statusColor = { ativo:'#10b981', encerrado:'#6b7280', suspenso:'#f59e0b' };
+                const tipoLabel = {
+                    ad_judicia: 'Ad Judicia',
+                    extrajudicial: 'Extrajudicial',
+                    ad_judicia_extrajudicial: 'Ad Judicia + Extrajudicial'
+                };
+                const statusColor = { ativa:'#10b981', revogada:'#6b7280', expirada:'#f59e0b' };
 
-                const cards = data.map(c => {
-                    const valorTxt = c.tipo_honorario === 'fixo' && c.valor_fixo
-                        ? `R$ ${parseFloat(c.valor_fixo).toLocaleString('pt-BR',{minimumFractionDigits:2})}`
-                        : c.tipo_honorario === 'exito' && c.percentual_exito
-                        ? `${c.percentual_exito}% êxito`
-                        : c.tipo_honorario === 'misto'
-                        ? [c.valor_fixo ? `R$ ${parseFloat(c.valor_fixo).toLocaleString('pt-BR',{minimumFractionDigits:2})}` : null, c.percentual_exito ? `${c.percentual_exito}%` : null].filter(Boolean).join(' + ')
-                        : '—';
-
-                    const dataAss = c.data_assinatura
-                        ? new Date(c.data_assinatura).toLocaleDateString('pt-BR')
-                        : '—';
-
+                const cards = data.map(p => {
+                    const dataAss = p.data_assinatura
+                        ? new Date(p.data_assinatura).toLocaleDateString('pt-BR') : '—';
                     return `
                     <div style="border:1px solid var(--border-subtle);border-radius:8px;padding:16px 20px;margin-bottom:12px;background:#fafafa;">
                         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
                             <div>
-                                <div style="font-weight:700;font-size:14px;color:var(--text-primary);margin-bottom:4px;">${c.titulo}</div>
+                                <div style="font-weight:700;font-size:14px;color:var(--text-primary);margin-bottom:4px;">${p.finalidade}</div>
                                 <div style="font-size:12px;color:var(--text-secondary);display:flex;gap:12px;flex-wrap:wrap;">
-                                    <span><strong>Tipo:</strong> ${tipoLabel[c.tipo_honorario] || c.tipo_honorario}</span>
-                                    <span><strong>Valor:</strong> ${valorTxt}</span>
-                                    ${c.processo_numero ? `<span><strong>Processo:</strong> ${c.processo_numero}</span>` : ''}
-                                    <span><strong>Assinado:</strong> ${dataAss}</span>
+                                    <span><strong>Tipo:</strong> ${tipoLabel[p.tipo] || p.tipo}</span>
+                                    <span><strong>Assinada:</strong> ${dataAss}</span>
+                                    ${p.parte_contraria ? `<span><strong>Parte:</strong> ${p.parte_contraria.substring(0,60)}${p.parte_contraria.length>60?'…':''}</span>` : ''}
                                 </div>
-                                ${c.observacoes ? `<div style="font-size:11px;color:var(--muted);margin-top:6px;font-style:italic;">${c.observacoes.substring(0,120)}${c.observacoes.length>120?'…':''}</div>` : ''}
                             </div>
-                            <span style="background:${statusColor[c.status]||'#6b7280'};color:#fff;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;text-transform:uppercase;flex-shrink:0;">${c.status}</span>
+                            <span style="background:${statusColor[p.status]||'#10b981'};color:#fff;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;text-transform:uppercase;flex-shrink:0;">${p.status || 'ativa'}</span>
                         </div>
                         <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
-                            <button onclick="_gerarTemplate(${c.id})" style="${_btnSmall('#3b82f6')}">
-                                <i class="lucide lucide-file-down" style="width:13px;height:13px;"></i> BAIXAR CONTRATO PDF
+                            <button data-action="_gerarTemplateProcuracao" data-args='[${p.id}]' style="${_btnSmall('#3b82f6')}">
+                                <i class="lucide lucide-file-down" style="width:13px;height:13px;"></i> BAIXAR PDF
                             </button>
-                            ${c.tem_arquivo
-                                ? `<button onclick="_downloadContrato(${c.id})" style="${_btnSmall('#10b981')}"><i class="lucide lucide-download" style="width:13px;height:13px;"></i> BAIXAR CONTRATO ASSINADO</button>`
-                                : `<button onclick="_abrirUpload(${c.id})" style="${_btnSmall('#6366f1')}"><i class="lucide lucide-upload" style="width:13px;height:13px;"></i> ENVIAR PDF ASSINADO</button>`
-                            }
-                            <button onclick="_editarContrato(${c.id},'${c.titulo.replace(/'/g,"\\'")}','${c.tipo_honorario}',${c.valor_fixo||'null'},${c.percentual_exito||'null'},'${c.data_assinatura||''}',${c.processo_id||'null'},'${(c.observacoes||'').replace(/'/g,"\\'")}','${c.status}','${c.forma_pagamento||''}','${c.vencimento_pgto||''}','${c.num_parcelas||''}')" style="${_btnSmall('#f59e0b')}">
+                            <button data-action="_editarProcuracao" data-args='${JSON.stringify([p.id, p.tipo, p.finalidade, p.nacionalidade||'', p.estado_civil||'', p.profissao||'', p.parte_contraria||'', p.cidade_assinatura||'', p.data_assinatura||'', p.processo_id||null, p.obs||'', p.poderes||{}]).replace(/'/g,"&#39;")}' style="${_btnSmall('#f59e0b')}">
                                 <i class="lucide lucide-pencil" style="width:13px;height:13px;"></i> EDITAR
                             </button>
-                            <button onclick="_excluirContrato(${c.id},'${c.titulo.replace(/'/g,"\\'")}')\" style="${_btnSmall('#ef4444')}">
+                            <button data-action="_excluirProcuracao" data-args='${JSON.stringify([p.id, p.finalidade]).replace(/'/g,"&#39;")}' style="${_btnSmall('#ef4444')}">
                                 <i class="lucide lucide-trash-2" style="width:13px;height:13px;"></i> EXCLUIR
                             </button>
                         </div>
@@ -1331,201 +1372,160 @@ const token = localStorage.getItem('token');
                 corpo.innerHTML = header + cards;
                 lucide.createIcons();
             } catch (err) {
-                console.error('Contratos: erro ao carregar', err);
-                document.getElementById('corpoModalContratos').innerHTML =
-                    '<p style="color:var(--danger);text-align:center;padding:32px;font-weight:600;">❌ ERRO AO CARREGAR CONTRATOS</p>';
+                console.error('Procurações: erro ao carregar', err);
+                document.getElementById('corpoModalProcuracoes').innerHTML =
+                    '<p style="color:var(--danger);text-align:center;padding:32px;font-weight:600;">❌ ERRO AO CARREGAR PROCURAÇÕES</p>';
             }
         }
 
-        function _btnSmall(color) {
-            return `background:${color};color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit;text-transform:uppercase;`;
-        }
-
-        // ── Abrir template em nova aba ───────────────────────────────
-        async function _gerarTemplate(contratoId) {
-            const res = await API.get(`/api/clientes/${_contratoClienteId}/contratos/${contratoId}/template`);
-            if (!res) return;
-            const html = await res.text();
-            const win = window.open('', '_blank');
-            if (win) { win.document.write(html); win.document.close(); }
-        }
-
-        // ── Download PDF assinado ────────────────────────────────────
-        async function _downloadContrato(contratoId) {
-            const res = await API.get(`/api/contratos/${contratoId}/arquivo`);
-            if (!res || !res.ok) return;
-            const blob = await res.blob();
-            const blobUrl = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = blobUrl; a.download = `contrato_${contratoId}.pdf`; a.click();
-            setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
-        }
-
-        // ── Upload PDF assinado ──────────────────────────────────────
-        function _abrirUpload(contratoId) {
-            _contratoUploadId = contratoId;
-            document.getElementById('inputPdfContrato').value = '';
-            document.getElementById('modalUploadContrato').style.display = 'flex';
-        }
-
-        function fecharModalUpload() {
-            document.getElementById('modalUploadContrato').style.display = 'none';
-            _contratoUploadId = null;
-        }
-
-        async function confirmarUploadContrato() {
-            const file = document.getElementById('inputPdfContrato').files[0];
-            if (!file) { alert('Selecione um arquivo PDF.'); return; }
-            if (file.type !== 'application/pdf') { alert('Apenas arquivos PDF são aceitos.'); return; }
-
-            const formData = new FormData();
-            formData.append('arquivo', file);
-
-            try {
-                const res = await fetch(`/api/contratos/${_contratoUploadId}/upload`, {
-                    method: 'POST',
-                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') },
-                    body: formData
-                });
-                const data = await res.json();
-                if (!res.ok) { alert('❌ Erro: ' + (data.erro || 'Falha no upload')); return; }
-
-                fecharModalUpload();
-                alert('✅ PDF assinado vinculado com sucesso!');
-                await _carregarListaContratos();
-            } catch (err) {
-                console.error('Upload contrato:', err);
-                alert('❌ Erro de conexão ao fazer upload.');
-            }
-        }
-
-        // ── Novo contrato ────────────────────────────────────────────
-        async function abrirNovoContrato() {
-            _contratoEditandoId = null;
-            document.getElementById('tituloFormContrato').innerHTML =
-                '<i class="lucide lucide-plus-circle"></i> NOVO CONTRATO';
-            document.getElementById('textoSalvarContrato').textContent = 'SALVAR CONTRATO';
-            document.getElementById('formContrato').reset();
-            document.getElementById('campoValorFixo').style.display  = 'none';
-            document.getElementById('campoPercentual').style.display = 'none';
-            await _carregarProcessosSelect();
-            document.getElementById('modalFormContrato').style.display = 'flex';
+        // ── Abrir formulário nova procuração ─────────────────────────
+        async function abrirNovaProcuracao() {
+            _procuracaoEditandoId = null;
+            document.getElementById('tituloFormProcuracao').innerHTML =
+                '<i class="lucide lucide-plus-circle"></i> NOVA PROCURAÇÃO';
+            document.getElementById('textoSalvarProcuracao').textContent = 'SALVAR PROCURAÇÃO';
+            document.getElementById('formProcuracao').reset();
+            document.getElementById('campoParte').style.display = 'none';
+            // Data de hoje como padrão
+            document.getElementById('prDataAssinatura').value = new Date().toISOString().split('T')[0];
+            // Preencher cidade do perfil se disponível
+            if (window._userCidade) document.getElementById('prCidadeAssinatura').value = window._userCidade;
+            await _carregarProcessosSelectProcuracao();
+            document.getElementById('modalFormProcuracao').style.display = 'flex';
             lucide.createIcons();
         }
 
-        // ── Editar contrato ──────────────────────────────────────────
-        async function _editarContrato(id, titulo, tipo, valorFixo, percentual, dataAss, processoId, obs, status, formaPgto, vencPgto, numParcelas) {
-            _contratoEditandoId = id;
-            document.getElementById('tituloFormContrato').innerHTML =
-                '<i class="lucide lucide-pencil"></i> EDITAR CONTRATO';
-            document.getElementById('textoSalvarContrato').textContent = 'SALVAR ALTERAÇÕES';
+        // ── Abrir formulário editar ──────────────────────────────────
+        async function _editarProcuracao(id, tipo, finalidade, nacionalidade, estadoCivil, profissao, parteContraria, cidadeAss, dataAss, processoId, obs, poderes) {
+            _procuracaoEditandoId = id;
+            document.getElementById('tituloFormProcuracao').innerHTML =
+                '<i class="lucide lucide-pencil"></i> EDITAR PROCURAÇÃO';
+            document.getElementById('textoSalvarProcuracao').textContent = 'SALVAR ALTERAÇÕES';
 
-            await _carregarProcessosSelect(processoId);
+            document.getElementById('prTipo').value             = tipo           || '';
+            document.getElementById('prFinalidade').value       = finalidade     || '';
+            document.getElementById('prNacionalidade').value    = nacionalidade  || '';
+            document.getElementById('prEstadoCivil').value      = estadoCivil    || '';
+            document.getElementById('prProfissao').value        = profissao      || '';
+            document.getElementById('prParteContraria').value   = parteContraria || '';
+            document.getElementById('prCidadeAssinatura').value = cidadeAss      || '';
+            document.getElementById('prDataAssinatura').value   = dataAss ? dataAss.split('T')[0] : '';
+            document.getElementById('prObs').value              = obs            || '';
 
-            document.getElementById('ctTitulo').value          = titulo     || '';
-            document.getElementById('ctTipo').value            = tipo       || '';
-            document.getElementById('ctValorFixo').value       = valorFixo  || '';
-            document.getElementById('ctPercentual').value      = percentual || '';
-            document.getElementById('ctDataAssinatura').value  = dataAss ? dataAss.split('T')[0] : '';
-            document.getElementById('ctObs').value             = obs        || '';
-            document.getElementById('ctFormaPagamento').value  = formaPgto  || '';
-            document.getElementById('ctVencimento').value      = vencPgto   || 'assinatura';
-            document.getElementById('ctParcelas').value        = numParcelas || '2';
+            // Poderes
+            const p = poderes || {};
+            document.getElementById('prDesistir').checked        = p.desistir        !== false;
+            document.getElementById('prReceberValores').checked  = p.receberValores  !== false;
+            document.getElementById('prJusticaGratuita').checked = p.justicaGratuita !== false;
+            document.getElementById('prSubstabelecer').checked   = p.substabelecer   !== false;
+            document.getElementById('prIrrevogavel').checked     = p.irrevogavel     !== false;
 
-            atualizarCamposHonorario();
-            document.getElementById('modalFormContrato').style.display = 'flex';
+            // Mostrar campo parte se tipo judicial
+            _atualizarCampoParte();
+
+            await _carregarProcessosSelectProcuracao(processoId);
+            document.getElementById('modalFormProcuracao').style.display = 'flex';
             lucide.createIcons();
         }
 
-        function fecharModalFormContrato() {
-            document.getElementById('modalFormContrato').style.display = 'none';
-            _contratoEditandoId = null;
+        function fecharModalFormProcuracao() {
+            document.getElementById('modalFormProcuracao').style.display = 'none';
+            _procuracaoEditandoId = null;
         }
 
-        function atualizarCamposHonorario() {
-            const tipo = document.getElementById('ctTipo').value;
-            const temFixo = ['fixo','misto','consultoria'].includes(tipo);
-            document.getElementById('campoValorFixo').style.display    = temFixo                        ? '' : 'none';
-            document.getElementById('campoPercentual').style.display   = ['exito','misto'].includes(tipo) ? '' : 'none';
-            document.getElementById('campoPagamento').style.display    = temFixo                        ? '' : 'none';
-            document.getElementById('campoVencimento').style.display   = temFixo                        ? '' : 'none';
-            // Parcelamento só aparece se vencimento = parcelado
-            const venc = document.getElementById('ctVencimento').value;
-            document.getElementById('campoParcelamento').style.display = (temFixo && venc === 'parcelado') ? '' : 'none';
+        function _atualizarCampoParte() {
+            const tipo = document.getElementById('prTipo').value;
+            const mostrar = ['ad_judicia', 'ad_judicia_extrajudicial'].includes(tipo);
+            document.getElementById('campoParte').style.display = mostrar ? '' : 'none';
         }
 
-        // Listener para mostrar/ocultar campo de parcelas dinamicamente
-        document.getElementById('ctVencimento').addEventListener('change', function() {
-            const tipo = document.getElementById('ctTipo').value;
-            const temFixo = ['fixo','misto','consultoria'].includes(tipo);
-            document.getElementById('campoParcelamento').style.display =
-                (temFixo && this.value === 'parcelado') ? '' : 'none';
-        });
+        // Listener tipo → mostrar/ocultar campo parte contrária
+        document.getElementById('prTipo').addEventListener('change', _atualizarCampoParte);
 
-        async function _carregarProcessosSelect(selecionado) {
-            const sel = document.getElementById('ctProcesso');
+        async function _carregarProcessosSelectProcuracao(selecionado) {
+            const sel = document.getElementById('prProcesso');
             sel.innerHTML = '<option value="">SEM PROCESSO VINCULADO</option>';
             try {
                 const res  = await API.get(`/api/processos?limit=200`);
                 const data = await res.json();
                 const lista = data.data || data;
-                lista.forEach(p => {
+                lista.forEach(proc => {
                     const opt = document.createElement('option');
-                    opt.value = p.id;
-                    opt.textContent = p.numero + (p.cliente ? ` — ${p.cliente}` : '');
-                    if (selecionado && p.id == selecionado) opt.selected = true;
+                    opt.value = proc.id;
+                    opt.textContent = proc.numero + (proc.cliente ? ` — ${proc.cliente}` : '');
+                    if (selecionado && proc.id == selecionado) opt.selected = true;
                     sel.appendChild(opt);
                 });
             } catch(e) { /* silencioso */ }
         }
 
         // ── Submeter formulário ──────────────────────────────────────
-        document.getElementById('formContrato').addEventListener('submit', async (e) => {
+        document.getElementById('formProcuracao').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const _tipo = document.getElementById('ctTipo').value;
-            const _temFixo = ['fixo','misto','consultoria'].includes(_tipo);
             const payload = {
-                titulo:           document.getElementById('ctTitulo').value,
-                tipo_honorario:   _tipo,
-                valor_fixo:       document.getElementById('ctValorFixo').value   || null,
-                percentual_exito: document.getElementById('ctPercentual').value  || null,
-                data_assinatura:  document.getElementById('ctDataAssinatura').value || null,
-                processo_id:      document.getElementById('ctProcesso').value    || null,
-                observacoes:      document.getElementById('ctObs').value         || null,
-                forma_pagamento:  _temFixo ? (document.getElementById('ctFormaPagamento').value || null) : null,
-                vencimento_pgto:  _temFixo ? (document.getElementById('ctVencimento').value || null) : null,
-                num_parcelas:     (_temFixo && document.getElementById('ctVencimento').value === 'parcelado')
-                                    ? (document.getElementById('ctParcelas').value || null) : null,
+                tipo:              document.getElementById('prTipo').value,
+                finalidade:        document.getElementById('prFinalidade').value,
+                nacionalidade:     document.getElementById('prNacionalidade').value || null,
+                estado_civil:      document.getElementById('prEstadoCivil').value   || null,
+                profissao:         document.getElementById('prProfissao').value     || null,
+                parte_contraria:   document.getElementById('prParteContraria').value || null,
+                cidade_assinatura: document.getElementById('prCidadeAssinatura').value,
+                data_assinatura:   document.getElementById('prDataAssinatura').value || null,
+                processo_id:       document.getElementById('prProcesso').value || null,
+                obs:               document.getElementById('prObs').value || null,
+                poderes: {
+                    desistir:        document.getElementById('prDesistir').checked,
+                    receberValores:  document.getElementById('prReceberValores').checked,
+                    justicaGratuita: document.getElementById('prJusticaGratuita').checked,
+                    substabelecer:   document.getElementById('prSubstabelecer').checked,
+                    irrevogavel:     document.getElementById('prIrrevogavel').checked,
+                }
             };
 
             try {
                 let res;
-                if (_contratoEditandoId) {
-                    res = await API.put(`/api/contratos/${_contratoEditandoId}`, payload);
+                if (_procuracaoEditandoId) {
+                    res = await API.put(`/api/procuracoes/${_procuracaoEditandoId}`, payload);
                 } else {
-                    res = await API.post(`/api/clientes/${_contratoClienteId}/contratos`, payload);
+                    res = await API.post(`/api/clientes/${_procuracaoClienteId}/procuracoes`, payload);
                 }
                 const data = await res.json();
                 if (!res.ok) { alert('❌ Erro: ' + (data.erro || 'Falha ao salvar')); return; }
-
-                fecharModalFormContrato();
-                await _carregarListaContratos();
+                fecharModalFormProcuracao();
+                await _carregarListaProcuracoes();
             } catch (err) {
-                console.error('Salvar contrato:', err);
-                alert('❌ Erro de conexão ao salvar contrato.');
+                console.error('Salvar procuração:', err);
+                alert('❌ Erro de conexão ao salvar procuração.');
             }
         });
 
-        // ── Excluir contrato ─────────────────────────────────────────
-        async function _excluirContrato(id, titulo) {
-            if (!confirm(`EXCLUIR o contrato "${titulo}"?\n\nO PDF vinculado também será removido.`)) return;
+        // ── Gerar template HTML para impressão ──────────────────────
+        async function _gerarTemplateProcuracao(procuracaoId) {
+            const res = await API.get(`/api/clientes/${_procuracaoClienteId}/procuracoes/${procuracaoId}/template`);
+            if (!res) return;
+            const html = await res.text();
+            const win = window.open('', '_blank');
+            if (win) { win.document.write(html); win.document.close(); }
+        }
+
+        // ── Excluir procuração ───────────────────────────────────────
+        async function _excluirProcuracao(id, finalidade) {
+            if (!confirm(`EXCLUIR a procuração "${finalidade}"?`)) return;
             try {
-                const res = await API.delete(`/api/contratos/${id}`);
-                if (!res.ok) { alert('❌ Erro ao excluir contrato'); return; }
-                await _carregarListaContratos();
+                const res = await API.delete(`/api/procuracoes/${id}`);
+                if (!res.ok) { alert('❌ Erro ao excluir'); return; }
+                await _carregarListaProcuracoes();
             } catch (err) {
-                console.error('Excluir contrato:', err);
+                console.error('Excluir procuração:', err);
                 alert('❌ Erro de conexão ao excluir.');
             }
         }
-    }
+
+        // Expor funções de procuração para o dispatcher (api.js usa window[fn])
+        window.abrirModalProcuracoes     = abrirModalProcuracoes;
+        window.fecharModalProcuracoes    = fecharModalProcuracoes;
+        window.abrirNovaProcuracao       = abrirNovaProcuracao;
+        window._editarProcuracao         = _editarProcuracao;
+        window.fecharModalFormProcuracao = fecharModalFormProcuracao;
+        window._gerarTemplateProcuracao  = _gerarTemplateProcuracao;
+        window._excluirProcuracao        = _excluirProcuracao;
