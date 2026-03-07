@@ -518,7 +518,6 @@ let gerenciadorPartesEdicao = null;
             <tr style="border-bottom: 1px solid #e2e8f0;">
                 <td style="padding: 16px 12px;">
                     <div style="font-weight: 700; color: #4A90E2; font-size: 14px;">${p.numero || 'N/A'}</div>
-                    <div style="font-size: 12px; color: #7B8794;">vs. ${p.parte_contraria || 'Não informada'}</div>
                 </td>
                 <td style="padding: 16px 12px; font-weight: 600;">${p.cliente || '---'}</td>
                 <td style="padding: 16px 12px;">${p.parte_contraria || '---'}</td>
