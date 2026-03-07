@@ -263,7 +263,7 @@ function gerarHtmlProcuracao({ proc, cliente, escritorio, processoNum, logoBase6
   h1 { text-align: center; font-size: 14pt; font-weight: bold; margin-bottom: 2em; letter-spacing: 1px; }
   p { text-align: justify; line-height: 1.8; margin-bottom: 1em; }
   .cabecalho-logo { text-align: center; margin-bottom: 1.2cm; }
-  .cabecalho-logo img { width: 100%; max-height: 90px; object-fit: contain; object-position: left; display: block; }
+  .cabecalho-logo img { width: 100%; height: 120px; object-fit: contain; object-position: center; display: block; }
   .cabecalho-linha { border: none; border-top: 1px solid #999; margin: 0.4cm 0 1.2cm 0; }
   .assinatura { margin-top: 4cm; text-align: center; }
   .assinatura .linha { border-top: 1px solid #000; width: 10cm; margin: 0 auto 6px auto; }
