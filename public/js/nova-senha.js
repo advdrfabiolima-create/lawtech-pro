@@ -57,4 +57,5 @@
                 btn.textContent = 'Salvar Nova Senha';
             }
         }
-    
+
+        document.getElementById('btnSalvar').addEventListener('click', salvarSenha);

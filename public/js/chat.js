@@ -10,6 +10,9 @@ let pollingNaoLidasInterval = null;
 let mensagensExibidas = new Set();
 let pollingEmAndamento = false;
 
+// ── Mapa em memória: msgId → dados da mensagem (event delegation das ações) ──
+const msgDataMap = {};
+
 // ── NOVOS estados ──────────────────────────────────────────────────────────────
 let replyTarget = null;          // { id, autor, texto } mensagem sendo respondida
 let threadTarget = null;         // { id } mensagem-pai do tópico aberto
@@ -87,11 +90,11 @@ async function carregarInfoRodape() {
             if (circulo) {
                 if (avatarId && typeof getAvatarDataUrl === 'function') {
                     const url = getAvatarDataUrl(avatarId, 40);
-                    circulo.innerHTML = `<img src="${url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="avatar"/>`;
+                    circulo.innerHTML = `<img src="${url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;pointer-events:none;" alt="avatar"/>`;
                     circulo.style.padding = '0'; circulo.style.overflow = 'hidden';
                     // Dropdown mini avatar
                     const wrap = document.getElementById('dropdownAvatarWrap');
-                    if (wrap) wrap.innerHTML = `<img src="${getAvatarDataUrl(avatarId, 44)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/>`;
+                    if (wrap) wrap.innerHTML = `<img src="${getAvatarDataUrl(avatarId, 44)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;pointer-events:none;"/>`;
                 } else {
                     circulo.innerText = iniciais.toUpperCase();
                 }
@@ -292,6 +295,44 @@ function renderAreaMensagens() {
     renderEmojiPicker();
     lucide.createIcons();
     document.getElementById('inputMensagem').focus();
+
+    // ── Event delegation: Copiar / Responder / Tópico ─────────────────────────
+    const msgList = document.getElementById('messagesList');
+    if (msgList) {
+        msgList.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            e.stopPropagation();
+            const action = btn.dataset.action;
+            const id     = parseInt(btn.dataset.id);
+            const dados  = msgDataMap[id];
+            if (!dados) return;
+
+            if (action === 'copy') {
+                const texto = dados.conteudo || dados.arquivo_nome;
+                navigator.clipboard.writeText(texto)
+                    .then(() => showToast('✅ Mensagem copiada!'))
+                    .catch(() => {
+                        // Fallback para contextos sem Clipboard API
+                        const ta = document.createElement('textarea');
+                        ta.value = texto;
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        showToast('✅ Mensagem copiada!');
+                    });
+
+            } else if (action === 'reply') {
+                const autor  = dados.isMine ? 'Você' : dados.remetente_nome;
+                const trecho = (dados.conteudo || dados.arquivo_nome).slice(0, 80);
+                iniciarReply(id, autor, trecho);
+
+            } else if (action === 'thread') {
+                abrirThread(id);
+            }
+        });
+    }
 }
 
 // ── EMOJI PICKER ──────────────────────────────────────────────────────────────
@@ -610,12 +651,12 @@ function criarBubble(msg) {
             💬 ${threadCount} resposta${threadCount > 1 ? 's' : ''} no tópico
         </div>` : '';
 
-    // Actions on hover
+    // Actions on hover — usa data-* para evitar quebra por caracteres especiais
     const actionsHtml = `
         <div class="message-actions-row">
-            <button class="msg-action-btn" onclick="iniciarReply(${msg.id}, '${escaparHtml(isMine ? 'Você' : msg.remetente_nome).replace(/'/g,"\'")}', '${escaparHtml(msg.conteudo || msg.arquivo_nome || '').slice(0,60).replace(/'/g,"\'")}')">↩ Responder</button>
-            <button class="msg-action-btn" onclick="abrirThread(${msg.id})">💬 Tópico</button>
-            ${isMine ? `<button class="msg-action-btn" onclick="copiarMensagem('${escaparHtml(msg.conteudo || '').replace(/'/g,"\'")}')">📋 Copiar</button>` : ''}
+            <button class="msg-action-btn" data-action="reply" data-id="${msg.id}">↩ Responder</button>
+            <button class="msg-action-btn" data-action="thread" data-id="${msg.id}">💬 Tópico</button>
+            ${isMine ? `<button class="msg-action-btn" data-action="copy" data-id="${msg.id}">📋 Copiar</button>` : ''}
         </div>`;
 
     bubble.innerHTML = `
@@ -631,6 +672,15 @@ function criarBubble(msg) {
         </div>
         ${threadHtml}
     `;
+
+    // Guarda dados para event delegation
+    msgDataMap[msg.id] = {
+        id:             msg.id,
+        conteudo:       msg.conteudo || '',
+        arquivo_nome:   msg.arquivo_nome || '',
+        remetente_nome: msg.remetente_nome || '',
+        isMine
+    };
 
     wrapper.appendChild(bubble);
     return wrapper;
@@ -666,9 +716,7 @@ function atualizarCheckmarks(list) {
     // Lógica simplificada: após polling bem-sucedido, marcar minhas mensagens antigas como delivered
 }
 
-function copiarMensagem(texto) {
-    navigator.clipboard.writeText(texto).then(() => showToast('✅ Mensagem copiada!'));
-}
+// copiarMensagem removida — lógica migrou para event delegation no messagesList
 
 function scrollToMsg(id) {
     const el = document.getElementById(`msg-${id}`);
@@ -833,10 +881,17 @@ async function enviarMensagem() {
 
         if (data.ok) {
             input.value = ''; autoResizeEl(input);
-            cancelarReply();
             fecharEmojiPicker();
 
+            // Enriquece a mensagem com dados do reply ANTES de cancelar replyTarget
             const msg = { ...data.mensagem, remetente_nome: currentUserNome };
+            if (replyTarget) {
+                msg.reply_to_id       = replyTarget.id;
+                msg.reply_to_conteudo = replyTarget.texto;
+                msg.reply_to_autor    = replyTarget.autor;
+            }
+            cancelarReply();
+
             mensagensExibidas.add(data.mensagem.id);
             if (data.mensagem.id > ultimoMsgId) ultimoMsgId = data.mensagem.id;
             allMensagensCache.push(msg);
@@ -1095,3 +1150,27 @@ function escaparHtml(str) {
     div.textContent = str;
     return div.innerHTML;
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('linkIaMenu').addEventListener('click', toggleIaMenu);
+    document.getElementById('linkCrmNav').addEventListener('click', limparBolinha);
+    document.getElementById('userCircle').addEventListener('click', toggleUserMenu);
+    document.getElementById('linkEscolherAvatar').addEventListener('click', (e) => {
+        e.preventDefault();
+        abrirModalAvatar();
+        toggleUserMenu();
+    });
+    document.getElementById('linkLogoutChat').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+    document.getElementById('filterConversas').addEventListener('input', (e) => filtrarConversas(e.target.value));
+    document.getElementById('btnFecharSearchPanel').addEventListener('click', fecharSearchPanel);
+    document.getElementById('searchInput').addEventListener('input', (e) => pesquisarMensagens(e.target.value));
+    document.getElementById('btnFecharThreadPanel').addEventListener('click', fecharThreadPanel);
+    document.getElementById('threadInput').addEventListener('keydown', onThreadKeyDown);
+    document.getElementById('threadInput').addEventListener('input', (e) => autoResizeEl(e.target));
+    document.getElementById('btnEnviarThread').addEventListener('click', enviarRespostaThread);
+    document.getElementById('btnCancelarSchedule').addEventListener('click', () => fecharModal('scheduleModal'));
+    document.getElementById('btnConfirmarAgendamento').addEventListener('click', confirmarAgendamento);
+    document.getElementById('shareType').addEventListener('change', updateShareModal);
+    document.getElementById('btnCancelarShare').addEventListener('click', () => fecharModal('shareModal'));
+    document.getElementById('btnConfirmarCompartilhamento').addEventListener('click', confirmarCompartilhamento);
+});

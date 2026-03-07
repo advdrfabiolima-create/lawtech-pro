@@ -1073,7 +1073,7 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
                     <div class="form-row">
                         <div class="form-group">
                             <label>Tipo de Pessoa</label>
-                            <select id="tipoPessoa" onchange="ajustarCamposDocumento(this.value)">
+                            <select id="tipoPessoa">
                                 <option value="fisica">Pessoa Física (CPF)</option>
                                 <option value="juridica">Pessoa Jurídica (CNPJ)</option>
                             </select>
@@ -1157,11 +1157,11 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
 
                 <!-- Tabs de método de pagamento -->
                 <div class="payment-method-tabs">
-                    <button type="button" id="tabCartao" class="payment-tab active-tab-card" onclick="selecionarMetodoPagamento('cartao')">
+                    <button type="button" id="tabCartao" class="payment-tab active-tab-card" data-metodo="cartao">
                         <i class="lucide lucide-credit-card" style="font-size:16px;"></i>
                         Cartão de Crédito
                     </button>
-                    <button type="button" id="tabPix" class="payment-tab" onclick="selecionarMetodoPagamento('pix')">
+                    <button type="button" id="tabPix" class="payment-tab" data-metodo="pix">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="flex-shrink:0"><path d="M6.09 13.28l2.12 2.12a5.34 5.34 0 0 0 7.55 0l2.12-2.12 1.42 1.42-2.12 2.12a7.34 7.34 0 0 1-10.38 0L4.67 14.7l1.42-1.42zm4.24-4.24A5.34 5.34 0 0 1 17.88 9l2.12 2.13-1.42 1.42L16.46 10.4a3.34 3.34 0 0 0-4.72 0L9.62 12.52 8.2 11.1l2.13-2.06zm-3.2-3.2 1.42 1.42-1.41 1.41-1.42-1.41 1.41-1.42zm9.9 9.9 1.41 1.42-1.41 1.41-1.42-1.41 1.42-1.42z"/></svg>
                         PIX
                     </button>
@@ -1244,7 +1244,7 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
                             </div>
                         </div>
                     </div>
-                    <button type="button" class="card-flip-btn" id="cardFlipBtn" onclick="toggleCardFlip()">
+                    <button type="button" class="card-flip-btn" id="cardFlipBtn">
                         <i class="lucide lucide-rotate-cw" style="font-size: 14px;"></i>
                         <span id="flipBtnText">Ver verso do cartão</span>
                     </button>
@@ -1284,7 +1284,7 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
 
         <div class="pix-copy-box">
             <input type="text" class="pix-copy-input" id="pixPayloadInput" readonly placeholder="Código PIX Copia e Cola">
-            <button class="pix-copy-btn" onclick="copiarCodigoPix()">Copiar</button>
+            <button class="pix-copy-btn" id="btnCopiarPix">Copiar</button>
         </div>
 
         <div class="pix-status-badge" id="pixStatusBadge">
@@ -1294,7 +1294,7 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
 
         <p class="pix-modal-footer">
             QR Code válido por <strong id="pixTimer">15:00</strong>&nbsp;&middot;&nbsp;
-            <a onclick="ignorarPix()">Continuar sem pagar agora</a>
+            <a id="linkIgnorarPix">Continuar sem pagar agora</a>
         </p>
     </div>
 </div>

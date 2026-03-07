@@ -617,7 +617,7 @@
         <div class="menu-item-with-submenu">
 
     <!-- LINK PRINCIPAL (IA PAGE) -->
-    <a href="/ia-page" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
+    <a href="/ia-page" id="linkIaMenu" style="display:flex; align-items:center; gap:10px;">
         <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
         IA Jurídica
         <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">
@@ -648,7 +648,7 @@
         <a href="/config-page" id="guia-config">
             <i class="lucide lucide-settings"></i> Configurações
         </a>
-        <a href="/crm-page" class="btn-crm-gold-nav" onclick="limparBolinha()">
+        <a href="/crm-page" class="btn-crm-gold-nav" id="linkCrmNav">
             <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
             <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
         </a>
@@ -671,19 +671,19 @@
             
             <div style="display:flex; gap:20px; align-items:center;">
                 <div class="btn-group">
-                    <button class="btn-ghost" onclick="window.print()"><i class="lucide lucide-printer"></i> GERAR PDF</button>
-                    <button class="btn-primary" onclick="processarCalculo()"><i class="lucide lucide-calculator"></i> PROCESSAR CÁLCULO</button>
-                    <button class="btn-primary" style="background:var(--success);" onclick="salvarNoBanco()"><i class="lucide lucide-save"></i> SALVAR HISTÓRICO</button>
+                    <button class="btn-ghost" id="btnPrint"><i class="lucide lucide-printer"></i> GERAR PDF</button>
+                    <button class="btn-primary" id="btnProcessarCalculo"><i class="lucide lucide-calculator"></i> PROCESSAR CÁLCULO</button>
+                    <button class="btn-primary" style="background:var(--success);" id="btnSalvarHistorico"><i class="lucide lucide-save"></i> SALVAR HISTÓRICO</button>
                 </div>
 
                 <div style="position: relative; display: flex; align-items: center; gap: 12px; border-left: 1px solid var(--border); padding-left: 20px;">
                     <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">ADVOGADO</span>
-                    <div onclick="toggleUserMenu()" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
+                    <div id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
                         --
                     </div>
                     <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
                         <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">👤 MEUS DADOS</a>
-                        <a href="#" onclick="logout()" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 SAIR</a>
+                        <a href="#" id="linkLogout" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">🚪 SAIR</a>
                     </div>
                 </div>
             </div>
@@ -694,7 +694,7 @@
                 <div class="section-title">PARÂMETROS DE ATUALIZAÇÃO</div>
                 <div class="grid-4">
                     <div><label>DATA FINAL</label><input type="date" id="dataFinal" value="2026-01-12"></div>
-                    <div><label>PROCESSO (CNJ)</label><input type="text" id="procNum" oninput="mascaraCNJ(this)" placeholder="0000000-00.0000.0.00.0000"></div>
+                    <div><label>PROCESSO (CNJ)</label><input type="text" id="procNum" placeholder="0000000-00.0000.0.00.0000"></div>
                     <div><label>PARTE CREDORA</label><input type="text" id="credor" placeholder="Nome do Credor"></div>
                     <div><label>PARTE DEVEDORA</label><input type="text" id="devedor" placeholder="Nome do Devedor"></div>
                 </div>
@@ -720,21 +720,21 @@
                     </thead>
                     <tbody id="listaValores">
                         <tr>
-                            <td><input type="text" class="val-bruto" placeholder="0,00" oninput="aplicarMascaraDinheiro(this)"></td>
+                            <td><input type="text" class="val-bruto" placeholder="0,00"></td>
                             <td><input type="date" class="val-data" value="2024-01-01"></td>
                             <td><input type="text" class="val-desc" placeholder="Ex: Principal Corrigido"></td>
                             <td></td>
                         </tr>
                     </tbody>
                 </table>
-                <button class="btn-ghost" style="margin-top: 15px; width: 100%; border: 1px dashed var(--border);" onclick="addLinha()">+ ADICIONAR NOVA VERBA</button>
+                <button class="btn-ghost" id="btnAddLinha" style="margin-top: 15px; width: 100%; border: 1px dashed var(--border);">+ ADICIONAR NOVA VERBA</button>
             </div>
 
             <div class="grid-4 no-print">
                 <div class="section-card">
                     <div class="section-title">JUROS MORATÓRIOS</div>
                     <label>INCIDÊNCIA</label>
-                    <select id="jurosIncidencia" onchange="toggleCitacao()" style="margin-bottom: 15px;">
+                    <select id="jurosIncidencia" style="margin-bottom: 15px;">
                         <option value="valores">DESDE O VENCIMENTO</option>
                         <option value="citacao">A PARTIR DA CITAÇÃO</option>
                     </select>
@@ -750,7 +750,7 @@
                         <div><label>HONORÁRIOS (%)</label><input type="number" id="percHon" value="10"></div>
                         <div>
                             <label>CUSTAS (R$)</label>
-                            <input type="text" id="custas" placeholder="0,00" oninput="aplicarMascaraDinheiro(this)">
+                            <input type="text" id="custas" placeholder="0,00">
                         </div>
                     </div>
                     <div style="margin-top: 20px; padding: 15px; background: #fffbeb; border-radius: 12px; border: 1px solid #fef3c7;">
@@ -782,7 +782,7 @@
                             <p style="opacity: 0.7; font-size: 12px; margin-top: 4px;">GERADO POR LAWTECH PRO — PERÍCIA SELIC</p>
                         </div>
                         <!-- Botão apenas na tela (some no PDF) -->
-                        <button class="btn-ghost no-print" onclick="editarCampos()" style="background:white; color:var(--sidebar); border: 1px solid var(--border); padding: 8px 16px; font-size: 12px; font-weight: 600;">
+                        <button class="btn-ghost no-print" id="btnEditarCampos" style="background:white; color:var(--sidebar); border: 1px solid var(--border); padding: 8px 16px; font-size: 12px; font-weight: 600;">
                             ✏️ CORRIGIR DADOS
                         </button>
                     </div>

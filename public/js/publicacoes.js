@@ -511,10 +511,18 @@ function aplicarPermissoesRoleUI(role) {
     if (role === 'operador') {
         s.textContent = `.btn-card.danger { display: none !important; }`;
     } else {
-        s.textContent = `.btn-card.danger, button[onclick*='sincronizar'] { display: none !important; }`;
+        s.textContent = `.btn-card.danger, #btnSincronizar { display: none !important; }`;
     }
     document.head.appendChild(s);
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('linkIaMenu').addEventListener('click', toggleIaMenu);
+    document.getElementById('userCircle').addEventListener('click', toggleUserMenu);
+    document.getElementById('linkLogout').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+    document.getElementById('btnSincronizar').addEventListener('click', sincronizar);
+    document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
+});
 
 
 (function(){var t=localStorage.getItem('token');if(!t)return;function checkChat(){fetch('/api/chat/nao-lidas',{headers:{Authorization:'Bearer '+t}}).then(function(r){return r.json()}).then(function(d){if(d.ok){var total=Object.values(d.naoLidas).reduce(function(a,b){return a+b},0);var b=document.getElementById('chatBadge');if(b){b.style.display=total>0?'inline-flex':'none';b.textContent=total>99?'99+':total}}}).catch(function(){})}checkChat();setInterval(checkChat,30000)})();

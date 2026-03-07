@@ -200,7 +200,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             console.error('❌ Erro ao carregar plano:', response.status);
         }
-    } catch (err) { 
-        console.error('❌ Erro na carga inicial:', err); 
+    } catch (err) {
+        console.error('❌ Erro na carga inicial:', err);
     }
+
+    document.getElementById('billing-toggle').addEventListener('change', alternarPrecos);
+    document.getElementById('btnConfirmar').addEventListener('click', confirmarUpgrade);
+    document.getElementById('btnFecharModalPlano').addEventListener('click', fecharModalPlano);
+
+    document.querySelectorAll('[data-plano]').forEach(btn => {
+        btn.addEventListener('click', () => abrirModalConfirmacao(btn.dataset.plano));
+    });
 });

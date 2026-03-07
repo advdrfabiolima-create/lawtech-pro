@@ -170,6 +170,10 @@
         }
     };
 
+    document.querySelectorAll('[name="tipoPessoa"]').forEach(r => {
+        r.addEventListener('change', () => alternarTipoPessoa(r.value));
+    });
+
     // Validação visual simples
     document.querySelectorAll('input[required], select[required]').forEach(field => {
         field.addEventListener('blur', function() {

@@ -387,10 +387,24 @@ const token = localStorage.getItem('token');
     window.onload = carregarInfoRodape;
 
     function toggleIaMenu(event) {
-    event.preventDefault(); // impede navegação imediata
-    const submenu = document.getElementById('submenu-ia');
-    submenu.classList.toggle('open');
-}
+        event.preventDefault();
+        const submenu = document.getElementById('submenu-ia');
+        submenu.classList.toggle('open');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('linkIaMenu').addEventListener('click', toggleIaMenu);
+        document.getElementById('linkIaAtivo').addEventListener('click', (e) => e.preventDefault());
+        document.getElementById('linkCrmNav').addEventListener('click', limparBolinha);
+        document.getElementById('userCircle').addEventListener('click', toggleUserMenu);
+        document.getElementById('linkLogout').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+        document.getElementById('btnRemoverArquivo').addEventListener('click', removerArquivo);
+        document.getElementById('file-input').addEventListener('change', handleFileSelect);
+        document.getElementById('btnAnexar').addEventListener('click', () => document.getElementById('file-input').click());
+        document.getElementById('pergunta').addEventListener('keypress', (e) => { if (e.key === 'Enter') enviarPergunta(); });
+        document.getElementById('btnLimpar').addEventListener('click', limparHistorico);
+        document.getElementById('btn-enviar').addEventListener('click', enviarPergunta);
+    });
 
 
 (function(){var t=localStorage.getItem('token');if(!t)return;function checkChat(){fetch('/api/chat/nao-lidas',{headers:{Authorization:'Bearer '+t}}).then(function(r){return r.json()}).then(function(d){if(d.ok){var total=Object.values(d.naoLidas).reduce(function(a,b){return a+b},0);var b=document.getElementById('chatBadge');if(b){b.style.display=total>0?'inline-flex':'none';b.textContent=total>99?'99+':total}}}).catch(function(){})}checkChat();setInterval(checkChat,30000)})();

@@ -674,6 +674,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (crmDot) {
         crmDot.style.display = 'none';
     }
+
+    document.getElementById('btnFecharModalCadastro').addEventListener('click', fecharModalCadastro);
+    document.getElementById('btnSalvarNotas').addEventListener('click', salvarNotas);
+    document.getElementById('btnExcluirLead').addEventListener('click', excluirLead);
+    document.getElementById('btnFecharModalDetalhes').addEventListener('click', fecharModalDetalhes);
+    document.getElementById('btnFichaWpp').addEventListener('click', enviarFichaWhatsApp);
+
+    document.getElementById('btnWhatsAppLead').addEventListener('click', (e) => {
+        const tel = document.getElementById('detalheTelefone').innerText;
+        const nome = document.getElementById('detalheNome').innerText;
+        abrirWhatsApp(e, tel, nome);
+    });
+
+    document.querySelectorAll('.btn-wpp-etapa[data-etapa]').forEach(btn => {
+        btn.addEventListener('click', () => abrirWhatsAppEtapa(btn.dataset.etapa));
+    });
 });
 
 

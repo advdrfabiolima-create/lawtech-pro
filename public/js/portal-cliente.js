@@ -452,4 +452,8 @@ const TIPO_META = {
         } else {
             autenticarPortal(token);
         }
+
+        document.getElementById('btnFecharPortalVideo').addEventListener('click', fecharPortalVideo);
+        document.getElementById('portalBtnMute').addEventListener('click', togglePortalMute);
+        document.getElementById('portalBtnCam').addEventListener('click', togglePortalCamera);
     });

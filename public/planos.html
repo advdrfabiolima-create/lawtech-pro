@@ -544,7 +544,7 @@
     <div class="toggle-container">
       <span id="text-mensal" class="toggle-label active">Mensal</span>
       <label class="switch">
-        <input type="checkbox" id="billing-toggle" onchange="alternarPrecos()">
+        <input type="checkbox" id="billing-toggle">
         <span class="slider"></span>
       </label>
       <span id="text-anual" class="toggle-label">Anual <small style="color:var(--success); font-weight:700;">(Economize 17%)</small></span>
@@ -567,7 +567,7 @@
           <li>Suporte por email</li>
           <li style="color:#7c3aed;font-weight:600;">🔏 Add-on: Assinatura Digital</li>
         </ul>
-        <button id="btn-plano-Basico" class="btn secondary" onclick="abrirModalConfirmacao('Básico')">Selecionar Básico</button>
+        <button id="btn-plano-Basico" class="btn secondary" data-plano="Básico">Selecionar Básico</button>
       </div>
 
       <div class="plano-card destaque">
@@ -586,7 +586,7 @@
           <li>Integrações básicas</li>
           <li style="color:#7c3aed;font-weight:600;">🔏 Add-on: Assinatura Digital</li>
         </ul>
-        <button id="btn-plano-Intermediario" class="btn primary" onclick="abrirModalConfirmacao('Intermediário')">Selecionar plano</button>
+        <button id="btn-plano-Intermediario" class="btn primary" data-plano="Intermediário">Selecionar plano</button>
       </div>
 
       <div class="plano-card">
@@ -604,7 +604,7 @@
           <li>CRM Prospecção de Clientes</li>
           <li style="color:#7c3aed;font-weight:600;">🔏 Add-on: Assinatura Digital</li>
         </ul>
-        <button id="btn-plano-Avancado" class="btn primary" onclick="abrirModalConfirmacao('Avançado')">Selecionar plano</button>
+        <button id="btn-plano-Avancado" class="btn primary" data-plano="Avançado">Selecionar plano</button>
       </div>
 
       <div class="plano-card premium premium-destaque">
@@ -622,7 +622,7 @@
           <li>Alertas via WhatsApp</li>
           <li style="color:#7c3aed;font-weight:600;">🔏 Add-on: Assinatura Digital</li>
         </ul>
-        <button id="btn-plano-Premium" class="btn premium-btn" onclick="abrirModalConfirmacao('Premium')">Ativar Premium</button>
+        <button id="btn-plano-Premium" class="btn premium-btn" data-plano="Premium">Ativar Premium</button>
       </div>
 
     </div>
@@ -646,8 +646,8 @@
       <h3 id="tituloPlano">Confirmar plano</h3>
       <p id="descricaoPlano">Você está prestes a elevar o nível do seu escritório.</p>
       <div class="modal-buttons">
-        <button class="btn primary" id="btnConfirmar" onclick="confirmarUpgrade()">Sim, Confirmar Upgrade</button>
-        <button class="btn secondary" onclick="fecharModalPlano()">Ainda não, voltar</button>
+        <button class="btn primary" id="btnConfirmar">Sim, Confirmar Upgrade</button>
+        <button class="btn secondary" id="btnFecharModalPlano">Ainda não, voltar</button>
       </div>
     </div>
   </div>

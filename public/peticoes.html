@@ -798,7 +798,7 @@
         <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
         <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
         <div class="menu-item-with-submenu">
-            <a href="#" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
+            <a href="#" id="linkIaMenu" style="display:flex; align-items:center; gap:10px;">
                 <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
                 IA Jurídica
                 <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">PREMIUM</span>
@@ -820,7 +820,7 @@
         <a href="/config-page" id="guia-config">
             <i class="lucide lucide-settings"></i> Configurações
         </a>
-        <a href="/crm-page" class="btn-crm-gold-nav" onclick="limparBolinha()">
+        <a href="/crm-page" class="btn-crm-gold-nav" id="linkCrm">
             <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
             <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
         </a>
@@ -845,10 +845,10 @@
         </div>
         <div class="user-menu">
             <span id="userNameHeader">Advogado</span>
-            <div onclick="toggleUserMenu()" id="userCircle">--</div>
+            <div id="userCircle">--</div>
             <div id="userDropdown">
                 <a href="/config-page"><i class="lucide lucide-user"></i> Meus Dados</a>
-                <a href="#" onclick="logout()"><i class="lucide lucide-log-out"></i> Sair</a>
+                <a href="#" id="linkLogout"><i class="lucide lucide-log-out"></i> Sair</a>
             </div>
         </div>
     </header>
@@ -860,7 +860,7 @@
                 <p>Gere petições profissionais em segundos com inteligência artificial</p>
             </div>
             <div class="top-buttons">
-                <button onclick="toggleHistorico()" class="btn-secondary" id="btnHistorico">
+                <button class="btn-secondary" id="btnHistorico" data-action="toggleHistorico">
                     <i class="lucide lucide-history"></i> Histórico
                 </button>
             </div>
@@ -936,7 +936,7 @@
 
                     <div class="form-group">
                         <label>Cliente/Autor *</label>
-                        <select id="clienteSelect" onchange="preencherDadosCliente()" required>
+                        <select id="clienteSelect" required>
                             <option value="">Selecione um cliente...</option>
                         </select>
                     </div>
@@ -966,12 +966,12 @@
 
                 <div class="form-group" id="uploadSection">
                     <label>Anexar Documentos (PDF - total máximo 10MB)</label>
-                    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('pdfInput').click()">
+                    <div class="upload-zone" id="uploadZone" data-action="clicarElemento" data-args='["pdfInput"]'>
                         <i class="lucide lucide-upload" style="font-size:28px; color:var(--accent-blue); margin-bottom:8px;"></i>
                         <p style="font-weight:700; margin-bottom:4px; font-size:14px;">Clique para adicionar arquivos ou arraste aqui</p>
                         <p style="font-size:12px; color:var(--text-secondary);">Aceito: PDF (vários arquivos, total até 10MB)</p>
                     </div>
-                    <input type="file" id="pdfInput" class="file-input" accept=".pdf" multiple onchange="handleFileUpload(this)" form="noop-form">
+                    <input type="file" id="pdfInput" class="file-input" accept=".pdf" multiple form="noop-form">
                     <div id="uploadedFilesList"></div>
                     <div id="uploadSizeInfo" style="display:none; font-size:12px; color:var(--text-secondary); margin-top:8px; text-align:right;"></div>
                 </div>
@@ -1005,7 +1005,7 @@
         <div class="preview-card" id="previewCard">
             <div class="preview-header">
                 <h3 id="previewTitulo">Petição Gerada</h3>
-                <button onclick="fecharPreview()" class="btn-secondary">
+                <button data-action="fecharPreview" class="btn-secondary">
                     <i class="lucide lucide-x"></i> Fechar
                 </button>
             </div>
@@ -1014,16 +1014,16 @@
                 <span class="saved-badge" id="savedBadge">
                     <i class="lucide lucide-check-circle" style="font-size:14px;"></i> Salvo no histórico
                 </span>
-                <button onclick="gerarPDF()" class="btn-primary">
+                <button data-action="gerarPDF" class="btn-primary">
                     <i class="lucide lucide-download"></i> Baixar PDF
                 </button>
-                <button onclick="editarPeticao()" class="btn-outline">
+                <button data-action="editarPeticao" class="btn-outline">
                     <i class="lucide lucide-edit"></i> Editar
                 </button>
-                <button onclick="deletarPeticao()" class="btn-danger" title="Excluir petição">
+                <button data-action="deletarPeticao" class="btn-danger" title="Excluir petição">
                     <i class="lucide lucide-trash-2"></i> Excluir
                 </button>
-                <button onclick="novaPeticao()" class="btn-secondary" style="margin-left:auto;">
+                <button data-action="novaPeticao" class="btn-secondary" style="margin-left:auto;">
                     <i class="lucide lucide-plus"></i> Nova Petição
                 </button>
             </div>
@@ -1041,7 +1041,7 @@
     <div class="modal-edit">
         <div class="modal-edit-header">
             <h3><i class="lucide lucide-edit" style="font-size:20px; color:var(--accent-blue);"></i> Editar Petição</h3>
-            <button onclick="fecharModalEdicao()" class="btn-secondary" style="padding:8px 16px;">
+            <button data-action="fecharModalEdicao" class="btn-secondary" style="padding:8px 16px;">
                 <i class="lucide lucide-x"></i> Fechar
             </button>
         </div>
@@ -1049,8 +1049,8 @@
             <textarea id="editarConteudoTextarea"></textarea>
         </div>
         <div class="modal-edit-footer">
-            <button onclick="fecharModalEdicao()" class="btn-secondary">Cancelar</button>
-            <button onclick="salvarEdicao()" class="btn-success">
+            <button id="btnCancelarEdicao" class="btn-secondary">Cancelar</button>
+            <button id="btnSalvarEdicao" class="btn-success">
                 <i class="lucide lucide-check"></i> Salvar Alterações
             </button>
         </div>

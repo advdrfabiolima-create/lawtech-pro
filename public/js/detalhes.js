@@ -43,4 +43,6 @@
                 alert("Erro no upload.");
             }
         }
+
+        document.getElementById('btnUpload').addEventListener('click', fazerUpload);
     

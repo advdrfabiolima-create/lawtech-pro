@@ -523,10 +523,13 @@ const token = localStorage.getItem('token');
         if (role === 'operador') {
             s.textContent = `.btn-danger { display: none !important; }`;
         } else {
-            s.textContent = `.btn-danger, button[onclick*='novaPeticao'] { display: none !important; }`;
+            s.textContent = `.btn-danger, #btnNovaPeticao { display: none !important; }`;
         }
         document.head.appendChild(s);
     }
+
+    document.getElementById('btnCancelarEdicao').addEventListener('click', fecharModalEdicao);
+    document.getElementById('btnSalvarEdicao').addEventListener('click', salvarEdicao);
 
 
 (function(){var t=localStorage.getItem('token');if(!t)return;function checkChat(){fetch('/api/chat/nao-lidas',{headers:{Authorization:'Bearer '+t}}).then(function(r){return r.json()}).then(function(d){if(d.ok){var total=Object.values(d.naoLidas).reduce(function(a,b){return a+b},0);var b=document.getElementById('chatBadge');if(b){b.style.display=total>0?'inline-flex':'none';b.textContent=total>99?'99+':total}}}).catch(function(){})}checkChat();setInterval(checkChat,30000)})();

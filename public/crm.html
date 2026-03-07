@@ -951,7 +951,7 @@
 <div class="menu-item-with-submenu">
 
     <!-- LINK PRINCIPAL (IA PAGE) -->
-    <a href="/ia-page" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
+    <a href="/ia-page" id="linkIaMenu" style="display:flex; align-items:center; gap:10px;">
         <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
         IA Jurídica
         <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">
@@ -1018,12 +1018,12 @@
         <h2>📈 CRM — Pipeline de Prospecção</h2>
         <div class="user-menu-container">
             <span id="userNameHeader">Advogado</span>
-            <div onclick="toggleUserMenu()" id="userCircle">--</div>
+            <div data-action="toggleUserMenu" id="userCircle">--</div>
             <div id="userDropdown">
                 <a href="/config-page">
                     <i class="lucide lucide-user"></i> Meus Dados
                 </a>
-                <a href="#" onclick="logout()">
+                <a href="#" data-action="logout">
                     <i class="lucide lucide-log-out"></i> Sair
                 </a>
             </div>
@@ -1036,13 +1036,13 @@
                 <h1>Gestão Comercial</h1>
                 <p>Arraste os leads entre as colunas para atualizar o status</p>
             </div>
-            <button class="btn-primary" onclick="abrirModalCadastro()">
+            <button class="btn-primary" data-action="abrirModalCadastro">
                 <i class="lucide lucide-user-plus"></i> Novo Lead Manual
             </button>
         </div>
 
         <div class="pipeline">
-            <div class="column" data-status="lead" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+            <div class="column" data-status="lead">
                 <div class="column-header">
                     <h3>Novos Leads</h3>
                     <span class="column-count" id="count-lead">0</span>
@@ -1050,7 +1050,7 @@
                 <div id="container-lead"></div>
             </div>
 
-            <div class="column" data-status="triagem" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+            <div class="column" data-status="triagem">
                 <div class="column-header">
                     <h3>Em Triagem</h3>
                     <span class="column-count" id="count-triagem">0</span>
@@ -1058,7 +1058,7 @@
                 <div id="container-triagem"></div>
             </div>
 
-            <div class="column" data-status="proposta" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+            <div class="column" data-status="proposta">
                 <div class="column-header">
                     <h3>Proposta</h3>
                     <span class="column-count" id="count-proposta">0</span>
@@ -1066,7 +1066,7 @@
                 <div id="container-proposta"></div>
             </div>
 
-            <div class="column" data-status="ganho" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+            <div class="column" data-status="ganho">
                 <div class="column-header">
                     <h3>Contrato Ganho</h3>
                     <span class="column-count" id="count-ganho">0</span>
@@ -1106,7 +1106,7 @@
             
             <div class="modal-actions">
                 <button type="submit" class="btn-primary">Criar Lead</button>
-                <button type="button" onclick="fecharModalCadastro()" class="btn-secondary">Cancelar</button>
+                <button type="button" id="btnFecharModalCadastro" class="btn-secondary">Cancelar</button>
             </div>
         </form>
     </div>
@@ -1121,8 +1121,7 @@
                 <p>
                     <strong>Contato:</strong> 
                     <span id="detalheTelefone"></span>
-                    <button onclick="abrirWhatsApp(event, document.getElementById('detalheTelefone').innerText, document.getElementById('detalheNome').innerText)" 
-                            class="btn-whatsapp">
+                    <button id="btnWhatsAppLead" class="btn-whatsapp">
                         <i class="lucide lucide-message-circle"></i> WhatsApp
                     </button>
                 </p>
@@ -1140,11 +1139,11 @@
         <div class="whatsapp-section">
             <h4>💬 Mensagens Rápidas</h4>
             <div class="whatsapp-btns">
-                <button class="btn-wpp-etapa" onclick="abrirWhatsAppEtapa('lead')">📅 Agendar Reunião</button>
-                <button class="btn-wpp-etapa" onclick="abrirWhatsAppEtapa('triagem')">🔍 Analisar Caso</button>
-                <button class="btn-wpp-etapa" onclick="abrirWhatsAppEtapa('proposta')">📋 Apresentar Proposta</button>
-                <button class="btn-wpp-etapa" onclick="abrirWhatsAppEtapa('ganho')">🎉 Boas-vindas ao Escritório</button>
-                <button class="btn-wpp-etapa" id="btnFichaWpp" style="display:none;background:#dcfce7;border-color:#16a34a;color:#15803d;" onclick="enviarFichaWhatsApp()">📋 Enviar Ficha de Cadastro</button>
+                <button class="btn-wpp-etapa" data-etapa="lead">📅 Agendar Reunião</button>
+                <button class="btn-wpp-etapa" data-etapa="triagem">🔍 Analisar Caso</button>
+                <button class="btn-wpp-etapa" data-etapa="proposta">📋 Apresentar Proposta</button>
+                <button class="btn-wpp-etapa" data-etapa="ganho">🎉 Boas-vindas ao Escritório</button>
+                <button class="btn-wpp-etapa" id="btnFichaWpp" style="display:none;background:#dcfce7;border-color:#16a34a;color:#15803d;">📋 Enviar Ficha de Cadastro</button>
             </div>
         </div>
 
@@ -1157,9 +1156,9 @@
         </div>
 
         <div class="modal-actions" style="margin-top:18px;">
-            <button onclick="salvarNotas()" class="btn-primary">Salvar Notas</button>
-            <button onclick="excluirLead()" class="btn-danger">Excluir Lead</button>
-            <button onclick="fecharModalDetalhes()" class="btn-secondary">Fechar</button>
+            <button id="btnSalvarNotas" class="btn-primary">Salvar Notas</button>
+            <button id="btnExcluirLead" class="btn-danger">Excluir Lead</button>
+            <button id="btnFecharModalDetalhes" class="btn-secondary">Fechar</button>
         </div>
     </div>
 </div>

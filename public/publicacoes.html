@@ -692,7 +692,7 @@
         <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
         <a href="/publicacoes-page" class="active"><i class="lucide lucide-bell"></i> Publicações DJEN</a>
         <div class="menu-item-with-submenu">
-            <a href="/ia-page" onclick="toggleIaMenu(event)" style="display:flex; align-items:center; gap:10px;">
+            <a href="/ia-page" id="linkIaMenu" style="display:flex; align-items:center; gap:10px;">
                 <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
                 IA Jurídica
                 <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">PREMIUM</span>
@@ -729,10 +729,10 @@
         <h2>📰 Publicações DJEN</h2>
         <div class="user-menu">
             <span id="userNameHeader">Advogado</span>
-            <div onclick="toggleUserMenu()" id="userCircle">--</div>
+            <div id="userCircle">--</div>
             <div id="userDropdown">
                 <a href="/config-page"><i class="lucide lucide-user"></i> Meus Dados</a>
-                <a href="#" onclick="logout()"><i class="lucide lucide-log-out"></i> Sair</a>
+                <a href="#" id="linkLogout"><i class="lucide lucide-log-out"></i> Sair</a>
             </div>
         </div>
     </header>
@@ -801,7 +801,7 @@
                 <input type="date" id="dataBusca">
             </div>
 
-            <button class="btn btn-primary" onclick="sincronizar()">
+            <button class="btn btn-primary" id="btnSincronizar">
                 <i data-lucide="refresh-cw"></i>
                 Sincronizar DJEN
             </button>
@@ -826,7 +826,7 @@
     <div class="modal-content">
         <div class="modal-header">
             <h3>Detalhes da Publicação</h3>
-            <button class="btn-close" onclick="fecharModal()">
+            <button class="btn-close" id="btnFecharModal">
                 <i data-lucide="x"></i>
             </button>
         </div>

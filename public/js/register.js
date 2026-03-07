@@ -628,3 +628,11 @@ fbq('track', 'PageView');
             documentoMask.updateOptions({ mask: '00.000.000/0000-00' });
         }
     }
+
+    document.getElementById('tipoPessoa').addEventListener('change', (e) => ajustarCamposDocumento(e.target.value));
+    document.querySelectorAll('[data-metodo]').forEach(btn => {
+        btn.addEventListener('click', () => selecionarMetodoPagamento(btn.dataset.metodo));
+    });
+    document.getElementById('cardFlipBtn').addEventListener('click', toggleCardFlip);
+    document.getElementById('btnCopiarPix').addEventListener('click', copiarCodigoPix);
+    document.getElementById('linkIgnorarPix').addEventListener('click', ignorarPix);

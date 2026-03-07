@@ -35,7 +35,7 @@
             }
         }
 
+        document.getElementById('btnEnviar').addEventListener('click', solicitarLink);
         document.getElementById('emailRecuperar').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') solicitarLink();
         });
-    
