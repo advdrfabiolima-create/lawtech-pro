@@ -213,15 +213,34 @@
         }
 
         /* ── Login ── */
+        function mostrarErroLogin(msg) {
+            const el = document.getElementById('loginErro');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        function limparErroLogin() {
+            const el = document.getElementById('loginErro');
+            if (el) el.style.display = 'none';
+        }
+
+        function salvarSessao(token, usuario, lembrar) {
+            const storage = lembrar ? localStorage : sessionStorage;
+            storage.setItem('token',   token);
+            storage.setItem('usuario', JSON.stringify(usuario));
+        }
+
         async function handleLogin(event) {
             event.preventDefault();
+            limparErroLogin();
 
-            const email    = document.getElementById('email').value;
+            const email    = document.getElementById('email').value.trim();
             const password = document.getElementById('senha').value;
+            const lembrar  = document.getElementById('remember').checked;
             const btn      = event.target.querySelector('.btn-primary');
 
             if (!email || !password) {
-                alert('Preencha todos os campos');
+                mostrarErroLogin('Preencha e-mail e senha para continuar.');
                 return;
             }
 
@@ -239,6 +258,7 @@
                 if (res.ok) {
                     if (data.requer_2fa) {
                         window._tempToken = data.temp_token;
+                        window._lembrar   = lembrar;
                         document.querySelector('.login-container').style.display = 'none';
                         document.getElementById('step2fa').style.display = 'flex';
                         document.getElementById('step2fa').style.flexDirection = 'column';
@@ -247,8 +267,7 @@
                         btn.disabled  = false;
                         return;
                     }
-                    localStorage.setItem('token',   data.token);
-                    localStorage.setItem('usuario', JSON.stringify(data.usuario));
+                    salvarSessao(data.token, data.usuario, lembrar);
                     window.location.href = '/dashboard-modern.html';
                     return;
                 }
@@ -267,13 +286,12 @@
                     return;
                 }
 
-                alert(data.erro || 'E-mail ou senha incorretos');
+                mostrarErroLogin(data.erro || 'E-mail ou senha incorretos. Tente novamente.');
                 btn.innerText = 'Entrar no sistema';
                 btn.disabled  = false;
 
             } catch (err) {
-                console.error('Erro na requisição:', err);
-                alert('Erro de conexão com o servidor');
+                mostrarErroLogin('Erro de conexão com o servidor. Tente novamente.');
                 btn.innerText = 'Entrar no sistema';
                 btn.disabled  = false;
             }
@@ -316,8 +334,7 @@
         }
 
         function finalizarLogin2FA(data) {
-            localStorage.setItem('token',   data.token);
-            localStorage.setItem('usuario', JSON.stringify(data.usuario));
+            salvarSessao(data.token, data.usuario, window._lembrar || false);
             window.location.href = '/dashboard-modern.html';
         }
 
@@ -347,7 +364,7 @@
                     return;
                 }
 
-                mostrarErro2FA('totpError', data.error || 'Código inválido. Tente novamente.');
+                mostrarErro2FA('totpError', data.erro || 'Código inválido. Tente novamente.');
                 document.getElementById('totpCodigo').value = '';
             } catch (_) {
                 mostrarErro2FA('totpError', 'Erro de conexão. Tente novamente.');
@@ -383,7 +400,7 @@
                     return;
                 }
 
-                mostrarErro2FA('backupError', data.error || 'Código de backup inválido.');
+                mostrarErro2FA('backupError', data.erro || 'Código de backup inválido.');
                 document.getElementById('backupCodigo').value = '';
             } catch (_) {
                 mostrarErro2FA('backupError', 'Erro de conexão. Tente novamente.');
@@ -396,6 +413,21 @@
         document.addEventListener('DOMContentLoaded', () => {
             // ── Formulário principal de login ──
             document.getElementById('loginForm').addEventListener('submit', handleLogin);
+
+            // ── Mostrar/ocultar senha ──
+            document.getElementById('btnToggleSenha').addEventListener('click', () => {
+                const input = document.getElementById('senha');
+                const ver   = document.getElementById('iconSenhaVer');
+                const ocultar = document.getElementById('iconSenhaOcultar');
+                const mostrar = input.type === 'password';
+                input.type = mostrar ? 'text' : 'password';
+                ver.style.display     = mostrar ? 'none'  : '';
+                ocultar.style.display = mostrar ? ''      : 'none';
+            });
+
+            // ── Limpar erro ao digitar ──
+            document.getElementById('email').addEventListener('input', limparErroLogin);
+            document.getElementById('senha').addEventListener('input', limparErroLogin);
 
             // ── Botões 2FA ──
             document.getElementById('btnVerificar2fa').addEventListener('click', verificar2FA);

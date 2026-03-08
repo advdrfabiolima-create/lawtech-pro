@@ -32,9 +32,10 @@ document.addEventListener('click', function (e) {
             typeof url === 'string' &&
             url.startsWith('/api/') &&
             !url.startsWith('/api/auth/') &&
-            localStorage.getItem('token')
+            (localStorage.getItem('token') || sessionStorage.getItem('token'))
         ) {
             localStorage.removeItem('token');
+            sessionStorage.removeItem('token');
             window.location.href = '/login';
         }
         return res;
@@ -43,7 +44,7 @@ document.addEventListener('click', function (e) {
 
 const API = (() => {
     function getToken() {
-        return localStorage.getItem('token');
+        return localStorage.getItem('token') || sessionStorage.getItem('token');
     }
 
     function authHeaders(extra) {
@@ -54,6 +55,7 @@ const API = (() => {
 
     function handleUnauth() {
         localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
         window.location.href = '/login.html';
     }
 
@@ -62,6 +64,7 @@ const API = (() => {
             await request('POST', '/api/auth/logout', null, false);
         } catch (_) {}
         localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
         window.location.href = '/login.html';
     }
 
