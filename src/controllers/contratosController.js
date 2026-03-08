@@ -569,7 +569,7 @@ async function gerarTemplate(req, res) {
 <!-- Barra de impressão -->
 <div class="print-bar">
   <span>Contrato nº ${numeroContrato} — ${cliente.nome}</span>
-  <button class="btn-print" onclick="window.print()">🖨️ Salvar / Imprimir PDF</button>
+  <button class="btn-print" id="btnImprimir">🖨️ Salvar / Imprimir PDF</button>
 </div>
 
 <!-- Espaço para a barra fixa não sobrepor o conteúdo -->
@@ -759,6 +759,7 @@ ${clausulaObs}
   </div>
 </div>
 
+<script>document.getElementById('btnImprimir').addEventListener('click', function() { window.print(); });</script>
 </body>
 </html>`;
 
