@@ -210,7 +210,6 @@ fbq('track', 'PageView');
             : 'Ver verso do cartão';
     }
 
-    console.log('✅ Stripe Elements (separados) inicializado!');
 
     // ============================================================
     // CONFIGURAÇÕES INICIAIS
@@ -257,9 +256,7 @@ fbq('track', 'PageView');
                     document.getElementById('cidade').value = data.localidade;
                     document.getElementById('estado').value = data.uf;
                 }
-            } catch (err) { 
-                console.error("Erro ao buscar CEP"); 
-            }
+            } catch (_) {}
         }
     }
 
@@ -437,8 +434,6 @@ fbq('track', 'PageView');
         let cartaoInfo = null;
 
         if (metodoPagamento === 'cartao') {
-            console.log('💳 Verificando se cartão foi preenchido...');
-
             btnSubmit.innerText = "🔐 Validando cartão...";
             btnSubmit.disabled = true;
 
@@ -455,7 +450,7 @@ fbq('track', 'PageView');
                 if (error) {
                     // Se erro é "campo vazio", permite cadastro sem cartão
                     if (error.code === 'incomplete_card' || error.code === 'incomplete_number') {
-                        console.log('⚠️ Cartão não preenchido - continuando sem cartão');
+                        // Continua sem cartão
                     } else {
                         btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
                         btnSubmit.disabled = false;
@@ -469,10 +464,8 @@ fbq('track', 'PageView');
                         exp_month: paymentMethod.card.exp_month,
                         exp_year: paymentMethod.card.exp_year
                     };
-                    console.log('✅ Payment Method criado:', paymentMethodId);
                 }
             } catch (stripeErr) {
-                console.error('❌ Erro ao processar cartão:', stripeErr);
                 btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
                 btnSubmit.disabled = false;
                 return showError('❌ Erro ao processar cartão. Tente novamente.');
@@ -513,7 +506,6 @@ fbq('track', 'PageView');
             const data = await response.json();
 
             if (response.ok) {
-                console.log('✅ [REGISTRO] Conta criada com sucesso:', data);
                 emailRegistrado = email;
 
                 // 🔥 EVENTO META PIXEL
@@ -532,11 +524,6 @@ fbq('track', 'PageView');
                     localStorage.removeItem('plano_escolhido_id');
                     localStorage.removeItem('plano_escolhido_valor');
                     localStorage.removeItem('plano_escolhido_nome');
-                    alert(
-                        '✅ Conta criada com sucesso!\n\n' +
-                        '🎉 Você tem 7 dias de teste gratuito.\n\n' +
-                        'Ao final do período, enviaremos um QR Code PIX no seu e-mail para continuar com o acesso.'
-                    );
                     window.location.href = '/login?registro=sucesso&trial=7';
                     return;
                 }
@@ -546,7 +533,6 @@ fbq('track', 'PageView');
                 // ============================================================
                 if (paymentMethodId && cartaoInfo) {
                     try {
-                        console.log('💳 [REGISTRO] Salvando Payment Method...');
                         const loginRes = await fetch('/api/auth/login', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -569,32 +555,20 @@ fbq('track', 'PageView');
                                     gateway: 'stripe'
                                 })
                             });
-                            if (cartaoRes.ok) console.log('✅ [REGISTRO] Payment Method salvo!');
                         }
-                    } catch (cartaoErr) {
-                        console.error('❌ [REGISTRO] Erro ao salvar Payment Method:', cartaoErr);
+                    } catch (_) {
                     }
                 }
 
                 localStorage.removeItem('plano_escolhido_id');
                 localStorage.removeItem('plano_escolhido_valor');
                 localStorage.removeItem('plano_escolhido_nome');
-
-                alert(
-                    '✅ Conta criada com sucesso!' +
-                    '\n\n🎉 Você ganhou 7 dias de teste gratuito!' +
-                    '\n\nClique em OK para fazer login e começar!'
-                );
-
-                setTimeout(() => {
-                    window.location.href = '/login?registro=sucesso&trial=7';
-                }, 500);
+                window.location.href = '/login?registro=sucesso&trial=7';
 
             } else {
                 showError(data.erro || "Falha ao criar conta.");
             }
-        } catch (err) {
-            console.error('❌ Erro:', err);
+        } catch (_) {
             showError("Erro de conexão.");
         } finally {
             btnSubmit.innerText = metodoPagamento === 'pix'
@@ -636,3 +610,23 @@ fbq('track', 'PageView');
     document.getElementById('cardFlipBtn').addEventListener('click', toggleCardFlip);
     document.getElementById('btnCopiarPix').addEventListener('click', copiarCodigoPix);
     document.getElementById('linkIgnorarPix').addEventListener('click', ignorarPix);
+
+    // CEP blur (substitui onblur inline bloqueado pelo CSP)
+    document.getElementById('cep').addEventListener('blur', (e) => buscarEndereco(e.target.value));
+
+    // Toggle mostrar/ocultar senha
+    document.getElementById('btnToggleSenha').addEventListener('click', () => {
+        const input = document.getElementById('senha');
+        const isText = input.type === 'text';
+        input.type = isText ? 'password' : 'text';
+        document.getElementById('iconSenhaVer').style.display    = isText ? 'block' : 'none';
+        document.getElementById('iconSenhaOcultar').style.display = isText ? 'none'  : 'block';
+    });
+
+    document.getElementById('btnToggleConfirmar').addEventListener('click', () => {
+        const input = document.getElementById('confirmarSenha');
+        const isText = input.type === 'text';
+        input.type = isText ? 'password' : 'text';
+        document.getElementById('iconConfirmarVer').style.display    = isText ? 'block' : 'none';
+        document.getElementById('iconConfirmarOcultar').style.display = isText ? 'none'  : 'block';
+    });
