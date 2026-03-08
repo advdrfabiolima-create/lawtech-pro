@@ -383,6 +383,7 @@ app.get('/recuperar-senha', (req, res) => res.sendFile(path.join(publicPath, 're
 app.get('/nova-senha', (req, res) => res.sendFile(path.join(publicPath, 'nova-senha.html')));
 app.get('/termos', (req, res) => res.sendFile(path.join(publicPath, 'termos.html')));
 app.get('/privacidade', (req, res) => res.sendFile(path.join(publicPath, 'privacidade.html')));
+app.get('/privacy-policy', (req, res) => res.send(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Privacy Policy</title></head><body><h1>Privacy Policy - LawTech Pro</h1><p>Last updated: March 2026</p><p>LawTech Pro collects name and phone number via WhatsApp to provide legal assistance services. Data is stored securely and not shared with third parties. To request data deletion, contact: fabio@lawtechpro.com.br</p><p>This app complies with LGPD (Brazilian Data Protection Law - 13.709/2018).</p></body></html>`));
 app.get('/tribunais-page', (req, res) => res.sendFile(path.join(publicPath, 'tribunais.html')));
 app.get('/blog', (req, res) => res.sendFile(path.join(publicPath, 'blog.html')));
 app.get('/sobre-nos', (req, res) => res.sendFile(path.join(publicPath, 'sobre-nos.html')));
