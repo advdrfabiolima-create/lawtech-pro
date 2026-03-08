@@ -135,8 +135,12 @@ async function processarMensagem({ escritorioId, telefone, nomeContato, textoRec
         return;
     }
 
-    // Monta histórico para o Claude (últimas 20 mensagens)
-    const historico = (conversa.mensagens || [])
+    // Monta histórico para o Claude (re-busca do banco para incluir mensagem recém-salva)
+    const { rows: convAtualizada } = await pool.query(
+        'SELECT mensagens FROM whatsapp_conversas WHERE id = $1',
+        [conversa.id]
+    );
+    const historico = (convAtualizada[0]?.mensagens || [])
         .slice(-20)
         .map(m => ({ role: m.role, content: m.content }));
 
