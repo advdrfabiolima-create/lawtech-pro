@@ -54,7 +54,8 @@ router.post('/whatsapp', express.json(), async (req, res) => {
             }
         }
     } catch (err) {
-        logger.error({ err: err.message }, '[WhatsApp] Erro ao processar mensagem');
+        const detail = err.response?.data ?? err.message;
+        logger.error({ err: detail }, '[WhatsApp] Erro ao processar mensagem');
     }
 });
 
