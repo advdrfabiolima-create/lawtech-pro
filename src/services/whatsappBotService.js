@@ -59,7 +59,7 @@ async function salvarMensagem(conversaId, role, content) {
 // ── Busca dados do escritório para o prompt ────────────────────────────────
 async function obterDadosEscritorio(escritorioId) {
     const { rows } = await pool.query(
-        `SELECT e.nome, e.advogado_responsavel, e.areas_atuacao, e.cidade, e.estado
+        `SELECT e.nome, e.advogado_responsavel, e.cidade, e.estado
          FROM escritorios e WHERE e.id = $1`,
         [escritorioId]
     );
@@ -142,14 +142,9 @@ async function processarMensagem({ escritorioId, telefone, nomeContato, textoRec
 
     // Busca dados do escritório
     const esc = await obterDadosEscritorio(escritorioId);
-    const areasStr = esc.areas_atuacao
-        ? `Áreas de atuação: ${esc.areas_atuacao}.`
-        : '';
-
     const systemPrompt = `Você é o assistente virtual do escritório de advocacia "${esc.nome || 'LawTech Pro'}", \
 localizado em ${esc.cidade || 'Brasil'}/${esc.estado || 'BR'}. \
-${esc.advogado_responsavel ? `Advogado responsável: Dr(a). ${esc.advogado_responsavel}.` : ''} \
-${areasStr}
+${esc.advogado_responsavel ? `Advogado responsável: Dr(a). ${esc.advogado_responsavel}.` : ''}
 
 Suas responsabilidades:
 1. Recepcionar leads de forma calorosa e profissional
