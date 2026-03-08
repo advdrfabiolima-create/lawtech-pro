@@ -225,9 +225,8 @@
         }
 
         function salvarSessao(token, usuario, lembrar) {
-            const storage = lembrar ? localStorage : sessionStorage;
-            storage.setItem('token',   token);
-            storage.setItem('usuario', JSON.stringify(usuario));
+            localStorage.setItem('token',   token);
+            localStorage.setItem('usuario', JSON.stringify(usuario));
         }
 
         async function handleLogin(event) {
