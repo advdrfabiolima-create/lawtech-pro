@@ -97,10 +97,10 @@
     function addLinha() {
         const row = document.getElementById('listaValores').insertRow();
         row.innerHTML = `
-            <td><input type="text" class="val-bruto" placeholder="0,00" oninput="aplicarMascaraDinheiro(this)"></td>
+            <td><input type="text" class="val-bruto" placeholder="0,00"></td>
             <td><input type="date" class="val-data"></td>
             <td><input type="text" class="val-desc" placeholder="Descrição"></td>
-            <td><button onclick="this.parentElement.parentElement.remove()" style="color:var(--danger); border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></td>
+            <td><button class="btn-remover-linha" style="color:var(--danger);border:none;background:none;cursor:pointer;font-weight:bold;">✕</button></td>
         `;
     }
 
@@ -117,6 +117,107 @@
             dataAtual.setMonth(dataAtual.getMonth() + 1);
         }
         return totalJuros;
+    }
+
+    function gerarMemoriaMensal(desc, valNominal, dI, dF, indiceSelecionado, dIJuros, valCorrigido) {
+        const f  = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const fp = (v) => (v * 100).toFixed(4).replace('.', ',') + '%';
+        const dCC    = new Date('2003-01-11');
+        const dSelic = new Date('2024-08-30');
+        const dIpca  = new Date('2024-09-01');
+
+        // ── Correção monetária mês a mês ─────────────────────────────────────
+        let rowsCorr = '';
+        let valAtual = valNominal;
+        let dataAtual = new Date(dI);
+        let totalMeses = 0;
+
+        while (dataAtual < dF) {
+            totalMeses++;
+            const mesAno = dataAtual.toLocaleDateString('pt-BR', { month: '2-digit', year: 'numeric' });
+            let nomeIndice, taxa;
+            if (indiceSelecionado === 'inpc') {
+                nomeIndice = 'INPC'; taxa = 0.0055;
+            } else {
+                if (dataAtual < dIpca) { nomeIndice = 'INPC'; taxa = 0.0048; }
+                else                   { nomeIndice = 'IPCA'; taxa = 0.0050; }
+            }
+            const corrMes = valAtual * taxa;
+            valAtual += corrMes;
+            rowsCorr += `<tr>
+                <td style="text-align:center;">${mesAno}</td>
+                <td style="text-align:center;">${nomeIndice}</td>
+                <td style="text-align:right;">${fp(taxa)}</td>
+                <td style="text-align:right;">${f(corrMes)}</td>
+                <td style="text-align:right;font-weight:600;">${f(valAtual)}</td>
+            </tr>`;
+            dataAtual.setMonth(dataAtual.getMonth() + 1);
+        }
+
+        // ── Juros de mora mês a mês ──────────────────────────────────────────
+        let rowsJuros = '';
+        let jAcum = 0;
+        let hasJuros = false;
+
+        if (dIJuros < dF) {
+            hasJuros = true;
+            dataAtual = new Date(dIJuros);
+            while (dataAtual < dF) {
+                const mesAno = dataAtual.toLocaleDateString('pt-BR', { month: '2-digit', year: 'numeric' });
+                let taxaJ, fase;
+                if (dataAtual < dCC)    { taxaJ = 0.005;          fase = 'ANTES DO CC/2002'; }
+                else if (dataAtual >= dSelic) { taxaJ = taxaSelicAtual; fase = 'SELIC (LEI 14.905/24)'; }
+                else                    { taxaJ = 0.01;            fase = 'CC/2002, ART. 406'; }
+                const jMes = valCorrigido * taxaJ;
+                jAcum += jMes;
+                rowsJuros += `<tr>
+                    <td style="text-align:center;">${mesAno}</td>
+                    <td>${fase}</td>
+                    <td style="text-align:right;">${fp(taxaJ)}</td>
+                    <td style="text-align:right;">${f(jMes)}</td>
+                    <td style="text-align:right;font-weight:600;">${f(jAcum)}</td>
+                </tr>`;
+                dataAtual.setMonth(dataAtual.getMonth() + 1);
+            }
+        }
+
+        const sTh = 'background:#1e3a5f;color:#fff;padding:5px 8px;font-size:10px;letter-spacing:0.4px;';
+        const sTd = 'padding:4px 8px;border-bottom:1px solid #e2e8f0;font-size:11px;';
+        const sTab = 'width:100%;border-collapse:collapse;margin-top:6px;';
+
+        return `<details style="margin-bottom:12px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+            <summary style="background:#f1f5f9;padding:10px 14px;cursor:pointer;font-weight:700;font-size:11px;color:#1e3a5f;list-style:none;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+                <span>📋 ${desc.toUpperCase()} — ${f(valNominal)} → ${f(valCorrigido)} (${totalMeses} MES${totalMeses !== 1 ? 'ES' : ''})</span>
+                <span style="color:#64748b;font-size:10px;">▼ EXPANDIR MEMÓRIA</span>
+            </summary>
+            <div style="padding:12px 14px;">
+                <div style="font-size:10px;font-weight:700;color:#1e3a5f;margin-bottom:4px;letter-spacing:0.5px;">CORREÇÃO MONETÁRIA — MÊS A MÊS</div>
+                <table style="${sTab}">
+                    <thead><tr>
+                        <th style="${sTh}text-align:center;">MÊS/ANO</th>
+                        <th style="${sTh}text-align:center;">ÍNDICE</th>
+                        <th style="${sTh}text-align:right;">TAXA</th>
+                        <th style="${sTh}text-align:right;">CORREÇÃO DO MÊS</th>
+                        <th style="${sTh}text-align:right;">SALDO CORRIGIDO</th>
+                    </tr></thead>
+                    <tbody>
+                        <tr><td style="${sTd}text-align:center;">INICIAL</td><td style="${sTd}">—</td><td style="${sTd}">—</td><td style="${sTd}">—</td><td style="${sTd}text-align:right;font-weight:600;">${f(valNominal)}</td></tr>
+                        ${rowsCorr}
+                    </tbody>
+                </table>
+                ${hasJuros ? `<div style="font-size:10px;font-weight:700;color:#1e3a5f;margin:10px 0 4px;letter-spacing:0.5px;">JUROS DE MORA — MÊS A MÊS (BASE: ${f(valCorrigido)})</div>
+                <table style="${sTab}">
+                    <thead><tr>
+                        <th style="${sTh}text-align:center;">MÊS/ANO</th>
+                        <th style="${sTh}">FASE / LEGISLAÇÃO</th>
+                        <th style="${sTh}text-align:right;">TAXA</th>
+                        <th style="${sTh}text-align:right;">JUROS DO MÊS</th>
+                        <th style="${sTh}text-align:right;">JUROS ACUMULADOS</th>
+                    </tr></thead>
+                    <tbody>${rowsJuros}</tbody>
+                </table>` : ''}
+            </div>
+        </details>`;
     }
 
     async function processarCalculo() {
@@ -140,6 +241,7 @@
         const corpo = document.getElementById('corpoMemoria');
         corpo.innerHTML = "";
         let pAcum = 0; let jAcum = 0;
+        let htmlMemoriaMensal = '';
         const f = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
         // Preencher índice e incidência de juros no cabeçalho do relatório
@@ -188,6 +290,7 @@
                 jAcum += juros;
 
                 const desc = row.querySelector('.val-desc').value || "VERBA";
+                htmlMemoriaMensal += gerarMemoriaMensal(desc, valNominal, dI, dF, indiceSelecionado, dIJuros, valCorrigido);
                 const dJurosLabel = incidencia === 'citacao' && !isNaN(dataCitacao) && dataCitacao > dI
                     ? `${dIJuros.toLocaleDateString('pt-BR')}<br><span style="font-size:10px;color:#6b7280;">(CITAÇÃO)</span>`
                     : `${dI.toLocaleDateString('pt-BR')}<br><span style="font-size:10px;color:#6b7280;">(VENCIMENTO)</span>`;
@@ -234,6 +337,14 @@
         document.getElementById('outDevedor').innerText = document.getElementById('devedor').value;
         document.getElementById('outDataF').innerText = dataF.toLocaleDateString('pt-BR');
         document.getElementById('dataGeracao').innerText = new Date().toLocaleString('pt-BR');
+
+        const wrapMensal = document.getElementById('memoriaDetalhadaWrap');
+        if (wrapMensal) {
+            wrapMensal.innerHTML = htmlMemoriaMensal
+                ? `<div style="font-size:11px;font-weight:700;color:#1e3a5f;letter-spacing:0.5px;padding:16px 20px 8px;">MEMÓRIA DE CÁLCULO DETALHADA (MÊS A MÊS)</div>${htmlMemoriaMensal}`
+                : '';
+            wrapMensal.style.display = htmlMemoriaMensal ? 'block' : 'none';
+        }
 
         document.getElementById('resCalculo').style.display = 'block';
         document.getElementById('resCalculo').scrollIntoView({ behavior: 'smooth' });
@@ -302,28 +413,32 @@
             const res = await API.get('/api/calculos/historico');
             const dados = await res.json();
             const container = document.getElementById('listaHistorico');
-            
-            if (!dados || dados.length === 0) { 
-                container.innerHTML = "<p style='color:var(--muted); font-size:12px; padding:10px;'>Nenhum cálculo recente.</p>"; 
-                return; 
+
+            if (!dados || dados.length === 0) {
+                container.innerHTML = "<p style='color:var(--muted); font-size:12px; padding:10px;'>Nenhum cálculo recente.</p>";
+                return;
             }
 
             container.innerHTML = dados.slice(0, 10).map(c => `
-                <div class="hist-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border);">
+                <div class="hist-item" style="display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid var(--border);">
                     <div>
-                        <strong style="display:block; font-size:13px; color:var(--sidebar);">${c.processo_numero || 'SEM PROCESSO'}</strong>
-                        <small style="color:var(--muted); font-size:10px;">${new Date(c.data_calculo).toLocaleDateString()}</small>
+                        <strong style="display:block;font-size:13px;color:var(--sidebar);">${c.processo_numero || 'SEM PROCESSO'}</strong>
+                        <small style="color:var(--muted);font-size:10px;">${new Date(c.data_calculo).toLocaleDateString()}</small>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <span style="color:var(--primary); font-weight:700; font-size:14px;">
-                        R$ ${parseFloat(c.total_devido || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <div style="display:flex;align-items:center;gap:15px;">
+                        <span style="color:var(--primary);font-weight:700;font-size:14px;">
+                            R$ ${parseFloat(c.total_devido || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
-                        <i data-lucide="eye" onclick="verMemoria('${btoa(unescape(encodeURIComponent(c.memoria_calculo || '')))}')" style="width:18px; height:18px; cursor:pointer; color:var(--muted);" title="Ver Memória"></i>
-                        <i data-lucide="trash-2" onclick="confirmarExclusao('${c.id}')" style="width:18px; height:18px; cursor:pointer; color:#ef4444;" title="Excluir"></i>
+                        <button class="btn-hist-ver" data-memoria="${btoa(unescape(encodeURIComponent(c.memoria_calculo || '')))}" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--muted);" title="Ver Memória">
+                            <i data-lucide="eye" style="width:18px;height:18px;pointer-events:none;"></i>
+                        </button>
+                        <button class="btn-hist-del" data-id="${c.id}" style="background:none;border:none;cursor:pointer;padding:4px;color:#ef4444;" title="Excluir">
+                            <i data-lucide="trash-2" style="width:18px;height:18px;pointer-events:none;"></i>
+                        </button>
                     </div>
                 </div>
             `).join('');
-            
+
             if (typeof lucide !== 'undefined') lucide.createIcons();
         } catch (e) { console.error("Erro histórico:", e); }
     }
@@ -390,10 +505,10 @@
                     
                     const row = listaLancamentos.insertRow();
                     row.innerHTML = `
-                        <td><input type="text" class="val-bruto" value="${base.replace('R$', '').trim()}" oninput="aplicarMascaraDinheiro(this)"></td>
+                        <td><input type="text" class="val-bruto" value="${base.replace('R$', '').trim()}"></td>
                         <td><input type="date" class="val-data" value="${database}"></td>
                         <td><input type="text" class="val-desc" value="${desc}"></td>
-                        <td><button onclick="this.parentElement.parentElement.remove()" style="color:var(--danger); border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></td>
+                        <td><button class="btn-remover-linha" style="color:var(--danger);border:none;background:none;cursor:pointer;font-weight:bold;">✕</button></td>
                     `;
                 }
             });
@@ -461,6 +576,7 @@
 
     function logout() {
         localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
         window.location.href = '/login.html';
     }
 
@@ -471,7 +587,7 @@
 
     // Badge de novo lead CRM — polling global em todas as páginas
     (function() {
-        const _tk = localStorage.getItem('token');
+        const _tk = API.getToken();
         if (!_tk) return;
         function _checkLeadBadge() {
             fetch('/api/crm/metricas', { headers: { Authorization: 'Bearer ' + _tk } })
@@ -492,14 +608,14 @@
     function exibirAvisoUpgrade(mensagem) {
         const overlay = document.createElement('div');
         overlay.id = "overlay-upgrade";
-        overlay.style = "position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:20000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(5px);";
+        overlay.style = "position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:20000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(5px);";
         overlay.innerHTML = `
-        <div style="background:#fff; padding:40px; border-radius:20px; text-align:center; max-width:420px;">
+        <div style="background:#fff;padding:40px;border-radius:20px;text-align:center;max-width:420px;">
             <div style="font-size:50px;">⚖️</div>
-            <h3 style="margin-top:15px; color:#0f172a;">RECURSO AVANÇADO</h3>
-            <p style="color:#64748b; margin:15px 0 25px 0; line-height:1.6;">${mensagem}</p>
-            <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:12px; padding:15px; margin-bottom:25px; text-align:left;">
-                <p style="margin:0; font-size:13px; color:#92400e; line-height:1.6;">
+            <h3 style="margin-top:15px;color:#0f172a;">RECURSO AVANÇADO</h3>
+            <p style="color:#64748b;margin:15px 0 25px 0;line-height:1.6;">${mensagem}</p>
+            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:15px;margin-bottom:25px;text-align:left;">
+                <p style="margin:0;font-size:13px;color:#92400e;line-height:1.6;">
                     <strong>⚖️ PLANO AVANÇADO INCLUI:</strong><br>
                     • CÁLCULOS JURÍDICOS ILIMITADOS<br>
                     • ATUALIZAÇÃO MONETÁRIA AUTOMÁTICA<br>
@@ -508,14 +624,16 @@
                     • SUPORTE ESPECIALIZADO
                 </p>
             </div>
-            <button onclick="window.location.href='/planos-page'" style="background:linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color:#000; border:none; padding:14px 28px; border-radius:10px; font-weight:800; cursor:pointer; width:100%; margin-bottom:10px;">
+            <button class="btn-upgrade-planos" style="background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#000;border:none;padding:14px 28px;border-radius:10px;font-weight:800;cursor:pointer;width:100%;margin-bottom:10px;">
                 🎯 VER PLANOS E PREÇOS
             </button>
-            <button onclick="document.getElementById('overlay-upgrade').remove()" style="background:none; border:none; color:#64748b; cursor:pointer; font-weight:600; padding:8px;">
+            <button class="btn-upgrade-fechar" style="background:none;border:none;color:#64748b;cursor:pointer;font-weight:600;padding:8px;">
                 DEPOIS
             </button>
         </div>`;
         document.body.appendChild(overlay);
+        overlay.querySelector('.btn-upgrade-planos').addEventListener('click', () => { window.location.href = '/planos-page'; });
+        overlay.querySelector('.btn-upgrade-fechar').addEventListener('click', () => overlay.remove());
     }
 
     // 🚀 INICIALIZAÇÃO COM GARANTIA DUPLA
@@ -540,9 +658,20 @@
         document.getElementById('custas').addEventListener('input', (e) => aplicarMascaraDinheiro(e.target));
         document.getElementById('btnEditarCampos').addEventListener('click', editarCampos);
 
-        // Delegação para inputs .val-bruto gerados dinamicamente
+        // Delegação para inputs e botões gerados dinamicamente em listaValores
         document.getElementById('listaValores').addEventListener('input', (e) => {
             if (e.target.classList.contains('val-bruto')) aplicarMascaraDinheiro(e.target);
+        });
+        document.getElementById('listaValores').addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-remover-linha')) e.target.closest('tr').remove();
+        });
+
+        // Delegação para histórico (olho e lixeira)
+        document.getElementById('listaHistorico').addEventListener('click', (e) => {
+            const btnVer = e.target.closest('.btn-hist-ver');
+            if (btnVer) { verMemoria(btnVer.dataset.memoria); return; }
+            const btnDel = e.target.closest('.btn-hist-del');
+            if (btnDel) confirmarExclusao(btnDel.dataset.id);
         });
     });
 
