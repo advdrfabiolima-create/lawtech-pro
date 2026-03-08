@@ -162,7 +162,7 @@ function renderConversas() {
     if (geralMatch) {
         const geralActive = conversaAtiva?.tipo === 'geral' ? 'active' : '';
         const geralBadge = naoLidasMap.geral ? `<span class="badge-nao-lida">${naoLidasMap.geral}</span>` : '';
-        html += `<div class="conversation-item ${geralActive}" onclick="abrirConversa('geral')">
+        html += `<div class="conversation-item ${geralActive}" data-action="abrirConversa" data-tipo="geral">
             <div class="conv-icon geral">🏢</div>
             <div class="conv-info">
                 <div class="conv-name">Chat Geral</div>
@@ -175,7 +175,7 @@ function renderConversas() {
         const badge = naoLidasMap[u.id] ? `<span class="badge-nao-lida">${naoLidasMap[u.id]}</span>` : '';
         const iniciais = getIniciais(u.nome);
         const onlineDot = u.online ? '<span class="online-dot"></span>' : '';
-        html += `<div class="conversation-item ${dmActive}" onclick="abrirConversa('dm', ${u.id}, '${escaparHtml(u.nome)}')">
+        html += `<div class="conversation-item ${dmActive}" data-action="abrirConversa" data-tipo="dm" data-id="${u.id}" data-nome="${escaparHtml(u.nome)}">
             <div class="conv-icon dm" style="position:relative;">${iniciais}${onlineDot}</div>
             <div class="conv-info">
                 <div class="conv-name">${escaparHtml(u.nome)}</div>
@@ -236,13 +236,13 @@ function renderAreaMensagens() {
                 <div class="messages-header-subtitle">${subtituloHtml}</div>
             </div>
             <div class="messages-header-actions">
-                <button class="header-action-btn" onclick="abrirSearchPanel()" title="Pesquisar mensagens">
+                <button class="header-action-btn" data-action="abrirSearchPanel" title="Pesquisar mensagens">
                     <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                 </button>
-                <button class="header-action-btn" onclick="abrirModalAgendamento()" title="Agendar reunião">
+                <button class="header-action-btn" data-action="abrirModalAgendamento" title="Agendar reunião">
                     <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 </button>
-                <button class="header-action-btn" onclick="abrirModalCompartilhar()" title="Compartilhar tarefa/documento">
+                <button class="header-action-btn" data-action="abrirModalCompartilhar" title="Compartilhar tarefa/documento">
                     <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                 </button>
             </div>
@@ -263,24 +263,22 @@ function renderAreaMensagens() {
                     <div class="reply-preview-author" id="replyPreviewAuthor"></div>
                     <div class="reply-preview-text" id="replyPreviewText"></div>
                 </div>
-                <span class="reply-preview-close" onclick="cancelarReply()">✕</span>
+                <span class="reply-preview-close" data-action="cancelarReply">✕</span>
             </div>
 
             <div style="position:relative;">
                 <div class="mention-suggestions" id="mentionSuggestions"></div>
                 <div class="input-toolbar">
                     <div class="input-main">
-                        <button class="input-icon-btn" id="btnEmoji" onclick="toggleEmojiPicker(event)" title="Emojis">😊</button>
-                        <textarea id="inputMensagem" placeholder="Digite sua mensagem... Use @ para mencionar" rows="1"
-                            onkeydown="onKeyDown(event)" oninput="onInputChange(this)"></textarea>
-                        <button class="input-icon-btn" onclick="document.getElementById('inputArquivo').click()" title="Anexar arquivo">
+                        <button class="input-icon-btn" id="btnEmoji" data-action="toggleEmojiPicker" title="Emojis">😊</button>
+                        <textarea id="inputMensagem" placeholder="Digite sua mensagem... Use @ para mencionar" rows="1"></textarea>
+                        <button class="input-icon-btn" data-action="triggerFileInput" title="Anexar arquivo">
                             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
                         </button>
                         <input type="file" id="inputArquivo" style="display:none"
-                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx"
-                            onchange="enviarArquivo(this)">
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx">
                     </div>
-                    <button class="btn-enviar" onclick="enviarMensagem()">
+                    <button class="btn-enviar" data-action="enviarMensagem">
                         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                         Enviar
                     </button>
@@ -296,7 +294,47 @@ function renderAreaMensagens() {
     lucide.createIcons();
     document.getElementById('inputMensagem').focus();
 
-    // ── Event delegation: Copiar / Responder / Tópico ─────────────────────────
+    // ── Textarea events ────────────────────────────────────────────────────────
+    const textarea = document.getElementById('inputMensagem');
+    if (textarea) {
+        textarea.addEventListener('keydown', onKeyDown);
+        textarea.addEventListener('input', (e) => onInputChange(e.target));
+    }
+
+    // ── File input change ──────────────────────────────────────────────────────
+    const fileInput = document.getElementById('inputArquivo');
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => enviarArquivo(e.target));
+    }
+
+    // ── Input area click delegation ────────────────────────────────────────────
+    const inputArea = area.querySelector('.input-area');
+    if (inputArea) {
+        inputArea.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            const action = btn.dataset.action;
+            if (action === 'cancelarReply') cancelarReply();
+            else if (action === 'toggleEmojiPicker') toggleEmojiPicker(e);
+            else if (action === 'triggerFileInput') document.getElementById('inputArquivo').click();
+            else if (action === 'enviarMensagem') enviarMensagem();
+        });
+    }
+
+    // ── Header action buttons delegation ──────────────────────────────────────
+    const header = area.querySelector('.messages-header');
+    if (header) {
+        header.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            const action = btn.dataset.action;
+            if (action === 'abrirSearchPanel') abrirSearchPanel();
+            else if (action === 'abrirModalAgendamento') abrirModalAgendamento();
+            else if (action === 'abrirModalCompartilhar') abrirModalCompartilhar();
+        });
+    }
+
+    // ── Event delegation: mensagens (Copiar / Responder / Tópico / scroll / download) ──
     const msgList = document.getElementById('messagesList');
     if (msgList) {
         msgList.addEventListener('click', (e) => {
@@ -306,6 +344,21 @@ function renderAreaMensagens() {
             const action = btn.dataset.action;
             const id     = parseInt(btn.dataset.id);
             const dados  = msgDataMap[id];
+
+            if (action === 'scrollToMsg') {
+                scrollToMsg(id);
+                return;
+            }
+            if (action === 'abrirThread') {
+                abrirThread(id);
+                return;
+            }
+            if (action === 'baixarArquivo') {
+                const nome = btn.dataset.nome || (dados && dados.arquivo_nome) || '';
+                baixarArquivoChat(id, nome);
+                return;
+            }
+
             if (!dados) return;
 
             if (action === 'copy') {
@@ -614,7 +667,7 @@ function criarBubble(msg) {
     // Reply quote
     let replyHtml = '';
     if (msg.reply_to_id && msg.reply_to_conteudo) {
-        replyHtml = `<div class="reply-quote" onclick="scrollToMsg(${msg.reply_to_id})">
+        replyHtml = `<div class="reply-quote" data-action="scrollToMsg" data-id="${msg.reply_to_id}">
             <div class="reply-quote-author">${escaparHtml(msg.reply_to_autor || 'Mensagem')}</div>
             <div class="reply-quote-text">${escaparHtml(msg.reply_to_conteudo)}</div>
         </div>`;
@@ -624,7 +677,7 @@ function criarBubble(msg) {
     let conteudoHtml = '';
     if (msg.arquivo_nome) {
         const icone = getFileIcon(msg.arquivo_nome);
-        conteudoHtml = `<a href="#" onclick="baixarArquivoChat(${msg.id}, '${msg.arquivo_nome.replace(/'/g, "\'")}'); return false;" class="file-attachment">${icone} ${escaparHtml(msg.arquivo_nome)}</a>`;
+        conteudoHtml = `<a href="#" class="file-attachment" data-action="baixarArquivo" data-id="${msg.id}" data-nome="${escaparHtml(msg.arquivo_nome)}">${icone} ${escaparHtml(msg.arquivo_nome)}</a>`;
     } else {
         const textoProcessado = processarTextoMensagem(msg.conteudo);
         const emojiClass = somenteEmojis(msg.conteudo) ? ' emoji-only' : '';
@@ -647,7 +700,7 @@ function criarBubble(msg) {
     // Thread indicator
     const threadCount = msg.thread_count || 0;
     const threadHtml = threadCount > 0 ? `
-        <div class="thread-indicator" onclick="abrirThread(${msg.id})">
+        <div class="thread-indicator" data-action="abrirThread" data-id="${msg.id}">
             💬 ${threadCount} resposta${threadCount > 1 ? 's' : ''} no tópico
         </div>` : '';
 
@@ -856,7 +909,7 @@ function executarPesquisa(query) {
         const hora = new Date(m.criado_em).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', timeZone: 'America/Sao_Paulo' });
         const highlightedText = escaparHtml(m.conteudo).replace(new RegExp(`(${escaparHtml(q)})`, 'gi'), '<mark>$1</mark>');
         return `
-            <div class="search-result-item" onclick="scrollToMsg(${m.id}); fecharSearchPanel();">
+            <div class="search-result-item" data-action="searchScrollTo" data-id="${m.id}">
                 <div class="search-result-sender">${escaparHtml(m.remetente_id === currentUserId ? 'Você' : m.remetente_nome)}</div>
                 <div class="search-result-text">${highlightedText}</div>
                 <div class="search-result-time">${hora}</div>
@@ -1162,8 +1215,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('linkLogoutChat').addEventListener('click', (e) => { e.preventDefault(); logout(); });
     document.getElementById('filterConversas').addEventListener('input', (e) => filtrarConversas(e.target.value));
+
+    // ── Conversas: event delegation ────────────────────────────────────────────
+    document.getElementById('conversationsList').addEventListener('click', (e) => {
+        const item = e.target.closest('[data-action="abrirConversa"]');
+        if (!item) return;
+        const tipo = item.dataset.tipo;
+        const id   = item.dataset.id ? parseInt(item.dataset.id) : null;
+        const nome = item.dataset.nome || '';
+        abrirConversa(tipo, id, nome);
+    });
+
     document.getElementById('btnFecharSearchPanel').addEventListener('click', fecharSearchPanel);
     document.getElementById('searchInput').addEventListener('input', (e) => pesquisarMensagens(e.target.value));
+
+    // ── Search results: event delegation ──────────────────────────────────────
+    document.getElementById('searchResults').addEventListener('click', (e) => {
+        const item = e.target.closest('[data-action="searchScrollTo"]');
+        if (!item) return;
+        const id = parseInt(item.dataset.id);
+        scrollToMsg(id);
+        fecharSearchPanel();
+    });
     document.getElementById('btnFecharThreadPanel').addEventListener('click', fecharThreadPanel);
     document.getElementById('threadInput').addEventListener('keydown', onThreadKeyDown);
     document.getElementById('threadInput').addEventListener('input', (e) => autoResizeEl(e.target));
