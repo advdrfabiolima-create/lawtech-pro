@@ -184,7 +184,8 @@ app.use(helmet({
     "https://*.peerjs.com",
     "wss://*.peerjs.com",
     "https://unpkg.com",
-    "https://raw.githubusercontent.com"   // GeoJSON mapa do Brasil
+    "https://raw.githubusercontent.com",  // GeoJSON mapa do Brasil
+    "https://viacep.com.br"               // busca de CEP
 ],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
             frameSrc: ["'self'", "https://*.daily.co", "https://js.stripe.com"],
