@@ -1621,9 +1621,18 @@ function gerarHTMLRelatorio(dados) {
                     ${lancamentos.map(l => {
                         const v = parseFloat(l.valor);
                         const dt = formatarData(l.data_vencimento);
+                        const parte = l.tipo === 'Receita'
+                            ? (l.cliente_nome || '')
+                            : (l.beneficiario || '');
+                        const parteHtml = parte
+                            ? `<div style="font-size:10px;color:#6b7280;font-weight:500;margin-top:2px;">${parte}</div>`
+                            : '';
                         return `<tr>
                             <td style="color:#6b7280;white-space:nowrap;">${dt}</td>
-                            <td style="font-weight:500;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.descricao}</td>
+                            <td style="max-width:260px;">
+                                <div style="font-weight:500;">${l.descricao}</div>
+                                ${parteHtml}
+                            </td>
                             <td><span class="badge ${l.tipo==='Receita'?'badge-rec':'badge-desp'}">${l.tipo}</span></td>
                             <td style="font-weight:700;color:${l.tipo==='Receita'?'#16a34a':'#dc2626'};white-space:nowrap;">${fmt(v)}</td>
                             <td><span class="badge ${l.status==='Pago'?'badge-pago':'badge-pend'}">${l.status}</span></td>
@@ -1793,7 +1802,14 @@ async function gerarPDFRelatorio() {
     }
 }
 async function imprimirInteligente() {
-    // Sempre busca os dados ATUAIS do modal (filtros e mês selecionados agora)
+    // Sempre usa o mês visível na tela (navegação atual) para imprimir
+    const mesInput = document.getElementById('relatorioMes');
+    if (mesInput) {
+        const m = window._finMes || (new Date().getMonth() + 1);
+        const a = window._finAno || new Date().getFullYear();
+        mesInput.value = `${a}-${String(m).padStart(2, '0')}`;
+    }
+
     const btnImprimir = document.querySelector('[data-action="imprimirInteligente"]');
     if (btnImprimir) { btnImprimir._orig = btnImprimir.innerHTML; btnImprimir.innerHTML = '⏳ Preparando...'; btnImprimir.disabled = true; }
 

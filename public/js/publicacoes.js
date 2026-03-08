@@ -161,54 +161,159 @@ function extrairPartes(texto) {
     if (!texto) return [];
     const partes = [];
     const seen = new Set();
+
+    // Termos jurídicos que NÃO são nomes de partes
+    const naoEhNome = /^(INEXISTÊNCIA|INDENIZAÇÃO|REPARAÇÃO|RESPONSABILIDADE|DANO\s*MORAL|DANO\s*MATERIAL|TUTELA|LIMINAR|URGENTE|MEDIDA|APELAÇÃO|AGRAVO|MANDADO|REVISÃO|EMBARGOS\s+DE|EXECUÇÃO\s+DE|PROCESSO\s+N|AÇÃO\s+DE|REQUERIMENTO|PEDIDO\s+DE|NULIDADE|RESCISÓRIA|CAUTELAR|PRECATÓRIO|HONORÁRIOS|TRIBUNAL|VARA|CÂMARA|TURMA|SEÇÃO|AUSÊNCIA|FALTA\s+DE|CONTRATO|EMPRÉSTIMO|FINANCIAMENTO|COBRANÇA|INDÉBITO|REVISIONAL|CUMPRIMENTO|FASE\s+DE)/i;
+
+    // Padrão de próximo rótulo (para cortar o nome antes do próximo)
+    const proximoRotulo = /\b(?:APELANTE|APELAD[OA]|AGRAVANTE|AGRAVAD[OA]|IMPETRANTE|IMPETRAD[OA]|RECORRENTE|RECORRID[OA]|EXEQUENTE|EXECUTAD[OA]|EMBARGANTE|EMBARGAD[OA]|INTIMAD[OA]|CITAD[OA]|AUTOR[A]?|R[ÉE](?:U|Ú)?|REQUERENTE|REQUERID[OA]|RECLAMANTE|RECLAMAD[OA]|POLO\s+(?:ATIVO|PASSIVO)|ADVOGAD[OA]|ADVOGADOS?|PARTES?)\b/i;
+
+    // Separador ESTRITO: exige dois-pontos, travessão ou hífen (não aceita só espaço)
+    const SEP = '[:\\-–]\\s*';
+
     const padroes = [
-        { regex: /\bAUTOR(?:A)?[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'AUTOR' },
-        { regex: /\bR[ÉE](?:U)?[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'RÉU' },
-        { regex: /\bREQUERENTE[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'REQUERENTE' },
-        { regex: /\bREQUERID[OA][:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'REQUERIDO' },
-        { regex: /\bRECLAMANTE[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'RECLAMANTE' },
-        { regex: /\bRECLAMAD[OA][:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'RECLAMADO' },
-        { regex: /\bEXEQUENTE[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'EXEQUENTE' },
-        { regex: /\bEXECUTAD[OA][:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'EXECUTADO' },
-        { regex: /\bAPELANTE[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'APELANTE' },
-        { regex: /\bAPELAD[OA][:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'APELADO' },
-        { regex: /\bAGRAVANTE[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'AGRAVANTE' },
-        { regex: /\bAGRAVAD[OA][:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'AGRAVADO' },
-        { regex: /\bIMPETRANTE[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'IMPETRANTE' },
-        { regex: /\bIMPETRAD[OA][:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'IMPETRADO' },
-        { regex: /\bPOLO\s+ATIVO[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'POLO ATIVO' },
-        { regex: /\bPOLO\s+PASSIVO[:\s\-–\.]+([A-ZÀ-Ü][A-ZÀ-Ü0-9\s\.]{2,50})/g, tipo: 'POLO PASSIVO' },
+        // Papéis recursais (maior prioridade)
+        { regex: new RegExp(`\\bAPELANTE${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'APELANTE' },
+        { regex: new RegExp(`\\bAPELAD[OA]${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'APELADO' },
+        { regex: new RegExp(`\\bAGRAVANTE${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'AGRAVANTE' },
+        { regex: new RegExp(`\\bAGRAVAD[OA]${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'AGRAVADO' },
+        { regex: new RegExp(`\\bIMPETRANTE${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'IMPETRANTE' },
+        { regex: new RegExp(`\\bIMPETRAD[OA]${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'IMPETRADO' },
+        { regex: new RegExp(`\\bRECORRENTE${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'RECORRENTE' },
+        { regex: new RegExp(`\\bRECORRID[OA]${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'RECORRIDO' },
+        { regex: new RegExp(`\\bEXEQUENTE${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'EXEQUENTE' },
+        { regex: new RegExp(`\\bEXECUTAD[OA]${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'EXECUTADO' },
+        { regex: new RegExp(`\\bEMBARGANTE${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'EMBARGANTE' },
+        { regex: new RegExp(`\\bEMBARGAD[OA]${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'EMBARGADO' },
+        // Intimados/citados (muito comuns no DJEN)
+        { regex: new RegExp(`\\bINTIMAD[OA]${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'INTIMADO' },
+        { regex: new RegExp(`\\bCITAD[OA]${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'CITADO' },
+        // Papéis de 1º grau
+        { regex: new RegExp(`\\bAUTOR(?:A)?${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'AUTOR' },
+        { regex: new RegExp(`\\bR[ÉE](?:U|Ú)?${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'RÉU' },
+        { regex: new RegExp(`\\bREQUERENTE${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'REQUERENTE' },
+        { regex: new RegExp(`\\bREQUERID[OA]${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'REQUERIDO' },
+        { regex: new RegExp(`\\bRECLAMANTE${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'RECLAMANTE' },
+        { regex: new RegExp(`\\bRECLAMAD[OA]${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'RECLAMADO' },
+        { regex: new RegExp(`\\bPOLO\\s+ATIVO${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'POLO ATIVO' },
+        { regex: new RegExp(`\\bPOLO\\s+PASSIVO${SEP}([^\\n]{3,70})`, 'gi'), tipo: 'POLO PASSIVO' },
+        // Polo Ativo/Passivo com separador apenas de espaço (formato DJEN sem dois-pontos)
+        { regex: /\bPolo\s+Ativo\s+([A-ZÀ-Ü][^\n]{3,70})/gi, tipo: 'POLO ATIVO' },
+        { regex: /\bPolo\s+Passivo\s+([A-ZÀ-Ü][^\n]{3,70})/gi, tipo: 'POLO PASSIVO' },
+        // Prefixo "Partes:" seguido de lista — captura bloco inteiro para o fallback X tratar
+        { regex: new RegExp(`\\bPARTES?${SEP}([^\\n]{3,120})`, 'gi'), tipo: '_partes_bloco' },
+        // Formato "NAME (AGRAVANTE)" — papel entre parênteses após o nome (padrão STJ/tribunais superiores)
+        { regex: /\b([A-ZÀ-Ü][A-ZÀ-Ü\s\.&]{2,55}?)\s*\((AGRAVANTE|AGRAVADA?|APELANTE|APELADA?|AUTOR[A]?|R[ÉE](?:U|Ú)?|REQUERENTE|REQUERID[OA]|RECLAMANTE|RECLAMAD[OA]|EXEQUENTE|EXECUTAD[OA]|EMBARGANTE|EMBARGAD[OA]|IMPETRANTE|IMPETRAD[OA]|RECORRENTE|RECORRID[OA]|INTIMAD[OA]|CITAD[OA])\)/gi, tipo: '_role_paren' },
     ];
-    const stopPattern = /\s+(E\b|X\b|VS\.?|CONTRA|CPF|CNPJ|OAB|ADVOGAD|PROC\.|INTIM|CITA[ÇC]|PRAZO|SENTEN|DECIS|DESPACHO|AUDI[EÊ]|RECURSO).*/i;
+
+    // Padrão de labels concatenados sem espaço: "SAADVOGADO:" → encontra "ADVOGADO:" e corta antes
+    const labelConcatenado = /(?:ADVOGAD[OA]S?|AGRAVANTE|AGRAVAD[OA]|APELANTE|APELAD[OA]|AUTOR[A]?|R[EÉ](?:U|Ú)?|REQUERENTE|REQUERID[OA]|RECLAMANTE|RECLAMAD[OA]|EXEQUENTE|EXECUTAD[OA]|EMBARGANTE|EMBARGAD[OA]|IMPETRANTE|IMPETRAD[OA]|RECORRENTE|RECORRID[OA]|INTIMAD[OA]|CITAD[OA]):/i;
+
+    function limparNome(raw) {
+        let nome = raw;
+        // 1) Parar no próximo rótulo com word boundary (espaço antes)
+        const idxRotulo = nome.search(proximoRotulo);
+        if (idxRotulo > 0) nome = nome.substring(0, idxRotulo);
+        // 2) Parar em label concatenado sem espaço (ex: "SAADVOGADO:" → corta em "ADVOGADO")
+        const idxConcat = nome.search(labelConcatenado);
+        if (idxConcat > 0) nome = nome.substring(0, idxConcat);
+        // 3a) Parar antes de "Advogado" mesmo sem espaço/colon (ex: "PEREIRAAdvogado(s)")
+        const idxAdv = nome.search(/Advogado/i);
+        if (idxAdv > 0) nome = nome.substring(0, idxAdv);
+        // 3b) Parar antes de dados do advogado
+        const idxOab = nome.search(/\s*[-–]?\s*OAB\b|\s*[-–]?\s*ADV[.\s:]/i);
+        if (idxOab > 0) nome = nome.substring(0, idxOab);
+        // 4) Parar em ponto seguido de espaço+maiúscula (nova sentença) — preserva "S.A.", "LTDA."
+        const idxPonto = nome.search(/\.\s+[A-ZÀ-Ü]/);
+        if (idxPonto > 0) nome = nome.substring(0, idxPonto);
+        // 5) Parar em ponto-e-vírgula
+        const idxPV = nome.search(/[;]/);
+        if (idxPV > 3) nome = nome.substring(0, idxPV);
+        // 6) Limpar pontuação final
+        nome = nome.replace(/[,;:\.\-\s]+$/, '').trim();
+        return nome;
+    }
+
+    // Função auxiliar para extrair par de partes de "NOME1 X NOME2"
+    function extrairParXvs(trecho) {
+        // Permite letras maiúsculas, espaços, pontos (S.A.), hífen — mas não colchetes ou números sozinhos
+        const vsReg = /([A-ZÀ-Ü][A-ZÀ-Ü\s\.]{2,50}?)\s+(?:X|VS\.?|VERSUS|CONTRA)\s+([A-ZÀ-Ü][A-ZÀ-Ü\s\.]{2,50})/g;
+        let m;
+        while ((m = vsReg.exec(trecho)) !== null && partes.length < 4) {
+            [m[1], m[2]].forEach((raw, i) => {
+                const nm = raw.replace(/[,;:\.\-\s]+$/, '').trim();
+                if (nm.length >= 3 && nm.length <= 60 && !naoEhNome.test(nm) && !seen.has(nm.toUpperCase())) {
+                    seen.add(nm.toUpperCase());
+                    partes.push({ tipo: i === 0 ? 'POLO ATIVO' : 'POLO PASSIVO', nome: nm });
+                }
+            });
+        }
+    }
+
     for (const { regex, tipo } of padroes) {
         let match;
         regex.lastIndex = 0;
         while ((match = regex.exec(texto)) !== null) {
-            let nome = match[1].trim();
-            const stop = nome.search(stopPattern);
-            if (stop > 0) nome = nome.substring(0, stop);
-            nome = nome.replace(/[,;:\.\-\s]+$/, '').trim();
-            if (nome.length >= 3 && nome.length <= 55 && !seen.has(nome)) {
-                seen.add(nome);
-                partes.push({ tipo, nome });
+            // Padrão especial: bloco "Partes: NOME X NOME" — extrair via X/VS
+            if (tipo === '_partes_bloco') {
+                extrairParXvs(match[1]);
+                continue;
             }
+            // Padrão especial: "NOME (AGRAVANTE)" — grupo 1 = nome, grupo 2 = tipo
+            if (tipo === '_role_paren') {
+                const nomeP = match[1].replace(/[,;:\.\-\s]+$/, '').trim();
+                const tipoP = match[2];
+                if (nomeP.length >= 3 && nomeP.length <= 60 && !naoEhNome.test(nomeP) && !seen.has(nomeP.toUpperCase())) {
+                    seen.add(nomeP.toUpperCase());
+                    partes.push({ tipo: tipoP, nome: nomeP });
+                }
+                continue;
+            }
+            const nome = limparNome(match[1]);
+            if (nome.length < 3 || nome.length > 60) continue;
+            if (naoEhNome.test(nome)) continue;
+            if (seen.has(nome.toUpperCase())) continue;
+            seen.add(nome.toUpperCase());
+            partes.push({ tipo, nome });
             if (partes.length >= 4) break;
         }
         if (partes.length >= 4) break;
     }
+
+    // Fallback geral: varrer o texto inteiro em busca de "NOME X NOME"
+    if (partes.length === 0) {
+        extrairParXvs(texto);
+    }
+
     return partes;
 }
 
 // RENDERIZAR PARTES NO CARD
 function renderPartes(partes) {
     if (!partes || partes.length === 0) {
-        return '<span style="font-size:11px;color:var(--text-tertiary);font-style:italic;">Partes não identificadas</span>';
+        return `<div class="partes-vazio">
+            <i data-lucide="user-x" style="width:13px;height:13px;opacity:0.4;"></i>
+            <span>Partes não identificadas no texto</span>
+        </div>`;
     }
-    return partes.map(p => `
-        <div style="display:flex;gap:5px;align-items:center;overflow:hidden;">
-            <span style="font-size:9px;font-weight:700;color:#3730A3;background:#E0E7FF;padding:2px 5px;border-radius:3px;white-space:nowrap;flex-shrink:0;text-transform:uppercase;">${p.tipo}</span>
-            <span style="font-size:11px;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.nome}</span>
-        </div>`).join('');
+    // Cores por tipo de polo
+    const coresAtivo = { bg: '#dbeafe', color: '#1e40af' };  // azul — polo ativo
+    const coresPassivo = { bg: '#fee2e2', color: '#991b1b' }; // vermelho — polo passivo
+    const coresNeutro = { bg: '#e0e7ff', color: '#3730a3' };  // índigo — outros
+
+    const tiposAtivo = ['APELANTE','AGRAVANTE','IMPETRANTE','RECORRENTE','EMBARGANTE','EXEQUENTE','AUTOR','AUTORA','REQUERENTE','RECLAMANTE','POLO ATIVO'];
+    const tiposPassivo = ['APELADO','APELADA','AGRAVADO','AGRAVADA','IMPETRADO','IMPETRADA','RECORRIDO','RECORRIDA','EMBARGADO','EMBARGADA','EXECUTADO','EXECUTADA','RÉU','RÉ','REQUERIDO','REQUERIDA','RECLAMADO','RECLAMADA','POLO PASSIVO'];
+
+    return partes.map(p => {
+        const tipoUp = p.tipo.toUpperCase();
+        const cores = tiposAtivo.includes(tipoUp) ? coresAtivo
+                    : tiposPassivo.includes(tipoUp) ? coresPassivo
+                    : coresNeutro;
+        return `<div class="parte-row">
+            <span class="parte-tipo" style="background:${cores.bg};color:${cores.color};">${esc(p.tipo)}</span>
+            <span class="parte-nome">${esc(p.nome)}</span>
+        </div>`;
+    }).join('');
 }
 
 // CARREGAR PUBLICAÇÕES
@@ -223,6 +328,15 @@ async function carregarPublicacoes() {
     } catch (err) {
         console.error('Erro:', err);
     }
+}
+
+// ESCAPAR HTML (evita quebrar innerHTML com caracteres especiais no conteúdo)
+function esc(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
 }
 
 // RENDERIZAR CARDS
@@ -253,31 +367,41 @@ function renderizarTabela() {
 
     container.innerHTML = filtradas.map(p => {
         const status = p.status || 'pendente';
-        const statusIcon = status === 'pendente' ? '&#128313;' : status === 'convertida' ? '&#128994;' : '&#128308;';
         const dataFormatada = new Date(p.data_publicacao).toLocaleDateString('pt-BR');
         const partes = extrairPartes(p.conteudo);
+        // Snippet: primeiros ~120 chars escapados (evita quebrar innerHTML)
+        const snippetRaw = (p.conteudo || '').replace(/\s+/g, ' ').trim();
+        const snippet = esc(snippetRaw.length > 120 ? snippetRaw.substring(0, 120) + '…' : snippetRaw);
+
+        const statusLabel = { pendente: 'Pendente', convertida: 'Convertida', descartada: 'Descartada' }[status] || status;
+        const statusDot = { pendente: '#f59e0b', convertida: '#10b981', descartada: '#ef4444' }[status] || '#f59e0b';
 
         return `
-        <div class="pub-card status-${status}" onclick="verDetalhes(${p.id})" title="Clique para ver o conteúdo completo">
-            <div class="card-mini-header">
-                <span class="badge badge-${status}" style="font-size:9px;padding:3px 8px;">${statusIcon} ${status.toUpperCase()}</span>
-                <span class="card-date" style="font-size:11px;"><i data-lucide="calendar" style="width:11px;height:11px;"></i> ${dataFormatada}</span>
+        <div class="pub-card status-${status}" data-action="verDetalhes" data-id="${p.id}" title="Clique para ver o conteúdo completo">
+            <div class="card-top">
+                <span class="status-pill" style="--dot:${statusDot}">
+                    <span class="status-dot"></span>${statusLabel}
+                </span>
+                <span class="card-date">
+                    <i data-lucide="calendar" style="width:11px;height:11px;"></i> ${dataFormatada}
+                </span>
             </div>
-            <div class="card-mini-processo">
-                <div class="processo-numero" style="font-size:13px;">${p.numero_processo}</div>
-                <span class="processo-tribunal">${mapearTribunal(p.tribunal)}</span>
+            <div class="card-processo-row">
+                <span class="processo-numero">${esc(p.numero_processo)}</span>
+                <span class="tribunal-pill">${esc(mapearTribunal(p.tribunal))}</span>
             </div>
-            <div class="card-mini-partes">
+            <div class="card-partes-section">
                 ${renderPartes(partes)}
             </div>
-            <div class="card-mini-footer">
-                <button class="btn-card" onclick="event.stopPropagation();verDetalhes(${p.id})" title="Ver conteúdo completo">
+            <div class="card-snippet">${snippet}</div>
+            <div class="card-actions">
+                <button class="btn-card" data-action="verDetalhes" data-id="${p.id}" title="Ver conteúdo completo">
                     <i data-lucide="eye" style="width:13px;height:13px;"></i> Ver
                 </button>
-                <button class="btn-card primary" onclick="event.stopPropagation();converterPrazo(${p.id})" title="Converter em prazo">
-                    <i data-lucide="calendar-plus" style="width:13px;height:13px;"></i> Prazo
+                <button class="btn-card primary" data-action="converterPrazo" data-id="${p.id}" title="Converter em prazo">
+                    <i data-lucide="calendar-plus" style="width:13px;height:13px;"></i> Criar Prazo
                 </button>
-                <button class="btn-card danger" onclick="event.stopPropagation();excluir(${p.id})" title="Descartar publicação">
+                <button class="btn-card danger" data-action="excluir" data-id="${p.id}" title="Descartar publicação">
                     <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
                 </button>
             </div>
@@ -371,7 +495,7 @@ function verDetalhes(id) {
         <div style="margin-bottom: 20px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                 <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-tertiary);">Conteúdo</span>
-                <button class="btn-copiar" id="btnCopiarConteudo" onclick="copiarConteudoModal(this)">
+                <button class="btn-copiar" id="btnCopiarConteudo" data-action="copiarConteudo">
                     <i data-lucide="copy" style="width:12px;height:12px;"></i> Copiar Conteúdo
                 </button>
             </div>
@@ -380,10 +504,10 @@ function verDetalhes(id) {
             </div>
         </div>
         <div style="display:flex; gap:8px; padding-top:16px; border-top:1px solid var(--border-subtle);">
-            <button class="btn-card primary" onclick="fecharModal(); converterPrazo(${pub.id})">
+            <button class="btn-card primary" data-action="converterPrazoModal" data-id="${pub.id}">
                 <i data-lucide="calendar-plus" style="width:14px;height:14px;"></i> Converter Prazo
             </button>
-            <button class="btn-card danger" onclick="fecharModal(); excluir(${pub.id})">
+            <button class="btn-card danger" data-action="excluirModal" data-id="${pub.id}">
                 <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Excluir
             </button>
         </div>
@@ -522,6 +646,28 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('linkLogout').addEventListener('click', (e) => { e.preventDefault(); logout(); });
     document.getElementById('btnSincronizar').addEventListener('click', sincronizar);
     document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
+
+    // EVENT DELEGATION — cards e modal (substitui todos os onclick inline, proibidos pela CSP)
+    document.getElementById('cardsContainer').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        e.stopPropagation();
+        const action = btn.dataset.action;
+        const id = parseInt(btn.dataset.id, 10);
+        if (action === 'verDetalhes') verDetalhes(id);
+        else if (action === 'converterPrazo') converterPrazo(id);
+        else if (action === 'excluir') excluir(id);
+    });
+
+    document.getElementById('modalDetalhes').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        const action = btn.dataset.action;
+        const id = parseInt(btn.dataset.id, 10);
+        if (action === 'copiarConteudo') copiarConteudoModal(btn);
+        else if (action === 'converterPrazoModal') { fecharModal(); converterPrazo(id); }
+        else if (action === 'excluirModal') { fecharModal(); excluir(id); }
+    });
 });
 
 
