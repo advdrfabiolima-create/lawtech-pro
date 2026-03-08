@@ -76,8 +76,8 @@ async function criarLeadSeNecessario(escritorioId, conversaId, telefone, nomeCon
 
     const nome = nomeContato || `WhatsApp ${telefone}`;
     const { rows } = await pool.query(
-        `INSERT INTO leads (escritorio_id, nome, telefone, canal_origem, etapa, score, ultima_movimentacao)
-         VALUES ($1, $2, $3, 'whatsapp', 'novo', 10, NOW())
+        `INSERT INTO leads (escritorio_id, nome, telefone, origem, status, score, ultima_movimentacao)
+         VALUES ($1, $2, $3, 'whatsapp', 'Novo', 10, NOW())
          ON CONFLICT DO NOTHING
          RETURNING id`,
         [escritorioId, nome, telefone]
