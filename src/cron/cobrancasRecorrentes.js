@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const pool = require('../config/db');
 const { decrypt } = require('../utils/crypto');
+// decrypt importado para descriptografar cartao_token e asaas_card_token
 const { tentarGatewayAlternativo } = require('../utils/gatewayFailover');
 const { processarCobrancaCartao } = require('../services/chargeService');
 const { enviarEmail } = require('../services/emailService');
@@ -21,7 +22,7 @@ async function invalidarCacheEscritorio(escritorioId) {
 }
 
 /* ======================================================
-   💳 CRON JOB: Cobranças Recorrentes Mensais
+   [CARTAO] CRON JOB: Cobranças Recorrentes Mensais
    
    Executa todo dia às 8h da manhã
    Cobra assinaturas que vencem hoje
@@ -41,7 +42,7 @@ cron.schedule('0 8 * * *', async () => {
         return;
     }
 
-    logger.info('\n💰 [CRON RECORRENTE] Verificando cobranças mensais...');
+    logger.info('\n[COBRANCA] [CRON RECORRENTE] Verificando cobranças mensais...');
     logger.info(`Data/Hora: ${new Date().toLocaleString('pt-BR')}`);
 
     try {
@@ -57,6 +58,7 @@ cron.schedule('0 8 * * *', async () => {
                 p.nome as plano_nome,
                 u.email as email_responsavel,
                 c.token as cartao_token,
+                c.asaas_card_token,
                 c.gateway,
                 c.last4,
                 c.brand
@@ -73,10 +75,10 @@ cron.schedule('0 8 * * *', async () => {
             ORDER BY e.proxima_cobranca ASC
         `);
 
-        logger.info(`📊 [CRON RECORRENTE] Encontrados: ${result.rowCount} assinatura(s) para renovar`);
+        logger.info(`[STATS] [CRON RECORRENTE] Encontrados: ${result.rowCount} assinatura(s) para renovar`);
 
         if (result.rowCount === 0) {
-            logger.info('   ✅ Nenhuma cobrança agendada para hoje\n');
+            logger.info('   [OK] Nenhuma cobrança agendada para hoje\n');
             return;
         }
 
@@ -88,7 +90,7 @@ cron.schedule('0 8 * * *', async () => {
                 // Calcular valor em centavos
                 const valorEmCentavos = Math.round(parseFloat(escritorio.preco_mensal) * 100);
                 
-                logger.info(`\n💳 [CRON RECORRENTE] Cobrando renovação: ${escritorio.nome}`);
+                logger.info(`\n[CARTAO] [CRON RECORRENTE] Cobrando renovação: ${escritorio.nome}`);
                 logger.info(`   Email: ${escritorio.email_responsavel}`);
                 logger.info(`   Plano: ${escritorio.plano_nome}`);
                 logger.info(`   Valor: R$ ${escritorio.preco_mensal}`);
@@ -99,6 +101,8 @@ cron.schedule('0 8 * * *', async () => {
                     escritorioId: escritorio.id,
                     valor: valorEmCentavos,
                     cartaoToken: decrypt(escritorio.cartao_token),
+                    // [A-2] Passar asaas_card_token descriptografado para evitar fallback sem decrypt
+                    asaasCardToken: escritorio.asaas_card_token ? decrypt(escritorio.asaas_card_token) : null,
                     gateway: escritorio.gateway,
                     descricao: `Renovação ${escritorio.plano_nome} - LawTech Pro`
                 });
@@ -133,7 +137,7 @@ cron.schedule('0 8 * * *', async () => {
                         );
                         if (jaExiste.rows.length > 0) {
                             await client.query('ROLLBACK');
-                            logger.info(`   ℹ️ Transação já registrada: ${cobranca.transacaoId}`);
+                            logger.info(`   [INFO] Transação já registrada: ${cobranca.transacaoId}`);
                             sucessos++;
                             continue;
                         }
@@ -159,7 +163,7 @@ cron.schedule('0 8 * * *', async () => {
 
                         await client.query('COMMIT');
                         await invalidarCacheEscritorio(escritorio.id);
-                        logger.info(`   ✅ RENOVAÇÃO APROVADA! ID: ${cobranca.transacaoId}`);
+                        logger.info(`   [OK] RENOVAÇÃO APROVADA! ID: ${cobranca.transacaoId}`);
                         sucessos++;
 
                     } else {
@@ -188,12 +192,12 @@ cron.schedule('0 8 * * *', async () => {
 
                         await client.query('COMMIT');
                         await invalidarCacheEscritorio(escritorio.id);
-                        logger.info(`   ❌ COBRANÇA RECUSADA: ${cobranca.erro}`);
+                        logger.info(`   [ERRO] COBRANÇA RECUSADA: ${cobranca.erro}`);
 
                         // Email: avisa que a cobrança falhou e haverá nova tentativa em 2 dias
                         await enviarEmail({
                             para: escritorio.email_responsavel,
-                            assunto: '⚠️ Falha na renovação — LawTech Pro',
+                            assunto: '[AVISO] Falha na renovação — LawTech Pro',
                             html: `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;">
                                 <div style="background:#1E3A5F;padding:24px;text-align:center;">
                                     <img src="https://www.lawtechpro.com.br/Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro" style="max-width:160px;height:auto;" />
@@ -211,36 +215,36 @@ cron.schedule('0 8 * * *', async () => {
                     }
                 } catch (txErr) {
                     await client.query('ROLLBACK');
-                    logger.error(`   ❌ Erro na transação: ${txErr.message}`);
+                    logger.error(`   [ERRO] Erro na transação: ${txErr.message}`);
                     falhas++;
                 } finally {
                     client.release();
                 }
 
             } catch (err) {
-                logger.error(`   ❌ ERRO ao processar escritório ${escritorio.id}:`, err.message);
+                logger.error(`   [ERRO] ERRO ao processar escritório ${escritorio.id}:`, err.message);
                 falhas++;
             }
         }
 
-        logger.info(`\n📊 [CRON RECORRENTE] Resultado Final:`);
-        logger.info(`   ✅ Aprovadas: ${sucessos}`);
-        logger.info(`   ❌ Recusadas: ${falhas}`);
-        logger.info(`   📊 Total: ${result.rowCount}\n`);
+        logger.info(`\n[STATS] [CRON RECORRENTE] Resultado Final:`);
+        logger.info(`   [OK] Aprovadas: ${sucessos}`);
+        logger.info(`   [ERRO] Recusadas: ${falhas}`);
+        logger.info(`   [STATS] Total: ${result.rowCount}\n`);
 
     } catch (err) {
-        logger.error(`❌ [CRON RECORRENTE] Erro geral: ${err}`);
+        logger.error(`[ERRO] [CRON RECORRENTE] Erro geral: ${err}`);
     } finally {
         if (cronLockAtivo) await pool.query('SELECT pg_advisory_unlock($1)', [1002]).catch(() => {});
     }
 });
 
 /* ======================================================
-   ⚠️ CRON: Lembrete 3 dias antes do vencimento
+   [AVISO] CRON: Lembrete 3 dias antes do vencimento
 ===================================================== */
 
 cron.schedule('0 10 * * *', async () => {
-    logger.info('\n📧 [CRON LEMBRETE] Enviando lembretes de cobrança...');
+    logger.info('\n[EMAIL] [CRON LEMBRETE] Enviando lembretes de cobrança...');
     
     try {
         const result = await pool.query(`
@@ -262,11 +266,11 @@ cron.schedule('0 10 * * *', async () => {
             AND (e.renovacao_automatica IS NULL OR e.renovacao_automatica = true)
         `);
 
-        logger.info(`📊 [CRON LEMBRETE] ${result.rowCount} lembrete(s) para enviar`);
+        logger.info(`[STATS] [CRON LEMBRETE] ${result.rowCount} lembrete(s) para enviar`);
 
         for (const escritorio of result.rows) {
             const dataCobranca = new Date(escritorio.proxima_cobranca).toLocaleDateString('pt-BR');
-            logger.info(`📧 Lembrete: ${escritorio.email} — cobrança em ${dataCobranca}`);
+            logger.info(`[EMAIL] Lembrete: ${escritorio.email} — cobrança em ${dataCobranca}`);
 
             await enviarEmail({
                 para: escritorio.email,
@@ -303,15 +307,15 @@ cron.schedule('0 10 * * *', async () => {
             }).catch(err => logger.warn({ err: err.message, email: escritorio.email }, '[CRON LEMBRETE] Falha ao enviar email'));
         }
 
-        logger.info('✅ [CRON LEMBRETE] Lembretes processados\n');
+        logger.info('[OK] [CRON LEMBRETE] Lembretes processados\n');
 
     } catch (err) {
-        logger.error(`❌ [CRON LEMBRETE] Erro: ${err}`);
+        logger.error(`[ERRO] [CRON LEMBRETE] Erro: ${err}`);
     }
 });
 
 /* ======================================================
-   🔄 CRON: Retry de cobranças inadimplentes
+   [RETRY] CRON: Retry de cobranças inadimplentes
 ===================================================== */
 
 cron.schedule('0 14 * * *', async () => {
@@ -328,7 +332,7 @@ cron.schedule('0 14 * * *', async () => {
         return;
     }
 
-    logger.info('\n🔄 [CRON RETRY] Tentando reprocessar inadimplentes...');
+    logger.info('\n[RETRY] [CRON RETRY] Tentando reprocessar inadimplentes...');
 
     try {
         const result = await pool.query(`
@@ -354,10 +358,10 @@ cron.schedule('0 14 * * *', async () => {
             ORDER BY e.proxima_cobranca ASC
         `);
 
-        logger.info(`📊 [CRON RETRY] ${result.rowCount} inadimplente(s) para tentar novamente`);
+        logger.info(`[STATS] [CRON RETRY] ${result.rowCount} inadimplente(s) para tentar novamente`);
 
         for (const esc of result.rows) {
-            logger.info(`🔄 Tentando: ${esc.email}`);
+            logger.info(`[RETRY] Tentando: ${esc.email}`);
             
             const valorEmCentavos = Math.round(parseFloat(esc.preco_mensal) * 100);
             
@@ -380,7 +384,7 @@ cron.schedule('0 14 * * *', async () => {
                     );
                     if (jaExiste.rows.length > 0) {
                         await client.query('ROLLBACK');
-                        logger.info(`   ℹ️ Transação já registrada: ${cobranca.transacaoId}`);
+                        logger.info(`   [INFO] Transação já registrada: ${cobranca.transacaoId}`);
                         continue;
                     }
 
@@ -401,11 +405,11 @@ cron.schedule('0 14 * * *', async () => {
 
                     await client.query('COMMIT');
                     await invalidarCacheEscritorio(esc.id);
-                    logger.info(`   ✅ APROVADO no retry!`);
+                    logger.info(`   [OK] APROVADO no retry!`);
 
                 } else {
                     const retryAtual = esc.retry_count; // 0, 1 ou 2
-                    logger.info(`   ❌ Ainda recusado (tentativa ${retryAtual + 1}/3): ${cobranca.erro}`);
+                    logger.info(`   [ERRO] Ainda recusado (tentativa ${retryAtual + 1}/3): ${cobranca.erro}`);
 
                     await client.query('BEGIN');
 
@@ -434,7 +438,7 @@ cron.schedule('0 14 * * *', async () => {
 
                         await client.query('COMMIT');
                         await invalidarCacheEscritorio(esc.id);
-                        logger.warn(`   🔴 CONTA SUSPENSA: ${esc.email} após 3 falhas`);
+                        logger.warn(`   [SUSPENSO] CONTA SUSPENSA: ${esc.email} após 3 falhas`);
 
                         await enviarEmail({
                             para: esc.email,
@@ -480,11 +484,11 @@ cron.schedule('0 14 * * *', async () => {
                         ]);
 
                         await client.query('COMMIT');
-                        logger.info(`   ⚠️ Agendando tentativa ${tentativaNum}/3 em ${proximoIntervaloDias} dias (${proximaTentativa.toLocaleDateString('pt-BR')})`);
+                        logger.info(`   [AVISO] Agendando tentativa ${tentativaNum}/3 em ${proximoIntervaloDias} dias (${proximaTentativa.toLocaleDateString('pt-BR')})`);
 
                         await enviarEmail({
                             para: esc.email,
-                            assunto: `⚠️ Nova tentativa de cobrança em ${proximoIntervaloDias} dias — LawTech Pro`,
+                            assunto: `[AVISO] Nova tentativa de cobrança em ${proximoIntervaloDias} dias — LawTech Pro`,
                             html: `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;">
                                 <div style="background:#1E3A5F;padding:24px;text-align:center;">
                                     <img src="https://www.lawtechpro.com.br/Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro" style="max-width:160px;height:auto;" />
@@ -501,16 +505,16 @@ cron.schedule('0 14 * * *', async () => {
                 }
             } catch (txErr) {
                 await client.query('ROLLBACK');
-                logger.error(`   ❌ Erro na transação retry: ${txErr.message}`);
+                logger.error(`   [ERRO] Erro na transação retry: ${txErr.message}`);
             } finally {
                 client.release();
             }
         }
 
-        logger.info('✅ [CRON RETRY] Retries processados\n');
+        logger.info('[OK] [CRON RETRY] Retries processados\n');
 
     } catch (err) {
-        logger.error(`❌ [CRON RETRY] Erro: ${err}`);
+        logger.error(`[ERRO] [CRON RETRY] Erro: ${err}`);
     } finally {
         if (cronLockAtivo) await pool.query('SELECT pg_advisory_unlock($1)', [1003]).catch(() => {});
     }
@@ -521,10 +525,10 @@ cron.schedule('0 14 * * *', async () => {
    LOGS DE INICIALIZAÇÃO
 ===================================================== */
 
-logger.info('\n✅ [CRON] Sistema de cobranças recorrentes iniciado');
-logger.info('   ⏰ 08:00 - Processar renovações mensais');
-logger.info('   ⏰ 10:00 - Enviar lembretes (3 dias antes)');
-logger.info('   ⏰ 14:00 - Retry de inadimplentes');
+logger.info('\n[OK] [CRON] Sistema de cobranças recorrentes iniciado');
+logger.info('   [HORA] 08:00 - Processar renovações mensais');
+logger.info('   [HORA] 10:00 - Enviar lembretes (3 dias antes)');
+logger.info('   [HORA] 14:00 - Retry de inadimplentes');
 logger.info(`   Ambiente: ${process.env.ASAAS_ENV || 'production'}`);
 logger.info(`   Data atual: ${new Date().toLocaleDateString('pt-BR')}`);
 

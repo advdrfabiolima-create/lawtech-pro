@@ -17,7 +17,7 @@ async function invalidarCacheEscritorio(escritorioId) {
     } catch (_) {}
 }
 
-/* ✅ CORREÇÃO 1: Cobra NO DIA que expira (não 1 dia antes) */
+/* [OK] CORREÇÃO 1: Cobra NO DIA que expira (não 1 dia antes) */
 cron.schedule('0 6 * * *', async () => {
     let cronLockAtivo = false;
     try {
@@ -32,7 +32,7 @@ cron.schedule('0 6 * * *', async () => {
         return;
     }
 
-    logger.info('\n🔔 [CRON TRIAL] Verificando cobranças...');
+    logger.info('\n[CRON] [CRON TRIAL] Verificando cobranças...');
 
     try {
         // ─── Escritórios com preferência CARTÃO que têm cartão salvo ───
@@ -69,7 +69,7 @@ cron.schedule('0 6 * * *', async () => {
             AND COALESCE(u.is_master, false) = false
         `);
 
-        logger.info(`📊 Cartão: ${resultCartao.rowCount} | PIX: ${resultPix.rowCount}`);
+        logger.info(`[STATS] Cartão: ${resultCartao.rowCount} | PIX: ${resultPix.rowCount}`);
 
         // ══════════════════════════════════════════
         // FLUXO CARTÃO — cobrança automática
@@ -79,7 +79,7 @@ cron.schedule('0 6 * * *', async () => {
         for (const esc of resultCartao.rows) {
             try {
                 const valorCentavos = Math.round(parseFloat(esc.preco_mensal) * 100);
-                logger.info(`\n💳 [CARTÃO] Cobrando: ${esc.nome} - R$ ${esc.preco_mensal}`);
+                logger.info(`\n[CARTAO] [CARTÃO] Cobrando: ${esc.nome} - R$ ${esc.preco_mensal}`);
 
                 let cobranca = await processarCobrancaCartao({
                     escritorioId: esc.id,
@@ -121,7 +121,7 @@ cron.schedule('0 6 * * *', async () => {
                         );
                         if (jaExiste.rows.length > 0) {
                             await client.query('ROLLBACK');
-                            logger.info(`ℹ️ Transação já registrada: ${cobranca.transacaoId}`);
+                            logger.info(`[INFO] Transação já registrada: ${cobranca.transacaoId}`);
                             sucessos++;
                             continue;
                         }
@@ -140,11 +140,11 @@ cron.schedule('0 6 * * *', async () => {
                         `, [esc.id, cobranca.transacaoId, esc.gateway, valorCentavos, `Primeira cobrança - ${esc.plano_nome}`]);
                         await client.query('COMMIT');
                         await invalidarCacheEscritorio(esc.id);
-                        logger.info(`✅ APROVADO! ID: ${cobranca.transacaoId}`);
+                        logger.info(`[OK] APROVADO! ID: ${cobranca.transacaoId}`);
                         sucessos++;
                     } catch (txErr) {
                         await client.query('ROLLBACK');
-                        logger.error(`❌ Erro na transação: ${txErr.message}`);
+                        logger.error(`[ERRO] Erro na transação: ${txErr.message}`);
                         falhas++;
                     } finally {
                         client.release();
@@ -152,11 +152,11 @@ cron.schedule('0 6 * * *', async () => {
                 } else {
                     await pool.query(`UPDATE escritorios SET plano_financeiro_status = 'inadimplente' WHERE id = $1`, [esc.id]);
                     await invalidarCacheEscritorio(esc.id);
-                    logger.info(`❌ RECUSADO: ${cobranca.erro}`);
+                    logger.info(`[ERRO] RECUSADO: ${cobranca.erro}`);
                     falhas++;
                 }
             } catch (err) {
-                logger.error(`❌ Erro cartão: ${err.message}`);
+                logger.error(`[ERRO] Erro cartão: ${err.message}`);
                 falhas++;
             }
         }
@@ -168,10 +168,10 @@ cron.schedule('0 6 * * *', async () => {
 
         for (const esc of resultPix.rows) {
             try {
-                logger.info(`\n🔵 [PIX] Gerando cobrança: ${esc.nome}`);
+                logger.info(`\n[PIX] [PIX] Gerando cobrança: ${esc.nome}`);
 
                 if (!esc.documento) {
-                    logger.warn(`⚠️ [PIX] ${esc.nome} sem CPF/CNPJ — pulando`);
+                    logger.warn(`[AVISO] [PIX] ${esc.nome} sem CPF/CNPJ — pulando`);
                     continue;
                 }
 
@@ -257,30 +257,30 @@ cron.schedule('0 6 * * *', async () => {
                 `, [esc.id]);
 
                 await invalidarCacheEscritorio(esc.id);
-                logger.info(`✅ [PIX] Cobrança ${cobrancaId} gerada e e-mail enviado para ${esc.email_responsavel}`);
+                logger.info(`[OK] [PIX] Cobrança ${cobrancaId} gerada e e-mail enviado para ${esc.email_responsavel}`);
                 sucessos++;
             } catch (err) {
-                logger.error(`❌ Erro PIX ${esc.nome}: ${err.response?.data?.errors?.[0]?.description || err.message}`);
+                logger.error(`[ERRO] Erro PIX ${esc.nome}: ${err.response?.data?.errors?.[0]?.description || err.message}`);
                 falhas++;
             }
         }
 
         if (resultCartao.rowCount + resultPix.rowCount === 0) {
-            logger.info('✅ Nenhum trial para processar hoje\n');
+            logger.info('[OK] Nenhum trial para processar hoje\n');
             return;
         }
 
-        logger.info(`\n📊 Resultado: ✅ ${sucessos} processados | ❌ ${falhas} falhas\n`);
+        logger.info(`\n[STATS] Resultado: [OK] ${sucessos} processados | [ERRO] ${falhas} falhas\n`);
 
     } catch (err) {
-        logger.error(`❌ [CRON] Erro: ${err}`);
+        logger.error(`[ERRO] [CRON] Erro: ${err}`);
     } finally {
         if (cronLockAtivo) await pool.query('SELECT pg_advisory_unlock($1)', [1001]).catch(() => {});
     }
 });
 
 cron.schedule('0 9 * * *', async () => {
-    logger.info('\n⚠️ [CRON] Enviando avisos (2 dias antes)...');
+    logger.info('\n[AVISO] [CRON] Enviando avisos (2 dias antes)...');
     
     try {
         const result = await pool.query(`
@@ -292,13 +292,13 @@ cron.schedule('0 9 * * *', async () => {
             AND e.trial_expira_em = CURRENT_DATE + INTERVAL '2 days'
         `);
 
-        logger.info(`📧 ${result.rowCount} aviso(s) para enviar`);
+        logger.info(`[EMAIL] ${result.rowCount} aviso(s) para enviar`);
         for (const esc of result.rows) {
-            logger.info(`📧 Aviso: ${esc.email}`);
+            logger.info(`[EMAIL] Aviso: ${esc.email}`);
             const dataExpiracao = new Date(esc.trial_expira_em).toLocaleDateString('pt-BR');
             enviarEmail({
                 para: esc.email,
-                assunto: `⚠️ Seu período de teste expira em 2 dias — LawTech Pro`,
+                assunto: `[AVISO] Seu período de teste expira em 2 dias — LawTech Pro`,
                 html: `
                     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;">
                         <h2 style="color:#f59e0b;">Seu trial está quase encerrando</h2>
@@ -316,16 +316,16 @@ cron.schedule('0 9 * * *', async () => {
                 `
             }).catch(e => logger.warn({ err: e.message, email: esc.email }, '[CRON TRIAL] Falha ao enviar aviso'));
         }
-        logger.info('✅ Avisos processados\n');
+        logger.info('[OK] Avisos processados\n');
     } catch (err) {
-        logger.error(`❌ Erro: ${err}`);
+        logger.error(`[ERRO] Erro: ${err}`);
     }
 });
 
 
-logger.info('\n✅ [CRON TRIAL] Sistema iniciado (CORRIGIDO)');
-logger.info('   ⏰ 06:00 - Cobrar trials que expiram HOJE');
-logger.info('   ⏰ 09:00 - Avisar trials (2 dias antes)');
+logger.info('\n[OK] [CRON TRIAL] Sistema iniciado (CORRIGIDO)');
+logger.info('   [HORA] 06:00 - Cobrar trials que expiram HOJE');
+logger.info('   [HORA] 09:00 - Avisar trials (2 dias antes)');
 logger.info(`   Ambiente: ${process.env.ASAAS_ENV || 'production'}`);
 
 module.exports = {};

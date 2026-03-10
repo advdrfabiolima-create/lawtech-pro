@@ -5,6 +5,14 @@ const pool = require('../config/db');
 const { registrarAudit } = require('../utils/auditLog');
 const logger = require('../utils/logger');
 const axios = require('axios');
+const cache = require('../utils/cache');
+
+async function invalidarCacheEscritorio(escritorioId) {
+    try {
+        const users = await pool.query('SELECT id FROM usuarios WHERE escritorio_id = $1', [escritorioId]);
+        for (const u of users.rows) await cache.del(`auth:user:${u.id}`);
+    } catch (_) {}
+}
 
 /* ✅ CORREÇÃO 3: Webhook Stripe Completo */
 
@@ -62,13 +70,23 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                         `, [escritorioId, paymentIntent.id, paymentIntent.amount]);
 
                         await client.query('COMMIT');
+                        // [A-4] Invalidar cache após pagamento confirmado
+                        await invalidarCacheEscritorio(parseInt(escritorioId, 10));
                         logger.info({ escritorioId }, 'Escritorio atualizado para PAGO');
                         registrarAudit({ escritorio_id: parseInt(escritorioId), acao: 'PAGAMENTO_APROVADO', descricao: `Pagamento Stripe aprovado: ${paymentIntent.id}`, metadata: { gateway: 'stripe', valor: paymentIntent.amount, gateway_id: paymentIntent.id } });
 
-                        // 📧 Notificar admin sobre pagamento aprovado
+                    } catch (txErr) {
+                        await client.query('ROLLBACK');
+                        logger.error({ err: txErr.message }, 'Erro na transacao webhook');
+                    } finally {
+                        // [B-3] Liberar conexão do pool ANTES de chamar API externa (Brevo)
+                        client.release();
+                    }
+
+                        // Notificar admin — usa pool.query (sem client dedicado) após liberar a conexão
                         if (process.env.BREVO_API_KEY && process.env.BREVO_SENDER) {
                             try {
-                                const escritorioInfo = await client.query(
+                                const escritorioInfo = await pool.query(
                                     `SELECT e.nome AS escritorio_nome, u.nome AS usuario_nome, u.email,
                                             p.nome AS plano_nome
                                      FROM escritorios e
@@ -83,7 +101,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                                 await axios.post('https://api.brevo.com/v3/smtp/email', {
                                     sender: { name: 'LawTech Pro', email: process.env.BREVO_SENDER },
                                     to: [{ email: process.env.ADMIN_EMAIL || 'fabio@lawtechpro.com.br', name: 'Admin LawTech' }],
-                                    subject: '💰 Pagamento Aprovado — LawTech Pro',
+                                    subject: 'Pagamento Aprovado — LawTech Pro',
                                     htmlContent: `
                                     <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafb;">
                                         <div style="background:#1E3A5F;padding:24px;text-align:center;">
@@ -116,12 +134,6 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                                 logger.warn({ err: adminMailErr.message }, '[ADMIN] Falha ao notificar pagamento');
                             }
                         }
-                    } catch (txErr) {
-                        await client.query('ROLLBACK');
-                        logger.error({ err: txErr.message }, 'Erro na transacao webhook');
-                    } finally {
-                        client.release();
-                    }
                 }
                 break;
             }
@@ -161,21 +173,27 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
 
                 logger.info({ chargeId: charge.id }, 'Estorno Stripe processado');
 
-                await pool.query(`
-                    INSERT INTO transacoes 
+                // [A-6] Verificar se a transação original existe antes de inserir estorno
+                const estornoResult = await pool.query(`
+                    INSERT INTO transacoes
                     (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
-                    SELECT 
-                        escritorio_id, 
-                        $1, 
-                        'stripe', 
-                        $2, 
-                        'estornada', 
-                        'Estorno processado', 
+                    SELECT
+                        escritorio_id,
+                        $1,
+                        'stripe',
+                        $2,
+                        'estornada',
+                        'Estorno processado',
                         NOW()
-                    FROM transacoes 
+                    FROM transacoes
                     WHERE gateway_id = $3
                     LIMIT 1
                 `, [charge.id, -charge.amount_refunded, paymentIntentId]);
+
+                if (estornoResult.rowCount === 0) {
+                    logger.error({ chargeId: charge.id, paymentIntentId }, 'Estorno: transação original não encontrada — estorno não registrado');
+                    registrarAudit({ acao: 'ESTORNO_SEM_ORIGEM', descricao: `Estorno Stripe sem transação original: ${charge.id}`, metadata: { payment_intent: paymentIntentId, valor: charge.amount_refunded } });
+                }
 
                 break;
             }

@@ -809,38 +809,21 @@
                     </div>
                     <div style="margin-bottom:14px;">
                         <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">Número do cartão</label>
-                        <input type="text" id="cartaoNumero" placeholder="0000 0000 0000 0000" required maxlength="19" style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:monospace;">
+                        <div id="cartaoNumero-element" style="padding:11px 13px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;"></div>
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
                         <div>
-                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">Validade (MM/AA)</label>
-                            <input type="text" id="cartaoValidade" placeholder="MM/AA" required maxlength="5" style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;">
+                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">Validade</label>
+                            <div id="cartaoValidade-element" style="padding:11px 13px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;"></div>
                         </div>
                         <div>
                             <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">CVV</label>
-                            <input type="text" id="cartaoCvv" placeholder="123" required maxlength="4" style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;">
+                            <div id="cartaoCvv-element" style="padding:11px 13px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;"></div>
                         </div>
                     </div>
-                    <div style="margin-bottom:14px;">
-                        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">CPF do titular</label>
-                        <input type="text" id="cartaoCpf" placeholder="000.000.000-00" required maxlength="14" style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;">
-                    </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
-                        <div>
-                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">CEP</label>
-                            <input type="text" id="cartaoCep" placeholder="00000-000" required maxlength="9" style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;">
-                        </div>
-                        <div>
-                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">Número</label>
-                            <input type="text" id="cartaoNumeroEndereco" placeholder="123" required maxlength="10" style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;">
-                        </div>
-                    </div>
-                    <div style="margin-bottom:18px;">
-                        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">Telefone</label>
-                        <input type="text" id="cartaoTelefone" placeholder="(00) 00000-0000" maxlength="15" style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;">
-                    </div>
+                    <div id="cartaoElementErrors" style="display:none;color:#dc2626;font-size:12px;margin-bottom:12px;font-weight:500;"></div>
                     <button type="submit" id="btnPagarCartao" style="width:100%;padding:14px;background:#1e3a8a;color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;">
-                        💳 Pagar <span id="cartaoValorBtn"></span>
+                        Pagar <span id="cartaoValorBtn"></span>
                     </button>
                 </form>
             </div>
@@ -849,6 +832,7 @@
     </div>
 
     
+    <script src="https://js.stripe.com/v3/"></script>
     <script src="/js/api.js"></script>
     <script src="/js/login.js"></script>
 </body>

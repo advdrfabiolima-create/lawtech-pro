@@ -6,6 +6,14 @@
         let pixCobrancaId = null;
         let modoBackup2FA = false;
 
+        /* ── Stripe Elements (C-3: tokenização no browser) ── */
+        const STRIPE_PK = 'pk_live_51T0o4SJJJfva8SuZlfpk7Eu5lBaij1nYWuNLVeAvDFBpyce3neDIHnHDkJGsTLVcxLaXBN9xv3eXc2inNgVqwSNP00gm53MwcG';
+        let stripeInstance = null;
+        let cardNumeroEl = null;
+        let cardValidadeEl = null;
+        let cardCvvEl = null;
+        let elementsMontados = false;
+
         /* ── Helpers de navegação ── */
         function mostrarModalTrialExpirado() {
             document.getElementById('modalTrialExpirado').style.display = 'flex';
@@ -116,44 +124,78 @@
             const valorFmt = `R$ ${trialPlanInfo.valor.toFixed(2).replace('.', ',')}`;
             document.getElementById('cartaoValorBtn').textContent  = valorFmt;
             document.getElementById('cartaoPlanInfo').textContent  = `${trialPlanInfo.nome} — ${valorFmt}/mês`;
+
+            // [C-3] Inicializar Stripe Elements uma vez (PAN/CVV nunca saem do iframe Stripe)
+            if (!elementsMontados) {
+                stripeInstance = Stripe(STRIPE_PK);
+                const elements = stripeInstance.elements();
+                const stripeStyle = {
+                    base: {
+                        fontSize: '14px',
+                        color: '#1e293b',
+                        fontFamily: 'Inter, system-ui, sans-serif',
+                        '::placeholder': { color: '#94a3b8' }
+                    },
+                    invalid: { color: '#dc2626' }
+                };
+                cardNumeroEl  = elements.create('cardNumber',  { style: stripeStyle, placeholder: '0000 0000 0000 0000' });
+                cardValidadeEl = elements.create('cardExpiry', { style: stripeStyle });
+                cardCvvEl     = elements.create('cardCvc',    { style: stripeStyle });
+                cardNumeroEl.mount('#cartaoNumero-element');
+                cardValidadeEl.mount('#cartaoValidade-element');
+                cardCvvEl.mount('#cartaoCvv-element');
+
+                const errDiv = document.getElementById('cartaoElementErrors');
+                [cardNumeroEl, cardValidadeEl, cardCvvEl].forEach(el => {
+                    el.on('change', e => {
+                        if (e.error) { errDiv.textContent = e.error.message; errDiv.style.display = 'block'; }
+                        else { errDiv.style.display = 'none'; }
+                    });
+                });
+                elementsMontados = true;
+            }
         }
 
         async function pagarComCartao(event) {
             event.preventDefault();
-            const btn    = document.getElementById('btnPagarCartao');
+            const btn     = document.getElementById('btnPagarCartao');
             const erroDiv = document.getElementById('cartaoErroMsg');
             erroDiv.style.display = 'none';
 
-            const validade = document.getElementById('cartaoValidade').value.split('/');
-            if (validade.length !== 2) {
-                erroDiv.textContent = 'Validade inválida. Use o formato MM/AA.';
+            const holderName = document.getElementById('cartaoNome').value.trim();
+            if (!holderName) {
+                erroDiv.textContent = 'Informe o nome impresso no cartão.';
                 erroDiv.style.display = 'block';
                 return;
             }
-
-            const expiryMonth = validade[0].trim();
-            let expiryYear = validade[1].trim();
-            if (expiryYear.length === 2) expiryYear = '20' + expiryYear;
 
             const valorLabel = document.getElementById('cartaoValorBtn').textContent;
             btn.textContent = 'Processando...';
             btn.disabled = true;
 
             try {
+                // [C-3] Tokenizar no browser — PAN/CVV nunca chegam ao servidor
+                const { paymentMethod, error } = await stripeInstance.createPaymentMethod({
+                    type: 'card',
+                    card: cardNumeroEl,
+                    billing_details: { name: holderName, email: emailDigitado }
+                });
+
+                if (error) {
+                    erroDiv.textContent   = error.message;
+                    erroDiv.style.display = 'block';
+                    btn.disabled    = false;
+                    btn.textContent = `Pagar ${valorLabel}`;
+                    return;
+                }
+
                 const res = await fetch('/api/auth/pagar-trial-cartao', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        email:         emailDigitado,
-                        holderName:    document.getElementById('cartaoNome').value.trim(),
-                        number:        document.getElementById('cartaoNumero').value.replace(/\s/g, ''),
-                        expiryMonth,
-                        expiryYear,
-                        ccv:           document.getElementById('cartaoCvv').value.trim(),
-                        cpfCnpj:       document.getElementById('cartaoCpf').value.replace(/\D/g, ''),
-                        postalCode:    document.getElementById('cartaoCep').value.replace(/\D/g, ''),
-                        addressNumber: document.getElementById('cartaoNumeroEndereco').value.trim(),
-                        phone:         document.getElementById('cartaoTelefone').value.replace(/\D/g, '')
+                        email:           emailDigitado,
+                        holderName,
+                        paymentMethodId: paymentMethod.id
                     })
                 });
                 const data = await res.json();
@@ -167,49 +209,14 @@
                 erroDiv.textContent   = data.erro || 'Erro ao processar pagamento. Tente novamente.';
                 erroDiv.style.display = 'block';
                 btn.disabled    = false;
-                btn.textContent = `💳 Pagar ${valorLabel}`;
+                btn.textContent = `Pagar ${valorLabel}`;
 
             } catch (err) {
                 erroDiv.textContent   = 'Erro de conexão. Tente novamente.';
                 erroDiv.style.display = 'block';
                 btn.disabled    = false;
-                btn.textContent = `💳 Pagar ${valorLabel}`;
+                btn.textContent = `Pagar ${valorLabel}`;
             }
-        }
-
-        /* ── Formatadores de input ── */
-        function formatarCartao(input) {
-            let v = input.value.replace(/\D/g, '').substring(0, 16);
-            input.value = v.replace(/(.{4})/g, '$1 ').trim();
-        }
-
-        function formatarValidade(input) {
-            let v = input.value.replace(/\D/g, '').substring(0, 4);
-            if (v.length > 2) v = v.substring(0, 2) + '/' + v.substring(2);
-            input.value = v;
-        }
-
-        function formatarCpf(input) {
-            let v = input.value.replace(/\D/g, '').substring(0, 11);
-            v = v.replace(/(\d{3})(\d)/, '$1.$2');
-            v = v.replace(/(\d{3})(\d)/, '$1.$2');
-            v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-            input.value = v;
-        }
-
-        function formatarCep(input) {
-            let v = input.value.replace(/\D/g, '').substring(0, 8);
-            if (v.length > 5) v = v.substring(0, 5) + '-' + v.substring(5);
-            input.value = v;
-        }
-
-        function formatarTelefone(input) {
-            let v = input.value.replace(/\D/g, '').substring(0, 11);
-            if (v.length > 10)     v = v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-            else if (v.length > 6) v = v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
-            else if (v.length > 2) v = v.replace(/(\d{2})(\d{0,5})/, '($1) $2');
-            else if (v.length > 0) v = '(' + v;
-            input.value = v;
         }
 
         /* ── Login ── */
@@ -471,16 +478,8 @@
             // ── Formulário de pagamento cartão ──
             document.getElementById('formCartao').addEventListener('submit', pagarComCartao);
 
-            // ── Formatadores de inputs de cartão ──
+            // ── Formatador do nome no cartão ──
             document.getElementById('cartaoNome').addEventListener('input', e => {
                 e.target.value = e.target.value.toUpperCase();
             });
-            document.getElementById('cartaoNumero').addEventListener('input', e => formatarCartao(e.target));
-            document.getElementById('cartaoValidade').addEventListener('input', e => formatarValidade(e.target));
-            document.getElementById('cartaoCvv').addEventListener('input', e => {
-                e.target.value = e.target.value.replace(/\D/g, '');
-            });
-            document.getElementById('cartaoCpf').addEventListener('input', e => formatarCpf(e.target));
-            document.getElementById('cartaoCep').addEventListener('input', e => formatarCep(e.target));
-            document.getElementById('cartaoTelefone').addEventListener('input', e => formatarTelefone(e.target));
         });

@@ -4,6 +4,8 @@ const axios = require('axios');
 const pool = require('../../config/db');
 const logger = require('../../utils/logger');
 const cache = require('../../utils/cache');
+const { encrypt } = require('../../utils/crypto');
+const { cobrarViaStripe } = require('../../services/chargeService');
 
 async function invalidarCacheEscritorio(escritorioId) {
     try {
@@ -90,38 +92,69 @@ router.post('/pagar-trial-pix', async (req, res) => {
             return res.status(400).json({ ok: false, erro: 'CPF/CNPJ não cadastrado. Entre em contato com o suporte.' });
         }
 
-        const customerId = await obterOuCriarClienteTrial(u.nome, u.email, u.documento);
-
-        const pagRes = await axios.post(`${ASAAS_BASE_URL_AUTH}/payments`, {
-            customer: customerId,
-            billingType: 'PIX',
-            value: valor,
-            dueDate: obterDataVencimentoTrial(1),
-            description: `${plano.nome} - LawTech Pro`,
-            externalReference: String(u.escritorio_id)
-        }, { headers: getAsaasHeadersAuth() });
-
-        const cobranca = pagRes.data;
-
-        const qrRes = await axios.get(
-            `${ASAAS_BASE_URL_AUTH}/payments/${cobranca.id}/pixQrCode`,
-            { headers: getAsaasHeadersAuth() }
+        // [M-5] Idempotência: reutilizar PIX pendente criado hoje para o mesmo escritório
+        const pixExistente = await pool.query(
+            `SELECT gateway_id FROM transacoes
+             WHERE escritorio_id = $1 AND status = 'pix_pendente' AND DATE(created_at) = CURRENT_DATE
+             ORDER BY created_at DESC LIMIT 1`,
+            [u.escritorio_id]
         );
 
-        logger.info(`💰 [PIX TRIAL] Cobrança ${cobranca.id} criada para escritório ${u.escritorio_id}`);
+        let cobrancaId, pixPayload, pixQrCodeBase64;
+
+        if (pixExistente.rows.length > 0) {
+            cobrancaId = pixExistente.rows[0].gateway_id;
+            const qrRes = await axios.get(
+                `${ASAAS_BASE_URL_AUTH}/payments/${cobrancaId}/pixQrCode`,
+                { headers: getAsaasHeadersAuth() }
+            );
+            pixPayload = qrRes.data.payload;
+            pixQrCodeBase64 = qrRes.data.encodedImage;
+            logger.info(`[REUTILIZADO] [PIX TRIAL] Reutilizando cobrança ${cobrancaId} para escritório ${u.escritorio_id}`);
+        } else {
+            const customerId = await obterOuCriarClienteTrial(u.nome, u.email, u.documento);
+
+            const pagRes = await axios.post(`${ASAAS_BASE_URL_AUTH}/payments`, {
+                customer: customerId,
+                billingType: 'PIX',
+                value: valor,
+                dueDate: obterDataVencimentoTrial(1),
+                description: `${plano.nome} - LawTech Pro`,
+                externalReference: String(u.escritorio_id)
+            }, { headers: getAsaasHeadersAuth() });
+
+            cobrancaId = pagRes.data.id;
+
+            // Registrar imediatamente para idempotência em chamadas subsequentes
+            try {
+                await pool.query(
+                    `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
+                     VALUES ($1, $2, 'asaas', $3, 'pix_pendente', $4, NOW())`,
+                    [u.escritorio_id, cobrancaId, valor, `PIX Trial - ${plano.nome}`]
+                );
+            } catch (_) {}
+
+            const qrRes = await axios.get(
+                `${ASAAS_BASE_URL_AUTH}/payments/${cobrancaId}/pixQrCode`,
+                { headers: getAsaasHeadersAuth() }
+            );
+            pixPayload = qrRes.data.payload;
+            pixQrCodeBase64 = qrRes.data.encodedImage;
+            logger.info(`[COBRANCA] [PIX TRIAL] Cobrança ${cobrancaId} criada para escritório ${u.escritorio_id}`);
+        }
 
         res.json({
             ok: true,
-            cobrancaId: cobranca.id,
-            pixPayload: qrRes.data.payload,
-            pixQrCodeBase64: qrRes.data.encodedImage,
+            cobrancaId,
+            pixPayload,
+            pixQrCodeBase64,
             valor,
             planNome: plano.nome
         });
 
     } catch (err) {
         const msg = err.response?.data?.errors?.[0]?.description || err.message;
-        logger.error(`❌ [PIX TRIAL] ${msg}`);
+        logger.error(`[ERRO] [PIX TRIAL] ${msg}`);
         res.status(500).json({ ok: false, erro: 'Erro ao gerar PIX: ' + msg });
     }
 });
@@ -143,6 +176,8 @@ router.get('/verificar-pix/:cobrancaId', async (req, res) => {
         const pago = ['CONFIRMED', 'RECEIVED'].includes(pg.status);
 
         if (pago && pg.externalReference) {
+            const escritorioId = parseInt(pg.externalReference, 10);
+
             await pool.query(
                 `UPDATE escritorios
                  SET plano_financeiro_status = 'pago',
@@ -150,23 +185,34 @@ router.get('/verificar-pix/:cobrancaId', async (req, res) => {
                      ultimo_pagamento = NOW(),
                      proxima_cobranca = NOW() + INTERVAL '1 month'
                  WHERE id = $1`,
-                [pg.externalReference]
+                [escritorioId]
             );
-            try {
-                await pool.query(
-                    `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
-                     VALUES ($1, $2, 'asaas', $3, 'aprovada', 'Ativação pós-trial — PIX', NOW())`,
-                    [pg.externalReference, cobrancaId, pg.value]
-                );
-            } catch (_) { /* tabela pode não existir — não crítico */ }
-            await invalidarCacheEscritorio(pg.externalReference);
-            logger.info(`✅ [PIX TRIAL] Escritório ${pg.externalReference} ativado.`);
+
+            // [C-2] Idempotência: só insere transação se ainda não existe para este gateway_id
+            const jaExiste = await pool.query(
+                'SELECT id FROM transacoes WHERE gateway_id = $1',
+                [cobrancaId]
+            );
+            if (jaExiste.rows.length === 0) {
+                try {
+                    await pool.query(
+                        `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
+                         VALUES ($1, $2, 'asaas', $3, 'aprovada', 'Ativação pós-trial — PIX', NOW())`,
+                        [escritorioId, cobrancaId, pg.value]
+                    );
+                } catch (insertErr) {
+                    logger.warn({ err: insertErr.message, cobrancaId }, '[PIX TRIAL] Falha ao registrar transação');
+                }
+            }
+
+            await invalidarCacheEscritorio(escritorioId);
+            logger.info(`[OK] [PIX TRIAL] Escritório ${escritorioId} ativado.`);
         }
 
         res.json({ status: pg.status, pago });
 
     } catch (err) {
-        logger.error(`❌ [VERIFICAR PIX] ${err.message}`);
+        logger.error(`[ERRO] [VERIFICAR PIX] ${err.message}`);
         res.status(500).json({ ok: false, erro: 'Erro ao verificar pagamento' });
     }
 });
@@ -208,52 +254,84 @@ router.post('/gerar-pix-registro', async (req, res) => {
         const plano = planoR.rows[0];
         const valor = parseFloat(plano.preco_mensal);
 
-        const customerId = await obterOuCriarClienteTrial(u.nome, u.email, u.documento);
-
-        const pagRes = await axios.post(`${ASAAS_BASE_URL_AUTH}/payments`, {
-            customer: customerId,
-            billingType: 'PIX',
-            value: valor,
-            dueDate: obterDataVencimentoTrial(1),
-            description: `${plano.nome} - LawTech Pro (Ativação)`,
-            externalReference: String(u.escritorio_id)
-        }, { headers: getAsaasHeadersAuth() });
-
-        const cobranca = pagRes.data;
-
-        const qrRes = await axios.get(
-            `${ASAAS_BASE_URL_AUTH}/payments/${cobranca.id}/pixQrCode`,
-            { headers: getAsaasHeadersAuth() }
+        // [M-5] Idempotência: reutilizar PIX pendente criado hoje para o mesmo escritório
+        const pixExistenteReg = await pool.query(
+            `SELECT gateway_id FROM transacoes
+             WHERE escritorio_id = $1 AND status = 'pix_pendente' AND DATE(created_at) = CURRENT_DATE
+             ORDER BY created_at DESC LIMIT 1`,
+            [u.escritorio_id]
         );
 
-        logger.info(`💰 [PIX REGISTRO] Cobrança ${cobranca.id} criada para escritório ${u.escritorio_id}`);
+        let cobrancaIdReg, pixPayloadReg, pixQrCodeBase64Reg;
+
+        if (pixExistenteReg.rows.length > 0) {
+            cobrancaIdReg = pixExistenteReg.rows[0].gateway_id;
+            const qrRes = await axios.get(
+                `${ASAAS_BASE_URL_AUTH}/payments/${cobrancaIdReg}/pixQrCode`,
+                { headers: getAsaasHeadersAuth() }
+            );
+            pixPayloadReg = qrRes.data.payload;
+            pixQrCodeBase64Reg = qrRes.data.encodedImage;
+            logger.info(`[REUTILIZADO] [PIX REGISTRO] Reutilizando cobrança ${cobrancaIdReg} para escritório ${u.escritorio_id}`);
+        } else {
+            const customerId = await obterOuCriarClienteTrial(u.nome, u.email, u.documento);
+
+            const pagRes = await axios.post(`${ASAAS_BASE_URL_AUTH}/payments`, {
+                customer: customerId,
+                billingType: 'PIX',
+                value: valor,
+                dueDate: obterDataVencimentoTrial(1),
+                description: `${plano.nome} - LawTech Pro (Ativação)`,
+                externalReference: String(u.escritorio_id)
+            }, { headers: getAsaasHeadersAuth() });
+
+            cobrancaIdReg = pagRes.data.id;
+
+            try {
+                await pool.query(
+                    `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
+                     VALUES ($1, $2, 'asaas', $3, 'pix_pendente', $4, NOW())`,
+                    [u.escritorio_id, cobrancaIdReg, valor, `PIX Registro - ${plano.nome}`]
+                );
+            } catch (_) {}
+
+            const qrRes = await axios.get(
+                `${ASAAS_BASE_URL_AUTH}/payments/${cobrancaIdReg}/pixQrCode`,
+                { headers: getAsaasHeadersAuth() }
+            );
+            pixPayloadReg = qrRes.data.payload;
+            pixQrCodeBase64Reg = qrRes.data.encodedImage;
+            logger.info(`[COBRANCA] [PIX REGISTRO] Cobrança ${cobrancaIdReg} criada para escritório ${u.escritorio_id}`);
+        }
 
         res.json({
             ok: true,
-            cobrancaId: cobranca.id,
-            pixPayload: qrRes.data.payload,
-            pixQrCodeBase64: qrRes.data.encodedImage,
+            cobrancaId: cobrancaIdReg,
+            pixPayload: pixPayloadReg,
+            pixQrCodeBase64: pixQrCodeBase64Reg,
             valor,
             planNome: plano.nome
         });
 
     } catch (err) {
         const msg = err.response?.data?.errors?.[0]?.description || err.message;
-        logger.error(`❌ [PIX REGISTRO] ${msg}`);
+        logger.error(`[ERRO] [PIX REGISTRO] ${msg}`);
         res.status(500).json({ ok: false, erro: 'Erro ao gerar PIX: ' + msg });
     }
 });
 
 /* ======================================================
    POST /api/auth/pagar-trial-cartao  (PÚBLICO — sem JWT)
+   [C-3] Recebe paymentMethodId do Stripe.js — PAN/CVV
+   nunca chegam ao servidor (conformidade PCI SAQ-A).
 ===================================================== */
 
 router.post('/pagar-trial-cartao', async (req, res) => {
     try {
-        const { email, holderName, number, expiryMonth, expiryYear, ccv, cpfCnpj, phone, postalCode, addressNumber } = req.body;
+        const { email, holderName, paymentMethodId } = req.body;
 
-        if (!email || !holderName || !number || !expiryMonth || !expiryYear || !ccv || !cpfCnpj || !postalCode || !addressNumber) {
-            return res.status(400).json({ ok: false, erro: 'Todos os dados do cartão são obrigatórios (incluindo CEP e número do endereço)' });
+        if (!email || !paymentMethodId) {
+            return res.status(400).json({ ok: false, erro: 'Email e paymentMethodId são obrigatórios' });
         }
 
         const userResult = await pool.query(
@@ -271,92 +349,84 @@ router.post('/pagar-trial-cartao', async (req, res) => {
 
         const u = userResult.rows[0];
 
-        if (u.plano_financeiro_status !== 'trial') {
-            return res.status(400).json({ ok: false, erro: 'Conta não está em período de trial' });
+        // [M-1] Permitir também status 'inadimplente'
+        if (!['trial', 'inadimplente'].includes(u.plano_financeiro_status)) {
+            return res.status(400).json({ ok: false, erro: 'Conta já está ativa ou suspensa' });
         }
-        if (!u.trial_expira_em || new Date(u.trial_expira_em) > new Date()) {
+        if (u.plano_financeiro_status === 'trial' && (!u.trial_expira_em || new Date(u.trial_expira_em) > new Date())) {
             return res.status(400).json({ ok: false, erro: 'Trial ainda está ativo' });
         }
 
         const planoR = await pool.query('SELECT nome, preco_mensal FROM planos WHERE id = $1', [u.plano_id]);
         if (planoR.rows.length === 0) return res.status(400).json({ ok: false, erro: 'Plano não encontrado' });
         const plano = planoR.rows[0];
-        const valor = parseFloat(plano.preco_mensal);
+        const valorReais = parseFloat(plano.preco_mensal);
+        const valorCentavos = Math.round(valorReais * 100);
 
-        const customerId = await obterOuCriarClienteTrial(holderName, email, cpfCnpj);
+        // [C-3] Cobrar via Stripe usando paymentMethodId tokenizado no browser
+        const resultado = await cobrarViaStripe(
+            paymentMethodId,
+            valorCentavos,
+            `${plano.nome} - LawTech Pro`,
+            { escritorioId: u.escritorio_id, planoNome: plano.nome, emailResponsavel: u.email }
+        );
 
-        const hoje = new Date();
-        const dueDate = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
-
-        const pagRes = await axios.post(`${ASAAS_BASE_URL_AUTH}/payments`, {
-            customer: customerId,
-            billingType: 'CREDIT_CARD',
-            value: valor,
-            dueDate,
-            description: `${plano.nome} - LawTech Pro`,
-            externalReference: String(u.escritorio_id),
-            creditCard: {
-                holderName,
-                number: number.replace(/\s/g, ''),
-                expiryMonth: String(expiryMonth),
-                expiryYear: String(expiryYear),
-                ccv
-            },
-            creditCardHolderInfo: {
-                name: holderName,
-                email,
-                cpfCnpj: cpfCnpj.replace(/\D/g, ''),
-                postalCode: postalCode.replace(/\D/g, ''),
-                addressNumber: addressNumber,
-                phone: phone || ''
-            }
-        }, { headers: getAsaasHeadersAuth() });
-
-        const pg = pagRes.data;
-
-        if (['CONFIRMED', 'RECEIVED'].includes(pg.status)) {
-            await pool.query(
-                `UPDATE escritorios
-                 SET plano_financeiro_status = 'pago',
-                     trial_expira_em = NULL,
-                     ultimo_pagamento = NOW(),
-                     proxima_cobranca = NOW() + INTERVAL '1 month'
-                 WHERE id = $1`,
-                [u.escritorio_id]
-            );
-            try {
-                await pool.query(
-                    `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
-                     VALUES ($1, $2, 'asaas', $3, 'aprovada', 'Ativação pós-trial — Cartão', NOW())`,
-                    [u.escritorio_id, pg.id, valor]
-                );
-            } catch (_) { /* não crítico */ }
-            await invalidarCacheEscritorio(u.escritorio_id);
-            logger.info(`✅ [CARTÃO TRIAL] Escritório ${u.escritorio_id} ativado.`);
-            return res.json({ ok: true });
+        if (!resultado.sucesso) {
+            logger.info(`[ERRO] [CARTAO TRIAL] Recusado: ${resultado.erro}`);
+            return res.status(402).json({ ok: false, erro: resultado.erro || 'Cartão recusado. Tente novamente.' });
         }
 
-        const motivo = pg.creditCardTransactionFailureReason || pg.status || 'Recusado';
-        logger.info(`❌ [CARTÃO TRIAL] Recusado: ${motivo}`);
-        return res.status(402).json({ ok: false, erro: `Cartão recusado: ${motivo}` });
+        await pool.query(
+            `UPDATE escritorios
+             SET plano_financeiro_status = 'pago',
+                 trial_expira_em = NULL,
+                 ultimo_pagamento = NOW(),
+                 proxima_cobranca = NOW() + INTERVAL '1 month'
+             WHERE id = $1`,
+            [u.escritorio_id]
+        );
+
+        // Salvar paymentMethodId para cobranças recorrentes via Stripe
+        try {
+            const cartaoExistente = await pool.query(
+                'SELECT id FROM cartoes WHERE escritorio_id = $1 AND gateway = $2',
+                [u.escritorio_id, 'stripe']
+            );
+            if (cartaoExistente.rows.length > 0) {
+                await pool.query(
+                    `UPDATE cartoes SET token = $1, updated_at = NOW() WHERE escritorio_id = $2 AND gateway = 'stripe'`,
+                    [encrypt(paymentMethodId), u.escritorio_id]
+                );
+            } else {
+                await pool.query(
+                    `INSERT INTO cartoes (escritorio_id, token, gateway, created_at, updated_at)
+                     VALUES ($1, $2, 'stripe', NOW(), NOW())`,
+                    [u.escritorio_id, encrypt(paymentMethodId)]
+                );
+            }
+            logger.info(`[CARTAO] [CARTAO TRIAL] PaymentMethod Stripe salvo para escritório ${u.escritorio_id}`);
+        } catch (cardErr) {
+            logger.error({ err: cardErr.message, escritorioId: u.escritorio_id }, '[CARTAO TRIAL] Falha ao salvar paymentMethod — cobrança recorrente pode não funcionar');
+        }
+
+        try {
+            await pool.query(
+                `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
+                 VALUES ($1, $2, 'stripe', $3, 'aprovada', 'Ativação pós-trial — Cartão', NOW())`,
+                [u.escritorio_id, resultado.transacaoId, valorReais]
+            );
+        } catch (_) { /* não crítico */ }
+
+        await invalidarCacheEscritorio(u.escritorio_id);
+        logger.info(`[OK] [CARTAO TRIAL] Escritório ${u.escritorio_id} ativado via Stripe.`);
+        return res.json({ ok: true });
 
     } catch (err) {
-        const erroAsaas = err.response?.data || {};
-        const msg = erroAsaas.errors?.[0]?.description || err.message;
-        logger.error(`❌ [CARTÃO TRIAL] ${msg}`);
-        const isCardError = err.response?.status === 400 ||
+        const msg = err.message;
+        logger.error(`[ERRO] [CARTAO TRIAL] ${msg}`);
+        const isCardError = err.type === 'StripeCardError' ||
             msg.toLowerCase().includes('declined') ||
-            msg.toLowerCase().includes('recusad') ||
-            msg.toLowerCase().includes('invalid card') ||
-            msg.toLowerCase().includes('não autorizada') ||
-            msg.toLowerCase().includes('nao autorizada') ||
-            msg.toLowerCase().includes('expirado') ||
-            msg.toLowerCase().includes('inválido') ||
-            msg.toLowerCase().includes('invalido') ||
-            msg.toLowerCase().includes('cartão') ||
-            msg.toLowerCase().includes('cvv') ||
-            msg.toLowerCase().includes('cep') ||
-            msg.toLowerCase().includes('cpf');
+            msg.toLowerCase().includes('card');
         if (isCardError) {
             return res.status(402).json({ ok: false, erro: msg });
         }

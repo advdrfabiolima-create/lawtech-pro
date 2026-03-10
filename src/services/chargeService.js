@@ -8,6 +8,7 @@ const pool = require('../config/db');
 const { withRetry } = require('../utils/retry');
 const logger = require('../utils/logger');
 const { breakers } = require('../utils/circuitBreaker');
+const { decrypt } = require('../utils/crypto');
 
 const ASAAS_ENV = process.env.ASAAS_ENV || 'production';
 const ASAAS_BASE_URL = ASAAS_ENV === 'sandbox'
@@ -79,7 +80,9 @@ async function cobrarViaAsaas(customerId, valor, descricao, escritorioId, asaasC
                 [escritorioId]
             );
             if (cartaoResult.rows.length === 0) throw new Error('Nenhum cartão cadastrado');
-            creditCardToken = cartaoResult.rows[0].asaas_card_token;
+            // [A-2] asaas_card_token é armazenado criptografado — descriptografar antes de usar
+            const raw = cartaoResult.rows[0].asaas_card_token;
+            creditCardToken = raw ? decrypt(raw) : null;
         }
 
         if (!creditCardToken) throw new Error('Token do cartão não encontrado');

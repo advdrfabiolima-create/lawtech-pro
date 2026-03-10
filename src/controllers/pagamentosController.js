@@ -5,6 +5,14 @@ const { encrypt, decrypt } = require('../utils/crypto');
 const { registrarAudit, dadosReq } = require('../utils/auditLog');
 const { cobrarViaStripe, cobrarViaAsaas } = require('../services/chargeService');
 const logger = require('../utils/logger');
+const cache = require('../utils/cache');
+
+async function invalidarCacheEscritorio(escritorioId) {
+    try {
+        const users = await pool.query('SELECT id FROM usuarios WHERE escritorio_id = $1', [escritorioId]);
+        for (const u of users.rows) await cache.del(`auth:user:${u.id}`);
+    } catch (_) {}
+}
 
 const ASAAS_ENV = process.env.ASAAS_ENV || 'production';
 const ASAAS_BASE_URL = ASAAS_ENV === 'sandbox'
@@ -89,6 +97,37 @@ async function assinarPlano(req, res) {
             return res.status(400).json({ erro: `${cpfCheck.tipo || 'CPF/CNPJ'} inválido. Verifique os dígitos informados.` });
         }
 
+        // [M-3] Idempotência: verificar se já existe boleto pendente nos últimos 3 dias
+        const boletoExistente = await pool.query(
+            `SELECT gateway_id FROM transacoes
+             WHERE escritorio_id = $1 AND status = 'boleto_pendente'
+               AND created_at >= NOW() - INTERVAL '3 days'
+             ORDER BY created_at DESC LIMIT 1`,
+            [escritorioId]
+        );
+
+        if (boletoExistente.rows.length > 0) {
+            const cobrancaExistenteId = boletoExistente.rows[0].gateway_id;
+            try {
+                const cobrancaAtual = await axios.get(`${ASAAS_BASE_URL}/payments/${cobrancaExistenteId}`, { headers: getAsaasHeaders() });
+                const c = cobrancaAtual.data;
+                if (['PENDING', 'AWAITING_RISK_ANALYSIS'].includes(c.status)) {
+                    logger.info({ escritorioId, cobrancaId: cobrancaExistenteId }, 'Boleto pendente reutilizado');
+                    return res.json({
+                        ok: true,
+                        cobrancaId: c.id,
+                        url: c.invoiceUrl,
+                        boletoUrl: c.bankSlipUrl,
+                        pixQrCode: c.pixQrCodeUrl || null,
+                        valor: c.value,
+                        vencimento: c.dueDate,
+                        status: c.status,
+                        mensagem: 'Boleto já gerado anteriormente — reutilizando.'
+                    });
+                }
+            } catch (_) { /* boleto não encontrado no Asaas, criar novo */ }
+        }
+
         const customerId = await obterOuCriarCliente({ nome: req.user.nome, email: req.user.email, cpfCnpj: cpfUsuario });
 
         const cobrancaRes = await axios.post(`${ASAAS_BASE_URL}/payments`, {
@@ -105,6 +144,16 @@ async function assinarPlano(req, res) {
         }, { headers: getAsaasHeaders() });
 
         const cobranca = cobrancaRes.data;
+
+        // [M-3] Registrar boleto para idempotência em chamadas futuras
+        try {
+            await pool.query(
+                `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
+                 VALUES ($1, $2, 'asaas', $3, 'boleto_pendente', $4, NOW())`,
+                [escritorioId, cobranca.id, parseFloat(valor), `Boleto - ${nomePlano}`]
+            );
+        } catch (_) { /* não crítico */ }
+
         return res.json({
             ok: true,
             cobrancaId: cobranca.id,
@@ -148,29 +197,34 @@ async function handleWebhookPagamentos(req, res) {
     const { event, payment } = req.body;
     logger.info({ event }, 'Webhook pagamentos: evento recebido');
 
-    if (payment?.id) {
-        try {
-            const jaProcessado = await pool.query(
-                'SELECT id FROM webhook_events WHERE event_id = $1 AND source = $2',
-                [`${event}_${payment.id}`, 'asaas_pagamentos']
-            );
-            if (jaProcessado.rows.length > 0) {
-                logger.info({ eventId: `${event}_${payment.id}` }, 'Webhook pagamentos: evento ja processado');
-                return res.status(200).json({ received: true });
-            }
-        } catch (err) {
-            logger.error({ err: err.message }, 'Webhook pagamentos: erro ao verificar idempotencia');
-        }
-    }
-
-    res.status(200).send('OK');
-
+    // [A-3] Processar ANTES de responder — assim o Asaas reintenta se houver falha
     const eventosPagamento = ['PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED', 'PAYMENT_RECEIVED_IN_CASH'];
 
     if (eventosPagamento.includes(event) && payment?.externalReference) {
-        const escritorioId = payment.externalReference;
-        const descricao = payment.description || '';
+        // Idempotência
+        if (payment?.id) {
+            try {
+                const jaProcessado = await pool.query(
+                    'SELECT id FROM webhook_events WHERE event_id = $1 AND source = $2',
+                    [`${event}_${payment.id}`, 'asaas_pagamentos']
+                );
+                if (jaProcessado.rows.length > 0) {
+                    logger.info({ eventId: `${event}_${payment.id}` }, 'Webhook pagamentos: evento ja processado');
+                    return res.status(200).json({ received: true });
+                }
+            } catch (err) {
+                logger.error({ err: err.message }, 'Webhook pagamentos: erro ao verificar idempotencia');
+                return res.status(500).json({ ok: false, erro: 'Erro de idempotência' });
+            }
+        }
 
+        const escritorioId = parseInt(payment.externalReference, 10);
+        if (!Number.isInteger(escritorioId) || escritorioId <= 0) {
+            logger.error({ externalReference: payment.externalReference }, 'Webhook pagamentos: externalReference invalido');
+            return res.status(400).json({ ok: false, erro: 'externalReference inválido' });
+        }
+
+        const descricao = payment.description || '';
         let novoPlanoId = 1;
         if (descricao.includes('Intermediário')) novoPlanoId = 2;
         if (descricao.includes('Avançado')) novoPlanoId = 3;
@@ -188,30 +242,41 @@ async function handleWebhookPagamentos(req, res) {
                 [`${event}_${payment.id}`, 'asaas_pagamentos']
             );
             await client.query('COMMIT');
+            // [A-4] Invalidar cache após confirmar pagamento
+            await invalidarCacheEscritorio(escritorioId);
             logger.info({ escritorioId, novoPlanoId }, 'Webhook pagamentos: pagamento confirmado');
         } catch (err) {
             await client.query('ROLLBACK');
             logger.error({ err: err.message }, 'Webhook pagamentos: erro ao atualizar plano');
+            return res.status(500).json({ ok: false, erro: 'Erro ao processar pagamento' });
         } finally {
             client.release();
         }
+    } else if (event === 'PAYMENT_OVERDUE' && payment?.externalReference) {
+        logger.warn({ escritorioId: parseInt(payment.externalReference, 10) }, 'Webhook pagamentos: pagamento vencido');
     }
 
-    if (event === 'PAYMENT_OVERDUE' && payment?.externalReference) {
-        logger.warn({ escritorioId: payment.externalReference }, 'Webhook pagamentos: pagamento vencido');
-    }
+    return res.status(200).json({ received: true });
 }
 
 async function verificarCobranca(req, res) {
     try {
         const { cobrancaId } = req.params;
         const response = await axios.get(`${ASAAS_BASE_URL}/payments/${cobrancaId}`, { headers: getAsaasHeaders() });
+        const pg = response.data;
+
+        // [M-2] Verificar ownership: externalReference deve pertencer ao escritório do usuário
+        if (pg.externalReference && parseInt(pg.externalReference, 10) !== req.user.escritorio_id) {
+            logger.warn({ cobrancaId, escritorioId: req.user.escritorio_id, externalReference: pg.externalReference }, 'Tentativa de acesso a cobrança de outro escritório');
+            return res.status(403).json({ erro: 'Acesso negado' });
+        }
+
         res.json({
             ok: true,
-            status: response.data.status,
-            valor: response.data.value,
-            vencimento: response.data.dueDate,
-            boletoUrl: response.data.bankSlipUrl
+            status: pg.status,
+            valor: pg.value,
+            vencimento: pg.dueDate,
+            boletoUrl: pg.bankSlipUrl
         });
     } catch (err) {
         const msgErro = err.response?.data?.errors?.[0]?.description || err.message;
@@ -237,7 +302,8 @@ async function testarAsaas(req, res) {
 
 async function salvarCartao(req, res) {
     try {
-        const { token, last4, brand, exp_month, exp_year, gateway } = req.body;
+        // [A-1] Para Asaas: token = customerId Asaas, asaas_card_token = creditCardToken Asaas
+        const { token, last4, brand, exp_month, exp_year, gateway, asaas_card_token } = req.body;
         const escritorioId = req.user.escritorio_id;
 
         if (!token) return res.status(400).json({ erro: 'Token do cartão não fornecido' });
@@ -247,18 +313,22 @@ async function salvarCartao(req, res) {
 
         const existente = await pool.query('SELECT id FROM cartoes WHERE escritorio_id = $1', [escritorioId]);
         const tokenEncriptado = encrypt(token);
+        const asaasCardTokenEncriptado = asaas_card_token ? encrypt(asaas_card_token) : null;
 
         if (existente.rows.length > 0) {
             await pool.query(
-                `UPDATE cartoes SET token = $1, last4 = $2, brand = $3, exp_month = $4, exp_year = $5, gateway = $6, updated_at = NOW() WHERE escritorio_id = $7`,
-                [tokenEncriptado, last4, brand, exp_month, exp_year, gateway, escritorioId]
+                `UPDATE cartoes SET token = $1, last4 = $2, brand = $3, exp_month = $4, exp_year = $5,
+                 gateway = $6, asaas_card_token = COALESCE($7, asaas_card_token), updated_at = NOW()
+                 WHERE escritorio_id = $8`,
+                [tokenEncriptado, last4, brand, exp_month, exp_year, gateway, asaasCardTokenEncriptado, escritorioId]
             );
             registrarAudit({ usuario_id: req.user.id, email: req.user.email, escritorio_id: escritorioId, acao: 'CARTAO_ATUALIZADO', descricao: `Cartão ${brand} **** ${last4} atualizado`, ...dadosReq(req) });
             return res.json({ ok: true, mensagem: 'Cartão atualizado com sucesso!', ultimos_digitos: last4, bandeira: brand });
         } else {
             await pool.query(
-                `INSERT INTO cartoes (escritorio_id, token, last4, brand, exp_month, exp_year, gateway, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())`,
-                [escritorioId, tokenEncriptado, last4, brand, exp_month, exp_year, gateway]
+                `INSERT INTO cartoes (escritorio_id, token, asaas_card_token, last4, brand, exp_month, exp_year, gateway, created_at, updated_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
+                [escritorioId, tokenEncriptado, asaasCardTokenEncriptado, last4, brand, exp_month, exp_year, gateway]
             );
             registrarAudit({ usuario_id: req.user.id, email: req.user.email, escritorio_id: escritorioId, acao: 'CARTAO_SALVO', descricao: `Cartão ${brand} **** ${last4} cadastrado via ${gateway}`, ...dadosReq(req) });
             return res.json({ ok: true, mensagem: 'Cartão salvo com sucesso!', ultimos_digitos: last4, bandeira: brand });
@@ -304,9 +374,11 @@ async function cobrarRenovacao(req, res) {
         );
         if (planoCheck.rows.length > 0) {
             const precoReal = parseFloat(planoCheck.rows[0].preco_mensal);
-            const valorEnviado = parseFloat(valor);
-            if (valorEnviado > 0 && Math.abs(precoReal - valorEnviado / 100) > 0.01 && Math.abs(precoReal - valorEnviado) > 0.01) {
-                logger.error({ precoReal, valorEnviado }, 'Seguranca: valor adulterado na renovacao');
+            // [M-4] Valor esperado em centavos (unidade canônica para gateways).
+            // Converter para reais antes de comparar com preco_mensal (que está em reais no banco).
+            const valorEmReais = parseFloat(valor) / 100;
+            if (valorEmReais > 0 && Math.abs(precoReal - valorEmReais) > 0.01) {
+                logger.error({ precoReal, valorEmReais }, 'Seguranca: valor adulterado na renovacao');
                 return res.status(400).json({ erro: 'Valor não corresponde ao plano' });
             }
         }

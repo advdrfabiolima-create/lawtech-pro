@@ -14,6 +14,12 @@ if (process.env.NODE_ENV === 'production') {
     if (_warn.length > 0)
         console.warn(`[WARN] Variáveis críticas não configuradas: ${_warn.join(', ')}`);
 }
+
+// [C-1] Segurança: MODO_DESENVOLVEDOR jamais pode estar ativo em produção
+if (process.env.MODO_DESENVOLVEDOR === 'true' && process.env.NODE_ENV === 'production') {
+    console.error('[FATAL] MODO_DESENVOLVEDOR=true detectado em NODE_ENV=production. Deploy abortado.');
+    process.exit(1);
+}
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─── Sentry: inicializar antes de qualquer require de rotas ───────────────────
@@ -237,15 +243,23 @@ app.use('/api/pagamentos/cobrar-renovacao', paymentLimiter);
 app.use('/api/pagamentos/salvar-cartao', paymentLimiter);
 app.use('/api/pagamentos/reativar-suspenso', paymentLimiter);
 
-// Rate limiting para pagamento de trial expirado (permite polling PIX a cada 5s)
+// Rate limiting para polling de PIX (a cada 5s durante ~12 minutos = ~144 req)
 const trialPaymentLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 150, // generoso para cobrir polling de ~12 minutos + tentativas de pagamento
+    max: 150,
     message: { erro: 'Muitas tentativas. Aguarde alguns minutos.' }
 });
 app.use('/api/auth/pagar-trial-pix', trialPaymentLimiter);
 app.use('/api/auth/verificar-pix', trialPaymentLimiter);
-app.use('/api/auth/pagar-trial-cartao', trialPaymentLimiter);
+app.use('/api/auth/gerar-pix-registro', trialPaymentLimiter);
+
+// [A-5] Rate limiting estrito para endpoint de cartão (endpoint público com PAN)
+const cardTrialLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 5, // máximo 5 tentativas por IP — evita brute-force de cartões
+    message: { erro: 'Muitas tentativas com cartão. Aguarde 15 minutos.' }
+});
+app.use('/api/auth/pagar-trial-cartao', cardTrialLimiter);
 
 // Rate limiting para endpoints de IA (custo alto por request)
 const iaLimiter = rateLimit({
