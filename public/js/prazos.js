@@ -190,7 +190,6 @@
                         }
 
                         const contagemDias = calcularDiferencaDiasFormatado(p.data_limite);
-                        const urgencia = calcularUrgencia(p.data_limite);
 
                         container.innerHTML += `
                         <div class="prazo ${classeCard}"
@@ -203,7 +202,6 @@
                                     <span class="badge" style="${estiloTag} font-size: 10px; font-weight: 800;">
                                         ${contagemDias}
                                     </span>
-                                    ${urgencia ? `<span class="badge ${urgencia.classe}">${urgencia.label}</span>` : ''}
                                 </div>
 
                                 <div style="display: flex; flex-direction: column; gap: 6px;">
@@ -329,14 +327,7 @@
         return `VENCE EM ${diffDays} DIAS`;
     }
 
-    function calcularUrgencia(data) {
-        const diff = Math.ceil((new Date(data) - new Date()) / (1000 * 60 * 60 * 24));
-        if (diff === 0) return { label: 'HOJE', classe: 'urgente-hoje' };
-        if (diff === 1) return { label: 'AMANHÃ', classe: 'urgente-amanha' };
-        return null;
-    }
-
-    function verDetalhesPrazo(texto) {
+function verDetalhesPrazo(texto) {
         const modal = document.getElementById('modalIA');
         const content = document.getElementById('aiResponseContent');
 
