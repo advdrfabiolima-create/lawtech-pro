@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
 const planMiddleware = require('../middlewares/planMiddleware');
@@ -81,25 +79,6 @@ router.delete('/prazos/:id', authMiddleware, roleMiddleware('admin'), controller
  * ============================================================
  */
 
-// Criar diretório de uploads se não existir
-const uploadDir = path.join(__dirname, '..', 'uploads', 'prazos');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-    logger.info({ uploadDir }, 'Diretório de uploads criado');
-}
-
-// Configuração do storage do Multer
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, uploadDir);
-    },
-    filename: function (req, file, cb) {
-        // Gera nome único: prazo_ID_TIMESTAMP.pdf
-        const uniqueName = `prazo_${req.params.id}_${Date.now()}.pdf`;
-        cb(null, uniqueName);
-    }
-});
-
 // Filtro para aceitar apenas PDFs
 const fileFilter = (req, file, cb) => {
     if (file.mimetype === 'application/pdf') {
@@ -109,9 +88,9 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-// Configuração completa do Multer
+// memoryStorage — o controller envia para B2/R2/disco via storage.js
 const upload = multer({
-    storage: storage,
+    storage: multer.memoryStorage(),
     fileFilter: fileFilter,
     limits: {
         fileSize: 10 * 1024 * 1024 // 10MB máximo

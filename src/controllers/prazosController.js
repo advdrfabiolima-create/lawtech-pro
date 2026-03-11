@@ -2,6 +2,7 @@ const pool = require('../config/db');
 const planLimits = require('../config/planLimits.json');
 const logger = require('../utils/logger');
 const { getPagination, buildPage } = require('../utils/paginate');
+const fileStorage = require('../utils/storage');
 
 /**
  * ============================================================
@@ -630,72 +631,53 @@ async function uploadAnexo(req, res) {
   try {
     const prazoId = req.params.id;
     const escritorioId = req.user.escritorio_id;
-    
-    // Verificar se o arquivo foi enviado
+
     if (!req.file) {
       return res.status(400).json({ erro: 'Nenhum arquivo enviado' });
     }
-    
+
     // Verificar se o prazo existe e pertence ao escritório
     const prazoCheck = await pool.query(
       'SELECT id, anexo_pdf FROM prazos WHERE id = $1 AND escritorio_id = $2',
       [prazoId, escritorioId]
     );
-    
+
     if (prazoCheck.rows.length === 0) {
-      // Deletar o arquivo enviado se o prazo não existir
-      const fs = require('fs');
-      if (fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-      }
       return res.status(404).json({ erro: 'Prazo não encontrado' });
     }
-    
-    // Se já existia um anexo anterior, deletar o arquivo antigo
+
+    // Se já existia um anexo anterior, remover do storage
     if (prazoCheck.rows[0].anexo_pdf) {
-      const fs = require('fs');
-      const path = require('path');
-      const oldFilePath = path.join(__dirname, '..', 'uploads', 'prazos', prazoCheck.rows[0].anexo_pdf);
-      
-      if (fs.existsSync(oldFilePath)) {
-        fs.unlinkSync(oldFilePath);
-        logger.info({ arquivo: prazoCheck.rows[0].anexo_pdf }, 'Arquivo antigo removido');
-      }
+      await fileStorage.delete(`prazos/${prazoCheck.rows[0].anexo_pdf}`);
+      logger.info({ arquivo: prazoCheck.rows[0].anexo_pdf }, 'Arquivo antigo removido');
     }
-    
-    // Atualizar o banco com o nome do novo arquivo
+
+    // Gerar nome único e fazer upload para B2/R2/disco
+    const filename = `prazo_${prazoId}_${Date.now()}.pdf`;
+    const storageKey = `prazos/${filename}`;
+    await fileStorage.upload(req.file.buffer, storageKey, 'application/pdf');
+
+    // Salvar apenas o filename no banco (chave relativa)
     const result = await pool.query(
-      `UPDATE prazos 
-       SET anexo_pdf = $1
-       WHERE id = $2 AND escritorio_id = $3
-       RETURNING *`,
-      [req.file.filename, prazoId, escritorioId]
+      `UPDATE prazos SET anexo_pdf = $1 WHERE id = $2 AND escritorio_id = $3 RETURNING *`,
+      [filename, prazoId, escritorioId]
     );
-    
-    logger.info({ prazoId, filename: req.file.filename }, 'PDF anexado ao prazo');
-    
+
+    logger.info({ prazoId, storageKey }, 'PDF anexado ao prazo');
+
     res.json({
       ok: true,
       mensagem: 'PDF anexado com sucesso',
       arquivo: {
         nome: req.file.originalname,
         tamanho: req.file.size,
-        nomeServidor: req.file.filename
+        nomeServidor: filename
       },
       prazo: result.rows[0]
     });
-    
+
   } catch (err) {
     logger.error({ err: err.message }, 'Erro ao fazer upload de anexo');
-
-    // Tentar deletar o arquivo se houve erro
-    if (req.file) {
-      const fs = require('fs');
-      if (fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-      }
-    }
-    
     res.status(500).json({ erro: 'Erro ao fazer upload do PDF' });
   }
 }
@@ -709,79 +691,46 @@ async function visualizarAnexo(req, res) {
   try {
     const prazoId = req.params.id;
     const escritorioId = req.user.escritorio_id;
-    
+
     logger.info({ prazoId, escritorioId }, 'Visualizando anexo');
-    
-    // Buscar informações do prazo
+
     const result = await pool.query(
       'SELECT anexo_pdf FROM prazos WHERE id = $1 AND escritorio_id = $2 AND deletado = false',
       [prazoId, escritorioId]
     );
-    
+
     if (result.rows.length === 0) {
-      logger.warn({ prazoId }, 'Prazo nao encontrado ao visualizar anexo');
       return res.status(404).json({ erro: 'Prazo não encontrado' });
     }
 
     const anexoPdf = result.rows[0].anexo_pdf;
 
     if (!anexoPdf) {
-      logger.warn({ prazoId }, 'Prazo nao possui anexo');
       return res.status(404).json({ erro: 'Este prazo não possui anexo' });
     }
-    
-    // Montar caminho do arquivo
-    const path = require('path');
-    const fs = require('fs');
-    const filePath = path.join(__dirname, '..', 'uploads', 'prazos', anexoPdf);
-    
-    logger.info({ filePath }, 'Caminho do arquivo para visualizacao');
-    
-    // Verificar se o arquivo existe
-    if (!fs.existsSync(filePath)) {
-      logger.error({ filePath }, 'Arquivo nao encontrado no servidor');
-      
-      // Limpar referência do banco se arquivo não existe
-      await pool.query(
-        'UPDATE prazos SET anexo_pdf = NULL WHERE id = $1',
-        [prazoId]
-      );
-      
-      return res.status(404).json({ 
+
+    const storageKey = `prazos/${anexoPdf}`;
+    logger.info({ storageKey }, 'Buscando anexo no storage');
+
+    const found = await fileStorage.download(storageKey, res, {
+      mimetype: 'application/pdf',
+      filename: anexoPdf
+    });
+
+    if (found === null) {
+      logger.error({ storageKey }, 'Arquivo nao encontrado no storage');
+      // Limpar referência do banco se arquivo não existe em nenhum storage
+      await pool.query('UPDATE prazos SET anexo_pdf = NULL WHERE id = $1', [prazoId]);
+      return res.status(404).json({
         erro: 'Arquivo não encontrado no servidor',
         detalhes: 'O arquivo foi removido do sistema. A referência foi limpa.'
       });
     }
-    
-    // Verificar se é realmente um PDF
-    const stats = fs.statSync(filePath);
-    logger.info({ fileSize: stats.size }, 'Tamanho do arquivo para visualizacao');
-    
-    // Configurar headers para PDF
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="${anexoPdf}"`);
-    res.setHeader('Content-Length', stats.size);
-    
-    logger.info({ prazoId }, 'Servindo PDF do prazo');
 
-    // Enviar o arquivo
-    res.sendFile(filePath, (err) => {
-      if (err) {
-        logger.error({ err: err.message }, 'Erro ao enviar arquivo PDF');
-        if (!res.headersSent) {
-          res.status(500).json({ erro: 'Erro ao enviar arquivo' });
-        }
-      }
-    });
-    
   } catch (err) {
-    logger.error({ err: err.message, stack: err.stack }, 'Erro ao visualizar anexo');
-
+    logger.error({ err: err.message }, 'Erro ao visualizar anexo');
     if (!res.headersSent) {
-      res.status(500).json({ 
-        erro: 'Erro ao buscar PDF',
-        detalhes: err.message 
-      });
+      res.status(500).json({ erro: 'Erro ao buscar PDF' });
     }
   }
 }
@@ -811,22 +760,14 @@ async function deletarAnexo(req, res) {
     }
     
     const nomeArquivo = result.rows[0].anexo_pdf;
-    
-    // Deletar arquivo do servidor
-    const path = require('path');
-    const fs = require('fs');
-    const filePath = path.join(__dirname, '..', 'uploads', 'prazos', nomeArquivo);
-    
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      logger.info({ filePath }, 'Arquivo deletado');
-    }
-    
+
+    // Remover do storage (B2/R2/disco)
+    await fileStorage.delete(`prazos/${nomeArquivo}`);
+    logger.info({ nomeArquivo }, 'Arquivo deletado do storage');
+
     // Remover referência do banco
     await pool.query(
-      `UPDATE prazos 
-       SET anexo_pdf = NULL
-       WHERE id = $1 AND escritorio_id = $2`,
+      `UPDATE prazos SET anexo_pdf = NULL WHERE id = $1 AND escritorio_id = $2`,
       [prazoId, escritorioId]
     );
     
