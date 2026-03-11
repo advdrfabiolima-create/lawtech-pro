@@ -40,6 +40,8 @@
         if (btnModoUteisEl) btnModoUteisEl.addEventListener('click', () => setModoPrazo('uteis'));
         const diasUteisEl = document.getElementById('diasUteisQtd');
         if (diasUteisEl) diasUteisEl.addEventListener('input', atualizarPreviewDiasUteis);
+        const dataDJENEl = document.getElementById('dataDJEN');
+        if (dataDJENEl) dataDJENEl.addEventListener('change', atualizarPreviewDiasUteis);
 
     });
 
@@ -404,6 +406,8 @@ function verDetalhesPrazo(texto) {
         setModoPrazo('fixa');
         const diasUteisEl2 = document.getElementById('diasUteisQtd');
         if (diasUteisEl2) diasUteisEl2.value = '';
+        const dataDJENEl2 = document.getElementById('dataDJEN');
+        if (dataDJENEl2) dataDJENEl2.value = '';
         const previewEl2 = document.getElementById('dataCalculadaPreview');
         if (previewEl2) previewEl2.style.display = 'none';
         dataCalculadaPorDiasUteis = null;
@@ -472,6 +476,8 @@ function verDetalhesPrazo(texto) {
         dataCalculadaPorDiasUteis = null;
         const diasUteisEl3 = document.getElementById('diasUteisQtd');
         if (diasUteisEl3) diasUteisEl3.value = '';
+        const dataDJENEl3 = document.getElementById('dataDJEN');
+        if (dataDJENEl3) dataDJENEl3.value = '';
     }
 
     // Alternar entre modo Data Fixa e Dias Úteis
@@ -499,9 +505,9 @@ function verDetalhesPrazo(texto) {
         }
     }
 
-    // Calcular data de vencimento contando dias úteis a partir de hoje
-    async function calcularDataPorDiasUteis(dias) {
-        const hoje = new Date();
+    // Calcular data de vencimento contando dias úteis a partir de uma data base
+    async function calcularDataPorDiasUteis(dias, dataBase) {
+        const hoje = dataBase ? new Date(dataBase + 'T12:00:00') : new Date();
         hoje.setHours(0, 0, 0, 0);
         const feriadosSet = new Set();
 
@@ -542,12 +548,14 @@ function verDetalhesPrazo(texto) {
     // Atualizar preview ao digitar quantidade de dias úteis (com debounce)
     async function atualizarPreviewDiasUteis() {
         const diasEl = document.getElementById('diasUteisQtd');
+        const djenEl = document.getElementById('dataDJEN');
         const previewEl = document.getElementById('dataCalculadaPreview');
         const textoEl = document.getElementById('dataCalculadaTexto');
         const erroEl = document.getElementById('dataCalculadaErro');
         const dias = parseInt(diasEl.value, 10);
+        const dataDJEN = djenEl ? djenEl.value : '';
 
-        if (!dias || dias < 1) {
+        if (!dataDJEN || !dias || dias < 1) {
             previewEl.style.display = 'none';
             erroEl.style.display = 'none';
             dataCalculadaPorDiasUteis = null;
@@ -561,7 +569,7 @@ function verDetalhesPrazo(texto) {
                 textoEl.textContent = 'Calculando...';
                 previewEl.style.display = 'block';
 
-                const dateStr = await calcularDataPorDiasUteis(dias);
+                const dateStr = await calcularDataPorDiasUteis(dias, dataDJEN);
                 dataCalculadaPorDiasUteis = dateStr;
                 const [yyyy, mm, dd] = dateStr.split('-');
                 textoEl.textContent = `${dd}/${mm}/${yyyy}`;
