@@ -2,6 +2,7 @@ const token = localStorage.getItem('token');
     if (!token) window.location.href = '/login.html';
 
     let peticaoAtual = null;
+    let tipoCpfCnpj = 'cpf'; // 'cpf' | 'cnpj'
 
     // ==================== USER MENU ====================
     function toggleUserMenu() {
@@ -99,7 +100,12 @@ const token = localStorage.getItem('token');
 
         if (option.value) {
             document.getElementById('autor').value = option.textContent.trim();
-            document.getElementById('cpf').value = option.dataset.cpf || '';
+            // Detectar CPF (11 dígitos) ou CNPJ (14 dígitos) e aplicar máscara
+            const docRaw = (option.dataset.cpf || '').replace(/\D/g, '');
+            setTipoCpfCnpj(docRaw.length > 11 ? 'cnpj' : 'cpf');
+            const cpfInput = document.getElementById('cpf');
+            cpfInput.value = docRaw;
+            aplicarMascaraCpfCnpj(cpfInput);
             const cidade = option.dataset.cidade || '';
             const estado = option.dataset.estado || '';
             document.getElementById('cidade').value = estado ? `${cidade}/${estado}` : cidade;
@@ -113,6 +119,45 @@ const token = localStorage.getItem('token');
     }
 
     document.getElementById('clienteSelect').addEventListener('change', preencherDadosCliente);
+
+    // ==================== CPF / CNPJ TOGGLE + MÁSCARA ====================
+    function setTipoCpfCnpj(tipo) {
+        tipoCpfCnpj = tipo;
+        const input = document.getElementById('cpf');
+        const btnCpf  = document.getElementById('btnTipoCpf');
+        const btnCnpj = document.getElementById('btnTipoCnpj');
+        const ativo   = 'background:var(--accent-blue);color:#fff;';
+        const inativo = 'background:transparent;color:#94a3b8;';
+        if (tipo === 'cpf') {
+            input.placeholder = '000.000.000-00';
+            input.maxLength   = 14; // 11 dígitos + 3 pontuações
+            btnCpf.style.cssText  += ativo;
+            btnCnpj.style.cssText += inativo;
+        } else {
+            input.placeholder = '00.000.000/0000-00';
+            input.maxLength   = 18; // 14 dígitos + 4 pontuações
+            btnCpf.style.cssText  += inativo;
+            btnCnpj.style.cssText += ativo;
+        }
+        input.value = '';
+    }
+
+    function aplicarMascaraCpfCnpj(input) {
+        let v = input.value.replace(/\D/g, '');
+        if (tipoCpfCnpj === 'cpf') {
+            v = v.slice(0, 11);
+            v = v.replace(/(\d{3})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        } else {
+            v = v.slice(0, 14);
+            v = v.replace(/(\d{2})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d)/, '$1/$2');
+            v = v.replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+        }
+        input.value = v;
+    }
 
     // ==================== UPLOAD (MÚLTIPLOS ARQUIVOS) ====================
     const MAX_TOTAL_SIZE = 10 * 1024 * 1024; // 10MB
@@ -533,6 +578,10 @@ const token = localStorage.getItem('token');
 
     document.getElementById('btnCancelarEdicao').addEventListener('click', fecharModalEdicao);
     document.getElementById('btnSalvarEdicao').addEventListener('click', salvarEdicao);
+
+    document.getElementById('btnTipoCpf').addEventListener('click', () => setTipoCpfCnpj('cpf'));
+    document.getElementById('btnTipoCnpj').addEventListener('click', () => setTipoCpfCnpj('cnpj'));
+    document.getElementById('cpf').addEventListener('input', function() { aplicarMascaraCpfCnpj(this); });
 
 
 (function(){var t=localStorage.getItem('token');if(!t)return;function checkChat(){fetch('/api/chat/nao-lidas',{headers:{Authorization:'Bearer '+t}}).then(function(r){return r.json()}).then(function(d){if(d.ok){var total=Object.values(d.naoLidas).reduce(function(a,b){return a+b},0);var b=document.getElementById('chatBadge');if(b){b.style.display=total>0?'inline-flex':'none';b.textContent=total>99?'99+':total}}}).catch(function(){})}checkChat();setInterval(checkChat,30000)})();
