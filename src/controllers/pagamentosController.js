@@ -14,6 +14,20 @@ async function invalidarCacheEscritorio(escritorioId) {
     } catch (_) {}
 }
 
+/**
+ * [A-5] Parse externalReference estruturado.
+ * Suporta formato legado "123" e novo "escritorio_123_plano_2".
+ * Retorna { escritorioId, planoId } ou null se inválido.
+ */
+function parseExternalRef(ref) {
+    if (!ref) return null;
+    const match = String(ref).match(/^escritorio_(\d+)_plano_(\d+)$/);
+    if (match) return { escritorioId: parseInt(match[1], 10), planoId: parseInt(match[2], 10) };
+    const num = parseInt(ref, 10);
+    if (Number.isInteger(num) && num > 0) return { escritorioId: num, planoId: null };
+    return null;
+}
+
 const ASAAS_ENV = process.env.ASAAS_ENV || 'production';
 const ASAAS_BASE_URL = ASAAS_ENV === 'sandbox'
     ? 'https://sandbox.asaas.com/api/v3'
@@ -136,7 +150,7 @@ async function assinarPlano(req, res) {
             value: parseFloat(valor),
             dueDate: obterDataVencimento(3),
             description: `${nomePlano} - LawTech Pro`,
-            externalReference: String(escritorioId),
+            externalReference: `escritorio_${escritorioId}_plano_${planoId}`,
             postalService: false,
             discount: { value: 0, dueDateLimitDays: 0 },
             fine: { value: 2.00 },
@@ -202,50 +216,46 @@ async function handleWebhookPagamentos(req, res) {
     const eventosPagamento = ['PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED', 'PAYMENT_RECEIVED_IN_CASH'];
 
     if (eventosPagamento.includes(event) && payment?.externalReference) {
-        // Idempotência
-        if (payment?.id) {
-            try {
-                const jaProcessado = await pool.query(
-                    'SELECT id FROM webhook_events WHERE event_id = $1 AND source = $2',
-                    [`${event}_${payment.id}`, 'asaas_pagamentos']
-                );
-                if (jaProcessado.rows.length > 0) {
-                    logger.info({ eventId: `${event}_${payment.id}` }, 'Webhook pagamentos: evento ja processado');
-                    return res.status(200).json({ received: true });
-                }
-            } catch (err) {
-                logger.error({ err: err.message }, 'Webhook pagamentos: erro ao verificar idempotencia');
-                return res.status(500).json({ ok: false, erro: 'Erro de idempotência' });
-            }
-        }
-
-        const escritorioId = parseInt(payment.externalReference, 10);
-        if (!Number.isInteger(escritorioId) || escritorioId <= 0) {
+        // [A-5] Suporta formato legado "123" e novo "escritorio_123_plano_2"
+        const parsedRef = parseExternalRef(payment.externalReference);
+        if (!parsedRef) {
             logger.error({ externalReference: payment.externalReference }, 'Webhook pagamentos: externalReference invalido');
             return res.status(400).json({ ok: false, erro: 'externalReference inválido' });
         }
+        const escritorioId = parsedRef.escritorioId;
 
         const descricao = payment.description || '';
-        let novoPlanoId = 1;
-        if (descricao.includes('Intermediário')) novoPlanoId = 2;
-        if (descricao.includes('Avançado')) novoPlanoId = 3;
-        if (descricao.includes('Premium')) novoPlanoId = 4;
+        let novoPlanoId = parsedRef.planoId || 1;
+        if (!parsedRef.planoId) {
+            if (descricao.includes('Intermediário')) novoPlanoId = 2;
+            if (descricao.includes('Avançado')) novoPlanoId = 3;
+            if (descricao.includes('Premium')) novoPlanoId = 4;
+        }
 
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
+
+            // [A-1] Idempotência atômica via ON CONFLICT — elimina race condition (TOCTOU)
+            // Requer constraint UNIQUE (event_id, source) da migration 003 [A-2]
+            const idemResult = await client.query(
+                `INSERT INTO webhook_events (event_id, source, processed_at)
+                 VALUES ($1, $2, NOW())
+                 ON CONFLICT (event_id, source) DO NOTHING`,
+                [`${event}_${payment.id}`, 'asaas_pagamentos']
+            );
+
+            if (idemResult.rowCount === 0) {
+                await client.query('ROLLBACK');
+                logger.info({ eventId: `${event}_${payment.id}` }, 'Webhook pagamentos: evento ja processado');
+                return res.status(200).json({ received: true });
+            }
+
             await client.query(
                 `UPDATE escritorios SET plano_id = $1, plano_financeiro_status = 'pago', trial_expira_em = NULL WHERE id = $2`,
                 [novoPlanoId, escritorioId]
             );
-            await client.query(
-                'INSERT INTO webhook_events (event_id, source, processed_at) VALUES ($1, $2, NOW())',
-                [`${event}_${payment.id}`, 'asaas_pagamentos']
-            );
             await client.query('COMMIT');
-            // [A-4] Invalidar cache após confirmar pagamento
-            await invalidarCacheEscritorio(escritorioId);
-            logger.info({ escritorioId, novoPlanoId }, 'Webhook pagamentos: pagamento confirmado');
         } catch (err) {
             await client.query('ROLLBACK');
             logger.error({ err: err.message }, 'Webhook pagamentos: erro ao atualizar plano');
@@ -253,8 +263,14 @@ async function handleWebhookPagamentos(req, res) {
         } finally {
             client.release();
         }
+
+        // Efeitos colaterais após commit (fora da transação — invalidarCacheEscritorio nunca lança)
+        await invalidarCacheEscritorio(escritorioId);
+        logger.info({ escritorioId, novoPlanoId }, 'Webhook pagamentos: pagamento confirmado');
+
     } else if (event === 'PAYMENT_OVERDUE' && payment?.externalReference) {
-        logger.warn({ escritorioId: parseInt(payment.externalReference, 10) }, 'Webhook pagamentos: pagamento vencido');
+        const parsed = parseExternalRef(payment.externalReference);
+        logger.warn({ escritorioId: parsed?.escritorioId }, 'Webhook pagamentos: pagamento vencido');
     }
 
     return res.status(200).json({ received: true });
@@ -267,9 +283,12 @@ async function verificarCobranca(req, res) {
         const pg = response.data;
 
         // [M-2] Verificar ownership: externalReference deve pertencer ao escritório do usuário
-        if (pg.externalReference && parseInt(pg.externalReference, 10) !== req.user.escritorio_id) {
-            logger.warn({ cobrancaId, escritorioId: req.user.escritorio_id, externalReference: pg.externalReference }, 'Tentativa de acesso a cobrança de outro escritório');
-            return res.status(403).json({ erro: 'Acesso negado' });
+        if (pg.externalReference) {
+            const parsed = parseExternalRef(pg.externalReference);
+            if (!parsed || parsed.escritorioId !== req.user.escritorio_id) {
+                logger.warn({ cobrancaId, escritorioId: req.user.escritorio_id, externalReference: pg.externalReference }, 'Tentativa de acesso a cobrança de outro escritório');
+                return res.status(403).json({ erro: 'Acesso negado' });
+            }
         }
 
         res.json({

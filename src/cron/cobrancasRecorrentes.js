@@ -46,41 +46,65 @@ cron.schedule('0 8 * * *', async () => {
     logger.info(`Data/Hora: ${new Date().toLocaleString('pt-BR')}`);
 
     try {
-        // Buscar assinaturas que vencem hoje
+        // [A-4] Claim rows com SELECT FOR UPDATE SKIP LOCKED — previne dupla cobrança em
+        // ambientes distribuídos (múltiplos servidores). O advisory lock (1002) é a proteção
+        // primária; FOR UPDATE SKIP LOCKED é belt-and-suspenders.
+        const claimClient = await pool.connect();
+        let claimedIds = [];
+        try {
+            await claimClient.query('BEGIN');
+            const claimed = await claimClient.query(`
+                SELECT e.id FROM escritorios e
+                JOIN planos p ON e.plano_id = p.id
+                JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
+                JOIN cartoes c ON c.escritorio_id = e.id
+                WHERE e.plano_financeiro_status = 'pago'
+                  AND e.proxima_cobranca IS NOT NULL
+                  AND e.proxima_cobranca <= CURRENT_DATE
+                  AND (e.renovacao_automatica IS NULL OR e.renovacao_automatica = true)
+                  AND COALESCE(u.is_master, false) = false
+                ORDER BY e.proxima_cobranca ASC
+                FOR UPDATE OF e SKIP LOCKED
+            `);
+
+            if (claimed.rowCount === 0) {
+                await claimClient.query('ROLLBACK');
+                logger.info('   [OK] Nenhuma cobrança agendada para hoje\n');
+                return;
+            }
+
+            claimedIds = claimed.rows.map(r => r.id);
+            // Bump proxima_cobranca (+25h) para prevenir re-seleção durante o processamento;
+            // será sobrescrito com o valor correto ao final de cada row.
+            await claimClient.query(
+                `UPDATE escritorios SET proxima_cobranca = proxima_cobranca + INTERVAL '25 hours' WHERE id = ANY($1)`,
+                [claimedIds]
+            );
+            await claimClient.query('COMMIT');
+        } catch (claimErr) {
+            await claimClient.query('ROLLBACK').catch(() => {});
+            logger.error({ err: claimErr.message }, '[CRON RECORRENTE] Erro ao adquirir locks — abortando');
+            return;
+        } finally {
+            claimClient.release();
+        }
+
+        // Buscar dados completos para os IDs reivindicados
         const result = await pool.query(`
-            SELECT 
-                e.id,
-                e.nome,
-                e.plano_id,
-                e.proxima_cobranca,
-                e.renovacao_automatica,
-                p.preco_mensal,
-                p.nome as plano_nome,
+            SELECT
+                e.id, e.nome, e.plano_id, e.proxima_cobranca, e.renovacao_automatica,
+                p.preco_mensal, p.nome as plano_nome,
                 u.email as email_responsavel,
-                c.token as cartao_token,
-                c.asaas_card_token,
-                c.gateway,
-                c.last4,
-                c.brand
+                c.token as cartao_token, c.asaas_card_token, c.gateway, c.last4, c.brand
             FROM escritorios e
             JOIN planos p ON e.plano_id = p.id
             JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
             JOIN cartoes c ON c.escritorio_id = e.id
-            WHERE 
-                e.plano_financeiro_status = 'pago'
-                AND e.proxima_cobranca IS NOT NULL
-                AND e.proxima_cobranca <= CURRENT_DATE
-                AND (e.renovacao_automatica IS NULL OR e.renovacao_automatica = true)
-                AND COALESCE(u.is_master, false) = false
-            ORDER BY e.proxima_cobranca ASC
-        `);
+            WHERE e.id = ANY($1)
+            ORDER BY e.id
+        `, [claimedIds]);
 
         logger.info(`[STATS] [CRON RECORRENTE] Encontrados: ${result.rowCount} assinatura(s) para renovar`);
-
-        if (result.rowCount === 0) {
-            logger.info('   [OK] Nenhuma cobrança agendada para hoje\n');
-            return;
-        }
 
         let sucessos = 0;
         let falhas = 0;
@@ -335,28 +359,56 @@ cron.schedule('0 14 * * *', async () => {
     logger.info('\n[RETRY] [CRON RETRY] Tentando reprocessar inadimplentes...');
 
     try {
+        // [A-4] Claim rows com FOR UPDATE SKIP LOCKED (mesmo padrão do cron principal)
+        const claimRetryClient = await pool.connect();
+        let claimedRetryIds = [];
+        try {
+            await claimRetryClient.query('BEGIN');
+            const claimedRetry = await claimRetryClient.query(`
+                SELECT e.id FROM escritorios e
+                JOIN planos p ON e.plano_id = p.id
+                JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
+                JOIN cartoes c ON c.escritorio_id = e.id
+                WHERE e.plano_financeiro_status = 'inadimplente'
+                  AND e.proxima_cobranca <= CURRENT_DATE
+                  AND (e.renovacao_automatica IS NULL OR e.renovacao_automatica = true)
+                  AND COALESCE(e.retry_count, 0) < 3
+                ORDER BY e.proxima_cobranca ASC
+                FOR UPDATE OF e SKIP LOCKED
+            `);
+
+            if (claimedRetry.rowCount === 0) {
+                await claimRetryClient.query('ROLLBACK');
+                logger.info('[OK] [CRON RETRY] Nenhum inadimplente para processar\n');
+                return;
+            }
+
+            claimedRetryIds = claimedRetry.rows.map(r => r.id);
+            await claimRetryClient.query(
+                `UPDATE escritorios SET proxima_cobranca = proxima_cobranca + INTERVAL '25 hours' WHERE id = ANY($1)`,
+                [claimedRetryIds]
+            );
+            await claimRetryClient.query('COMMIT');
+        } catch (claimErr) {
+            await claimRetryClient.query('ROLLBACK').catch(() => {});
+            logger.error({ err: claimErr.message }, '[CRON RETRY] Erro ao adquirir locks — abortando');
+            return;
+        } finally {
+            claimRetryClient.release();
+        }
+
         const result = await pool.query(`
-            SELECT 
-                e.id,
-                e.nome,
-                p.preco_mensal,
-                p.nome as plano_nome,
-                u.email,
-                c.token as cartao_token,
-                c.gateway,
-                c.last4,
+            SELECT
+                e.id, e.nome, p.preco_mensal, p.nome as plano_nome,
+                u.email, c.token as cartao_token, c.gateway, c.last4,
                 COALESCE(e.retry_count, 0) as retry_count
             FROM escritorios e
             JOIN planos p ON e.plano_id = p.id
             JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
             JOIN cartoes c ON c.escritorio_id = e.id
-            WHERE
-                e.plano_financeiro_status = 'inadimplente'
-                AND e.proxima_cobranca <= CURRENT_DATE
-                AND (e.renovacao_automatica IS NULL OR e.renovacao_automatica = true)
-                AND COALESCE(e.retry_count, 0) < 3
-            ORDER BY e.proxima_cobranca ASC
-        `);
+            WHERE e.id = ANY($1)
+            ORDER BY e.id
+        `, [claimedRetryIds]);
 
         logger.info(`[STATS] [CRON RETRY] ${result.rowCount} inadimplente(s) para tentar novamente`);
 
