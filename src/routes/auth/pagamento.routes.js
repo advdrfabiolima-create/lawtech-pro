@@ -130,7 +130,7 @@ router.post('/pagar-trial-pix', async (req, res) => {
                 await pool.query(
                     `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
                      VALUES ($1, $2, 'asaas', $3, 'pix_pendente', $4, NOW())`,
-                    [u.escritorio_id, cobrancaId, valor, `PIX Trial - ${plano.nome}`]
+                    [u.escritorio_id, cobrancaId, Math.round(valor * 100), `PIX Trial - ${plano.nome}`]
                 );
             } catch (_) {}
 
@@ -198,7 +198,7 @@ router.get('/verificar-pix/:cobrancaId', async (req, res) => {
                     await pool.query(
                         `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
                          VALUES ($1, $2, 'asaas', $3, 'aprovada', 'Ativação pós-trial — PIX', NOW())`,
-                        [escritorioId, cobrancaId, pg.value]
+                        [escritorioId, cobrancaId, Math.round(pg.value * 100)]
                     );
                 } catch (insertErr) {
                     logger.warn({ err: insertErr.message, cobrancaId }, '[PIX TRIAL] Falha ao registrar transação');
@@ -291,7 +291,7 @@ router.post('/gerar-pix-registro', async (req, res) => {
                 await pool.query(
                     `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
                      VALUES ($1, $2, 'asaas', $3, 'pix_pendente', $4, NOW())`,
-                    [u.escritorio_id, cobrancaIdReg, valor, `PIX Registro - ${plano.nome}`]
+                    [u.escritorio_id, cobrancaIdReg, Math.round(valor * 100), `PIX Registro - ${plano.nome}`]
                 );
             } catch (_) {}
 
@@ -413,7 +413,7 @@ router.post('/pagar-trial-cartao', async (req, res) => {
             await pool.query(
                 `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
                  VALUES ($1, $2, 'stripe', $3, 'aprovada', 'Ativação pós-trial — Cartão', NOW())`,
-                [u.escritorio_id, resultado.transacaoId, valorReais]
+                [u.escritorio_id, resultado.transacaoId, valorCentavos]
             );
         } catch (_) { /* não crítico */ }
 

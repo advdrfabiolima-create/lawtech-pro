@@ -264,7 +264,7 @@ cron.schedule('0 6 * * *', async () => {
                     `INSERT INTO transacoes
                      (escritorio_id, gateway_id, gateway, valor, status, descricao, plano_id, created_at)
                      VALUES ($1, $2, 'asaas', $3, 'pix_pendente', $4, $5, NOW())`,
-                    [esc.id, cobrancaId, parseFloat(esc.preco_mensal), `PIX Trial - ${esc.plano_nome}`, esc.plano_id]
+                    [esc.id, cobrancaId, Math.round(parseFloat(esc.preco_mensal) * 100), `PIX Trial - ${esc.plano_nome}`, esc.plano_id]
                 );
 
                 // Buscar QR Code
