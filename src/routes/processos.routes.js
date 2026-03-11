@@ -670,7 +670,7 @@ router.get('/por-cliente/:clienteId', authMiddleware, async (req, res) => {
  *  - "polo_verificar: passivo" → a pessoa que vai entrar como réu já é cliente ativo em outro processo?
  *  - "polo_verificar: ativo"  → a pessoa que vai virar cliente já é parte adversa em algum processo ativo?
  */
-router.post('/verificar-conflito', authMiddleware, async (req, res) => {
+router.post('/processos/verificar-conflito', authMiddleware, async (req, res) => {
     try {
         const { nome, documento, polo_verificar = 'passivo' } = req.body;
         const escritorioId = req.user.escritorio_id;

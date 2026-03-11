@@ -449,6 +449,7 @@ let gerenciadorPartesEdicao = null;
 
             // 5. Inicializar gerenciador de partes
             gerenciadorPartes = new GerenciadorPartes('listaPartesAtivo', 'listaPartesPassivo');
+            window.gerenciadorPartes = gerenciadorPartes; // expõe para os proxies de data-action
             await carregarClientesParaSelect();
             console.log('✅ Gerenciador de partes inicializado');
         
@@ -931,7 +932,7 @@ let gerenciadorPartesEdicao = null;
             } else {
                 const erro = await response.json();
                 console.error('❌ Erro do servidor:', erro);
-                alert('❌ Erro: ' + (erro.erro || erro.error || 'Erro desconhecido'));
+                alert('❌ Erro: ' + (erro.erro || erro.error || 'Erro desconhecido') + (erro.detalhe ? '\n' + erro.detalhe : ''));
             }
         } catch (err) {
             console.error('❌ Erro ao salvar:', err);
@@ -1293,6 +1294,7 @@ async function editarProcesso(id) {
     gerenciadorPartesEdicao = new GerenciadorPartes('listaPartesAtivoEdicao', 'listaPartesPassivoEdicao', 'gerenciadorPartesEdicao');
     gerenciadorPartesEdicao.contadorAtivoId = 'contadorAtivoEdicao';
     gerenciadorPartesEdicao.contadorPassivoId = 'contadorPassivoEdicao';
+    window.gerenciadorPartesEdicao = gerenciadorPartesEdicao; // expõe para os proxies de data-action
 
     console.log('✅ Gerenciador de partes inicializado');
 
