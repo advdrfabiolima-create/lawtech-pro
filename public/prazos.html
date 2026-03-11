@@ -1045,7 +1045,28 @@
                 <!-- Data Limite -->
                 <div>
                     <label style="font-size: 12px; font-weight: 700; color: var(--muted);">DATA LIMITE (VENCIMENTO)</label>
-                    <input type="date" id="dataPrazo" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-top: 5px;">
+                    <!-- Toggle Data Fixa / Dias Úteis -->
+                    <div style="display:flex; gap:6px; margin-top:6px; margin-bottom:8px;">
+                        <button type="button" id="btnModoFixa" style="flex:1; padding:7px 10px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:2px solid var(--primary); background:var(--primary); color:#fff;">Data Fixa</button>
+                        <button type="button" id="btnModoUteis" style="flex:1; padding:7px 10px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:2px solid #e2e8f0; background:#f8fafc; color:#64748b;">Dias Úteis</button>
+                    </div>
+                    <!-- Modo Data Fixa -->
+                    <div id="secaoDataFixa">
+                        <input type="date" id="dataPrazo" style="width:100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                    <!-- Modo Dias Úteis -->
+                    <div id="secaoDiasUteis" style="display:none;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <input type="number" id="diasUteisQtd" min="1" max="999" placeholder="15" style="width:90px; padding:10px; border:1px solid var(--border); border-radius:8px; text-align:center; font-size:16px; font-weight:600;">
+                            <span style="font-size:13px; color:var(--muted);">dias úteis a partir de hoje</span>
+                        </div>
+                        <div id="dataCalculadaPreview" style="display:none; margin-top:8px; padding:10px 14px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px; font-size:13px; color:#15803d; font-weight:500;">
+                            Vencimento: <span id="dataCalculadaTexto"></span>
+                        </div>
+                        <div id="dataCalculadaErro" style="display:none; margin-top:8px; padding:8px 12px; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; font-size:12px; color:#dc2626;">
+                            Erro ao calcular. Verifique sua conexão.
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Observações -->

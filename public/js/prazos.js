@@ -8,6 +8,9 @@
     let todosPrazos = [];
     let prazoAtualId = null;
     let arquivoPDFTemporario = null;
+    let modoPrazo = 'fixa'; // 'fixa' | 'uteis'
+    let dataCalculadaPorDiasUteis = null; // string YYYY-MM-DD
+    let diasUteisDebounce = null;
 
     // Carregar dados ao iniciar
     document.addEventListener('DOMContentLoaded', async () => {
@@ -29,6 +32,14 @@
         // Listener para input pdfInput (substitui onchange inline)
         const pdfInputEl = document.getElementById('pdfInput');
         if (pdfInputEl) pdfInputEl.addEventListener('change', function() { uploadPDF(); });
+
+        // Listeners para toggle Dias Úteis
+        const btnModoFixaEl = document.getElementById('btnModoFixa');
+        if (btnModoFixaEl) btnModoFixaEl.addEventListener('click', () => setModoPrazo('fixa'));
+        const btnModoUteisEl = document.getElementById('btnModoUteis');
+        if (btnModoUteisEl) btnModoUteisEl.addEventListener('click', () => setModoPrazo('uteis'));
+        const diasUteisEl = document.getElementById('diasUteisQtd');
+        if (diasUteisEl) diasUteisEl.addEventListener('input', atualizarPreviewDiasUteis);
 
     });
 
@@ -389,6 +400,14 @@ function verDetalhesPrazo(texto) {
         document.getElementById('pdfCard').style.display = 'none';
         document.getElementById('uploadArea').style.display = 'block';
 
+        // Reset modo dias úteis
+        setModoPrazo('fixa');
+        const diasUteisEl2 = document.getElementById('diasUteisQtd');
+        if (diasUteisEl2) diasUteisEl2.value = '';
+        const previewEl2 = document.getElementById('dataCalculadaPreview');
+        if (previewEl2) previewEl2.style.display = 'none';
+        dataCalculadaPorDiasUteis = null;
+
         document.getElementById('modalPrazo').style.display = 'flex';
 
         if (typeof lucide !== 'undefined') {
@@ -437,18 +456,123 @@ function verDetalhesPrazo(texto) {
     }
 
     // Fechar modal
-    function fecharModalPrazo() { 
-        document.getElementById('modalPrazo').style.display = 'none'; 
+    function fecharModalPrazo() {
+        document.getElementById('modalPrazo').style.display = 'none';
         document.getElementById('prazoId').value = '';
-        
+
         const selectProcesso = document.getElementById('processoId');
         if (selectProcesso) {
             selectProcesso.disabled = false;
             selectProcesso.style.backgroundColor = "#fff";
         }
-        
+
         arquivoPDFTemporario = null;
         prazoAtualId = null;
+        setModoPrazo('fixa');
+        dataCalculadaPorDiasUteis = null;
+        const diasUteisEl3 = document.getElementById('diasUteisQtd');
+        if (diasUteisEl3) diasUteisEl3.value = '';
+    }
+
+    // Alternar entre modo Data Fixa e Dias Úteis
+    function setModoPrazo(modo) {
+        modoPrazo = modo;
+        const secaoFixa = document.getElementById('secaoDataFixa');
+        const secaoUteis = document.getElementById('secaoDiasUteis');
+        const btnFixa = document.getElementById('btnModoFixa');
+        const btnUteis = document.getElementById('btnModoUteis');
+        if (!secaoFixa || !secaoUteis) return;
+
+        if (modo === 'fixa') {
+            secaoFixa.style.display = 'block';
+            secaoUteis.style.display = 'none';
+            if (btnFixa) { btnFixa.style.background = 'var(--primary)'; btnFixa.style.borderColor = 'var(--primary)'; btnFixa.style.color = '#fff'; }
+            if (btnUteis) { btnUteis.style.background = '#f8fafc'; btnUteis.style.borderColor = '#e2e8f0'; btnUteis.style.color = '#64748b'; }
+        } else {
+            secaoFixa.style.display = 'none';
+            secaoUteis.style.display = 'block';
+            if (btnFixa) { btnFixa.style.background = '#f8fafc'; btnFixa.style.borderColor = '#e2e8f0'; btnFixa.style.color = '#64748b'; }
+            if (btnUteis) { btnUteis.style.background = 'var(--primary)'; btnUteis.style.borderColor = 'var(--primary)'; btnUteis.style.color = '#fff'; }
+            // Recalcular se já tem valor
+            const diasEl = document.getElementById('diasUteisQtd');
+            if (diasEl && diasEl.value) atualizarPreviewDiasUteis();
+        }
+    }
+
+    // Calcular data de vencimento contando dias úteis a partir de hoje
+    async function calcularDataPorDiasUteis(dias) {
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const feriadosSet = new Set();
+
+        // Buscar feriados dos próximos 4 meses (cobre ~65 dias úteis)
+        for (let i = 0; i < 4; i++) {
+            const d = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
+            const mes = d.getMonth() + 1;
+            const ano = d.getFullYear();
+            try {
+                const res = await fetch(`/api/calendario/mensal?mes=${mes}&ano=${ano}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.ok && data.feriados) {
+                    data.feriados.forEach(f => feriadosSet.add(f.data.substring(0, 10)));
+                }
+            } catch (e) { /* ignora falha individual */ }
+        }
+
+        const cursor = new Date(hoje);
+        let count = 0;
+        while (count < dias) {
+            cursor.setDate(cursor.getDate() + 1);
+            const dow = cursor.getDay(); // 0=Dom, 6=Sab
+            if (dow === 0 || dow === 6) continue;
+            const yyyy = cursor.getFullYear();
+            const mm = String(cursor.getMonth() + 1).padStart(2, '0');
+            const dd = String(cursor.getDate()).padStart(2, '0');
+            if (feriadosSet.has(`${yyyy}-${mm}-${dd}`)) continue;
+            count++;
+        }
+        const yyyy = cursor.getFullYear();
+        const mm = String(cursor.getMonth() + 1).padStart(2, '0');
+        const dd = String(cursor.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    }
+
+    // Atualizar preview ao digitar quantidade de dias úteis (com debounce)
+    async function atualizarPreviewDiasUteis() {
+        const diasEl = document.getElementById('diasUteisQtd');
+        const previewEl = document.getElementById('dataCalculadaPreview');
+        const textoEl = document.getElementById('dataCalculadaTexto');
+        const erroEl = document.getElementById('dataCalculadaErro');
+        const dias = parseInt(diasEl.value, 10);
+
+        if (!dias || dias < 1) {
+            previewEl.style.display = 'none';
+            erroEl.style.display = 'none';
+            dataCalculadaPorDiasUteis = null;
+            return;
+        }
+
+        clearTimeout(diasUteisDebounce);
+        diasUteisDebounce = setTimeout(async () => {
+            try {
+                erroEl.style.display = 'none';
+                textoEl.textContent = 'Calculando...';
+                previewEl.style.display = 'block';
+
+                const dateStr = await calcularDataPorDiasUteis(dias);
+                dataCalculadaPorDiasUteis = dateStr;
+                const [yyyy, mm, dd] = dateStr.split('-');
+                textoEl.textContent = `${dd}/${mm}/${yyyy}`;
+                previewEl.style.display = 'block';
+            } catch (e) {
+                console.error('Erro ao calcular dias úteis:', e);
+                previewEl.style.display = 'none';
+                erroEl.style.display = 'block';
+                dataCalculadaPorDiasUteis = null;
+            }
+        }, 400);
     }
 
     // Salvar prazo
@@ -457,11 +581,17 @@ function verDetalhesPrazo(texto) {
         const processoId = document.getElementById('processoId').value;
         const clienteId = document.getElementById('clienteId').value || null;
         const tipo = document.getElementById('tipoPrazo').value.trim();
-        const dataLimite = document.getElementById('dataPrazo').value;
+        const dataLimite = modoPrazo === 'uteis'
+            ? dataCalculadaPorDiasUteis
+            : document.getElementById('dataPrazo').value;
         const descricao = document.getElementById('descricaoPrazo').value.trim();
 
         if (!processoId || !tipo || !dataLimite) {
-            alert('Preencha todos os campos obrigatórios!');
+            if (modoPrazo === 'uteis' && !dataLimite) {
+                alert('Informe a quantidade de dias úteis e aguarde o cálculo.');
+            } else {
+                alert('Preencha todos os campos obrigatórios!');
+            }
             return;
         }
 
