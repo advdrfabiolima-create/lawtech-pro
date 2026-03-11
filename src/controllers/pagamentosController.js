@@ -146,11 +146,12 @@ async function assinarPlano(req, res) {
         const cobranca = cobrancaRes.data;
 
         // [M-3] Registrar boleto para idempotência em chamadas futuras
+        // [C-1] valor em centavos (unidade canônica — igual a Stripe/PIX)
         try {
             await pool.query(
                 `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
                  VALUES ($1, $2, 'asaas', $3, 'boleto_pendente', $4, NOW())`,
-                [escritorioId, cobranca.id, parseFloat(valor), `Boleto - ${nomePlano}`]
+                [escritorioId, cobranca.id, Math.round(parseFloat(valor) * 100), `Boleto - ${nomePlano}`]
             );
         } catch (_) { /* não crítico */ }
 

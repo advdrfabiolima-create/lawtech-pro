@@ -173,24 +173,40 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
 
                 logger.info({ chargeId: charge.id }, 'Estorno Stripe processado');
 
-                // [A-6] Verificar se a transação original existe antes de inserir estorno
-                const estornoResult = await pool.query(`
-                    INSERT INTO transacoes
-                    (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
-                    SELECT
-                        escritorio_id,
-                        $1,
-                        'stripe',
-                        $2,
-                        'estornada',
-                        'Estorno processado',
-                        NOW()
-                    FROM transacoes
-                    WHERE gateway_id = $3
-                    LIMIT 1
-                `, [charge.id, -charge.amount_refunded, paymentIntentId]);
+                // [C-2] Envolver INSERT em transação atômica
+                const clientEstorno = await pool.connect();
+                let estornoRowCount = 0;
+                try {
+                    await clientEstorno.query('BEGIN');
 
-                if (estornoResult.rowCount === 0) {
+                    // [A-6] Verificar se a transação original existe antes de inserir estorno
+                    const estornoResult = await clientEstorno.query(`
+                        INSERT INTO transacoes
+                        (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
+                        SELECT
+                            escritorio_id,
+                            $1,
+                            'stripe',
+                            $2,
+                            'estornada',
+                            'Estorno processado',
+                            NOW()
+                        FROM transacoes
+                        WHERE gateway_id = $3
+                        LIMIT 1
+                    `, [charge.id, -charge.amount_refunded, paymentIntentId]);
+
+                    await clientEstorno.query('COMMIT');
+                    estornoRowCount = estornoResult.rowCount;
+                } catch (estornoErr) {
+                    await clientEstorno.query('ROLLBACK');
+                    logger.error({ err: estornoErr.message, chargeId: charge.id }, 'Erro ao registrar estorno — ROLLBACK');
+                    throw estornoErr;
+                } finally {
+                    clientEstorno.release();
+                }
+
+                if (estornoRowCount === 0) {
                     logger.error({ chargeId: charge.id, paymentIntentId }, 'Estorno: transação original não encontrada — estorno não registrado');
                     registrarAudit({ acao: 'ESTORNO_SEM_ORIGEM', descricao: `Estorno Stripe sem transação original: ${charge.id}`, metadata: { payment_intent: paymentIntentId, valor: charge.amount_refunded } });
                 }
