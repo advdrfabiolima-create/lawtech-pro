@@ -11,8 +11,6 @@ coverage/
 # Banco de dados local
 database.json
 
-# Migrations geradas localmente
-migrations/
 
 # Logs
 *.log
