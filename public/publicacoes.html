@@ -812,7 +812,7 @@
                 </div>
             </div>
 
-            <div class="stat-card red">
+            <div class="stat-card red" id="cardDescartadas" style="cursor:pointer;" title="Clique para ver publicações descartadas">
                 <div class="stat-card-icon">
                     <i data-lucide="trash-2"></i>
                 </div>
@@ -880,6 +880,68 @@
 
 
 
+
+<!-- MODAL CONVERTER EM PRAZO -->
+<div class="modal" id="modalConverterPrazo">
+    <div class="modal-content" style="max-width:500px;">
+        <div class="modal-header">
+            <h3>📅 Converter em Prazo</h3>
+            <button class="btn-close" id="btnFecharModalConverterPrazo"><i data-lucide="x"></i></button>
+        </div>
+        <input type="hidden" id="pubIdConverter">
+        <div style="display:flex; flex-direction:column; gap:14px; margin-top:4px;">
+            <div id="converterPubInfo" style="padding:10px 14px; background:#f8fafc; border-radius:8px; font-size:13px; color:var(--text-secondary); border:1px solid var(--border-subtle);"></div>
+            <div>
+                <label style="font-size:12px; font-weight:700; color:var(--text-tertiary); text-transform:uppercase;">Tipo de Prazo</label>
+                <input id="converterTipo" type="text" placeholder="Ex: Contestação, Recurso, Réplica..." style="width:100%; padding:10px; border:1px solid var(--border-medium); border-radius:8px; margin-top:5px;">
+            </div>
+            <div>
+                <label style="font-size:12px; font-weight:700; color:var(--text-tertiary); text-transform:uppercase;">Data do Vencimento</label>
+                <div style="display:flex; gap:6px; margin-top:6px; margin-bottom:8px;">
+                    <button type="button" id="converterBtnModoFixa" style="flex:1; padding:7px 10px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:2px solid #e2e8f0; background:#f8fafc; color:#64748b;">Data Fixa</button>
+                    <button type="button" id="converterBtnModoUteis" style="flex:1; padding:7px 10px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:2px solid var(--accent-blue); background:var(--accent-blue); color:#fff;">Dias Úteis</button>
+                </div>
+                <div id="converterSecaoFixa" style="display:none;">
+                    <input type="date" id="converterDataFixa" style="width:100%; padding:10px; border:1px solid var(--border-medium); border-radius:8px;">
+                </div>
+                <div id="converterSecaoUteis">
+                    <div style="margin-bottom:8px;">
+                        <label style="font-size:11px; font-weight:600; color:var(--text-tertiary); display:block; margin-bottom:4px;">DATA DA PUBLICAÇÃO NO DJEN</label>
+                        <input type="date" id="converterDataDJEN" style="width:100%; padding:10px; border:1px solid var(--border-medium); border-radius:8px;">
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <input type="number" id="converterDiasUteis" min="1" max="999" placeholder="15" style="width:90px; padding:10px; border:1px solid var(--border-medium); border-radius:8px; text-align:center; font-size:16px; font-weight:600;">
+                        <span style="font-size:13px; color:var(--text-tertiary);">dias úteis após publicação</span>
+                    </div>
+                    <div id="converterPreview" style="display:none; margin-top:8px; padding:10px 14px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px; font-size:13px; color:#15803d; font-weight:500;">
+                        Vencimento: <span id="converterPreviewTexto"></span>
+                    </div>
+                    <div id="converterErro" style="display:none; margin-top:8px; padding:8px 12px; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; font-size:12px; color:#dc2626;">
+                        Erro ao calcular. Verifique sua conexão.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="margin-top:24px; display:flex; gap:10px; justify-content:flex-end;">
+            <button class="btn btn-primary" id="btnSalvarConversao"><i data-lucide="calendar-plus" style="width:15px;height:15px;"></i> Criar Prazo</button>
+            <button class="btn btn-secondary" id="btnCancelarConversao">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DESCARTADAS -->
+<div class="modal" id="modalDescartadas">
+    <div class="modal-content" style="max-width:680px;">
+        <div class="modal-header">
+            <h3>🗑️ Publicações Descartadas <span style="font-size:13px; font-weight:400; color:var(--text-tertiary);">(últimas 10)</span></h3>
+            <button class="btn-close" id="btnFecharModalDescartadas"><i data-lucide="x"></i></button>
+        </div>
+        <p style="font-size:12px; color:var(--text-tertiary); margin-bottom:16px;">As publicações mais antigas são removidas automaticamente quando o limite de 10 é ultrapassado.</p>
+        <div id="descartadasLista" style="display:flex; flex-direction:column; gap:10px;">
+            <p style="color:var(--text-tertiary); text-align:center; padding:20px;">Carregando...</p>
+        </div>
+    </div>
+</div>
 
     <script src="mobile.js"></script>
     <script src="/js/api.js"></script>

@@ -3,6 +3,9 @@ if (!API.getToken()) window.location.href = '/login.html';
 
 let publicacoes = [];
 let modalPubId = null;
+let converterModo = 'uteis'; // 'fixa' | 'uteis'
+let converterDataCalculada = null; // string YYYY-MM-DD
+let converterDebounce = null;
 
 // USER MENU
 function toggleUserMenu() {
@@ -528,49 +531,177 @@ function fecharModal() {
     document.getElementById('modalDetalhes').classList.remove('show');
 }
 
-// CONVERTER PRAZO
-async function converterPrazo(id) {
+// CONVERTER PRAZO — abre modal rico
+function converterPrazo(id) {
     const pub = publicacoes.find(p => p.id === id);
     if (!pub) return;
 
-    const tipo = prompt('Tipo de prazo (ex: Recurso, Contestação, Réplica):', 'Recurso');
-    if (!tipo) return;
+    document.getElementById('pubIdConverter').value = id;
 
-    const dias = prompt('Quantidade de dias úteis:', '15');
-    if (!dias || isNaN(dias)) {
-        alert('Quantidade de dias inválida!');
+    // Info da publicação
+    const dataFormatada = new Date(pub.data_publicacao).toLocaleDateString('pt-BR');
+    document.getElementById('converterPubInfo').innerHTML =
+        `<strong>${esc(pub.numero_processo)}</strong> &nbsp;·&nbsp; ${esc(mapearTribunal(pub.tribunal))} &nbsp;·&nbsp; Publicado em ${dataFormatada}`;
+
+    // Pré-preencher Data DJEN com a data da publicação
+    const dataDJEN = pub.data_publicacao ? pub.data_publicacao.substring(0, 10) : '';
+    document.getElementById('converterDataDJEN').value = dataDJEN;
+
+    // Reset estado
+    document.getElementById('converterTipo').value = '';
+    document.getElementById('converterDiasUteis').value = '';
+    document.getElementById('converterDataFixa').value = '';
+    document.getElementById('converterPreview').style.display = 'none';
+    document.getElementById('converterErro').style.display = 'none';
+    converterDataCalculada = null;
+
+    // Default: Dias Úteis
+    setConverterModo('uteis');
+
+    document.getElementById('modalConverterPrazo').classList.add('show');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+// TOGGLE modo do converter
+function setConverterModo(modo) {
+    converterModo = modo;
+    const secaoFixa = document.getElementById('converterSecaoFixa');
+    const secaoUteis = document.getElementById('converterSecaoUteis');
+    const btnFixa = document.getElementById('converterBtnModoFixa');
+    const btnUteis = document.getElementById('converterBtnModoUteis');
+    if (!secaoFixa) return;
+
+    if (modo === 'fixa') {
+        secaoFixa.style.display = 'block';
+        secaoUteis.style.display = 'none';
+        btnFixa.style.cssText += ';background:var(--accent-blue);border-color:var(--accent-blue);color:#fff;';
+        btnUteis.style.cssText += ';background:#f8fafc;border-color:#e2e8f0;color:#64748b;';
+    } else {
+        secaoFixa.style.display = 'none';
+        secaoUteis.style.display = 'block';
+        btnFixa.style.cssText += ';background:#f8fafc;border-color:#e2e8f0;color:#64748b;';
+        btnUteis.style.cssText += ';background:var(--accent-blue);border-color:var(--accent-blue);color:#fff;';
+        const diasEl = document.getElementById('converterDiasUteis');
+        if (diasEl && diasEl.value) atualizarPreviewConverter();
+    }
+}
+
+// CALCULAR DATA POR DIAS ÚTEIS (busca feriados do /api/calendario/mensal)
+async function calcularDataPorDiasUteis(dias, dataBase) {
+    const token = API.getToken();
+    const inicio = dataBase ? new Date(dataBase + 'T12:00:00') : new Date();
+    inicio.setHours(0, 0, 0, 0);
+    const feriadosSet = new Set();
+
+    for (let i = 0; i < 4; i++) {
+        const d = new Date(inicio.getFullYear(), inicio.getMonth() + i, 1);
+        const mes = d.getMonth() + 1;
+        const ano = d.getFullYear();
+        try {
+            const res = await fetch(`/api/calendario/mensal?mes=${mes}&ano=${ano}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.ok && data.feriados) {
+                data.feriados.forEach(f => feriadosSet.add(f.data.substring(0, 10)));
+            }
+        } catch (e) { /* ignora falha individual */ }
+    }
+
+    const cursor = new Date(inicio);
+    let count = 0;
+    while (count < dias) {
+        cursor.setDate(cursor.getDate() + 1);
+        const dow = cursor.getDay();
+        if (dow === 0 || dow === 6) continue;
+        const yyyy = cursor.getFullYear();
+        const mm = String(cursor.getMonth() + 1).padStart(2, '0');
+        const dd = String(cursor.getDate()).padStart(2, '0');
+        if (feriadosSet.has(`${yyyy}-${mm}-${dd}`)) continue;
+        count++;
+    }
+    const yyyy = cursor.getFullYear();
+    const mm = String(cursor.getMonth() + 1).padStart(2, '0');
+    const dd = String(cursor.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+// ATUALIZAR PREVIEW DO CONVERTER (debounced)
+async function atualizarPreviewConverter() {
+    const diasEl = document.getElementById('converterDiasUteis');
+    const djenEl = document.getElementById('converterDataDJEN');
+    const previewEl = document.getElementById('converterPreview');
+    const textoEl = document.getElementById('converterPreviewTexto');
+    const erroEl = document.getElementById('converterErro');
+    const dias = parseInt(diasEl.value, 10);
+    const dataDJEN = djenEl ? djenEl.value : '';
+
+    if (!dataDJEN || !dias || dias < 1) {
+        previewEl.style.display = 'none';
+        erroEl.style.display = 'none';
+        converterDataCalculada = null;
         return;
     }
 
-    const hoje = new Date();
-    let diasAdicionados = 0;
-    let dataLimite = new Date(hoje);
+    clearTimeout(converterDebounce);
+    converterDebounce = setTimeout(async () => {
+        try {
+            erroEl.style.display = 'none';
+            textoEl.textContent = 'Calculando...';
+            previewEl.style.display = 'block';
 
-    while (diasAdicionados < parseInt(dias)) {
-        dataLimite.setDate(dataLimite.getDate() + 1);
-        const diaSemana = dataLimite.getDay();
-        if (diaSemana !== 0 && diaSemana !== 6) {
-            diasAdicionados++;
+            const dateStr = await calcularDataPorDiasUteis(dias, dataDJEN);
+            converterDataCalculada = dateStr;
+            const [yyyy, mm, dd] = dateStr.split('-');
+            textoEl.textContent = `${dd}/${mm}/${yyyy}`;
+            previewEl.style.display = 'block';
+        } catch (e) {
+            previewEl.style.display = 'none';
+            erroEl.style.display = 'block';
+            converterDataCalculada = null;
         }
+    }, 400);
+}
+
+// SALVAR CONVERSÃO (submit do modal)
+async function salvarConversaoPrazo() {
+    const id = parseInt(document.getElementById('pubIdConverter').value, 10);
+    const tipo = document.getElementById('converterTipo').value.trim();
+
+    let dataFinal = null;
+    let diasFinal = null;
+
+    if (converterModo === 'fixa') {
+        dataFinal = document.getElementById('converterDataFixa').value;
+        if (!dataFinal) { alert('Informe a data fixa de vencimento.'); return; }
+    } else {
+        dataFinal = converterDataCalculada;
+        diasFinal = parseInt(document.getElementById('converterDiasUteis').value, 10) || null;
+        if (!document.getElementById('converterDataDJEN').value) { alert('Informe a data de publicação no DJEN.'); return; }
+        if (!dataFinal) { alert('Informe a quantidade de dias úteis e aguarde o cálculo.'); return; }
     }
 
-    const dataCalculada = dataLimite.toISOString().split('T')[0];
-
-    if (!confirm(`Criar prazo de ${tipo} com ${dias} dias úteis?\nData limite: ${new Date(dataCalculada).toLocaleDateString('pt-BR')}`)) {
-        return;
-    }
+    if (!tipo) { alert('Informe o tipo de prazo.'); return; }
 
     try {
+        const btnSalvar = document.getElementById('btnSalvarConversao');
+        btnSalvar.disabled = true;
+        btnSalvar.textContent = 'Salvando...';
+
         const res = await API.post('/api/converter-publicacao', {
             id_publicacao: id,
             tipo,
-            dias: parseInt(dias),
-            dataCalculada
+            dias: diasFinal,
+            dataCalculada: dataFinal
         });
-
         const data = await res.json();
 
+        btnSalvar.disabled = false;
+        btnSalvar.innerHTML = '<i data-lucide="calendar-plus" style="width:15px;height:15px;"></i> Criar Prazo';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
         if (data.ok) {
+            document.getElementById('modalConverterPrazo').classList.remove('show');
             alert('Prazo criado com sucesso!');
             await carregarPublicacoes();
         } else {
@@ -578,6 +709,61 @@ async function converterPrazo(id) {
         }
     } catch (err) {
         console.error('Erro:', err);
+        alert('Erro de conexão');
+        document.getElementById('btnSalvarConversao').disabled = false;
+    }
+}
+
+// ABRIR MODAL DE DESCARTADAS
+async function abrirDescartadas() {
+    const lista = document.getElementById('descartadasLista');
+    lista.innerHTML = '<p style="color:var(--text-tertiary); text-align:center; padding:20px;">Carregando...</p>';
+    document.getElementById('modalDescartadas').classList.add('show');
+
+    try {
+        const res = await API.get('/api/publicacoes-descartadas');
+        const data = await res.json();
+        const itens = data.data || [];
+
+        if (itens.length === 0) {
+            lista.innerHTML = '<div class="empty-state" style="padding:30px;"><p style="font-size:14px;">Nenhuma publicação descartada.</p></div>';
+            return;
+        }
+
+        lista.innerHTML = itens.map(p => {
+            const dataFmt = new Date(p.data_publicacao).toLocaleDateString('pt-BR');
+            const snippetRaw = (p.conteudo || '').replace(/\s+/g, ' ').trim();
+            const snippet = esc(snippetRaw.length > 100 ? snippetRaw.substring(0, 100) + '…' : snippetRaw);
+            return `<div style="padding:12px 14px; border:1px solid #fecaca; border-left:3px solid #ef4444; border-radius:8px; background:#fff;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <span style="font-family:monospace; font-weight:700; color:var(--accent-blue); font-size:12px;">${esc(p.numero_processo)}</span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-size:11px; color:var(--text-tertiary);">${dataFmt}</span>
+                        <button class="btn-card" style="padding:4px 10px; font-size:11px;" data-action="restaurarDescartada" data-id="${p.id}">Restaurar</button>
+                    </div>
+                </div>
+                <p style="font-size:11px; color:var(--text-secondary); margin:0;">${snippet}</p>
+            </div>`;
+        }).join('');
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    } catch (err) {
+        lista.innerHTML = '<p style="color:#dc2626; text-align:center; padding:20px;">Erro ao carregar descartadas.</p>';
+    }
+}
+
+// RESTAURAR PUBLICAÇÃO DESCARTADA
+async function restaurarDescartada(id) {
+    try {
+        const res = await API.patch(`/api/publicacoes/${id}/status`, { status: 'pendente' });
+        const data = await res.json();
+        if (data.ok || res.ok) {
+            await carregarPublicacoes();
+            await abrirDescartadas(); // reload lista
+        } else {
+            alert('Erro ao restaurar: ' + (data.erro || ''));
+        }
+    } catch (err) {
         alert('Erro de conexão');
     }
 }
@@ -646,6 +832,26 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('linkLogout').addEventListener('click', (e) => { e.preventDefault(); logout(); });
     document.getElementById('btnSincronizar').addEventListener('click', sincronizar);
     document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
+
+    // Modal Converter Prazo
+    document.getElementById('btnFecharModalConverterPrazo').addEventListener('click', () => document.getElementById('modalConverterPrazo').classList.remove('show'));
+    document.getElementById('btnCancelarConversao').addEventListener('click', () => document.getElementById('modalConverterPrazo').classList.remove('show'));
+    document.getElementById('btnSalvarConversao').addEventListener('click', salvarConversaoPrazo);
+    document.getElementById('converterBtnModoFixa').addEventListener('click', () => setConverterModo('fixa'));
+    document.getElementById('converterBtnModoUteis').addEventListener('click', () => setConverterModo('uteis'));
+    document.getElementById('converterDiasUteis').addEventListener('input', atualizarPreviewConverter);
+    document.getElementById('converterDataDJEN').addEventListener('change', atualizarPreviewConverter);
+
+    // Modal Descartadas
+    document.getElementById('btnFecharModalDescartadas').addEventListener('click', () => document.getElementById('modalDescartadas').classList.remove('show'));
+    document.getElementById('cardDescartadas').addEventListener('click', abrirDescartadas);
+
+    // Delegação para botão "Restaurar" dentro do modal descartadas
+    document.getElementById('modalDescartadas').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        if (btn.dataset.action === 'restaurarDescartada') restaurarDescartada(parseInt(btn.dataset.id, 10));
+    });
 
     // EVENT DELEGATION — cards e modal (substitui todos os onclick inline, proibidos pela CSP)
     document.getElementById('cardsContainer').addEventListener('click', (e) => {

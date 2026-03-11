@@ -248,7 +248,7 @@ router.post('/converter-publicacao', authMiddleware, roleMiddleware('admin', 'op
                 tipo,
                 processoId,
                 clienteId,
-                `Processo: ${pub.numero_processo} | Prazo: ${dias} dias úteis | Gerado de publicação DJEN em ${pub.data_publicacao}`,
+                `Processo: ${pub.numero_processo} | ${dias ? `Prazo: ${dias} dias úteis | ` : ''}Gerado de publicação DJEN em ${pub.data_publicacao}`,
                 dataCalculada,
                 escritorioId,
                 usuarioId
@@ -351,6 +351,21 @@ router.patch('/publicacoes/:id/status', authMiddleware, roleMiddleware('admin', 
 
         logger.info({ id, status }, 'Status de publicacao atualizado com sucesso');
 
+        // Manter apenas as 10 últimas descartadas — remover as mais antigas
+        if (status === 'descartada') {
+            await pool.query(`
+                DELETE FROM publicacoes
+                WHERE escritorio_id = $1
+                  AND status = 'descartada'
+                  AND id NOT IN (
+                    SELECT id FROM publicacoes
+                    WHERE escritorio_id = $1 AND status = 'descartada'
+                    ORDER BY data_publicacao DESC
+                    LIMIT 10
+                  )
+            `, [escritorioId]);
+        }
+
         res.json({
             ok: true,
             publicacao: result.rows[0]
@@ -363,6 +378,28 @@ router.patch('/publicacoes/:id/status', authMiddleware, roleMiddleware('admin', 
             erro: 'Erro ao atualizar status',
             detalhe: err.message
         });
+    }
+});
+
+/**
+ * ============================================================
+ * 🗑️ LISTAR PUBLICAÇÕES DESCARTADAS (últimas 10)
+ * ============================================================
+ */
+router.get('/publicacoes-descartadas', authMiddleware, async (req, res) => {
+    try {
+        const escritorioId = req.user.escritorio_id;
+        const result = await pool.query(`
+            SELECT id, numero_processo, conteudo, data_publicacao, tribunal, status
+            FROM publicacoes
+            WHERE escritorio_id = $1 AND status = 'descartada'
+            ORDER BY data_publicacao DESC
+            LIMIT 10
+        `, [escritorioId]);
+        res.json({ ok: true, data: result.rows });
+    } catch (err) {
+        logger.error({ err: err.message }, 'Erro ao buscar descartadas');
+        res.status(500).json({ ok: false, erro: 'Erro ao buscar publicações descartadas' });
     }
 });
 
