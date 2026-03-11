@@ -8,8 +8,6 @@ src/uploads/
 # Cobertura de testes
 coverage/
 
-# Banco de dados local
-database.json
 
 
 # Logs
