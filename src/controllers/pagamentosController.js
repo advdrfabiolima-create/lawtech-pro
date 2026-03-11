@@ -163,9 +163,9 @@ async function assinarPlano(req, res) {
         // [C-1] valor em centavos (unidade canônica — igual a Stripe/PIX)
         try {
             await pool.query(
-                `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
-                 VALUES ($1, $2, 'asaas', $3, 'boleto_pendente', $4, NOW())`,
-                [escritorioId, cobranca.id, Math.round(parseFloat(valor) * 100), `Boleto - ${nomePlano}`]
+                `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, descricao, plano_id, created_at)
+                 VALUES ($1, $2, 'asaas', $3, 'boleto_pendente', $4, $5, NOW())`,
+                [escritorioId, cobranca.id, Math.round(parseFloat(valor) * 100), `Boleto - ${nomePlano}`, planoId]
             );
         } catch (_) { /* não crítico */ }
 
@@ -389,9 +389,10 @@ async function cobrarRenovacao(req, res) {
         const escritorioId = req.user.escritorio_id;
 
         const planoCheck = await pool.query(
-            `SELECT p.preco_mensal FROM escritorios e JOIN planos p ON e.plano_id = p.id WHERE e.id = $1`,
+            `SELECT e.plano_id, p.preco_mensal FROM escritorios e JOIN planos p ON e.plano_id = p.id WHERE e.id = $1`,
             [escritorioId]
         );
+        const planoIdRenovacao = planoCheck.rows[0]?.plano_id || null;
         if (planoCheck.rows.length > 0) {
             const precoReal = parseFloat(planoCheck.rows[0].preco_mensal);
             // [M-4] Valor esperado em centavos (unidade canônica para gateways).
@@ -423,8 +424,8 @@ async function cobrarRenovacao(req, res) {
 
         if (cobranca.sucesso) {
             await pool.query(
-                `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at) VALUES ($1, $2, $3, $4, 'aprovada', $5, NOW())`,
-                [escritorioId, cobranca.id, gateway, valor, descricao]
+                `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, descricao, plano_id, created_at) VALUES ($1, $2, $3, $4, 'aprovada', $5, $6, NOW())`,
+                [escritorioId, cobranca.id, gateway, valor, descricao, planoIdRenovacao]
             );
             await pool.query(
                 `UPDATE escritorios SET plano_financeiro_status = 'pago', ultimo_pagamento = NOW(), proxima_cobranca = NOW() + INTERVAL '1 month' WHERE id = $1`,
@@ -433,8 +434,8 @@ async function cobrarRenovacao(req, res) {
             return res.json({ ok: true, mensagem: 'Pagamento processado com sucesso!', transacao_id: cobranca.id });
         } else {
             await pool.query(
-                `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, mensagem_erro, descricao, created_at) VALUES ($1, $2, $3, $4, 'recusada', $5, $6, NOW())`,
-                [escritorioId, cobranca.id || null, gateway, valor, cobranca.erro, descricao]
+                `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, mensagem_erro, descricao, plano_id, created_at) VALUES ($1, $2, $3, $4, 'recusada', $5, $6, $7, NOW())`,
+                [escritorioId, cobranca.id || null, gateway, valor, cobranca.erro, descricao, planoIdRenovacao]
             );
             return res.status(402).json({ erro: 'Pagamento recusado', motivo: cobranca.erro });
         }

@@ -63,11 +63,13 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                             WHERE id = $1
                         `, [escritorioId]);
 
+                        const planoIdSucceeded = paymentIntent.metadata?.plano_id
+                            ? parseInt(paymentIntent.metadata.plano_id, 10) : null;
                         await client.query(`
                             INSERT INTO transacoes
-                            (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
-                            VALUES ($1, $2, 'stripe', $3, 'aprovada', 'Pagamento aprovado', NOW())
-                        `, [escritorioId, paymentIntent.id, paymentIntent.amount]);
+                            (escritorio_id, gateway_id, gateway, valor, status, descricao, plano_id, created_at)
+                            VALUES ($1, $2, 'stripe', $3, 'aprovada', 'Pagamento aprovado', $4, NOW())
+                        `, [escritorioId, paymentIntent.id, paymentIntent.amount, planoIdSucceeded]);
 
                         await client.query('COMMIT');
                         // [A-4] Invalidar cache após pagamento confirmado
@@ -146,22 +148,47 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                 logger.info({ paymentIntentId: paymentIntent.id }, 'Pagamento Stripe recusado');
 
                 if (escritorioId) {
-                    await pool.query(`
-                        UPDATE escritorios 
-                        SET plano_financeiro_status = 'inadimplente'
-                        WHERE id = $1
-                    `, [escritorioId]);
+                    // [M-2] Transação atômica + idempotência via gateway_id UNIQUE
+                    const clientFailed = await pool.connect();
+                    try {
+                        await clientFailed.query('BEGIN');
 
-                    const erro = paymentIntent.last_payment_error?.message || 'Erro desconhecido';
+                        // Idempotência: se já registrado, ignorar silenciosamente
+                        const jaExiste = await clientFailed.query(
+                            'SELECT id FROM transacoes WHERE gateway_id = $1',
+                            [paymentIntent.id]
+                        );
+                        if (jaExiste.rows.length > 0) {
+                            await clientFailed.query('ROLLBACK');
+                            logger.info({ paymentIntentId: paymentIntent.id }, 'payment_failed ja registrado — ignorando');
+                            break;
+                        }
 
-                    await pool.query(`
-                        INSERT INTO transacoes 
-                        (escritorio_id, gateway_id, gateway, valor, status, mensagem_erro, descricao, created_at)
-                        VALUES ($1, $2, 'stripe', $3, 'recusada', $4, 'Tentativa de pagamento', NOW())
-                    `, [escritorioId, paymentIntent.id, paymentIntent.amount, erro]);
+                        const erro = paymentIntent.last_payment_error?.message || 'Erro desconhecido';
+                        const planoId = paymentIntent.metadata?.plano_id ? parseInt(paymentIntent.metadata.plano_id, 10) : null;
 
-                    logger.info({ escritorioId }, 'Escritorio marcado como INADIMPLENTE');
-                    registrarAudit({ escritorio_id: parseInt(escritorioId), acao: 'PAGAMENTO_RECUSADO', descricao: `Pagamento Stripe recusado: ${paymentIntent.id}`, metadata: { gateway: 'stripe', erro: paymentIntent.last_payment_error?.message } });
+                        await clientFailed.query(`
+                            UPDATE escritorios
+                            SET plano_financeiro_status = 'inadimplente'
+                            WHERE id = $1
+                        `, [escritorioId]);
+
+                        await clientFailed.query(`
+                            INSERT INTO transacoes
+                            (escritorio_id, gateway_id, gateway, valor, status, mensagem_erro, descricao, plano_id, created_at)
+                            VALUES ($1, $2, 'stripe', $3, 'recusada', $4, 'Tentativa de pagamento', $5, NOW())
+                        `, [escritorioId, paymentIntent.id, paymentIntent.amount, erro, planoId]);
+
+                        await clientFailed.query('COMMIT');
+                        logger.info({ escritorioId }, 'Escritorio marcado como INADIMPLENTE');
+                        registrarAudit({ escritorio_id: parseInt(escritorioId), acao: 'PAGAMENTO_RECUSADO', descricao: `Pagamento Stripe recusado: ${paymentIntent.id}`, metadata: { gateway: 'stripe', erro: paymentIntent.last_payment_error?.message } });
+                    } catch (failedErr) {
+                        await clientFailed.query('ROLLBACK');
+                        logger.error({ err: failedErr.message }, 'Erro ao registrar pagamento recusado — ROLLBACK');
+                        throw failedErr;
+                    } finally {
+                        clientFailed.release();
+                    }
                 }
                 break;
             }
@@ -180,9 +207,10 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                     await clientEstorno.query('BEGIN');
 
                     // [A-6] Verificar se a transação original existe antes de inserir estorno
+                    // [M-3] Herdar plano_id da transação original
                     const estornoResult = await clientEstorno.query(`
                         INSERT INTO transacoes
-                        (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
+                        (escritorio_id, gateway_id, gateway, valor, status, descricao, plano_id, created_at)
                         SELECT
                             escritorio_id,
                             $1,
@@ -190,6 +218,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
                             $2,
                             'estornada',
                             'Estorno processado',
+                            plano_id,
                             NOW()
                         FROM transacoes
                         WHERE gateway_id = $3

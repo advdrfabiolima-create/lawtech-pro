@@ -19,16 +19,21 @@ async function invalidarCacheEscritorio(escritorioId) {
 
 /* [OK] CORREÇÃO 1: Cobra NO DIA que expira (não 1 dia antes) */
 cron.schedule('0 6 * * *', async () => {
+    // [M-1] Conexão dedicada para advisory lock — acquire e release na mesma sessão PG
+    let lockClient = null;
     let cronLockAtivo = false;
     try {
-        const { rows: lr } = await pool.query('SELECT pg_try_advisory_lock($1) as locked', [1001]);
+        lockClient = await pool.connect();
+        const { rows: lr } = await lockClient.query('SELECT pg_try_advisory_lock($1) as locked', [1001]);
         cronLockAtivo = lr[0].locked;
     } catch (lockErr) {
         logger.error({ err: lockErr.message }, '[CRON TRIAL] Erro ao adquirir lock');
+        if (lockClient) lockClient.release();
         return;
     }
     if (!cronLockAtivo) {
         logger.info('[CRON TRIAL] Outra instância já em execução — pulando.');
+        lockClient.release();
         return;
     }
 
@@ -166,9 +171,9 @@ cron.schedule('0 6 * * *', async () => {
                         `, [esc.id]);
                         await client.query(`
                             INSERT INTO transacoes
-                            (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
-                            VALUES ($1, $2, $3, $4, 'aprovada', $5, NOW())
-                        `, [esc.id, cobranca.transacaoId, esc.gateway, valorCentavos, `Primeira cobrança - ${esc.plano_nome}`]);
+                            (escritorio_id, gateway_id, gateway, valor, status, descricao, plano_id, created_at)
+                            VALUES ($1, $2, $3, $4, 'aprovada', $5, $6, NOW())
+                        `, [esc.id, cobranca.transacaoId, esc.gateway, valorCentavos, `Primeira cobrança - ${esc.plano_nome}`, esc.plano_id]);
                         await client.query('COMMIT');
                         await invalidarCacheEscritorio(esc.id);
                         logger.info(`[OK] APROVADO! ID: ${cobranca.transacaoId}`);
@@ -257,9 +262,9 @@ cron.schedule('0 6 * * *', async () => {
                 // Registrar transação imediatamente — garante idempotência em caso de crash
                 await pool.query(
                     `INSERT INTO transacoes
-                     (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
-                     VALUES ($1, $2, 'asaas', $3, 'pix_pendente', $4, NOW())`,
-                    [esc.id, cobrancaId, parseFloat(esc.preco_mensal), `PIX Trial - ${esc.plano_nome}`]
+                     (escritorio_id, gateway_id, gateway, valor, status, descricao, plano_id, created_at)
+                     VALUES ($1, $2, 'asaas', $3, 'pix_pendente', $4, $5, NOW())`,
+                    [esc.id, cobrancaId, parseFloat(esc.preco_mensal), `PIX Trial - ${esc.plano_nome}`, esc.plano_id]
                 );
 
                 // Buscar QR Code
@@ -306,7 +311,8 @@ cron.schedule('0 6 * * *', async () => {
     } catch (err) {
         logger.error(`[ERRO] [CRON] Erro: ${err}`);
     } finally {
-        if (cronLockAtivo) await pool.query('SELECT pg_advisory_unlock($1)', [1001]).catch(() => {});
+        if (cronLockAtivo) await lockClient.query('SELECT pg_advisory_unlock($1)', [1001]).catch(() => {});
+        lockClient.release();
     }
 });
 

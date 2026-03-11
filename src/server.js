@@ -497,15 +497,13 @@ require('./cron/cobrancasTrial');
 require('./cron/cobrancasRecorrentes');
 require('./cron/djen_scraper_cron');
 require('./cron/crmFollowup');
-// require('./cron/auditoriaStripeCron'); // Desativado: coluna stripe_customer_id não existe ainda
+require('./cron/auditoriaStripeCron'); // [M-5] Reativado: stripe_customer_id adicionado em migration 004
 
 (async function iniciarSistema() {
     try {
         logger.info('Conectando ao Neon e validando acesso master...');
 
-        // Garantir que a coluna is_master exista (necessário antes do upsert abaixo)
-        await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS is_master BOOLEAN DEFAULT false`);
-
+        // Nota: is_master já garantida pela migration 001 (ifNotExists)
         const masterEmail = process.env.MASTER_EMAIL;
         const masterPassword = process.env.MASTER_PASSWORD;
         if (!masterEmail || !masterPassword) {
@@ -541,22 +539,7 @@ require('./cron/crmFollowup');
             logger.warn({ err: migrErr.message }, '[SISTEMA] Migração clicksign_api_key (sem ENCRYPTION_KEY?)');
         }
 
-        // Tabela para histórico do bot WhatsApp
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS whatsapp_conversas (
-                id              SERIAL PRIMARY KEY,
-                escritorio_id   INTEGER NOT NULL,
-                telefone        VARCHAR(30) NOT NULL,
-                lead_id         INTEGER REFERENCES leads(id) ON DELETE SET NULL,
-                mensagens       JSONB DEFAULT '[]',
-                status          VARCHAR(20) DEFAULT 'bot',
-                nome_contato    VARCHAR(200),
-                criado_em       TIMESTAMPTZ DEFAULT NOW(),
-                atualizado_em   TIMESTAMPTZ DEFAULT NOW(),
-                UNIQUE(escritorio_id, telefone)
-            )
-        `);
-        logger.info('✅ [SISTEMA] Tabela whatsapp_conversas verificada.');
+        // Nota: whatsapp_conversas criada pela migration 004 (ifNotExists)
 
         iniciarAgendamentos();
 

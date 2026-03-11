@@ -29,16 +29,21 @@ async function invalidarCacheEscritorio(escritorioId) {
 ===================================================== */
 
 cron.schedule('0 8 * * *', async () => {
+    // [M-1] Conexão dedicada para advisory lock
+    let lockClient = null;
     let cronLockAtivo = false;
     try {
-        const { rows: lr } = await pool.query('SELECT pg_try_advisory_lock($1) as locked', [1002]);
+        lockClient = await pool.connect();
+        const { rows: lr } = await lockClient.query('SELECT pg_try_advisory_lock($1) as locked', [1002]);
         cronLockAtivo = lr[0].locked;
     } catch (lockErr) {
         logger.error({ err: lockErr.message }, '[CRON RECORRENTE] Erro ao adquirir lock');
+        if (lockClient) lockClient.release();
         return;
     }
     if (!cronLockAtivo) {
         logger.info('[CRON RECORRENTE] Outra instância já em execução — pulando.');
+        lockClient.release();
         return;
     }
 
@@ -175,14 +180,15 @@ cron.schedule('0 8 * * *', async () => {
 
                         await client.query(`
                             INSERT INTO transacoes
-                            (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
-                            VALUES ($1, $2, $3, $4, 'aprovada', $5, NOW())
+                            (escritorio_id, gateway_id, gateway, valor, status, descricao, plano_id, created_at)
+                            VALUES ($1, $2, $3, $4, 'aprovada', $5, $6, NOW())
                         `, [
                             escritorio.id,
                             cobranca.transacaoId,
                             escritorio.gateway,
                             valorEmCentavos,
-                            `Renovação mensal - ${escritorio.plano_nome}`
+                            `Renovação mensal - ${escritorio.plano_nome}`,
+                            escritorio.plano_id
                         ]);
 
                         await client.query('COMMIT');
@@ -203,15 +209,16 @@ cron.schedule('0 8 * * *', async () => {
 
                         await client.query(`
                             INSERT INTO transacoes
-                            (escritorio_id, gateway_id, gateway, valor, status, mensagem_erro, descricao, created_at)
-                            VALUES ($1, $2, $3, $4, 'recusada', $5, $6, NOW())
+                            (escritorio_id, gateway_id, gateway, valor, status, mensagem_erro, descricao, plano_id, created_at)
+                            VALUES ($1, $2, $3, $4, 'recusada', $5, $6, $7, NOW())
                         `, [
                             escritorio.id,
                             cobranca.transacaoId || null,
                             escritorio.gateway,
                             valorEmCentavos,
                             cobranca.erro,
-                            `Tentativa de renovação - ${escritorio.plano_nome}`
+                            `Tentativa de renovação - ${escritorio.plano_nome}`,
+                            escritorio.plano_id
                         ]);
 
                         await client.query('COMMIT');
@@ -259,7 +266,8 @@ cron.schedule('0 8 * * *', async () => {
     } catch (err) {
         logger.error(`[ERRO] [CRON RECORRENTE] Erro geral: ${err}`);
     } finally {
-        if (cronLockAtivo) await pool.query('SELECT pg_advisory_unlock($1)', [1002]).catch(() => {});
+        if (cronLockAtivo) await lockClient.query('SELECT pg_advisory_unlock($1)', [1002]).catch(() => {});
+        lockClient.release();
     }
 });
 
@@ -343,16 +351,21 @@ cron.schedule('0 10 * * *', async () => {
 ===================================================== */
 
 cron.schedule('0 14 * * *', async () => {
+    // [M-1] Conexão dedicada para advisory lock
+    let lockClient = null;
     let cronLockAtivo = false;
     try {
-        const { rows: lr } = await pool.query('SELECT pg_try_advisory_lock($1) as locked', [1003]);
+        lockClient = await pool.connect();
+        const { rows: lr } = await lockClient.query('SELECT pg_try_advisory_lock($1) as locked', [1003]);
         cronLockAtivo = lr[0].locked;
     } catch (lockErr) {
         logger.error({ err: lockErr.message }, '[CRON RETRY] Erro ao adquirir lock');
+        if (lockClient) lockClient.release();
         return;
     }
     if (!cronLockAtivo) {
         logger.info('[CRON RETRY] Outra instância já em execução — pulando.');
+        lockClient.release();
         return;
     }
 
@@ -451,9 +464,9 @@ cron.schedule('0 14 * * *', async () => {
 
                     await client.query(`
                         INSERT INTO transacoes
-                        (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
-                        VALUES ($1, $2, $3, $4, 'aprovada', $5, NOW())
-                    `, [esc.id, cobranca.transacaoId, esc.gateway, valorEmCentavos, `Retry bem-sucedido - ${esc.plano_nome}`]);
+                        (escritorio_id, gateway_id, gateway, valor, status, descricao, plano_id, created_at)
+                        VALUES ($1, $2, $3, $4, 'aprovada', $5, $6, NOW())
+                    `, [esc.id, cobranca.transacaoId, esc.gateway, valorEmCentavos, `Retry bem-sucedido - ${esc.plano_nome}`, esc.plano_id]);
 
                     await client.query('COMMIT');
                     await invalidarCacheEscritorio(esc.id);
@@ -477,15 +490,16 @@ cron.schedule('0 14 * * *', async () => {
 
                         await client.query(`
                             INSERT INTO transacoes
-                            (escritorio_id, gateway_id, gateway, valor, status, mensagem_erro, descricao, created_at)
-                            VALUES ($1, $2, $3, $4, 'recusada', $5, $6, NOW())
+                            (escritorio_id, gateway_id, gateway, valor, status, mensagem_erro, descricao, plano_id, created_at)
+                            VALUES ($1, $2, $3, $4, 'recusada', $5, $6, $7, NOW())
                         `, [
                             esc.id,
                             cobranca.transacaoId || null,
                             esc.gateway,
                             valorEmCentavos,
                             cobranca.erro,
-                            `Retry 3 recusado — conta suspensa - ${esc.plano_nome}`
+                            `Retry 3 recusado — conta suspensa - ${esc.plano_nome}`,
+                            esc.plano_id
                         ]);
 
                         await client.query('COMMIT');
@@ -524,15 +538,16 @@ cron.schedule('0 14 * * *', async () => {
 
                         await client.query(`
                             INSERT INTO transacoes
-                            (escritorio_id, gateway_id, gateway, valor, status, mensagem_erro, descricao, created_at)
-                            VALUES ($1, $2, $3, $4, 'recusada', $5, $6, NOW())
+                            (escritorio_id, gateway_id, gateway, valor, status, mensagem_erro, descricao, plano_id, created_at)
+                            VALUES ($1, $2, $3, $4, 'recusada', $5, $6, $7, NOW())
                         `, [
                             esc.id,
                             cobranca.transacaoId || null,
                             esc.gateway,
                             valorEmCentavos,
                             cobranca.erro,
-                            `Retry ${retryAtual + 1} recusado - ${esc.plano_nome}`
+                            `Retry ${retryAtual + 1} recusado - ${esc.plano_nome}`,
+                            esc.plano_id
                         ]);
 
                         await client.query('COMMIT');
@@ -568,7 +583,8 @@ cron.schedule('0 14 * * *', async () => {
     } catch (err) {
         logger.error(`[ERRO] [CRON RETRY] Erro: ${err}`);
     } finally {
-        if (cronLockAtivo) await pool.query('SELECT pg_advisory_unlock($1)', [1003]).catch(() => {});
+        if (cronLockAtivo) await lockClient.query('SELECT pg_advisory_unlock($1)', [1003]).catch(() => {});
+        lockClient.release();
     }
 });
 
