@@ -85,6 +85,7 @@ const token = localStorage.getItem('token');
                 option.dataset.cpf = cliente.cpf || '';
                 option.dataset.cidade = cliente.cidade || '';
                 option.dataset.estado = cliente.estado || '';
+                option.dataset.endereco = cliente.endereco || cliente.logradouro || '';
                 select.appendChild(option);
             });
         } catch (e) {
@@ -95,25 +96,23 @@ const token = localStorage.getItem('token');
     function preencherDadosCliente() {
         const select = document.getElementById('clienteSelect');
         const option = select.options[select.selectedIndex];
-        const cpfInput = document.getElementById('cpf');
 
         if (option.value) {
-            document.getElementById('autor').value = option.textContent;
-            if (option.dataset.cpf) {
-                cpfInput.value = option.dataset.cpf;
-            } else {
-                cpfInput.value = '';
-            }
-            cpfInput.removeAttribute('readonly');
-            const cidade = option.dataset.cidade;
-            const estado = option.dataset.estado;
+            document.getElementById('autor').value = option.textContent.trim();
+            document.getElementById('cpf').value = option.dataset.cpf || '';
+            const cidade = option.dataset.cidade || '';
+            const estado = option.dataset.estado || '';
             document.getElementById('cidade').value = estado ? `${cidade}/${estado}` : cidade;
+            document.getElementById('enderecoAutor').value = option.dataset.endereco || '';
         } else {
             document.getElementById('autor').value = '';
-            cpfInput.value = '';
+            document.getElementById('cpf').value = '';
             document.getElementById('cidade').value = '';
+            document.getElementById('enderecoAutor').value = '';
         }
     }
+
+    document.getElementById('clienteSelect').addEventListener('change', preencherDadosCliente);
 
     // ==================== UPLOAD (MÚLTIPLOS ARQUIVOS) ====================
     const MAX_TOTAL_SIZE = 10 * 1024 * 1024; // 10MB
@@ -223,12 +222,16 @@ const token = localStorage.getItem('token');
 
         // Montar FormData para enviar campos + PDFs anexados juntos
         const formData = new FormData();
-        formData.append('tipo',         document.getElementById('tipo').value);
-        formData.append('autor',        document.getElementById('autor').value);
-        formData.append('reu',          document.getElementById('reu').value || '');
-        formData.append('resumo_fatos', document.getElementById('resumoFatos').value);
-        formData.append('pedidos',      document.getElementById('pedidos').value);
-        formData.append('cidade',       document.getElementById('cidade').value.split('/')[0]);
+        formData.append('tipo',           document.getElementById('tipo').value);
+        formData.append('autor',          document.getElementById('autor').value);
+        formData.append('cpf_autor',      document.getElementById('cpf').value || '');
+        formData.append('endereco_autor', document.getElementById('enderecoAutor').value || '');
+        formData.append('reu',            document.getElementById('reu').value || '');
+        formData.append('reu_cpf_cnpj',   document.getElementById('reuCpfCnpj').value || '');
+        formData.append('reu_endereco',   document.getElementById('reuEndereco').value || '');
+        formData.append('resumo_fatos',   document.getElementById('resumoFatos').value);
+        formData.append('pedidos',        document.getElementById('pedidos').value);
+        formData.append('cidade',         document.getElementById('cidade').value || '');
 
         // Anexar PDFs (a IA vai ler o conteúdo deles)
         arquivosPDF.forEach(function(file) {

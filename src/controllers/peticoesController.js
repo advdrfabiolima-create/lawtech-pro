@@ -48,7 +48,11 @@ class PeticoesController {
             const {
                 tipo,
                 autor,
+                cpf_autor,
+                endereco_autor,
                 reu,
+                reu_cpf_cnpj,
+                reu_endereco,
                 resumo_fatos,
                 pedidos,
                 processo_id,
@@ -74,7 +78,11 @@ class PeticoesController {
             // ===== PROMPT PARA CLAUDE =====
             const prompt = PeticoesController.construirPromptIA(tipo, {
                 autor,
+                cpf_autor,
+                endereco_autor,
                 reu,
+                reu_cpf_cnpj,
+                reu_endereco,
                 resumo_fatos,
                 pedidos,
                 tribunal: tribunal || 'Tribunal competente',
@@ -482,7 +490,11 @@ class PeticoesController {
             + 'DADOS DA PETIÇÃO:\n'
             + '- Tipo: ' + label + '\n'
             + '- Autor/Requerente: ' + dados.autor + '\n'
+            + (dados.cpf_autor ? '- CPF do Autor: ' + dados.cpf_autor + '\n' : '')
+            + (dados.endereco_autor ? '- Endereço do Autor: ' + dados.endereco_autor + '\n' : '')
             + '- Réu/Requerido: ' + (dados.reu || 'A ser qualificado') + '\n'
+            + (dados.reu_cpf_cnpj ? '- CPF/CNPJ do Réu: ' + dados.reu_cpf_cnpj + '\n' : '')
+            + (dados.reu_endereco ? '- Endereço do Réu: ' + dados.reu_endereco + '\n' : '')
             + '- Tribunal/Comarca: ' + dados.tribunal + '\n'
             + '- Vara: ' + dados.vara + '\n\n'
             + 'RESUMO DOS FATOS FORNECIDO PELO ADVOGADO:\n'
