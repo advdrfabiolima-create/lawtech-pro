@@ -86,17 +86,20 @@
             padding: 0 24px;
         }
 
-        /* ===== ANIMAÇÕES ===== */
-        .reveal {
+        /* ===== ANIMAÇÕES =====
+           Só aplica opacity:0 quando JS confirmou que está ativo (.js-ready).
+           Sem JS, todo conteúdo permanece visível normalmente.
+        */
+        .js-ready .reveal {
             opacity: 0;
             transform: translateY(32px);
             transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .reveal.visible { opacity: 1; transform: translateY(0); }
-        .reveal-left { opacity: 0; transform: translateX(-32px); transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
-        .reveal-left.visible { opacity: 1; transform: translateX(0); }
-        .reveal-right { opacity: 0; transform: translateX(32px); transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
-        .reveal-right.visible { opacity: 1; transform: translateX(0); }
+        .js-ready .reveal.visible { opacity: 1; transform: translateY(0); }
+        .js-ready .reveal-left { opacity: 0; transform: translateX(-32px); transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+        .js-ready .reveal-left.visible { opacity: 1; transform: translateX(0); }
+        .js-ready .reveal-right { opacity: 0; transform: translateX(32px); transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+        .js-ready .reveal-right.visible { opacity: 1; transform: translateX(0); }
         .reveal-delay-1 { transition-delay: 0.1s; }
         .reveal-delay-2 { transition-delay: 0.2s; }
         .reveal-delay-3 { transition-delay: 0.3s; }
@@ -2174,6 +2177,9 @@
 
     <script src="mobile.js"></script>
     <script>
+        // Ativa animações só quando JS está rodando — evita conteúdo invisível sem JS
+        document.documentElement.classList.add('js-ready');
+
         // ===== SCROLL ANIMATIONS (Intersection Observer) =====
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
