@@ -146,21 +146,9 @@ app.use(express.urlencoded({ limit: '20mb', extended: true }));
 const { sanitizeBody } = require('./middlewares/sanitizeMiddleware');
 app.use(sanitizeBody);
 
-// CORS restritivo - apenas domínios autorizados
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean);
+// CORS aberto — segurança feita via JWT + rate limiting
 app.use(cors({
-    origin: function (origin, callback) {
-        // Permitir requests sem origin (mobile apps, curl, server-to-server)
-        if (!origin) return callback(null, true);
-        // Em desenvolvimento, permitir localhost
-        if (!allowedOrigins.length || origin.includes('localhost') || origin.includes('127.0.0.1')) {
-            return callback(null, true);
-        }
-        if (allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        }
-        return callback(new Error('Bloqueado por CORS'));
-    },
+    origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization']
