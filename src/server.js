@@ -165,7 +165,8 @@ app.use(helmet({
                 "https://unpkg.com",
                 "https://cdn.tailwindcss.com",
                 "https://cdnjs.cloudflare.com",
-                "https://js.stripe.com"
+                "https://js.stripe.com",
+                "https://connect.facebook.net"  // Meta Pixel
             ],
             scriptSrcAttr: [], // sem inline handlers — todos os scripts são externos
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
@@ -179,9 +180,10 @@ app.use(helmet({
     "wss://*.peerjs.com",
     "https://unpkg.com",
     "https://raw.githubusercontent.com",  // GeoJSON mapa do Brasil
-    "https://viacep.com.br"               // busca de CEP
+    "https://viacep.com.br",              // busca de CEP
+    "https://cdn.jsdelivr.net"            // source maps devtools (iMask etc.)
 ],
-            fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
             frameSrc: ["'self'", "https://*.daily.co", "https://js.stripe.com"],
             frameAncestors: ["'self'"]
         }
