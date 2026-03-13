@@ -630,3 +630,165 @@ fbq('track', 'PageView');
         document.getElementById('iconConfirmarVer').style.display    = isText ? 'block' : 'none';
         document.getElementById('iconConfirmarOcultar').style.display = isText ? 'none'  : 'block';
     });
+
+    // ============================================================
+    // MODAL DE PLANOS
+    // ============================================================
+
+    const _planosData = {
+        basico:        { id: 1, nome: 'Básico',        mensal: '49,90',   anual: '499,00',  beneficios: ['Até 3 usuários no escritório', 'Gestão completa de processos', 'Suporte por e-mail'] },
+        intermediario: { id: 2, nome: 'Intermediário', mensal: '149,90',  anual: '1.499,00', beneficios: ['Até 10 usuários', 'CRM + Automação de leads', 'Suporte prioritário'] },
+        avancado:      { id: 3, nome: 'Avançado',      mensal: '199,90',  anual: '1.999,00', beneficios: ['Até 30 usuários', 'Reuniões por vídeo (Daily)', 'Assinatura digital ClickSign'] },
+        premium:       { id: 4, nome: 'Premium',       mensal: '299,90',  anual: '2.999,00', beneficios: ['Usuários ilimitados', 'IA Jurídica integrada', 'Gerente de conta dedicado'] }
+    };
+
+    let _modalBillingCiclo = 'mensal';
+    let _planoAtualKey = 'basico';
+
+    function abrirModalPlanos() {
+        // Detectar plano atual pelo localStorage
+        const nomeAtual  = localStorage.getItem('plano_escolhido_nome')    || 'Básico';
+        const cicloAtual = localStorage.getItem('plano_escolhido_cobranca') || 'mensal';
+        _modalBillingCiclo = cicloAtual;
+
+        for (const [key, p] of Object.entries(_planosData)) {
+            if (p.nome === nomeAtual) { _planoAtualKey = key; break; }
+        }
+
+        _renderizarModalPlanos();
+        document.getElementById('planosModalOverlay').classList.add('visible');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function fecharModalPlanos() {
+        document.getElementById('planosModalOverlay').classList.remove('visible');
+        document.body.style.overflow = '';
+    }
+
+    function _renderizarModalPlanos() {
+        const overlay = document.getElementById('planosModalOverlay');
+        const grid    = overlay.querySelector('#planosGrid');
+
+        // Atualizar estado dos toggles
+        overlay.querySelectorAll('.billing-toggle-btn').forEach(function(btn) {
+            btn.classList.toggle('active', btn.dataset.ciclo === _modalBillingCiclo);
+        });
+
+        // Renderizar cards
+        var popularKey = 'intermediario';
+        var html = [];
+
+        Object.keys(_planosData).forEach(function(key) {
+            var plano      = _planosData[key];
+            var preco      = _modalBillingCiclo === 'anual' ? plano.anual : plano.mensal;
+            var periodo    = _modalBillingCiclo === 'anual' ? 'ano' : 'mês';
+            var isSelected = key === _planoAtualKey;
+            var isPopular  = key === popularKey;
+            var classes    = 'plano-card' + (isSelected ? ' selected' : '') + (isPopular ? ' popular' : '');
+            var btnLabel   = isSelected ? '&#10003; Plano atual' : 'Selecionar plano';
+
+            html.push('<div class="' + classes + '">');
+            html.push('  <div class="plano-card-nome">' + plano.nome + '</div>');
+            html.push('  <div class="plano-card-preco">');
+            html.push('    <span class="plano-preco-valor">R$ ' + preco + '</span>');
+            html.push('    <span class="plano-preco-periodo">/' + periodo + '</span>');
+            html.push('  </div>');
+            html.push('  <ul class="plano-card-beneficios">');
+            plano.beneficios.forEach(function(b) {
+                html.push('    <li>' + b + '</li>');
+            });
+            html.push('  </ul>');
+            html.push('  <button class="btn-selecionar-plano" onclick="selecionarPlano(\'' + key + '\')">' + btnLabel + '</button>');
+            html.push('</div>');
+        });
+
+        grid.innerHTML = html.join('');
+    }
+
+    function _trocarCicloModal(ciclo) {
+        _modalBillingCiclo = ciclo;
+        _renderizarModalPlanos();
+    }
+
+    function selecionarPlano(planKey) {
+        var plano = _planosData[planKey];
+        if (!plano) return;
+
+        _planoAtualKey = planKey;
+
+        var valorFinal   = _modalBillingCiclo === 'anual' ? plano.anual : plano.mensal;
+        var cobrancaKey  = _modalBillingCiclo === 'anual' ? 'anual' : 'mensal';
+        var valorNumeric = valorFinal.replace('.', '').replace(',', '.');
+
+        // Atualizar localStorage (mantém estrutura existente)
+        localStorage.setItem('plano_escolhido_id',       plano.id);
+        localStorage.setItem('plano_escolhido_nome',     plano.nome);
+        localStorage.setItem('plano_escolhido_valor',    valorNumeric);
+        localStorage.setItem('plano_escolhido_cobranca', cobrancaKey);
+
+        // Atualizar badge na sidebar
+        atualizarBadgePlano(plano.nome, 'Cobrança ' + cobrancaKey);
+
+        fecharModalPlanos();
+    }
+
+    function atualizarBadgePlano(nome, periodo) {
+        var elNome    = document.getElementById('planoNome');
+        var elPeriodo = document.getElementById('planoPeriodo');
+        if (elNome)    elNome.textContent    = nome;
+        if (elPeriodo) elPeriodo.textContent = periodo;
+    }
+
+    // Fechar modal ao clicar no overlay
+    document.getElementById('planosModalOverlay').addEventListener('click', function(e) {
+        if (e.target === this) fecharModalPlanos();
+    });
+
+    // ============================================================
+    // BARRA DE PROGRESSO DO CADASTRO
+    // ============================================================
+
+    function iniciarProgressBar() {
+        var card = document.querySelector('.auth-card');
+        if (!card) return;
+
+        var stepOrder = ['conta', 'endereco', 'seguranca', 'pagamento'];
+
+        var sectionMap = {
+            sectionConta:     'conta',
+            sectionEndereco:  'endereco',
+            sectionSeguranca: 'seguranca',
+            sectionPagamento: 'pagamento'
+        };
+
+        function setActiveStep(stepKey) {
+            var idx = stepOrder.indexOf(stepKey);
+            document.querySelectorAll('.progress-step').forEach(function(el, i) {
+                el.classList.remove('active', 'completed');
+                if (i < idx)       el.classList.add('completed');
+                else if (i === idx) el.classList.add('active');
+            });
+            document.querySelectorAll('.progress-connector').forEach(function(el, i) {
+                el.classList.toggle('filled', i < idx);
+            });
+        }
+
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    var stepKey = entry.target.dataset.progressStep;
+                    if (stepKey) setActiveStep(stepKey);
+                }
+            });
+        }, { root: card, threshold: 0.25 });
+
+        Object.keys(sectionMap).forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) {
+                el.dataset.progressStep = sectionMap[id];
+                observer.observe(el);
+            }
+        });
+    }
+
+    iniciarProgressBar();
