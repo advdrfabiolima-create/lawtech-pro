@@ -392,26 +392,47 @@
         .logo-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            color: var(--gray-400);
-            font-size: 15px;
-            font-weight: 700;
-            letter-spacing: -0.3px;
-            transition: color 0.2s;
-            cursor: default;
-            white-space: nowrap;
+            justify-content: center;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 20px 32px;
+            transition: all 0.2s ease;
         }
 
-        .logo-item:hover { color: var(--gray-600); }
-
-        .logo-item svg {
-            width: 28px;
-            height: 28px;
-            opacity: 0.5;
-            transition: opacity 0.2s;
+        .logo-item img {
+            height: 68px;
+            width: auto;
+            max-width: 180px;
+            object-fit: contain;
+            filter: grayscale(100%) opacity(0.6);
+            transition: filter 0.2s ease;
+            display: block;
         }
 
-        .logo-item:hover svg { opacity: 0.75; }
+        .logo-item:hover {
+            border-color: var(--gray-300);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+
+        .logo-item:hover img {
+            filter: grayscale(0%) opacity(1);
+        }
+
+        .logo-item--dark {
+            background: #000;
+            border-color: #000;
+        }
+
+        .logo-item--dark:hover {
+            border-color: #222;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+
+        .logo-item--dark img,
+        .logo-item--dark:hover img {
+            filter: grayscale(0%) opacity(1);
+        }
 
         /* ===== SEÇÃO COMMON STYLES ===== */
         .section-label {
@@ -1496,8 +1517,9 @@
             .vision-grid { grid-template-columns: 1fr; }
             .cta-box { padding: 60px 28px; }
             .cta-box h2 { letter-spacing: -1px; }
-            .logos-grid { gap: 28px; }
-            .logo-item { font-size: 13px; }
+            .logos-grid { gap: 16px; }
+            .logo-item { padding: 14px 20px; }
+            .logo-item img { height: 48px; }
             .footer-content { grid-template-columns: 1fr; gap: 32px; }
             .footer-bottom { flex-direction: column; text-align: center; }
             .security-badges { grid-template-columns: 1fr; }
@@ -1588,34 +1610,24 @@
             <p class="logos-label reveal">Advogados de todo o Brasil utilizam o LawTech Pro</p>
             <div class="logos-grid reveal reveal-delay-1">
 
-                <div class="logo-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/></svg>
-                    Ferreira &amp; Advogados
+                <div class="logo-item logo-item--dark">
+                    <img src="logomarcas/lima_e_silva_adv.jpeg" alt="Lima e Silva Advocacia">
                 </div>
 
                 <div class="logo-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                    Oliveira Lima Advocacia
+                    <img src="logomarcas/ferreira_advogados.png" alt="Ferreira Advogados">
                 </div>
 
                 <div class="logo-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                    Costa &amp; Associados
+                    <img src="logomarcas/costa_lima_adv.png" alt="Costa Lima Advocacia">
                 </div>
 
                 <div class="logo-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    Santos Jurídico SP
+                    <img src="logomarcas/monteiro_advocacia.png" alt="Monteiro Advocacia">
                 </div>
 
                 <div class="logo-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    Pereira Neto Direito
-                </div>
-
-                <div class="logo-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    Albuquerque &amp; Melo
+                    <img src="logomarcas/alves_carvalho_adv.png" alt="Alves Carvalho Advocacia">
                 </div>
 
             </div>

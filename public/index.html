@@ -2029,9 +2029,9 @@
         }
 
         .logo-item img {
-            height: 48px;
+            height: 68px;
             width: auto;
-            max-width: 160px;
+            max-width: 180px;
             object-fit: contain;
             filter: grayscale(100%) opacity(0.6);
             transition: filter 0.2s ease;
@@ -2044,6 +2044,24 @@
         }
 
         .logo-item:hover img {
+            filter: grayscale(0%) opacity(1);
+        }
+
+        .logo-item--dark {
+            background: #000;
+            border-color: #000;
+        }
+
+        .logo-item--dark:hover {
+            border-color: #222;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+
+        .logo-item--dark img {
+            filter: grayscale(0%) opacity(1);
+        }
+
+        .logo-item--dark:hover img {
             filter: grayscale(0%) opacity(1);
         }
 
@@ -2137,7 +2155,7 @@
             .logos-grid { gap: 10px; }
 
             .logo-item { padding: 14px 20px; }
-            .logo-item img { height: 36px; }
+            .logo-item img { height: 48px; }
 
             .faq-question { font-size: 15px; padding: 18px 20px; }
 
@@ -2885,7 +2903,7 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
                 <h2>Advogados em todo o Brasil confiam no LawTech Pro</h2>
             </div>
             <div class="logos-grid">
-                <div class="logo-item">
+                <div class="logo-item logo-item--dark">
                     <img src="logomarcas/lima_e_silva_adv.jpeg" alt="Lima e Silva Advocacia">
                 </div>
                 <div class="logo-item">
