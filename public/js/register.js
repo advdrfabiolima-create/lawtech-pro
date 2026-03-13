@@ -698,7 +698,7 @@ fbq('track', 'PageView');
                 html.push('    <li>' + b + '</li>');
             });
             html.push('  </ul>');
-            html.push('  <button class="btn-selecionar-plano" onclick="selecionarPlano(\'' + key + '\')">' + btnLabel + '</button>');
+            html.push('  <button class="btn-selecionar-plano" data-plano-key="' + key + '">' + btnLabel + '</button>');
             html.push('</div>');
         });
 
@@ -739,9 +739,27 @@ fbq('track', 'PageView');
         if (elPeriodo) elPeriodo.textContent = periodo;
     }
 
+    // Abrir modal pelo botão da sidebar
+    document.getElementById('btnAlterarPlano').addEventListener('click', abrirModalPlanos);
+
+    // Fechar modal: botão X
+    document.getElementById('btnFecharModalPlanos').addEventListener('click', fecharModalPlanos);
+
     // Fechar modal ao clicar no overlay
     document.getElementById('planosModalOverlay').addEventListener('click', function(e) {
         if (e.target === this) fecharModalPlanos();
+    });
+
+    // Toggle mensal/anual via delegação no track
+    document.querySelector('.billing-toggle-track').addEventListener('click', function(e) {
+        var btn = e.target.closest('.billing-toggle-btn');
+        if (btn && btn.dataset.ciclo) _trocarCicloModal(btn.dataset.ciclo);
+    });
+
+    // Selecionar plano via delegação no grid
+    document.getElementById('planosGrid').addEventListener('click', function(e) {
+        var btn = e.target.closest('.btn-selecionar-plano');
+        if (btn && btn.dataset.planoKey) selecionarPlano(btn.dataset.planoKey);
     });
 
     // ============================================================
