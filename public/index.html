@@ -1855,6 +1855,283 @@
                 font-size: 13px;
             }
         }
+
+        /* ================================================
+           HERO — BULLET POINTS
+           ================================================ */
+        .hero-bullets {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 36px;
+        }
+
+        .hero-bullet {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            color: rgba(255,255,255,0.85);
+            font-weight: 500;
+        }
+
+        .hero-bullet-check {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--success);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 11px;
+            color: white;
+            font-weight: 800;
+        }
+
+        /* ================================================
+           SEÇÃO GIF DO SISTEMA
+           ================================================ */
+        .gif-section {
+            padding: 100px 0;
+            background: var(--gray-50);
+            text-align: center;
+        }
+
+        .gif-wrapper {
+            max-width: 1100px;
+            margin: 0 auto;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.13);
+            border: 1px solid var(--gray-200);
+        }
+
+        .gif-wrapper img {
+            width: 100%;
+            display: block;
+        }
+
+        .gif-caption {
+            margin-top: 24px;
+            font-size: 16px;
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+
+        /* ================================================
+           SEÇÃO COMO FUNCIONA
+           ================================================ */
+        .how-it-works {
+            padding: 100px 0;
+            background: var(--white);
+        }
+
+        .how-steps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            margin-top: 56px;
+            position: relative;
+        }
+
+        .how-steps-grid::before {
+            content: '';
+            position: absolute;
+            top: 26px;
+            left: calc(16.66% + 16px);
+            right: calc(16.66% + 16px);
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-light), var(--primary-light));
+            opacity: 0.2;
+        }
+
+        .how-step-card {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 16px;
+            padding: 40px 32px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .how-step-card:hover {
+            border-color: var(--primary-light);
+            box-shadow: 0 8px 32px rgba(37,99,235,0.08);
+            transform: translateY(-4px);
+        }
+
+        .step-number {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            font-size: 20px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            box-shadow: 0 4px 16px rgba(37,99,235,0.3);
+        }
+
+        .how-step-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 12px;
+        }
+
+        .how-step-card p {
+            font-size: 15px;
+            color: var(--gray-600);
+            line-height: 1.7;
+        }
+
+        /* ================================================
+           PROVA SOCIAL
+           ================================================ */
+        .social-proof {
+            padding: 72px 0;
+            background: var(--gray-50);
+            border-top: 1px solid var(--gray-200);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .social-proof .section-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .logos-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 40px;
+        }
+
+        .logo-item {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 16px 28px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-600);
+            letter-spacing: 0.2px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .logo-item:hover {
+            border-color: var(--primary-light);
+            color: var(--primary-light);
+            box-shadow: 0 4px 16px rgba(37,99,235,0.08);
+        }
+
+        /* ================================================
+           FAQ — accordion com <details>/<summary>
+           ================================================ */
+        .faq-section {
+            padding: 100px 0;
+            background: var(--white);
+        }
+
+        .faq-list {
+            max-width: 760px;
+            margin: 56px auto 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .faq-item {
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .faq-item[open] {
+            border-color: var(--primary-light);
+            box-shadow: 0 4px 20px rgba(37,99,235,0.07);
+        }
+
+        .faq-question {
+            list-style: none;
+            padding: 22px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-900);
+            cursor: pointer;
+            gap: 16px;
+            transition: color 0.2s;
+            user-select: none;
+        }
+
+        .faq-question::-webkit-details-marker { display: none; }
+
+        .faq-item[open] .faq-question { color: var(--primary-light); }
+        .faq-question:hover { color: var(--primary-light); }
+
+        .faq-icon {
+            flex-shrink: 0;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--gray-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 300;
+            color: var(--gray-600);
+            line-height: 1;
+            transition: all 0.3s ease;
+        }
+
+        .faq-item[open] .faq-icon {
+            background: var(--primary-light);
+            color: white;
+            transform: rotate(45deg);
+        }
+
+        .faq-answer {
+            padding: 0 28px 22px;
+            font-size: 15px;
+            color: var(--gray-600);
+            line-height: 1.7;
+        }
+
+        /* ================================================
+           RESPONSIVE — novas seções
+           ================================================ */
+        @media (max-width: 768px) {
+            .how-steps-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .how-steps-grid::before { display: none; }
+
+            .logos-grid { gap: 10px; }
+
+            .logo-item { padding: 13px 18px; font-size: 13px; }
+
+            .faq-question { font-size: 15px; padding: 18px 20px; }
+
+            .faq-answer { padding: 0 20px 18px; }
+
+            .gif-section { padding: 60px 0; }
+
+            .how-it-works { padding: 60px 0; }
+
+            .faq-section { padding: 60px 0; }
+        }
     </style>
     <!-- Meta Pixel Code -->
 
@@ -1903,8 +2180,22 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
             <div class="hero-wrapper">
                 <div class="hero-content">
                     <div class="hero-badge">Sistema líder em gestão jurídica</div>
-                    <h1>Simplifique a Gestão do seu <span class="highlight">Escritório</span></h1>
-                    <p>Mais organização, menos burocracia. Potencialize seus resultados com nossa plataforma completa de gestão jurídica.</p>
+                    <h1>Gerencie processos, clientes e prazos em um único <span class="highlight">sistema jurídico inteligente</span></h1>
+                    <p>O LawTech Pro automatiza tarefas repetitivas, organiza seu escritório e permite que você foque no que realmente importa: seus clientes.</p>
+                    <div class="hero-bullets">
+                        <div class="hero-bullet">
+                            <div class="hero-bullet-check">✓</div>
+                            Controle completo de processos e prazos
+                        </div>
+                        <div class="hero-bullet">
+                            <div class="hero-bullet-check">✓</div>
+                            Gestão financeira e de clientes integrada
+                        </div>
+                        <div class="hero-bullet">
+                            <div class="hero-bullet-check">✓</div>
+                            Automação jurídica com inteligência artificial
+                        </div>
+                    </div>
                     <div class="hero-cta">
                         <a href="#planos" class="btn btn-primary btn-lg">Teste Grátis por 7 Dias</a>
                         <a href="#planos" class="btn btn-outline btn-lg">Ver Planos</a>
@@ -1987,6 +2278,49 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
                 <div class="stat-item">
                     <div class="stat-number">100<span>%</span></div>
                     <div class="stat-label">Segurança de dados</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== GIF DO SISTEMA ===== -->
+    <section class="gif-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">O Sistema</span>
+                <h2>Veja o LawTech Pro em ação</h2>
+                <p>Conheça a plataforma completa que está transformando a forma como advogados gerenciam seus escritórios.</p>
+            </div>
+            <div class="gif-wrapper">
+                <img src="gif_lawtech_pro.gif" alt="Demonstração do LawTech Pro em funcionamento" loading="lazy">
+            </div>
+            <p class="gif-caption">Interface intuitiva, automações inteligentes e todas as ferramentas que seu escritório precisa em um único lugar.</p>
+        </div>
+    </section>
+
+    <!-- ===== COMO FUNCIONA ===== -->
+    <section class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Simples assim</span>
+                <h2>Como o LawTech Pro transforma seu escritório</h2>
+                <p>Três passos para ter o controle total do seu escritório.</p>
+            </div>
+            <div class="how-steps-grid">
+                <div class="how-step-card">
+                    <div class="step-number">1</div>
+                    <h3>Crie sua conta</h3>
+                    <p>Comece seu teste gratuito em menos de um minuto. Sem burocracia, sem cartão de crédito necessário.</p>
+                </div>
+                <div class="how-step-card">
+                    <div class="step-number">2</div>
+                    <h3>Cadastre seus processos e clientes</h3>
+                    <p>Organize todas as informações do seu escritório em um único lugar, de forma simples e centralizada.</p>
+                </div>
+                <div class="how-step-card">
+                    <div class="step-number">3</div>
+                    <h3>Automatize sua rotina jurídica</h3>
+                    <p>Controle prazos, documentos e tarefas automaticamente. Deixe o sistema trabalhar por você.</p>
                 </div>
             </div>
         </div>
@@ -2520,6 +2854,86 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== PROVA SOCIAL ===== -->
+    <section class="social-proof">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Confiança</span>
+                <h2>Advogados em todo o Brasil confiam no LawTech Pro</h2>
+            </div>
+            <div class="logos-grid">
+                <div class="logo-item">Silva &amp; Advogados</div>
+                <div class="logo-item">Ferreira Sociedade de Advogados</div>
+                <div class="logo-item">Costa &amp; Lima Consultoria Jurídica</div>
+                <div class="logo-item">Monteiro Advocacia</div>
+                <div class="logo-item">Souza &amp; Pereira Associados</div>
+                <div class="logo-item">Nunes Direito Empresarial</div>
+                <div class="logo-item">Alves &amp; Carvalho</div>
+                <div class="logo-item">Ramos Advocacia Tributária</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FAQ ===== -->
+    <section class="faq-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Dúvidas</span>
+                <h2>Perguntas frequentes</h2>
+                <p>Tudo que você precisa saber antes de começar.</p>
+            </div>
+            <div class="faq-list">
+                <details class="faq-item">
+                    <summary class="faq-question">
+                        Preciso de cartão de crédito para testar?
+                        <span class="faq-icon">+</span>
+                    </summary>
+                    <p class="faq-answer">Não. Você pode experimentar o sistema gratuitamente durante o período de teste sem necessidade de informar cartão de crédito. Sem compromisso.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-question">
+                        O sistema funciona em celular?
+                        <span class="faq-icon">+</span>
+                    </summary>
+                    <p class="faq-answer">Sim. O LawTech Pro é totalmente responsivo e funciona perfeitamente em smartphones, tablets e desktops. Acesse de qualquer dispositivo, a qualquer hora.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-question">
+                        Posso cancelar quando quiser?
+                        <span class="faq-icon">+</span>
+                    </summary>
+                    <p class="faq-answer">Sim. Não existe fidelidade nem multa por cancelamento. Você pode encerrar sua conta a qualquer momento, sem burocracia.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-question">
+                        Meus dados estão seguros na plataforma?
+                        <span class="faq-icon">+</span>
+                    </summary>
+                    <p class="faq-answer">Sim. O LawTech Pro utiliza criptografia de ponta a ponta, backups automáticos e segue rigorosamente a Lei Geral de Proteção de Dados (LGPD). Seus dados e os dos seus clientes estão completamente protegidos.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-question">
+                        Quantos usuários posso cadastrar no sistema?
+                        <span class="faq-icon">+</span>
+                    </summary>
+                    <p class="faq-answer">Depende do plano escolhido. O plano Básico permite até 3 usuários, o Intermediário até 15. Os planos Avançado e Premium oferecem usuários ilimitados. Veja a tabela de planos para mais detalhes.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-question">
+                        Há suporte disponível para ajuda no uso do sistema?
+                        <span class="faq-icon">+</span>
+                    </summary>
+                    <p class="faq-answer">Sim. Todos os planos incluem suporte por e-mail. Os planos Intermediário, Avançado e Premium contam com suporte prioritário para atendimento mais rápido e personalizado.</p>
+                </details>
             </div>
         </div>
     </section>
