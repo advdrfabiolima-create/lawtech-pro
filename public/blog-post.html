@@ -128,6 +128,11 @@
         .post-not-found h2 { font-size: 28px; font-weight: 800; color: var(--gray-900); margin-bottom: 12px; }
         .post-not-found p { font-size: 16px; color: var(--gray-600); margin-bottom: 28px; }
 
+        /* MAIS ARTIGOS SIDEBAR */
+        .mais-artigos-list { display: flex; flex-direction: column; gap: 12px; }
+        .mais-artigo-link { text-decoration: none; font-size: 13px; color: var(--gray-700); font-weight: 600; line-height: 1.4; transition: color 0.2s; display: block; }
+        .mais-artigo-link:hover { color: var(--primary-light); }
+
         /* FOOTER */
         footer { background: var(--dark); color: rgba(255,255,255,0.6); padding: 48px 0 24px; }
         .footer-bottom { text-align: center; font-size: 13px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 24px; }
@@ -361,63 +366,67 @@
             <ul class="toc-list" id="tocList"></ul>
         </div>` : '';
 
+        // ── Sidebar: "Mais Artigos" — construído fora do template para evitar
+        //    template literal aninhado que falha silenciosamente em alguns envs
+        const maisArtigosLinks = allArticles
+            .filter(function(a) { return a.slug !== slug; })
+            .slice(0, 4)
+            .map(function(a) {
+                var url = a.external_url ? a.external_url : ('blog-post.html?slug=' + a.slug);
+                var target = a.external_url ? 'target="_blank" rel="noopener"' : '';
+                return '<a href="' + url + '" ' + target + ' class="mais-artigo-link">' + a.title + '</a>';
+            })
+            .join('');
+
         // ── Render final ──────────────────────────────────────────────────────
-        root.innerHTML = `
-        <div class="post-layout">
-            <article class="post-main">
-                <div class="post-header">
-                    <div class="post-category-row">
-                        <span class="post-category cat-${article.category}">${categoryLabels[article.category] || article.category}</span>
-                    </div>
-                    <h1>${article.title}</h1>
-                    <div class="post-meta">
-                        <span class="post-meta-item">✍️ ${article.author || 'LawTech Pro'}</span>
-                        ${article.date ? `<span class="post-meta-item">📅 ${formatDate(article.date)}</span>` : ''}
-                        ${article.reading_time ? `<span class="post-meta-item">⏱️ ${article.reading_time}</span>` : ''}
-                        ${article.chapters ? `<span class="post-meta-item">📑 ${article.chapters} capítulos</span>` : ''}
-                    </div>
-                    <p class="post-excerpt">${article.excerpt || article.description || ''}</p>
-                </div>
-
-                <div class="post-body">
-                    <div class="post-image-hero" style="background:${gradient}">
-                        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                    </div>
-                    ${bodyContent}
-                    ${tags ? `<div class="post-tags">${tags}</div>` : ''}
-                </div>
-
-                ${relatedHTML}
-            </article>
-
-            <aside class="post-sidebar">
-                ${tocHTML}
-
-                <div class="sidebar-widget cta-widget">
-                    <div class="widget-title">
-                        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                        LawTech Pro
-                    </div>
-                    <p>Automatize seu escritório, controle prazos e gerencie processos — tudo em uma plataforma.</p>
-                    <a href="register.html" class="cta-widget-btn">Testar grátis por 7 dias →</a>
-                    <p class="cta-widget-trust">Sem compromisso. Cancele quando quiser.</p>
-                </div>
-
-                <div class="sidebar-widget">
-                    <div class="widget-title">
-                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                        Mais Artigos
-                    </div>
-                    <div style="display:flex;flex-direction:column;gap:12px">
-                        ${allArticles.filter(a=>a.slug!==slug).slice(0,4).map(a => {
-                            const url = a.external_url || `blog-post.html?slug=${a.slug}`;
-                            const target = a.external_url ? 'target="_blank" rel="noopener"' : '';
-                            return `<a href="${url}" ${target} style="text-decoration:none;font-size:13px;color:var(--gray-700);font-weight:600;line-height:1.4;transition:color 0.2s" onmouseover="this.style.color='var(--primary-light)'" onmouseout="this.style.color='var(--gray-700)'">${a.title}</a>`;
-                        }).join('')}
-                    </div>
-                </div>
-            </aside>
-        </div>`;
+        root.innerHTML = [
+            '<div class="post-layout">',
+              '<article class="post-main">',
+                '<div class="post-header">',
+                  '<div class="post-category-row">',
+                    '<span class="post-category cat-' + article.category + '">' + (categoryLabels[article.category] || article.category) + '</span>',
+                  '</div>',
+                  '<h1>' + article.title + '</h1>',
+                  '<div class="post-meta">',
+                    '<span class="post-meta-item">✍️ ' + (article.author || 'LawTech Pro') + '</span>',
+                    (article.date ? '<span class="post-meta-item">📅 ' + formatDate(article.date) + '</span>' : ''),
+                    (article.reading_time ? '<span class="post-meta-item">⏱️ ' + article.reading_time + '</span>' : ''),
+                    (article.chapters ? '<span class="post-meta-item">📑 ' + article.chapters + ' capítulos</span>' : ''),
+                  '</div>',
+                  '<p class="post-excerpt">' + (article.excerpt || article.description || '') + '</p>',
+                '</div>',
+                '<div class="post-body">',
+                  '<div class="post-image-hero" style="background:' + gradient + '">',
+                    '<svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>',
+                  '</div>',
+                  bodyContent,
+                  (tags ? '<div class="post-tags">' + tags + '</div>' : ''),
+                '</div>',
+                relatedHTML,
+              '</article>',
+              '<aside class="post-sidebar">',
+                tocHTML,
+                '<div class="sidebar-widget cta-widget">',
+                  '<div class="widget-title">',
+                    '<svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
+                    'LawTech Pro',
+                  '</div>',
+                  '<p>Automatize seu escritório, controle prazos e gerencie processos — tudo em uma plataforma.</p>',
+                  '<a href="register.html" class="cta-widget-btn">Testar grátis por 7 dias →</a>',
+                  '<p class="cta-widget-trust">Sem compromisso. Cancele quando quiser.</p>',
+                '</div>',
+                '<div class="sidebar-widget">',
+                  '<div class="widget-title">',
+                    '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+                    'Mais Artigos',
+                  '</div>',
+                  '<div class="mais-artigos-list">',
+                    maisArtigosLinks,
+                  '</div>',
+                '</div>',
+              '</aside>',
+            '</div>'
+        ].join('');
 
         // TOC automático a partir dos h2 do conteúdo
         if (!article.external_url && article.content) {
@@ -435,7 +444,13 @@
                 tocList.closest('.sidebar-widget').style.display = 'none';
             }
         }
-    })();
+    })().catch(function(err) {
+        console.error('[blog-post] erro:', err);
+        var root = document.getElementById('postRoot');
+        if (root) {
+            root.innerHTML = '<div class="post-not-found container" style="padding-top:80px"><h2>Erro ao carregar o artigo</h2><p>Ocorreu um erro inesperado. <a href="blog.html">← Voltar ao Blog</a></p></div>';
+        }
+    });
     </script>
 </body>
 </html>

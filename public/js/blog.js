@@ -229,27 +229,37 @@ const Blog = (() => {
         const section = document.getElementById('guidesSection');
         if (!section || !allGuides.length) return;
 
-        section.innerHTML = `
-        <div class="container">
-            <div class="guides-header">
-                <h2>📖 Guias Completos</h2>
-            </div>
-            <div class="guides-grid">
-                ${allGuides.map(g => `
-                <a href="blog-post.html?slug=${g.slug}" class="guide-card">
-                    <div class="guide-icon">${guideIcons[g.icon] || guideIcons.briefcase}</div>
-                    <div class="guide-info">
-                        <span class="guide-label">${categoryLabels[g.category] || g.category}</span>
-                        <h3>${g.title}</h3>
-                        <p>${g.description}</p>
-                        <div class="guide-meta">
-                            <span>⏱️ ${g.reading_time}</span>
-                            <span>📑 ${g.chapters} capítulos</span>
-                        </div>
-                    </div>
-                </a>`).join('')}
-            </div>
-        </div>`;
+        const cards = allGuides.map(function(g) {
+            // Guias ainda não têm conteúdo publicado — exibidos como "Em breve"
+            return [
+                '<div class="guide-card guide-card--soon">',
+                  '<div class="guide-icon">' + (guideIcons[g.icon] || guideIcons.briefcase) + '</div>',
+                  '<div class="guide-info">',
+                    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">',
+                      '<span class="guide-label">' + (categoryLabels[g.category] || g.category) + '</span>',
+                      '<span class="guide-soon-badge">Em breve</span>',
+                    '</div>',
+                    '<h3>' + g.title + '</h3>',
+                    '<p>' + g.description + '</p>',
+                    '<div class="guide-meta">',
+                      '<span>⏱️ ' + g.reading_time + '</span>',
+                      '<span>📑 ' + g.chapters + ' capítulos</span>',
+                    '</div>',
+                  '</div>',
+                '</div>'
+            ].join('');
+        }).join('');
+
+        section.innerHTML = [
+            '<div class="container">',
+              '<div class="guides-header">',
+                '<h2>📖 Guias Completos</h2>',
+              '</div>',
+              '<div class="guides-grid">',
+                cards,
+              '</div>',
+            '</div>'
+        ].join('');
     }
 
     // ── Sidebar: populares ────────────────────────────────────────────────────
