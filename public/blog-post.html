@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="metaTitle">Artigo — LawTech Pro Blog</title>
+    <meta name="description" id="metaDesc" content="Leia este artigo no Blog Jurídico do LawTech Pro.">
+    <meta property="og:type" content="article">
+    <meta property="og:title" id="ogTitle" content="">
+    <meta property="og:description" id="ogDesc" content="">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e3a8a; --primary-light: #2563eb; --primary-dark: #1e293b;
+            --accent: #f59e0b; --tech-accent: #10b981; --dark: #0f172a;
+            --gray-50: #f8fafc; --gray-100: #f1f5f9; --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1; --gray-400: #94a3b8; --gray-600: #475569;
+            --gray-700: #334155; --gray-900: #0f172a; --white: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', -apple-system, sans-serif; line-height: 1.6; color: var(--gray-900); background: var(--gray-50); -webkit-font-smoothing: antialiased; }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+        /* NAV */
+        nav { position: fixed; top: 0; width: 100%; background: rgba(15,23,42,0.95); backdrop-filter: blur(12px); z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        nav .container { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; }
+        .logo img { height: 40px; }
+        .nav-links { display: flex; gap: 40px; }
+        .nav-links a { color: rgba(255,255,255,0.85); text-decoration: none; font-weight: 500; font-size: 15px; transition: color 0.2s; }
+        .nav-links a:hover { color: #fff; }
+        .nav-buttons { display: flex; gap: 12px; }
+        .btn { padding: 10px 24px; border-radius: 10px; font-weight: 600; text-decoration: none; transition: all 0.25s; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; border: none; }
+        .btn-login { color: #fff; background: transparent; border: 1.5px solid rgba(255,255,255,0.2); }
+        .btn-login:hover { border-color: rgba(255,255,255,0.4); }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; box-shadow: 0 4px 16px rgba(59,130,246,0.35); }
+        .btn-primary:hover { transform: translateY(-2px); }
+
+        /* BREADCRUMB */
+        .breadcrumb { padding: 14px 0; background: var(--white); border-bottom: 1px solid var(--gray-200); font-size: 13px; color: var(--gray-400); margin-top: 78px; }
+        .breadcrumb a { color: var(--primary-light); text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb span { margin: 0 8px; }
+
+        /* LAYOUT */
+        .post-layout { max-width: 1120px; margin: 0 auto; padding: 48px 24px 80px; display: grid; grid-template-columns: 1fr 320px; gap: 48px; align-items: start; }
+
+        /* ARTICLE */
+        .post-main { min-width: 0; }
+        .post-header { background: var(--white); border-radius: 20px; padding: 48px 48px 40px; margin-bottom: 4px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); }
+        .post-category-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+        .post-category { display: inline-block; padding: 6px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .cat-tecnologia { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; }
+        .cat-tributario { background: #fce7f3; color: #9f1239; }
+        .cat-civil { background: #e0e7ff; color: #4338ca; }
+        .cat-trabalho { background: #fef3c7; color: #92400e; }
+        .cat-digital { background: #ccfbf1; color: #115e59; }
+        .cat-penal { background: #fee2e2; color: #991b1b; }
+        .post-header h1 { font-size: clamp(26px, 4vw, 40px); font-weight: 900; color: var(--gray-900); line-height: 1.2; margin-bottom: 20px; letter-spacing: -1px; }
+        .post-meta { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 14px; color: var(--gray-400); padding-bottom: 28px; border-bottom: 1px solid var(--gray-200); margin-bottom: 28px; }
+        .post-meta-item { display: flex; align-items: center; gap: 6px; }
+        .post-excerpt { font-size: 18px; color: var(--gray-600); line-height: 1.8; font-style: italic; }
+
+        /* ARTICLE BODY */
+        .post-body { background: var(--white); border-radius: 20px; padding: 48px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); }
+        .post-image-hero { width: 100%; height: 280px; border-radius: 16px; margin-bottom: 36px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .post-image-hero svg { width: 120px; height: 120px; stroke: rgba(255,255,255,0.25); fill: none; stroke-width: 1; }
+        .post-content { font-size: 17px; color: var(--gray-700); line-height: 1.85; }
+        .post-content h2 { font-size: 26px; font-weight: 800; color: var(--gray-900); margin: 36px 0 16px; }
+        .post-content h3 { font-size: 20px; font-weight: 700; color: var(--gray-900); margin: 28px 0 12px; }
+        .post-content p { margin-bottom: 20px; }
+        .post-content ul, .post-content ol { padding-left: 24px; margin-bottom: 20px; }
+        .post-content li { margin-bottom: 8px; }
+        .post-content strong { color: var(--gray-900); font-weight: 700; }
+        .post-content a { color: var(--primary-light); text-decoration: underline; }
+        .post-content blockquote { border-left: 4px solid var(--primary-light); padding: 16px 24px; background: #eff6ff; border-radius: 0 12px 12px 0; margin: 24px 0; font-style: italic; color: var(--gray-600); }
+
+        /* External redirect block */
+        .external-block { text-align: center; padding: 48px 40px; }
+        .external-icon { width: 80px; height: 80px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
+        .external-icon svg { width: 40px; height: 40px; stroke: var(--primary); fill: none; stroke-width: 2; stroke-linecap: round; }
+        .external-block h2 { font-size: 22px; font-weight: 800; color: var(--gray-900); margin-bottom: 12px; }
+        .external-block p { font-size: 16px; color: var(--gray-600); margin-bottom: 28px; line-height: 1.7; max-width: 480px; margin-left: auto; margin-right: auto; }
+        .external-btn { display: inline-flex; align-items: center; gap: 10px; padding: 16px 32px; background: var(--primary-light); color: var(--white); font-weight: 700; border-radius: 12px; text-decoration: none; transition: all 0.25s; font-size: 16px; }
+        .external-btn:hover { background: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(37,99,235,0.35); }
+        .external-origin { font-size: 13px; color: var(--gray-400); margin-top: 14px; }
+
+        /* TAGS */
+        .post-tags { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 24px; border-top: 1px solid var(--gray-200); margin-top: 32px; }
+        .post-tag { font-size: 13px; color: var(--gray-600); background: var(--gray-100); padding: 5px 14px; border-radius: 999px; font-weight: 500; }
+
+        /* RELATED */
+        .related-section { margin-top: 4px; }
+        .related-section h2 { font-size: 22px; font-weight: 800; color: var(--gray-900); margin-bottom: 20px; }
+        .related-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .related-card { background: var(--white); border-radius: 14px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border: 1.5px solid var(--gray-200); text-decoration: none; display: block; transition: all 0.25s; }
+        .related-card:hover { border-color: var(--primary-light); transform: translateY(-4px); box-shadow: 0 10px 28px rgba(37,99,235,0.1); }
+        .related-card h3 { font-size: 15px; font-weight: 700; color: var(--gray-900); line-height: 1.35; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .related-card-meta { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--gray-400); }
+
+        /* SIDEBAR */
+        .post-sidebar { position: sticky; top: 106px; display: flex; flex-direction: column; gap: 24px; }
+        .sidebar-widget { background: var(--white); border-radius: 16px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1.5px solid var(--gray-200); }
+        .widget-title { font-size: 13px; font-weight: 800; color: var(--gray-900); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .widget-title svg { width: 16px; height: 16px; stroke: var(--primary-light); fill: none; stroke-width: 2; stroke-linecap: round; }
+        .toc-list { display: flex; flex-direction: column; gap: 8px; list-style: none; }
+        .toc-item a { font-size: 13px; color: var(--gray-600); text-decoration: none; padding: 6px 10px; border-radius: 8px; display: block; transition: all 0.2s; border-left: 2px solid transparent; }
+        .toc-item a:hover { background: var(--gray-50); color: var(--primary-light); border-left-color: var(--primary-light); }
+        .cta-widget { background: linear-gradient(135deg, #0f172a, #1e3a8a); border: none; }
+        .cta-widget .widget-title { color: #93c5fd; }
+        .cta-widget p { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.7; margin-bottom: 18px; }
+        .cta-widget-btn { display: block; text-align: center; padding: 12px 18px; background: var(--tech-accent); color: var(--white); font-weight: 700; font-size: 14px; border-radius: 10px; text-decoration: none; transition: all 0.25s; }
+        .cta-widget-btn:hover { background: #059669; transform: translateY(-2px); }
+        .cta-widget-trust { font-size: 11px; color: rgba(255,255,255,0.3); text-align: center; margin-top: 8px; }
+
+        /* PROGRESS BAR */
+        .read-progress { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, #2563eb, #10b981); z-index: 2000; transition: width 0.1s linear; width: 0%; }
+
+        /* LOADING / NOT FOUND */
+        .post-loading { text-align: center; padding: 120px 24px; color: var(--gray-400); }
+        .post-loading svg { width: 56px; height: 56px; stroke: var(--gray-300); fill: none; stroke-width: 1.5; animation: spin 1.2s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .post-not-found { text-align: center; padding: 120px 24px; }
+        .post-not-found h2 { font-size: 28px; font-weight: 800; color: var(--gray-900); margin-bottom: 12px; }
+        .post-not-found p { font-size: 16px; color: var(--gray-600); margin-bottom: 28px; }
+
+        /* FOOTER */
+        footer { background: var(--dark); color: rgba(255,255,255,0.6); padding: 48px 0 24px; }
+        .footer-bottom { text-align: center; font-size: 13px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 24px; }
+
+        @media (max-width: 1024px) {
+            .nav-links { display: none; }
+            .post-layout { grid-template-columns: 1fr; }
+            .post-sidebar { position: static; }
+            .related-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .post-header { padding: 32px 24px; }
+            .post-body { padding: 32px 24px; }
+            .post-header h1 { font-size: 26px; }
+        }
+    </style>
+    <link rel="stylesheet" href="mobile.css">
+</head>
+<body>
+
+    <div class="read-progress" id="readProgress"></div>
+
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <a href="index.html"><img src="Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro"></a>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Início</a>
+                <a href="index.html#planos">Planos</a>
+                <a href="sobre-nos.html">Sobre Nós</a>
+                <a href="blog.html" class="active">Blog</a>
+                <a href="mailto:contato@lawtechpro.com.br">Contato</a>
+            </div>
+            <div class="nav-buttons">
+                <a href="login.html" class="btn btn-login">Entrar</a>
+                <a href="register.html" class="btn btn-primary">Teste Grátis</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="breadcrumb">
+        <div class="container">
+            <a href="index.html">LawTech Pro</a>
+            <span>›</span>
+            <a href="blog.html">Blog</a>
+            <span>›</span>
+            <span id="breadcrumbTitle">Artigo</span>
+        </div>
+    </div>
+
+    <!-- CONTEÚDO RENDERIZADO DINAMICAMENTE -->
+    <div id="postRoot">
+        <div class="post-loading">
+            <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+            <p>Carregando artigo...</p>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-bottom"><p>© 2026 LawTech Pro Systems. Todos os direitos reservados. · <a href="blog.html" style="color:rgba(255,255,255,0.5);text-decoration:none;">← Voltar ao Blog</a></p></div>
+        </div>
+    </footer>
+
+    <script src="mobile.js"></script>
+    <script>
+    (async () => {
+        // ── Utilitários ──────────────────────────────────────────────────────
+        const qs = p => new URLSearchParams(window.location.search).get(p);
+        const slug = qs('slug');
+
+        const categoryLabels = {
+            tecnologia: 'Tecnologia', tributario: 'Tributário', trabalho: 'Trabalhista',
+            digital: 'Direito Digital', civil: 'Processo Civil', penal: 'Penal', gestao: 'Gestão',
+        };
+
+        function formatDate(dateStr) {
+            const [y, m, d] = dateStr.split('-');
+            const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+            return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
+        }
+
+        function getDomain(url) {
+            try { return new URL(url).hostname.replace('www.',''); } catch { return url; }
+        }
+
+        const catGradients = {
+            tecnologia: 'linear-gradient(135deg, #667eea, #764ba2)',
+            tributario: 'linear-gradient(135deg, #f093fb, #f5576c)',
+            trabalho: 'linear-gradient(135deg, #ffa751, #ffe259)',
+            digital: 'linear-gradient(135deg, #4facfe, #00f2fe)',
+            civil: 'linear-gradient(135deg, #43e97b, #38f9d7)',
+            penal: 'linear-gradient(135deg, #fa709a, #fee140)',
+        };
+
+        // ── Progress bar ─────────────────────────────────────────────────────
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+            document.getElementById('readProgress').style.width = pct + '%';
+        }, { passive: true });
+
+        // ── Carregar dados ───────────────────────────────────────────────────
+        const root = document.getElementById('postRoot');
+
+        if (!slug) {
+            root.innerHTML = `
+            <div class="post-not-found container" style="padding-top:80px">
+                <h2>Artigo não encontrado</h2>
+                <p>Nenhum slug fornecido na URL.</p>
+                <a href="blog.html" class="btn btn-primary">← Voltar ao Blog</a>
+            </div>`;
+            return;
+        }
+
+        let allArticles = [], allGuides = [];
+        try {
+            const res = await fetch('/data/blog.json');
+            const data = await res.json();
+            allArticles = data.articles || [];
+            allGuides = data.guides || [];
+        } catch {
+            root.innerHTML = `<div class="post-not-found container" style="padding-top:80px"><h2>Erro ao carregar</h2><p>Tente novamente.</p><a href="blog.html" class="btn btn-primary">← Voltar ao Blog</a></div>`;
+            return;
+        }
+
+        // Busca em artigos + guias
+        const article = allArticles.find(a => a.slug === slug) || allGuides.find(g => g.slug === slug);
+
+        if (!article) {
+            root.innerHTML = `
+            <div class="post-not-found container" style="padding-top:80px">
+                <h2>Artigo não encontrado</h2>
+                <p>O artigo "<strong>${slug}</strong>" não existe ou foi removido.</p>
+                <a href="blog.html" class="btn btn-primary">← Voltar ao Blog</a>
+            </div>`;
+            return;
+        }
+
+        // ── SEO dinâmico ─────────────────────────────────────────────────────
+        document.getElementById('metaTitle').textContent = `${article.title} — LawTech Pro Blog`;
+        document.getElementById('metaDesc').setAttribute('content', article.excerpt || article.description || '');
+        document.getElementById('ogTitle').setAttribute('content', article.title);
+        document.getElementById('ogDesc').setAttribute('content', article.excerpt || article.description || '');
+        document.getElementById('breadcrumbTitle').textContent = article.title;
+
+        // JSON-LD Article
+        const ldScript = document.createElement('script');
+        ldScript.type = 'application/ld+json';
+        ldScript.textContent = JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            "headline": article.title,
+            "description": article.excerpt || article.description,
+            "author": { "@type": "Organization", "name": article.author || "LawTech Pro" },
+            "datePublished": article.date || '',
+            "publisher": { "@type": "Organization", "name": "LawTech Pro" },
+            "url": window.location.href
+        });
+        document.head.appendChild(ldScript);
+
+        // ── Artigos relacionados ──────────────────────────────────────────────
+        const related = allArticles
+            .filter(a => a.slug !== slug && a.category === article.category)
+            .slice(0, 4);
+
+        const relatedHTML = related.length ? `
+        <div class="related-section">
+            <h2>📌 Artigos Relacionados</h2>
+            <div class="related-grid">
+                ${related.map(r => {
+                    const url = r.external_url || `blog-post.html?slug=${r.slug}`;
+                    const target = r.external_url ? 'target="_blank" rel="noopener"' : '';
+                    return `
+                    <a href="${url}" ${target} class="related-card">
+                        <h3>${r.title}</h3>
+                        <div class="related-card-meta">
+                            <span class="post-category cat-${r.category}">${categoryLabels[r.category]}</span>
+                            <span>⏱️ ${r.reading_time}</span>
+                        </div>
+                    </a>`;
+                }).join('')}
+            </div>
+        </div>` : '';
+
+        // ── Conteúdo do post ──────────────────────────────────────────────────
+        const gradient = catGradients[article.category] || 'linear-gradient(135deg, #667eea, #764ba2)';
+        const tags = (article.tags || []).map(t => `<span class="post-tag">#${t}</span>`).join('');
+
+        let bodyContent;
+
+        if (article.external_url) {
+            // Artigo externo → bloco de redirecionamento
+            bodyContent = `
+            <div class="external-block">
+                <div class="external-icon">
+                    <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </div>
+                <h2>Este artigo é um conteúdo externo</h2>
+                <p>Este artigo foi publicado originalmente em <strong>${getDomain(article.external_url)}</strong>. Clique abaixo para ler o conteúdo completo no site de origem.</p>
+                <a href="${article.external_url}" target="_blank" rel="noopener" class="external-btn">
+                    Ler artigo completo
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </a>
+                <p class="external-origin">Fonte: ${getDomain(article.external_url)}</p>
+            </div>`;
+        } else if (article.content) {
+            bodyContent = `<div class="post-content">${article.content}</div>`;
+        } else {
+            // Guia sem conteúdo ainda
+            bodyContent = `
+            <div class="external-block">
+                <div class="external-icon">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                <h2>Guia em elaboração</h2>
+                <p>Este guia completo está sendo preparado pela equipe do LawTech Pro. Em breve disponível com conteúdo exclusivo sobre <strong>${article.title}</strong>.</p>
+                <a href="blog.html" class="external-btn">← Voltar ao Blog</a>
+            </div>`;
+        }
+
+        // ── Sidebar: TOC (apenas para artigos internos com conteúdo) ─────────
+        const tocHTML = (!article.external_url && article.content) ? `
+        <div class="sidebar-widget">
+            <div class="widget-title">
+                <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg>
+                Neste Artigo
+            </div>
+            <ul class="toc-list" id="tocList"></ul>
+        </div>` : '';
+
+        // ── Render final ──────────────────────────────────────────────────────
+        root.innerHTML = `
+        <div class="post-layout">
+            <article class="post-main">
+                <div class="post-header">
+                    <div class="post-category-row">
+                        <span class="post-category cat-${article.category}">${categoryLabels[article.category] || article.category}</span>
+                    </div>
+                    <h1>${article.title}</h1>
+                    <div class="post-meta">
+                        <span class="post-meta-item">✍️ ${article.author || 'LawTech Pro'}</span>
+                        ${article.date ? `<span class="post-meta-item">📅 ${formatDate(article.date)}</span>` : ''}
+                        ${article.reading_time ? `<span class="post-meta-item">⏱️ ${article.reading_time}</span>` : ''}
+                        ${article.chapters ? `<span class="post-meta-item">📑 ${article.chapters} capítulos</span>` : ''}
+                    </div>
+                    <p class="post-excerpt">${article.excerpt || article.description || ''}</p>
+                </div>
+
+                <div class="post-body">
+                    <div class="post-image-hero" style="background:${gradient}">
+                        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    </div>
+                    ${bodyContent}
+                    ${tags ? `<div class="post-tags">${tags}</div>` : ''}
+                </div>
+
+                ${relatedHTML}
+            </article>
+
+            <aside class="post-sidebar">
+                ${tocHTML}
+
+                <div class="sidebar-widget cta-widget">
+                    <div class="widget-title">
+                        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        LawTech Pro
+                    </div>
+                    <p>Automatize seu escritório, controle prazos e gerencie processos — tudo em uma plataforma.</p>
+                    <a href="register.html" class="cta-widget-btn">Testar grátis por 7 dias →</a>
+                    <p class="cta-widget-trust">Sem compromisso. Cancele quando quiser.</p>
+                </div>
+
+                <div class="sidebar-widget">
+                    <div class="widget-title">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                        Mais Artigos
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:12px">
+                        ${allArticles.filter(a=>a.slug!==slug).slice(0,4).map(a => {
+                            const url = a.external_url || `blog-post.html?slug=${a.slug}`;
+                            const target = a.external_url ? 'target="_blank" rel="noopener"' : '';
+                            return `<a href="${url}" ${target} style="text-decoration:none;font-size:13px;color:var(--gray-700);font-weight:600;line-height:1.4;transition:color 0.2s" onmouseover="this.style.color='var(--primary-light)'" onmouseout="this.style.color='var(--gray-700)'">${a.title}</a>`;
+                        }).join('')}
+                    </div>
+                </div>
+            </aside>
+        </div>`;
+
+        // TOC automático a partir dos h2 do conteúdo
+        if (!article.external_url && article.content) {
+            const tocList = document.getElementById('tocList');
+            const headings = document.querySelectorAll('.post-content h2');
+            if (tocList && headings.length) {
+                headings.forEach((h, i) => {
+                    h.id = `section-${i}`;
+                    const li = document.createElement('li');
+                    li.className = 'toc-item';
+                    li.innerHTML = `<a href="#section-${i}">${h.textContent}</a>`;
+                    tocList.appendChild(li);
+                });
+            } else if (tocList) {
+                tocList.closest('.sidebar-widget').style.display = 'none';
+            }
+        }
+    })();
+    </script>
+</body>
+</html>

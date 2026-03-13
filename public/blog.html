@@ -3,16 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog Jurídico — LawTech Pro | Inovação e Tecnologia na Advocacia</title>
-    <meta name="description" content="Artigos sobre Direito, tecnologia jurídica, LegalTechs, IA na advocacia e inovação. Conteúdo especializado para advogados modernos.">
+    <title>Blog Jurídico — LawTech Pro | IA, Tecnologia e Inovação na Advocacia</title>
+    <meta name="description" content="Artigos especializados sobre Direito, LegalTechs, IA na advocacia e as últimas tendências em tecnologia jurídica. Conteúdo gratuito para advogados modernos.">
+    <meta name="keywords" content="blog jurídico, IA advocacia, LegalTech, tecnologia jurídica, reforma tributária, LGPD, gestão de escritório">
+    <meta name="author" content="LawTech Pro">
+    <link rel="canonical" href="https://www.lawtechpro.com.br/blog">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Blog Jurídico — LawTech Pro | IA, Tecnologia e Inovação na Advocacia">
+    <meta property="og:description" content="Artigos especializados sobre Direito, LegalTechs, IA na advocacia e tecnologia jurídica.">
+    <meta property="og:url" content="https://www.lawtechpro.com.br/blog">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      "name": "Blog Jurídico LawTech Pro",
+      "description": "Artigos sobre Direito, tecnologia jurídica e LegalTechs",
+      "url": "https://www.lawtechpro.com.br/blog",
+      "publisher": {
+        "@type": "Organization",
+        "name": "LawTech Pro",
+        "logo": { "@type": "ImageObject", "url": "https://www.lawtechpro.com.br/Logo%20LawTech%20Pro_transparente.png" }
+      }
+    }
+    </script>
+
     <style>
-        /* ========================================
-           VARIÁVEIS E RESET
-        ======================================== */
         :root {
             --primary: #1e3a8a;
             --primary-light: #2563eb;
@@ -33,11 +54,8 @@
             --radius: 12px;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -47,1280 +65,433 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        .container {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
 
-        /* ========================================
-           NAVEGAÇÃO
-        ======================================== */
+        /* NAV */
         nav {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            background: rgba(15, 23, 42, 0.95);
+            position: fixed; top: 0; width: 100%;
+            background: rgba(15,23,42,0.95);
             backdrop-filter: blur(12px);
             z-index: 1000;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
         }
+        nav .container { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; }
+        .logo img { height: 42px; width: auto; }
+        .nav-links { display: flex; gap: 40px; align-items: center; }
+        .nav-links a { color: rgba(255,255,255,0.9); text-decoration: none; font-weight: 500; font-size: 15px; transition: color 0.2s; position: relative; }
+        .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: var(--accent); transition: width 0.3s; }
+        .nav-links a:hover { color: var(--white); }
+        .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+        .nav-buttons { display: flex; gap: 12px; align-items: center; }
+        .btn { padding: 11px 28px; border-radius: 10px; font-weight: 600; text-decoration: none; transition: all 0.25s; display: inline-flex; align-items: center; gap: 8px; font-size: 15px; cursor: pointer; border: none; }
+        .btn-login { color: var(--white); background: transparent; border: 2px solid rgba(255,255,255,0.2); }
+        .btn-login:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.05); }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: var(--white); box-shadow: 0 4px 20px rgba(59,130,246,0.4); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(59,130,246,0.5); }
 
-        nav .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 18px 24px;
-        }
-
-        .logo img {
-            height: 42px;
-            width: auto;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 40px;
-            align-items: center;
-        }
-
-        .nav-links a {
-            color: rgba(255, 255, 255, 0.9);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 15px;
-            transition: all 0.3s;
-            position: relative;
-        }
-
-        .nav-links a::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--accent);
-            transition: width 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: var(--white);
-        }
-
-        .nav-links a:hover::after {
-            width: 100%;
-        }
-
-        .nav-links a.active::after {
-            width: 100%;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .btn {
-            padding: 13px 32px;
-            border-radius: 10px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: inline-block;
-            font-size: 15px;
-            cursor: pointer;
-            border: none;
-        }
-
-        .btn-login {
-            color: var(--white);
-            background: transparent;
-            border: 2px solid rgba(255,255,255,0.2);
-        }
-
-        .btn-login:hover {
-            border-color: rgba(255,255,255,0.4);
-            background: rgba(255,255,255,0.05);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: var(--white);
-            box-shadow: 0 4px 20px rgba(59,130,246,0.4);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(59,130,246,0.5);
-        }
-
-        /* ========================================
-           HERO DO BLOG
-        ======================================== */
+        /* HERO */
         .blog-hero {
-            padding: 180px 0 80px;
-            background: linear-gradient(165deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-            position: relative;
-            overflow: hidden;
+            padding: 160px 0 80px;
+            background: linear-gradient(160deg, #050d1f 0%, #0f172a 40%, #1e293b 80%, #1e3a8a 100%);
+            position: relative; overflow: hidden;
         }
-
         .blog-hero::before {
-            content: '';
-            position: absolute;
-            top: -30%;
-            right: -15%;
-            width: 600px;
-            height: 600px;
+            content: ''; position: absolute; top: -30%; right: -15%;
+            width: 600px; height: 600px;
             background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
-            border-radius: 50%;
-            animation: pulse 8s ease-in-out infinite;
+            border-radius: 50%; animation: pulse 8s ease-in-out infinite;
         }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.15); opacity: 1; }
-        }
-
-        .blog-hero .container {
-            position: relative;
-            z-index: 2;
-            text-align: center;
-        }
-
+        @keyframes pulse { 0%,100%{transform:scale(1);opacity:.8} 50%{transform:scale(1.15);opacity:1} }
+        .blog-hero .container { position: relative; z-index: 2; text-align: center; }
         .blog-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 20px;
-            background: rgba(16,185,129,0.15);
-            border: 1px solid rgba(16,185,129,0.3);
-            border-radius: 999px;
-            color: #34d399;
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            margin-bottom: 24px;
-            backdrop-filter: blur(10px);
+            display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px;
+            background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 999px; color: #34d399; font-size: 13px; font-weight: 600;
+            letter-spacing: 0.5px; margin-bottom: 24px;
         }
+        .blog-hero h1 { font-size: clamp(36px, 5vw, 56px); font-weight: 900; line-height: 1.1; color: var(--white); margin-bottom: 20px; letter-spacing: -1.5px; }
+        .blog-hero h1 .highlight { background: linear-gradient(135deg, #34d399, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .blog-hero .subtitle { font-size: 19px; color: rgba(255,255,255,0.7); max-width: 640px; margin: 0 auto 44px; line-height: 1.75; }
 
-        .blog-hero h1 {
-            font-size: 56px;
-            font-weight: 900;
-            line-height: 1.1;
-            color: var(--white);
-            margin-bottom: 20px;
-            letter-spacing: -1.5px;
+        /* SEARCH */
+        .search-wrapper { max-width: 560px; margin: 0 auto; position: relative; }
+        .search-input {
+            width: 100%; padding: 16px 20px 16px 52px;
+            background: rgba(255,255,255,0.1); border: 1.5px solid rgba(255,255,255,0.2);
+            border-radius: 14px; color: var(--white); font-size: 16px; font-family: inherit;
+            backdrop-filter: blur(10px); transition: all 0.25s;
         }
+        .search-input::placeholder { color: rgba(255,255,255,0.45); }
+        .search-input:focus { outline: none; border-color: rgba(96,165,250,0.7); background: rgba(255,255,255,0.15); box-shadow: 0 0 0 4px rgba(59,130,246,0.15); }
+        .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.5); pointer-events: none; }
+        .search-icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+        .search-clear { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; padding: 4px; display: none; transition: color 0.2s; }
+        .search-clear:hover { color: var(--white); }
+        .search-clear svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+        .search-results-count { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 10px; text-align: center; min-height: 20px; }
 
-        .blog-hero h1 .highlight {
-            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+        /* BREADCRUMB */
+        .breadcrumb { padding: 14px 0; background: var(--white); border-bottom: 1px solid var(--gray-200); font-size: 13px; color: var(--gray-400); }
+        .breadcrumb a { color: var(--primary-light); text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb span { margin: 0 8px; }
 
-        .blog-hero .subtitle {
-            font-size: 20px;
-            color: rgba(255,255,255,0.75);
-            max-width: 700px;
-            margin: 0 auto 40px;
-            line-height: 1.7;
-        }
-
-        /* ========================================
-           FILTROS DE CATEGORIA
-        ======================================== */
+        /* FILTERS */
         .filters-section {
-            padding: 40px 0;
-            background: var(--white);
+            padding: 24px 0; background: var(--white);
             border-bottom: 1px solid var(--gray-200);
-            position: sticky;
-            top: 70px;
-            z-index: 900;
+            position: sticky; top: 78px; z-index: 900;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
-
-        .filters-container {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
+        .filters-container { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center; }
         .filter-btn {
-            padding: 10px 24px;
-            background: var(--gray-100);
-            border: 2px solid var(--gray-200);
-            border-radius: 999px;
-            color: var(--gray-700);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            padding: 9px 22px; background: var(--gray-100); border: 1.5px solid var(--gray-200);
+            border-radius: 999px; color: var(--gray-700); font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; white-space: nowrap;
         }
+        .filter-btn:hover { background: var(--primary-light); border-color: var(--primary-light); color: var(--white); }
+        .filter-btn.active { background: var(--primary); border-color: var(--primary); color: var(--white); }
+        .filter-btn.tech { background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-color: var(--tech-accent); color: #065f46; }
+        .filter-btn.tech:hover, .filter-btn.tech.active { background: var(--tech-accent); border-color: var(--tech-accent); color: var(--white); }
+        .filter-count { font-size: 11px; background: rgba(0,0,0,0.1); border-radius: 999px; padding: 1px 7px; margin-left: 4px; }
+        .filter-btn.active .filter-count, .filter-btn:hover .filter-count { background: rgba(255,255,255,0.25); }
 
-        .filter-btn:hover {
-            background: var(--primary-light);
-            border-color: var(--primary-light);
-            color: var(--white);
-        }
+        /* MAIN LAYOUT */
+        .blog-main { padding: 64px 0; }
+        .blog-layout { display: grid; grid-template-columns: 1fr 320px; gap: 48px; align-items: start; }
 
-        .filter-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: var(--white);
-        }
+        /* ARTICLES SECTION */
+        .articles-section { min-width: 0; }
+        .articles-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+        .articles-section-title { font-size: 20px; font-weight: 800; color: var(--gray-900); }
+        .articles-section-count { font-size: 14px; color: var(--gray-400); }
 
-        .filter-btn.tech {
-            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-            border-color: var(--tech-accent);
-            color: #065f46;
-        }
+        .articles-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
 
-        .filter-btn.tech:hover,
-        .filter-btn.tech.active {
-            background: var(--tech-accent);
-            color: var(--white);
-        }
-
-        /* ========================================
-           GRID DE ARTIGOS
-        ======================================== */
-        .articles-section {
-            padding: 80px 0;
-            background: var(--gray-50);
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-
-        .section-title {
-            font-size: 36px;
-            font-weight: 800;
-            color: var(--gray-900);
-            margin-bottom: 16px;
-        }
-
-        .section-description {
-            font-size: 18px;
-            color: var(--gray-600);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .articles-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 32px;
-        }
-
-        /* ========================================
-           CARDS DE ARTIGOS
-        ======================================== */
-        .article-card {
-            background: var(--white);
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .article-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-        }
-
-        .article-image {
-            width: 100%;
-            height: 240px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Gradientes específicos por categoria */
-        [data-category="tecnologia"] .article-image {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        [data-category="tributario"] .article-image {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-
-        [data-category="trabalho"] .article-image {
-            background: linear-gradient(135deg, #ffa751 0%, #ffe259 100%);
-        }
-
-        [data-category="digital"] .article-image {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-
-        [data-category="civil"] .article-image {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        }
-
-        [data-category="penal"] .article-image {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        }
-
-        /* Padrão de background decorativo para os cards */
-        .article-image::after {
-            content: '';
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            border-radius: 50%;
-            top: -100px;
-            right: -100px;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(-20px, 20px); }
-        }
-
-        .article-image::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(30,58,138,0.8), rgba(37,99,235,0.6));
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .article-card:hover .article-image::before {
-            opacity: 1;
-        }
-
-        .article-icon {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 64px;
-            opacity: 0.3;
-            transition: all 0.3s;
-        }
-
-        .article-card:hover .article-icon {
-            transform: translate(-50%, -50%) scale(1.2);
-            opacity: 0.5;
-        }
-
-        /* Ícones SVG dentro da imagem */
-        .article-icon svg {
-            width: 64px;
-            height: 64px;
-            stroke: var(--white);
-            fill: none;
-            stroke-width: 1.5;
-        }
-
-        .article-content {
-            padding: 28px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .article-meta {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .article-category {
-            display: inline-block;
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Categorias de Direito */
-        .cat-consumidor {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .cat-civil {
-            background: #e0e7ff;
-            color: #4338ca;
-        }
-
-        .cat-trabalho {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .cat-penal {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .cat-previdenciario {
-            background: #e9d5ff;
-            color: #6b21a8;
-        }
-
-        .cat-digital {
-            background: #ccfbf1;
-            color: #115e59;
-        }
-
-        .cat-tributario {
-            background: #fce7f3;
-            color: #9f1239;
-        }
-
-        /* Categoria Tecnologia (Destaque especial) */
-        .cat-tecnologia {
-            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-            color: #065f46;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cat-tecnologia::before {
-            content: '⚡';
-            position: absolute;
-            right: 4px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 14px;
-        }
-
-        .article-date {
-            font-size: 13px;
-            color: var(--gray-500);
-            font-weight: 500;
-        }
-
-        .article-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--gray-900);
-            margin-bottom: 12px;
-            line-height: 1.3;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            line-clamp: 2; /* Adicione esta linha padrão */
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .article-excerpt {
-            font-size: 15px;
-            color: var(--gray-600);
-            line-height: 1.7;
-            margin-bottom: 20px;
-            flex-grow: 1;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            line-clamp: 3; /* Adicione esta linha padrão */
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .article-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding-top: 20px;
-            border-top: 1px solid var(--gray-200);
-        }
-
-        .read-more {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--primary);
-            font-weight: 600;
-            font-size: 14px;
-            text-decoration: none;
-            transition: gap 0.3s;
-        }
-
-        .read-more:hover {
-            gap: 12px;
-            color: var(--primary-light);
-        }
-
-        .read-more::after {
-            content: '→';
-            font-size: 18px;
-        }
-
-        /* Badge Leitura Rápida */
-        .quick-read {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 12px;
-            color: var(--gray-500);
-        }
-
-        /* ========================================
-           ARTIGO DESTAQUE (PRIMEIRO)
-        ======================================== */
+        /* FEATURED ARTICLE */
         .featured-article {
-            grid-column: 1 / -1;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
+            grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
             background: linear-gradient(135deg, var(--primary-dark), var(--dark));
-            border-radius: 20px;
-            padding: 48px;
-            margin-bottom: 32px;
-            position: relative;
-            overflow: hidden;
+            border-radius: 20px; padding: 48px; margin-bottom: 8px;
+            position: relative; overflow: hidden;
         }
-
         .featured-article::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
-            border-radius: 50%;
+            content: ''; position: absolute; top: -50%; right: -20%; width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%); border-radius: 50%;
         }
-
-        .featured-content,
-        .featured-image-side {
-            position: relative;
-            z-index: 2;
-        }
-
+        .featured-content, .featured-image-side { position: relative; z-index: 2; }
         .featured-badge {
-            display: inline-block;
-            padding: 8px 16px;
-            background: rgba(16,185,129,0.2);
-            border: 1px solid rgba(16,185,129,0.4);
-            border-radius: 999px;
-            color: #34d399;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 20px;
+            display: inline-block; padding: 7px 16px;
+            background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4);
+            border-radius: 999px; color: #34d399; font-size: 12px; font-weight: 700; margin-bottom: 20px;
         }
+        .featured-content h2 { font-size: 32px; font-weight: 900; color: var(--white); margin-bottom: 14px; line-height: 1.2; letter-spacing: -0.5px; }
+        .featured-content p { font-size: 17px; color: rgba(255,255,255,0.75); margin-bottom: 24px; line-height: 1.75; }
+        .featured-meta { display: flex; gap: 20px; margin-bottom: 28px; flex-wrap: wrap; }
+        .featured-meta-item { color: rgba(255,255,255,0.65); font-size: 14px; }
+        .featured-cta { display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; background: var(--tech-accent); color: var(--white); font-weight: 700; border-radius: 10px; text-decoration: none; transition: all 0.25s; font-size: 15px; }
+        .featured-cta:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(16,185,129,0.4); }
+        .featured-image-side { display: flex; align-items: center; justify-content: center; }
+        .featured-image-side svg { width: 260px; height: 260px; stroke: rgba(255,255,255,0.18); fill: none; stroke-width: 1; }
 
-        .featured-content h2 {
-            font-size: 36px;
-            font-weight: 900;
-            color: var(--white);
-            margin-bottom: 16px;
-            line-height: 1.2;
+        /* ARTICLE CARD */
+        .article-card { background: var(--white); border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.07); transition: all 0.3s cubic-bezier(0.16,1,0.3,1); display: flex; flex-direction: column; height: 100%; }
+        .article-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.13); }
+        .article-image { width: 100%; height: 200px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); position: relative; overflow: hidden; }
+        [data-category="tecnologia"] .article-image { background: linear-gradient(135deg, #667eea, #764ba2); }
+        [data-category="tributario"] .article-image { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        [data-category="trabalho"] .article-image { background: linear-gradient(135deg, #ffa751, #ffe259); }
+        [data-category="digital"] .article-image { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        [data-category="civil"] .article-image { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        [data-category="penal"] .article-image { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .article-image::after { content: ''; position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); border-radius: 50%; top: -100px; right: -100px; animation: float 6s ease-in-out infinite; }
+        @keyframes float { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-20px,20px)} }
+        .article-image::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(30,58,138,0.8), rgba(37,99,235,0.6)); opacity: 0; transition: opacity 0.3s; }
+        .article-card:hover .article-image::before { opacity: 1; }
+        .article-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); opacity: 0.3; transition: all 0.3s; }
+        .article-card:hover .article-icon { transform: translate(-50%,-50%) scale(1.2); opacity: 0.5; }
+        .article-icon svg { width: 60px; height: 60px; stroke: var(--white); fill: none; stroke-width: 1.5; }
+        .article-content { padding: 24px; flex-grow: 1; display: flex; flex-direction: column; }
+        .article-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+        .article-category { display: inline-block; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .cat-tecnologia { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; }
+        .cat-tributario { background: #fce7f3; color: #9f1239; }
+        .cat-civil { background: #e0e7ff; color: #4338ca; }
+        .cat-trabalho { background: #fef3c7; color: #92400e; }
+        .cat-digital { background: #ccfbf1; color: #115e59; }
+        .cat-penal { background: #fee2e2; color: #991b1b; }
+        .cat-gestao { background: #dbeafe; color: #1e40af; }
+        .article-date { font-size: 12px; color: var(--gray-400); font-weight: 500; }
+        .article-title { font-size: 18px; font-weight: 700; color: var(--gray-900); margin-bottom: 10px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .article-excerpt { font-size: 14px; color: var(--gray-600); line-height: 1.7; margin-bottom: 18px; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .article-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; border-top: 1px solid var(--gray-200); }
+        .read-more { display: inline-flex; align-items: center; gap: 6px; color: var(--primary); font-weight: 600; font-size: 14px; text-decoration: none; transition: gap 0.2s; }
+        .read-more:hover { gap: 10px; color: var(--primary-light); }
+        .read-more::after { content: '→'; font-size: 16px; }
+        .quick-read { font-size: 12px; color: var(--gray-400); }
+        .article-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+        .article-tag { font-size: 11px; color: var(--gray-400); background: var(--gray-100); padding: 3px 10px; border-radius: 999px; text-decoration: none; transition: all 0.2s; }
+        .article-tag:hover { background: var(--gray-200); color: var(--gray-700); }
+
+        /* EMPTY / LOADING STATE */
+        .articles-empty { grid-column: 1/-1; text-align: center; padding: 80px 24px; color: var(--gray-400); }
+        .articles-empty svg { width: 64px; height: 64px; stroke: var(--gray-300); fill: none; stroke-width: 1.5; margin-bottom: 20px; }
+        .articles-empty h3 { font-size: 20px; font-weight: 700; color: var(--gray-600); margin-bottom: 8px; }
+        .articles-empty p { font-size: 15px; }
+        .articles-loading { grid-column: 1/-1; display: grid; grid-template-columns: repeat(2,1fr); gap: 24px; }
+        .skeleton { background: var(--gray-200); border-radius: 12px; animation: shimmer 1.5s infinite; }
+        .skeleton-card { height: 340px; border-radius: 16px; }
+        @keyframes shimmer { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+        /* SIDEBAR */
+        .blog-sidebar { position: sticky; top: 156px; display: flex; flex-direction: column; gap: 28px; }
+        .sidebar-widget { background: var(--white); border-radius: 16px; padding: 28px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1.5px solid var(--gray-200); }
+        .widget-title { font-size: 15px; font-weight: 800; color: var(--gray-900); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .widget-title svg { width: 18px; height: 18px; stroke: var(--primary-light); fill: none; stroke-width: 2; stroke-linecap: round; }
+
+        /* Popular articles in sidebar */
+        .popular-list { display: flex; flex-direction: column; gap: 16px; }
+        .popular-item { display: flex; gap: 14px; align-items: flex-start; cursor: pointer; text-decoration: none; transition: opacity 0.2s; }
+        .popular-item:hover { opacity: 0.75; }
+        .popular-num { font-size: 22px; font-weight: 900; color: var(--gray-200); line-height: 1; flex-shrink: 0; width: 28px; }
+        .popular-info h4 { font-size: 14px; font-weight: 700; color: var(--gray-900); line-height: 1.35; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .popular-info span { font-size: 12px; color: var(--gray-400); }
+
+        /* Category widget */
+        .category-list { display: flex; flex-direction: column; gap: 8px; }
+        .category-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 10px; cursor: pointer; border: 1.5px solid var(--gray-200); background: var(--gray-50); transition: all 0.2s; text-decoration: none; }
+        .category-item:hover { background: #eff6ff; border-color: var(--primary-light); }
+        .category-name { font-size: 14px; font-weight: 600; color: var(--gray-700); }
+        .category-count-badge { font-size: 11px; font-weight: 700; color: var(--primary-light); background: #dbeafe; padding: 2px 8px; border-radius: 999px; }
+
+        /* CTA Widget */
+        .cta-widget { background: linear-gradient(135deg, #0f172a, #1e3a8a); border: none; }
+        .cta-widget .widget-title { color: #93c5fd; }
+        .cta-widget p { font-size: 14px; color: rgba(255,255,255,0.65); line-height: 1.7; margin-bottom: 20px; }
+        .cta-widget-btn { display: block; text-align: center; padding: 13px 20px; background: var(--tech-accent); color: var(--white); font-weight: 700; font-size: 14px; border-radius: 10px; text-decoration: none; transition: all 0.25s; }
+        .cta-widget-btn:hover { background: #059669; transform: translateY(-2px); }
+        .cta-widget-trust { font-size: 12px; color: rgba(255,255,255,0.35); text-align: center; margin-top: 10px; }
+
+        /* MAIS LIDOS (horizontal strip) */
+        .popular-section { padding: 0 0 56px; background: var(--gray-50); }
+        .popular-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+        .popular-header h2 { font-size: 22px; font-weight: 800; color: var(--gray-900); display: flex; align-items: center; gap: 10px; }
+        .popular-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .popular-card { background: var(--white); border-radius: 14px; padding: 24px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border: 1.5px solid var(--gray-200); transition: all 0.25s; text-decoration: none; display: block; }
+        .popular-card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,0.11); border-color: var(--primary-light); }
+        .popular-rank { font-size: 32px; font-weight: 900; color: var(--gray-100); line-height: 1; margin-bottom: 12px; }
+        .popular-card h3 { font-size: 15px; font-weight: 700; color: var(--gray-900); line-height: 1.35; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .popular-card-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--gray-400); }
+
+        /* GUIAS */
+        .guides-section { padding: 56px 0; background: var(--white); border-top: 1px solid var(--gray-200); border-bottom: 1px solid var(--gray-200); }
+        .guides-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+        .guides-header h2 { font-size: 22px; font-weight: 800; color: var(--gray-900); display: flex; align-items: center; gap: 10px; }
+        .guides-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .guide-card { display: flex; gap: 20px; align-items: flex-start; padding: 28px; background: var(--gray-50); border: 1.5px solid var(--gray-200); border-radius: 16px; text-decoration: none; transition: all 0.25s; }
+        .guide-card:hover { background: #eff6ff; border-color: var(--primary-light); transform: translateY(-4px); box-shadow: 0 10px 28px rgba(37,99,235,0.1); }
+        .guide-icon { width: 52px; height: 52px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .guide-icon svg { width: 26px; height: 26px; stroke: var(--primary); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .guide-info h3 { font-size: 16px; font-weight: 700; color: var(--gray-900); margin-bottom: 6px; line-height: 1.3; }
+        .guide-info p { font-size: 13px; color: var(--gray-600); line-height: 1.6; margin-bottom: 12px; }
+        .guide-meta { display: flex; gap: 14px; font-size: 12px; color: var(--gray-400); }
+        .guide-label { display: inline-block; font-size: 11px; font-weight: 700; color: var(--primary-light); background: #dbeafe; padding: 2px 10px; border-radius: 999px; margin-bottom: 8px; }
+
+        /* MID-PAGE CTA BLOCK */
+        .mid-cta { grid-column: 1/-1; background: linear-gradient(135deg, #0f172a, #1e3a8a); border-radius: 20px; padding: 40px 44px; display: flex; align-items: center; justify-content: space-between; gap: 24px; margin: 8px 0; }
+        .mid-cta-text h3 { font-size: 22px; font-weight: 800; color: var(--white); margin-bottom: 6px; }
+        .mid-cta-text p { font-size: 15px; color: rgba(255,255,255,0.6); }
+        .mid-cta-btn { display: inline-flex; align-items: center; gap: 10px; padding: 13px 28px; background: var(--tech-accent); color: var(--white); font-weight: 700; border-radius: 10px; text-decoration: none; transition: all 0.25s; white-space: nowrap; flex-shrink: 0; }
+        .mid-cta-btn:hover { background: #059669; transform: translateY(-2px); }
+
+        /* NEWSLETTER */
+        .newsletter-section { padding: 80px 0; background: var(--gray-50); }
+        .newsletter-box { max-width: 700px; margin: 0 auto; text-align: center; background: linear-gradient(135deg, var(--primary-light), var(--primary)); border-radius: 24px; padding: 56px 40px; box-shadow: 0 20px 60px rgba(37,99,235,0.3); }
+        .newsletter-box h2 { font-size: 32px; font-weight: 900; color: var(--white); margin-bottom: 14px; }
+        .newsletter-box p { font-size: 17px; color: rgba(255,255,255,0.85); margin-bottom: 28px; }
+        .newsletter-form { display: flex; gap: 12px; max-width: 480px; margin: 0 auto; }
+        .newsletter-input { flex: 1; padding: 15px 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 10px; background: rgba(255,255,255,0.1); color: var(--white); font-size: 15px; font-family: inherit; backdrop-filter: blur(10px); }
+        .newsletter-input::placeholder { color: rgba(255,255,255,0.55); }
+        .newsletter-input:focus { outline: none; border-color: var(--white); background: rgba(255,255,255,0.15); }
+        .newsletter-btn { padding: 15px 28px; background: var(--white); color: var(--primary); font-weight: 700; border: none; border-radius: 10px; cursor: pointer; transition: all 0.25s; font-family: inherit; font-size: 15px; }
+        .newsletter-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,255,255,0.4); }
+
+        /* FOOTER */
+        footer { background: var(--dark); color: rgba(255,255,255,0.6); padding: 60px 0 30px; }
+        .footer-content { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 60px; margin-bottom: 40px; }
+        .footer-logo img { height: 40px; margin-bottom: 20px; }
+        .footer-about { font-size: 14px; line-height: 1.8; color: rgba(255,255,255,0.5); }
+        .footer-column h4 { color: var(--white); font-size: 14px; font-weight: 700; margin-bottom: 18px; text-transform: uppercase; letter-spacing: 1px; }
+        .footer-links { list-style: none; }
+        .footer-links li { margin-bottom: 10px; }
+        .footer-links a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--white); }
+        .footer-bottom { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 28px; text-align: center; font-size: 13px; }
+
+        /* RESPONSIVE */
+        @media (max-width: 1100px) {
+            .blog-layout { grid-template-columns: 1fr; }
+            .blog-sidebar { position: static; display: grid; grid-template-columns: repeat(2, 1fr); }
+            .popular-grid { grid-template-columns: repeat(2,1fr); }
+            .guides-grid { grid-template-columns: 1fr; }
         }
-
-        .featured-content p {
-            font-size: 18px;
-            color: rgba(255,255,255,0.8);
-            margin-bottom: 24px;
-            line-height: 1.7;
-        }
-
-        .featured-meta {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 32px;
-        }
-
-        .featured-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: rgba(255,255,255,0.7);
-            font-size: 14px;
-        }
-
-        .featured-cta {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px 32px;
-            background: var(--tech-accent);
-            color: var(--white);
-            font-weight: 700;
-            border-radius: 10px;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-
-        .featured-cta:hover {
-            background: #059669;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(16,185,129,0.4);
-        }
-
-        .featured-image-side {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .featured-image-side svg {
-            width: 280px;
-            height: 280px;
-            stroke: rgba(255,255,255,0.2);
-            fill: none;
-            stroke-width: 1;
-        }
-
-        /* ========================================
-           NEWSLETTER / CTA FINAL
-        ======================================== */
-        .newsletter-section {
-            padding: 100px 0;
-            background: var(--white);
-        }
-
-        .newsletter-box {
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: center;
-            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
-            border-radius: 24px;
-            padding: 60px 40px;
-            box-shadow: 0 20px 60px rgba(37,99,235,0.3);
-        }
-
-        .newsletter-box h2 {
-            font-size: 36px;
-            font-weight: 900;
-            color: var(--white);
-            margin-bottom: 16px;
-        }
-
-        .newsletter-box p {
-            font-size: 18px;
-            color: rgba(255,255,255,0.9);
-            margin-bottom: 32px;
-        }
-
-        .newsletter-form {
-            display: flex;
-            gap: 12px;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .newsletter-input {
-            flex: 1;
-            padding: 16px 24px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 10px;
-            background: rgba(255,255,255,0.1);
-            color: var(--white);
-            font-size: 15px;
-            backdrop-filter: blur(10px);
-        }
-
-        .newsletter-input::placeholder {
-            color: rgba(255,255,255,0.6);
-        }
-
-        .newsletter-input:focus {
-            outline: none;
-            border-color: var(--white);
-            background: rgba(255,255,255,0.15);
-        }
-
-        .newsletter-btn {
-            padding: 16px 32px;
-            background: var(--white);
-            color: var(--primary);
-            font-weight: 700;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .newsletter-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(255,255,255,0.4);
-        }
-
-        /* ========================================
-           FOOTER
-        ======================================== */
-        footer {
-            background: var(--dark);
-            color: rgba(255,255,255,0.7);
-            padding: 60px 0 30px;
-        }
-
-        .footer-content {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 60px;
-            margin-bottom: 40px;
-        }
-
-        .footer-logo img {
-            height: 40px;
-            margin-bottom: 20px;
-        }
-
-        .footer-about {
-            font-size: 14px;
-            line-height: 1.8;
-            color: rgba(255,255,255,0.6);
-        }
-
-        .footer-column h4 {
-            color: var(--white);
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-
-        .footer-links {
-            list-style: none;
-        }
-
-        .footer-links li {
-            margin-bottom: 12px;
-        }
-
-        .footer-links a {
-            color: rgba(255,255,255,0.6);
-            text-decoration: none;
-            font-size: 14px;
-            transition: color 0.3s;
-        }
-
-        .footer-links a:hover {
-            color: var(--white);
-        }
-
-        .footer-bottom {
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding-top: 30px;
-            text-align: center;
-            font-size: 14px;
-        }
-
-        /* ========================================
-           RESPONSIVIDADE
-        ======================================== */
         @media (max-width: 1024px) {
-            .nav-links {
-                display: none;
-            }
-
-            .articles-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 24px;
-            }
-
-            .featured-article {
-                grid-template-columns: 1fr;
-                padding: 40px;
-            }
-
-            .featured-image-side {
-                display: none;
-            }
+            .nav-links { display: none; }
+            .articles-grid { grid-template-columns: 1fr; }
+            .featured-article { grid-template-columns: 1fr; padding: 36px; }
+            .featured-image-side { display: none; }
+            .footer-content { grid-template-columns: 1fr 1fr; gap: 40px; }
         }
-
         @media (max-width: 768px) {
-            .blog-hero h1 {
-                font-size: 36px;
-            }
-
-            .blog-hero .subtitle {
-                font-size: 16px;
-            }
-
-            .filters-container {
-                gap: 8px;
-            }
-
-            .filter-btn {
-                padding: 8px 16px;
-                font-size: 13px;
-            }
-
-            .articles-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .featured-article {
-                padding: 32px 24px;
-            }
-
-            .featured-content h2 {
-                font-size: 28px;
-            }
-
-            .newsletter-form {
-                flex-direction: column;
-            }
-
-            .footer-content {
-                grid-template-columns: 1fr;
-                gap: 40px;
-            }
+            .blog-hero h1 { letter-spacing: -1px; }
+            .filters-container { gap: 8px; }
+            .filter-btn { padding: 8px 14px; font-size: 13px; }
+            .popular-grid { grid-template-columns: 1fr 1fr; }
+            .blog-sidebar { grid-template-columns: 1fr; }
+            .newsletter-form { flex-direction: column; }
+            .footer-content { grid-template-columns: 1fr; gap: 32px; }
+            .mid-cta { flex-direction: column; text-align: center; }
+            .articles-loading { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .popular-grid { grid-template-columns: 1fr; }
         }
     </style>
     <link rel="stylesheet" href="mobile.css">
 </head>
 <body>
-    <!-- ========================================
-         NAVEGAÇÃO
-    ======================================== -->
+
+    <!-- NAV -->
     <nav>
         <div class="container">
             <div class="logo">
-                <img src="Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro">
+                <a href="index.html"><img src="Logo%20LawTech%20Pro_transparente.png" alt="LawTech Pro"></a>
             </div>
             <div class="nav-links">
                 <a href="index.html">Início</a>
-                <li><a href="index.html#planos">Planos</a></li>
+                <a href="index.html#planos">Planos</a>
                 <a href="sobre-nos.html">Sobre Nós</a>
                 <a href="blog.html" class="active">Blog</a>
-                <li><a href="/cdn-cgi/l/email-protection#8ae9e5e4feebfee5cae6ebfdfeefe9e2faf8e5a4e9e5e7a4e8f8">Contato</a></li>
+                <a href="mailto:contato@lawtechpro.com.br">Contato</a>
             </div>
             <div class="nav-buttons">
                 <a href="login.html" class="btn btn-login">Entrar</a>
-                <a href="index.html#planos" class="btn btn-primary">Teste Grátis</a>
+                <a href="register.html" class="btn btn-primary">Teste Grátis</a>
             </div>
         </div>
     </nav>
 
-    <!-- ========================================
-         HERO DO BLOG
-    ======================================== -->
+    <!-- HERO -->
     <section class="blog-hero">
         <div class="container">
-            <div class="blog-badge">
-                Blog Jurídico & Tecnologia
-            </div>
+            <div class="blog-badge">📚 Blog Jurídico &amp; Tecnologia</div>
             <h1>Conhecimento <span class="highlight">Jurídico</span> e <span class="highlight">Inovação</span></h1>
-            <p class="subtitle">
-                Artigos especializados sobre Direito, LegalTechs, inteligência artificial 
-                na advocacia e as últimas tendências em tecnologia jurídica.
-            </p>
+            <p class="subtitle">Artigos especializados sobre Direito, LegalTechs, IA na advocacia e as últimas tendências em tecnologia jurídica.</p>
+            <div class="search-wrapper">
+                <div class="search-icon">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </div>
+                <input type="search" class="search-input" id="blogSearch" placeholder="Buscar artigos, temas, categorias..." autocomplete="off">
+                <button class="search-clear" id="searchClear" aria-label="Limpar busca">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+                <div class="search-results-count" id="searchCount"></div>
+            </div>
         </div>
     </section>
 
-    <!-- ========================================
-         FILTROS DE CATEGORIA
-    ======================================== -->
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb">
+        <div class="container">
+            <a href="index.html">LawTech Pro</a>
+            <span>›</span>
+            <span id="breadcrumbCategory">Blog</span>
+        </div>
+    </div>
+
+    <!-- FILTERS -->
     <section class="filters-section">
         <div class="container">
-            <div class="filters-container">
-                <button class="filter-btn active" data-filter="todos">Todos os Artigos</button>
-                <button class="filter-btn tech" data-filter="tecnologia">🚀 Tecnologia & Inovação</button>
-                <button class="filter-btn" data-filter="tributario">💰 Tributário</button>
-                <button class="filter-btn" data-filter="trabalho">👷 Direito do Trabalho</button>
-                <button class="filter-btn" data-filter="digital">🔐 Direito Digital</button>
-                <button class="filter-btn" data-filter="civil">🏛️ Processo Civil</button>
+            <div class="filters-container" id="filterButtons">
+                <button class="filter-btn active" data-filter="todos">Todos <span class="filter-count" id="count-todos">0</span></button>
+                <button class="filter-btn tech" data-filter="tecnologia">🚀 Tecnologia <span class="filter-count" id="count-tecnologia">0</span></button>
+                <button class="filter-btn" data-filter="tributario">💰 Tributário <span class="filter-count" id="count-tributario">0</span></button>
+                <button class="filter-btn" data-filter="trabalho">👷 Trabalhista <span class="filter-count" id="count-trabalho">0</span></button>
+                <button class="filter-btn" data-filter="digital">🔐 Direito Digital <span class="filter-count" id="count-digital">0</span></button>
+                <button class="filter-btn" data-filter="civil">🏛️ Processo Civil <span class="filter-count" id="count-civil">0</span></button>
+                <button class="filter-btn" data-filter="penal">⚖️ Penal <span class="filter-count" id="count-penal">0</span></button>
             </div>
         </div>
     </section>
 
-    <!-- ========================================
-         ARTIGOS
-    ======================================== -->
-    <section class="articles-section">
+    <!-- MAIS LIDOS -->
+    <section class="popular-section container" id="popularSection" style="padding-top:56px;"></section>
+
+    <!-- GUIAS COMPLETOS -->
+    <section class="guides-section" id="guidesSection"></section>
+
+    <!-- MAIN BLOG LAYOUT -->
+    <section class="blog-main">
         <div class="container">
-            <div class="articles-grid">
-                
-                <!-- ARTIGO DESTAQUE - IA NA ADVOCACIA -->
-                <article class="featured-article">
-                    <div class="featured-content">
-                        <span class="featured-badge">⚡ Artigo em Destaque</span>
-                        <h2>Automação e Estratégia: Tendências da Advocacia em 2026</h2>
-                        <p>
-                            Pesquisa da OAB-SP revela que 55,1% dos advogados já utilizam IA generativa 
-                            em suas rotinas, com 78% usando essas ferramentas semanalmente. Especialistas 
-                            avaliam que 2026 será decisivo para consolidação de práticas digitais estratégicas.
-                        </p>
-                        <div class="featured-meta">
-                            <span class="featured-meta-item">📅 13 Jan 2026</span>
-                            <span class="featured-meta-item">⏱️ 8 min de leitura</span>
-                            <span class="featured-meta-item">🤖 Tecnologia</span>
+            <div class="blog-layout">
+                <div class="articles-section">
+                    <div class="articles-section-header">
+                        <h2 class="articles-section-title" id="articlesTitle">Todos os Artigos</h2>
+                        <span class="articles-section-count" id="articlesCount"></span>
+                    </div>
+                    <div class="articles-grid" id="articlesGrid">
+                        <!-- Skeleton de loading -->
+                        <div class="articles-loading">
+                            <div class="skeleton skeleton-card"></div>
+                            <div class="skeleton skeleton-card"></div>
+                            <div class="skeleton skeleton-card"></div>
+                            <div class="skeleton skeleton-card"></div>
                         </div>
-                        <a href="https://www.uai.com.br/app/noticia/mundo-corporativo/2026/01/19/noticia-mundo-corporativo,376357/automacao-e-estrategia-sao-tendencias-da-advocacia-em-2026.shtml" target="_blank" class="featured-cta">Ler artigo completo</a>
                     </div>
-                    <div class="featured-image-side">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                            <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                        </svg>
-                    </div>
-                </article>
+                </div>
 
-                <!-- ARTIGO 1 - OAB/SC E IA -->
-                <article class="article-card" data-category="tecnologia">
-                    <div class="article-image">
-                        <div class="article-icon">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path>
-                                <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path>
-                            </svg>
+                <!-- SIDEBAR -->
+                <aside class="blog-sidebar" id="blogSidebar">
+                    <!-- Populares -->
+                    <div class="sidebar-widget">
+                        <div class="widget-title">
+                            <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                            Mais Lidos
                         </div>
+                        <div class="popular-list" id="sidebarPopular"></div>
                     </div>
-                    <div class="article-content">
-                        <div class="article-meta">
-                            <span class="article-category cat-tecnologia">Tecnologia</span>
-                            <span class="article-date">02 Jan 2026</span>
-                        </div>
-                        <h3 class="article-title">2026 Será o Ano da Inteligência Artificial na OAB/SC</h3>
-                        <p class="article-excerpt">
-                            A OAB de Santa Catarina prepara agenda com capacitações, treinamentos e acesso 
-                            a ferramentas de IA acessíveis para simplificar o cotidiano forense dos advogados.
-                        </p>
-                        <div class="article-footer">
-                            <a href="https://www.oab-sc.org.br/noticias/2026-sera-ano-inteligencia-artificial-na-oabsc/24371" target="_blank" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 5 min</span>
-                        </div>
-                    </div>
-                </article>
 
-                <!-- ARTIGO 2 - REFORMA TRIBUTÁRIA -->
-                <article class="article-card" data-category="tributario">
-                    <div class="article-image">
-                        <div class="article-icon">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
+                    <!-- Categorias -->
+                    <div class="sidebar-widget">
+                        <div class="widget-title">
+                            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                            Categorias
                         </div>
+                        <div class="category-list" id="sidebarCategories"></div>
                     </div>
-                    <div class="article-content">
-                        <div class="article-meta">
-                            <span class="article-category cat-tributario">Tributário</span>
-                            <span class="article-date">02 Jan 2026</span>
-                        </div>
-                        <h3 class="article-title">2026 Marca Implementação da Reforma Tributária no Brasil</h3>
-                        <p class="article-excerpt">
-                            Após sete anos de tramitação, o Brasil inicia o teste do novo sistema tributário. 
-                            Empresas devem emitir notas destacando CBS e IBS, com projeto piloto já em andamento.
-                        </p>
-                        <div class="article-footer">
-                            <a href="https://www12.senado.leg.br/noticias/materias/2026/01/02/ano-de-2026-marca-implementacao-da-reforma-tributaria" target="_blank" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 7 min</span>
-                        </div>
-                    </div>
-                </article>
 
-                <!-- ARTIGO 3 - OAB APROVA RECOMENDAÇÕES DE IA -->
-                <article class="article-card" data-category="tecnologia">
-                    <div class="article-image">
-                        <div class="article-icon">
-                            <svg viewBox="0 0 24 24">
-                                <rect x="3" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="14" width="7" height="7"></rect>
-                                <rect x="3" y="14" width="7" height="7"></rect>
-                            </svg>
+                    <!-- CTA -->
+                    <div class="sidebar-widget cta-widget">
+                        <div class="widget-title">
+                            <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            LawTech Pro
                         </div>
+                        <p>Automatize seu escritório, controle prazos e gerencie processos — tudo em uma plataforma.</p>
+                        <a href="register.html" class="cta-widget-btn">Testar grátis por 7 dias →</a>
+                        <p class="cta-widget-trust">Sem compromisso. Cancele quando quiser.</p>
                     </div>
-                    <div class="article-content">
-                        <div class="article-meta">
-                            <span class="article-category cat-tecnologia">Tecnologia</span>
-                            <span class="article-date">Jan 2026</span>
-                        </div>
-                        <h3 class="article-title">OAB Aprova Recomendações para Uso de IA na Prática Jurídica</h3>
-                        <p class="article-excerpt">
-                            Conselho Federal da OAB estabelece diretrizes sobre confidencialidade, privacidade 
-                            e prática ética no uso de inteligência artificial generativa na advocacia.
-                        </p>
-                        <div class="article-footer">
-                            <a href="http://www.oab.org.br/noticia/62704/oab-aprova-recomendacoes-para-uso-de-ia-na-pratica-juridica" target="_blank" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 6 min</span>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- ARTIGO 4 - STJ JULGAMENTOS 2026 -->
-                <article class="article-card" data-category="civil">
-                    <div class="article-image">
-                        <div class="article-icon">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="article-content">
-                        <div class="article-meta">
-                            <span class="article-category cat-civil">Processo</span>
-                            <span class="article-date">01 Fev 2026</span>
-                        </div>
-                        <h3 class="article-title">STJ Destaca Principais Julgamentos Previstos para 2026</h3>
-                        <p class="article-excerpt">
-                            Tribunal analisará casos sobre benefícios previdenciários, planos de saúde, 
-                            impenhorabilidade, tributação e temas penais com grande impacto jurídico e social.
-                        </p>
-                        <div class="article-footer">
-                            <a href="https://www.stj.jus.br/sites/portalp/paginas/comunicacao/noticias/2026/01022026-corte-especial-abre-ano-judiciario-nesta-segunda-feira--2---confira-julgamentos-de-destaque-previstos-para-2026.aspx" target="_blank" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 8 min</span>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- ARTIGO 5 - ABONO SALARIAL PIS/PASEP -->
-                <article class="article-card" data-category="trabalho">
-                    <div class="article-image">
-                        <div class="article-icon">
-                            <svg viewBox="0 0 24 24">
-                                <line x1="12" y1="20" x2="12" y2="10"></line>
-                                <line x1="18" y1="20" x2="18" y2="4"></line>
-                                <line x1="6" y1="20" x2="6" y2="16"></line>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="article-content">
-                        <div class="article-meta">
-                            <span class="article-category cat-trabalho">Direito do Trabalho</span>
-                            <span class="article-date">05 Fev 2026</span>
-                        </div>
-                        <h3 class="article-title">Consulta ao Abono Salarial PIS/Pasep 2026 Já Está Liberada</h3>
-                        <p class="article-excerpt">
-                            Trabalhadores podem verificar se têm direito ao benefício referente ao ano-base 2024 
-                            pelo app Carteira de Trabalho Digital ou portal Gov.br. Contemplados 2 milhões de trabalhadores.
-                        </p>
-                        <div class="article-footer">
-                            <a href="https://agenciabrasil.ebc.com.br/economia/noticia/2026-02/saiba-como-consultar-se-tem-direito-ao-abono-salarial-pispasep-2026" target="_blank" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 5 min</span>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- ARTIGO 6 - ISENÇÃO DE IMPOSTOS PCD -->
-                <article class="article-card" data-category="tributario">
-                    <div class="article-image">
-                        <div class="article-icon">
-                            <svg viewBox="0 0 24 24">
-                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="article-content">
-                        <div class="article-meta">
-                            <span class="article-category cat-tributario">Tributário</span>
-                            <span class="article-date">06 Fev 2026</span>
-                        </div>
-                        <h3 class="article-title">Novos Grupos Têm Direito à Isenção de IPI e IOF na Compra de Veículos</h3>
-                        <p class="article-excerpt">
-                            Pessoas com deficiência, autistas e taxistas podem obter isenção fiscal na compra 
-                            de carros em 2026. Processo continua sendo feito pela Receita Federal.
-                        </p>
-                        <div class="article-footer">
-                            <a href="https://terrabrasilnoticias.com/2026/02/novo-grupo-de-brasileiros-passa-a-ter-direito-a-isencao-de-dois-impostos-na-compra-de-carro-em-2026/" target="_blank" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 6 min</span>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- ARTIGO 7 - LGPD BRASIL-UE -->
-                <article class="article-card" data-category="digital">
-                    <div class="article-image">
-                        <div class="article-icon">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                                <path d="M12 8v4l2 2"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="article-content">
-                        <div class="article-meta">
-                            <span class="article-category cat-digital">Direito Digital</span>
-                            <span class="article-date">27 Jan 2026</span>
-                        </div>
-                        <h3 class="article-title">Brasil e União Europeia Firmam Acordo Histórico de Transferência de Dados</h3>
-                        <p class="article-excerpt">
-                            ANPD e Comissão Europeia reconhecem reciprocamente LGPD e GDPR como equivalentes, 
-                            criando a maior área de fluxo seguro de dados do mundo com 700 milhões de pessoas.
-                        </p>
-                        <div class="article-footer">
-                            <a href="https://smabr.com/dados-pessoais/" target="_blank" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 7 min</span>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- ARTIGO 8 - PESQUISA NACIONAL IA -->
-                <article class="article-card" data-category="tecnologia">
-                    <div class="article-image">
-                        <div class="article-icon">
-                            <svg viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="8" x2="12" y2="12"></line>
-                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="article-content">
-                        <div class="article-meta">
-                            <span class="article-category cat-tecnologia">Tecnologia</span>
-                            <span class="article-date">Jan 2026</span>
-                        </div>
-                        <h3 class="article-title">OAB Lança Pesquisa Nacional para Mapear Impacto da IA na Advocacia</h3>
-                        <p class="article-excerpt">
-                            Levantamento reúne dados de profissionais em todo o país sobre uso de IA generativa, 
-                            buscando identificar mudanças e orientar uso responsável da tecnologia no Direito.
-                        </p>
-                        <div class="article-footer">
-                            <a href="https://gazetadoparana.com.br/artigo/oab-lanca-pesquisa-nacional-para-mapear-impacto-da-ia-generativa-na-advocacia" target="_blank" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 6 min</span>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- ARTIGO 9 - TENDÊNCIAS LGPD 2026 -->
-                <article class="article-card" data-category="digital">
-                    <div class="article-image">
-                        <div class="article-icon">
-                            <svg viewBox="0 0 24 24">
-                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                                <line x1="8" y1="21" x2="16" y2="21"></line>
-                                <line x1="12" y1="17" x2="12" y2="21"></line>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="article-content">
-                        <div class="article-meta">
-                            <span class="article-category cat-digital">LGPD</span>
-                            <span class="article-date">06 Jan 2026</span>
-                        </div>
-                        <h3 class="article-title">Tendências da LGPD e Proteção de Dados para 2026</h3>
-                        <p class="article-excerpt">
-                            Com a ANPD fortalecida como Agência Reguladora, 2026 marca fiscalização mais 
-                            intensa. Marco Legal da IA e ECA Digital trazem novos desafios para empresas.
-                        </p>
-                        <div class="article-footer">
-                            <a href="https://cafecombytes.com.br/2026/01/06/tendencias-da-lgpd-protecao-de-dados-e-privacidade-para-o-ano-de-2026/" target="_blank" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 9 min</span>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- ARTIGO 10 - COMPENSAÇÃO ICMS -->
-                <article class="article-card" data-category="tributario">
-                    <div class="article-image">
-                        <div class="article-icon">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="article-content">
-                        <div class="article-meta">
-                            <span class="article-category cat-tributario">Tributário</span>
-                            <span class="article-date">14 Jan 2026</span>
-                        </div>
-                        <h3 class="article-title">Compensação do ICMS: Por Que 2026 Define o Jogo para 2029-2032</h3>
-                        <p class="article-excerpt">
-                            Habilitação de 2026-2028 pode excluir contribuintes. Especialistas explicam 
-                            requisitos, comprovação e estratégias para proteger direitos de compensação.
-                        </p>
-                        <div class="article-footer">
-                            <a href="https://www.migalhas.com.br/depeso/447773/compensacao-do-icms-por-que-2026-define-o-jogo-para-2029-2032" target="_blank" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 12 min</span>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- ARTIGO 11 - MERCADO DE SEGUROS 2026 -->
-                <article class="article-card" data-category="civil">
-                    <div class="article-image">
-                        <div class="article-icon">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="article-content">
-                        <div class="article-meta">
-                            <span class="article-category cat-civil">Seguros</span>
-                            <span class="article-date">04 Fev 2026</span>
-                        </div>
-                        <h3 class="article-title">Projeções para 2026: Mercado de Seguros e Novo Marco Legal</h3>
-                        <p class="article-excerpt">
-                            Tribunais superiores terão julgamentos relevantes em matéria securitária. 
-                            Novo marco legal traz mudanças importantes para contratos de seguro e resseguro.
-                        </p>
-                        <div class="article-footer">
-                            <a href="https://www.migalhas.com.br/coluna/migalhas-securitarias/449204/projecoes-para-2026" target="_blank" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 10 min</span>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- ARTIGO 12 - LEI MARIA DA PENHA -->
-                <article class="article-card" data-category="penal">
-                    <div class="article-image">
-                        <div class="article-icon">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <circle cx="12" cy="15" r="3"></circle>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="article-content">
-                        <div class="article-meta">
-                            <span class="article-category cat-penal">Direitos Humanos</span>
-                            <span class="article-date">05 Fev 2026</span>
-                        </div>
-                        <h3 class="article-title">STF Decide Que Lei Maria da Penha Se Estende a Casais Homoafetivos</h3>
-                        <p class="article-excerpt">
-                            Decisão histórica do Supremo amplia proteção da Lei Maria da Penha para 
-                            casais gays, mulheres trans e travestis, garantindo medidas protetivas.
-                        </p>
-                        <div class="article-footer">
-                            <a href="https://www.migalhas.com.br/" target="_blank" class="read-more">Continuar lendo</a>
-                            <span class="quick-read">⏱️ 7 min</span>
-                        </div>
-                    </div>
-                </article>
-
+                </aside>
             </div>
         </div>
     </section>
 
-    <!-- ========================================
-         NEWSLETTER / CTA
-    ======================================== -->
+    <!-- NEWSLETTER -->
     <section class="newsletter-section">
         <div class="container">
             <div class="newsletter-box">
                 <h2>Fique Por Dentro das Novidades Jurídicas</h2>
-                <p>
-                    Receba semanalmente artigos exclusivos sobre Direito, tecnologia jurídica 
-                    e inovação na advocacia diretamente no seu e-mail.
-                </p>
-                <form class="newsletter-form">
+                <p>Receba semanalmente artigos exclusivos sobre Direito e tecnologia jurídica direto no seu e-mail.</p>
+                <form class="newsletter-form" id="newsletterForm">
                     <input type="email" class="newsletter-input" placeholder="Seu melhor e-mail" required>
                     <button type="submit" class="newsletter-btn">Inscrever-se</button>
                 </form>
@@ -1328,56 +499,44 @@
         </div>
     </section>
 
-    <!-- ========================================
-         FOOTER
-    ======================================== -->
-<footer>
+    <!-- FOOTER -->
+    <footer>
         <div class="container">
             <div class="footer-content">
                 <div class="footer-brand">
-                    <div class="footer-logo">
-                        <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
-                    </div>
-                    <p>Sistema completo de gestão jurídica desenvolvido para advogados e escritórios que exigem excelência, segurança e resultados mensuráveis.</p>
+                    <div class="footer-logo"><img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro"></div>
+                    <p class="footer-about">Sistema completo de gestão jurídica desenvolvido para advogados e escritórios que exigem excelência, segurança e resultados mensuráveis.</p>
                 </div>
-                <div class="footer-links">
+                <div class="footer-column">
                     <h4>Produto</h4>
-                    <ul>
+                    <ul class="footer-links">
                         <li><a href="index.html#funcionalidades">Soluções</a></li>
                         <li><a href="index.html#recursos">Recursos</a></li>
                         <li><a href="index.html#planos">Planos</a></li>
                     </ul>
                 </div>
-                <div class="footer-links">
+                <div class="footer-column">
                     <h4>Empresa</h4>
-                    <ul>
+                    <ul class="footer-links">
                         <li><a href="sobre-nos.html">Sobre Nós</a></li>
                         <li><a href="blog.html">Blog</a></li>
-                        <li><a href="/cdn-cgi/l/email-protection#453630352a373120052924323120262d35372a6b262a286b2737">Suporte</a></li>
+                        <li><a href="mailto:suporte@lawtechpro.com.br">Suporte</a></li>
                     </ul>
                 </div>
-                <div class="footer-links">
+                <div class="footer-column">
                     <h4>Legal</h4>
-                    <ul>
+                    <ul class="footer-links">
                         <li><a href="termos.html">Termos de Uso</a></li>
                         <li><a href="privacidade.html">Privacidade</a></li>
                         <li><a href="lgpd.html">LGPD</a></li>
                     </ul>
                 </div>
             </div>
-            <div class="footer-bottom">
-                
-                <p>© 2026 LawTech Pro Systems. Todos os direitos reservados.</p>
-            </div>
+            <div class="footer-bottom"><p>© 2026 LawTech Pro Systems. Todos os direitos reservados.</p></div>
         </div>
     </footer>
 
-    <!-- ========================================
-         JAVASCRIPT - FILTROS E INTERAÇÕES
-    ======================================== -->
-    
     <script src="mobile.js"></script>
-    <script src="/js/api.js"></script>
     <script src="/js/blog.js"></script>
 </body>
 </html>
