@@ -1342,6 +1342,79 @@
             .planos-billing-toggle { padding: 14px 20px 8px; }
             .step-label { font-size: 9px; letter-spacing: 0; }
         }
+
+        /* ============================================================
+           PLANO PREMIUM — ESTILO DOURADO
+           ============================================================ */
+
+        /* Card dourado no modal */
+        .plano-card.premium-card {
+            background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%);
+            border-color: #f59e0b;
+            box-shadow: 0 4px 20px rgba(217,119,6,0.15);
+        }
+
+        .plano-card.premium-card::before {
+            content: '✦ Exclusivo';
+            position: absolute;
+            top: -11px;
+            left: 16px;
+            background: linear-gradient(135deg, #92400e, #d97706);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 12px;
+            border-radius: 999px;
+            letter-spacing: 0.5px;
+        }
+
+        .plano-card.premium-card:hover {
+            border-color: #d97706;
+            box-shadow: 0 8px 28px rgba(217,119,6,0.22);
+            transform: translateY(-2px);
+        }
+
+        .plano-card.premium-card.selected {
+            background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%);
+            border-color: #d97706;
+            box-shadow: 0 0 0 3px rgba(217,119,6,0.2);
+        }
+
+        .plano-card.premium-card .plano-card-nome { color: #78350f; }
+        .plano-card.premium-card .plano-preco-valor { color: #d97706; }
+
+        .plano-card.premium-card .btn-selecionar-plano {
+            border-color: #d97706;
+            color: #d97706;
+        }
+
+        .plano-card.premium-card .btn-selecionar-plano:hover,
+        .plano-card.premium-card.selected .btn-selecionar-plano {
+            background: linear-gradient(135deg, #d97706, #f59e0b);
+            border-color: #d97706;
+            color: white;
+        }
+
+        /* Badge dourado na sidebar (quando Premium está selecionado) */
+        .plan-badge.premium {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-color: #f59e0b;
+        }
+
+        .plan-badge.premium .plan-badge-title { color: #d97706; }
+        .plan-badge.premium .plan-badge-name  { color: #78350f; }
+        .plan-badge.premium .plan-badge-period { color: #92400e; }
+
+        .plan-badge.premium .btn-alterar-plano {
+            border-color: #d97706;
+            color: #d97706;
+        }
+
+        .plan-badge.premium .btn-alterar-plano:hover {
+            background: rgba(217,119,6,0.07);
+            border-color: #b45309;
+            color: #b45309;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/imask"></script>
      <!-- Meta Pixel Code -->

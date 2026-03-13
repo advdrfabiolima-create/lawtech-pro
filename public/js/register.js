@@ -684,7 +684,7 @@ fbq('track', 'PageView');
             var periodo    = _modalBillingCiclo === 'anual' ? 'ano' : 'mês';
             var isSelected = key === _planoAtualKey;
             var isPopular  = key === popularKey;
-            var classes    = 'plano-card' + (isSelected ? ' selected' : '') + (isPopular ? ' popular' : '');
+            var classes    = 'plano-card' + (isSelected ? ' selected' : '') + (isPopular ? ' popular' : '') + (key === 'premium' ? ' premium-card' : '');
             var btnLabel   = isSelected ? '&#10003; Plano atual' : 'Selecionar plano';
 
             html.push('<div class="' + classes + '">');
@@ -727,16 +727,18 @@ fbq('track', 'PageView');
         localStorage.setItem('plano_escolhido_cobranca', cobrancaKey);
 
         // Atualizar badge na sidebar
-        atualizarBadgePlano(plano.nome, 'Cobrança ' + cobrancaKey);
+        atualizarBadgePlano(plano.nome, 'Cobrança ' + cobrancaKey, planKey);
 
         fecharModalPlanos();
     }
 
-    function atualizarBadgePlano(nome, periodo) {
+    function atualizarBadgePlano(nome, periodo, planKey) {
         var elNome    = document.getElementById('planoNome');
         var elPeriodo = document.getElementById('planoPeriodo');
         if (elNome)    elNome.textContent    = nome;
         if (elPeriodo) elPeriodo.textContent = periodo;
+        var badge = document.querySelector('.plan-badge');
+        if (badge) badge.classList.toggle('premium', planKey === 'premium');
     }
 
     // Abrir modal pelo botão da sidebar
@@ -810,3 +812,10 @@ fbq('track', 'PageView');
     }
 
     iniciarProgressBar();
+
+    // Inicializar badge dourado se Premium já estava selecionado
+    (function() {
+        var nomePlano = localStorage.getItem('plano_escolhido_nome') || '';
+        var badge = document.querySelector('.plan-badge');
+        if (badge) badge.classList.toggle('premium', nomePlano === 'Premium');
+    })();
