@@ -2021,19 +2021,30 @@
             background: var(--white);
             border: 1px solid var(--gray-200);
             border-radius: 10px;
-            padding: 16px 28px;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--gray-600);
-            letter-spacing: 0.2px;
+            padding: 20px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: all 0.2s ease;
-            white-space: nowrap;
+        }
+
+        .logo-item img {
+            height: 48px;
+            width: auto;
+            max-width: 160px;
+            object-fit: contain;
+            filter: grayscale(100%) opacity(0.6);
+            transition: filter 0.2s ease;
+            display: block;
         }
 
         .logo-item:hover {
-            border-color: var(--primary-light);
-            color: var(--primary-light);
-            box-shadow: 0 4px 16px rgba(37,99,235,0.08);
+            border-color: var(--gray-300);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+
+        .logo-item:hover img {
+            filter: grayscale(0%) opacity(1);
         }
 
         /* ================================================
@@ -2125,7 +2136,8 @@
 
             .logos-grid { gap: 10px; }
 
-            .logo-item { padding: 13px 18px; font-size: 13px; }
+            .logo-item { padding: 14px 20px; }
+            .logo-item img { height: 36px; }
 
             .faq-question { font-size: 15px; padding: 18px 20px; }
 
@@ -2873,14 +2885,21 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
                 <h2>Advogados em todo o Brasil confiam no LawTech Pro</h2>
             </div>
             <div class="logos-grid">
-                <div class="logo-item">Silva &amp; Advogados</div>
-                <div class="logo-item">Ferreira Sociedade de Advogados</div>
-                <div class="logo-item">Costa &amp; Lima Consultoria Jurídica</div>
-                <div class="logo-item">Monteiro Advocacia</div>
-                <div class="logo-item">Souza &amp; Pereira Associados</div>
-                <div class="logo-item">Nunes Direito Empresarial</div>
-                <div class="logo-item">Alves &amp; Carvalho</div>
-                <div class="logo-item">Ramos Advocacia Tributária</div>
+                <div class="logo-item">
+                    <img src="logomarcas/lima_e_silva_adv.jpeg" alt="Lima e Silva Advocacia">
+                </div>
+                <div class="logo-item">
+                    <img src="logomarcas/ferreira_advogados.png" alt="Ferreira Advogados">
+                </div>
+                <div class="logo-item">
+                    <img src="logomarcas/costa_lima_adv.png" alt="Costa Lima Advocacia">
+                </div>
+                <div class="logo-item">
+                    <img src="logomarcas/monteiro_advocacia.png" alt="Monteiro Advocacia">
+                </div>
+                <div class="logo-item">
+                    <img src="logomarcas/alves_carvalho_adv.png" alt="Alves Carvalho Advocacia">
+                </div>
             </div>
         </div>
     </section>
