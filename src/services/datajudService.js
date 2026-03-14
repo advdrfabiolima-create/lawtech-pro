@@ -339,4 +339,4 @@ async function buscarMovimentos(numeroCNJ) {
   }
 }
 
-module.exports = { buscarMovimentos };
+module.exports = { buscarMovimentos, inferirTipo };

@@ -451,9 +451,8 @@ router.get('/config/datajud/testar', authMiddleware, roleMiddleware('admin'), as
     const numeroSemMascara = numero.replace(/\D/g, '');
     const url = `https://api-publica.datajud.cnj.jus.br/api_publica_${tribunalSlug}/_search`;
 
-    // Busca sem filtro de _source para ver todos os campos disponíveis
-    let camposDisponiveis = null;
-    let totalHits = 0;
+    const { inferirTipo } = require('../services/datajudService');
+
     try {
         const { data } = await axios.post(url, {
             query: { term: { 'numeroProcesso.keyword': numeroSemMascara } }
@@ -462,31 +461,28 @@ router.get('/config/datajud/testar', authMiddleware, roleMiddleware('admin'), as
             timeout: 30000
         });
         const hits = data?.hits?.hits || [];
-        totalHits = hits.length;
-        if (hits[0]?._source) {
-            // Lista os campos e tamanhos dos arrays encontrados
-            const src = hits[0]._source;
-            camposDisponiveis = Object.keys(src).map(k => ({
-                campo: k,
-                tipo: Array.isArray(src[k]) ? `array[${src[k].length}]` : typeof src[k],
-                amostra: Array.isArray(src[k]) ? src[k][0] : src[k]
-            }));
-        }
+        if (!hits.length) return res.json({ ok: false, erro: 'Processo não encontrado no DataJud' });
+
+        const src = hits[0]._source || {};
+        const movimentos = src.movimento || src.movimentos || src.andamento || src.andamentos || [];
+
+        const lista = movimentos.map(m => ({
+            codigo: m.codigo,
+            nome:   m.nome,
+            data:   m.dataHora ? m.dataHora.split('T')[0] : null,
+            tipo_inferido: inferirTipo(m.nome, m.codigo),
+        }));
+
+        return res.json({
+            ok: true,
+            numero_original: numero,
+            tribunal_slug: tribunalSlug,
+            total_movimentos: lista.length,
+            movimentos: lista,
+        });
     } catch (err) {
-        camposDisponiveis = { erro: err.response?.status || err.message };
+        return res.status(500).json({ ok: false, erro: err.response?.status || err.message });
     }
-
-    const resultados = [{ total_hits: totalHits, campos: camposDisponiveis }];
-
-    res.json({
-        ok: true,
-        numero_original: numero,
-        numero_sem_mascara: numeroSemMascara,
-        codigo_tribunal: codigoTribunal,
-        tribunal_slug: tribunalSlug,
-        url,
-        resultados
-    });
 });
 
 module.exports = router;
