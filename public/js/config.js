@@ -1275,6 +1275,28 @@ async function sincronizarDatajud() {
     if (window.lucide) lucide.createIcons();
 }
 
+async function testarDatajud() {
+    const numero = document.getElementById('datajud-numero-teste').value.trim();
+    const pre = document.getElementById('datajud-diagnostico');
+    if (!numero) { alert('Informe um número CNJ.'); return; }
+    pre.style.display = 'block';
+    pre.textContent = 'Consultando...';
+    try {
+        const res = await API.get('/api/config/datajud/testar?numero=' + encodeURIComponent(numero));
+        const data = await res.json();
+        if (data.movimentos) {
+            const linhas = data.movimentos.map(m =>
+                `[${m.data}] código=${m.codigo} | tipo_inferido=${m.tipo_inferido}\n  nome="${m.nome}"`
+            ).join('\n\n');
+            pre.textContent = `${data.tribunal_slug.toUpperCase()} — ${data.total_movimentos} movimentos:\n\n${linhas}`;
+        } else {
+            pre.textContent = JSON.stringify(data, null, 2);
+        }
+    } catch (err) {
+        pre.textContent = 'Erro: ' + err.message;
+    }
+}
+
 async function ressincronizarDatajud() {
     if (!confirm('Isso irá apagar TODOS os andamentos importados pelo DataJud e reimportá-los com a classificação correta.\n\nAndamentos inseridos manualmente NÃO serão afetados.\n\nDeseja continuar?')) return;
 
