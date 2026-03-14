@@ -285,8 +285,31 @@ function inferirTipo(nomeMovimento, codigoMovimento) {
 }
 
 /**
+ * Faz uma única requisição ao DataJud para um slug de tribunal.
+ * Retorna o _source do primeiro hit ou null.
+ */
+async function _consultarTribunal(slug, numeroSemMascara, apiKey) {
+  const url = `${DATAJUD_BASE}/api_publica_${slug}/_search`;
+  const { data } = await axios.post(url, {
+    query: { term: { 'numeroProcesso.keyword': numeroSemMascara } },
+    _source: ['numeroProcesso', 'nivelSigilo', 'movimento', 'movimentos', 'andamento', 'andamentos']
+  }, {
+    headers: { 'Authorization': `ApiKey ${apiKey}`, 'Content-Type': 'application/json' },
+    timeout: 30000
+  });
+  const hits = data?.hits?.hits;
+  return hits?.length ? hits[0]._source || {} : null;
+}
+
+/**
  * Consulta os movimentos de um processo no DataJud pelo número CNJ.
  * Retorna array de movimentos normalizados ou null se não encontrar.
+ *
+ * Fallbacks especiais:
+ *  - TRF1 (4.01): se não encontrado, tenta TRF6 (4.06)
+ *    Motivo: em 2022 o TRF6 foi desmembrado do TRF1 (MG e ES).
+ *    Processos antigos mantêm o código 4.01 no número CNJ mas estão
+ *    indexados no DataJud sob trf6.
  */
 async function buscarMovimentos(numeroCNJ) {
   const apiKey = process.env.DATAJUD_API_KEY;
@@ -310,26 +333,20 @@ async function buscarMovimentos(numeroCNJ) {
   try {
     // API exige os 20 dígitos sem pontuação
     const numeroSemMascara = numeroCNJ.replace(/\D/g, '');
-    const url = `${DATAJUD_BASE}/api_publica_${tribunalSlug}/_search`;
 
-    const { data } = await axios.post(url, {
-      query: { term: { 'numeroProcesso.keyword': numeroSemMascara } },
-      _source: ['numeroProcesso', 'nivelSigilo', 'movimento', 'movimentos', 'andamento', 'andamentos']
-    }, {
-      headers: {
-        'Authorization': `ApiKey ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      timeout: 30000
-    });
+    let src = await _consultarTribunal(tribunalSlug, numeroSemMascara, apiKey);
 
-    const hits = data?.hits?.hits;
-    if (!hits || hits.length === 0) {
-      logger.debug({ numeroCNJ, url }, '[DataJud] Nenhum hit retornado');
-      return null;
+    // Fallback TRF1 → TRF6: processos de MG/ES transferidos na criação do TRF6 (2022)
+    if (!src && codigoTribunal === '4.01') {
+      logger.debug({ numeroCNJ }, '[DataJud] TRF1 sem resultado — tentando TRF6');
+      src = await _consultarTribunal('trf6', numeroSemMascara, apiKey);
+      if (src) logger.info({ numeroCNJ }, '[DataJud] Processo encontrado no TRF6 (transferido do TRF1)');
     }
 
-    const src = hits[0]._source || {};
+    if (!src) {
+      logger.debug({ numeroCNJ, tribunalSlug }, '[DataJud] Nenhum hit retornado');
+      return null;
+    }
 
     // Processos em segredo de justiça (nivelSigilo >= 1) não expõem movimentos na API pública
     if (src.nivelSigilo >= 1) {
