@@ -100,8 +100,8 @@ const CODIGO_TIPO_MAP = {
 
   // ── Despacho ─────────────────────────────────────────────────────────────
   201: 'despacho',  // Despacho
-  60:  'despacho',  // Conclusão ao Juiz / Desembargador
   132: 'despacho',  // Despacho de Mero Expediente
+  // 60 removido: significa "Conclusão" no TJBA mas "Expedição de documento" no TRT — nome decide
 
   // ── Audiência ────────────────────────────────────────────────────────────
   871: 'audiencia', // Audiência de Instrução e Julgamento
@@ -124,8 +124,15 @@ const CODIGO_TIPO_MAP = {
   // ── Trânsito em Julgado ──────────────────────────────────────────────────
   848: 'transito',  // Trânsito em Julgado
 
+  // ── Decisão / Julgamento ─────────────────────────────────────────────────
+  220: 'decisao',   // Improcedência (julgamento)
+  221: 'decisao',   // Procedência (julgamento)
+
+  // ── Petição inicial ───────────────────────────────────────────────────────
+  12747: 'peticao', // Inicial
+
   // ── Recurso ──────────────────────────────────────────────────────────────
-  85:  'recurso',   // Recurso Inominado
+  // 85 removido: significa "Petição" no TRT5 mas "Recurso Inominado" nos JEs — nome decide
   86:  'recurso',   // Apelação
   237: 'recurso',   // Agravo Regimental
   238: 'recurso',   // Agravo Interno
@@ -180,6 +187,14 @@ function inferirTipo(nomeMovimento, codigoMovimento) {
   if (n.includes('audiencia'))                                          return 'audiencia';
   if (n.includes('conciliacao') || n.includes('mediacao') ||
       n.includes('autocomposicao'))                                     return 'conciliacao';
+  // Expedição — nome explícito ganha do código (código 60 significa coisas diferentes por tribunal)
+  if (n.includes('expedicao') || n.includes('carta de sentenca') ||
+      n.includes('precatorio'))                                         return 'expedicao';
+  // Petição inicial
+  if (n === 'inicial' || n.startsWith('inicial ') ||
+      n.includes('peticao inicial'))                                    return 'peticao';
+  // Petição genérica — nome "Petição" é inequívoco mesmo que o código diga outra coisa
+  if (n === 'peticao' || n.startsWith('peticao '))                     return 'peticao';
 
   // 2. Código CNJ verificado — para movimentos cujo nome é genérico
   //    (ex: "Juntada", "Conclusão" — o código diz exatamente o que é)
@@ -191,7 +206,7 @@ function inferirTipo(nomeMovimento, codigoMovimento) {
 
   // ── Decisão ───────────────────────────────────────────────────────────────
   if (n.includes('decisao') || n.includes('julgamento antecipado') ||
-      n.includes('improcedencia liminar') || n.includes('procedencia liminar') ||
+      n.includes('improcedencia') || n.includes('procedencia') ||
       n.includes('tutela') || n.includes('liminar'))                   return 'decisao';
 
   // ── Despacho / Conclusão ──────────────────────────────────────────────────
