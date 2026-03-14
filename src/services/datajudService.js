@@ -126,7 +126,7 @@ async function buscarMovimentos(numeroCNJ) {
     const url = `${DATAJUD_BASE}/api_publica_${tribunalSlug}/_search`;
 
     const { data } = await axios.post(url, {
-      query: { match: { numeroProcesso: numeroSemMascara } },
+      query: { term: { 'numeroProcesso.keyword': numeroSemMascara } },
       _source: ['numeroProcesso', 'movimento']
     }, {
       headers: {
@@ -137,9 +137,13 @@ async function buscarMovimentos(numeroCNJ) {
     });
 
     const hits = data?.hits?.hits;
-    if (!hits || hits.length === 0) return null;
+    if (!hits || hits.length === 0) {
+      logger.debug({ numeroCNJ, url }, '[DataJud] Nenhum hit retornado');
+      return null;
+    }
 
     const movimentos = hits[0]._source?.movimento || [];
+    logger.debug({ numeroCNJ, movimentos: movimentos.length }, '[DataJud] Movimentos encontrados');
 
     return movimentos.map(m => ({
       data:     m.dataHora ? m.dataHora.split('T')[0] : new Date().toISOString().split('T')[0],
