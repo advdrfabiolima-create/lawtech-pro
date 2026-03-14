@@ -488,6 +488,7 @@ require('./cron/cobrancasRecorrentes');
 require('./cron/djen_scraper_cron');
 require('./cron/crmFollowup');
 require('./cron/auditoriaStripeCron'); // [M-5] Reativado: stripe_customer_id adicionado em migration 004
+require('./cron/datajudCron');         // Sincronização diária de andamentos via DataJud (CNJ)
 
 (async function iniciarSistema() {
     try {
