@@ -133,7 +133,7 @@ async function buscarMovimentos(numeroCNJ) {
         'Authorization': `ApiKey ${apiKey}`,
         'Content-Type': 'application/json'
       },
-      timeout: 12000
+      timeout: 30000
     });
 
     const hits = data?.hits?.hits;

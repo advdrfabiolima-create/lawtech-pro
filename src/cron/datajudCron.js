@@ -79,7 +79,7 @@ async function sincronizarAndamentosDatajud() {
     }
 
     // Pausa entre requisições para respeitar rate limiting da API
-    await sleep(400);
+    await sleep(200);
   }
 
   logger.info(`[DataJud] Sincronização concluída — inseridos: ${inseridos} | sem dados: ${semDados} | erros: ${erros}`);
