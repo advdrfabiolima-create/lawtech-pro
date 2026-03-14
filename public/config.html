@@ -815,56 +815,6 @@ input, textarea, select {
         </div>
     </div>
 
-    <!-- WhatsApp Bot — Meta Cloud API -->
-    <div class="card" id="card-whatsapp">
-        <div class="card-title">
-            <i data-lucide="message-circle"></i> WhatsApp Bot — Meta Cloud API
-        </div>
-
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
-            <span id="whatsapp-bot-badge" style="display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;background:#d1fae5;color:#065f46;">
-                ✅ Bot ativo
-            </span>
-        </div>
-
-        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 16px;margin-bottom:18px;display:flex;align-items:flex-start;gap:12px;">
-            <span style="font-size:20px;flex-shrink:0;">🤖</span>
-            <div>
-                <div style="font-size:12px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">Bot integrado com IA</div>
-                <p style="font-size:13px;color:#14532d;margin:0;line-height:1.6;">
-                    O sistema utiliza a <strong>Meta Cloud API</strong> (gratuita até 1.000 conversas/mês) com IA Claude para atender leads automaticamente no WhatsApp.
-                    O bot recepciona, qualifica o caso, responde dúvidas jurídicas gerais e transfere para um advogado quando necessário.
-                </p>
-            </div>
-        </div>
-
-        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:18px;">
-            <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">
-                Fluxo do Bot
-            </div>
-            <ul style="font-size:13px;color:var(--muted);line-height:2;padding-left:18px;margin:0;">
-                <li>Lead envia mensagem no WhatsApp do escritório</li>
-                <li>Bot responde com IA (Claude) — apresenta, qualifica e orienta</li>
-                <li>Se o lead pedir atendimento humano, o bot transfere e notifica o advogado</li>
-                <li>Lead é criado automaticamente no CRM ao primeiro contato</li>
-                <li>Histórico de conversa salvo e acessível no painel</li>
-            </ul>
-        </div>
-
-        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;">
-            <div style="font-size:12px;font-weight:700;color:#1e40af;margin-bottom:6px;">Configuração via variáveis de ambiente (Railway)</div>
-            <p style="font-size:13px;color:#1e3a8a;margin:0 0 8px 0;line-height:1.6;">
-                As credenciais da Meta Cloud API são configuradas diretamente no servidor. Consulte o guia de configuração inicial para obter os valores no painel do Meta Developers.
-            </p>
-            <code style="font-size:12px;color:#1e40af;background:#dbeafe;padding:8px 12px;border-radius:6px;display:block;line-height:1.8;">
-                META_WHATSAPP_TOKEN=EAA...<br>
-                META_PHONE_NUMBER_ID=...<br>
-                META_WHATSAPP_BUSINESS_ID=...<br>
-                META_VERIFY_TOKEN=lawtech_webhook_2026
-            </code>
-        </div>
-    </div>
-
     <!-- Sincronização de Calendário (iCal Feed) -->
     <div class="card" id="card-ical">
         <div class="card-title">
