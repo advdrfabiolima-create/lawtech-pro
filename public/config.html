@@ -90,6 +90,15 @@
     to { opacity: 1; transform: translateX(0); }
 }
 
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+#btnSincronizarDatajud:disabled i[data-lucide="refresh-cw"] {
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
 /* Sidebar Header */
 .sidebar-header {
     text-align: center;

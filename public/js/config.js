@@ -1229,7 +1229,7 @@ async function sincronizarDatajud() {
     const status = document.getElementById('datajud-status');
 
     btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader" style="width:15px;height:15px;"></i> Sincronizando...';
+    btn.innerHTML = '<i data-lucide="refresh-cw" style="width:15px;height:15px;"></i> Iniciando...';
     status.textContent = '';
     if (window.lucide) lucide.createIcons();
 
@@ -1238,8 +1238,29 @@ async function sincronizarDatajud() {
         const data = await res.json();
 
         if (data.ok) {
-            status.textContent = '✅ ' + data.mensagem;
-            status.style.color = '#065f46';
+            // Mostra animação de progresso em segundo plano
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="refresh-cw" style="width:15px;height:15px;"></i> Sincronizar Agora';
+            if (window.lucide) lucide.createIcons();
+
+            status.innerHTML = '<span id="datajud-progresso"></span>';
+            const el = document.getElementById('datajud-progresso');
+            const dots = ['⏳ Buscando andamentos no DataJud', '⏳ Buscando andamentos no DataJud.', '⏳ Buscando andamentos no DataJud..', '⏳ Buscando andamentos no DataJud...'];
+            let i = 0;
+            el.textContent = dots[0];
+            el.style.color = '#7c3aed';
+
+            const intervalo = setInterval(() => { el.textContent = dots[++i % dots.length]; }, 600);
+
+            // Estimativa: ~400ms por processo + overhead. Para 182 processos ≈ 90s
+            // Exibe progresso por 2 minutos e então mostra mensagem de conclusão
+            setTimeout(() => {
+                clearInterval(intervalo);
+                el.textContent = '✅ Sincronização concluída! Verifique os andamentos nos processos.';
+                el.style.color = '#065f46';
+            }, 120000);
+
+            return;
         } else {
             status.textContent = '❌ ' + (data.erro || 'Erro ao sincronizar.');
             status.style.color = '#991b1b';
@@ -1247,11 +1268,11 @@ async function sincronizarDatajud() {
     } catch (err) {
         status.textContent = '❌ Erro de conexão.';
         status.style.color = '#991b1b';
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="refresh-cw" style="width:15px;height:15px;"></i> Sincronizar Agora';
-        if (window.lucide) lucide.createIcons();
     }
+
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="refresh-cw" style="width:15px;height:15px;"></i> Sincronizar Agora';
+    if (window.lucide) lucide.createIcons();
 }
 
 async function salvarChaveEscavador() {
