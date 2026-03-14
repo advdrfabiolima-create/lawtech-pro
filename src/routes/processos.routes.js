@@ -219,7 +219,8 @@ router.get('/processos', authMiddleware, async (req, res) => {
           pp_ativo.pessoa_id     AS cliente_id,
           pp_passivo.pessoa_nome AS parte_contraria,
           COALESCE(cnt_ativo.total,   0) AS total_autores,
-          COALESCE(cnt_passivo.total, 0) AS total_reus
+          COALESCE(cnt_passivo.total, 0) AS total_reus,
+          COALESCE(cnt_novos.total,   0) AS andamentos_novos
         FROM processos p
         LEFT JOIN LATERAL (
           SELECT pessoa_nome, pessoa_id
@@ -243,6 +244,11 @@ router.get('/processos', authMiddleware, async (req, res) => {
           FROM partes_processo WHERE polo = 'passivo'
           GROUP BY processo_id
         ) cnt_passivo ON cnt_passivo.processo_id = p.id
+        LEFT JOIN (
+          SELECT processo_id, COUNT(*) AS total
+          FROM andamentos_processuais WHERE visto = false
+          GROUP BY processo_id
+        ) cnt_novos ON cnt_novos.processo_id = p.id
         WHERE ${whereClause}
         ORDER BY p.id DESC
         LIMIT $${limitIdx} OFFSET $${offsetIdx}

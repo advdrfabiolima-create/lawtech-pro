@@ -146,6 +146,23 @@ router.delete('/andamentos/:id', roleMiddleware('admin'), async (req, res) => {
     }
 });
 
+// PATCH /api/processos/:id/andamentos/marcar-vistos — marca todos andamentos não vistos como vistos
+router.patch('/processos/:id/andamentos/marcar-vistos', async (req, res) => {
+    const { id } = req.params;
+    const escritorio_id = req.user.escritorio_id;
+    try {
+        await pool.query(
+            `UPDATE andamentos_processuais SET visto = true
+             WHERE processo_id = $1 AND escritorio_id = $2 AND visto = false`,
+            [id, escritorio_id]
+        );
+        res.json({ ok: true });
+    } catch (err) {
+        logger.error({ err: err.message }, '[Andamentos] PATCH marcar-vistos erro');
+        res.status(500).json({ ok: false, erro: err.message });
+    }
+});
+
 // PATCH /api/andamentos/:id/visivel — toggle visível ao cliente
 router.patch('/andamentos/:id/visivel', roleMiddleware('admin', 'operador'), async (req, res) => {
     const { id } = req.params;

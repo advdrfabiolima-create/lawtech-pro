@@ -59,8 +59,8 @@ async function sincronizarAndamentosDatajud() {
 
         await pool.query(
           `INSERT INTO andamentos_processuais
-             (processo_id, escritorio_id, data_andamento, tipo, titulo, descricao, visivel_cliente, fonte)
-           VALUES ($1, $2, $3, $4, $5, $6, true, 'datajud')`,
+             (processo_id, escritorio_id, data_andamento, tipo, titulo, descricao, visivel_cliente, fonte, visto)
+           VALUES ($1, $2, $3, $4, $5, $6, true, 'datajud', false)`,
           [
             processo.id,
             processo.escritorio_id,

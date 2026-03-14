@@ -534,7 +534,10 @@ let gerenciadorPartesEdicao = null;
         tabela.innerHTML = listaFiltrada.map(p => `
             <tr style="border-bottom: 1px solid #e2e8f0;">
                 <td style="padding: 16px 12px;">
-                    <div style="font-weight: 700; color: #4A90E2; font-size: 14px;">${p.numero || 'N/A'}</div>
+                    <div style="font-weight: 700; color: #4A90E2; font-size: 14px; display:flex; align-items:center; gap:6px;">
+                        ${p.numero || 'N/A'}
+                        ${p.andamentos_novos > 0 ? `<span id="badge-novos-${p.id}" title="${p.andamentos_novos} novo(s) andamento(s)" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#22c55e;flex-shrink:0;box-shadow:0 0 0 2px #bbf7d0;"></span>` : ''}
+                    </div>
                 </td>
                 <td style="padding: 16px 12px; font-weight: 600;">${p.cliente || '---'}</td>
                 <td style="padding: 16px 12px;">${p.parte_contraria || '---'}</td>
@@ -2109,6 +2112,17 @@ function obterTribunaisPorEsfera(esfera) {
             modal.style.display = 'flex';
             setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 50);
             carregarAndamentos(processoId);
+
+            // Remove badge de novos andamentos ao abrir
+            const badge = document.getElementById('badge-novos-' + processoId);
+            if (badge) {
+                badge.remove();
+                const token = localStorage.getItem('token');
+                fetch('/api/processos/' + processoId + '/andamentos/marcar-vistos', {
+                    method: 'PATCH',
+                    headers: { Authorization: 'Bearer ' + token }
+                }).catch(() => {});
+            }
         };
 
         window.fecharAndamentos = function() {
