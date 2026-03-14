@@ -21,23 +21,36 @@ document.addEventListener('click', function (e) {
     window[fn](...args);
 });
 
-// ─── Interceptor global de 401 ────────────────────────────────────────────────
+// ─── Interceptor global de 401 / 403 ─────────────────────────────────────────
 // captura fetch() direto em qualquer página
 (function () {
     const _fetch = window.fetch;
     window.fetch = async function (url, opts) {
         const res = await _fetch(url, opts);
+        const urlStr = typeof url === 'string' ? url : '';
+
+        // 401 — token inválido/expirado
         if (
             res.status === 401 &&
-            typeof url === 'string' &&
-            url.startsWith('/api/') &&
-            !url.startsWith('/api/auth/') &&
+            urlStr.startsWith('/api/') &&
+            !urlStr.startsWith('/api/auth/') &&
             (localStorage.getItem('token') || sessionStorage.getItem('token'))
         ) {
             localStorage.removeItem('token');
             sessionStorage.removeItem('token');
             window.location.href = '/login';
         }
+
+        // 403 — e-mail não verificado
+        if (
+            res.status === 403 &&
+            urlStr.startsWith('/api/') &&
+            !urlStr.includes('/reenviar-verificacao') &&
+            !window.location.pathname.includes('/verificar-email')
+        ) {
+            window.location.href = '/verificar-email.html?pendente=1';
+        }
+
         return res;
     };
 })();

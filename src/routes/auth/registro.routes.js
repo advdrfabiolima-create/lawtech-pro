@@ -70,6 +70,19 @@ router.post('/register', async (req, res) => {
         // ✅ Preparar dados do documento
         const documentoLimpo = documento ? documento.replace(/\D/g, '') : null;
 
+        // ✅ Verifica se CPF/CNPJ já possui conta cadastrada (trial único por documento)
+        if (documentoLimpo) {
+            const docCheck = await pool.query(
+                'SELECT id FROM escritorios WHERE documento = $1',
+                [documentoLimpo]
+            );
+            if (docCheck.rows.length > 0) {
+                return res.status(400).json({
+                    erro: 'Já existe uma conta cadastrada com este CPF/CNPJ. Faça login ou entre em contato com o suporte em suporte@lawtechpro.com.br.'
+                });
+            }
+        }
+
         // ✅ Calcular data de expiração do trial (7 dias)
         const dataExpiracao = new Date();
         dataExpiracao.setDate(dataExpiracao.getDate() + 7);

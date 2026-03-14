@@ -83,6 +83,18 @@ const authMiddleware = async (req, res, next) => {
       });
     }
 
+    // 🔐 HARD-BLOCK: e-mail não verificado
+    const rotasLiberadasVerificacao = ['/reenviar-verificacao', '/logout'];
+    const rotaLiberada = rotasLiberadasVerificacao.some(r => req.originalUrl.includes(r));
+    if (!ehMaster && !usuario.email_verificado && !rotaLiberada) {
+      logger.warn({ email: usuario.email }, '[BLOQUEIO] E-mail não verificado');
+      return res.status(403).json({
+        ok: false,
+        erro: 'email_nao_verificado',
+        mensagem: 'Confirme seu e-mail para acessar o sistema. Verifique sua caixa de entrada.'
+      });
+    }
+
     // ✅ ANEXA OS DADOS PARA O DASHBOARD
     req.user = {
       id: usuario.id,
