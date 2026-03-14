@@ -423,32 +423,32 @@ router.get('/config/datajud/testar', authMiddleware, roleMiddleware('admin'), as
     const numeroSemMascara = numero.replace(/\D/g, '');
     const url = `https://api-publica.datajud.cnj.jus.br/api_publica_${tribunalSlug}/_search`;
 
-    // Testa as duas formas de query para identificar qual funciona
-    const queries = [
-        { nome: 'term .keyword', body: { query: { term: { 'numeroProcesso.keyword': numeroSemMascara } }, _source: ['numeroProcesso','movimento'] } },
-        { nome: 'match',         body: { query: { match: { numeroProcesso: numeroSemMascara } },          _source: ['numeroProcesso','movimento'] } },
-    ];
-
-    const resultados = [];
-    for (const q of queries) {
-        try {
-            const { data } = await axios.post(url, q.body, {
-                headers: { 'Authorization': `ApiKey ${apiKey}`, 'Content-Type': 'application/json' },
-                timeout: 30000
-            });
-            const hits = data?.hits?.hits || [];
-            const movimentos = hits[0]?._source?.movimento || [];
-            resultados.push({
-                query: q.nome,
-                total_hits: hits.length,
-                movimentos: movimentos.length,
-                primeiro_movimento: movimentos[0] || null,
-                numero_encontrado: hits[0]?._source?.numeroProcesso || null,
-            });
-        } catch (err) {
-            resultados.push({ query: q.nome, erro: err.response?.status || err.message });
+    // Busca sem filtro de _source para ver todos os campos disponíveis
+    let camposDisponiveis = null;
+    let totalHits = 0;
+    try {
+        const { data } = await axios.post(url, {
+            query: { term: { 'numeroProcesso.keyword': numeroSemMascara } }
+        }, {
+            headers: { 'Authorization': `ApiKey ${apiKey}`, 'Content-Type': 'application/json' },
+            timeout: 30000
+        });
+        const hits = data?.hits?.hits || [];
+        totalHits = hits.length;
+        if (hits[0]?._source) {
+            // Lista os campos e tamanhos dos arrays encontrados
+            const src = hits[0]._source;
+            camposDisponiveis = Object.keys(src).map(k => ({
+                campo: k,
+                tipo: Array.isArray(src[k]) ? `array[${src[k].length}]` : typeof src[k],
+                amostra: Array.isArray(src[k]) ? src[k][0] : src[k]
+            }));
         }
+    } catch (err) {
+        camposDisponiveis = { erro: err.response?.status || err.message };
     }
+
+    const resultados = [{ total_hits: totalHits, campos: camposDisponiveis }];
 
     res.json({
         ok: true,
