@@ -387,6 +387,34 @@ router.post('/config/datajud/sincronizar', authMiddleware, roleMiddleware('admin
 });
 
 // ============================================================
+// RE-SINCRONIZAÇÃO DATAJUD — apaga andamentos DataJud e reimporta
+// POST /api/config/datajud/ressincronizar  (admin)
+// ============================================================
+router.post('/config/datajud/ressincronizar', authMiddleware, roleMiddleware('admin'), async (req, res) => {
+    try {
+        const escritorio_id = req.user.escritorio_id;
+
+        // Apaga todos os andamentos importados pelo DataJud deste escritório
+        const { rowCount } = await pool.query(
+            `DELETE FROM andamentos_processuais WHERE escritorio_id = $1 AND fonte = 'datajud'`,
+            [escritorio_id]
+        );
+        logger.info({ escritorio_id, removidos: rowCount }, '[DataJud] Andamentos removidos para re-sincronização');
+
+        // Dispara nova sincronização em background
+        const { sincronizarAndamentosDatajud } = require('../cron/datajudCron');
+        sincronizarAndamentosDatajud().catch(err =>
+            logger.error({ err: err.message }, '[DataJud] Erro na re-sincronização')
+        );
+
+        res.json({ ok: true, removidos: rowCount, mensagem: `${rowCount} andamentos removidos. Re-importação iniciada em background.` });
+    } catch (err) {
+        logger.error({ err: err.message }, '[DataJud] Erro ao re-sincronizar');
+        res.status(500).json({ ok: false, erro: err.message });
+    }
+});
+
+// ============================================================
 // DIAGNÓSTICO DATAJUD — testa um número CNJ contra a API
 // GET /api/config/datajud/testar?numero=XXXX  (admin)
 // ============================================================

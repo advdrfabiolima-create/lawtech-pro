@@ -1275,6 +1275,61 @@ async function sincronizarDatajud() {
     if (window.lucide) lucide.createIcons();
 }
 
+async function ressincronizarDatajud() {
+    if (!confirm('Isso irá apagar TODOS os andamentos importados pelo DataJud e reimportá-los com a classificação correta.\n\nAndamentos inseridos manualmente NÃO serão afetados.\n\nDeseja continuar?')) return;
+
+    const btn = document.getElementById('btnRessincronizarDatajud');
+    const status = document.getElementById('datajud-status');
+
+    btn.disabled = true;
+    document.getElementById('btnSincronizarDatajud').disabled = true;
+    btn.innerHTML = '<i data-lucide="rotate-ccw" style="width:15px;height:15px;"></i> Removendo...';
+    if (window.lucide) lucide.createIcons();
+
+    try {
+        const res = await API.post('/api/config/datajud/ressincronizar', {});
+        const data = await res.json();
+
+        if (data.ok) {
+            btn.innerHTML = '<i data-lucide="rotate-ccw" style="width:15px;height:15px;"></i> Re-sincronizar';
+            btn.disabled = false;
+            document.getElementById('btnSincronizarDatajud').disabled = false;
+            if (window.lucide) lucide.createIcons();
+
+            status.innerHTML = `<span style="color:#7c3aed">⏳ ${data.removidos} andamentos removidos. Re-importando em background...</span>`;
+
+            const el = status.querySelector('span');
+            const dots = [
+                `⏳ ${data.removidos} removidos. Re-importando`,
+                `⏳ ${data.removidos} removidos. Re-importando.`,
+                `⏳ ${data.removidos} removidos. Re-importando..`,
+                `⏳ ${data.removidos} removidos. Re-importando...`
+            ];
+            let i = 0;
+            const intervalo = setInterval(() => { el.textContent = dots[++i % dots.length]; }, 600);
+            setTimeout(() => {
+                clearInterval(intervalo);
+                el.textContent = '✅ Re-sincronização concluída! Verifique os andamentos nos processos.';
+                el.style.color = '#065f46';
+            }, 120000);
+        } else {
+            status.textContent = '❌ ' + (data.erro || 'Erro ao re-sincronizar.');
+            status.style.color = '#991b1b';
+            btn.disabled = false;
+            document.getElementById('btnSincronizarDatajud').disabled = false;
+            btn.innerHTML = '<i data-lucide="rotate-ccw" style="width:15px;height:15px;"></i> Re-sincronizar';
+            if (window.lucide) lucide.createIcons();
+        }
+    } catch (err) {
+        status.textContent = '❌ Erro de conexão.';
+        status.style.color = '#991b1b';
+        btn.disabled = false;
+        document.getElementById('btnSincronizarDatajud').disabled = false;
+        btn.innerHTML = '<i data-lucide="rotate-ccw" style="width:15px;height:15px;"></i> Re-sincronizar';
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
 async function testarDatajud() {
     const numero = document.getElementById('datajud-numero-teste').value.trim();
     const pre = document.getElementById('datajud-diagnostico');
