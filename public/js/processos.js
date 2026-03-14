@@ -2127,7 +2127,7 @@ function obterTribunaisPorEsfera(esfera) {
             setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 50);
             carregarAndamentos(processoId);
 
-            // Remove badge de novos andamentos ao abrir
+            // Remove badge de novos andamentos ao abrir e atualiza sidebar
             const badge = document.getElementById('badge-novos-' + processoId);
             if (badge) {
                 badge.remove();
@@ -2135,7 +2135,13 @@ function obterTribunaisPorEsfera(esfera) {
                 fetch('/api/processos/' + processoId + '/andamentos/marcar-vistos', {
                     method: 'PATCH',
                     headers: { Authorization: 'Bearer ' + token }
-                }).catch(() => {});
+                })
+                .then(() => {
+                    if (typeof window.verificarNovosAndamentos === 'function') {
+                        window.verificarNovosAndamentos();
+                    }
+                })
+                .catch(() => {});
             }
         };
 

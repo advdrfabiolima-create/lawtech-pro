@@ -16,6 +16,26 @@ router.param('id', (req, res, next, val) => {
 });
 
 /**
+ * CONTAGEM DE PROCESSOS COM ANDAMENTOS NÃO VISTOS
+ * GET /api/processos/novos-andamentos
+ * Retorna o número de processos que têm pelo menos 1 andamento com visto=false.
+ */
+router.get('/processos/novos-andamentos', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT COUNT(DISTINCT processo_id)::int AS total
+       FROM andamentos_processuais
+       WHERE escritorio_id = $1 AND NOT COALESCE(visto, true)`,
+      [req.user.escritorio_id]
+    );
+    res.json({ ok: true, total: result.rows[0].total });
+  } catch (err) {
+    // Se coluna visto ainda não existe, retorna 0 sem erro
+    res.json({ ok: true, total: 0 });
+  }
+});
+
+/**
  * CADASTRAR NOVO PROCESSO (COM MÚLTIPLAS PARTES)
  * POST /api/processos
  */

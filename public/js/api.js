@@ -108,3 +108,57 @@ const API = (() => {
         logout:      logout
     };
 })();
+
+// ─── Badge de novos andamentos na sidebar ─────────────────────────────────────
+// Consulta a cada 5 min quantos processos têm andamentos não vistos e exibe
+// um badge numérico vermelho ao lado do link "Processos" em qualquer página.
+(function () {
+    if (!localStorage.getItem('token') && !sessionStorage.getItem('token')) return;
+
+    function atualizarBadgeProcessos(total) {
+        const link = document.querySelector('a[href="/processos-page"]');
+        if (!link) return;
+
+        let badge = document.getElementById('badge-processos-novos');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.id = 'badge-processos-novos';
+            badge.style.cssText = [
+                'display:inline-flex', 'align-items:center', 'justify-content:center',
+                'min-width:18px', 'height:18px', 'padding:0 5px',
+                'background:#ef4444', 'color:#fff',
+                'border-radius:9px', 'font-size:11px', 'font-weight:700',
+                'margin-left:6px', 'line-height:1'
+            ].join(';');
+            link.appendChild(badge);
+        }
+
+        if (total > 0) {
+            badge.textContent = total > 99 ? '99+' : total;
+            badge.style.display = 'inline-flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    function verificarNovosAndamentos() {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        if (!token) return;
+        fetch('/api/processos/novos-andamentos', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(d) { if (d && d.ok) atualizarBadgeProcessos(d.total); })
+        .catch(function() {});
+    }
+
+    // Executa ao carregar a página e depois a cada 5 minutos
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(verificarNovosAndamentos, 1500); // pequeno delay para sidebar renderizar
+        setInterval(verificarNovosAndamentos, 5 * 60 * 1000);
+    });
+
+    // Expõe para que processos.js possa atualizar o badge ao marcar como visto
+    window.atualizarBadgeProcessos = atualizarBadgeProcessos;
+    window.verificarNovosAndamentos = verificarNovosAndamentos;
+})();
