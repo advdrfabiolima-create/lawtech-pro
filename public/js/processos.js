@@ -570,6 +570,14 @@ let gerenciadorPartesEdicao = null;
                             </div>
                         </div>
                     ` : `
+                        <div style="display:inline-flex;align-items:center;gap:4px;">
+                            ${abaAtual === 'ativo' ? `
+                            <button id="btn-sync-${p.id}" data-action="sincronizarProcesso" data-args='[${p.id}]'
+                                title="Sincronizar andamentos via DataJud"
+                                style="background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;transition:background 0.15s;"
+                                onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='none'">
+                                <i data-lucide="refresh-cw" id="icon-sync-${p.id}" style="width:15px;height:15px;color:#7c3aed;"></i>
+                            </button>` : ''}
                         <div style="position: relative; display: inline-block;">
                             <button class="proc-actions-toggle" data-action="toggleDropdown" title="Ações">
                                 <i data-lucide="more-vertical" style="width:16px;height:16px;"></i>
@@ -598,6 +606,7 @@ let gerenciadorPartesEdicao = null;
                                     <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Excluir
                                 </button>
                             </div>
+                        </div>
                         </div>
                     `}
                 </td>
@@ -2107,6 +2116,51 @@ function obterTribunaisPorEsfera(esfera) {
             } catch (e) { _userRole = 'visualizador'; }
             return _userRole;
         }
+
+        window.sincronizarProcesso = async function(processoId) {
+            const btn = document.getElementById('btn-sync-' + processoId);
+            const icon = document.getElementById('icon-sync-' + processoId);
+            if (!btn || btn.disabled) return;
+
+            btn.disabled = true;
+            // Animação de rotação
+            icon.style.transition = 'transform 0.6s linear';
+            let angulo = 0;
+            const spin = setInterval(() => {
+                angulo += 60;
+                icon.style.transform = `rotate(${angulo}deg)`;
+            }, 100);
+
+            try {
+                const res = await API.post(`/api/processos/${processoId}/sincronizar-datajud`, {});
+                clearInterval(spin);
+                icon.style.transform = 'rotate(0deg)';
+                icon.style.color = res.inseridos > 0 ? '#16a34a' : '#7c3aed';
+
+                // Tooltip temporário com resultado
+                btn.title = res.mensagem || 'Concluído';
+                setTimeout(() => {
+                    icon.style.color = '#7c3aed';
+                    btn.title = 'Sincronizar andamentos via DataJud';
+                }, 3000);
+
+                // Se houve novos andamentos, atualiza o badge e a contagem da sidebar
+                if (res.inseridos > 0) {
+                    if (typeof window.verificarNovosAndamentos === 'function') {
+                        window.verificarNovosAndamentos();
+                    }
+                    carregarProcessos();
+                }
+            } catch (err) {
+                clearInterval(spin);
+                icon.style.transform = 'rotate(0deg)';
+                icon.style.color = '#dc2626';
+                btn.title = 'Erro ao sincronizar';
+                setTimeout(() => { icon.style.color = '#7c3aed'; btn.title = 'Sincronizar andamentos via DataJud'; }, 3000);
+            } finally {
+                btn.disabled = false;
+            }
+        };
 
         window.abrirAndamentos = function(processoId, numero) {
             _andProcessoId = processoId;

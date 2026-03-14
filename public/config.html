@@ -883,7 +883,7 @@ input, textarea, select {
     <div class="card" id="card-datajud">
         <div class="card-title">
             <i data-lucide="refresh-cw"></i> DataJud — Andamentos Processuais
-            <span style="display:inline-block;margin-left:10px;padding:3px 10px;background:#ede9fe;color:#5b21b6;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;">Automático · 06h diário</span>
+            <span style="display:inline-block;margin-left:10px;padding:3px 10px;background:#ede9fe;color:#5b21b6;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;">Automático · 06h e 18h</span>
         </div>
 
         <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:14px 16px;margin-bottom:18px;display:flex;align-items:flex-start;gap:12px;">
@@ -891,7 +891,7 @@ input, textarea, select {
             <div>
                 <div style="font-size:12px;font-weight:700;color:#5b21b6;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">API Pública CNJ</div>
                 <p style="font-size:13px;color:#4c1d95;margin:0;line-height:1.6;">
-                    O sistema consulta o <strong>DataJud</strong> diariamente e importa automaticamente as movimentações dos processos ativos, exibindo-as no painel e no Portal do Cliente.
+                    O sistema consulta o <strong>DataJud</strong> duas vezes ao dia (06h e 18h) e importa automaticamente as movimentações dos processos ativos. Para sincronizar um processo individualmente, use o ícone <strong>⟳</strong> na linha do processo na página de Processos.
                 </p>
             </div>
         </div>
@@ -900,23 +900,12 @@ input, textarea, select {
             <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;">Como funciona</div>
             <ul style="font-size:13px;color:var(--muted);line-height:2;padding-left:18px;margin:0;">
                 <li>Processos ativos são consultados automaticamente pelo número CNJ</li>
+                <li>Sincronização automática às <strong>06:00</strong> e <strong>18:00</strong> todos os dias</li>
                 <li>Movimentações novas são inseridas como andamentos com <code style="background:#f1f5f9;padding:1px 6px;border-radius:4px;">fonte: datajud</code></li>
                 <li>Andamentos ficam visíveis no Portal do Cliente automaticamente</li>
                 <li>Deduplicação automática — nenhum andamento é inserido em duplicata</li>
+                <li>Para sincronizar um processo específico, clique no ícone <strong style="color:#7c3aed;">⟳</strong> na linha do processo (página Processos)</li>
             </ul>
-        </div>
-
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-            <button id="btnSincronizarDatajud" data-action="sincronizarDatajud"
-                style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.2s;">
-                <i data-lucide="refresh-cw" style="width:15px;height:15px;"></i> Sincronizar Agora
-            </button>
-            <button id="btnRessincronizarDatajud" data-action="ressincronizarDatajud"
-                style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.2s;"
-                title="Apaga todos os andamentos importados pelo DataJud e reimporta com a classificação correta">
-                <i data-lucide="rotate-ccw" style="width:15px;height:15px;"></i> Re-sincronizar
-            </button>
-            <span id="datajud-status" style="font-size:13px;color:var(--muted);"></span>
         </div>
 
     </div>

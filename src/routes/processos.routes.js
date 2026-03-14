@@ -775,4 +775,62 @@ router.post('/processos/verificar-conflito', authMiddleware, async (req, res) =>
     }
 });
 
+/**
+ * SINCRONIZAÇÃO DATAJUD INDIVIDUAL
+ * POST /api/processos/:id/sincronizar-datajud
+ * Busca e importa movimentos de um único processo no DataJud.
+ */
+router.post('/processos/:id/sincronizar-datajud', authMiddleware, async (req, res) => {
+  const escritorioId = req.user.escritorio_id;
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, numero FROM processos WHERE id = $1 AND escritorio_id = $2 AND status = 'ativo'`,
+      [req.params.id, escritorioId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ ok: false, erro: 'Processo não encontrado ou não está ativo.' });
+    }
+
+    const processo = rows[0];
+
+    if (!processo.numero) {
+      return res.status(400).json({ ok: false, erro: 'Processo sem número CNJ cadastrado.' });
+    }
+
+    const { buscarMovimentos } = require('../services/datajudService');
+    const movimentos = await buscarMovimentos(processo.numero);
+
+    if (!movimentos || movimentos.length === 0) {
+      return res.json({ ok: true, inseridos: 0, mensagem: 'Nenhum movimento encontrado no DataJud para este processo.' });
+    }
+
+    let inseridos = 0;
+    for (const mov of movimentos) {
+      const dup = await pool.query(
+        `SELECT id FROM andamentos_processuais
+         WHERE processo_id = $1 AND fonte = 'datajud' AND data_andamento = $2 AND titulo = $3`,
+        [processo.id, mov.data, mov.titulo]
+      );
+      if (dup.rows.length > 0) continue;
+
+      await pool.query(
+        `INSERT INTO andamentos_processuais
+           (processo_id, escritorio_id, data_andamento, tipo, titulo, descricao, visivel_cliente, fonte, visto)
+         VALUES ($1, $2, $3, $4, $5, $6, true, 'datajud', false)`,
+        [processo.id, escritorioId, mov.data, mov.tipo, mov.titulo, mov.descricao]
+      );
+      inseridos++;
+    }
+
+    logger.info({ processo_id: processo.id, inseridos }, '[DataJud] Sincronização individual concluída');
+    res.json({ ok: true, inseridos, mensagem: inseridos > 0 ? `${inseridos} andamento(s) importado(s).` : 'Processo já está atualizado.' });
+
+  } catch (err) {
+    logger.error({ err: err.message, processo_id: req.params.id }, '[DataJud] Erro na sincronização individual');
+    res.status(500).json({ ok: false, erro: 'Erro ao sincronizar com o DataJud.' });
+  }
+});
+
 module.exports = router;

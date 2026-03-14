@@ -85,8 +85,8 @@ async function sincronizarAndamentosDatajud() {
   logger.info(`[DataJud] Sincronização concluída — inseridos: ${inseridos} | sem dados: ${semDados} | erros: ${erros}`);
 }
 
-// Executa diariamente às 6h (antes dos demais crons de alerta)
-cron.schedule('0 6 * * *', async () => {
+// Executa duas vezes ao dia: 06:00 e 18:00
+cron.schedule('0 6,18 * * *', async () => {
   try {
     await sincronizarAndamentosDatajud();
   } catch (err) {
@@ -94,6 +94,6 @@ cron.schedule('0 6 * * *', async () => {
   }
 });
 
-logger.info('[DataJud] Cron de sincronização agendado — 06:00 diário');
+logger.info('[DataJud] Cron de sincronização agendado — 06:00 e 18:00 diários');
 
 module.exports = { sincronizarAndamentosDatajud };
