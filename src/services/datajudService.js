@@ -127,7 +127,7 @@ async function buscarMovimentos(numeroCNJ) {
 
     const { data } = await axios.post(url, {
       query: { term: { 'numeroProcesso.keyword': numeroSemMascara } },
-      _source: ['numeroProcesso', 'movimento', 'movimentos', 'andamento', 'andamentos']
+      _source: ['numeroProcesso', 'nivelSigilo', 'movimento', 'movimentos', 'andamento', 'andamentos']
     }, {
       headers: {
         'Authorization': `ApiKey ${apiKey}`,
@@ -143,8 +143,15 @@ async function buscarMovimentos(numeroCNJ) {
     }
 
     const src = hits[0]._source || {};
+
+    // Processos em segredo de justiça (nivelSigilo >= 1) não expõem movimentos na API pública
+    if (src.nivelSigilo >= 1) {
+      logger.info({ numeroCNJ, nivelSigilo: src.nivelSigilo }, '[DataJud] Processo em segredo de justiça — movimentos não disponíveis na API pública');
+      return null;
+    }
+
     const movimentos = src.movimento || src.movimentos || src.andamento || src.andamentos || [];
-    logger.debug({ numeroCNJ, movimentos: movimentos.length, campoUsado: ['movimento','movimentos','andamento','andamentos'].find(c => src[c]?.length) || 'nenhum' }, '[DataJud] Movimentos encontrados');
+    logger.debug({ numeroCNJ, movimentos: movimentos.length }, '[DataJud] Movimentos encontrados');
 
     return movimentos.map(m => {
       let descricao = null;
