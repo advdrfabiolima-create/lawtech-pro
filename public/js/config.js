@@ -1275,6 +1275,23 @@ async function sincronizarDatajud() {
     if (window.lucide) lucide.createIcons();
 }
 
+async function testarDatajud() {
+    const numero = document.getElementById('datajud-numero-teste').value.trim();
+    const pre = document.getElementById('datajud-diagnostico');
+    if (!numero) { alert('Informe um número CNJ.'); return; }
+
+    pre.style.display = 'block';
+    pre.textContent = 'Consultando DataJud...';
+
+    try {
+        const res = await API.get('/api/config/datajud/testar?numero=' + encodeURIComponent(numero));
+        const data = await res.json();
+        pre.textContent = JSON.stringify(data, null, 2);
+    } catch (err) {
+        pre.textContent = 'Erro: ' + err.message;
+    }
+}
+
 async function salvarChaveEscavador() {
     const chave = document.getElementById('escavadorApiKey').value.trim();
     
