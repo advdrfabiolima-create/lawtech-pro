@@ -86,7 +86,7 @@ async function buscarMovimentos(numeroCNJ) {
       _source: ['numeroProcesso', 'movimento']
     }, {
       headers: {
-        'Authorization': `ApiKey ${apiKey}`,
+        'Authorization': `APIKey ${apiKey}`,
         'Content-Type': 'application/json'
       },
       timeout: 12000
