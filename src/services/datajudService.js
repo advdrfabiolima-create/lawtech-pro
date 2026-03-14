@@ -162,34 +162,34 @@ const CODIGO_TIPO_MAP = {
  * certidao | alvara | arquivamento | remessa | outros
  */
 function inferirTipo(nomeMovimento, codigoMovimento) {
-  // 1. Código CNJ verificado — maior precisão
+  // Normaliza o nome uma vez
+  const n = (nomeMovimento || '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  // 1. Checks por nome de alta confiança — ganham do código CNJ
+  //    (evitam que códigos errados ou reutilizados entre tribunais
+  //     classifiquem errado movimentos com nomes inequívocos)
+
+  if (n.includes('transito em julgado') || n.includes('transito julgado') ||
+      n.includes('coisa julgada'))                                      return 'transito';
+  if (n.includes('contestacao') || n.includes('resposta do reu') ||
+      n.includes('defesa'))                                             return 'contestacao';
+  if (n.includes('contrarrazoes') || n.includes('contrarrazao'))       return 'contrarrazoes';
+  if (n.includes('sentenca') || n.startsWith('sentenc'))               return 'sentenca';
+  if (n.includes('acordao'))                                            return 'acordao';
+  if (n.includes('audiencia'))                                          return 'audiencia';
+  if (n.includes('conciliacao') || n.includes('mediacao') ||
+      n.includes('autocomposicao'))                                     return 'conciliacao';
+
+  // 2. Código CNJ verificado — para movimentos cujo nome é genérico
+  //    (ex: "Juntada", "Conclusão" — o código diz exatamente o que é)
   if (codigoMovimento && CODIGO_TIPO_MAP[codigoMovimento]) {
     return CODIGO_TIPO_MAP[codigoMovimento];
   }
 
-  // 2. Matching por nome (normalizado: sem acentos, minúsculas)
-  const n = (nomeMovimento || '').toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  // 3. Demais checks por nome
 
-  // ── Trânsito em Julgado — antes de qualquer outro check ─────────────────
-  if (n.includes('transito em julgado') || n.includes('transito julgado') ||
-      n.includes('coisa julgada'))                                      return 'transito';
-
-  // ── Sentença ─────────────────────────────────────────────────────────────
-  if (n.includes('sentenca') || n.startsWith('sentenc'))               return 'sentenca';
-
-  // ── Acórdão ──────────────────────────────────────────────────────────────
-  if (n.includes('acordao'))                                            return 'acordao';
-
-  // ── Audiência / Sessão ────────────────────────────────────────────────────
-  if (n.includes('audiencia') || n.includes('sessao de julgamento') ||
-      n.includes('sessao plenaria'))                                    return 'audiencia';
-
-  // ── Conciliação / Mediação ────────────────────────────────────────────────
-  if (n.includes('conciliacao') || n.includes('mediacao') ||
-      n.includes('autocomposicao'))                                     return 'conciliacao';
-
-  // ── Decisão — depois de sentença/acórdão para não colidir ────────────────
+  // ── Decisão ───────────────────────────────────────────────────────────────
   if (n.includes('decisao') || n.includes('julgamento antecipado') ||
       n.includes('improcedencia liminar') || n.includes('procedencia liminar') ||
       n.includes('tutela') || n.includes('liminar'))                   return 'decisao';
@@ -199,23 +199,17 @@ function inferirTipo(nomeMovimento, codigoMovimento) {
       n.includes('concluso') || n.startsWith('vista') ||
       n.includes('carga') || n.startsWith('devolvido'))                return 'despacho';
 
-  // ── Contrarrazões — antes de recurso para não ser engolido ───────────────
-  if (n.includes('contrarrazoes') || n.includes('contrarrazao'))       return 'contrarrazoes';
-
-  // ── Recurso / Apelação / Agravo / Embargos ────────────────────────────────
+  // ── Recurso ───────────────────────────────────────────────────────────────
   if (n.startsWith('recurso') || n.startsWith('apelacao') ||
       n.startsWith('agravo') || n.startsWith('embargo') ||
       n.includes('recurso especial') || n.includes('recurso extraordinario') ||
-      n.includes('recurso inominado') || n.includes('recurso adesivo'))  return 'recurso';
+      n.includes('recurso inominado') || n.includes('recurso adesivo') ||
+      n.includes('recurso ordinario'))                                  return 'recurso';
 
-  // ── Citação / Intimação / Notificação ─────────────────────────────────────
+  // ── Citação / Intimação ───────────────────────────────────────────────────
   if (n.includes('citacao') || n.includes('intimacao') ||
       n.includes('notificacao') || n.includes('mandado de citacao') ||
       n.includes('mandado de intimacao'))                               return 'citacao';
-
-  // ── Contestação ───────────────────────────────────────────────────────────
-  if (n.includes('contestacao') || n.includes('resposta do reu') ||
-      n.includes('defesa'))                                             return 'contestacao';
 
   // ── Petição / Juntada / Manifestação ─────────────────────────────────────
   if (n.includes('peticao') || n.includes('juntada') ||
