@@ -225,7 +225,7 @@ fbq('track', 'PageView');
         const cobranca = params.get('cobranca');
 
         const planosMap = {
-            basico: { id: 1, nome: 'Básico', mensal: "49.90", anual: "499.00" },
+            basico: { id: 1, nome: 'Básico', mensal: "99.90", anual: "999.00" },
             intermediario: { id: 2, nome: 'Intermediário', mensal: "149.90", anual: "1499.00" },
             avancado: { id: 3, nome: 'Avançado', mensal: "199.90", anual: "1999.00" },
             premium: { id: 4, nome: 'Premium', mensal: "299.90", anual: "2999.00" }
@@ -636,7 +636,7 @@ fbq('track', 'PageView');
     // ============================================================
 
     const _planosData = {
-        basico:        { id: 1, nome: 'Básico',        mensal: '49,90',   anual: '499,00',   beneficios: ['Até 3 usuários · 50 processos', 'Prazos, audiências e contratos', 'Integração D-Jus + suporte por e-mail'] },
+        basico:        { id: 1, nome: 'Básico',        mensal: '99,90',   anual: '999,00',   beneficios: ['Até 3 usuários · 50 processos', 'Prazos, audiências e contratos', 'Integração D-Jus + suporte por e-mail'] },
         intermediario: { id: 2, nome: 'Intermediário', mensal: '149,90',  anual: '1.499,00', beneficios: ['Até 15 usuários · 100 processos', 'Módulo financeiro e relatórios avançados', 'Chat interno + suporte prioritário'] },
         avancado:      { id: 3, nome: 'Avançado',      mensal: '199,90',  anual: '1.999,00', beneficios: ['Usuários, processos e clientes ilimitados', 'GED, CRM e reuniões por vídeo', 'Cálculos jurídicos + chat interno'] },
         premium:       { id: 4, nome: 'Premium',       mensal: '299,90',  anual: '2.999,00', beneficios: ['Tudo do Avançado incluído', 'IA Jurídica + alertas via WhatsApp', 'Suporte prioritário dedicado'] }
