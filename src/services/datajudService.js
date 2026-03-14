@@ -127,7 +127,7 @@ async function buscarMovimentos(numeroCNJ) {
 
     const { data } = await axios.post(url, {
       query: { term: { 'numeroProcesso.keyword': numeroSemMascara } },
-      _source: ['numeroProcesso', 'movimento']
+      _source: ['numeroProcesso', 'movimento', 'movimentos', 'andamento', 'andamentos']
     }, {
       headers: {
         'Authorization': `ApiKey ${apiKey}`,
@@ -142,8 +142,9 @@ async function buscarMovimentos(numeroCNJ) {
       return null;
     }
 
-    const movimentos = hits[0]._source?.movimento || [];
-    logger.debug({ numeroCNJ, movimentos: movimentos.length }, '[DataJud] Movimentos encontrados');
+    const src = hits[0]._source || {};
+    const movimentos = src.movimento || src.movimentos || src.andamento || src.andamentos || [];
+    logger.debug({ numeroCNJ, movimentos: movimentos.length, campoUsado: ['movimento','movimentos','andamento','andamentos'].find(c => src[c]?.length) || 'nenhum' }, '[DataJud] Movimentos encontrados');
 
     return movimentos.map(m => ({
       data:     m.dataHora ? m.dataHora.split('T')[0] : new Date().toISOString().split('T')[0],
