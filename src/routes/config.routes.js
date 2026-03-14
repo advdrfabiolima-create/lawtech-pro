@@ -386,4 +386,79 @@ router.post('/config/datajud/sincronizar', authMiddleware, roleMiddleware('admin
     }
 });
 
+// ============================================================
+// DIAGNÓSTICO DATAJUD — testa um número CNJ contra a API
+// GET /api/config/datajud/testar?numero=XXXX  (admin)
+// ============================================================
+router.get('/config/datajud/testar', authMiddleware, roleMiddleware('admin'), async (req, res) => {
+    const { numero } = req.query;
+    if (!numero) return res.status(400).json({ ok: false, erro: 'Informe ?numero=NNNNNNN-DD.AAAA.J.TT.OOOO' });
+
+    const apiKey = process.env.DATAJUD_API_KEY;
+    if (!apiKey) return res.status(400).json({ ok: false, erro: 'DATAJUD_API_KEY não configurada' });
+
+    const match = numero.match(/\d{7}-\d{2}\.\d{4}\.(\d+\.\d+)\.\d+/);
+    if (!match) return res.status(400).json({ ok: false, erro: 'Formato CNJ inválido. Esperado: NNNNNNN-DD.AAAA.J.TT.OOOO' });
+
+    const codigoTribunal = match[1];
+    const slugMap = {
+      '3.00':'stj','4.01':'trf1','4.02':'trf2','4.03':'trf3','4.04':'trf4','4.05':'trf5','4.06':'trf6',
+      '5.00':'tst','5.01':'trt1','5.02':'trt2','5.03':'trt3','5.04':'trt4','5.05':'trt5','5.06':'trt6',
+      '5.07':'trt7','5.08':'trt8','5.09':'trt9','5.10':'trt10','5.11':'trt11','5.12':'trt12',
+      '5.13':'trt13','5.14':'trt14','5.15':'trt15','5.16':'trt16','5.17':'trt17','5.18':'trt18',
+      '5.19':'trt19','5.20':'trt20','5.21':'trt21','5.22':'trt22','5.23':'trt23','5.24':'trt24',
+      '6.00':'tse',
+      '8.01':'tjac','8.02':'tjal','8.03':'tjap','8.04':'tjam','8.05':'tjba','8.06':'tjce',
+      '8.07':'tjdft','8.08':'tjes','8.09':'tjgo','8.10':'tjma','8.11':'tjmt','8.12':'tjms',
+      '8.13':'tjmg','8.14':'tjpa','8.15':'tjpb','8.16':'tjpr','8.17':'tjpe','8.18':'tjpi',
+      '8.19':'tjrj','8.20':'tjrn','8.21':'tjrs','8.22':'tjro','8.23':'tjrr','8.24':'tjsc',
+      '8.25':'tjse','8.26':'tjsp','8.27':'tjto',
+    };
+
+    const tribunalSlug = slugMap[codigoTribunal];
+    if (!tribunalSlug) {
+        return res.json({ ok: false, erro: `Tribunal não mapeado: ${codigoTribunal}`, numero, codigoTribunal });
+    }
+
+    const numeroSemMascara = numero.replace(/\D/g, '');
+    const url = `https://api-publica.datajud.cnj.jus.br/api_publica_${tribunalSlug}/_search`;
+
+    // Testa as duas formas de query para identificar qual funciona
+    const queries = [
+        { nome: 'term .keyword', body: { query: { term: { 'numeroProcesso.keyword': numeroSemMascara } }, _source: ['numeroProcesso','movimento'] } },
+        { nome: 'match',         body: { query: { match: { numeroProcesso: numeroSemMascara } },          _source: ['numeroProcesso','movimento'] } },
+    ];
+
+    const resultados = [];
+    for (const q of queries) {
+        try {
+            const { data } = await axios.post(url, q.body, {
+                headers: { 'Authorization': `ApiKey ${apiKey}`, 'Content-Type': 'application/json' },
+                timeout: 30000
+            });
+            const hits = data?.hits?.hits || [];
+            const movimentos = hits[0]?._source?.movimento || [];
+            resultados.push({
+                query: q.nome,
+                total_hits: hits.length,
+                movimentos: movimentos.length,
+                primeiro_movimento: movimentos[0] || null,
+                numero_encontrado: hits[0]?._source?.numeroProcesso || null,
+            });
+        } catch (err) {
+            resultados.push({ query: q.nome, erro: err.response?.status || err.message });
+        }
+    }
+
+    res.json({
+        ok: true,
+        numero_original: numero,
+        numero_sem_mascara: numeroSemMascara,
+        codigo_tribunal: codigoTribunal,
+        tribunal_slug: tribunalSlug,
+        url,
+        resultados
+    });
+});
+
 module.exports = router;
