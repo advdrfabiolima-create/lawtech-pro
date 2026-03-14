@@ -97,10 +97,14 @@ const CODIGO_TIPO_MAP = {
   11010: 'decisao', // Decisão Monocrática
   548:  'decisao',  // Decisão de Admissibilidade
   549:  'decisao',  // Decisão de Inadmissibilidade
+  12200:'decisao',  // Mérito (TRF3 — julgamento de mérito)
 
   // ── Despacho ─────────────────────────────────────────────────────────────
   201: 'despacho',  // Despacho
   132: 'despacho',  // Despacho de Mero Expediente
+  11383:'despacho', // Ato Ordinatório (TJBA)
+  981: 'despacho',  // Recebimento (TRF3)
+  12115:'despacho', // Para julgamento de mérito — concluso ao relator (TRF3)
   // 60 removido: significa "Conclusão" no TJBA mas "Expedição de documento" no TRT — nome decide
 
   // ── Audiência ────────────────────────────────────────────────────────────
@@ -179,6 +183,10 @@ function inferirTipo(nomeMovimento, codigoMovimento) {
 
   if (n.includes('transito em julgado') || n.includes('transito julgado') ||
       n.includes('coisa julgada'))                                      return 'transito';
+  // "Mero expediente" é despacho administrativo — ganha de código 11010 (Decisão Monocrática)
+  if (n.includes('mero expediente'))                                    return 'despacho';
+  // "Provimento em Parte" / "Provimento" / "Improvimento" são julgamentos — ganham de código 238
+  if (n.includes('provimento') || n.includes('improvimento'))          return 'decisao';
   if (n.includes('contestacao') || n.includes('resposta do reu') ||
       n.includes('defesa'))                                             return 'contestacao';
   if (n.includes('contrarrazoes') || n.includes('contrarrazao'))       return 'contrarrazoes';
@@ -207,12 +215,15 @@ function inferirTipo(nomeMovimento, codigoMovimento) {
   // ── Decisão ───────────────────────────────────────────────────────────────
   if (n.includes('decisao') || n.includes('julgamento antecipado') ||
       n.includes('improcedencia') || n.includes('procedencia') ||
-      n.includes('tutela') || n.includes('liminar'))                   return 'decisao';
+      n.includes('provimento') || n.includes('improvimento') ||
+      n.includes('merito') || n.includes('tutela') ||
+      n.includes('liminar'))                                            return 'decisao';
 
   // ── Despacho / Conclusão ──────────────────────────────────────────────────
   if (n.includes('despacho') || n.includes('conclusao') ||
       n.includes('concluso') || n.startsWith('vista') ||
-      n.includes('carga') || n.startsWith('devolvido'))                return 'despacho';
+      n.includes('carga') || n.startsWith('devolvido') ||
+      n.includes('ato ordinatorio') || n.includes('recebimento'))      return 'despacho';
 
   // ── Recurso ───────────────────────────────────────────────────────────────
   if (n.startsWith('recurso') || n.startsWith('apelacao') ||
@@ -253,7 +264,8 @@ function inferirTipo(nomeMovimento, codigoMovimento) {
       n.includes('djen') || n.includes('dje'))                         return 'publicacao';
 
   // ── Certidão ──────────────────────────────────────────────────────────────
-  if (n.includes('certidao') || n.includes('certificado'))             return 'certidao';
+  if (n.includes('certidao') || n.includes('certificado') ||
+      n.includes('expedida') || n.includes('certificada'))             return 'certidao';
 
   // ── Alvará ────────────────────────────────────────────────────────────────
   if (n.includes('alvara'))                                             return 'alvara';
