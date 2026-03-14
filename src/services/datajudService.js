@@ -79,21 +79,79 @@ function extrairCodigoTribunal(numeroCNJ) {
 }
 
 /**
- * Infere o tipo do andamento a partir do nome do movimento DataJud
+ * Mapeamento de códigos CNJ TPU → tipo interno
+ * Fonte: Tabela Processual Unificada do CNJ (Resolução 46/2007)
  */
-function inferirTipo(nomeMovimento) {
-  const nome = (nomeMovimento || '').toLowerCase();
-  if (nome.includes('sentença') || nome.includes('sentenca'))           return 'sentenca';
-  if (nome.includes('acórdão') || nome.includes('acordao'))             return 'acordao';
-  if (nome.includes('audiência') || nome.includes('audiencia'))         return 'audiencia';
-  if (nome.includes('decisão') || nome.includes('decisao'))             return 'decisao';
-  if (nome.includes('despacho'))                                        return 'despacho';
-  if (nome.includes('recurso') || nome.includes('apelação') ||
-      nome.includes('agravo') || nome.includes('embargo'))              return 'recurso';
-  if (nome.includes('citação') || nome.includes('citacao') ||
-      nome.includes('intimação') || nome.includes('intimacao'))         return 'citacao';
-  if (nome.includes('petição') || nome.includes('peticao') ||
-      nome.includes('manifestação'))                                    return 'peticao';
+const CODIGO_TIPO_MAP = {
+  // Sentença
+  196: 'sentenca', 942: 'sentenca', 12228: 'sentenca', 22: 'sentenca',
+
+  // Acórdão
+  198: 'acordao', 941: 'acordao', 15045: 'acordao',
+
+  // Decisão interlocutória / monocrática
+  202: 'decisao', 11009: 'decisao', 11010: 'decisao', 11011: 'decisao',
+  11012: 'decisao', 548: 'decisao', 549: 'decisao', 550: 'decisao',
+  193: 'decisao', 955: 'decisao', 11018: 'decisao', 14772: 'decisao',
+
+  // Despacho / conclusão
+  201: 'despacho', 60: 'despacho', 130: 'despacho', 131: 'despacho',
+  132: 'despacho', 133: 'despacho', 134: 'despacho', 11014: 'despacho',
+  14007: 'despacho',
+
+  // Audiência
+  848: 'audiencia', 849: 'audiencia', 850: 'audiencia', 851: 'audiencia',
+  852: 'audiencia', 853: 'audiencia', 854: 'audiencia', 871: 'audiencia',
+  872: 'audiencia', 873: 'audiencia', 874: 'audiencia', 875: 'audiencia',
+  11013: 'audiencia',
+
+  // Citação / intimação / notificação
+  971: 'citacao', 972: 'citacao', 973: 'citacao', 974: 'citacao',
+  975: 'citacao', 976: 'citacao', 977: 'citacao', 978: 'citacao',
+  979: 'citacao', 980: 'citacao', 981: 'citacao', 12428: 'citacao',
+  12429: 'citacao',
+
+  // Recurso / apelação / agravo / embargos
+  85:  'recurso', 86:  'recurso', 55:  'recurso', 237: 'recurso',
+  238: 'recurso', 239: 'recurso', 240: 'recurso', 241: 'recurso',
+  950: 'recurso', 951: 'recurso', 952: 'recurso', 953: 'recurso',
+  954: 'recurso', 11401: 'recurso', 11402: 'recurso', 11403: 'recurso',
+
+  // Petição / juntada / manifestação / memorial
+  51:  'peticao', 57:  'peticao', 165: 'peticao', 166: 'peticao',
+  167: 'peticao', 168: 'peticao', 169: 'peticao', 11007: 'peticao',
+  11008: 'peticao', 14737: 'peticao',
+};
+
+/**
+ * Infere o tipo do andamento a partir do código CNJ e/ou nome do movimento
+ */
+function inferirTipo(nomeMovimento, codigoMovimento) {
+  // 1. Código CNJ tem precedência — mapeamento preciso
+  if (codigoMovimento && CODIGO_TIPO_MAP[codigoMovimento]) {
+    return CODIGO_TIPO_MAP[codigoMovimento];
+  }
+
+  // 2. Fallback por palavras-chave no nome
+  const nome = (nomeMovimento || '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // remove acentos
+
+  if (nome.includes('sentenca') || nome.includes('sentencado'))         return 'sentenca';
+  if (nome.includes('acordao'))                                         return 'acordao';
+  if (nome.includes('audiencia') || nome.includes('sessao'))            return 'audiencia';
+  if (nome.includes('decisao') || nome.includes('julgamento') ||
+      nome.includes('provimento') || nome.includes('improvimento'))     return 'decisao';
+  if (nome.includes('despacho') || nome.includes('conclusao') ||
+      nome.includes('concluso') || nome.includes('vista'))              return 'despacho';
+  if (nome.includes('recurso') || nome.includes('apelacao') ||
+      nome.includes('agravo') || nome.includes('embargo') ||
+      nome.includes('contrarrazao'))                                    return 'recurso';
+  if (nome.includes('citacao') || nome.includes('intimacao') ||
+      nome.includes('notificacao') || nome.includes('mandado'))         return 'citacao';
+  if (nome.includes('peticao') || nome.includes('juntada') ||
+      nome.includes('manifestacao') || nome.includes('memorial') ||
+      nome.includes('contestacao') || nome.includes('resposta'))        return 'peticao';
+
   return 'outros';
 }
 
@@ -166,7 +224,7 @@ async function buscarMovimentos(numeroCNJ) {
       }
       return {
         data:  m.dataHora ? m.dataHora.split('T')[0] : new Date().toISOString().split('T')[0],
-        tipo:  inferirTipo(m.nome),
+        tipo:  inferirTipo(m.nome, m.codigo),
         titulo: (m.nome || 'Movimentação').substring(0, 200),
         descricao,
       };
