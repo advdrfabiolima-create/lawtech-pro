@@ -80,13 +80,15 @@ async function buscarMovimentos(numeroCNJ) {
   }
 
   try {
-    const url = `${DATAJUD_BASE}/api_publica-${tribunalSlug}/_search`;
+    // API exige os 20 dígitos sem pontuação
+    const numeroSemMascara = numeroCNJ.replace(/\D/g, '');
+    const url = `${DATAJUD_BASE}/api_publica_${tribunalSlug}/_search`;
     const { data } = await axios.post(url, {
-      query: { match: { numeroProcesso: numeroCNJ } },
+      query: { match: { numeroProcesso: numeroSemMascara } },
       _source: ['numeroProcesso', 'movimento']
     }, {
       headers: {
-        'Authorization': `APIKey ${apiKey}`,
+        'Authorization': `ApiKey ${apiKey}`,
         'Content-Type': 'application/json'
       },
       timeout: 12000
