@@ -146,12 +146,24 @@ async function buscarMovimentos(numeroCNJ) {
     const movimentos = src.movimento || src.movimentos || src.andamento || src.andamentos || [];
     logger.debug({ numeroCNJ, movimentos: movimentos.length, campoUsado: ['movimento','movimentos','andamento','andamentos'].find(c => src[c]?.length) || 'nenhum' }, '[DataJud] Movimentos encontrados');
 
-    return movimentos.map(m => ({
-      data:     m.dataHora ? m.dataHora.split('T')[0] : new Date().toISOString().split('T')[0],
-      tipo:     inferirTipo(m.nome),
-      titulo:   (m.nome || 'Movimentação').substring(0, 200),
-      descricao: m.complementos ? String(m.complementos).substring(0, 2000) : null,
-    }));
+    return movimentos.map(m => {
+      let descricao = null;
+      if (m.complementosTabelados?.length) {
+        descricao = m.complementosTabelados
+          .map(c => c.nome || c.descricao || c.valor)
+          .filter(Boolean)
+          .join(' | ')
+          .substring(0, 2000);
+      } else if (m.complementos) {
+        descricao = String(m.complementos).substring(0, 2000);
+      }
+      return {
+        data:  m.dataHora ? m.dataHora.split('T')[0] : new Date().toISOString().split('T')[0],
+        tipo:  inferirTipo(m.nome),
+        titulo: (m.nome || 'Movimentação').substring(0, 200),
+        descricao,
+      };
+    });
 
   } catch (err) {
     if (err.response?.status === 404) return null;
