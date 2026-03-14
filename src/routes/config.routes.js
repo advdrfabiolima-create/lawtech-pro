@@ -365,4 +365,25 @@ router.delete('/config/logo', authMiddleware, async (req, res) => {
     }
 });
 
+// ============================================================
+// SINCRONIZAÇÃO MANUAL DATAJUD
+// POST /api/config/datajud/sincronizar  (admin)
+// ============================================================
+router.post('/config/datajud/sincronizar', authMiddleware, roleMiddleware('admin'), async (req, res) => {
+    try {
+        const { sincronizarAndamentosDatajud } = require('../cron/datajudCron');
+        logger.info({ usuario_id: req.user.id }, '[DataJud] Sincronização manual disparada');
+
+        // Executa em background para não travar a resposta
+        sincronizarAndamentosDatajud().catch(err =>
+            logger.error({ err: err.message }, '[DataJud] Erro na sincronização manual')
+        );
+
+        res.json({ ok: true, mensagem: 'Sincronização iniciada. Os andamentos serão atualizados em instantes.' });
+    } catch (err) {
+        logger.error({ err: err.message }, '[DataJud] Erro ao iniciar sincronização manual');
+        res.status(500).json({ ok: false, erro: err.message });
+    }
+});
+
 module.exports = router;

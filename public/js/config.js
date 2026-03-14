@@ -1224,6 +1224,36 @@ async function carregarChaveEscavador() {
     }
 }
 
+async function sincronizarDatajud() {
+    const btn = document.getElementById('btnSincronizarDatajud');
+    const status = document.getElementById('datajud-status');
+
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader" style="width:15px;height:15px;"></i> Sincronizando...';
+    status.textContent = '';
+    if (window.lucide) lucide.createIcons();
+
+    try {
+        const res = await API.post('/api/config/datajud/sincronizar', {});
+        const data = await res.json();
+
+        if (data.ok) {
+            status.textContent = '✅ ' + data.mensagem;
+            status.style.color = '#065f46';
+        } else {
+            status.textContent = '❌ ' + (data.erro || 'Erro ao sincronizar.');
+            status.style.color = '#991b1b';
+        }
+    } catch (err) {
+        status.textContent = '❌ Erro de conexão.';
+        status.style.color = '#991b1b';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="refresh-cw" style="width:15px;height:15px;"></i> Sincronizar Agora';
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
 async function salvarChaveEscavador() {
     const chave = document.getElementById('escavadorApiKey').value.trim();
     
