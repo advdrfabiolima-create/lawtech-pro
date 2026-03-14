@@ -210,8 +210,7 @@ router.get('/processos', authMiddleware, async (req, res) => {
     const limitIdx = idx;
     const offsetIdx = idx + 1;
 
-    const [result, countResult, metricasResult] = await Promise.all([
-      pool.query(`
+    const baseSelect = (comNovos) => `
         SELECT
           p.id, p.numero, p.esfera, p.tribunal, p.instancia, p.uf, p.status,
           p.excluido_por, p.data_exclusao,
@@ -219,8 +218,8 @@ router.get('/processos', authMiddleware, async (req, res) => {
           pp_ativo.pessoa_id     AS cliente_id,
           pp_passivo.pessoa_nome AS parte_contraria,
           COALESCE(cnt_ativo.total,   0) AS total_autores,
-          COALESCE(cnt_passivo.total, 0) AS total_reus,
-          COALESCE(cnt_novos.total,   0) AS andamentos_novos
+          COALESCE(cnt_passivo.total, 0) AS total_reus
+          ${comNovos ? ', COALESCE(cnt_novos.total, 0) AS andamentos_novos' : ', 0 AS andamentos_novos'}
         FROM processos p
         LEFT JOIN LATERAL (
           SELECT pessoa_nome, pessoa_id
@@ -244,15 +243,29 @@ router.get('/processos', authMiddleware, async (req, res) => {
           FROM partes_processo WHERE polo = 'passivo'
           GROUP BY processo_id
         ) cnt_passivo ON cnt_passivo.processo_id = p.id
-        LEFT JOIN (
+        ${comNovos ? `LEFT JOIN (
           SELECT processo_id, COUNT(*) AS total
           FROM andamentos_processuais WHERE visto = false
           GROUP BY processo_id
-        ) cnt_novos ON cnt_novos.processo_id = p.id
+        ) cnt_novos ON cnt_novos.processo_id = p.id` : ''}
         WHERE ${whereClause}
         ORDER BY p.id DESC
         LIMIT $${limitIdx} OFFSET $${offsetIdx}
-      `, params),
+      `;
+
+    let result;
+    try {
+      result = await pool.query(baseSelect(true), params);
+    } catch (err) {
+      // Coluna visto ainda não existe (migration pendente) — usa query sem badge
+      if (err.code === '42703') {
+        result = await pool.query(baseSelect(false), params);
+      } else {
+        throw err;
+      }
+    }
+
+    const [countResult, metricasResult] = await Promise.all([
       pool.query(
         `SELECT COUNT(*) AS total FROM processos p WHERE ${whereClause}`,
         countParams
