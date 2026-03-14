@@ -531,7 +531,8 @@ require('./cron/datajudCron');         // Sincronização diária de andamentos 
             logger.warn({ err: migrErr.message }, '[SISTEMA] Migração clicksign_api_key (sem ENCRYPTION_KEY?)');
         }
 
-        // Nota: whatsapp_conversas criada pela migration 004 (ifNotExists)
+        // Migration inline: portal_slug em escritorios (migration 006)
+        await pool.query(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS portal_slug VARCHAR(50) UNIQUE`);
 
         iniciarAgendamentos();
 
