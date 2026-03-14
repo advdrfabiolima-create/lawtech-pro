@@ -386,7 +386,7 @@
             align-items: center;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 48px;
+            gap: 16px;
         }
 
         .logo-item {
@@ -429,9 +429,12 @@
             box-shadow: 0 4px 16px rgba(0,0,0,0.2);
         }
 
-        .logo-item--dark img,
+        .logo-item--dark img {
+            filter: opacity(0.4);
+        }
+
         .logo-item--dark:hover img {
-            filter: grayscale(0%) opacity(1);
+            filter: opacity(1);
         }
 
         /* ===== SEÇÃO COMMON STYLES ===== */
