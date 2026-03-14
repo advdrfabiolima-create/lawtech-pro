@@ -1059,10 +1059,11 @@ window.onload = () => {
     }
     carregarEquipe();
     carregarChaveEscavador();
-    carregarDataTrial(); // 🆕 NOVA LINHA
+    carregarDataTrial();
     carregarStatus2FA();
     carregarStatusClicksign();
     carregarStatusIcal();
+    carregarPortalSlug();
     const elemento = document.getElementById('ID_DO_ELEMENTO');
     if (elemento) {
         elemento.disabled = true;
@@ -1194,6 +1195,69 @@ async function reativarAssinatura() {
         }
     } catch (err) {
         alert("Erro de conexão com o servidor.");
+    }
+}
+
+// ===== PORTAL PÚBLICO — ACESSO POR CPF =====
+
+async function carregarPortalSlug() {
+    try {
+        const res = await fetch('/api/config/meu-escritorio', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.ok && data.dados && data.dados.portal_slug) {
+            _exibirPortalSlug(data.dados.portal_slug);
+        }
+    } catch (err) {
+        console.error('Erro ao carregar portal slug:', err);
+    }
+}
+
+function _exibirPortalSlug(slug) {
+    const input = document.getElementById('portalSlugInput');
+    const urlArea = document.getElementById('portalSlugUrlArea');
+    const urlEl = document.getElementById('portalSlugUrl');
+    if (input) input.value = slug;
+    if (urlArea && urlEl) {
+        const url = `${window.location.origin}/acesso/${slug}`;
+        urlEl.textContent = url;
+        urlArea.style.display = 'block';
+    }
+}
+
+async function salvarPortalSlug() {
+    const input = document.getElementById('portalSlugInput');
+    const status = document.getElementById('portalSlugStatus');
+    const slug = (input?.value || '').trim();
+
+    if (!slug) { if (status) { status.textContent = 'Informe um slug.'; status.style.color = '#dc2626'; } return; }
+
+    try {
+        const res = await fetch('/api/config/portal-slug', {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ portal_slug: slug })
+        });
+        const data = await res.json();
+        if (data.ok) {
+            if (status) { status.textContent = 'Salvo com sucesso!'; status.style.color = '#15803d'; }
+            _exibirPortalSlug(data.portal_slug);
+            setTimeout(() => { if (status) status.textContent = ''; }, 3000);
+        } else {
+            if (status) { status.textContent = data.erro || 'Erro ao salvar.'; status.style.color = '#dc2626'; }
+        }
+    } catch (err) {
+        if (status) { status.textContent = 'Erro de conexão.'; status.style.color = '#dc2626'; }
+    }
+}
+
+async function copiarUrlPortal() {
+    const urlEl = document.getElementById('portalSlugUrl');
+    if (!urlEl) return;
+    try {
+        await navigator.clipboard.writeText(urlEl.textContent);
+        alert('URL copiada para a área de transferência!');
+    } catch {
+        prompt('Copie a URL:', urlEl.textContent);
     }
 }
 

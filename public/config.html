@@ -824,6 +824,52 @@ input, textarea, select {
         </div>
     </div>
 
+    <!-- Portal Público — Acesso por CPF -->
+    <div class="card" id="card-portal-publico">
+        <div class="card-title">
+            <i data-lucide="globe"></i> Portal do Cliente — Acesso pelo Site
+        </div>
+
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;margin-bottom:18px;display:flex;align-items:flex-start;gap:12px;">
+            <span style="font-size:20px;flex-shrink:0;">🔗</span>
+            <div>
+                <div style="font-size:12px;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">Acesso Autônomo</div>
+                <p style="font-size:13px;color:#1e40af;margin:0;line-height:1.6;">
+                    Defina um <strong>slug</strong> para que seus clientes consigam solicitar o link do portal diretamente pelo site do escritório, informando apenas o CPF. O link é enviado para o e-mail cadastrado.
+                </p>
+            </div>
+        </div>
+
+        <div style="margin-bottom:18px;">
+            <label style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:6px;">Slug do Portal</label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <span style="font-size:14px;color:var(--muted);white-space:nowrap;">lawtechpro.com.br/acesso/</span>
+                <input id="portalSlugInput" type="text" placeholder="limaesilva"
+                    style="flex:1;min-width:160px;padding:9px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:monospace;letter-spacing:0.05em;">
+                <button data-action="salvarPortalSlug"
+                    style="padding:9px 18px;background:#1d4ed8;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">
+                    Salvar
+                </button>
+            </div>
+            <p style="font-size:12px;color:var(--muted);margin-top:6px;">Use apenas letras minúsculas, números e hífen. Ex: <code style="background:#f1f5f9;padding:1px 6px;border-radius:4px;">limaesilva</code></p>
+            <span id="portalSlugStatus" style="font-size:13px;color:var(--muted);display:block;margin-top:6px;"></span>
+        </div>
+
+        <div id="portalSlugUrlArea" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px 16px;">
+            <div style="font-size:12px;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">URL de Acesso dos Clientes</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <code id="portalSlugUrl" style="flex:1;font-size:13px;color:#166534;background:#dcfce7;padding:8px 12px;border-radius:6px;word-break:break-all;"></code>
+                <button data-action="copiarUrlPortal"
+                    style="padding:8px 14px;background:#15803d;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">
+                    Copiar
+                </button>
+            </div>
+            <p style="font-size:12px;color:#15803d;margin-top:10px;">
+                Cole este link no site do escritório ou compartilhe com os clientes. Eles digitam o CPF e recebem o link do portal por e-mail.
+            </p>
+        </div>
+    </div>
+
     <!-- DataJud — Sincronização de Andamentos -->
     <div class="card" id="card-datajud">
         <div class="card-title">

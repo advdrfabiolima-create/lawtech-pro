@@ -7,6 +7,7 @@ const { sign: jwtSign } = require('../config/jwt');
 const authMiddleware = require('../middlewares/authMiddleware');
 const portalMiddleware = require('../middlewares/portalMiddleware');
 const logger = require('../utils/logger');
+const { enviarEmail } = require('../services/emailService');
 // dailyService não é mais necessário no portal (Jitsi não usa tokens)
 
 // Rate limiting para autenticação do portal — protege contra brute-force de tokens
@@ -16,6 +17,132 @@ const portalAuthLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     message: { ok: false, erro: 'Muitas tentativas de autenticação. Aguarde 10 minutos e tente novamente.' }
+});
+
+// Rate limiting para solicitação de acesso por CPF — anti-enumeração
+const solicitarAcessoLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hora
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { ok: false, erro: 'Muitas tentativas. Tente novamente em 1 hora.' }
+});
+
+// GET /api/portal/escritorio/:slug  (público — retorna info do escritório para a página de acesso)
+router.get('/escritorio/:slug', async (req, res) => {
+    const slug = req.params.slug.toLowerCase().trim();
+    try {
+        const result = await pool.query(
+            `SELECT nome, advogado_responsavel, logo_base64, logo_arquivo
+             FROM escritorios WHERE portal_slug = $1`,
+            [slug]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ ok: false, erro: 'Escritório não encontrado.' });
+        }
+        const e = result.rows[0];
+        res.json({ ok: true, escritorio: { nome: e.nome, advogado: e.advogado_responsavel, logo_base64: e.logo_base64, logo_arquivo: e.logo_arquivo } });
+    } catch (err) {
+        logger.error({ err: err.message }, '[Portal] GET /escritorio/:slug erro');
+        res.status(500).json({ ok: false, erro: 'Erro interno.' });
+    }
+});
+
+// POST /api/portal/solicitar-acesso  (público, rate-limited)
+// Recebe { cpf, escritorio_slug } → envia e-mail com magic link se CPF cadastrado
+router.post('/solicitar-acesso', solicitarAcessoLimiter, async (req, res) => {
+    // Resposta genérica — não revela se o CPF existe ou não
+    const RESP_GENERICA = { ok: true, mensagem: 'Se o CPF estiver cadastrado, você receberá um e-mail com o link de acesso em breve.' };
+
+    const { cpf, escritorio_slug } = req.body;
+    if (!cpf || !escritorio_slug) {
+        return res.status(400).json({ ok: false, erro: 'Dados incompletos.' });
+    }
+
+    // Normaliza CPF: remove tudo que não é dígito
+    const cpfLimpo = String(cpf).replace(/\D/g, '');
+    if (cpfLimpo.length < 11) return res.json(RESP_GENERICA);
+
+    try {
+        const escResult = await pool.query(
+            'SELECT id, nome FROM escritorios WHERE portal_slug = $1',
+            [escritorio_slug.toLowerCase().trim()]
+        );
+        if (escResult.rows.length === 0) return res.json(RESP_GENERICA);
+        const escritorio = escResult.rows[0];
+
+        // Busca cliente pelo documento (CPF/CNPJ) dentro do escritório
+        const clienteResult = await pool.query(
+            `SELECT id, nome, email FROM clientes
+             WHERE escritorio_id = $1 AND REGEXP_REPLACE(documento, '[^0-9]', '', 'g') = $2
+             LIMIT 1`,
+            [escritorio.id, cpfLimpo]
+        );
+
+        if (clienteResult.rows.length === 0) {
+            logger.info({ escritorio_id: escritorio.id }, '[Portal] Solicitação de acesso: CPF não encontrado');
+            return res.json(RESP_GENERICA);
+        }
+
+        const cliente = clienteResult.rows[0];
+
+        if (!cliente.email) {
+            logger.info({ cliente_id: cliente.id }, '[Portal] Solicitação de acesso: cliente sem e-mail cadastrado');
+            return res.json(RESP_GENERICA);
+        }
+
+        // Gera/renova o token do portal (90 dias)
+        const novoToken = crypto.randomBytes(32).toString('hex');
+        await pool.query(
+            `UPDATE clientes
+             SET portal_token = $1, portal_token_expira_em = NOW() + INTERVAL '90 days'
+             WHERE id = $2`,
+            [novoToken, cliente.id]
+        );
+
+        const baseUrl = process.env.BASE_URL || 'https://www.lawtechpro.com.br';
+        const linkPortal = `${baseUrl}/portal-cliente?token=${novoToken}`;
+
+        // Envia e-mail com o link
+        await enviarEmail({
+            para: cliente.email,
+            assunto: `Acesso ao seu portal — ${escritorio.nome}`,
+            html: `
+<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafb;">
+  <div style="background:#1E3A5F;padding:32px 24px;text-align:center;border-radius:12px 12px 0 0;">
+    <h1 style="color:#fff;margin:0;font-size:22px;font-weight:700;">${escritorio.nome}</h1>
+    <p style="color:#93c5fd;margin:8px 0 0;font-size:14px;">Portal do Cliente</p>
+  </div>
+  <div style="background:#fff;padding:32px 28px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0;border-top:none;">
+    <p style="font-size:16px;color:#1e293b;margin:0 0 8px;">Olá, <strong>${cliente.nome}</strong>!</p>
+    <p style="font-size:14px;color:#475569;line-height:1.7;margin:0 0 24px;">
+      Você solicitou acesso ao seu portal de acompanhamento processual.<br>
+      Clique no botão abaixo para acessar seus processos:
+    </p>
+    <div style="text-align:center;margin:28px 0;">
+      <a href="${linkPortal}"
+         style="display:inline-block;background:#1E3A5F;color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:700;letter-spacing:0.3px;">
+        Acessar meu Portal
+      </a>
+    </div>
+    <p style="font-size:12px;color:#94a3b8;margin:24px 0 0;text-align:center;">
+      Este link é válido por <strong>90 dias</strong> e é pessoal — não compartilhe.<br>
+      Se você não solicitou este acesso, ignore este e-mail.
+    </p>
+  </div>
+  <p style="font-size:11px;color:#cbd5e1;text-align:center;margin:16px 0 0;">
+    Enviado por <a href="https://www.lawtechpro.com.br" style="color:#93c5fd;">LawTech Pro</a>
+  </p>
+</div>`
+        });
+
+        logger.info({ cliente_id: cliente.id, escritorio_id: escritorio.id }, '[Portal] Link de acesso enviado por e-mail');
+        return res.json(RESP_GENERICA);
+
+    } catch (err) {
+        logger.error({ err: err.message }, '[Portal] POST /solicitar-acesso erro');
+        return res.json(RESP_GENERICA); // ainda genérico mesmo em erro
+    }
 });
 
 // GET /api/portal/autenticar?token=xxx  (público)

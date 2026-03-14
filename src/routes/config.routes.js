@@ -184,7 +184,7 @@ router.get('/meu-escritorio', authMiddleware, async (req, res) => {
             `SELECT id, nome, advogado_responsavel, oab, documento, data_nascimento, email,
                     endereco, cidade, estado, cep, banco_codigo, agencia, conta, conta_digito,
                     pix_chave, renda_mensal, plano_id, plano_financeiro_status, logo_arquivo,
-                    logo_base64
+                    logo_base64, portal_slug
              FROM escritorios WHERE id = $1`,
             [escritorioId]
         );
@@ -482,6 +482,39 @@ router.get('/config/datajud/testar', authMiddleware, roleMiddleware('admin'), as
         });
     } catch (err) {
         return res.status(500).json({ ok: false, erro: err.response?.status || err.message });
+    }
+});
+
+// ============================================================
+// PORTAL SLUG — identificador público do escritório
+// PUT /api/config/portal-slug  (admin)
+// ============================================================
+router.put('/config/portal-slug', authMiddleware, roleMiddleware('admin'), async (req, res) => {
+    const { portal_slug } = req.body;
+    const escritorioId = req.user.escritorio_id;
+
+    if (!portal_slug || portal_slug.trim() === '') {
+        return res.status(400).json({ ok: false, erro: 'Slug não pode estar vazio.' });
+    }
+
+    // Apenas letras minúsculas, números e hífen
+    const slug = portal_slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+    if (slug.length < 3) {
+        return res.status(400).json({ ok: false, erro: 'Slug deve ter pelo menos 3 caracteres (letras, números ou hífen).' });
+    }
+
+    try {
+        await pool.query(
+            'UPDATE escritorios SET portal_slug = $1 WHERE id = $2',
+            [slug, escritorioId]
+        );
+        res.json({ ok: true, portal_slug: slug });
+    } catch (err) {
+        if (err.code === '23505') {
+            return res.status(409).json({ ok: false, erro: 'Este slug já está em uso. Escolha outro.' });
+        }
+        logger.error({ err: err.message }, '[Config] PUT /config/portal-slug erro');
+        res.status(500).json({ ok: false, erro: 'Erro interno.' });
     }
 });
 

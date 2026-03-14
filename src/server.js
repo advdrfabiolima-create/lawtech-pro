@@ -395,6 +395,7 @@ app.get('/lgpd', (req, res) => res.sendFile(path.join(publicPath, 'lgpd.html')))
 app.get('/relatorios-page', (req, res) => res.sendFile(path.join(publicPath, 'relatorios.html')));
 app.get('/chat-page', (req, res) => res.sendFile(path.join(publicPath, 'chat.html')));
 app.get('/portal-cliente', (req, res) => res.sendFile(path.join(publicPath, 'portal-cliente.html')));
+app.get('/acesso/:slug', (req, res) => res.sendFile(path.join(publicPath, 'acesso-portal.html')));
 app.get('/reunioes-page', (req, res) => res.sendFile(path.join(publicPath, 'reunioes.html')));
 app.get('/verificar-email', (req, res) => res.sendFile(path.join(publicPath, 'verificar-email.html')));
 
