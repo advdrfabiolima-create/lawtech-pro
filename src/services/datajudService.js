@@ -121,6 +121,9 @@ const CODIGO_TIPO_MAP = {
   978: 'citacao',   // Notificação
   979: 'citacao',   // Notificação por Edital
 
+  // ── Trânsito em Julgado ──────────────────────────────────────────────────
+  848: 'transito',  // Trânsito em Julgado
+
   // ── Recurso ──────────────────────────────────────────────────────────────
   85:  'recurso',   // Recurso Inominado
   86:  'recurso',   // Apelação
@@ -132,74 +135,131 @@ const CODIGO_TIPO_MAP = {
   950: 'recurso',   // Recurso Extraordinário
   951: 'recurso',   // Recurso Ordinário
 
+  // ── Contrarrazões ─────────────────────────────────────────────────────────
+  168: 'contrarrazoes', // Juntada de Contrarrazões
+
   // ── Petição / Juntada ────────────────────────────────────────────────────
   57:  'peticao',   // Petição
   165: 'peticao',   // Juntada de Petição
-  166: 'peticao',   // Juntada de Contestação
-  167: 'peticao',   // Juntada de Recurso
-  168: 'peticao',   // Juntada de Contrarrazões
+  166: 'contestacao', // Juntada de Contestação
+  167: 'peticao',   // Juntada de Recurso (é a juntada física, não o recurso em si)
   169: 'peticao',   // Juntada de Manifestação
+
+  // ── Arquivamento / Baixa ──────────────────────────────────────────────────
+  22:  'arquivamento', // Baixa Definitiva
+  267: 'arquivamento', // Arquivamento
 };
 
 /**
- * Infere o tipo a partir do código CNJ (preferencial) ou do nome do movimento.
- * Nome é normalizado (sem acentos, minúsculas) para comparação robusta.
+ * Infere o tipo do andamento a partir do código CNJ TPU (preferencial)
+ * e do nome do movimento (fallback). Normaliza acentos para comparação segura.
+ *
+ * Tipos disponíveis (espelham TIPO_META no frontend):
+ * distribuicao | despacho | decisao | sentenca | acordao | transito |
+ * peticao | contestacao | recurso | contrarrazoes |
+ * audiencia | citacao | expedicao | publicacao |
+ * cumprimento | execucao | pericia | conciliacao |
+ * certidao | alvara | arquivamento | remessa | outros
  */
 function inferirTipo(nomeMovimento, codigoMovimento) {
-  // 1. Código CNJ verificado tem precedência
+  // 1. Código CNJ verificado — maior precisão
   if (codigoMovimento && CODIGO_TIPO_MAP[codigoMovimento]) {
     return CODIGO_TIPO_MAP[codigoMovimento];
   }
 
-  // 2. Classificação por nome — sem acentos para comparação segura
+  // 2. Matching por nome (normalizado: sem acentos, minúsculas)
   const n = (nomeMovimento || '').toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-  // Sentença — verificar antes de "julgamento" para não colidir
-  if (n.includes('sentenca') || n.includes('sentencado') ||
-      n.includes('prolacao de sentenca'))                                return 'sentenca';
+  // ── Trânsito em Julgado — antes de qualquer outro check ─────────────────
+  if (n.includes('transito em julgado') || n.includes('transito julgado') ||
+      n.includes('coisa julgada'))                                      return 'transito';
 
-  // Acórdão
+  // ── Sentença ─────────────────────────────────────────────────────────────
+  if (n.includes('sentenca') || n.startsWith('sentenc'))               return 'sentenca';
+
+  // ── Acórdão ──────────────────────────────────────────────────────────────
   if (n.includes('acordao'))                                            return 'acordao';
 
-  // Audiência — palavra exata para não pegar "sessao de julgamento"
-  if (n.includes('audiencia'))                                          return 'audiencia';
+  // ── Audiência / Sessão ────────────────────────────────────────────────────
+  if (n.includes('audiencia') || n.includes('sessao de julgamento') ||
+      n.includes('sessao plenaria'))                                    return 'audiencia';
 
-  // Decisão — cuidado para não pegar "decisao de transito em julgado"
-  if ((n.includes('decisao') || n.includes('decisao interlocutoria') ||
-       n.includes('decisao monocratica') || n.includes('julgamento antecipado') ||
-       n.includes('improcedencia liminar') || n.includes('procedencia liminar')) &&
-      !n.includes('transito'))                                          return 'decisao';
+  // ── Conciliação / Mediação ────────────────────────────────────────────────
+  if (n.includes('conciliacao') || n.includes('mediacao') ||
+      n.includes('autocomposicao'))                                     return 'conciliacao';
 
-  // Despacho / conclusão
+  // ── Decisão — depois de sentença/acórdão para não colidir ────────────────
+  if (n.includes('decisao') || n.includes('julgamento antecipado') ||
+      n.includes('improcedencia liminar') || n.includes('procedencia liminar') ||
+      n.includes('tutela') || n.includes('liminar'))                   return 'decisao';
+
+  // ── Despacho / Conclusão ──────────────────────────────────────────────────
   if (n.includes('despacho') || n.includes('conclusao') ||
-      n.includes('concluso') || n.includes('vista ao') ||
-      n.includes('carga ao') || n.includes('devolucao') ||
-      n.includes('remessa ao juiz'))                                    return 'despacho';
+      n.includes('concluso') || n.startsWith('vista') ||
+      n.includes('carga') || n.startsWith('devolvido'))                return 'despacho';
 
-  // Recurso
-  if (n.includes('recurso') || n.includes('apelacao') ||
-      n.includes('agravo') || n.includes('embargo') ||
-      n.includes('contrarrazao') || n.includes('recursal') ||
+  // ── Contrarrazões — antes de recurso para não ser engolido ───────────────
+  if (n.includes('contrarrazoes') || n.includes('contrarrazao'))       return 'contrarrazoes';
+
+  // ── Recurso / Apelação / Agravo / Embargos ────────────────────────────────
+  if (n.startsWith('recurso') || n.startsWith('apelacao') ||
+      n.startsWith('agravo') || n.startsWith('embargo') ||
       n.includes('recurso especial') || n.includes('recurso extraordinario') ||
-      n.includes('recurso inominado'))                                  return 'recurso';
+      n.includes('recurso inominado') || n.includes('recurso adesivo'))  return 'recurso';
 
-  // Citação / Intimação
+  // ── Citação / Intimação / Notificação ─────────────────────────────────────
   if (n.includes('citacao') || n.includes('intimacao') ||
       n.includes('notificacao') || n.includes('mandado de citacao') ||
-      n.includes('mandado de intimacao') || n.includes('carta precatoria') ||
-      n.includes('carta rogatoria'))                                    return 'citacao';
+      n.includes('mandado de intimacao'))                               return 'citacao';
 
-  // Petição / Juntada
+  // ── Contestação ───────────────────────────────────────────────────────────
+  if (n.includes('contestacao') || n.includes('resposta do reu') ||
+      n.includes('defesa'))                                             return 'contestacao';
+
+  // ── Petição / Juntada / Manifestação ─────────────────────────────────────
   if (n.includes('peticao') || n.includes('juntada') ||
       n.includes('manifestacao') || n.includes('memorial') ||
-      n.includes('contestacao') || n.includes('resposta') ||
-      n.includes('replica') || n.includes('contrarrazoes') ||
-      n.includes('impugnacao') || n.includes('excepcao'))              return 'peticao';
+      n.includes('replica') || n.includes('impugnacao') ||
+      n.includes('excepcao') || n.includes('incidente'))               return 'peticao';
 
-  // Tudo que não se encaixa acima → outros
-  // (inclui: distribuição, baixa, trânsito em julgado, arquivamento,
-  //  remessa, certidão, publicação, expedição, cumprimento, etc.)
+  // ── Cumprimento de Sentença / Decisão ────────────────────────────────────
+  if (n.includes('cumprimento') || n.includes('satisfacao'))           return 'cumprimento';
+
+  // ── Execução ──────────────────────────────────────────────────────────────
+  if (n.startsWith('execucao') || n.includes('penhora') ||
+      n.includes('arresto') || n.includes('hasta publica') ||
+      n.includes('leilao'))                                             return 'execucao';
+
+  // ── Perícia / Laudo ───────────────────────────────────────────────────────
+  if (n.includes('pericia') || n.includes('laudo') ||
+      n.includes('vistoria'))                                           return 'pericia';
+
+  // ── Expedição de documento ────────────────────────────────────────────────
+  if (n.includes('expedicao') || n.startsWith('expedicao') ||
+      n.includes('carta de sentenca') || n.includes('precatorio'))     return 'expedicao';
+
+  // ── Publicação ────────────────────────────────────────────────────────────
+  if (n.includes('publicacao') || n.includes('diario') ||
+      n.includes('djen') || n.includes('dje'))                         return 'publicacao';
+
+  // ── Certidão ──────────────────────────────────────────────────────────────
+  if (n.includes('certidao') || n.includes('certificado'))             return 'certidao';
+
+  // ── Alvará ────────────────────────────────────────────────────────────────
+  if (n.includes('alvara'))                                             return 'alvara';
+
+  // ── Remessa ───────────────────────────────────────────────────────────────
+  if (n.includes('remessa') || n.includes('redistribuicao') ||
+      n.includes('redistribuido'))                                      return 'remessa';
+
+  // ── Distribuição ──────────────────────────────────────────────────────────
+  if (n.includes('distribuicao') || n.startsWith('distribuido'))       return 'distribuicao';
+
+  // ── Arquivamento / Baixa ──────────────────────────────────────────────────
+  if (n.includes('arquivamento') || n.includes('baixa') ||
+      n.includes('encerramento') || n.includes('extincao'))            return 'arquivamento';
+
   return 'outros';
 }
 

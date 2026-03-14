@@ -2048,20 +2048,34 @@ function obterTribunaisPorEsfera(esfera) {
     // ── Andamentos Processuais ───────────────────────────────────────────────────
     (function() {
         const TIPO_META = {
-            distribuicao: { label: 'Distribuição',      cor: '#0ea5e9' },
-            despacho:     { label: 'Despacho',          cor: '#64748b' },
-            decisao:      { label: 'Decisão',           cor: '#3b82f6' },
-            sentenca:     { label: 'Sentença',          cor: '#7c3aed' },
-            acordao:      { label: 'Acórdão',           cor: '#6366f1' },
-            peticao:      { label: 'Petição',           cor: '#16a34a' },
-            audiencia:    { label: 'Audiência',         cor: '#f97316' },
-            recurso:      { label: 'Recurso',           cor: '#ca8a04' },
-            citacao:      { label: 'Citação/Intimação', cor: '#0d9488' },
-            certidao:     { label: 'Certidão',          cor: '#a855f7' },
-            contestacao:  { label: 'Contestação',       cor: '#f43f5e' },
-            alvara:       { label: 'Alvará',            cor: '#10b981' },
-            arquivamento: { label: 'Arquivamento',      cor: '#78716c' },
-            outros:       { label: 'Outros',            cor: '#94a3b8' }
+            // ── Decisões / Julgamentos ──────────────────────────────────
+            distribuicao: { label: 'Distribuição',         cor: '#0ea5e9' },
+            despacho:     { label: 'Despacho',             cor: '#64748b' },
+            decisao:      { label: 'Decisão',              cor: '#3b82f6' },
+            sentenca:     { label: 'Sentença',             cor: '#7c3aed' },
+            acordao:      { label: 'Acórdão',              cor: '#6366f1' },
+            transito:     { label: 'Trânsito em Julgado',  cor: '#059669' },
+            // ── Partes / Manifestações ──────────────────────────────────
+            peticao:      { label: 'Petição',              cor: '#16a34a' },
+            contestacao:  { label: 'Contestação',          cor: '#f43f5e' },
+            recurso:      { label: 'Recurso',              cor: '#ca8a04' },
+            contrarrazoes:{ label: 'Contrarrazões',        cor: '#d97706' },
+            // ── Atos do Juízo ───────────────────────────────────────────
+            audiencia:    { label: 'Audiência',            cor: '#f97316' },
+            citacao:      { label: 'Citação/Intimação',    cor: '#0d9488' },
+            expedicao:    { label: 'Expedição',            cor: '#8b5cf6' },
+            publicacao:   { label: 'Publicação',           cor: '#7c3aed' },
+            // ── Cumprimento / Execução ──────────────────────────────────
+            cumprimento:  { label: 'Cumprimento',          cor: '#0891b2' },
+            execucao:     { label: 'Execução',             cor: '#0e7490' },
+            pericia:      { label: 'Perícia',              cor: '#b45309' },
+            conciliacao:  { label: 'Conciliação',          cor: '#10b981' },
+            // ── Encerramento ────────────────────────────────────────────
+            certidao:     { label: 'Certidão',             cor: '#a855f7' },
+            alvara:       { label: 'Alvará',               cor: '#10b981' },
+            arquivamento: { label: 'Arquivamento/Baixa',   cor: '#78716c' },
+            remessa:      { label: 'Remessa',              cor: '#6b7280' },
+            outros:       { label: 'Outros',               cor: '#94a3b8' }
         };
         function tipoMeta(tipo) {
             if (!tipo) return TIPO_META.outros;

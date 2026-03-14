@@ -2084,19 +2084,38 @@ input, textarea, select {
                         <div>
                             <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Tipo</label>
                             <select id="andTipo" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;color:#1e293b;box-sizing:border-box;">
-                                <option value="distribuicao">Distribuição</option>
-                                <option value="despacho">Despacho</option>
-                                <option value="decisao">Decisão</option>
-                                <option value="sentenca">Sentença</option>
-                                <option value="acordao">Acórdão</option>
-                                <option value="peticao">Petição</option>
-                                <option value="audiencia">Audiência</option>
-                                <option value="recurso">Recurso</option>
-                                <option value="citacao">Citação/Intimação</option>
-                                <option value="certidao">Certidão</option>
-                                <option value="contestacao">Contestação</option>
-                                <option value="alvara">Alvará</option>
-                                <option value="arquivamento">Arquivamento</option>
+                                <optgroup label="── Julgamentos ──">
+                                    <option value="distribuicao">Distribuição</option>
+                                    <option value="despacho">Despacho</option>
+                                    <option value="decisao">Decisão</option>
+                                    <option value="sentenca">Sentença</option>
+                                    <option value="acordao">Acórdão</option>
+                                    <option value="transito">Trânsito em Julgado</option>
+                                </optgroup>
+                                <optgroup label="── Partes ──">
+                                    <option value="peticao">Petição</option>
+                                    <option value="contestacao">Contestação</option>
+                                    <option value="recurso">Recurso</option>
+                                    <option value="contrarrazoes">Contrarrazões</option>
+                                </optgroup>
+                                <optgroup label="── Atos do Juízo ──">
+                                    <option value="audiencia">Audiência</option>
+                                    <option value="conciliacao">Conciliação</option>
+                                    <option value="citacao">Citação/Intimação</option>
+                                    <option value="expedicao">Expedição</option>
+                                    <option value="publicacao">Publicação</option>
+                                </optgroup>
+                                <optgroup label="── Cumprimento / Execução ──">
+                                    <option value="cumprimento">Cumprimento de Sentença</option>
+                                    <option value="execucao">Execução</option>
+                                    <option value="pericia">Perícia / Laudo</option>
+                                </optgroup>
+                                <optgroup label="── Encerramento ──">
+                                    <option value="certidao">Certidão</option>
+                                    <option value="alvara">Alvará</option>
+                                    <option value="remessa">Remessa</option>
+                                    <option value="arquivamento">Arquivamento / Baixa</option>
+                                </optgroup>
                                 <option value="outros">Outros</option>
                                 <option value="__custom__">Outro (digitar)...</option>
                             </select>
