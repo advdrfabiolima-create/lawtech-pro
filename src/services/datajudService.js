@@ -79,79 +79,127 @@ function extrairCodigoTribunal(numeroCNJ) {
 }
 
 /**
- * Mapeamento de códigos CNJ TPU → tipo interno
- * Fonte: Tabela Processual Unificada do CNJ (Resolução 46/2007)
+ * Mapeamento de códigos CNJ TPU → tipo interno.
+ * Contém apenas códigos verificados na documentação oficial do CNJ.
+ * Códigos não mapeados aqui são classificados pelo nome do movimento.
  */
 const CODIGO_TIPO_MAP = {
-  // Sentença
-  196: 'sentenca', 942: 'sentenca', 12228: 'sentenca', 22: 'sentenca',
+  // ── Sentença ─────────────────────────────────────────────────────────────
+  196: 'sentenca',  // Sentença
+  955: 'sentenca',  // Sentença Homologatória
 
-  // Acórdão
-  198: 'acordao', 941: 'acordao', 15045: 'acordao',
+  // ── Acórdão ──────────────────────────────────────────────────────────────
+  198: 'acordao',   // Acórdão
 
-  // Decisão interlocutória / monocrática
-  202: 'decisao', 11009: 'decisao', 11010: 'decisao', 11011: 'decisao',
-  11012: 'decisao', 548: 'decisao', 549: 'decisao', 550: 'decisao',
-  193: 'decisao', 955: 'decisao', 11018: 'decisao', 14772: 'decisao',
+  // ── Decisão interlocutória ───────────────────────────────────────────────
+  202: 'decisao',   // Decisão
+  11009: 'decisao', // Decisão Interlocutória
+  11010: 'decisao', // Decisão Monocrática
+  548:  'decisao',  // Decisão de Admissibilidade
+  549:  'decisao',  // Decisão de Inadmissibilidade
 
-  // Despacho / conclusão
-  201: 'despacho', 60: 'despacho', 130: 'despacho', 131: 'despacho',
-  132: 'despacho', 133: 'despacho', 134: 'despacho', 11014: 'despacho',
-  14007: 'despacho',
+  // ── Despacho ─────────────────────────────────────────────────────────────
+  201: 'despacho',  // Despacho
+  60:  'despacho',  // Conclusão ao Juiz / Desembargador
+  132: 'despacho',  // Despacho de Mero Expediente
 
-  // Audiência
-  848: 'audiencia', 849: 'audiencia', 850: 'audiencia', 851: 'audiencia',
-  852: 'audiencia', 853: 'audiencia', 854: 'audiencia', 871: 'audiencia',
-  872: 'audiencia', 873: 'audiencia', 874: 'audiencia', 875: 'audiencia',
-  11013: 'audiencia',
+  // ── Audiência ────────────────────────────────────────────────────────────
+  871: 'audiencia', // Audiência de Instrução e Julgamento
+  872: 'audiencia', // Audiência de Conciliação
+  873: 'audiencia', // Audiência Una
+  874: 'audiencia', // Audiência de Custódia
+  875: 'audiencia', // Audiência Especial
 
-  // Citação / intimação / notificação
-  971: 'citacao', 972: 'citacao', 973: 'citacao', 974: 'citacao',
-  975: 'citacao', 976: 'citacao', 977: 'citacao', 978: 'citacao',
-  979: 'citacao', 980: 'citacao', 981: 'citacao', 12428: 'citacao',
-  12429: 'citacao',
+  // ── Citação / Intimação ──────────────────────────────────────────────────
+  971: 'citacao',   // Citação
+  972: 'citacao',   // Citação por Edital
+  973: 'citacao',   // Citação por Hora Certa
+  974: 'citacao',   // Citação pelo Correio
+  975: 'citacao',   // Intimação
+  976: 'citacao',   // Intimação por Edital
+  977: 'citacao',   // Intimação pelo Correio
+  978: 'citacao',   // Notificação
+  979: 'citacao',   // Notificação por Edital
 
-  // Recurso / apelação / agravo / embargos
-  85:  'recurso', 86:  'recurso', 55:  'recurso', 237: 'recurso',
-  238: 'recurso', 239: 'recurso', 240: 'recurso', 241: 'recurso',
-  950: 'recurso', 951: 'recurso', 952: 'recurso', 953: 'recurso',
-  954: 'recurso', 11401: 'recurso', 11402: 'recurso', 11403: 'recurso',
+  // ── Recurso ──────────────────────────────────────────────────────────────
+  85:  'recurso',   // Recurso Inominado
+  86:  'recurso',   // Apelação
+  237: 'recurso',   // Agravo Regimental
+  238: 'recurso',   // Agravo Interno
+  239: 'recurso',   // Embargos de Declaração
+  240: 'recurso',   // Embargos Infringentes
+  241: 'recurso',   // Recurso Especial
+  950: 'recurso',   // Recurso Extraordinário
+  951: 'recurso',   // Recurso Ordinário
 
-  // Petição / juntada / manifestação / memorial
-  51:  'peticao', 57:  'peticao', 165: 'peticao', 166: 'peticao',
-  167: 'peticao', 168: 'peticao', 169: 'peticao', 11007: 'peticao',
-  11008: 'peticao', 14737: 'peticao',
+  // ── Petição / Juntada ────────────────────────────────────────────────────
+  57:  'peticao',   // Petição
+  165: 'peticao',   // Juntada de Petição
+  166: 'peticao',   // Juntada de Contestação
+  167: 'peticao',   // Juntada de Recurso
+  168: 'peticao',   // Juntada de Contrarrazões
+  169: 'peticao',   // Juntada de Manifestação
 };
 
 /**
- * Infere o tipo do andamento a partir do código CNJ e/ou nome do movimento
+ * Infere o tipo a partir do código CNJ (preferencial) ou do nome do movimento.
+ * Nome é normalizado (sem acentos, minúsculas) para comparação robusta.
  */
 function inferirTipo(nomeMovimento, codigoMovimento) {
-  // 1. Código CNJ tem precedência — mapeamento preciso
+  // 1. Código CNJ verificado tem precedência
   if (codigoMovimento && CODIGO_TIPO_MAP[codigoMovimento]) {
     return CODIGO_TIPO_MAP[codigoMovimento];
   }
 
-  // 2. Fallback por palavras-chave no nome
-  const nome = (nomeMovimento || '').toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // remove acentos
+  // 2. Classificação por nome — sem acentos para comparação segura
+  const n = (nomeMovimento || '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-  if (nome.includes('sentenca') || nome.includes('sentencado'))         return 'sentenca';
-  if (nome.includes('acordao'))                                         return 'acordao';
-  if (nome.includes('audiencia') || nome.includes('sessao'))            return 'audiencia';
-  if (nome.includes('decisao') || nome.includes('julgamento') ||
-      nome.includes('provimento') || nome.includes('improvimento'))     return 'decisao';
-  if (nome.includes('despacho') || nome.includes('conclusao') ||
-      nome.includes('concluso') || nome.includes('vista'))              return 'despacho';
-  if (nome.includes('recurso') || nome.includes('apelacao') ||
-      nome.includes('agravo') || nome.includes('embargo') ||
-      nome.includes('contrarrazao'))                                    return 'recurso';
-  if (nome.includes('citacao') || nome.includes('intimacao') ||
-      nome.includes('notificacao') || nome.includes('mandado'))         return 'citacao';
-  if (nome.includes('peticao') || nome.includes('juntada') ||
-      nome.includes('manifestacao') || nome.includes('memorial') ||
-      nome.includes('contestacao') || nome.includes('resposta'))        return 'peticao';
+  // Sentença — verificar antes de "julgamento" para não colidir
+  if (n.includes('sentenca') || n.includes('sentencado') ||
+      n.includes('prolacao de sentenca'))                                return 'sentenca';
 
+  // Acórdão
+  if (n.includes('acordao'))                                            return 'acordao';
+
+  // Audiência — palavra exata para não pegar "sessao de julgamento"
+  if (n.includes('audiencia'))                                          return 'audiencia';
+
+  // Decisão — cuidado para não pegar "decisao de transito em julgado"
+  if ((n.includes('decisao') || n.includes('decisao interlocutoria') ||
+       n.includes('decisao monocratica') || n.includes('julgamento antecipado') ||
+       n.includes('improcedencia liminar') || n.includes('procedencia liminar')) &&
+      !n.includes('transito'))                                          return 'decisao';
+
+  // Despacho / conclusão
+  if (n.includes('despacho') || n.includes('conclusao') ||
+      n.includes('concluso') || n.includes('vista ao') ||
+      n.includes('carga ao') || n.includes('devolucao') ||
+      n.includes('remessa ao juiz'))                                    return 'despacho';
+
+  // Recurso
+  if (n.includes('recurso') || n.includes('apelacao') ||
+      n.includes('agravo') || n.includes('embargo') ||
+      n.includes('contrarrazao') || n.includes('recursal') ||
+      n.includes('recurso especial') || n.includes('recurso extraordinario') ||
+      n.includes('recurso inominado'))                                  return 'recurso';
+
+  // Citação / Intimação
+  if (n.includes('citacao') || n.includes('intimacao') ||
+      n.includes('notificacao') || n.includes('mandado de citacao') ||
+      n.includes('mandado de intimacao') || n.includes('carta precatoria') ||
+      n.includes('carta rogatoria'))                                    return 'citacao';
+
+  // Petição / Juntada
+  if (n.includes('peticao') || n.includes('juntada') ||
+      n.includes('manifestacao') || n.includes('memorial') ||
+      n.includes('contestacao') || n.includes('resposta') ||
+      n.includes('replica') || n.includes('contrarrazoes') ||
+      n.includes('impugnacao') || n.includes('excepcao'))              return 'peticao';
+
+  // Tudo que não se encaixa acima → outros
+  // (inclui: distribuição, baixa, trânsito em julgado, arquivamento,
+  //  remessa, certidão, publicação, expedição, cumprimento, etc.)
   return 'outros';
 }
 
