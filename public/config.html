@@ -643,10 +643,10 @@
                 </div>
                 <div style="display:flex;gap:8px;align-items:center;">
                     <input type="file" id="logoFileInput" accept="image/*" style="display:none;">
-                    <button type="button" class="btn-save" style="padding:8px 18px;font-size:13px;" data-action="clicarElemento" data-args='["logoFileInput"]'>
+                    <button type="button" class="btn-save" style="width:auto;padding:8px 16px;font-size:12px;" data-action="clicarElemento" data-args='["logoFileInput"]'>
                         📤 Enviar Logo
                     </button>
-                    <button type="button" id="btnRemoverLogo" style="display:none;padding:8px 18px;font-size:13px;background:#ef4444;color:#fff;border:none;border-radius:6px;cursor:pointer;" data-action="removerLogo">
+                    <button type="button" id="btnRemoverLogo" style="display:none;width:auto;padding:8px 16px;font-size:12px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;" data-action="removerLogo">
                         🗑️ Remover Logo
                     </button>
                 </div>
@@ -700,16 +700,16 @@
         </div>
 
         <!-- Ações -->
-        <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
-            <button class="btn-save" data-action="salvarDadosJuridicos">
-                💾 Salvar Dados Bancários
-            </button>
-
-            <button id="btnAtivarFaturamento" class="btn-save" style="background: #10b981;" data-action="ativarFinanceiro">
-                🚀 Ativar Faturamento
-            </button>
-
-            <span class="status-badge" style="background: #fef3c7; color: #92400e; padding: 8px 12px; border-radius: 6px; font-size: 13px;">
+        <div style="margin-top: 20px;">
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px;">
+                <button class="btn-save" style="width:auto;padding:8px 18px;font-size:13px;" data-action="salvarDadosJuridicos">
+                    💾 Salvar Dados Bancários
+                </button>
+                <button id="btnAtivarFaturamento" class="btn-save" style="width:auto;padding:8px 18px;font-size:13px;background:#10b981;" data-action="ativarFinanceiro">
+                    🚀 Ativar Faturamento
+                </button>
+            </div>
+            <span class="status-badge" style="background: #fef3c7; color: #92400e; padding: 8px 12px; border-radius: 6px; font-size: 13px; display: block;">
                 ⚠️ A conta bancária deve ser vinculada ao CPF/CNPJ informado para liberar a emissão de boletos.
             </span>
         </div>
