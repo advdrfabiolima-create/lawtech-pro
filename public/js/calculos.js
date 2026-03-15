@@ -243,6 +243,7 @@
         let pAcum = 0; let jAcum = 0;
         let htmlMemoriaMensal = '';
         const f = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const eventosTimeline = [];
 
         // Preencher índice e incidência de juros no cabeçalho do relatório
         const indiceLabels = {
@@ -291,6 +292,11 @@
 
                 const desc = row.querySelector('.val-desc').value || "VERBA";
                 htmlMemoriaMensal += gerarMemoriaMensal(desc, valNominal, dI, dF, indiceSelecionado, dIJuros, valCorrigido);
+
+                // Eventos para a timeline
+                eventosTimeline.push({ data: dI.toLocaleDateString('pt-BR'), tipo: 'verba',    descricao: '📌 <strong>' + desc + '</strong> — valor nominal: ' + f(valNominal) });
+                eventosTimeline.push({ data: dI.toLocaleDateString('pt-BR') + ' → ' + dF.toLocaleDateString('pt-BR'), tipo: 'correcao', descricao: '📈 Correção monetária — acréscimo: ' + f(valCorrigido - valNominal) });
+                eventosTimeline.push({ data: dIJuros.toLocaleDateString('pt-BR') + ' → ' + dF.toLocaleDateString('pt-BR'), tipo: 'juros',    descricao: '⚖️ Juros moratórios — ' + f(juros) });
                 const dJurosLabel = incidencia === 'citacao' && !isNaN(dataCitacao) && dataCitacao > dI
                     ? `${dIJuros.toLocaleDateString('pt-BR')}<br><span style="font-size:10px;color:#6b7280;">(CITAÇÃO)</span>`
                     : `${dI.toLocaleDateString('pt-BR')}<br><span style="font-size:10px;color:#6b7280;">(VENCIMENTO)</span>`;
@@ -345,6 +351,10 @@
                 : '';
             wrapMensal.style.display = htmlMemoriaMensal ? 'block' : 'none';
         }
+
+        // Evento final da timeline
+        eventosTimeline.push({ data: dataF.toLocaleDateString('pt-BR'), tipo: 'total', descricao: '✅ <strong>Valor total atualizado</strong> — ' + f(total) });
+        renderTimeline(eventosTimeline);
 
         document.getElementById('resCalculo').style.display = 'block';
         document.getElementById('resCalculo').scrollIntoView({ behavior: 'smooth' });
@@ -488,6 +498,7 @@
             listaLancamentos.innerHTML = "";
 
             let subtotalAcumulado = 0;
+            const eventosTimeline = [];
             texto.split('\n').forEach(linha => {
                 if (linha.startsWith('VERBA|')) {
                     const parts = linha.split('|');
@@ -502,6 +513,8 @@
                     }
                     subtotalAcumulado += moneyToFloat(total);
                     corpo.innerHTML += `<tr><td>${desc}</td><td>Histórica</td><td>${base}</td><td style="font-size:11px;">${jurosDesde}</td><td>${juros}</td><td><strong>${total}</strong></td></tr>`;
+                    const jdLimpo = jurosDesde.replace(/<[^>]*>/g, '').replace(/\(CITAÇÃO\)/gi,'').replace(/\(VENCIMENTO\)/gi,'').trim();
+                    eventosTimeline.push({ data: jdLimpo || '—', tipo: 'verba', descricao: '📌 <strong>' + desc + '</strong> — base: ' + base + ' &nbsp;|&nbsp; juros: ' + juros + ' &nbsp;|&nbsp; total: ' + total });
                     
                     const row = listaLancamentos.insertRow();
                     row.innerHTML = `
@@ -546,11 +559,16 @@
             document.getElementById('outDevedor').innerText = document.getElementById('devedor').value;
             document.getElementById('outDataF').innerText = database ? new Date(database).toLocaleDateString('pt-BR') : "";
 
+            const dataFinalFormatada = database ? new Date(database).toLocaleDateString('pt-BR') : '';
+            const totalGeralStr = f(subtotalAcumulado + vCustas + vHonor + vMulta + vHonor523);
+            eventosTimeline.push({ data: dataFinalFormatada, tipo: 'total', descricao: '✅ <strong>Valor total atualizado</strong> — ' + totalGeralStr });
+            renderTimeline(eventosTimeline);
+
             document.getElementById('resCalculo').style.display = 'block';
             document.getElementById('resCalculo').scrollIntoView({ behavior: 'smooth' });
 
-        } catch (e) { 
-            alert("Erro ao processar dados."); 
+        } catch (e) {
+            alert("Erro ao processar dados.");
         }
     }
 
@@ -565,6 +583,22 @@
         } catch (e) { 
             alert("Erro ao conectar ao servidor."); 
         }
+    }
+
+    function renderTimeline(eventos) {
+        const container = document.getElementById('timelineEventos');
+        const wrapper   = document.getElementById('timelineCalculo');
+        if (!container || !wrapper) return;
+        container.innerHTML = '';
+        if (!eventos || eventos.length === 0) { wrapper.style.display = 'none'; return; }
+        wrapper.style.display = 'block';
+        eventos.forEach(ev => {
+            const item = document.createElement('div');
+            item.className = 'timeline-item';
+            item.setAttribute('data-tipo', ev.tipo || 'verba');
+            item.innerHTML = `<div class="timeline-date">${ev.data}</div><div class="timeline-desc">${ev.descricao}</div>`;
+            container.appendChild(item);
+        });
     }
 
     function editarCampos() {

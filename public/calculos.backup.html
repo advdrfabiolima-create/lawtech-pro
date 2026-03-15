@@ -596,78 +596,6 @@
             .grid-4 { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
         }
 
-        /* ── TIMELINE FINANCEIRA ── */
-        .timeline-calculo {
-            margin: 24px 20px 0;
-            background: #ffffff;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px 24px 24px;
-            page-break-inside: avoid;
-        }
-        .timeline-title {
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            color: var(--muted);
-            text-transform: uppercase;
-            margin-bottom: 18px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .timeline-title::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--border);
-        }
-        .timeline-item {
-            display: flex;
-            gap: 14px;
-            padding: 9px 0 9px 16px;
-            border-left: 3px solid var(--border);
-            margin-left: 5px;
-            position: relative;
-        }
-        .timeline-item + .timeline-item { border-top: none; }
-        .timeline-item::before {
-            content: '';
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--primary);
-            position: absolute;
-            left: -6px;
-            top: 13px;
-            border: 2px solid #fff;
-            box-shadow: 0 0 0 1px var(--primary);
-        }
-        /* Cores por tipo */
-        .timeline-item[data-tipo="verba"]    { border-left-color: var(--primary); }
-        .timeline-item[data-tipo="correcao"] { border-left-color: #7c3aed; }
-        .timeline-item[data-tipo="correcao"]::before { background: #7c3aed; box-shadow: 0 0 0 1px #7c3aed; }
-        .timeline-item[data-tipo="juros"]    { border-left-color: #d97706; }
-        .timeline-item[data-tipo="juros"]::before    { background: #d97706; box-shadow: 0 0 0 1px #d97706; }
-        .timeline-item[data-tipo="total"]    { border-left-color: #059669; }
-        .timeline-item[data-tipo="total"]::before    { background: #059669; box-shadow: 0 0 0 1px #059669; }
-        .timeline-date {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--primary);
-            min-width: 100px;
-            white-space: nowrap;
-            padding-top: 1px;
-        }
-        .timeline-item[data-tipo="correcao"] .timeline-date { color: #7c3aed; }
-        .timeline-item[data-tipo="juros"]    .timeline-date { color: #d97706; }
-        .timeline-item[data-tipo="total"]    .timeline-date { color: #059669; }
-        .timeline-desc {
-            font-size: 13px;
-            color: var(--text-main);
-            line-height: 1.5;
-        }
-
     </style>
     <link rel="stylesheet" href="mobile.css">
 </head>
@@ -895,13 +823,6 @@
                     </tfoot>
                 </table>
                 <div id="memoriaDetalhadaWrap" style="display:none;padding:0 20px 20px;border-top:1px solid var(--border);"></div>
-
-                <!-- TIMELINE FINANCEIRA -->
-                <div class="timeline-calculo" id="timelineCalculo" style="display:none;">
-                    <div class="timeline-title">📈 Evolução do Débito — Linha do Tempo</div>
-                    <div id="timelineEventos"></div>
-                </div>
-
                 <div style="padding: 20px; text-align: center; font-size: 10px; color: var(--muted); border-top: 1px solid var(--border);">
                     ESTE DOCUMENTO POSSUI VALIDADE PERICIAL TÉCNICA BASEADA NOS ÍNDICES OFICIAIS DO BANCO CENTRAL DO BRASIL.
                 </div>
