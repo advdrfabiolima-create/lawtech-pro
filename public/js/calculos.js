@@ -497,6 +497,11 @@
             corpo.innerHTML = "";
             listaLancamentos.innerHTML = "";
 
+            // Limpar memória mensal (não disponível em histórico)
+            const wrapMensal = document.getElementById('memoriaDetalhadaWrap');
+            if (wrapMensal) { wrapMensal.innerHTML = ''; wrapMensal.style.display = 'none'; }
+
+            const dataFinalFmt = database ? new Date(database).toLocaleDateString('pt-BR') : '—';
             let subtotalAcumulado = 0;
             const eventosTimeline = [];
             texto.split('\n').forEach(linha => {
@@ -513,8 +518,9 @@
                     }
                     subtotalAcumulado += moneyToFloat(total);
                     corpo.innerHTML += `<tr><td>${desc}</td><td>Histórica</td><td>${base}</td><td style="font-size:11px;">${jurosDesde}</td><td>${juros}</td><td><strong>${total}</strong></td></tr>`;
-                    const jdLimpo = jurosDesde.replace(/<[^>]*>/g, '').replace(/\(CITAÇÃO\)/gi,'').replace(/\(VENCIMENTO\)/gi,'').trim();
-                    eventosTimeline.push({ data: jdLimpo || '—', tipo: 'verba', descricao: '📌 <strong>' + desc + '</strong> — base: ' + base + ' &nbsp;|&nbsp; juros: ' + juros + ' &nbsp;|&nbsp; total: ' + total });
+                    const jdLimpo = jurosDesde.replace(/<[^>]*>/g, '').replace(/\(CITAÇÃO\)/gi,'').replace(/\(VENCIMENTO\)/gi,'').trim() || '—';
+                    eventosTimeline.push({ data: jdLimpo, tipo: 'verba',    descricao: '📌 <strong>' + desc + '</strong> — base corrigida: ' + base });
+                    eventosTimeline.push({ data: jdLimpo + ' → ' + dataFinalFmt, tipo: 'juros', descricao: '⚖️ Juros moratórios — ' + juros });
                     
                     const row = listaLancamentos.insertRow();
                     row.innerHTML = `
@@ -559,9 +565,8 @@
             document.getElementById('outDevedor').innerText = document.getElementById('devedor').value;
             document.getElementById('outDataF').innerText = database ? new Date(database).toLocaleDateString('pt-BR') : "";
 
-            const dataFinalFormatada = database ? new Date(database).toLocaleDateString('pt-BR') : '';
             const totalGeralStr = f(subtotalAcumulado + vCustas + vHonor + vMulta + vHonor523);
-            eventosTimeline.push({ data: dataFinalFormatada, tipo: 'total', descricao: '✅ <strong>Valor total atualizado</strong> — ' + totalGeralStr });
+            eventosTimeline.push({ data: dataFinalFmt, tipo: 'total', descricao: '✅ <strong>Valor total atualizado</strong> — ' + totalGeralStr });
             renderTimeline(eventosTimeline);
 
             document.getElementById('resCalculo').style.display = 'block';
