@@ -1203,6 +1203,29 @@
 
 
 
+    <!-- Modal Upgrade — Limite de Usuários -->
+    <div id="modalUpgradeUsuarios" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+        <div style="background:#fff;border-radius:16px;padding:36px 32px;max-width:480px;width:100%;box-shadow:0 25px 50px rgba(0,0,0,0.25);text-align:center;position:relative;">
+            <button onclick="fecharModalUpgradeUsuarios()" style="position:absolute;top:14px;right:18px;background:none;border:none;cursor:pointer;color:#94a3b8;font-size:22px;line-height:1;">✕</button>
+            <div style="font-size:52px;margin-bottom:16px;">👥</div>
+            <h2 style="font-size:20px;font-weight:700;color:#1e293b;margin:0 0 8px;">Limite de usuários atingido</h2>
+            <p style="color:#64748b;font-size:14px;margin:0 0 20px;">Seu plano <strong id="modalUpgradeUsuariosPlano">Básico</strong> permite até <strong id="modalUpgradeUsuariosMax">3</strong> usuários. Faça upgrade para adicionar mais membros à equipe.</p>
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px;margin-bottom:24px;text-align:left;">
+                <p style="font-size:13px;color:#1e40af;font-weight:600;margin:0 0 8px;">✅ O que você ganha com o upgrade:</p>
+                <ul style="font-size:13px;color:#1d4ed8;padding-left:18px;margin:0;line-height:2;">
+                    <li>Mais vagas de usuários simultâneos</li>
+                    <li>Controle de permissões por função (admin / operador)</li>
+                    <li>Acesso a todas as funcionalidades avançadas</li>
+                    <li>Suporte prioritário</li>
+                </ul>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                <button onclick="fecharModalUpgradeUsuarios()" style="padding:12px 20px;border:2px solid #e2e8f0;border-radius:8px;background:#fff;color:#64748b;font-size:14px;font-weight:600;cursor:pointer;">Continuar no plano atual</button>
+                <a href="/planos-page" style="padding:12px 20px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-size:14px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">⚡ Ver planos e fazer upgrade</a>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Upgrade de Plano -->
     <div id="modalUpgradePlano" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:16px;">
         <div style="background:#fff;border-radius:16px;padding:36px 32px;max-width:480px;width:100%;box-shadow:0 25px 50px rgba(0,0,0,0.25);text-align:center;position:relative;">

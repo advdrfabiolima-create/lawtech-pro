@@ -677,12 +677,22 @@ async function carregarEquipe() {
         });
 
         const data = await res.json();
-        // ✅ Interceptar erro 402 (Limite de usuários)
+
+        // Limite de usuários do plano → modal de upgrade
         if (res.status === 402) {
-            const msg = data.message || `Você atingiu o limite de ${data.max || 3} usuários do plano ${data.current_plan || 'Básico'}.`;
-            exibirAvisoUpgrade(msg);
+            const planoEl = document.getElementById('modalUpgradeUsuariosPlano');
+            const maxEl   = document.getElementById('modalUpgradeUsuariosMax');
+            if (planoEl) planoEl.textContent = data.current_plan || 'Básico';
+            if (maxEl)   maxEl.textContent   = data.max || 3;
+            document.getElementById('modalUpgradeUsuarios').style.display = 'flex';
             return;
         }
+
+        if (res.status === 403) {
+            alert('❌ Apenas administradores do escritório podem adicionar membros à equipe.');
+            return;
+        }
+
         if (res.ok) {
             alert('✅ Funcionário adicionado!');
             document.getElementById('eqNome').value = '';
@@ -690,7 +700,7 @@ async function carregarEquipe() {
             document.getElementById('eqSenha').value = '';
             carregarEquipe();
         } else {
-            alert('❌ Erro: ' + (data.erro || 'Acesso negado.'));
+            alert('❌ Erro: ' + (data.erro || 'Erro ao adicionar usuário.'));
         }
     }
 
@@ -891,6 +901,10 @@ function fecharModal2faDesativar() {
 
 function fecharModalUpgrade() {
     document.getElementById('modalUpgradePlano').style.display = 'none';
+}
+
+function fecharModalUpgradeUsuarios() {
+    document.getElementById('modalUpgradeUsuarios').style.display = 'none';
 }
 
 async function confirmarDesativacao2FA() {
@@ -1586,34 +1600,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-    // ✅ Função de modal de upgrade (para limites de usuários)
-    function exibirAvisoUpgrade(mensagem) {
-        const overlay = document.createElement('div');
-        overlay.id = "overlay-upgrade";
-        overlay.style = "position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:20000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(5px);";
-        overlay.innerHTML = `
-        <div style="background:#fff; padding:40px; border-radius:20px; text-align:center; max-width:400px;">
-            <div style="font-size:50px;">🚀</div>
-            <h3 style="margin-top:15px; color:#0f172a;">Limite de Usuários</h3>
-            <p style="color:#64748b; margin:15px 0 25px 0; line-height:1.6;">${mensagem}</p>
-            <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:12px; padding:15px; margin-bottom:25px; text-align:left;">
-                <p style="margin:0; font-size:13px; color:#92400e; line-height:1.6;">
-                    <strong>🎯 Plano Intermediário inclui:</strong><br>
-                    • Até 15 usuários simultâneos<br>
-                    • Todos os recursos do Básico<br>
-                    • Financeiro Jurídico completo<br>
-                    • Suporte prioritário
-                </p>
-            </div>
-            <button data-action="navegarPara" data-args='["/planos-page"]' style="background:linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color:#000; border:none; padding:14px 28px; border-radius:10px; font-weight:800; cursor:pointer; width:100%; margin-bottom:10px;">
-                Ver Planos e Preços
-            </button>
-            <button data-action="removerElemento" data-args='["overlay-upgrade"]' style="background:none; border:none; color:#64748b; cursor:pointer; font-weight:600; padding:8px;">
-                Depois
-            </button>
-        </div>`;
-        document.body.appendChild(overlay);
-    }
 
     function toggleIaMenu(event) {
     event.preventDefault(); // impede navegação imediata
