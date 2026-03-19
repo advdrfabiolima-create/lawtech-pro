@@ -7,8 +7,8 @@ const logger = require('../utils/logger');
 const { getPagination, buildPage } = require('../utils/paginate');
 const { checkFeature } = require('../middlewares/planMiddleware');
 
-// Gating: apenas planos Avançado e Premium têm acesso a Reuniões por Vídeo
-router.use(checkFeature('reunioes_video'));
+// Gating: aplicado por rota (não globalmente) para não bloquear outras rotas do /api
+const gate = checkFeature('reunioes_video');
 
 // Valida que :id é um inteiro em todas as rotas deste router
 router.param('id', (req, res, next, val) => {
@@ -19,7 +19,7 @@ router.param('id', (req, res, next, val) => {
 });
 
 // GET /api/reunioes — Lista reuniões do escritório (paginado)
-router.get('/reunioes', async (req, res) => {
+router.get('/reunioes', gate, async (req, res) => {
     const escritorio_id = req.user.escritorio_id;
     const { page, limit, offset } = getPagination(req.query);
     try {
@@ -47,7 +47,7 @@ router.get('/reunioes', async (req, res) => {
 });
 
 // POST /api/reunioes — Cria reunião e envia e-mail de convite ao cliente
-router.post('/reunioes', async (req, res) => {
+router.post('/reunioes', gate, async (req, res) => {
     const escritorio_id = req.user.escritorio_id;
     const usuario_id = req.user.id;
     const { cliente_id, titulo, descricao, data_hora, duracao_minutos } = req.body;
@@ -109,7 +109,7 @@ router.post('/reunioes', async (req, res) => {
 });
 
 // GET /api/reunioes/:id/token — Retorna URL da sala Jitsi para o advogado
-router.get('/reunioes/:id/token', async (req, res) => {
+router.get('/reunioes/:id/token', gate, async (req, res) => {
     const escritorio_id = req.user.escritorio_id;
     const { id } = req.params;
 
@@ -141,7 +141,7 @@ router.get('/reunioes/:id/token', async (req, res) => {
 });
 
 // POST /api/reunioes/:id/reenviar-email — Reenvio manual do convite pelo advogado
-router.post('/reunioes/:id/reenviar-email', async (req, res) => {
+router.post('/reunioes/:id/reenviar-email', gate, async (req, res) => {
     const escritorio_id = req.user.escritorio_id;
     const usuario_id = req.user.id;
     const { id } = req.params;
@@ -181,7 +181,7 @@ router.post('/reunioes/:id/reenviar-email', async (req, res) => {
 });
 
 // PATCH /api/reunioes/:id/status — Atualiza status (concluida / cancelada)
-router.patch('/reunioes/:id/status', async (req, res) => {
+router.patch('/reunioes/:id/status', gate, async (req, res) => {
     const escritorio_id = req.user.escritorio_id;
     const { id } = req.params;
     const { status } = req.body;
@@ -211,7 +211,7 @@ router.patch('/reunioes/:id/status', async (req, res) => {
 });
 
 // DELETE /api/reunioes/:id — Cancela reunião (marca status='cancelada')
-router.delete('/reunioes/:id', async (req, res) => {
+router.delete('/reunioes/:id', gate, async (req, res) => {
     const escritorio_id = req.user.escritorio_id;
     const { id } = req.params;
 
@@ -238,7 +238,7 @@ router.delete('/reunioes/:id', async (req, res) => {
 });
 
 // PATCH /api/reunioes/:id/anotacoes — Salva anotações da reunião (advogado)
-router.patch('/reunioes/:id/anotacoes', async (req, res) => {
+router.patch('/reunioes/:id/anotacoes', gate, async (req, res) => {
     const escritorio_id = req.user.escritorio_id;
     const { id } = req.params;
     const { anotacoes } = req.body;
@@ -263,7 +263,7 @@ router.patch('/reunioes/:id/anotacoes', async (req, res) => {
 });
 
 // DELETE /api/reunioes/:id/excluir — Exclui permanentemente do banco (concluída/cancelada)
-router.delete('/reunioes/:id/excluir', async (req, res) => {
+router.delete('/reunioes/:id/excluir', gate, async (req, res) => {
     const escritorio_id = req.user.escritorio_id;
     const { id } = req.params;
 

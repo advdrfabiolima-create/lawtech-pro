@@ -28,20 +28,19 @@ const upload = multer({
     limits: { fileSize: 10 * 1024 * 1024 } // 10 MB
 });
 
-// ─── Feature gate ─────────────────────────────────────────────────────────────
-router.use(authMiddleware, checkFeature('chat_interno'));
+// ─── Feature gate (aplicado por rota, não globalmente) ────────────────────────
+const gate = checkFeature('chat_interno');
 
 // ─── Rotas principais ─────────────────────────────────────────────────────────
-router.get('/chat/mensagens',          controller.listarMensagens);
-router.post('/chat/mensagens',         controller.enviarMensagem);
-router.get('/chat/usuarios',           controller.listarUsuarios);
-router.get('/chat/nao-lidas',          controller.contarNaoLidas);
-router.put('/chat/mensagens/ler',      controller.marcarComoLidas);
-router.put('/chat/heartbeat',          controller.heartbeat);
+router.get('/chat/mensagens',          authMiddleware, gate, controller.listarMensagens);
+router.post('/chat/mensagens',         authMiddleware, gate, controller.enviarMensagem);
+router.get('/chat/usuarios',           authMiddleware, gate, controller.listarUsuarios);
+router.get('/chat/nao-lidas',          authMiddleware, gate, controller.contarNaoLidas);
+router.put('/chat/mensagens/ler',      authMiddleware, gate, controller.marcarComoLidas);
+router.put('/chat/heartbeat',          authMiddleware, gate, controller.heartbeat);
 
 // ─── Thread / tópico ──────────────────────────────────────────────────────────
-// GET /api/chat/thread/:msgId  — busca as respostas de um tópico específico
-router.get('/chat/thread/:msgId', controller.listarThread);
+router.get('/chat/thread/:msgId',      authMiddleware, gate, controller.listarThread);
 
 // ─── Arquivo ─────────────────────────────────────────────────────────────────
 router.post('/chat/mensagens/arquivo', upload.single('arquivo'), async (req, res) => {
