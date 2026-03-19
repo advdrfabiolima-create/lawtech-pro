@@ -184,8 +184,8 @@ router.post('/register', async (req, res) => {
                                 </p>
                                 <div style="text-align:center;margin:28px 0;">
                                     <a href="${linkVerificacao}"
-                                       style="display:inline-block;background:linear-gradient(135deg,#4A90E2,#357ABD);color:white;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:700;font-size:15px;">
-                                        Confirmar E-mail →
+                                       style="display:inline-block;background-color:#4A90E2;background:linear-gradient(135deg,#4A90E2,#357ABD);color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:700;font-size:15px;mso-padding-alt:0;">
+                                        Confirmar E-mail &rarr;
                                     </a>
                                 </div>
                                 <div style="background:#FEF3C7;border-left:4px solid #F59E0B;padding:14px 16px;border-radius:0 8px 8px 0;margin:20px 0;">
@@ -229,7 +229,7 @@ router.post('/register', async (req, res) => {
                                     <tr><td style="padding:10px 12px;color:#7B8794;font-weight:600;">Plano</td><td style="padding:10px 12px;color:#2D3748;">Trial (7 dias)</td></tr>
                                 </table>
                                 <div style="text-align:center;margin:24px 0 0;">
-                                    <a href="https://www.lawtechpro.com.br/admin-monitor.html" style="display:inline-block;background:#4A90E2;color:white;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:700;font-size:14px;">Ver Painel Admin</a>
+                                    <a href="https://www.lawtechpro.com.br/admin-monitor.html" style="display:inline-block;background-color:#4A90E2;background:#4A90E2;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:700;font-size:14px;">Ver Painel Admin</a>
                                 </div>
                             </div>
                             <div style="padding:16px 24px;text-align:center;background:#f8fafb;border-top:1px solid #e2e8f0;">

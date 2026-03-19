@@ -963,6 +963,7 @@ async function gerarRelatorioMensal() {
         async function carregarAuditoriaFinanceira() {
     try {
         const res = await API.get('/systems/audit-log');
+        if (!res) return;
 
         const data = await res.json();
         const eventos = data.eventos || [];
@@ -970,6 +971,9 @@ async function gerarRelatorioMensal() {
         auditData = eventos;
 
         renderizarTabelaAudit(eventos);
+
+        const countEl = document.getElementById('count-audit');
+        if (countEl) countEl.textContent = `${eventos.length} REGISTROS`;
 
     } catch (error) {
         console.error('Erro ao carregar auditoria:', error);

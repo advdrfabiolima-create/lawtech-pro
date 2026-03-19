@@ -10,6 +10,7 @@ const path = require('path');
 const fs = require('fs');
 const cache = require('../utils/cache');
 const logger = require('../utils/logger');
+const { registrarLog } = require('../utils/auditLog');
 
 // ─── Upload de Logo ───────────────────────────────────────────────────────────
 const logoDir = path.join(__dirname, '..', 'uploads', 'logos');
@@ -170,6 +171,12 @@ if (oabApenasNumeros) {
 
     } catch (err) {
         logger.error({ err: err.message }, 'Erro SQL ao salvar configuracoes');
+        registrarLog({
+            escritorio_id: req.user?.escritorio_id || null,
+            servico: 'config.escritorio',
+            tipo_erro: 'SQL_ERROR',
+            mensagem_erro: err.message
+        });
         res.status(500).json({ erro: 'Erro ao salvar configurações' });
     }
 });

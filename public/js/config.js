@@ -407,7 +407,12 @@ async function carregarInfoRodape() {
                 if (btnSalvar) { btnSalvar.disabled = true; btnSalvar.innerHTML = '✅ Dados Salvos'; }
                 if (btnEditar) btnEditar.style.display = 'inline-block';
             } else {
-                alert("❌ Erro ao salvar dados.");
+                let msgErro = `Erro ${res.status}`;
+                try {
+                    const errData = await res.json();
+                    msgErro = errData.erro || errData.error || msgErro;
+                } catch (_) {}
+                alert("❌ Erro ao salvar dados: " + msgErro);
             }
         } catch (e) { console.error(e); alert("Erro ao processar salvamento."); }
     }

@@ -81,6 +81,7 @@ const andamentosRoutes = require('./routes/andamentos.routes');
 const portalClienteRoutes = require('./routes/portalCliente.routes');
 const reunioesRoutes = require('./routes/reunioes.routes');
 const fileStorage = require('./utils/storage');
+const { registrarLog } = require('./utils/auditLog');
 const cache = require('./utils/cache');
 const { breakers } = require('./utils/circuitBreaker');
 const { version: APP_VERSION } = require('../package.json');
@@ -445,6 +446,12 @@ app.put('/api/config/escritorio', authMiddleware, async (req, res) => {
         );
         res.json({ ok: true });
     } catch (err) {
+        registrarLog({
+            escritorio_id: req.user?.escritorio_id || null,
+            servico: 'config.escritorio',
+            tipo_erro: 'SQL_ERROR',
+            mensagem_erro: err.message
+        });
         res.status(500).json({ erro: err.message });
     }
 });
@@ -460,6 +467,12 @@ if (process.env.SENTRY_DSN) {
 
 app.use((err, req, res, next) => {
     logger.error({ err: err.stack, reqId: req.id }, 'SERVER_ERROR');
+    registrarLog({
+        escritorio_id: req.user?.escritorio_id || null,
+        servico: `${req.method} ${req.path}`.slice(0, 100),
+        tipo_erro: err.status === 400 ? 'VALIDATION' : 'SERVER_ERROR',
+        mensagem_erro: err.message || 'Erro interno do servidor'
+    });
     res.status(err.status || 500).json({ ok: false, erro: err.message || 'Erro interno do servidor' });
 });
 

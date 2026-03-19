@@ -1650,7 +1650,7 @@
 </div>
 
 <!-- Seção Audit Log -->
-<div id="secao-audit" class="secao-tab">
+<div id="secao-audit" class="tab-content">
     <div class="filters-card">
         <div class="filters-header">
             <div class="section-title">
@@ -1660,10 +1660,11 @@
             <div class="filters-grid">
                 <select class="filter-input" id="filtroTipoEvento">
                     <option value="">Todos os Eventos</option>
-                    <option value="novo_cadastro">Novos Cadastros</option>
-                    <option value="upgrade">Upgrades</option>
-                    <option value="milestone">Milestones</option>
-                    <option value="status_pagamento">Pagamentos</option>
+                    <option value="registro">Novos Cadastros</option>
+                    <option value="login">Logins</option>
+                    <option value="pagamento">Pagamentos</option>
+                    <option value="senha">Senha / 2FA</option>
+                    <option value="cancelamento">Cancelamentos</option>
                 </select>
                 <button class="btn-export" data-action="exportarAudit">
                     <svg width="16" height="16" viewBox="0 0 24 24">
