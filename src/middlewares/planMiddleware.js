@@ -1,6 +1,7 @@
 const pool = require('../config/db');
 const planLimits = require('../config/planLimits.json');
 const logger = require('../utils/logger');
+const { registrarLog } = require('../utils/auditLog');
 
 /**
  * 🔒 MIDDLEWARE DE VERIFICAÇÃO DE PLANO
@@ -51,6 +52,12 @@ const checkFeature = (featureName) => {
             logger.info({ planoSlug, featureEnabled }, '[MIDDLEWARE] Verificacao de feature');
 
             if (!featureEnabled) {
+                registrarLog({
+                    escritorio_id: escritorioId,
+                    servico: `${req.method} ${req.path}`.slice(0, 100),
+                    tipo_erro: 'PLAN_BLOCKED',
+                    mensagem_erro: `Feature "${featureName}" bloqueada para plano "${planoConfig.nome}"`
+                });
                 return res.status(402).json({
                     ok: false,
                     erro: 'Funcionalidade não disponível no seu plano',
@@ -159,6 +166,12 @@ const checkLimit = (resourceType) => {
 
             if (currentCount >= maxAllowed) {
                 logger.warn({ resourceType, currentCount, maxAllowed }, '[PLAN MIDDLEWARE] Limite atingido');
+                registrarLog({
+                    escritorio_id: escritorioId,
+                    servico: `${req.method} ${req.path}`.slice(0, 100),
+                    tipo_erro: 'PLAN_LIMIT',
+                    mensagem_erro: `Limite de ${resourceType} atingido: ${currentCount}/${maxAllowed} no plano "${planoConfig.nome}"`
+                });
                 return res.status(402).json({
                     ok: false,
                     erro: 'Limite do plano atingido',
