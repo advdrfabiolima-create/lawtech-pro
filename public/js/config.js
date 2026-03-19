@@ -79,20 +79,52 @@ const token = localStorage.getItem('token');
     }
 
     // 2. CARREGAMENTO DE DADOS
+    let _todosOsBancos = [];
+
     async function carregarBancos() {
-        const select = document.getElementById('confBanco');
-        if (!select) return;
+        const searchInput = document.getElementById('confBancoSearch');
+        if (!searchInput) return;
         try {
             const res = await fetch('https://brasilapi.com.br/api/banks/v1');
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const bancos = await res.json();
-            select.innerHTML = '<option value="">Selecione o Banco</option>';
-            bancos.sort((a,b) => (a.fullName || "") > (b.fullName || "") ? 1 : -1).forEach(b => {
-                if(b.code) select.innerHTML += `<option value="${b.code}">${b.code} - ${b.fullName || b.name}</option>`;
+            _todosOsBancos = await res.json();
+
+            const datalist = document.getElementById('bancosDatalist');
+            if (!datalist) return;
+            datalist.innerHTML = '';
+            _todosOsBancos
+                .filter(b => b.code)
+                .sort((a, b) => (a.fullName || a.name || '') > (b.fullName || b.name || '') ? 1 : -1)
+                .forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = `${b.code} - ${b.fullName || b.name}`;
+                    datalist.appendChild(opt);
+                });
+
+            // Sincroniza exibição se já existe um código salvo
+            const hidden = document.getElementById('confBanco');
+            if (hidden && hidden.value) _sincronizarBancoDisplay(hidden.value);
+
+            // Atualiza hidden input ao digitar/selecionar
+            searchInput.addEventListener('input', function () {
+                const partes = this.value.split(' - ');
+                const codigo = partes[0].trim();
+                const valido = _todosOsBancos.some(b => String(b.code) === codigo);
+                const hid = document.getElementById('confBanco');
+                if (hid) hid.value = valido ? codigo : '';
             });
         } catch (e) {
             console.error("Erro bancos:", e);
-            select.innerHTML = '<option value="">Erro ao carregar bancos — atualize a página</option>';
+            searchInput.placeholder = 'Erro ao carregar bancos — atualize a página';
+        }
+    }
+
+    function _sincronizarBancoDisplay(codigo) {
+        if (!codigo || !_todosOsBancos.length) return;
+        const banco = _todosOsBancos.find(b => String(b.code) === String(codigo));
+        if (banco) {
+            const search = document.getElementById('confBancoSearch');
+            if (search) search.value = `${banco.code} - ${banco.fullName || banco.name}`;
         }
     }
 
@@ -209,6 +241,9 @@ async function carregarInfoRodape() {
                 const el = document.getElementById(id);
                 if (el) el.value = campos[id] || '';
             });
+
+            // Sincroniza display do campo banco (input text + datalist)
+            if (d.banco_codigo) _sincronizarBancoDisplay(d.banco_codigo);
 
             // Restaurar tipo CPF/CNPJ pelo número de dígitos (sem limpar o campo)
             const docDigits = (d.documento || '').replace(/\D/g, '').length;
@@ -474,6 +509,14 @@ async function carregarInfoRodape() {
         });
 
         const data = await res.json();
+
+        if (res.status === 402) {
+            const modal = document.getElementById('modalUpgradePlano');
+            const planoEl = document.getElementById('modalUpgradePlanoAtual');
+            if (planoEl && data.current_plan) planoEl.textContent = data.current_plan;
+            if (modal) modal.style.display = 'flex';
+            return;
+        }
 
         if (!res.ok) {
             throw new Error(data.erro || `Erro ${res.status}`);
@@ -844,6 +887,10 @@ function abrirModalDesativar2FA() {
 
 function fecharModal2faDesativar() {
     document.getElementById('modal2faDesativar').style.display = 'none';
+}
+
+function fecharModalUpgrade() {
+    document.getElementById('modalUpgradePlano').style.display = 'none';
 }
 
 async function confirmarDesativacao2FA() {
