@@ -182,7 +182,8 @@ app.use(helmet({
     "https://unpkg.com",
     "https://raw.githubusercontent.com",  // GeoJSON mapa do Brasil
     "https://viacep.com.br",              // busca de CEP
-    "https://cdn.jsdelivr.net"            // source maps devtools (iMask etc.)
+    "https://cdn.jsdelivr.net",           // source maps devtools (iMask etc.)
+    "https://brasilapi.com.br"            // lista de bancos
 ],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
             frameSrc: ["'self'", "https://*.daily.co", "https://js.stripe.com"],

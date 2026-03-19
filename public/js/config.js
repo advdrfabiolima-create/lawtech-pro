@@ -80,16 +80,20 @@ const token = localStorage.getItem('token');
 
     // 2. CARREGAMENTO DE DADOS
     async function carregarBancos() {
+        const select = document.getElementById('confBanco');
+        if (!select) return;
         try {
             const res = await fetch('https://brasilapi.com.br/api/banks/v1');
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const bancos = await res.json();
-            const select = document.getElementById('confBanco');
-            if (!select) return;
             select.innerHTML = '<option value="">Selecione o Banco</option>';
             bancos.sort((a,b) => (a.fullName || "") > (b.fullName || "") ? 1 : -1).forEach(b => {
                 if(b.code) select.innerHTML += `<option value="${b.code}">${b.code} - ${b.fullName || b.name}</option>`;
             });
-        } catch (e) { console.error("Erro bancos:", e); }
+        } catch (e) {
+            console.error("Erro bancos:", e);
+            select.innerHTML = '<option value="">Erro ao carregar bancos — atualize a página</option>';
+        }
     }
 
 async function carregarInfoRodape() {
