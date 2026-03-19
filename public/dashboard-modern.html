@@ -1523,57 +1523,49 @@ input, textarea, select {
             <div class="welcome-icon">👋</div>
             <h1 class="welcome-title">Bem-vindo ao LawTech Pro!</h1>
             <p class="welcome-subtitle">
-                Sua plataforma completa para gestão jurídica está pronta para uso.
-                Comece cadastrando seus clientes e processos.
+                Sua plataforma completa de gestão jurídica está pronta.<br>
+                Um tour guiado vai te mostrar tudo que você precisa saber.
             </p>
         </div>
 
-        <div style="margin: 20px 0;">
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                <!-- Card Clientes -->
-                <div style="background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); border-radius: 10px; padding: 16px; color: white; text-align: center;">
-                    <i data-lucide="users" style="width: 36px; height: 36px; margin: 0 auto 8px; display: block;"></i>
-                    <h3 style="font-size: 14px; margin-bottom: 4px; font-weight: 700;">Clientes</h3>
-                    <p style="font-size: 11px; opacity: 0.85; margin-bottom: 8px;">Gerencie sua carteira</p>
-                    <a href="/clientes-page" style="display: inline-block; padding: 6px 12px; background: rgba(255,255,255,0.2); border-radius: 5px; color: white; text-decoration: none; font-size: 11px; font-weight: 600;">
-                        Acessar →
-                    </a>
-                </div>
+        <!-- Passo 1 destacado: Configurações -->
+        <div style="background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:2px solid #0ea5e9;border-radius:12px;padding:16px;margin:16px 0;display:flex;align-items:center;gap:14px;text-align:left;">
+            <div style="font-size:32px;flex-shrink:0;">⚙️</div>
+            <div>
+                <p style="font-size:14px;font-weight:700;color:#0c4a6e;margin:0 0 4px;">1º passo: Configure seu escritório</p>
+                <p style="font-size:12px;color:#0369a1;margin:0;">Antes de cadastrar clientes e processos, preencha os dados do escritório em <strong>Configurações</strong>. O tour vai te guiar até lá.</p>
+            </div>
+        </div>
 
-                <!-- Card Processos -->
-                <div style="background: linear-gradient(135deg, #52B788 0%, #3D8B64 100%); border-radius: 10px; padding: 16px; color: white; text-align: center;">
-                    <i data-lucide="folder" style="width: 36px; height: 36px; margin: 0 auto 8px; display: block;"></i>
-                    <h3 style="font-size: 14px; margin-bottom: 4px; font-weight: 700;">Processos</h3>
-                    <p style="font-size: 11px; opacity: 0.85; margin-bottom: 8px;">Cadastre e monitore</p>
-                    <a href="/processos-page" style="display: inline-block; padding: 6px 12px; background: rgba(255,255,255,0.2); border-radius: 5px; color: white; text-decoration: none; font-size: 11px; font-weight: 600;">
-                        Acessar →
-                    </a>
-                </div>
-
-                <!-- Card Prazos -->
-                <div style="background: linear-gradient(135deg, #F2A65A 0%, #E89544 100%); border-radius: 10px; padding: 16px; color: white; text-align: center;">
-                    <i data-lucide="clock" style="width: 36px; height: 36px; margin: 0 auto 8px; display: block;"></i>
-                    <h3 style="font-size: 14px; margin-bottom: 4px; font-weight: 700;">Prazos</h3>
-                    <p style="font-size: 11px; opacity: 0.85; margin-bottom: 8px;">Controle prazos</p>
-                    <a href="/prazos-page" style="display: inline-block; padding: 6px 12px; background: rgba(255,255,255,0.2); border-radius: 5px; color: white; text-decoration: none; font-size: 11px; font-weight: 600;">
-                        Acessar →
-                    </a>
-                </div>
-
-                <!-- Card IA Jurídica -->
-                <div style="background: linear-gradient(135deg, #7E8CE0 0%, #5E6CB0 100%); border-radius: 10px; padding: 16px; color: white; text-align: center;">
-                    <i data-lucide="sparkles" style="width: 36px; height: 36px; margin: 0 auto 8px; display: block;"></i>
-                    <h3 style="font-size: 14px; margin-bottom: 4px; font-weight: 700;">IA Jurídica</h3>
-                    <p style="font-size: 11px; opacity: 0.85; margin-bottom: 8px;">Petições e assistente</p>
-                    <a href="/ia-page" style="display: inline-block; padding: 6px 12px; background: rgba(255,255,255,0.2); border-radius: 5px; color: white; text-decoration: none; font-size: 11px; font-weight: 600;">
-                        Acessar →
-                    </a>
-                </div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
+            <!-- Card Clientes -->
+            <div style="background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); border-radius: 10px; padding: 14px; color: white; text-align: center;">
+                <i data-lucide="users" style="width: 28px; height: 28px; margin: 0 auto 6px; display: block;"></i>
+                <h3 style="font-size: 13px; margin-bottom: 2px; font-weight: 700;">Clientes</h3>
+                <p style="font-size: 11px; opacity: 0.85; margin: 0;">Gerencie sua carteira</p>
+            </div>
+            <!-- Card Processos -->
+            <div style="background: linear-gradient(135deg, #52B788 0%, #3D8B64 100%); border-radius: 10px; padding: 14px; color: white; text-align: center;">
+                <i data-lucide="folder" style="width: 28px; height: 28px; margin: 0 auto 6px; display: block;"></i>
+                <h3 style="font-size: 13px; margin-bottom: 2px; font-weight: 700;">Processos</h3>
+                <p style="font-size: 11px; opacity: 0.85; margin: 0;">Cadastre e monitore</p>
+            </div>
+            <!-- Card Prazos -->
+            <div style="background: linear-gradient(135deg, #F2A65A 0%, #E89544 100%); border-radius: 10px; padding: 14px; color: white; text-align: center;">
+                <i data-lucide="clock" style="width: 28px; height: 28px; margin: 0 auto 6px; display: block;"></i>
+                <h3 style="font-size: 13px; margin-bottom: 2px; font-weight: 700;">Prazos</h3>
+                <p style="font-size: 11px; opacity: 0.85; margin: 0;">Controle e alertas</p>
+            </div>
+            <!-- Card IA Jurídica -->
+            <div style="background: linear-gradient(135deg, #7E8CE0 0%, #5E6CB0 100%); border-radius: 10px; padding: 14px; color: white; text-align: center;">
+                <i data-lucide="sparkles" style="width: 28px; height: 28px; margin: 0 auto 6px; display: block;"></i>
+                <h3 style="font-size: 13px; margin-bottom: 2px; font-weight: 700;">IA Jurídica</h3>
+                <p style="font-size: 11px; opacity: 0.85; margin: 0;">Petições e assistente</p>
             </div>
         </div>
 
         <button type="button" class="btn-primary" data-action="fecharModalBoasVindas">
-            🚀 Começar a Usar
+            🚀 Iniciar Tour Guiado
         </button>
     </div>
 </div>

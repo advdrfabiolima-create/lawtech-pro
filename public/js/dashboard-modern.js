@@ -24,6 +24,7 @@ async function verificarPrimeiroAcesso() {
             if (data.usuario.primeiro_acesso === true || data.usuario.primeiro_acesso === null) {
                 console.log('✅ [PRIMEIRO ACESSO] Mostrando modal de boas-vindas');
                 window._modalBoasVindasAberto = true;
+                window._foiPrimeiroAcesso = true; // tour sempre inicia após fechar
                 setTimeout(() => {
                     document.getElementById('modalWelcome').classList.add('show');
                     // Inicializar ícones Lucide no modal
@@ -64,8 +65,10 @@ async function fecharModalBoasVindas() {
         console.warn('💡 A rota /api/auth/marcar-boas-vindas pode não estar implementada ainda');
     }
 
-    // Iniciar tour guiado após fechar o modal (se não estiver desativado)
-    if (localStorage.getItem('tour_concluido') !== 'true') {
+    // No primeiro acesso, tour SEMPRE inicia (ignora localStorage de outro usuário/sessão).
+    // Nas sessões seguintes, respeita a preferência salva.
+    if (window._foiPrimeiroAcesso || localStorage.getItem('tour_concluido') !== 'true') {
+        window._foiPrimeiroAcesso = false; // reseta flag
         console.log('🎯 [TOUR] Iniciando tour após fechamento do modal de boas-vindas');
         setTimeout(() => iniciarTour(), 600);
     }
