@@ -6,6 +6,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
 const { validarSenha } = require('../utils/validators');
 const logger = require('../utils/logger');
+const { registrarLog } = require('../utils/auditLog');
 
 // Carregar limites dos planos
 const planLimits = require('../config/planLimits.json');
@@ -86,10 +87,10 @@ router.post('/auth/convidar-funcionario', authMiddleware, roleMiddleware('admin'
         // 6. Hash da senha
         const senhaHash = await bcrypt.hash(senha, 10);
 
-        // 7. Criar o novo usuário (sem criado_em pois a coluna não existe)
+        // 7. Criar o novo usuário
         const result = await pool.query(
-            `INSERT INTO usuarios (nome, email, senha, role, escritorio_id)
-             VALUES ($1, $2, $3, $4, $5)
+            `INSERT INTO usuarios (nome, email, senha, role, escritorio_id, tour_desativado, primeiro_acesso)
+             VALUES ($1, $2, $3, $4, $5, FALSE, TRUE)
              RETURNING id, nome, email, role`,
             [nome.trim(), email.toLowerCase().trim(), senhaHash, role || 'operador', escritorioId]
         );
@@ -104,7 +105,13 @@ router.post('/auth/convidar-funcionario', authMiddleware, roleMiddleware('admin'
 
     } catch (error) {
         logger.error({ err: error.message }, 'Erro ao adicionar membro');
-        res.status(500).json({ erro: 'Erro ao adicionar membro à equipe' });
+        registrarLog({
+            escritorio_id: req.user?.escritorio_id || null,
+            servico: 'POST /auth/convidar-funcionario',
+            tipo_erro: 'SQL_ERROR',
+            mensagem_erro: error.message
+        });
+        res.status(500).json({ ok: false, erro: 'Erro ao adicionar membro à equipe: ' + error.message });
     }
 });
 

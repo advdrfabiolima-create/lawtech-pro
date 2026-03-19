@@ -52,12 +52,15 @@ const checkFeature = (featureName) => {
             logger.info({ planoSlug, featureEnabled }, '[MIDDLEWARE] Verificacao de feature');
 
             if (!featureEnabled) {
-                registrarLog({
-                    escritorio_id: escritorioId,
-                    servico: `${req.method} ${req.path}`.slice(0, 100),
-                    tipo_erro: 'PLAN_BLOCKED',
-                    mensagem_erro: `Feature "${featureName}" bloqueada para plano "${planoConfig.nome}"`
-                });
+                // Só loga em ações do usuário (POST/PUT/PATCH/DELETE), não em GET polling
+                if (req.method !== 'GET') {
+                    registrarLog({
+                        escritorio_id: escritorioId,
+                        servico: `${req.method} ${req.path}`.slice(0, 100),
+                        tipo_erro: 'PLAN_BLOCKED',
+                        mensagem_erro: `Feature "${featureName}" bloqueada para plano "${planoConfig.nome}"`
+                    });
+                }
                 return res.status(402).json({
                     ok: false,
                     erro: 'Funcionalidade não disponível no seu plano',
