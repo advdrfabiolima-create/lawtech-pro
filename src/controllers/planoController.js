@@ -21,12 +21,13 @@ async function listarPlanos(req, res) {
 async function meuPlano(req, res) {
   try {
     const result = await pool.query(`
-      SELECT 
+      SELECT
         p.id,
-        p.nome, 
+        p.nome,
         p.limite_prazos,
         p.slug,
-        e.ciclo
+        e.ciclo,
+        e.plano_financeiro_status
       FROM escritorios e
       JOIN planos p ON p.id = e.plano_id
       WHERE e.id = $1

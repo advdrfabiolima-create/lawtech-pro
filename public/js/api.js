@@ -115,6 +115,10 @@ const API = (() => {
 (function () {
     if (!localStorage.getItem('token') && !sessionStorage.getItem('token')) return;
 
+    // Não executar em páginas públicas sem sidebar autenticada
+    const paginasPublicas = ['/nova-senha', '/recuperar-senha', '/login', '/portal-cliente', '/verificar-email', '/registro'];
+    if (paginasPublicas.some(p => window.location.pathname.includes(p))) return;
+
     function atualizarBadgeProcessos(total) {
         const link = document.querySelector('a[href="/processos-page"]');
         if (!link) return;

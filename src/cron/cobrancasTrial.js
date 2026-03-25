@@ -52,7 +52,7 @@ cron.schedule('0 6 * * *', async () => {
                 JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
                 JOIN cartoes c ON c.escritorio_id = e.id
                 WHERE e.plano_financeiro_status = 'trial'
-                  AND e.trial_expira_em = CURRENT_DATE
+                  AND e.trial_expira_em <= CURRENT_DATE
                   AND COALESCE(e.preferencia_pagamento, 'cartao') = 'cartao'
                   AND COALESCE(u.is_master, false) = false
                 FOR UPDATE OF e SKIP LOCKED
@@ -100,7 +100,7 @@ cron.schedule('0 6 * * *', async () => {
             JOIN planos p ON e.plano_id = p.id
             JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
             WHERE e.plano_financeiro_status = 'trial'
-            AND e.trial_expira_em = CURRENT_DATE
+            AND e.trial_expira_em <= CURRENT_DATE
             AND COALESCE(e.preferencia_pagamento, 'cartao') = 'pix'
             AND COALESCE(u.is_master, false) = false
         `);

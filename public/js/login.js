@@ -6,14 +6,6 @@
         let pixCobrancaId = null;
         let modoBackup2FA = false;
 
-        /* ── Stripe Elements (C-3: tokenização no browser) ── */
-        const STRIPE_PK = 'pk_live_51T0o4SJJJfva8SuZlfpk7Eu5lBaij1nYWuNLVeAvDFBpyce3neDIHnHDkJGsTLVcxLaXBN9xv3eXc2inNgVqwSNP00gm53MwcG';
-        let stripeInstance = null;
-        let cardNumeroEl = null;
-        let cardValidadeEl = null;
-        let cardCvvEl = null;
-        let elementsMontados = false;
-
         /* ── Helpers de navegação ── */
         function mostrarModalTrialExpirado() {
             document.getElementById('modalTrialExpirado').style.display = 'flex';
@@ -125,34 +117,22 @@
             document.getElementById('cartaoValorBtn').textContent  = valorFmt;
             document.getElementById('cartaoPlanInfo').textContent  = `${trialPlanInfo.nome} — ${valorFmt}/mês`;
 
-            // [C-3] Inicializar Stripe Elements uma vez (PAN/CVV nunca saem do iframe Stripe)
-            if (!elementsMontados) {
-                stripeInstance = Stripe(STRIPE_PK);
-                const elements = stripeInstance.elements();
-                const stripeStyle = {
-                    base: {
-                        fontSize: '14px',
-                        color: '#1e293b',
-                        fontFamily: 'Inter, system-ui, sans-serif',
-                        '::placeholder': { color: '#94a3b8' }
-                    },
-                    invalid: { color: '#dc2626' }
-                };
-                cardNumeroEl  = elements.create('cardNumber',  { style: stripeStyle, placeholder: '0000 0000 0000 0000' });
-                cardValidadeEl = elements.create('cardExpiry', { style: stripeStyle });
-                cardCvvEl     = elements.create('cardCvc',    { style: stripeStyle });
-                cardNumeroEl.mount('#cartaoNumero-element');
-                cardValidadeEl.mount('#cartaoValidade-element');
-                cardCvvEl.mount('#cartaoCvv-element');
-
-                const errDiv = document.getElementById('cartaoElementErrors');
-                [cardNumeroEl, cardValidadeEl, cardCvvEl].forEach(el => {
-                    el.on('change', e => {
-                        if (e.error) { errDiv.textContent = e.error.message; errDiv.style.display = 'block'; }
-                        else { errDiv.style.display = 'none'; }
-                    });
+            // Formatar número do cartão com espaços a cada 4 dígitos
+            const inputNumero = document.getElementById('cartaoNumero');
+            if (inputNumero) {
+                inputNumero.addEventListener('input', function() {
+                    let v = this.value.replace(/\D/g, '').substring(0, 16);
+                    this.value = v.replace(/(.{4})/g, '$1 ').trim();
                 });
-                elementsMontados = true;
+            }
+            // Formatar validade MM/AA
+            const inputValidade = document.getElementById('cartaoValidade');
+            if (inputValidade) {
+                inputValidade.addEventListener('input', function() {
+                    let v = this.value.replace(/\D/g, '').substring(0, 4);
+                    if (v.length > 2) v = v.substring(0, 2) + '/' + v.substring(2);
+                    this.value = v;
+                });
             }
         }
 
@@ -162,40 +142,33 @@
             const erroDiv = document.getElementById('cartaoErroMsg');
             erroDiv.style.display = 'none';
 
-            const holderName = document.getElementById('cartaoNome').value.trim();
-            if (!holderName) {
-                erroDiv.textContent = 'Informe o nome impresso no cartão.';
-                erroDiv.style.display = 'block';
-                return;
-            }
+            const holderName = document.getElementById('cartaoNome').value.trim().toUpperCase();
+            const numero     = document.getElementById('cartaoNumero').value.replace(/\s/g, '');
+            const validade   = document.getElementById('cartaoValidade').value;
+            const cvv        = document.getElementById('cartaoCvv').value.trim();
+
+            if (!holderName) { erroDiv.textContent = 'Informe o nome impresso no cartão.'; erroDiv.style.display = 'block'; return; }
+            if (numero.length < 13) { erroDiv.textContent = 'Número do cartão inválido.'; erroDiv.style.display = 'block'; return; }
+            if (!validade.includes('/') || validade.length < 5) { erroDiv.textContent = 'Validade inválida (MM/AA).'; erroDiv.style.display = 'block'; return; }
+            if (cvv.length < 3) { erroDiv.textContent = 'CVV inválido.'; erroDiv.style.display = 'block'; return; }
+
+            const [expMonth, expYear] = validade.split('/');
 
             const valorLabel = document.getElementById('cartaoValorBtn').textContent;
             btn.textContent = 'Processando...';
             btn.disabled = true;
 
             try {
-                // [C-3] Tokenizar no browser — PAN/CVV nunca chegam ao servidor
-                const { paymentMethod, error } = await stripeInstance.createPaymentMethod({
-                    type: 'card',
-                    card: cardNumeroEl,
-                    billing_details: { name: holderName, email: emailDigitado }
-                });
-
-                if (error) {
-                    erroDiv.textContent   = error.message;
-                    erroDiv.style.display = 'block';
-                    btn.disabled    = false;
-                    btn.textContent = `Pagar ${valorLabel}`;
-                    return;
-                }
-
                 const res = await fetch('/api/auth/pagar-trial-cartao', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        email:           emailDigitado,
+                        email: emailDigitado,
                         holderName,
-                        paymentMethodId: paymentMethod.id
+                        number: numero,
+                        expiryMonth: expMonth,
+                        expiryYear: '20' + expYear,
+                        ccv: cvv
                     })
                 });
                 const data = await res.json();

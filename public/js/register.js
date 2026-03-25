@@ -91,124 +91,8 @@ fbq('track', 'PageView');
     }
 
     // ============================================================
-    // ✅ INICIALIZAR STRIPE ELEMENTS
+    // (Stripe removido — pagamento via Asaas ao final do trial)
     // ============================================================
-
-    const stripe = Stripe('pk_live_51T0o4SJJJfva8SuZlfpk7Eu5lBaij1nYWuNLVeAvDFBpyce3neDIHnHDkJGsTLVcxLaXBN9xv3eXc2inNgVqwSNP00gm53MwcG');
-
-    const elements = stripe.elements();
-
-    // Estilo comum para os elementos Stripe no cartão 3D
-    const stripeStyle = {
-        base: {
-            fontSize: '16px',
-            color: '#ffffff',
-            fontFamily: 'Inter, system-ui, sans-serif',
-            '::placeholder': { color: 'rgba(255,255,255,0.5)' }
-        },
-        invalid: { color: '#fca5a5', iconColor: '#fca5a5' }
-    };
-
-    const stripeStyleDark = {
-        base: {
-            fontSize: '14px',
-            color: '#1e293b',
-            fontFamily: 'Inter, system-ui, sans-serif',
-            '::placeholder': { color: '#94a3b8' }
-        },
-        invalid: { color: '#f59e0b', iconColor: '#f59e0b' }
-    };
-
-    // Elementos separados: Número, Validade, CVC
-    const cardNumberElement = elements.create('cardNumber', {
-        style: stripeStyle,
-        placeholder: '0000 0000 0000 0000'
-    });
-
-    const cardExpiryElement = elements.create('cardExpiry', {
-        style: stripeStyle,
-        placeholder: 'MM/AA'
-    });
-
-    const cardCvcElement = elements.create('cardCvc', {
-        style: stripeStyleDark,
-        placeholder: '***'
-    });
-
-    cardNumberElement.mount('#cardNumber-element');
-    cardExpiryElement.mount('#cardExpiry-element');
-    cardCvcElement.mount('#cardCvc-element');
-
-    const cardErrors = document.getElementById('card-errors');
-    const creditCardInner = document.getElementById('creditCardInner');
-    const cardFront = document.getElementById('cardFront');
-    const cardBack = document.getElementById('cardBack');
-    let isFlipped = false;
-
-    // Detectar bandeira do cartão e atualizar visual
-    cardNumberElement.on('change', (event) => {
-        if (event.error) {
-            cardErrors.textContent = event.error.message;
-        } else {
-            cardErrors.textContent = '';
-        }
-
-        // Atualizar bandeira
-        const brand = event.brand || 'unknown';
-        const brandNames = {
-            visa: 'VISA',
-            mastercard: 'MASTERCARD',
-            amex: 'AMEX',
-            elo: 'ELO',
-            discover: 'DISCOVER',
-            unknown: 'CREDIT'
-        };
-
-        document.getElementById('cardBrandLogo').textContent = brandNames[brand] || 'CREDIT';
-
-        // Atualizar cores do cartão
-        const brandClass = brand !== 'unknown' ? `brand-${brand}` : '';
-        cardFront.className = 'credit-card-front ' + brandClass;
-        cardBack.className = 'credit-card-back ' + brandClass;
-    });
-
-    cardExpiryElement.on('change', (event) => {
-        if (event.error) cardErrors.textContent = event.error.message;
-        else cardErrors.textContent = '';
-    });
-
-    cardCvcElement.on('change', (event) => {
-        if (event.error) cardErrors.textContent = event.error.message;
-        else cardErrors.textContent = '';
-    });
-
-    // Auto-flip: virar para verso ao focar no CVC
-    cardCvcElement.on('focus', () => {
-        if (!isFlipped) toggleCardFlip();
-    });
-
-    // Auto-flip: voltar para frente ao focar no número ou validade
-    cardNumberElement.on('focus', () => {
-        if (isFlipped) toggleCardFlip();
-    });
-    cardExpiryElement.on('focus', () => {
-        if (isFlipped) toggleCardFlip();
-    });
-
-    // Atualizar nome do titular em tempo real (campo dedicado do cartão)
-    document.getElementById('nomeTitularCartao').addEventListener('input', (e) => {
-        const display = document.getElementById('cardHolderDisplay');
-        display.textContent = e.target.value.toUpperCase() || 'SEU NOME AQUI';
-    });
-
-    // Função para virar o cartão
-    function toggleCardFlip() {
-        isFlipped = !isFlipped;
-        creditCardInner.classList.toggle('flipped', isFlipped);
-        document.getElementById('flipBtnText').textContent = isFlipped
-            ? 'Ver frente do cartão'
-            : 'Ver verso do cartão';
-    }
 
 
     // ============================================================
@@ -427,59 +311,11 @@ fbq('track', 'PageView');
         }
 
         // ============================================================
-        // ✅ CRIAR PAYMENT METHOD COM STRIPE ELEMENTS (só se cartão)
-        // ============================================================
-
-        let paymentMethodId = null;
-        let cartaoInfo = null;
-
-        if (metodoPagamento === 'cartao') {
-            btnSubmit.innerText = "🔐 Validando cartão...";
-            btnSubmit.disabled = true;
-
-            try {
-                const { paymentMethod, error } = await stripe.createPaymentMethod({
-                    type: 'card',
-                    card: cardNumberElement,
-                    billing_details: {
-                        name: document.getElementById('nomeTitularCartao').value || nome,
-                        email: email
-                    }
-                });
-
-                if (error) {
-                    // Se erro é "campo vazio", permite cadastro sem cartão
-                    if (error.code === 'incomplete_card' || error.code === 'incomplete_number') {
-                        // Continua sem cartão
-                    } else {
-                        btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
-                        btnSubmit.disabled = false;
-                        return showError(`❌ Erro no cartão: ${error.message}`);
-                    }
-                } else {
-                    paymentMethodId = paymentMethod.id;
-                    cartaoInfo = {
-                        last4: paymentMethod.card.last4,
-                        brand: paymentMethod.card.brand,
-                        exp_month: paymentMethod.card.exp_month,
-                        exp_year: paymentMethod.card.exp_year
-                    };
-                }
-            } catch (stripeErr) {
-                btnSubmit.innerText = "Criar Conta e Iniciar Teste Gratuito";
-                btnSubmit.disabled = false;
-                return showError('❌ Erro ao processar cartão. Tente novamente.');
-            }
-        } else {
-            btnSubmit.innerText = "Criando conta...";
-            btnSubmit.disabled = true;
-        }
-
-        // ============================================================
         // CRIAR CONTA NO BACKEND
         // ============================================================
 
         btnSubmit.innerText = "Processando cadastro...";
+        btnSubmit.disabled = true;
 
         try {
             const payload = {
@@ -526,38 +362,6 @@ fbq('track', 'PageView');
                     localStorage.removeItem('plano_escolhido_nome');
                     window.location.href = '/login?registro=sucesso&trial=7';
                     return;
-                }
-
-                // ============================================================
-                // FLUXO CARTÃO: salva payment method (se preenchido)
-                // ============================================================
-                if (paymentMethodId && cartaoInfo) {
-                    try {
-                        const loginRes = await fetch('/api/auth/login', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email, senha })
-                        });
-                        if (loginRes.ok) {
-                            const loginData = await loginRes.json();
-                            const cartaoRes = await fetch('/api/pagamentos/salvar-cartao', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${loginData.token}`
-                                },
-                                body: JSON.stringify({
-                                    token: paymentMethodId,
-                                    last4: cartaoInfo.last4,
-                                    brand: cartaoInfo.brand,
-                                    exp_month: cartaoInfo.exp_month,
-                                    exp_year: cartaoInfo.exp_year,
-                                    gateway: 'stripe'
-                                })
-                            });
-                        }
-                    } catch (_) {
-                    }
                 }
 
                 localStorage.removeItem('plano_escolhido_id');
@@ -607,7 +411,7 @@ fbq('track', 'PageView');
     document.querySelectorAll('[data-metodo]').forEach(btn => {
         btn.addEventListener('click', () => selecionarMetodoPagamento(btn.dataset.metodo));
     });
-    document.getElementById('cardFlipBtn').addEventListener('click', toggleCardFlip);
+    if (document.getElementById('cardFlipBtn')) document.getElementById('cardFlipBtn').addEventListener('click', function() {});
     document.getElementById('btnCopiarPix').addEventListener('click', copiarCodigoPix);
     document.getElementById('linkIgnorarPix').addEventListener('click', ignorarPix);
 

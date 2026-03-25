@@ -120,6 +120,7 @@ async function confirmarUpgrade() {
 }
 
 // Variável global para guardar o estado vindo do banco
+// id=0 significa "nenhum plano ativo pago"
 let meuPlanoAtual = { id: 0, ciclo: 'mensal' };
 
 // Função Unificada para Atualizar os Botões
@@ -179,9 +180,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('✅ Dados recebidos do servidor:', dados);
             
             // Sincroniza a variável global com o banco
-            meuPlanoAtual = { 
-                id: parseInt(dados.id), 
-                ciclo: dados.ciclo || 'mensal' 
+            // Só considera o plano como "ativo" se o status financeiro for 'pago'
+            const statusPago = dados.plano_financeiro_status === 'pago';
+            meuPlanoAtual = {
+                id: statusPago ? parseInt(dados.id) : 0,
+                ciclo: dados.ciclo || 'mensal'
             };
             
             console.log('💾 meuPlanoAtual definido como:', meuPlanoAtual);

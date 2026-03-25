@@ -809,19 +809,18 @@
                     </div>
                     <div style="margin-bottom:14px;">
                         <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">Número do cartão</label>
-                        <div id="cartaoNumero-element" style="padding:11px 13px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;"></div>
+                        <input type="text" id="cartaoNumero" placeholder="0000 0000 0000 0000" maxlength="19" inputmode="numeric" style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;box-sizing:border-box;">
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
                         <div>
-                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">Validade</label>
-                            <div id="cartaoValidade-element" style="padding:11px 13px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;"></div>
+                            <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">Validade (MM/AA)</label>
+                            <input type="text" id="cartaoValidade" placeholder="MM/AA" maxlength="5" inputmode="numeric" style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;box-sizing:border-box;">
                         </div>
                         <div>
                             <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">CVV</label>
-                            <div id="cartaoCvv-element" style="padding:11px 13px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;"></div>
+                            <input type="text" id="cartaoCvv" placeholder="000" maxlength="4" inputmode="numeric" style="width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;box-sizing:border-box;">
                         </div>
                     </div>
-                    <div id="cartaoElementErrors" style="display:none;color:#dc2626;font-size:12px;margin-bottom:12px;font-weight:500;"></div>
                     <button type="submit" id="btnPagarCartao" style="width:100%;padding:14px;background:#1e3a8a;color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;">
                         Pagar <span id="cartaoValorBtn"></span>
                     </button>
@@ -832,7 +831,6 @@
     </div>
 
     
-    <script src="https://js.stripe.com/v3/"></script>
     <script src="/js/api.js"></script>
     <script src="/js/login.js"></script>
 </body>

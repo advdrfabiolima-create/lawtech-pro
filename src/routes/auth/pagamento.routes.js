@@ -5,8 +5,6 @@ const pool = require('../../config/db');
 const logger = require('../../utils/logger');
 const cache = require('../../utils/cache');
 const { encrypt } = require('../../utils/crypto');
-const { cobrarViaStripe } = require('../../services/chargeService');
-
 async function invalidarCacheEscritorio(escritorioId) {
     try {
         const users = await pool.query('SELECT id FROM usuarios WHERE escritorio_id = $1', [escritorioId]);
@@ -322,21 +320,21 @@ router.post('/gerar-pix-registro', async (req, res) => {
 
 /* ======================================================
    POST /api/auth/pagar-trial-cartao  (PÚBLICO — sem JWT)
-   [C-3] Recebe paymentMethodId do Stripe.js — PAN/CVV
-   nunca chegam ao servidor (conformidade PCI SAQ-A).
+   Cobrança via Asaas com dados do cartão enviados direto.
 ===================================================== */
 
 router.post('/pagar-trial-cartao', async (req, res) => {
     try {
-        const { email, holderName, paymentMethodId } = req.body;
+        const { email, holderName, number, expiryMonth, expiryYear, ccv } = req.body;
 
-        if (!email || !paymentMethodId) {
-            return res.status(400).json({ ok: false, erro: 'Email e paymentMethodId são obrigatórios' });
+        if (!email || !holderName || !number || !expiryMonth || !expiryYear || !ccv) {
+            return res.status(400).json({ ok: false, erro: 'Todos os campos do cartão são obrigatórios' });
         }
 
         const userResult = await pool.query(
             `SELECT u.id, u.nome, u.email, u.escritorio_id,
-                    e.plano_id, e.plano_financeiro_status, e.trial_expira_em
+                    e.plano_id, e.plano_financeiro_status, e.trial_expira_em,
+                    e.documento, e.cep
              FROM usuarios u
              JOIN escritorios e ON u.escritorio_id = e.id
              WHERE u.email = $1`,
@@ -349,12 +347,14 @@ router.post('/pagar-trial-cartao', async (req, res) => {
 
         const u = userResult.rows[0];
 
-        // [M-1] Permitir também status 'inadimplente'
         if (!['trial', 'inadimplente'].includes(u.plano_financeiro_status)) {
             return res.status(400).json({ ok: false, erro: 'Conta já está ativa ou suspensa' });
         }
         if (u.plano_financeiro_status === 'trial' && (!u.trial_expira_em || new Date(u.trial_expira_em) > new Date())) {
             return res.status(400).json({ ok: false, erro: 'Trial ainda está ativo' });
+        }
+        if (!u.documento) {
+            return res.status(400).json({ ok: false, erro: 'CPF/CNPJ não cadastrado. Entre em contato com o suporte.' });
         }
 
         const planoR = await pool.query('SELECT nome, preco_mensal FROM planos WHERE id = $1', [u.plano_id]);
@@ -363,17 +363,41 @@ router.post('/pagar-trial-cartao', async (req, res) => {
         const valorReais = parseFloat(plano.preco_mensal);
         const valorCentavos = Math.round(valorReais * 100);
 
-        // [C-3] Cobrar via Stripe usando paymentMethodId tokenizado no browser
-        const resultado = await cobrarViaStripe(
-            paymentMethodId,
-            valorCentavos,
-            `${plano.nome} - LawTech Pro`,
-            { escritorioId: u.escritorio_id, planoNome: plano.nome, emailResponsavel: u.email }
-        );
+        const customerId = await obterOuCriarClienteTrial(u.nome, u.email, u.documento);
+        const docLimpo = u.documento.replace(/\D/g, '');
+        const cepLimpo = (u.cep || '').replace(/\D/g, '') || '00000000';
 
-        if (!resultado.sucesso) {
-            logger.info(`[ERRO] [CARTAO TRIAL] Recusado: ${resultado.erro}`);
-            return res.status(402).json({ ok: false, erro: resultado.erro || 'Cartão recusado. Tente novamente.' });
+        const pagRes = await axios.post(`${ASAAS_BASE_URL_AUTH}/payments`, {
+            customer: customerId,
+            billingType: 'CREDIT_CARD',
+            value: valorReais,
+            dueDate: obterDataVencimentoTrial(0),
+            description: `${plano.nome} - LawTech Pro`,
+            externalReference: `escritorio_${u.escritorio_id}_plano_${u.plano_id}`,
+            creditCard: {
+                holderName,
+                number: number.replace(/\s/g, ''),
+                expiryMonth: String(expiryMonth).padStart(2, '0'),
+                expiryYear: String(expiryYear).slice(-4),
+                ccv
+            },
+            creditCardHolderInfo: {
+                name: holderName,
+                email: u.email,
+                cpfCnpj: docLimpo,
+                postalCode: cepLimpo,
+                addressNumber: '0',
+                phone: ''
+            },
+            remoteIp: req.headers['x-forwarded-for']?.split(',')[0].trim() || req.ip || '127.0.0.1'
+        }, { headers: getAsaasHeadersAuth() });
+
+        const pg = pagRes.data;
+        const aprovado = ['CONFIRMED', 'RECEIVED', 'RECEIVED_IN_CASH'].includes(pg.status);
+
+        if (!aprovado) {
+            logger.info(`[ERRO] [CARTAO TRIAL] Recusado: status ${pg.status}`);
+            return res.status(402).json({ ok: false, erro: 'Cartão recusado. Verifique os dados e tente novamente.' });
         }
 
         await pool.query(
@@ -386,47 +410,47 @@ router.post('/pagar-trial-cartao', async (req, res) => {
             [u.escritorio_id]
         );
 
-        // Salvar paymentMethodId para cobranças recorrentes via Stripe
+        // Salvar customerId + creditCardToken para cobranças recorrentes via Asaas
         try {
-            const cartaoExistente = await pool.query(
-                'SELECT id FROM cartoes WHERE escritorio_id = $1 AND gateway = $2',
-                [u.escritorio_id, 'stripe']
-            );
+            const creditCardToken = pg.creditCardToken || null;
+            const cartaoExistente = await pool.query('SELECT id FROM cartoes WHERE escritorio_id = $1', [u.escritorio_id]);
             if (cartaoExistente.rows.length > 0) {
                 await pool.query(
-                    `UPDATE cartoes SET token = $1, updated_at = NOW() WHERE escritorio_id = $2 AND gateway = 'stripe'`,
-                    [encrypt(paymentMethodId), u.escritorio_id]
+                    `UPDATE cartoes SET token = $1, asaas_card_token = $2, gateway = 'asaas', updated_at = NOW()
+                     WHERE escritorio_id = $3`,
+                    [encrypt(customerId), creditCardToken ? encrypt(creditCardToken) : null, u.escritorio_id]
                 );
             } else {
                 await pool.query(
-                    `INSERT INTO cartoes (escritorio_id, token, gateway, created_at, updated_at)
-                     VALUES ($1, $2, 'stripe', NOW(), NOW())`,
-                    [u.escritorio_id, encrypt(paymentMethodId)]
+                    `INSERT INTO cartoes (escritorio_id, token, asaas_card_token, gateway, created_at, updated_at)
+                     VALUES ($1, $2, $3, 'asaas', NOW(), NOW())`,
+                    [u.escritorio_id, encrypt(customerId), creditCardToken ? encrypt(creditCardToken) : null]
                 );
             }
-            logger.info(`[CARTAO] [CARTAO TRIAL] PaymentMethod Stripe salvo para escritório ${u.escritorio_id}`);
+            logger.info(`[CARTAO] [CARTAO TRIAL] Token Asaas salvo para escritório ${u.escritorio_id}`);
         } catch (cardErr) {
-            logger.error({ err: cardErr.message, escritorioId: u.escritorio_id }, '[CARTAO TRIAL] Falha ao salvar paymentMethod — cobrança recorrente pode não funcionar');
+            logger.error({ err: cardErr.message, escritorioId: u.escritorio_id }, '[CARTAO TRIAL] Falha ao salvar token');
         }
 
         try {
             await pool.query(
                 `INSERT INTO transacoes (escritorio_id, gateway_id, gateway, valor, status, descricao, created_at)
-                 VALUES ($1, $2, 'stripe', $3, 'aprovada', 'Ativação pós-trial — Cartão', NOW())`,
-                [u.escritorio_id, resultado.transacaoId, valorCentavos]
+                 VALUES ($1, $2, 'asaas', $3, 'aprovada', 'Ativação pós-trial — Cartão', NOW())`,
+                [u.escritorio_id, pg.id, valorCentavos]
             );
-        } catch (_) { /* não crítico */ }
+        } catch (_) {}
 
         await invalidarCacheEscritorio(u.escritorio_id);
-        logger.info(`[OK] [CARTAO TRIAL] Escritório ${u.escritorio_id} ativado via Stripe.`);
+        logger.info(`[OK] [CARTAO TRIAL] Escritório ${u.escritorio_id} ativado via Asaas.`);
         return res.json({ ok: true });
 
     } catch (err) {
-        const msg = err.message;
+        const msg = err.response?.data?.errors?.[0]?.description || err.message;
         logger.error(`[ERRO] [CARTAO TRIAL] ${msg}`);
-        const isCardError = err.type === 'StripeCardError' ||
-            msg.toLowerCase().includes('declined') ||
-            msg.toLowerCase().includes('card');
+        const isCardError = msg.toLowerCase().includes('declin') ||
+            msg.toLowerCase().includes('recusad') ||
+            msg.toLowerCase().includes('credit card') ||
+            msg.toLowerCase().includes('cartão');
         if (isCardError) {
             return res.status(402).json({ ok: false, erro: msg });
         }
