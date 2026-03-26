@@ -319,6 +319,7 @@ app.get('/health', async (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/portal', portalClienteRoutes); // Portal do Cliente — cada rota gerencia seu próprio middleware
 app.use('/api/contato', contatoRoutes); // 📬 público — formulário de contato do site
+app.use('/api/pagamentos', pagamentosRoutes); // ⚠️ DEVE vir antes de qualquer app.use('/api', authMiddleware) — webhook é público
 app.use('/api', iaRoutes);
 app.use('/api/crm/public', crmPublicRoutes); // ðŸ"" pÃºblico
 app.use('/api/crm', authMiddleware, crmRoutes);
@@ -333,7 +334,6 @@ app.use('/api', authMiddleware, verificarPagamento, clientesRoutes);
 app.use('/api', authMiddleware, verificarPagamento, procuracoesRoutes);
 app.use('/api', configRoutes);
 app.use('/api', usuariosRoutes);
-app.use('/api/pagamentos', pagamentosRoutes);
 app.use('/api', publicacoesRoutes);
 app.use('/api', recibosRoutes);
 app.use('/api', partesProcessoRoutes);
