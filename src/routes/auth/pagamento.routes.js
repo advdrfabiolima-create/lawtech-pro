@@ -74,11 +74,11 @@ router.post('/pagar-trial-pix', async (req, res) => {
 
         const u = userResult.rows[0];
 
-        if (u.plano_financeiro_status !== 'trial') {
-            return res.status(400).json({ ok: false, erro: 'Conta não está em período de trial' });
+        if (!['trial', 'inadimplente'].includes(u.plano_financeiro_status)) {
+            return res.status(400).json({ ok: false, erro: 'Conta já está ativa' });
         }
         // trial_expira_em NULL com status 'trial' = cron zerou o campo sem concluir cobrança → permitir pagamento
-        if (u.trial_expira_em && new Date(u.trial_expira_em) > new Date()) {
+        if (u.plano_financeiro_status === 'trial' && u.trial_expira_em && new Date(u.trial_expira_em) > new Date()) {
             return res.status(400).json({ ok: false, erro: 'Trial ainda está ativo' });
         }
 
@@ -175,7 +175,10 @@ router.get('/verificar-pix/:cobrancaId', async (req, res) => {
         const pago = ['CONFIRMED', 'RECEIVED'].includes(pg.status);
 
         if (pago && pg.externalReference) {
-            const escritorioId = parseInt(pg.externalReference, 10);
+            // Suporta formato legado "123" e formato do cron "escritorio_123_plano_2"
+            const refStr = String(pg.externalReference);
+            const match = refStr.match(/^escritorio_(\d+)_plano_(\d+)$/);
+            const escritorioId = match ? parseInt(match[1], 10) : parseInt(refStr, 10);
 
             await pool.query(
                 `UPDATE escritorios
