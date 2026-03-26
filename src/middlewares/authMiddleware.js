@@ -75,9 +75,15 @@ const authMiddleware = async (req, res, next) => {
     // 🛡️ REGRA DE IMUNIDADE MASTER (via banco de dados)
     const ehMaster = usuario.is_master === true || usuario.email === process.env.MASTER_EMAIL;
 
-    // 🚨 REGRA DE BLOQUEIO — grace period de 3 dias após expiração
-    if (!ehMaster && diasRestantes < -3 && !['pago', 'ativo'].includes(usuario.plano_financeiro_status)) {
-      logger.warn({ email: usuario.email, diasRestantes, status: usuario.plano_financeiro_status }, '[BLOQUEIO ATIVADO] Trial Expirado');
+    // 🚨 REGRA DE BLOQUEIO
+    // Bloqueia se: inadimplente (sempre) OU trial expirado (diasRestantes <= 0)
+    const statusBloqueado = !['pago', 'ativo'].includes(usuario.plano_financeiro_status);
+    const deveBloquear = statusBloqueado && (
+      usuario.plano_financeiro_status === 'inadimplente' ||
+      diasRestantes <= 0
+    );
+    if (!ehMaster && deveBloquear) {
+      logger.warn({ email: usuario.email, diasRestantes, status: usuario.plano_financeiro_status }, '[BLOQUEIO ATIVADO]');
       return res.status(402).json({
         ok: false,
         erro: 'Trial expirado',
