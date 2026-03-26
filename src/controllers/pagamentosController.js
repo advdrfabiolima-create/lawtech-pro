@@ -252,7 +252,8 @@ async function handleWebhookPagamentos(req, res) {
             }
 
             await client.query(
-                `UPDATE escritorios SET plano_id = $1, plano_financeiro_status = 'pago', trial_expira_em = NULL WHERE id = $2`,
+                `UPDATE escritorios SET plano_id = $1, plano_financeiro_status = 'pago', trial_expira_em = NULL,
+                 ultimo_pagamento = NOW(), proxima_cobranca = NOW() + INTERVAL '1 month' WHERE id = $2`,
                 [novoPlanoId, escritorioId]
             );
             await client.query('COMMIT');
