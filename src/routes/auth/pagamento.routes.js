@@ -392,7 +392,7 @@ router.post('/pagar-trial-cartao', async (req, res) => {
                 cpfCnpj: docLimpo,
                 postalCode: cepLimpo,
                 addressNumber: '0',
-                phone: ''
+                phone: '11999999999'
             },
             remoteIp: req.headers['x-forwarded-for']?.split(',')[0].trim() || req.ip || '127.0.0.1'
         }, { headers: getAsaasHeadersAuth() });
