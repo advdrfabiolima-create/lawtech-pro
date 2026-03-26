@@ -66,6 +66,9 @@ router.post('/login', async (req, res) => {
             const expiracao = new Date(usuario.trial_expira_em);
             diasRestantes = Math.ceil((expiracao - hoje) / (1000 * 60 * 60 * 24));
             logger.info(`📊 [LOGIN] Dias restantes do trial: ${diasRestantes}`);
+        } else if (usuario.plano_financeiro_status === 'trial') {
+            // trial_expira_em = NULL + status 'trial' = cron zerou o campo sem concluir cobrança
+            diasRestantes = -999;
         }
 
         // ⚠️ BLOQUEIA LOGIN SE TRIAL EXPIROU (grace period de 3 dias)
@@ -164,6 +167,8 @@ router.get('/me', async (req, res) => {
             const hoje = new Date();
             const expiracao = new Date(usuario.trial_expira_em);
             diasRestantes = Math.ceil((expiracao - hoje) / (1000 * 60 * 60 * 24));
+        } else if (usuario.plano_financeiro_status === 'trial') {
+            diasRestantes = -999;
         }
 
         const ehMaster = usuario.is_master === true || usuario.email === process.env.MASTER_EMAIL;

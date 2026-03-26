@@ -77,8 +77,9 @@ router.post('/pagar-trial-pix', async (req, res) => {
         if (u.plano_financeiro_status !== 'trial') {
             return res.status(400).json({ ok: false, erro: 'Conta não está em período de trial' });
         }
-        if (!u.trial_expira_em || new Date(u.trial_expira_em) > new Date()) {
-            return res.status(400).json({ ok: false, erro: 'Trial ainda está ativo ou sem data de expiração' });
+        // trial_expira_em NULL com status 'trial' = cron zerou o campo sem concluir cobrança → permitir pagamento
+        if (u.trial_expira_em && new Date(u.trial_expira_em) > new Date()) {
+            return res.status(400).json({ ok: false, erro: 'Trial ainda está ativo' });
         }
 
         const planoR = await pool.query('SELECT nome, preco_mensal FROM planos WHERE id = $1', [u.plano_id]);
@@ -350,7 +351,8 @@ router.post('/pagar-trial-cartao', async (req, res) => {
         if (!['trial', 'inadimplente'].includes(u.plano_financeiro_status)) {
             return res.status(400).json({ ok: false, erro: 'Conta já está ativa ou suspensa' });
         }
-        if (u.plano_financeiro_status === 'trial' && (!u.trial_expira_em || new Date(u.trial_expira_em) > new Date())) {
+        // trial_expira_em NULL com status 'trial' = cron zerou o campo sem concluir cobrança → permitir pagamento
+        if (u.plano_financeiro_status === 'trial' && u.trial_expira_em && new Date(u.trial_expira_em) > new Date()) {
             return res.status(400).json({ ok: false, erro: 'Trial ainda está ativo' });
         }
         if (!u.documento) {

@@ -41,39 +41,8 @@ cron.schedule('0 6 * * *', async () => {
 
     try {
         // ─── Escritórios com preferência CARTÃO que têm cartão salvo ───
-        // [A-4] Claim rows com SELECT FOR UPDATE SKIP LOCKED
-        const claimTrialClient = await pool.connect();
-        let claimedTrialCartaoIds = [];
-        try {
-            await claimTrialClient.query('BEGIN');
-            const claimedCartao = await claimTrialClient.query(`
-                SELECT e.id FROM escritorios e
-                JOIN planos p ON e.plano_id = p.id
-                JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
-                JOIN cartoes c ON c.escritorio_id = e.id
-                WHERE e.plano_financeiro_status = 'trial'
-                  AND e.trial_expira_em <= CURRENT_DATE
-                  AND COALESCE(e.preferencia_pagamento, 'cartao') = 'cartao'
-                  AND COALESCE(u.is_master, false) = false
-                FOR UPDATE OF e SKIP LOCKED
-            `);
-            claimedTrialCartaoIds = claimedCartao.rows.map(r => r.id);
-            if (claimedTrialCartaoIds.length > 0) {
-                // Claim: remover trial_expira_em para prevenir re-seleção durante processamento
-                await claimTrialClient.query(
-                    `UPDATE escritorios SET trial_expira_em = NULL WHERE id = ANY($1) AND plano_financeiro_status = 'trial'`,
-                    [claimedTrialCartaoIds]
-                );
-            }
-            await claimTrialClient.query('COMMIT');
-        } catch (claimErr) {
-            await claimTrialClient.query('ROLLBACK').catch(() => {});
-            logger.error({ err: claimErr.message }, '[CRON TRIAL] Erro ao adquirir locks cartão — abortando');
-            return;
-        } finally {
-            claimTrialClient.release();
-        }
-
+        // O advisory lock já garante execução única — não é necessário zerar trial_expira_em
+        // (zerá-lo antes de confirmar o pagamento impede o bloqueio de acesso se a cobrança falhar)
         const resultCartao = await pool.query(`
             SELECT
                 e.id, e.nome, e.plano_id, e.trial_expira_em,
@@ -86,9 +55,12 @@ cron.schedule('0 6 * * *', async () => {
             JOIN planos p ON e.plano_id = p.id
             JOIN usuarios u ON u.escritorio_id = e.id AND u.role = 'admin'
             JOIN cartoes c ON c.escritorio_id = e.id
-            WHERE e.id = ANY($1)
+            WHERE e.plano_financeiro_status = 'trial'
+              AND e.trial_expira_em <= CURRENT_DATE
+              AND COALESCE(e.preferencia_pagamento, 'cartao') = 'cartao'
+              AND COALESCE(u.is_master, false) = false
             ORDER BY e.id
-        `, [claimedTrialCartaoIds.length > 0 ? claimedTrialCartaoIds : [0]]);
+        `);
 
         // ─── Escritórios com preferência PIX (sem necessidade de cartão) ───
         const resultPix = await pool.query(`
@@ -192,7 +164,9 @@ cron.schedule('0 6 * * *', async () => {
                     falhas++;
                 }
             } catch (err) {
-                logger.error(`[ERRO] Erro cartão: ${err.message}`);
+                logger.error(`[ERRO] Erro cartão: ${err.message} — marcando inadimplente`);
+                await pool.query(`UPDATE escritorios SET plano_financeiro_status = 'inadimplente' WHERE id = $1`, [esc.id]);
+                await invalidarCacheEscritorio(esc.id);
                 falhas++;
             }
         }

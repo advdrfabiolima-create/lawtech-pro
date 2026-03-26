@@ -67,6 +67,9 @@ const authMiddleware = async (req, res, next) => {
       expiracao.setHours(0, 0, 0, 0);
       const diffMs = expiracao - hoje;
       diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    } else if (usuario.plano_financeiro_status === 'trial') {
+      // trial_expira_em = NULL + status 'trial' = cron zerou o campo sem concluir cobrança
+      diasRestantes = -999;
     }
 
     // 🛡️ REGRA DE IMUNIDADE MASTER (via banco de dados)
