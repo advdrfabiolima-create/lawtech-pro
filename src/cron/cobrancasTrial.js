@@ -322,7 +322,7 @@ cron.schedule('0 9 * * *', async () => {
                                 Ver Planos e Preços
                             </a>
                         </div>
-                        <p style="color:#64748b;font-size:13px;">Após a expiração você terá 3 dias de período de graça antes do bloqueio total.</p>
+                        <p style="color:#64748b;font-size:13px;">Se você possui cartão cadastrado, a renovação será automática. Caso contrário, realize o pagamento para manter o acesso.</p>
                     </div>
                 `
             }).catch(e => logger.warn({ err: e.message, email: esc.email }, '[CRON TRIAL] Falha ao enviar aviso'));

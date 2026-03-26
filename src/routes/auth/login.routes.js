@@ -74,7 +74,7 @@ router.post('/login', async (req, res) => {
         // ⚠️ BLOQUEIA LOGIN SE TRIAL EXPIROU OU INADIMPLENTE
         if (!ehMaster) {
             const statusBloqueado = !['pago', 'ativo'].includes(usuario.plano_financeiro_status);
-            if (statusBloqueado && (usuario.plano_financeiro_status === 'inadimplente' || diasRestantes <= 0)) {
+            if (statusBloqueado && (usuario.plano_financeiro_status === 'inadimplente' || diasRestantes < 0)) {
 
                 logger.info(`⚠️ [LOGIN BLOQUEADO] Trial expirado: ${usuario.email}`);
                 registrarAudit({ usuario_id: usuario.id, email: usuario.email, escritorio_id: usuario.escritorio_id, acao: 'LOGIN_BLOQUEADO', descricao: 'Trial expirado', metadata: { dias_restantes: diasRestantes, status: usuario.plano_financeiro_status }, ...dadosReq(req) });
@@ -173,7 +173,7 @@ router.get('/me', async (req, res) => {
 
         const ehMaster = usuario.is_master === true || usuario.email === process.env.MASTER_EMAIL;
         const statusBloqueadoMe = !['pago', 'ativo'].includes(usuario.plano_financeiro_status);
-        if (!ehMaster && statusBloqueadoMe && (usuario.plano_financeiro_status === 'inadimplente' || diasRestantes <= 0)) {
+        if (!ehMaster && statusBloqueadoMe && (usuario.plano_financeiro_status === 'inadimplente' || diasRestantes < 0)) {
             return res.status(402).json({
                 ok: false,
                 erro: 'Trial expirado',

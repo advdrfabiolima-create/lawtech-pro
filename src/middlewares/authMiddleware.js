@@ -80,7 +80,7 @@ const authMiddleware = async (req, res, next) => {
     const statusBloqueado = !['pago', 'ativo'].includes(usuario.plano_financeiro_status);
     const deveBloquear = statusBloqueado && (
       usuario.plano_financeiro_status === 'inadimplente' ||
-      diasRestantes <= 0
+      diasRestantes < 0   // bloqueia a partir do dia SEGUINTE ao de expiração (cron cobra às 6h no dia D)
     );
     if (!ehMaster && deveBloquear) {
       logger.warn({ email: usuario.email, diasRestantes, status: usuario.plano_financeiro_status }, '[BLOQUEIO ATIVADO]');
