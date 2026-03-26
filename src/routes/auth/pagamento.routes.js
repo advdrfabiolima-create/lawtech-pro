@@ -418,18 +418,21 @@ router.post('/pagar-trial-cartao', async (req, res) => {
         // Salvar customerId + creditCardToken para cobranças recorrentes via Asaas
         try {
             const creditCardToken = pg.creditCardToken || null;
+            const brand = pg.creditCard?.creditCardBrand || null;
+            const last4 = pg.creditCard?.creditCardNumber || null;
             const cartaoExistente = await pool.query('SELECT id FROM cartoes WHERE escritorio_id = $1', [u.escritorio_id]);
             if (cartaoExistente.rows.length > 0) {
                 await pool.query(
-                    `UPDATE cartoes SET token = $1, asaas_card_token = $2, gateway = 'asaas', updated_at = NOW()
+                    `UPDATE cartoes SET token = $1, asaas_card_token = $2, gateway = 'asaas',
+                     brand = $4, last4 = $5, updated_at = NOW()
                      WHERE escritorio_id = $3`,
-                    [encrypt(customerId), creditCardToken ? encrypt(creditCardToken) : null, u.escritorio_id]
+                    [encrypt(customerId), creditCardToken ? encrypt(creditCardToken) : null, u.escritorio_id, brand, last4]
                 );
             } else {
                 await pool.query(
-                    `INSERT INTO cartoes (escritorio_id, token, asaas_card_token, gateway, created_at, updated_at)
-                     VALUES ($1, $2, $3, 'asaas', NOW(), NOW())`,
-                    [u.escritorio_id, encrypt(customerId), creditCardToken ? encrypt(creditCardToken) : null]
+                    `INSERT INTO cartoes (escritorio_id, token, asaas_card_token, gateway, brand, last4, created_at, updated_at)
+                     VALUES ($1, $2, $3, 'asaas', $4, $5, NOW(), NOW())`,
+                    [u.escritorio_id, encrypt(customerId), creditCardToken ? encrypt(creditCardToken) : null, brand, last4]
                 );
             }
             logger.info(`[CARTAO] [CARTAO TRIAL] Token Asaas salvo para escritório ${u.escritorio_id}`);
