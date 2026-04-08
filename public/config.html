@@ -912,6 +912,34 @@
             </ul>
         </div>
 
+        <!-- Ações manuais -->
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+            <button id="btnSincronizarDatajud" data-action="sincronizarDatajud"
+                style="flex:1;min-width:180px;padding:12px 16px;background:#eff6ff;border:2px solid #bfdbfe;color:#1d4ed8;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+                <i data-lucide="refresh-cw" style="width:15px;height:15px;"></i> Sincronizar Agora
+            </button>
+            <button id="btnRessincronizarDatajud" data-action="ressincronizarDatajud"
+                style="flex:1;min-width:180px;padding:12px 16px;background:#fef2f2;border:2px solid #fecaca;color:#991b1b;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"
+                title="Apaga todos os andamentos DataJud e reimporta do zero">
+                <i data-lucide="rotate-ccw" style="width:15px;height:15px;"></i> Re-sincronizar Tudo
+            </button>
+        </div>
+        <div id="datajud-status" style="font-size:13px;min-height:18px;margin-bottom:16px;"></div>
+
+        <!-- Diagnóstico por número CNJ -->
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;">
+            <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;">Diagnóstico — Testar número CNJ</div>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+                <input type="text" id="datajud-numero-teste" placeholder="Ex: 5001576-17.2026.4.04.7102"
+                    style="flex:1;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:monospace;">
+                <button data-action="testarDatajud"
+                    style="padding:10px 16px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;">
+                    🔍 Testar
+                </button>
+            </div>
+            <pre id="datajud-diagnostico" style="display:none;font-size:12px;background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;white-space:pre-wrap;word-break:break-word;max-height:300px;overflow-y:auto;"></pre>
+        </div>
+
     </div>
 
     <!-- Sincronização de Calendário (iCal Feed) -->
