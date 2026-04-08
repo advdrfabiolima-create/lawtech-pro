@@ -355,7 +355,12 @@ async function buscarMovimentos(numeroCNJ) {
     }
 
     const movimentos = src.movimento || src.movimentos || src.andamento || src.andamentos || [];
-    logger.debug({ numeroCNJ, movimentos: movimentos.length }, '[DataJud] Movimentos encontrados');
+    const semData = movimentos.filter(m => !m.dataHora).length;
+    logger.info({ numeroCNJ, total: movimentos.length, semData, comData: movimentos.length - semData }, '[DataJud] Movimentos encontrados');
+
+    if (movimentos.length > 0 && semData === movimentos.length) {
+      logger.warn({ numeroCNJ }, '[DataJud] Todos os movimentos sem dataHora — processo existe no DataJud mas nenhum será importado');
+    }
 
     return movimentos
       .filter(m => m.dataHora) // ignora movimentos sem data — evita duplicatas diárias com data de hoje
