@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <title>Manual de Utilização — LawTech Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-primary: #F8FAFB;
+            --bg-secondary: #1E3A5F;
+            --bg-tertiary: #2A4A73;
+            --bg-elevated: #ffffff;
+            --text-primary: #2C3E50;
+            --text-secondary: #5A6C7D;
+            --text-tertiary: #7B8794;
+            --accent-blue: #4A90E2;
+            --accent-blue-light: #5BA4DB;
+            --accent-green: #52B788;
+            --accent-purple: #7E8CE0;
+            --accent-orange: #F2A65A;
+            --accent-red: #E76F51;
+            --accent-gold: #F4D06F;
+            --border-subtle: rgba(42, 74, 115, 0.08);
+            --border-medium: rgba(42, 74, 115, 0.12);
+            --radius-sm: 4px;
+            --radius-md: 6px;
+            --radius-lg: 8px;
+            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== LAYOUT ===== */
+        .layout { display: flex; min-height: 100vh; }
+
+        /* ===== SIDEBAR TOC ===== */
+        .toc-sidebar {
+            width: 280px;
+            background: var(--bg-secondary);
+            position: fixed;
+            top: 0; left: 0;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 24px 16px;
+            z-index: 100;
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .toc-sidebar::-webkit-scrollbar { width: 4px; }
+        .toc-sidebar::-webkit-scrollbar-track { background: transparent; }
+        .toc-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+        .toc-logo {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .toc-logo img { max-width: 160px; width: 100%; }
+
+        .toc-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: rgba(255,255,255,0.35);
+            padding: 0 8px;
+            margin-bottom: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .toc-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: var(--radius-lg);
+            font-size: 13px;
+            font-weight: 500;
+            transition: all var(--transition-base);
+            margin-bottom: 2px;
+        }
+
+        .toc-link:hover { background: rgba(255,255,255,0.07); color: #e2e8f0; }
+        .toc-link.active { background: rgba(74,144,226,0.18); color: #60a5fa; font-weight: 600; }
+        .toc-link i { font-size: 15px; flex-shrink: 0; }
+
+        .toc-badge {
+            margin-left: auto;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .badge-premium { background: #fbbf24; color: #000; }
+        .badge-new { background: #22c55e; color: #fff; }
+
+        .toc-back {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            color: #60a5fa;
+            text-decoration: none;
+            border-radius: var(--radius-lg);
+            font-size: 13px;
+            font-weight: 600;
+            background: rgba(74,144,226,0.12);
+            border: 1px solid rgba(74,144,226,0.25);
+            margin-bottom: 16px;
+            transition: all var(--transition-base);
+        }
+        .toc-back:hover { background: rgba(74,144,226,0.2); }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px 48px;
+            max-width: 1100px;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border-radius: 16px;
+            padding: 48px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -100px; right: -100px;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(74,144,226,0.2) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(74,144,226,0.2);
+            border: 1px solid rgba(74,144,226,0.4);
+            color: #93c5fd;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .hero h1 {
+            font-size: 36px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+
+        .hero h1 span { color: #60a5fa; }
+
+        .hero p {
+            font-size: 16px;
+            color: #94a3b8;
+            max-width: 600px;
+            line-height: 1.7;
+        }
+
+        .hero-version {
+            position: absolute;
+            top: 24px;
+            right: 32px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: rgba(255,255,255,0.3);
+        }
+
+        /* ===== QUICK NAV CARDS ===== */
+        .quick-nav {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 48px;
+        }
+
+        .quick-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all var(--transition-base);
+            cursor: pointer;
+        }
+
+        .quick-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(42,74,115,0.1);
+            border-color: var(--accent-blue);
+        }
+
+        .quick-card-icon {
+            width: 44px; height: 44px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 22px;
+        }
+
+        .quick-card span {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        /* ===== SECTIONS ===== */
+        .section {
+            margin-bottom: 48px;
+            scroll-margin-top: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border-medium);
+        }
+
+        .section-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .section-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .section-header p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        /* ===== CONTENT BLOCKS ===== */
+        .content-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .content-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .content-card h3 i { font-size: 18px; }
+
+        .content-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+
+        .content-card p:last-child { margin-bottom: 0; }
+
+        /* ===== STEPS ===== */
+        .steps { list-style: none; margin: 12px 0; }
+        .steps li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 8px 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .steps li:last-child { border-bottom: none; }
+        .step-num {
+            min-width: 24px; height: 24px;
+            background: var(--accent-blue);
+            color: white;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* ===== FEATURE LIST ===== */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px;
+            background: var(--bg-primary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .feature-item i {
+            color: var(--accent-blue);
+            font-size: 18px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .feature-item .fi-text strong {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: block;
+        }
+
+        .feature-item .fi-text span {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* ===== TIP BOX ===== */
+        .tip-box {
+            display: flex;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            margin: 12px 0;
+        }
+
+        .tip-box.info { background: rgba(74,144,226,0.08); border: 1px solid rgba(74,144,226,0.2); color: #1e40af; }
+        .tip-box.warning { background: rgba(242,166,90,0.08); border: 1px solid rgba(242,166,90,0.3); color: #92400e; }
+        .tip-box.success { background: rgba(82,183,136,0.08); border: 1px solid rgba(82,183,136,0.2); color: #065f46; }
+        .tip-box.premium { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.35); color: #78350f; }
+
+        .tip-box i { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+        /* ===== TABLE ===== */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+
+        .data-table th {
+            background: var(--bg-primary);
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 700;
+            color: var(--text-secondary);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--border-medium);
+        }
+
+        .data-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+        }
+
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover td { background: rgba(74,144,226,0.03); }
+
+        /* ===== BADGE ===== */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-blue { background: rgba(74,144,226,0.12); color: #1e40af; }
+        .badge-green { background: rgba(82,183,136,0.12); color: #065f46; }
+        .badge-orange { background: rgba(242,166,90,0.12); color: #92400e; }
+        .badge-red { background: rgba(231,111,81,0.12); color: #991b1b; }
+        .badge-purple { background: rgba(126,140,224,0.12); color: #4c1d95; }
+        .badge-gold { background: rgba(251,191,36,0.15); color: #78350f; }
+
+        /* ===== DIVIDER ===== */
+        .divider {
+            height: 1px;
+            background: var(--border-medium);
+            margin: 32px 0;
+        }
+
+        /* ===== FOOTER ===== */
+        .manual-footer {
+            margin-top: 60px;
+            padding: 32px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .manual-footer strong { color: #60a5fa; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .toc-sidebar { display: none; }
+            .main-content { margin-left: 0; padding: 24px 20px; }
+            .hero { padding: 32px 24px; }
+            .hero h1 { font-size: 26px; }
+            .feature-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ===== PRINT ===== */
+        @media print {
+            .toc-sidebar { display: none !important; }
+            .main-content { margin-left: 0; padding: 20px; }
+            .toc-back { display: none; }
+        }
+
+        /* ===== SCROLL SMOOTH ===== */
+        html { scroll-behavior: smooth; }
+
+        /* ===== HIGHLIGHT COLOR HELPERS ===== */
+        .color-blue { color: var(--accent-blue); }
+        .color-green { color: var(--accent-green); }
+        .color-gold { color: #fbbf24; }
+        .color-purple { color: var(--accent-purple); }
+        .color-orange { color: var(--accent-orange); }
+        .color-red { color: var(--accent-red); }
+    </style>
+</head>
+<body>
+<div class="layout">
+
+    <!-- ===== SIDEBAR TOC ===== -->
+    <aside class="toc-sidebar">
+        <div class="toc-logo">
+            <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro" onerror="this.style.display='none'">
+        </div>
+
+        <a href="/dashboard" class="toc-back">
+            <i class="lucide lucide-arrow-left" style="width:15px;"></i>
+            Voltar ao Dashboard
+        </a>
+
+        <div class="toc-title">Conteúdo</div>
+
+        <a href="#visao-geral" class="toc-link">
+            <i class="lucide lucide-layout-dashboard" style="width:15px;"></i> Visão Geral
+        </a>
+        <a href="#dashboard" class="toc-link">
+            <i class="lucide lucide-bar-chart-2" style="width:15px;"></i> Dashboard
+        </a>
+        <a href="#clientes" class="toc-link">
+            <i class="lucide lucide-users" style="width:15px;"></i> Clientes
+        </a>
+        <a href="#prazos" class="toc-link">
+            <i class="lucide lucide-clock" style="width:15px;"></i> Prazos
+        </a>
+        <a href="#processos" class="toc-link">
+            <i class="lucide lucide-folder" style="width:15px;"></i> Processos
+        </a>
+        <a href="#audiencias" class="toc-link">
+            <i class="lucide lucide-calendar-days" style="width:15px;"></i> Audiências
+        </a>
+        <a href="#calculos" class="toc-link">
+            <i class="lucide lucide-calculator" style="width:15px;"></i> Cálculos Jurídicos
+        </a>
+        <a href="#financeiro" class="toc-link">
+            <i class="lucide lucide-credit-card" style="width:15px;"></i> Financeiro
+        </a>
+        <a href="#publicacoes" class="toc-link">
+            <i class="lucide lucide-newspaper" style="width:15px;"></i> Publicações DJEN
+        </a>
+        <a href="#documentos" class="toc-link">
+            <i class="lucide lucide-folder-open" style="width:15px;"></i> Documentos (GED)
+        </a>
+        <a href="#assinatura" class="toc-link">
+            <i class="lucide lucide-pen-line" style="width:15px;"></i> Assinatura Digital
+        </a>
+        <a href="#reunioes" class="toc-link">
+            <i class="lucide lucide-video" style="width:15px;"></i> Reuniões
+        </a>
+        <a href="#chat" class="toc-link">
+            <i class="lucide lucide-message-circle" style="width:15px;"></i> Chat
+        </a>
+        <a href="#relatorios" class="toc-link">
+            <i class="lucide lucide-bar-chart-3" style="width:15px;"></i> Relatórios
+        </a>
+        <a href="#ia" class="toc-link">
+            <i class="lucide lucide-sparkles" style="width:15px; color:#fbbf24;"></i> IA Jurídica
+            <span class="toc-badge badge-premium">Premium</span>
+        </a>
+        <a href="#crm" class="toc-link">
+            <i class="lucide lucide-trending-up" style="width:15px;"></i> CRM Prospecção
+        </a>
+        <a href="#portal" class="toc-link">
+            <i class="lucide lucide-globe" style="width:15px;"></i> Portal do Cliente
+        </a>
+        <a href="#seguranca" class="toc-link">
+            <i class="lucide lucide-shield" style="width:15px;"></i> Segurança & 2FA
+        </a>
+        <a href="#configuracoes" class="toc-link">
+            <i class="lucide lucide-settings" style="width:15px;"></i> Configurações
+        </a>
+        <a href="#planos" class="toc-link">
+            <i class="lucide lucide-award" style="width:15px;"></i> Planos & Assinatura
+        </a>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content">
+
+        <!-- HERO -->
+        <div class="hero">
+            <div class="hero-version">v2.0 • 2026</div>
+            <div class="hero-badge">
+                <i class="lucide lucide-book-open" style="width:13px;"></i>
+                Manual Completo
+            </div>
+            <h1>Manual de Utilização<br><span>LawTech Pro</span></h1>
+            <p>Guia completo com todas as funcionalidades do sistema de gestão jurídica. Encontre instruções passo a passo para aproveitar ao máximo cada módulo.</p>
+        </div>
+
+        <!-- QUICK NAV -->
+        <div class="quick-nav">
+            <a href="#dashboard" class="quick-card">
+                <div class="quick-card-icon" style="background:rgba(74,144,226,0.1);">
+                    <i class="lucide lucide-layout-dashboard" style="color:var(--accent-blue);"></i>
+                </div>
+                <span>Dashboard</span>
+            </a>
+            <a href="#clientes" class="quick-card">
+                <div class="quick-card-icon" style="background:rgba(82,183,136,0.1);">
+                    <i class="lucide lucide-users" style="color:var(--accent-green);"></i>
+                </div>
+                <span>Clientes</span>
+            </a>
+            <a href="#prazos" class="quick-card">
+                <div class="quick-card-icon" style="background:rgba(231,111,81,0.1);">
+                    <i class="lucide lucide-clock" style="color:var(--accent-red);"></i>
+                </div>
+                <span>Prazos</span>
+            </a>
+            <a href="#processos" class="quick-card">
+                <div class="quick-card-icon" style="background:rgba(74,144,226,0.1);">
+                    <i class="lucide lucide-folder" style="color:var(--accent-blue);"></i>
+                </div>
+                <span>Processos</span>
+            </a>
+            <a href="#audiencias" class="quick-card">
+                <div class="quick-card-icon" style="background:rgba(126,140,224,0.1);">
+                    <i class="lucide lucide-calendar-days" style="color:var(--accent-purple);"></i>
+                </div>
+                <span>Audiências</span>
+            </a>
+            <a href="#documentos" class="quick-card">
+                <div class="quick-card-icon" style="background:rgba(242,166,90,0.1);">
+                    <i class="lucide lucide-folder-open" style="color:var(--accent-orange);"></i>
+                </div>
+                <span>Documentos</span>
+            </a>
+            <a href="#financeiro" class="quick-card">
+                <div class="quick-card-icon" style="background:rgba(82,183,136,0.1);">
+                    <i class="lucide lucide-credit-card" style="color:var(--accent-green);"></i>
+                </div>
+                <span>Financeiro</span>
+            </a>
+            <a href="#ia" class="quick-card">
+                <div class="quick-card-icon" style="background:rgba(251,191,36,0.1);">
+                    <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
+                </div>
+                <span>IA Jurídica</span>
+            </a>
+            <a href="#crm" class="quick-card">
+                <div class="quick-card-icon" style="background:rgba(251,191,36,0.1);">
+                    <i class="lucide lucide-trending-up" style="color:#fbbf24;"></i>
+                </div>
+                <span>CRM</span>
+            </a>
+            <a href="#portal" class="quick-card">
+                <div class="quick-card-icon" style="background:rgba(99,102,241,0.1);">
+                    <i class="lucide lucide-globe" style="color:#6366f1;"></i>
+                </div>
+                <span>Portal Cliente</span>
+            </a>
+            <a href="#seguranca" class="quick-card">
+                <div class="quick-card-icon" style="background:rgba(82,183,136,0.1);">
+                    <i class="lucide lucide-shield" style="color:var(--accent-green);"></i>
+                </div>
+                <span>Segurança</span>
+            </a>
+            <a href="#configuracoes" class="quick-card">
+                <div class="quick-card-icon" style="background:rgba(74,144,226,0.1);">
+                    <i class="lucide lucide-settings" style="color:var(--accent-blue);"></i>
+                </div>
+                <span>Configurações</span>
+            </a>
+        </div>
+
+        <!-- ===== VISÃO GERAL ===== -->
+        <section id="visao-geral" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(74,144,226,0.1);">
+                    <i class="lucide lucide-info" style="color:var(--accent-blue);"></i>
+                </div>
+                <div>
+                    <h2>Visão Geral do Sistema</h2>
+                    <p>O que é o LawTech Pro e como ele está organizado</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-layers" style="color:var(--accent-blue);"></i> O que é o LawTech Pro?</h3>
+                <p>O <strong>LawTech Pro</strong> é uma plataforma completa de gestão jurídica desenvolvida para escritórios de advocacia e profissionais do direito. O sistema reúne em um único lugar todas as ferramentas necessárias para gerenciar clientes, processos, prazos, finanças, documentos e muito mais.</p>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-map" style="color:var(--accent-green);"></i> Módulos do Sistema</h3>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <i class="lucide lucide-layout-dashboard"></i>
+                        <div class="fi-text">
+                            <strong>Dashboard</strong>
+                            <span>Painel central com resumo de prazos, audiências e estatísticas</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-users"></i>
+                        <div class="fi-text">
+                            <strong>Clientes</strong>
+                            <span>Cadastro completo com ficha detalhada e portal de acesso</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-folder"></i>
+                        <div class="fi-text">
+                            <strong>Processos</strong>
+                            <span>Gestão completa de processos com partes, andamentos e documentos</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-clock"></i>
+                        <div class="fi-text">
+                            <strong>Prazos</strong>
+                            <span>Controle de prazos processuais com alertas automáticos</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-calendar-days"></i>
+                        <div class="fi-text">
+                            <strong>Audiências</strong>
+                            <span>Agenda de audiências com integração de calendário</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-folder-open"></i>
+                        <div class="fi-text">
+                            <strong>Documentos (GED)</strong>
+                            <span>Gestão eletrônica com versionamento e assinatura digital</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-credit-card"></i>
+                        <div class="fi-text">
+                            <strong>Financeiro</strong>
+                            <span>Controle de honorários, receitas e despesas</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
+                        <div class="fi-text">
+                            <strong>IA Jurídica (Premium)</strong>
+                            <span>Geração de petições e assistente de IA para pesquisa jurídica</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-box info">
+                <i class="lucide lucide-lightbulb" style="width:18px;"></i>
+                <span><strong>Dica de navegação:</strong> Use o menu lateral esquerdo para acessar qualquer módulo. O menu permanece disponível em todas as páginas do sistema. Em dispositivos móveis, ele pode ser acessado tocando no ícone de menu.</span>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== DASHBOARD ===== -->
+        <section id="dashboard" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(74,144,226,0.1);">
+                    <i class="lucide lucide-layout-dashboard" style="color:var(--accent-blue);"></i>
+                </div>
+                <div>
+                    <h2>Dashboard</h2>
+                    <p>Painel central de controle do escritório</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-monitor" style="color:var(--accent-blue);"></i> Visão Geral do Painel</h3>
+                <p>O Dashboard é a primeira tela após o login. Ele exibe um resumo em tempo real das principais informações do escritório, permitindo visualizar rapidamente o que demanda atenção imediata.</p>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-bar-chart-2" style="color:var(--accent-blue);"></i> Cards Estatísticos</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Card</th><th>O que exibe</th><th>Ação ao clicar</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="badge badge-red">Prazos Vencidos</span></td><td>Prazos com data já ultrapassada</td><td>Abre a página de Prazos</td></tr>
+                        <tr><td><span class="badge badge-blue">Audiências</span></td><td>Total de audiências cadastradas</td><td>Abre a página de Audiências</td></tr>
+                        <tr><td><span class="badge badge-orange">Prazos da Semana</span></td><td>Prazos nos próximos 7 dias</td><td>Abre a página de Prazos</td></tr>
+                        <tr><td><span class="badge badge-green">Total de Prazos</span></td><td>Todos os prazos cadastrados</td><td>Abre a página de Prazos</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-bell" style="color:var(--accent-orange);"></i> Notificações</h3>
+                <p>O ícone de sino no canto superior direito exibe alertas do sistema, como prazos próximos ao vencimento, assinaturas digitais concluídas, novos leads do CRM e outros eventos importantes. Clique em <strong>"Marcar todas como lidas"</strong> para limpar as notificações.</p>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-calculator" style="color:var(--accent-blue);"></i> Acesso Rápido</h3>
+                <p>O Dashboard também exibe cards de acesso rápido para <strong>Cálculos Jurídicos</strong>, <strong>IA Jurídica</strong> (plano Premium) e próximos prazos e audiências listados com datas e detalhes.</p>
+            </div>
+
+            <div class="tip-box info">
+                <i class="lucide lucide-info" style="width:18px;"></i>
+                <span><strong>Cronômetro de Trial:</strong> Durante o período de teste gratuito, um contador no topo exibe os dias e horas restantes. Após o encerramento do trial, há 3 dias extras de carência antes do bloqueio.</span>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== CLIENTES ===== -->
+        <section id="clientes" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(82,183,136,0.1);">
+                    <i class="lucide lucide-users" style="color:var(--accent-green);"></i>
+                </div>
+                <div>
+                    <h2>Clientes</h2>
+                    <p>Cadastro e gestão completa da carteira de clientes</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-user-plus" style="color:var(--accent-green);"></i> Cadastrando um Novo Cliente</h3>
+                <ol class="steps">
+                    <li><div class="step-num">1</div> Acesse <strong>Clientes</strong> no menu lateral</li>
+                    <li><div class="step-num">2</div> Clique no botão <strong>"+ Novo Cliente"</strong></li>
+                    <li><div class="step-num">3</div> Preencha os dados: nome, CPF/CNPJ, e-mail, telefone e endereço</li>
+                    <li><div class="step-num">4</div> Selecione o tipo de pessoa (Física ou Jurídica)</li>
+                    <li><div class="step-num">5</div> Clique em <strong>"Salvar"</strong></li>
+                </ol>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-file-text" style="color:var(--accent-blue);"></i> Ficha do Cliente</h3>
+                <p>Cada cliente possui uma ficha completa acessível pelo botão de <strong>detalhes</strong> na lista. A ficha exibe histórico de processos, prazos vinculados, documentos, audiências e registros financeiros relacionados ao cliente.</p>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-globe" style="color:#6366f1;"></i> Portal do Cliente</h3>
+                <p>Na lista de clientes, o botão <span class="badge badge-purple">Portal</span> (ícone roxo) gera um <strong>link mágico</strong> de acesso ao portal exclusivo do cliente. O link é copiado automaticamente para a área de transferência e tem validade de <strong>90 dias</strong>. Compartilhe com o cliente por e-mail ou WhatsApp para que ele possa acompanhar seus processos online.</p>
+            </div>
+
+            <div class="tip-box success">
+                <i class="lucide lucide-check-circle" style="width:18px;"></i>
+                <span><strong>Busca rápida:</strong> Use o campo de pesquisa no topo da lista para localizar clientes por nome, CPF/CNPJ ou e-mail instantaneamente.</span>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== PRAZOS ===== -->
+        <section id="prazos" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(231,111,81,0.1);">
+                    <i class="lucide lucide-clock" style="color:var(--accent-red);"></i>
+                </div>
+                <div>
+                    <h2>Prazos</h2>
+                    <p>Controle rigoroso de prazos processuais e extraprocessuais</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-plus-circle" style="color:var(--accent-red);"></i> Criando um Novo Prazo</h3>
+                <ol class="steps">
+                    <li><div class="step-num">1</div> Acesse <strong>Prazos</strong> no menu lateral</li>
+                    <li><div class="step-num">2</div> Clique em <strong>"+ Novo Prazo"</strong></li>
+                    <li><div class="step-num">3</div> Vincule a um processo e/ou cliente</li>
+                    <li><div class="step-num">4</div> Defina o título, a data de vencimento e o tipo de prazo</li>
+                    <li><div class="step-num">5</div> Adicione observações se necessário e salve</li>
+                </ol>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-alert-triangle" style="color:var(--accent-orange);"></i> Status dos Prazos</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Status</th><th>Significado</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="badge badge-green">Pendente</span></td><td>Prazo dentro do prazo, sem urgência imediata</td></tr>
+                        <tr><td><span class="badge badge-orange">Próximo</span></td><td>Prazo com vencimento nos próximos 7 dias</td></tr>
+                        <tr><td><span class="badge badge-red">Vencido</span></td><td>Data de vencimento já ultrapassada</td></tr>
+                        <tr><td><span class="badge badge-blue">Concluído</span></td><td>Prazo marcado como cumprido</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tip-box warning">
+                <i class="lucide lucide-alert-circle" style="width:18px;"></i>
+                <span><strong>Atenção:</strong> O sistema envia notificações automáticas quando um prazo está próximo ao vencimento. Verifique o ícone de sino no Dashboard regularmente para não perder alertas importantes.</span>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== PROCESSOS ===== -->
+        <section id="processos" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(74,144,226,0.1);">
+                    <i class="lucide lucide-folder" style="color:var(--accent-blue);"></i>
+                </div>
+                <div>
+                    <h2>Processos</h2>
+                    <p>Gestão completa de processos judiciais e administrativos</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-file-plus" style="color:var(--accent-blue);"></i> Cadastrando um Processo</h3>
+                <ol class="steps">
+                    <li><div class="step-num">1</div> Acesse <strong>Processos</strong> no menu lateral</li>
+                    <li><div class="step-num">2</div> Clique em <strong>"+ Novo Processo"</strong></li>
+                    <li><div class="step-num">3</div> Informe o número do processo, tribunal, vara e área do direito</li>
+                    <li><div class="step-num">4</div> Vincule o cliente e defina as partes (polo ativo/passivo)</li>
+                    <li><div class="step-num">5</div> Adicione descrição e observações, depois salve</li>
+                </ol>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-list" style="color:var(--accent-blue);"></i> Funcionalidades por Processo</h3>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <i class="lucide lucide-clock"></i>
+                        <div class="fi-text">
+                            <strong>Andamentos</strong>
+                            <span>Registre despachos, decisões, sentenças e outros movimentos</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-folder-open"></i>
+                        <div class="fi-text">
+                            <strong>Documentos</strong>
+                            <span>Anexe arquivos diretamente ao processo via GED</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-calendar"></i>
+                        <div class="fi-text">
+                            <strong>Audiências</strong>
+                            <span>Visualize audiências vinculadas ao processo</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-clock-3"></i>
+                        <div class="fi-text">
+                            <strong>Prazos</strong>
+                            <span>Controle prazos associados a cada processo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-history" style="color:var(--accent-purple);"></i> Andamentos Processuais</h3>
+                <p>Clique no botão de <strong>relógio</strong> (ícone roxo) na linha do processo para abrir o modal de andamentos. Você pode registrar manualmente cada movimentação com:</p>
+                <ul style="margin:10px 0 0 16px; font-size:14px; color:var(--text-secondary);">
+                    <li style="margin-bottom:6px;"><strong>Data</strong> do andamento</li>
+                    <li style="margin-bottom:6px;"><strong>Tipo:</strong> Despacho, Decisão, Sentença, Acórdão, Petição, Audiência, Recurso, Citação ou Outros</li>
+                    <li style="margin-bottom:6px;"><strong>Título</strong> e descrição detalhada</li>
+                    <li><strong>Visibilidade:</strong> marque "Visível ao cliente" para aparecer no Portal do Cliente</li>
+                </ul>
+                <div class="tip-box info" style="margin-top:12px;">
+                    <i class="lucide lucide-info" style="width:18px;"></i>
+                    <span>Andamentos marcados como <strong>"Visível ao cliente"</strong> aparecem automaticamente na timeline do Portal do Cliente correspondente.</span>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-archive" style="color:var(--text-secondary);"></i> Arquivamento de Processos</h3>
+                <p>Processos podem ser arquivados quando encerrados, passando para a aba <strong>"Arquivados"</strong>. Processos arquivados não aparecem nas contagens do Dashboard, mas permanecem acessíveis para consulta.</p>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== AUDIÊNCIAS ===== -->
+        <section id="audiencias" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(126,140,224,0.1);">
+                    <i class="lucide lucide-calendar-days" style="color:var(--accent-purple);"></i>
+                </div>
+                <div>
+                    <h2>Audiências</h2>
+                    <p>Agenda e controle de audiências e atos processuais</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-calendar-plus" style="color:var(--accent-purple);"></i> Agendando uma Audiência</h3>
+                <ol class="steps">
+                    <li><div class="step-num">1</div> Acesse <strong>Audiências</strong> no menu lateral</li>
+                    <li><div class="step-num">2</div> Clique em <strong>"+ Nova Audiência"</strong></li>
+                    <li><div class="step-num">3</div> Selecione o processo relacionado</li>
+                    <li><div class="step-num">4</div> Defina data, horário, local e tipo de audiência</li>
+                    <li><div class="step-num">5</div> Adicione observações e salve</li>
+                </ol>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-list-checks" style="color:var(--accent-purple);"></i> Tipos de Audiência Suportados</h3>
+                <p>O sistema suporta o registro de <strong>audiências de instrução, conciliação, julgamento, custodia, informação</strong>, entre outros tipos. Use o campo de tipo para categorizar corretamente cada ato.</p>
+            </div>
+
+            <div class="tip-box info">
+                <i class="lucide lucide-info" style="width:18px;"></i>
+                <span>Audiências agendadas aparecem no card <strong>"Audiências"</strong> do Dashboard e nas próximas tarefas do painel.</span>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== CÁLCULOS ===== -->
+        <section id="calculos" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(74,144,226,0.1);">
+                    <i class="lucide lucide-calculator" style="color:var(--accent-blue);"></i>
+                </div>
+                <div>
+                    <h2>Cálculos Jurídicos</h2>
+                    <p>Ferramentas de cálculo para uso prático no dia a dia jurídico</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-sigma" style="color:var(--accent-blue);"></i> Calculadoras Disponíveis</h3>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <i class="lucide lucide-trending-up"></i>
+                        <div class="fi-text">
+                            <strong>Correção Monetária</strong>
+                            <span>Atualização de valores com índices IPCA, IGP-M, INPC e SELIC</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-percent"></i>
+                        <div class="fi-text">
+                            <strong>Juros Moratórios</strong>
+                            <span>Cálculo de juros simples e compostos por período</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-calendar-check"></i>
+                        <div class="fi-text">
+                            <strong>Prazo Processual</strong>
+                            <span>Contagem de dias úteis e corridos respeitando feriados</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-scale"></i>
+                        <div class="fi-text">
+                            <strong>Honorários OAB</strong>
+                            <span>Estimativa de honorários conforme tabela da OAB</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-briefcase"></i>
+                        <div class="fi-text">
+                            <strong>Verbas Trabalhistas</strong>
+                            <span>Cálculo de rescisão, férias, 13º e FGTS</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-file-text"></i>
+                        <div class="fi-text">
+                            <strong>Custas Processuais</strong>
+                            <span>Estimativa de custas por estado e tipo de ação</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-box success">
+                <i class="lucide lucide-check-circle" style="width:18px;"></i>
+                <span>Os resultados dos cálculos podem ser exportados ou copiados para uso em petições e pareceres jurídicos.</span>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== FINANCEIRO ===== -->
+        <section id="financeiro" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(82,183,136,0.1);">
+                    <i class="lucide lucide-credit-card" style="color:var(--accent-green);"></i>
+                </div>
+                <div>
+                    <h2>Financeiro</h2>
+                    <p>Controle de honorários, receitas e despesas do escritório</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-plus-circle" style="color:var(--accent-green);"></i> Registrando uma Transação</h3>
+                <ol class="steps">
+                    <li><div class="step-num">1</div> Acesse <strong>Financeiro</strong> no menu lateral</li>
+                    <li><div class="step-num">2</div> Clique em <strong>"+ Nova Transação"</strong></li>
+                    <li><div class="step-num">3</div> Selecione o tipo: <span class="badge badge-green">Receita</span> ou <span class="badge badge-red">Despesa</span></li>
+                    <li><div class="step-num">4</div> Informe o valor, data, categoria e descrição</li>
+                    <li><div class="step-num">5</div> Vincule ao processo ou cliente se aplicável</li>
+                    <li><div class="step-num">6</div> Defina o status de pagamento e salve</li>
+                </ol>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-pie-chart" style="color:var(--accent-green);"></i> Resumo Financeiro</h3>
+                <p>O painel financeiro exibe o balanço do escritório com totais de receitas, despesas e resultado líquido. Utilize os filtros de período para visualizar o desempenho em intervalos específicos.</p>
+            </div>
+
+            <div class="tip-box info">
+                <i class="lucide lucide-info" style="width:18px;"></i>
+                <span>Honorários vinculados a processos são automaticamente registrados no financeiro quando cadastrados no módulo de processos.</span>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== PUBLICAÇÕES DJEN ===== -->
+        <section id="publicacoes" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(126,140,224,0.1);">
+                    <i class="lucide lucide-newspaper" style="color:var(--accent-purple);"></i>
+                </div>
+                <div>
+                    <h2>Publicações DJEN</h2>
+                    <p>Monitoramento automático de publicações do Diário Eletrônico da Justiça</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-rss" style="color:var(--accent-purple);"></i> Como Funciona</h3>
+                <p>O sistema monitora automaticamente o <strong>DataJud (CNJ)</strong> para capturar publicações e movimentações processuais relacionadas aos processos cadastrados no escritório. As publicações são sincronizadas periodicamente e exibidas nesta seção.</p>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-refresh-cw" style="color:var(--accent-purple);"></i> Sincronização Manual</h3>
+                <p>Na página de <strong>Configurações</strong>, você pode forçar uma sincronização manual com o DataJud usando os botões disponíveis na seção de integração. Isso é útil quando uma publicação recente ainda não apareceu automaticamente.</p>
+            </div>
+
+            <div class="tip-box warning">
+                <i class="lucide lucide-alert-triangle" style="width:18px;"></i>
+                <span><strong>Importante:</strong> A integração com o DataJud requer que os processos estejam cadastrados com o número correto no sistema. Certifique-se de que os dados estão atualizados para que as publicações sejam capturadas corretamente.</span>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== DOCUMENTOS GED ===== -->
+        <section id="documentos" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(242,166,90,0.1);">
+                    <i class="lucide lucide-folder-open" style="color:var(--accent-orange);"></i>
+                </div>
+                <div>
+                    <h2>Documentos (GED)</h2>
+                    <p>Gestão Eletrônica de Documentos com versionamento e organização</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-upload" style="color:var(--accent-orange);"></i> Fazendo Upload de um Documento</h3>
+                <ol class="steps">
+                    <li><div class="step-num">1</div> Acesse <strong>Documentos (GED)</strong> no menu</li>
+                    <li><div class="step-num">2</div> Clique em <strong>"+ Novo Documento"</strong></li>
+                    <li><div class="step-num">3</div> Selecione o arquivo (máx. 20 MB)</li>
+                    <li><div class="step-num">4</div> Informe o nome, categoria, tags e descrição</li>
+                    <li><div class="step-num">5</div> Vincule a um processo se aplicável</li>
+                    <li><div class="step-num">6</div> Marque como <strong>"Modelo"</strong> se for reutilizável</li>
+                    <li><div class="step-num">7</div> Clique em <strong>"Salvar"</strong></li>
+                </ol>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-git-branch" style="color:var(--accent-orange);"></i> Versionamento de Documentos</h3>
+                <p>Para criar uma nova versão de um documento existente, clique no botão <strong>"Nova Versão"</strong> na linha do documento. O sistema mantém o histórico completo de todas as versões, exibindo sempre a versão mais recente na listagem principal. Para ver todas as versões, clique em <strong>"Ver Versões"</strong>.</p>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-tag" style="color:var(--accent-orange);"></i> Categorias de Documentos</h3>
+                <p>Os documentos são organizados nas seguintes categorias:</p>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
+                    <span class="badge badge-blue">Petição</span>
+                    <span class="badge badge-green">Contrato</span>
+                    <span class="badge badge-purple">Procuração</span>
+                    <span class="badge badge-orange">Decisão</span>
+                    <span class="badge badge-red">Citação</span>
+                    <span class="badge badge-blue">Recurso</span>
+                    <span class="badge badge-green">Laudo</span>
+                    <span class="badge badge-orange">Acordo</span>
+                    <span class="badge badge-purple">Comprovante</span>
+                    <span class="badge badge-gold">Modelo</span>
+                    <span class="badge" style="background:#f1f5f9;color:#64748b;">Outros</span>
+                </div>
+            </div>
+
+            <div class="tip-box info">
+                <i class="lucide lucide-info" style="width:18px;"></i>
+                <span>Acesse documentos de um processo específico diretamente na página de Processos, clicando no botão <strong>pasta</strong> (ícone laranja) na linha do processo.</span>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== ASSINATURA DIGITAL ===== -->
+        <section id="assinatura" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(126,140,224,0.1);">
+                    <i class="lucide lucide-pen-line" style="color:var(--accent-purple);"></i>
+                </div>
+                <div>
+                    <h2>Assinatura Digital</h2>
+                    <p>Coleta de assinaturas digitais via ClickSign integrado ao GED</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-send" style="color:var(--accent-purple);"></i> Enviando um Documento para Assinatura</h3>
+                <ol class="steps">
+                    <li><div class="step-num">1</div> Na página de Documentos, localize o documento PDF vinculado a um processo</li>
+                    <li><div class="step-num">2</div> Clique no botão <span class="badge badge-purple">caneta</span> (ícone roxo)</li>
+                    <li><div class="step-num">3</div> Informe nome, e-mail e CPF/CNPJ do signatário</li>
+                    <li><div class="step-num">4</div> Defina a mensagem e prazo limite para assinatura</li>
+                    <li><div class="step-num">5</div> O signatário recebe um e-mail com link para assinar</li>
+                </ol>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-activity" style="color:var(--accent-purple);"></i> Acompanhando o Status</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Status</th><th>Significado</th><th>Ação Disponível</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="badge badge-orange">Aguardando</span></td><td>Enviado, aguardando assinatura</td><td>Verificar status, cancelar</td></tr>
+                        <tr><td><span class="badge badge-blue">Em assinatura</span></td><td>Pelo menos um signatário já assinou</td><td>Verificar status</td></tr>
+                        <tr><td><span class="badge badge-green">Assinado</span></td><td>Todos os signatários assinaram</td><td>Baixar PDF assinado</td></tr>
+                        <tr><td><span class="badge badge-red">Cancelado</span></td><td>Processo de assinatura cancelado</td><td>Reenviar se necessário</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tip-box success">
+                <i class="lucide lucide-download" style="width:18px;"></i>
+                <span>Quando o documento estiver com status <strong>Assinado</strong>, o botão <span class="badge badge-green">verde</span> (ícone de arquivo) permite baixar o PDF com as assinaturas digitais inseridas.</span>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== REUNIÕES ===== -->
+        <section id="reunioes" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(74,144,226,0.1);">
+                    <i class="lucide lucide-video" style="color:var(--accent-blue);"></i>
+                </div>
+                <div>
+                    <h2>Reuniões</h2>
+                    <p>Videochamadas integradas com clientes diretamente pela plataforma</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-video" style="color:var(--accent-blue);"></i> Agendando uma Reunião Online</h3>
+                <ol class="steps">
+                    <li><div class="step-num">1</div> Acesse <strong>Reuniões</strong> no menu lateral</li>
+                    <li><div class="step-num">2</div> Clique em <strong>"+ Nova Reunião"</strong></li>
+                    <li><div class="step-num">3</div> Selecione o cliente e informe título, data e horário</li>
+                    <li><div class="step-num">4</div> Defina a duração estimada (em minutos)</li>
+                    <li><div class="step-num">5</div> Salve e uma sala de vídeo é criada automaticamente</li>
+                </ol>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-monitor" style="color:var(--accent-blue);"></i> Entrando na Videochamada</h3>
+                <p>Clique no botão <strong>"Entrar na Reunião"</strong> no horário agendado. A videochamada é aberta diretamente na plataforma, sem necessidade de instalar aplicativos externos. O cliente acessa pelo <strong>Portal do Cliente</strong>, onde encontrará o link para entrar na reunião.</p>
+            </div>
+
+            <div class="tip-box info">
+                <i class="lucide lucide-info" style="width:18px;"></i>
+                <span>As reuniões são realizadas através do serviço <strong>Daily.co</strong>. Certifique-se de que o navegador tem permissão para acessar câmera e microfone.</span>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== CHAT ===== -->
+        <section id="chat" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(82,183,136,0.1);">
+                    <i class="lucide lucide-message-circle" style="color:var(--accent-green);"></i>
+                </div>
+                <div>
+                    <h2>Chat</h2>
+                    <p>Comunicação interna e com clientes pelo sistema</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-message-square" style="color:var(--accent-green);"></i> Usando o Chat</h3>
+                <p>O módulo de Chat permite comunicação em tempo real dentro da plataforma. É possível iniciar conversas com outros membros da equipe do escritório e registrar comunicações. O ícone de <strong>💬 Chat</strong> no menu exibe um badge vermelho quando há mensagens não lidas.</p>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-paperclip" style="color:var(--accent-green);"></i> Compartilhando Arquivos</h3>
+                <p>No chat, é possível enviar arquivos e documentos diretamente na conversa. Os arquivos ficam armazenados de forma segura e podem ser acessados posteriormente no histórico da conversa.</p>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== RELATÓRIOS ===== -->
+        <section id="relatorios" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(74,144,226,0.1);">
+                    <i class="lucide lucide-bar-chart-3" style="color:var(--accent-blue);"></i>
+                </div>
+                <div>
+                    <h2>Relatórios</h2>
+                    <p>Análises e relatórios gerenciais do escritório</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-pie-chart" style="color:var(--accent-blue);"></i> Tipos de Relatórios</h3>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <i class="lucide lucide-users"></i>
+                        <div class="fi-text">
+                            <strong>Clientes por Período</strong>
+                            <span>Novos clientes cadastrados em intervalos de tempo</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-folder"></i>
+                        <div class="fi-text">
+                            <strong>Processos por Status</strong>
+                            <span>Distribuição de processos ativos, arquivados e por área</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-credit-card"></i>
+                        <div class="fi-text">
+                            <strong>Financeiro</strong>
+                            <span>Receitas x despesas, inadimplência e projeções</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-clock"></i>
+                        <div class="fi-text">
+                            <strong>Prazos e Produtividade</strong>
+                            <span>Taxa de cumprimento de prazos e produtividade da equipe</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-box success">
+                <i class="lucide lucide-download" style="width:18px;"></i>
+                <span>Relatórios podem ser exportados em formato PDF ou planilha para uso em reuniões e apresentações.</span>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== IA JURÍDICA ===== -->
+        <section id="ia" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(251,191,36,0.12);">
+                    <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
+                </div>
+                <div>
+                    <h2>IA Jurídica <span class="badge badge-gold" style="font-size:12px; vertical-align:middle;">Premium</span></h2>
+                    <p>Inteligência Artificial aplicada à prática jurídica</p>
+                </div>
+            </div>
+
+            <div class="tip-box premium">
+                <i class="lucide lucide-star" style="width:18px;"></i>
+                <span>Este módulo está disponível apenas nos planos <strong>Premium e Avançado</strong>. Faça upgrade do seu plano para desbloquear os recursos de IA.</span>
+            </div>
+
+            <div class="content-card" style="border-color:rgba(251,191,36,0.3);">
+                <h3><i class="lucide lucide-file-text" style="color:#fbbf24;"></i> Petições IA</h3>
+                <p>Gere petições jurídicas completas com auxílio de Inteligência Artificial. O sistema utiliza modelos de linguagem avançados para criar minutas de petições com base nos dados do processo e nas instruções fornecidas.</p>
+                <ol class="steps">
+                    <li><div class="step-num">1</div> Acesse <strong>IA Jurídica → Petições IA</strong> no menu</li>
+                    <li><div class="step-num">2</div> Selecione o tipo de petição desejado</li>
+                    <li><div class="step-num">3</div> Informe os dados do processo, partes e fundamentos</li>
+                    <li><div class="step-num">4</div> Clique em <strong>"Gerar Petição"</strong> e aguarde</li>
+                    <li><div class="step-num">5</div> Revise, edite e exporte o documento gerado</li>
+                </ol>
+                <div class="tip-box warning" style="margin-top:12px;">
+                    <i class="lucide lucide-alert-triangle" style="width:18px;"></i>
+                    <span>O conteúdo gerado pela IA deve ser sempre revisado pelo advogado responsável antes de ser utilizado oficialmente. A IA é uma ferramenta de apoio, não substitui o julgamento profissional.</span>
+                </div>
+            </div>
+
+            <div class="content-card" style="border-color:rgba(251,191,36,0.3);">
+                <h3><i class="lucide lucide-bot" style="color:#fbbf24;"></i> Assistente IA Jurídica</h3>
+                <p>Chat com IA especializada em direito brasileiro. O assistente pode ajudar com pesquisa de jurisprudência, interpretação de leis, sugestão de fundamentos legais, análise de contratos e muito mais. Faça perguntas em linguagem natural e obtenha respostas fundamentadas.</p>
+                <div class="feature-grid" style="margin-top:12px;">
+                    <div class="feature-item">
+                        <i class="lucide lucide-search"></i>
+                        <div class="fi-text">
+                            <strong>Pesquisa Jurídica</strong>
+                            <span>Consulte legislação e jurisprudência com linguagem natural</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-scale"></i>
+                        <div class="fi-text">
+                            <strong>Análise Legal</strong>
+                            <span>Análise de documentos e situações jurídicas complexas</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-file-check"></i>
+                        <div class="fi-text">
+                            <strong>Revisão de Peças</strong>
+                            <span>Sugestões de melhoria para petições e contratos</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-book-open"></i>
+                        <div class="fi-text">
+                            <strong>Base Legal</strong>
+                            <span>Identificação de artigos de lei aplicáveis ao caso</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== CRM ===== -->
+        <section id="crm" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(251,191,36,0.1);">
+                    <i class="lucide lucide-trending-up" style="color:#fbbf24;"></i>
+                </div>
+                <div>
+                    <h2>CRM Prospecção</h2>
+                    <p>Gestão de leads e pipeline de prospecção de novos clientes</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-kanban" style="color:#fbbf24;"></i> Pipeline de Leads</h3>
+                <p>O CRM organiza os leads em um <strong>quadro Kanban</strong> com as seguintes etapas:</p>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+                    <span class="badge badge-blue">Triagem</span>
+                    <span style="color:var(--text-secondary); font-size:18px; line-height:1;">→</span>
+                    <span class="badge badge-orange">Proposta</span>
+                    <span style="color:var(--text-secondary); font-size:18px; line-height:1;">→</span>
+                    <span class="badge badge-purple">Negociação</span>
+                    <span style="color:var(--text-secondary); font-size:18px; line-height:1;">→</span>
+                    <span class="badge badge-green">Ganho</span>
+                    <span style="color:var(--text-secondary); font-size:18px; line-height:1;">|</span>
+                    <span class="badge badge-red">Perdido</span>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-user-plus" style="color:#fbbf24;"></i> Adicionando um Lead</h3>
+                <ol class="steps">
+                    <li><div class="step-num">1</div> Acesse <strong>CRM Prospecção</strong> no menu (botão dourado)</li>
+                    <li><div class="step-num">2</div> Clique em <strong>"+ Novo Lead"</strong></li>
+                    <li><div class="step-num">3</div> Preencha nome, e-mail, telefone e origem do lead</li>
+                    <li><div class="step-num">4</div> Defina a etapa inicial e salve</li>
+                    <li><div class="step-num">5</div> Arraste o card entre colunas para atualizar o status</li>
+                </ol>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-flame" style="color:var(--accent-red);"></i> Score e Temperatura</h3>
+                <p>Cada lead recebe automaticamente um <strong>score</strong> baseado nas interações registradas:</p>
+                <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:10px;">
+                    <div class="tip-box info" style="flex:1; min-width:140px; padding:10px 12px;">
+                        <i class="lucide lucide-thermometer-snowflake" style="width:16px;"></i>
+                        <span><strong>Frio</strong> — Pouco engajamento</span>
+                    </div>
+                    <div class="tip-box warning" style="flex:1; min-width:140px; padding:10px 12px;">
+                        <i class="lucide lucide-thermometer" style="width:16px;"></i>
+                        <span><strong>Morno</strong> — Interesse moderado</span>
+                    </div>
+                    <div class="tip-box" style="flex:1; min-width:140px; padding:10px 12px; background:rgba(231,111,81,0.08); border:1px solid rgba(231,111,81,0.3); color:#991b1b;">
+                        <i class="lucide lucide-flame" style="width:16px;"></i>
+                        <span><strong>Quente</strong> — Alta probabilidade de fechamento</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-history" style="color:#fbbf24;"></i> Linha do Tempo de Atividades</h3>
+                <p>Cada lead possui uma linha do tempo com todas as atividades registradas: ligações, e-mails enviados, propostas, reuniões e observações. Use o botão de <strong>WhatsApp</strong> contextual no modal do lead para iniciar contato rapidamente.</p>
+            </div>
+
+            <div class="tip-box info">
+                <i class="lucide lucide-mail" style="width:18px;"></i>
+                <span>O sistema envia automaticamente <strong>e-mails de acompanhamento</strong> para leads que ficaram sem movimentação por 3 dias (alerta) ou 7 dias (reativação).</span>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== PORTAL DO CLIENTE ===== -->
+        <section id="portal" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(99,102,241,0.1);">
+                    <i class="lucide lucide-globe" style="color:#6366f1;"></i>
+                </div>
+                <div>
+                    <h2>Portal do Cliente</h2>
+                    <p>Acesso exclusivo para clientes acompanharem seus processos online</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-link" style="color:#6366f1;"></i> Gerando o Link de Acesso</h3>
+                <ol class="steps">
+                    <li><div class="step-num">1</div> Na lista de Clientes, localize o cliente desejado</li>
+                    <li><div class="step-num">2</div> Clique no botão <span class="badge badge-purple">Portal</span> (ícone roxo indigo)</li>
+                    <li><div class="step-num">3</div> O link mágico é gerado e copiado automaticamente</li>
+                    <li><div class="step-num">4</div> Compartilhe com o cliente por e-mail ou WhatsApp</li>
+                </ol>
+                <div class="tip-box info" style="margin-top:12px;">
+                    <i class="lucide lucide-calendar" style="width:18px;"></i>
+                    <span>O link de acesso tem validade de <strong>90 dias</strong>. Após expirar, basta gerar um novo link pelo mesmo botão.</span>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-eye" style="color:#6366f1;"></i> O que o Cliente Vê no Portal</h3>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <i class="lucide lucide-folder"></i>
+                        <div class="fi-text">
+                            <strong>Seus Processos</strong>
+                            <span>Lista de todos os processos vinculados ao cliente</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-list"></i>
+                        <div class="fi-text">
+                            <strong>Andamentos</strong>
+                            <span>Timeline de movimentações marcadas como "visível ao cliente"</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-video"></i>
+                        <div class="fi-text">
+                            <strong>Reuniões</strong>
+                            <span>Acesso às videochamadas agendadas</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="lucide lucide-shield"></i>
+                        <div class="fi-text">
+                            <strong>Acesso Seguro</strong>
+                            <span>Autenticação por link mágico sem necessidade de senha</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== SEGURANÇA 2FA ===== -->
+        <section id="seguranca" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(82,183,136,0.1);">
+                    <i class="lucide lucide-shield" style="color:var(--accent-green);"></i>
+                </div>
+                <div>
+                    <h2>Segurança & Autenticação 2FA</h2>
+                    <p>Proteja sua conta com dupla autenticação</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-smartphone" style="color:var(--accent-green);"></i> Ativando o 2FA (Autenticação em Dois Fatores)</h3>
+                <ol class="steps">
+                    <li><div class="step-num">1</div> Acesse <strong>Configurações</strong> no menu lateral</li>
+                    <li><div class="step-num">2</div> Localize a seção <strong>"Autenticação em Dois Fatores"</strong></li>
+                    <li><div class="step-num">3</div> Clique em <strong>"Ativar 2FA"</strong></li>
+                    <li><div class="step-num">4</div> Escaneie o QR Code com seu aplicativo autenticador (Google Authenticator, Authy, etc.)</li>
+                    <li><div class="step-num">5</div> Digite o código de 6 dígitos exibido no aplicativo para confirmar</li>
+                    <li><div class="step-num">6</div> Guarde os <strong>códigos de backup</strong> em local seguro</li>
+                </ol>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-key" style="color:var(--accent-orange);"></i> Códigos de Backup</h3>
+                <p>Ao ativar o 2FA, você receberá <strong>10 códigos de backup</strong> de uso único. Guarde-os em local seguro — eles são necessários caso você perca acesso ao seu aplicativo autenticador. Cada código só pode ser utilizado uma vez.</p>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-mail-check" style="color:var(--accent-blue);"></i> Verificação de E-mail</h3>
+                <p>Ao criar sua conta, você recebe um e-mail de verificação. Clique no link enviado para confirmar seu endereço. Contas com e-mail não verificado exibem um banner de alerta no sistema. Use o botão <strong>"Reenviar verificação"</strong> nas Configurações se necessário.</p>
+            </div>
+
+            <div class="tip-box warning">
+                <i class="lucide lucide-alert-triangle" style="width:18px;"></i>
+                <span><strong>Recomendamos fortemente</strong> ativar o 2FA para proteger os dados confidenciais dos seus clientes. Dados jurídicos são sensíveis e merecem máxima proteção.</span>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== CONFIGURAÇÕES ===== -->
+        <section id="configuracoes" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(74,144,226,0.1);">
+                    <i class="lucide lucide-settings" style="color:var(--accent-blue);"></i>
+                </div>
+                <div>
+                    <h2>Configurações</h2>
+                    <p>Personalize o sistema e gerencie integrações</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-building" style="color:var(--accent-blue);"></i> Dados do Escritório</h3>
+                <p>Em Configurações, você pode atualizar as informações do escritório: nome, endereço, telefone, logo e dados de contato exibidos nos documentos e no Portal do Cliente.</p>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-user" style="color:var(--accent-blue);"></i> Perfil do Usuário</h3>
+                <p>Altere seu nome, e-mail, senha e preferências de notificação. Também é nesta seção que você ativa ou desativa o <strong>2FA</strong> e gerencia os dispositivos autenticados.</p>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-plug" style="color:var(--accent-purple);"></i> Integrações</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Integração</th><th>Finalidade</th><th>Configuração</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>DataJud / CNJ</strong></td><td>Monitoramento automático de publicações</td><td>Sincronização manual disponível</td></tr>
+                        <tr><td><strong>ClickSign</strong></td><td>Assinatura digital de documentos</td><td>Chave de API no .env</td></tr>
+                        <tr><td><strong>Daily.co</strong></td><td>Videochamadas com clientes</td><td>Chave de API no .env</td></tr>
+                        <tr><td><strong>Brevo (Sendinblue)</strong></td><td>Envio de e-mails automáticos</td><td>Chave de API no .env</td></tr>
+                        <tr><td><strong>Stripe / Asaas</strong></td><td>Processamento de pagamentos</td><td>Chaves no .env</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- ===== PLANOS ===== -->
+        <section id="planos" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(251,191,36,0.1);">
+                    <i class="lucide lucide-award" style="color:#fbbf24;"></i>
+                </div>
+                <div>
+                    <h2>Planos & Assinatura</h2>
+                    <p>Gerencie seu plano e forma de pagamento</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-layers" style="color:#fbbf24;"></i> Planos Disponíveis</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Plano</th><th>Recursos Incluídos</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge badge-blue">Essencial</span></td>
+                            <td>Dashboard, Clientes, Processos, Prazos, Audiências, Financeiro, Documentos, Chat</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-purple">Avançado</span></td>
+                            <td>Todos do Essencial + Relatórios avançados, CRM, Portal do Cliente, Reuniões, Publicações DJEN</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-gold">Premium</span></td>
+                            <td>Todos do Avançado + IA Jurídica (Petições IA + Assistente), Assinatura Digital ClickSign, prioridade no suporte</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="content-card">
+                <h3><i class="lucide lucide-credit-card" style="color:#fbbf24;"></i> Formas de Pagamento</h3>
+                <p>A assinatura pode ser paga via <strong>cartão de crédito</strong> (Stripe) ou <strong>PIX</strong> (Asaas). Acesse <strong>Gestão de Planos</strong> no menu para visualizar e atualizar sua assinatura, fazer upgrade e baixar faturas.</p>
+            </div>
+
+            <div class="tip-box info">
+                <i class="lucide lucide-clock" style="width:18px;"></i>
+                <span><strong>Período de teste gratuito:</strong> O sistema oferece <strong>7 dias de teste gratuito</strong> com acesso completo a todas as funcionalidades. Após o período de teste, você tem 3 dias adicionais de carência antes do bloqueio. Faça o upgrade antes do vencimento para não perder o acesso.</span>
+            </div>
+        </section>
+
+        <!-- ===== FOOTER ===== -->
+        <div class="manual-footer">
+            <p style="font-size:16px; font-weight:700; color:#e2e8f0; margin-bottom:8px;">LawTech Pro — Manual de Utilização</p>
+            <p>Dúvidas ou problemas? Entre em contato pelo suporte em <strong>suporte@lawtechpro.com.br</strong></p>
+            <p style="margin-top:8px; font-size:12px; opacity:0.6;">Versão 2.0 · 2026 · Todos os direitos reservados</p>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    // Highlight active TOC link on scroll
+    const sections = document.querySelectorAll('.section');
+    const tocLinks = document.querySelectorAll('.toc-link');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                tocLinks.forEach(link => link.classList.remove('active'));
+                const id = entry.target.id;
+                const activeLink = document.querySelector(`.toc-link[href="#${id}"]`);
+                if (activeLink) activeLink.classList.add('active');
+            }
+        });
+    }, { threshold: 0.3, rootMargin: '-60px 0px -60% 0px' });
+
+    sections.forEach(section => observer.observe(section));
+
+    // Lucide icons init
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+</script>
+</body>
+</html>
