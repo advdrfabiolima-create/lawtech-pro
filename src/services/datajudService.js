@@ -287,18 +287,33 @@ function inferirTipo(nomeMovimento, codigoMovimento) {
 /**
  * Faz uma única requisição ao DataJud para um slug de tribunal.
  * Retorna o _source do primeiro hit ou null.
+ * Retry automático em caso de timeout (até 2 tentativas adicionais).
  */
-async function _consultarTribunal(slug, numeroSemMascara, apiKey) {
+async function _consultarTribunal(slug, numeroSemMascara, apiKey, tentativa = 1) {
   const url = `${DATAJUD_BASE}/api_publica_${slug}/_search`;
-  const { data } = await axios.post(url, {
-    query: { term: { 'numeroProcesso.keyword': numeroSemMascara } },
-    _source: ['numeroProcesso', 'nivelSigilo', 'movimento', 'movimentos', 'andamento', 'andamentos']
-  }, {
-    headers: { 'Authorization': `ApiKey ${apiKey}`, 'Content-Type': 'application/json' },
-    timeout: 30000
-  });
-  const hits = data?.hits?.hits;
-  return hits?.length ? hits[0]._source || {} : null;
+  const TIMEOUT = 60000; // 60s — TRF4 e tribunais grandes podem ser lentos
+  const MAX_TENTATIVAS = 3;
+
+  try {
+    const { data } = await axios.post(url, {
+      query: { term: { 'numeroProcesso.keyword': numeroSemMascara } },
+      _source: ['numeroProcesso', 'nivelSigilo', 'movimento', 'movimentos', 'andamento', 'andamentos']
+    }, {
+      headers: { 'Authorization': `ApiKey ${apiKey}`, 'Content-Type': 'application/json' },
+      timeout: TIMEOUT
+    });
+    const hits = data?.hits?.hits;
+    return hits?.length ? hits[0]._source || {} : null;
+  } catch (err) {
+    const isTimeout = err.code === 'ECONNABORTED' || err.message?.includes('timeout');
+    if (isTimeout && tentativa < MAX_TENTATIVAS) {
+      const espera = tentativa * 3000; // 3s, 6s
+      logger.warn({ slug, tentativa, espera }, '[DataJud] Timeout — aguardando e tentando novamente');
+      await new Promise(r => setTimeout(r, espera));
+      return _consultarTribunal(slug, numeroSemMascara, apiKey, tentativa + 1);
+    }
+    throw err;
+  }
 }
 
 /**
