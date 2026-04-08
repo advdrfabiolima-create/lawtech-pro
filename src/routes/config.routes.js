@@ -191,7 +191,7 @@ router.get('/meu-escritorio', authMiddleware, async (req, res) => {
             `SELECT id, nome, advogado_responsavel, oab, documento, data_nascimento, email,
                     endereco, cidade, estado, cep, banco_codigo, agencia, conta, conta_digito,
                     pix_chave, renda_mensal, plano_id, plano_financeiro_status, logo_arquivo,
-                    logo_base64, portal_slug
+                    logo_base64, portal_slug, renovacao_automatica, data_cancelamento_agendado
              FROM escritorios WHERE id = $1`,
             [escritorioId]
         );

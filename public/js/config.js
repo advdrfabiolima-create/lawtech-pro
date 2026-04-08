@@ -276,50 +276,9 @@ async function carregarInfoRodape() {
                 }
             }
 
-            // ✅ LÓGICA DE CANCELAMENTO ATIVO (Mudar bloco para Vermelho)
+            // ✅ LÓGICA DE CANCELAMENTO ATIVO — sobrescreve o card verde se renovação foi cancelada
             if (d.renovacao_automatica === false) {
-                const container = document.getElementById('containerTrial');
-                const iconeBox = document.getElementById('iconeTrialBox');
-                const label = document.getElementById('labelTrial');
-                const texto = document.getElementById('textoTrial');
-                const btnAcao = document.getElementById('btnAcaoAssinatura');
-                const elementoDataVenc = document.getElementById('dataExpiracaoTrial');
-                const dataVenc = elementoDataVenc ? elementoDataVenc.innerText : "...";
-
-                if (container) {
-                    // 1. Muda Estilo do Card para Vermelho/Rosa suave
-                    container.style.background = "#fef2f2";
-                    container.style.borderColor = "#fecaca";
-                }
-                
-                if (iconeBox) {
-                    iconeBox.style.background = "#ef4444";
-                    iconeBox.innerHTML = '<i data-lucide="x-circle" style="color: #fff; width: 18px; height: 18px;"></i>';
-                }
-                
-                if (label) {
-                    label.innerText = "RENOVAÇÃO CANCELADA";
-                    label.style.color = "#991b1b";
-                }
-
-                if (texto) {
-                    texto.style.color = "#991b1b";
-                    texto.innerHTML = `Você cancelou sua assinatura antes de vencer o período de teste, portanto, <strong>não haverá cobranças em seu cartão.</strong><br>` +
-                                    `<span style="font-size: 12px;">Seu acesso continuará liberado até o dia ${dataVenc}.</span>`;
-                }
-
-                // 2. Transforma o botão de "Cancelar" em "Reativar"
-                if (btnAcao) {
-                    btnAcao.style.background = "#f0fdf4";
-                    btnAcao.style.borderColor = "#bbf7d0";
-                    btnAcao.style.color = "#16a34a";
-                    btnAcao.innerHTML = '<i class="lucide lucide-check-circle" style="width: 18px; height: 18px;"></i> Reativar Assinatura';
-                    btnAcao.setAttribute("data-action", "reativarAssinatura");
-                    btnAcao.removeAttribute("onclick");
-                }
-
-                // Reinicializa os ícones Lucide para renderizar o novo ícone de erro/check
-                if(window.lucide) lucide.createIcons();
+                exibirAssinaturaCancelada(d.data_cancelamento_agendado);
             }
         }
     } catch (err) { 
@@ -1681,6 +1640,59 @@ function exibirAssinaturaAtiva(user) {
     }
     
     // Reinicializar ícones
+    if (window.lucide) lucide.createIcons();
+}
+
+function exibirAssinaturaCancelada(dataCancelamento) {
+    const container = document.getElementById('containerTrial');
+    const footer = document.getElementById('footerAvisoAssinatura');
+    const btnContainer = document.getElementById('containerAcaoAssinatura');
+
+    if (!container) return;
+
+    const dataVenc = dataCancelamento
+        ? new Date(dataCancelamento).toLocaleDateString('pt-BR')
+        : '...';
+
+    container.style.background = '#fef2f2';
+    container.style.borderColor = '#fecaca';
+    container.innerHTML = `
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <div style="background: #ef4444; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i data-lucide="x-circle" style="color: #fff; width: 18px; height: 18px;"></i>
+            </div>
+            <div style="flex: 1;">
+                <div style="font-size: 11px; font-weight: 700; color: #991b1b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                    RENOVAÇÃO CANCELADA
+                </div>
+                <p style="font-size: 14px; color: #991b1b; line-height: 1.6; margin: 0;">
+                    Sua renovação automática ou assinatura foi cancelada.<br>
+                    <span style="font-size: 12px;">Seu acesso permanecerá ativo até <strong>${dataVenc}</strong>. Após essa data o acesso será encerrado.</span>
+                </p>
+            </div>
+        </div>
+    `;
+
+    if (btnContainer) {
+        btnContainer.style.display = 'block';
+        btnContainer.innerHTML = `
+            <button data-action="reativarAssinatura"
+                    style="width: 100%; background: #f0fdf4; border: 2px solid #bbf7d0; color: #16a34a;
+                           padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 14px;
+                           font-weight: 700; transition: all 0.3s; display: flex; align-items: center;
+                           justify-content: center; gap: 8px;">
+                <i class="lucide lucide-check-circle" style="width: 18px; height: 18px;"></i>
+                Reativar Assinatura
+            </button>
+        `;
+    }
+
+    if (footer) {
+        footer.innerHTML = 'Você pode reativar a renovação automática a qualquer momento antes do vencimento.';
+        footer.style.color = '#991b1b';
+        footer.style.display = 'block';
+    }
+
     if (window.lucide) lucide.createIcons();
 }
 
