@@ -168,9 +168,13 @@ async function carregarInfoRodape() {
             
             console.log('📊 [CONFIG] Status:', status, '| Dias restantes:', diasRestantes, '| User:', user);
             
-            // Se status é PAGO ou ATIVO - Mostrar card de assinatura ativa
+            // Se status é PAGO ou ATIVO — verificar se renovação foi cancelada
             if (status === 'pago' || status === 'ativo') {
-                exibirAssinaturaAtiva(user);
+                if (user.renovacao_automatica === false) {
+                    exibirAssinaturaCancelada(user.proxima_cobranca);
+                } else {
+                    exibirAssinaturaAtiva(user);
+                }
                 
             // Se status é TRIAL e ainda tem dias - Mostrar card de trial
             } else if (status === 'trial' && diasRestantes !== null && diasRestantes > 0) {
@@ -276,10 +280,6 @@ async function carregarInfoRodape() {
                 }
             }
 
-            // ✅ LÓGICA DE CANCELAMENTO ATIVO — sobrescreve o card verde se renovação foi cancelada
-            if (d.renovacao_automatica === false) {
-                exibirAssinaturaCancelada(d.data_cancelamento_agendado);
-            }
         }
     } catch (err) { 
         console.warn("Aviso: Falha ao carregar alguns dados do perfil ou trial."); 

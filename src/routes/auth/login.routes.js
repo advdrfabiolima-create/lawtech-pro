@@ -151,7 +151,7 @@ router.get('/me', async (req, res) => {
             `SELECT u.id, u.nome, u.email, u.role, u.escritorio_id, u.is_master,
                     u.tour_desativado, u.data_criacao, u.primeiro_acesso,
                     e.plano_id, e.trial_expira_em, e.plano_financeiro_status,
-                    e.ultimo_pagamento, e.proxima_cobranca
+                    e.ultimo_pagamento, e.proxima_cobranca, e.renovacao_automatica
              FROM usuarios u
              JOIN escritorios e ON u.escritorio_id = e.id
              WHERE u.id = $1`,
@@ -197,6 +197,7 @@ router.get('/me', async (req, res) => {
                 plano_financeiro_status: usuario.plano_financeiro_status,
                 ultimo_pagamento: usuario.ultimo_pagamento,
                 proxima_cobranca: usuario.proxima_cobranca,
+                renovacao_automatica: usuario.renovacao_automatica,
                 dias_restantes: diasRestantes
             }
         });
