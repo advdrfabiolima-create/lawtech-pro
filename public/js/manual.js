@@ -8,15 +8,25 @@ document.addEventListener('DOMContentLoaded', function () {
     const sections = document.querySelectorAll('.section');
     const tocLinks = document.querySelectorAll('.toc-link');
 
-    const observer = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-                tocLinks.forEach(function (link) { link.classList.remove('active'); });
-                var activeLink = document.querySelector('.toc-link[href="#' + entry.target.id + '"]');
-                if (activeLink) activeLink.classList.add('active');
+    function atualizarAtivo() {
+        var scrollY = window.scrollY + 120; // offset para o topo
+        var atualId = null;
+
+        sections.forEach(function (section) {
+            if (section.offsetTop <= scrollY) {
+                atualId = section.id;
             }
         });
-    }, { threshold: 0.3, rootMargin: '-60px 0px -60% 0px' });
 
-    sections.forEach(function (section) { observer.observe(section); });
+        tocLinks.forEach(function (link) {
+            if (atualId && link.getAttribute('href') === '#' + atualId) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+    }
+
+    window.addEventListener('scroll', atualizarAtivo, { passive: true });
+    atualizarAtivo(); // roda na carga inicial
 });
