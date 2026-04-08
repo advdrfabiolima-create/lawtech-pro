@@ -230,6 +230,24 @@
 }
 
         /* Botão CRM Gold */
+        .btn-manual-header {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 14px;
+            background: rgba(74,144,226,0.1);
+            border: 1px solid rgba(74,144,226,0.25);
+            border-radius: 8px;
+            color: var(--accent-blue);
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-manual-header:hover {
+            background: rgba(74,144,226,0.18);
+        }
+
         .btn-crm-gold-nav {
             background: #fbbf24 !important;
             color: #000 !important;
@@ -1645,7 +1663,7 @@ input, textarea, select {
             </div>
             
             <div style="display:flex; gap:20px; align-items:center;">
-                <a href="/manual" target="_blank" style="display:flex; align-items:center; gap:7px; padding:7px 14px; background:rgba(74,144,226,0.1); border:1px solid rgba(74,144,226,0.25); border-radius:8px; color:var(--accent-blue); font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s;" onmouseover="this.style.background='rgba(74,144,226,0.18)'" onmouseout="this.style.background='rgba(74,144,226,0.1)'">
+                <a href="/manual" target="_blank" class="btn-manual-header">
                     <i class="lucide lucide-book-open" style="width:16px;"></i>
                     Manual
                 </a>

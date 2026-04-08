@@ -1678,28 +1678,6 @@
     </main>
 </div>
 
-<script>
-    // Highlight active TOC link on scroll
-    const sections = document.querySelectorAll('.section');
-    const tocLinks = document.querySelectorAll('.toc-link');
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                tocLinks.forEach(link => link.classList.remove('active'));
-                const id = entry.target.id;
-                const activeLink = document.querySelector(`.toc-link[href="#${id}"]`);
-                if (activeLink) activeLink.classList.add('active');
-            }
-        });
-    }, { threshold: 0.3, rootMargin: '-60px 0px -60% 0px' });
-
-    sections.forEach(section => observer.observe(section));
-
-    // Lucide icons init
-    document.addEventListener('DOMContentLoaded', function() {
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-    });
-</script>
+<script src="/js/manual.js"></script>
 </body>
 </html>
