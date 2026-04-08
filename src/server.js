@@ -362,10 +362,7 @@ app.get('/systems/monitor', (req, res) => {
 app.use('/systems', authMiddleware, masterAdminOnly, adminRoutes);
 
 
-if (process.env.NODE_ENV === 'production') {
-require('./cron/djen_scraper_cron');
-//console.log('âœ… Cron DJEN ativado');
-}
+
 
 // --- 9. PÃGINAS FRONTEND ---
 app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')));

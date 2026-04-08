@@ -357,24 +357,26 @@ async function buscarMovimentos(numeroCNJ) {
     const movimentos = src.movimento || src.movimentos || src.andamento || src.andamentos || [];
     logger.debug({ numeroCNJ, movimentos: movimentos.length }, '[DataJud] Movimentos encontrados');
 
-    return movimentos.map(m => {
-      let descricao = null;
-      if (m.complementosTabelados?.length) {
-        descricao = m.complementosTabelados
-          .map(c => c.nome || c.descricao || c.valor)
-          .filter(Boolean)
-          .join(' | ')
-          .substring(0, 2000);
-      } else if (m.complementos) {
-        descricao = String(m.complementos).substring(0, 2000);
-      }
-      return {
-        data:  m.dataHora ? m.dataHora.split('T')[0] : new Date().toISOString().split('T')[0],
-        tipo:  inferirTipo(m.nome, m.codigo),
-        titulo: (m.nome || 'Movimentação').substring(0, 200),
-        descricao,
-      };
-    });
+    return movimentos
+      .filter(m => m.dataHora) // ignora movimentos sem data — evita duplicatas diárias com data de hoje
+      .map(m => {
+        let descricao = null;
+        if (m.complementosTabelados?.length) {
+          descricao = m.complementosTabelados
+            .map(c => c.nome || c.descricao || c.valor)
+            .filter(Boolean)
+            .join(' | ')
+            .substring(0, 2000);
+        } else if (m.complementos) {
+          descricao = String(m.complementos).substring(0, 2000);
+        }
+        return {
+          data:  m.dataHora.split('T')[0],
+          tipo:  inferirTipo(m.nome, m.codigo),
+          titulo: (m.nome || 'Movimentação').substring(0, 200),
+          descricao,
+        };
+      });
 
   } catch (err) {
     if (err.response?.status === 404) return null;
