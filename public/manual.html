@@ -771,10 +771,6 @@
                 <p>O Dashboard também exibe cards de acesso rápido para <strong>Cálculos Jurídicos</strong>, <strong>IA Jurídica</strong> (plano Premium) e próximos prazos e audiências listados com datas e detalhes.</p>
             </div>
 
-            <div class="tip-box info">
-                <i data-lucide="info" style="width:18px;"></i>
-                <span><strong>Cronômetro de Trial:</strong> Durante o período de teste gratuito, um contador no topo exibe os dias e horas restantes. Após o encerramento do trial, há 3 dias extras de carência antes do bloqueio.</span>
-            </div>
         </section>
 
         <div class="divider"></div>
@@ -803,13 +799,39 @@
             </div>
 
             <div class="content-card">
-                <h3><i data-lucide="file-text" style="color:var(--accent-blue);"></i> Ficha do Cliente</h3>
-                <p>Cada cliente possui uma ficha completa acessível pelo botão de <strong>detalhes</strong> na lista. A ficha exibe histórico de processos, prazos vinculados, documentos, audiências e registros financeiros relacionados ao cliente.</p>
-            </div>
-
-            <div class="content-card">
-                <h3><i data-lucide="globe" style="color:#6366f1;"></i> Portal do Cliente</h3>
-                <p>Na lista de clientes, o botão <span class="badge badge-purple">Portal</span> (ícone roxo) gera um <strong>link mágico</strong> de acesso ao portal exclusivo do cliente. O link é copiado automaticamente para a área de transferência e tem validade de <strong>90 dias</strong>. Compartilhe com o cliente por e-mail ou WhatsApp para que ele possa acompanhar seus processos online.</p>
+                <h3><i data-lucide="mouse-pointer-click" style="color:var(--accent-blue);"></i> Ações Disponíveis por Cliente</h3>
+                <p>Na lista de clientes, cada registro possui os seguintes botões de ação:</p>
+                <table class="data-table" style="margin-top:12px;">
+                    <thead>
+                        <tr><th>Ação</th><th>O que faz</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Ver Processos</strong></td>
+                            <td>Abre um modal exibindo todos os processos vinculados àquele cliente</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Link Portal</strong> <span class="badge badge-blue">ícone de hiperlink azul</span></td>
+                            <td>Gera e copia automaticamente o link mágico de acesso ao Portal do Cliente (validade de 90 dias)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Contratos</strong></td>
+                            <td>Abre um modal para selecionar o modelo de contrato — o documento é gerado automaticamente com os dados do cliente</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Procurações</strong></td>
+                            <td>Igual aos Contratos: escolha o modelo e a procuração é gerada automaticamente</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Editar</strong></td>
+                            <td>Abre o formulário para atualizar os dados cadastrais do cliente</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Excluir</strong></td>
+                            <td>Remove o cliente do sistema (ação irreversível)</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
             <div class="tip-box success">
@@ -844,18 +866,30 @@
             </div>
 
             <div class="content-card">
-                <h3><i data-lucide="alert-triangle" style="color:var(--accent-orange);"></i> Status dos Prazos</h3>
+                <h3><i data-lucide="alert-triangle" style="color:var(--accent-orange);"></i> Indicadores de Vencimento</h3>
+                <p>Cada prazo exibe um badge colorido calculado automaticamente com base na data de vencimento:</p>
                 <table class="data-table">
                     <thead>
-                        <tr><th>Status</th><th>Significado</th></tr>
+                        <tr><th>Badge</th><th>Significado</th></tr>
                     </thead>
                     <tbody>
-                        <tr><td><span class="badge badge-green">Pendente</span></td><td>Prazo dentro do prazo, sem urgência imediata</td></tr>
-                        <tr><td><span class="badge badge-orange">Próximo</span></td><td>Prazo com vencimento nos próximos 7 dias</td></tr>
-                        <tr><td><span class="badge badge-red">Vencido</span></td><td>Data de vencimento já ultrapassada</td></tr>
-                        <tr><td><span class="badge badge-blue">Concluído</span></td><td>Prazo marcado como cumprido</td></tr>
+                        <tr><td><span class="badge badge-red">VENCIDO HÁ X DIAS</span></td><td>Data de vencimento já ultrapassada (exibe quantos dias atrás)</td></tr>
+                        <tr><td><span class="badge badge-orange">VENCE HOJE</span></td><td>O prazo vence no dia atual</td></tr>
+                        <tr><td><span class="badge badge-orange">VENCE AMANHÃ</span></td><td>O prazo vence no próximo dia</td></tr>
+                        <tr><td><span class="badge badge-green">VENCE EM X DIAS</span></td><td>Prazo futuro — exibe a contagem regressiva em dias</td></tr>
+                        <tr><td><span class="badge badge-blue">CONCLUÍDO</span></td><td>Prazo marcado manualmente como cumprido</td></tr>
                     </tbody>
                 </table>
+            </div>
+
+            <div class="content-card">
+                <h3><i data-lucide="calendar" style="color:var(--accent-red);"></i> Calendário de Prazos</h3>
+                <p>A página de Prazos possui um calendário mensal integrado com recursos adicionais:</p>
+                <ul style="margin:10px 0 0 16px; font-size:14px; color:var(--text-secondary);">
+                    <li style="margin-bottom:6px;"><strong>Feriados Nacionais:</strong> carregue automaticamente os feriados nacionais para o mês exibido</li>
+                    <li style="margin-bottom:6px;"><strong>Feriados Locais:</strong> adicione feriados municipais ou estaduais manualmente</li>
+                    <li><strong>Compromissos:</strong> registre compromissos avulsos diretamente no calendário, independente de processos</li>
+                </ul>
             </div>
 
             <div class="tip-box warning">
@@ -876,6 +910,11 @@
                     <h2>Processos</h2>
                     <p>Gestão completa de processos judiciais e administrativos</p>
                 </div>
+            </div>
+
+            <div class="tip-box warning">
+                <i data-lucide="info" style="width:18px;"></i>
+                <span><strong>Navegação:</strong> O link <em>Processos</em> no menu lateral não fica destacado ao acessar a página — isso é um comportamento conhecido da navegação atual.</span>
             </div>
 
             <div class="content-card">
@@ -921,6 +960,11 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="content-card">
+                <h3><i data-lucide="refresh-cw" style="color:var(--accent-blue);"></i> Sincronização Automática via DataJud</h3>
+                <p>O sistema consulta o <strong>DataJud (CNJ)</strong> automaticamente <strong>duas vezes ao dia</strong> (às 06h e às 18h) e importa as movimentações dos processos ativos. Para sincronizar um processo individualmente sem aguardar o próximo ciclo, use o ícone <strong>⟳</strong> disponível na linha de cada processo na página de Processos.</p>
             </div>
 
             <div class="content-card">
@@ -971,7 +1015,12 @@
 
             <div class="content-card">
                 <h3><i data-lucide="list-checks" style="color:var(--accent-purple);"></i> Tipos de Audiência Suportados</h3>
-                <p>O sistema suporta o registro de <strong>audiências de instrução, conciliação, julgamento, custodia, informação</strong>, entre outros tipos. Use o campo de tipo para categorizar corretamente cada ato.</p>
+                <p>O sistema suporta o registro de <strong>audiências de instrução, conciliação, julgamento, custódia, informação</strong>, entre outros tipos. Use o campo de tipo para categorizar corretamente cada ato.</p>
+            </div>
+
+            <div class="content-card">
+                <h3><i data-lucide="file-edit" style="color:var(--accent-purple);"></i> Registro de ATA</h3>
+                <p>Após a realização de uma audiência, é possível registrar os acontecimentos e elaborar uma <strong>ATA</strong> diretamente no sistema. A ATA fica vinculada à audiência e pode ser consultada posteriormente a qualquer momento, servindo como registro oficial do que ocorreu durante o ato.</p>
             </div>
 
             <div class="tip-box info">
@@ -1095,23 +1144,23 @@
                 </div>
                 <div>
                     <h2>Publicações DJEN</h2>
-                    <p>Monitoramento automático de publicações do Diário Eletrônico da Justiça</p>
+                    <p>Monitoramento de publicações do Diário Eletrônico da Justiça Nacional</p>
                 </div>
             </div>
 
             <div class="content-card">
-                <h3><i data-lucide="rss" style="color:var(--accent-purple);"></i> Como Funciona</h3>
-                <p>O sistema monitora automaticamente o <strong>DataJud (CNJ)</strong> para capturar publicações e movimentações processuais relacionadas aos processos cadastrados no escritório. As publicações são sincronizadas periodicamente e exibidas nesta seção.</p>
+                <h3><i data-lucide="search" style="color:var(--accent-purple);"></i> Como Funciona</h3>
+                <p>O módulo realiza buscas diretas no site do <strong>DJEN (Diário Eletrônico da Justiça Nacional)</strong> para localizar publicações relacionadas ao escritório. As publicações encontradas são exibidas na própria página para consulta e acompanhamento.</p>
             </div>
 
             <div class="content-card">
                 <h3><i data-lucide="refresh-cw" style="color:var(--accent-purple);"></i> Sincronização Manual</h3>
-                <p>Na página de <strong>Configurações</strong>, você pode forçar uma sincronização manual com o DataJud usando os botões disponíveis na seção de integração. Isso é útil quando uma publicação recente ainda não apareceu automaticamente.</p>
+                <p>Na própria página de <strong>Publicações DJEN</strong> há um botão de sincronização manual. Use-o para realizar uma nova busca e atualizar as publicações exibidas sempre que necessário.</p>
             </div>
 
-            <div class="tip-box warning">
-                <i data-lucide="alert-triangle" style="width:18px;"></i>
-                <span><strong>Importante:</strong> A integração com o DataJud requer que os processos estejam cadastrados com o número correto no sistema. Certifique-se de que os dados estão atualizados para que as publicações sejam capturadas corretamente.</span>
+            <div class="tip-box info">
+                <i data-lucide="info" style="width:18px;"></i>
+                <span>Certifique-se de que os dados do escritório estão corretamente cadastrados nas Configurações para que as buscas no DJEN retornem os resultados esperados.</span>
             </div>
         </section>
 
@@ -1492,13 +1541,13 @@
                 <h3><i data-lucide="link" style="color:#6366f1;"></i> Gerando o Link de Acesso</h3>
                 <ol class="steps">
                     <li><div class="step-num">1</div> Na lista de Clientes, localize o cliente desejado</li>
-                    <li><div class="step-num">2</div> Clique no botão <span class="badge badge-purple">Portal</span> (ícone roxo indigo)</li>
-                    <li><div class="step-num">3</div> O link mágico é gerado e copiado automaticamente</li>
+                    <li><div class="step-num">2</div> Clique no botão <strong>"Link Portal"</strong> <span class="badge badge-blue">ícone de hiperlink azul</span></li>
+                    <li><div class="step-num">3</div> O link mágico é gerado e copiado automaticamente para a área de transferência</li>
                     <li><div class="step-num">4</div> Compartilhe com o cliente por e-mail ou WhatsApp</li>
                 </ol>
                 <div class="tip-box info" style="margin-top:12px;">
                     <i data-lucide="calendar" style="width:18px;"></i>
-                    <span>O link de acesso tem validade de <strong>90 dias</strong>. Após expirar, basta gerar um novo link pelo mesmo botão.</span>
+                    <span>O link de acesso tem validade de <strong>90 dias</strong>. Após expirar, basta clicar novamente em <strong>"Link Portal"</strong> para gerar um novo.</span>
                 </div>
             </div>
 
@@ -1642,16 +1691,20 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><span class="badge badge-blue">Essencial</span></td>
-                            <td>Dashboard, Clientes, Processos, Prazos, Audiências, Financeiro, Documentos, Chat</td>
+                            <td><span class="badge badge-blue">Básico</span></td>
+                            <td>Até 3 usuários · Até 50 processos · Gestão de Clientes, Processos e Prazos (10/mês) · Audiências · Suporte por e-mail</td>
                         </tr>
                         <tr>
-                            <td><span class="badge badge-purple">Avançado</span></td>
-                            <td>Todos do Essencial + Relatórios avançados, CRM, Portal do Cliente, Reuniões, Publicações DJEN</td>
+                            <td><span class="badge badge-purple">Intermediário</span></td>
+                            <td>Tudo do Básico + até 15 usuários · Até 100 prazos/mês · Financeiro Jurídico · Relatórios avançados · Suporte prioritário · Integrações básicas</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-green">Avançado</span></td>
+                            <td>Tudo do Intermediário + usuários e processos ilimitados · Até 500 prazos/mês · Cálculos Jurídicos · GED (Documentos) · Reuniões por Vídeo · CRM Prospecção</td>
                         </tr>
                         <tr>
                             <td><span class="badge badge-gold">Premium</span></td>
-                            <td>Todos do Avançado + IA Jurídica (Petições IA + Assistente), Assinatura Digital ClickSign, prioridade no suporte</td>
+                            <td>Tudo do Avançado + prazos ilimitados · CRM Jurídico completo · IA Jurídica integrada · Integração DJEN · Alertas via WhatsApp</td>
                         </tr>
                     </tbody>
                 </table>
