@@ -230,7 +230,7 @@
             return '<div class="dash-prazo-item" data-goto-prazos="1">' +
                 '<div class="dash-prazo-dot" style="background:' + cor + ';"></div>' +
                 '<div class="dash-prazo-info">' +
-                '<div class="dash-prazo-titulo">' + esc(p.titulo || 'Sem título') + '</div>' +
+                '<div class="dash-prazo-titulo">' + esc(p.tipo || p.titulo || 'Sem título') + '</div>' +
                 '<div class="dash-prazo-meta">' + esc(p.cliente_nome || '—') + '</div>' +
                 '</div>' +
                 '<span class="dash-prazo-badge" style="background:' + bgLabel + ';color:' + corLabel + ';">' + label + '</span>' +
@@ -369,7 +369,7 @@
                 '</div>' +
                 '<div class="prazo-right">' +
                 '<div class="card-header" style="margin-bottom:4px">' +
-                '<span class="card-title">' + esc(p.titulo || 'Sem título') + '</span>' +
+                '<span class="card-title">' + esc(p.tipo || p.titulo || 'Sem título') + '</span>' +
                 badgeStatus(p.status) +
                 '</div>' +
                 '<div class="card-meta">' +
