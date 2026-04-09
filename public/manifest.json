@@ -11,15 +11,15 @@
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "/favicon.png",
+      "src": "/icone_app.ico",
       "sizes": "any",
-      "type": "image/png",
+      "type": "image/x-icon",
       "purpose": "any"
     },
     {
-      "src": "/favicon.png",
+      "src": "/icone_app.ico",
       "sizes": "any",
-      "type": "image/png",
+      "type": "image/x-icon",
       "purpose": "maskable"
     }
   ],
