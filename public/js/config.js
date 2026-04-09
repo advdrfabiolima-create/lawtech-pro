@@ -182,17 +182,35 @@ async function carregarInfoRodape() {
                 const hoje = new Date();
                 const dataExpiracao = new Date(hoje);
                 dataExpiracao.setDate(dataExpiracao.getDate() + diasRestantes);
-                
+
                 const dataFormatada = dataExpiracao.toLocaleDateString('pt-BR');
                 const elementoData = document.getElementById('dataExpiracaoTrial');
                 if (elementoData) elementoData.innerText = dataFormatada;
-                
-                // Atualiza o texto para mostrar quantos dias faltam
+
+                // Verifica se há cartão cadastrado para exibir mensagem correta
                 const textoTrial = document.getElementById('textoTrial');
                 if (textoTrial) {
                     const textoPlural = diasRestantes === 1 ? 'dia' : 'dias';
-                    textoTrial.innerHTML = `Seu teste vence em <strong style="font-weight: 800; color: #92400e;">${diasRestantes} ${textoPlural}</strong> (<strong style="font-weight: 800; color: #92400e;">${dataFormatada}</strong>)<br>
-                    <span id="subtextoTrial" style="font-size: 12px;">Após esta data, a mensalidade será processada automaticamente no cartão cadastrado.</span>`;
+                    try {
+                        const resCartao = await fetch('/api/pagamentos/cartao', { headers: { Authorization: `Bearer ${token}` } });
+                        const dadosCartao = await resCartao.json();
+                        const temCartao = dadosCartao.ok && dadosCartao.cartao;
+
+                        let subtexto = '';
+                        if (temCartao) {
+                            const c = dadosCartao.cartao;
+                            subtexto = `Após esta data, a mensalidade será cobrada automaticamente no cartão ${c.brand} **** ${c.last4}.`;
+                        } else {
+                            subtexto = `Após esta data, você precisará escolher uma forma de pagamento (cartão de crédito ou PIX) para continuar usando o sistema.`;
+                        }
+
+                        textoTrial.innerHTML = `Seu teste vence em <strong style="font-weight: 800; color: #92400e;">${diasRestantes} ${textoPlural}</strong> (<strong style="font-weight: 800; color: #92400e;">${dataFormatada}</strong>)<br>
+                        <span id="subtextoTrial" style="font-size: 12px;">${subtexto}</span>`;
+                    } catch (e) {
+                        // Fallback neutro se a requisição falhar
+                        textoTrial.innerHTML = `Seu teste vence em <strong style="font-weight: 800; color: #92400e;">${diasRestantes} ${textoPlural}</strong> (<strong style="font-weight: 800; color: #92400e;">${dataFormatada}</strong>)<br>
+                        <span id="subtextoTrial" style="font-size: 12px;">Ao final do período de teste, escolha um plano para continuar usando o sistema.</span>`;
+                    }
                 }
                 
             // Se trial expirou mas ainda não pagou - Mostrar aviso
