@@ -10,7 +10,7 @@ async function listarClientes(req, res) {
         const search = (req.query.search || '').trim();
         const searchParam = search ? `%${search}%` : null;
 
-        const [result, countResult] = await Promise.all([
+        const [result, countResult, statsResult] = await Promise.all([
             pool.query(`
                 SELECT
                     c.id,
@@ -49,11 +49,35 @@ async function listarClientes(req, res) {
                           OR c.email     ILIKE $2
                           OR c.telefone  ILIKE $2)`,
                 [escritorioId, searchParam]
+            ),
+            // Stats globais (sem filtro de busca) para os cards de métricas
+            pool.query(
+                `SELECT
+                    COUNT(*)::int AS total_clientes,
+                    COUNT(*) FILTER (WHERE EXISTS (
+                        SELECT 1 FROM partes_processo pp
+                        INNER JOIN processos p ON p.id = pp.processo_id
+                        WHERE pp.pessoa_id = c.id
+                          AND p.escritorio_id = $1
+                          AND p.status != 'excluido'
+                    ))::int AS clientes_com_processo,
+                    (SELECT COUNT(DISTINCT pp2.processo_id)::int
+                     FROM partes_processo pp2
+                     INNER JOIN processos p2 ON p2.id = pp2.processo_id
+                     WHERE pp2.pessoa_id IS NOT NULL
+                       AND p2.escritorio_id = $1
+                       AND p2.status != 'excluido'
+                    ) AS processos_vinculados
+                FROM clientes c
+                WHERE c.escritorio_id = $1`,
+                [escritorioId]
             )
         ]);
 
         const total = parseInt(countResult.rows[0].total);
-        res.json(buildPage(result.rows, total, page, limit));
+        const stats = statsResult.rows[0];
+        const page_data = buildPage(result.rows, total, page, limit);
+        res.json({ ...page_data, stats });
     } catch (error) {
         logger.error({ err: error.message }, 'Erro ao listar clientes');
         res.status(500).json({ erro: 'Erro ao carregar lista de clientes' });

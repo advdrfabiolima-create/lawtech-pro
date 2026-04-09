@@ -143,10 +143,7 @@ const token = localStorage.getItem('token');
     const tbody = document.getElementById('listaClientes');
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#64748b;">Carregando...</td></tr>';
     try {
-        const [resClientes, resProcessos] = await Promise.all([
-            fetch(`/api/clientes?page=${page}&limit=${LIMITE_POR_PAGINA}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch('/api/processos?limit=200', { headers: { 'Authorization': `Bearer ${token}` } })
-        ]);
+        const resClientes = await fetch(`/api/clientes?page=${page}&limit=${LIMITE_POR_PAGINA}`, { headers: { 'Authorization': `Bearer ${token}` } });
 
         if (resClientes.status === 401) {
             alert("SESSÃO EXPIRADA! REDIRECIONANDO...");
@@ -156,22 +153,22 @@ const token = localStorage.getItem('token');
         }
 
         const respClientes = await resClientes.json();
-        const respProcessos = await resProcessos.json();
         const clientes = respClientes.data || respClientes;
-        const todosProcessos = respProcessos.data || respProcessos;
 
         clientesCache = clientes;
         termoBusca = '';
         const searchInput = document.getElementById('searchClientes');
         if (searchInput) searchInput.value = '';
 
-        document.getElementById('totalClientes').innerText = respClientes.total ?? clientes.length;
-
-        const clientesComProcessosSet = new Set(
-            todosProcessos.map(p => p.cliente_id).filter(Boolean)
-        );
-        document.getElementById('clientesAtivos').innerText = clientesComProcessosSet.size;
-        document.getElementById('processosVinculados').innerText = respProcessos.total ?? todosProcessos.length;
+        // Métricas vindas do backend (fonte única e correta)
+        const stats = respClientes.stats;
+        if (stats) {
+            document.getElementById('totalClientes').innerText = stats.total_clientes;
+            document.getElementById('clientesAtivos').innerText = stats.clientes_com_processo;
+            document.getElementById('processosVinculados').innerText = stats.processos_vinculados;
+        } else {
+            document.getElementById('totalClientes').innerText = respClientes.total ?? clientes.length;
+        }
 
         renderizarClientes(clientes);
         const totalItens = respClientes.total ?? clientes.length;
