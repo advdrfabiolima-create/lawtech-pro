@@ -1,8 +1,8 @@
 (function () {
     'use strict';
 
-    var TOKEN_KEY = 'jwt_token';
-    var USER_KEY = 'user_data';
+    var TOKEN_KEY = 'token';
+    var USER_KEY = 'usuario';
     var tabAtual = 'clientes';
     var dadosCarregados = {};
     var todosOsPrazos = [];
@@ -103,17 +103,11 @@
         if (cached) {
             try {
                 var u = JSON.parse(cached);
-                document.getElementById('userName').textContent = u.nome ? u.nome.split(' ')[0] : '';
+                var nome = u.nome || u.name || '';
+                document.getElementById('userName').textContent = nome.split(' ')[0];
                 return;
             } catch (e) { /* ignora */ }
         }
-
-        apiGet('/api/auth/me').then(function (data) {
-            if (!data || !data.ok) return logout();
-            var nome = data.nome || data.user && data.user.nome || '';
-            document.getElementById('userName').textContent = nome.split(' ')[0];
-            localStorage.setItem(USER_KEY, JSON.stringify({ nome: nome }));
-        });
     }
 
     // ─── NAVEGAÇÃO ────────────────────────────────────────────────────────────
