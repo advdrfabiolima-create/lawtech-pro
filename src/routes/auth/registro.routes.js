@@ -161,13 +161,30 @@ router.post('/register', async (req, res) => {
 
             const baseUrl = process.env.BASE_URL || 'https://www.lawtechpro.com.br';
 
-            // 📧 Enviar e-mail de verificação e boas-vindas via Brevo
+            // ✅ Responde imediatamente — não bloquear na espera dos e-mails
+            res.status(201).json({
+                ok: true,
+                mensagem: 'Cadastro realizado com sucesso!',
+                token: token,
+                usuario: {
+                    id: usuario.id,
+                    nome: usuario.nome,
+                    email: usuario.email,
+                    role: usuario.role,
+                    escritorio_id: escritorioId
+                },
+                trial: {
+                    dias_restantes: 7,
+                    expira_em: dataExpiracao.toISOString().split('T')[0]
+                }
+            });
+
+            // 📧 Enviar e-mails em background (fire-and-forget — não atrasa o login)
             if (process.env.BREVO_API_KEY && process.env.BREVO_SENDER) {
                 const linkVerificacao = `${baseUrl}/verificar-email.html?token=${verificacaoToken}`;
 
                 // E-mail de verificação
-                try {
-                    await axios.post('https://api.brevo.com/v3/smtp/email', {
+                axios.post('https://api.brevo.com/v3/smtp/email', {
                         sender: { name: 'LawTech Pro', email: process.env.BREVO_SENDER },
                         to: [{ email: usuario.email, name: usuario.nome }],
                         subject: '✅ Confirme seu e-mail — LawTech Pro',
@@ -201,15 +218,12 @@ router.post('/register', async (req, res) => {
                                 <p style="color:#A0AEC0;font-size:10px;margin:4px 0 0;">Este é um e-mail automático. Não responda esta mensagem.</p>
                             </div>
                         </div>`
-                    }, { headers: { 'api-key': process.env.BREVO_API_KEY } });
-                    logger.info(`📧 [REGISTRO] E-mail de verificação enviado para ${usuario.email}`);
-                } catch (mailErr) {
-                    logger.warn(`⚠️ [REGISTRO] Falha ao enviar e-mail de verificação: ${mailErr.message}`);
-                }
+                    }, { headers: { 'api-key': process.env.BREVO_API_KEY } })
+                    .then(() => logger.info(`📧 [REGISTRO] E-mail de verificação enviado para ${usuario.email}`))
+                    .catch(err => logger.warn(`⚠️ [REGISTRO] Falha ao enviar e-mail de verificação: ${err.message}`));
 
                 // 📧 Notificar admin sobre novo cadastro
-                try {
-                    await axios.post('https://api.brevo.com/v3/smtp/email', {
+                axios.post('https://api.brevo.com/v3/smtp/email', {
                         sender: { name: 'LawTech Pro', email: process.env.BREVO_SENDER },
                         to: [{ email: process.env.ADMIN_EMAIL || 'fabio@lawtechpro.com.br', name: 'Admin LawTech' }],
                         subject: '🆕 Novo Cadastro no LawTech Pro!',
@@ -236,30 +250,10 @@ router.post('/register', async (req, res) => {
                                 <p style="color:#A0AEC0;font-size:10px;margin:0;">Notificação automática — LawTech Pro</p>
                             </div>
                         </div>`
-                    }, { headers: { 'api-key': process.env.BREVO_API_KEY } });
-                    logger.info(`📧 [ADMIN] Notificação de novo cadastro enviada`);
-                } catch (adminMailErr) {
-                    logger.warn(`⚠️ [ADMIN] Falha ao notificar admin: ${adminMailErr.message}`);
-                }
+                    }, { headers: { 'api-key': process.env.BREVO_API_KEY } })
+                    .then(() => logger.info(`📧 [ADMIN] Notificação de novo cadastro enviada`))
+                    .catch(err => logger.warn(`⚠️ [ADMIN] Falha ao notificar admin: ${err.message}`));
             }
-
-            // ✅ Retorna sucesso
-            res.status(201).json({
-                ok: true,
-                mensagem: 'Cadastro realizado com sucesso!',
-                token: token,
-                usuario: {
-                    id: usuario.id,
-                    nome: usuario.nome,
-                    email: usuario.email,
-                    role: usuario.role,
-                    escritorio_id: escritorioId
-                },
-                trial: {
-                    dias_restantes: 7,
-                    expira_em: dataExpiracao.toISOString().split('T')[0]
-                }
-            });
 
         } catch (err) {
             await client.query('ROLLBACK');
