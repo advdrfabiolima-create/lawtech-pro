@@ -40,8 +40,11 @@ const token = localStorage.getItem('token');
             const planoNome = (plano.plano || 'free').toLowerCase();
             document.getElementById('planNameFooter').innerText = plano.plano || 'free';
 
-            // Verificar se é Premium - bloquear se não for
-            if (planoNome !== 'premium') {
+            // Trial ativo: libera acesso a todas as funcionalidades
+            const emTrial = data.ok && data.usuario && data.usuario.plano_financeiro_status === 'trial';
+
+            // Verificar se é Premium - bloquear se não for (trial tem acesso completo)
+            if (planoNome !== 'premium' && !emTrial) {
                 const content = document.querySelector('.content');
                 if (content) {
                     content.innerHTML = `

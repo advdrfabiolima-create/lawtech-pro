@@ -117,8 +117,11 @@ const token = localStorage.getItem('token');
             planoAtual = (dataPlan.plano || '').toLowerCase();
             document.getElementById('planNameFooter').innerText = dataPlan.plano || '---';
 
-            // Verificar se é Premium
-            if (planoAtual !== 'premium') {
+            // Trial ativo: libera acesso a todas as funcionalidades
+            const emTrial = dataUser.ok && dataUser.usuario && dataUser.usuario.plano_financeiro_status === 'trial';
+
+            // Verificar se é Premium (trial tem acesso completo)
+            if (planoAtual !== 'premium' && !emTrial) {
                 exibirMensagemUpgrade();
             }
 
