@@ -15,16 +15,18 @@ async function verificarPagamento(req, res, next) {
     const status = rows[0].plano_financeiro_status;
     const statusPermitidos = ['ativo', 'pago'];
 
-    // Trial: permitido dentro do grace period de 3 dias após expiração (igual ao authMiddleware)
+    // Trial: permitido enquanto diasRestantes >= 0 (alinhado com authMiddleware)
     if (status === 'trial') {
         const agora = new Date();
+        agora.setHours(0, 0, 0, 0);
         const expiracao = rows[0].trial_expira_em ? new Date(rows[0].trial_expira_em) : null;
 
         if (!expiracao) return next(); // sem data definida = sem bloqueio
 
+        expiracao.setHours(0, 0, 0, 0);
         const diasRestantes = Math.ceil((expiracao - agora) / (1000 * 60 * 60 * 24));
 
-        if (diasRestantes >= -3) return next(); // dentro do grace period (3 dias: -1, -2, -3)
+        if (diasRestantes >= 0) return next(); // trial ainda válido
 
         return res.status(402).json({
             ok: false,
