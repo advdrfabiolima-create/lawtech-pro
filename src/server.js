@@ -401,6 +401,7 @@ app.get('/acesso/:slug', (req, res) => res.sendFile(path.join(publicPath, 'acess
 app.get('/reunioes-page', (req, res) => res.sendFile(path.join(publicPath, 'reunioes.html')));
 app.get('/verificar-email', (req, res) => res.sendFile(path.join(publicPath, 'verificar-email.html')));
 app.get('/app', (req, res) => res.sendFile(path.join(publicPath, 'app.html')));
+app.get('/landing', (req, res) => res.sendFile(path.join(publicPath, 'landing', 'index.html')));
 app.get('/service-worker.js', (req, res) => {
     res.setHeader('Content-Type', 'application/javascript');
     res.setHeader('Service-Worker-Allowed', '/');
