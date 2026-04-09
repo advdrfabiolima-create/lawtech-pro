@@ -4,7 +4,7 @@
     var TOKEN_KEY = 'token';
     var USER_KEY = 'usuario';
     var deferredInstallPrompt = null;
-    var tabAtual = 'clientes';
+    var tabAtual = 'dashboard';
     var dadosCarregados = {};
     var todosOsPrazos = [];
     var todosOsClientes = [];
@@ -134,6 +134,7 @@
         // Carrega dados
         if (!dadosCarregados[nome]) {
             dadosCarregados[nome] = true;
+            if (nome === 'dashboard') carregarDashboard();
             if (nome === 'clientes') carregarClientes();
             if (nome === 'prazos') carregarPrazos();
             if (nome === 'processos') carregarProcessos();
@@ -142,6 +143,104 @@
 
         // Renderizar ícones na seção ativa
         if (window.lucide) lucide.createIcons();
+    }
+
+    // ─── DASHBOARD ────────────────────────────────────────────────────────────
+
+    function carregarDashboard() {
+        // Saudação por horário
+        var hora = new Date().getHours();
+        var saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+        var usuario = localStorage.getItem(USER_KEY);
+        var primeiroNome = '';
+        try { primeiroNome = JSON.parse(usuario).nome.split(' ')[0]; } catch (e) {}
+        document.getElementById('dashGreeting').textContent = saudacao + (primeiroNome ? ', ' + primeiroNome + '!' : '!');
+
+        // Data por extenso
+        var agora = new Date();
+        document.getElementById('dashDate').textContent = agora.toLocaleDateString('pt-BR', {
+            weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+        });
+
+        // Carrega contagens em paralelo
+        Promise.all([
+            apiGet('/api/clientes?limit=1'),
+            apiGet('/api/prazos?limit=200'),
+            apiGet('/api/processos?limit=1&status=ativo'),
+            apiGet('/api/audiencias?limit=200')
+        ]).then(function (res) {
+            var dataClientes   = res[0];
+            var dataPrazos     = res[1];
+            var dataProcessos  = res[2];
+            var dataAudiencias = res[3];
+
+            // Clientes
+            if (dataClientes) {
+                document.getElementById('dashCountClientes').textContent = dataClientes.total || 0;
+            }
+
+            // Prazos — conta atrasados + hoje e mostra preview
+            if (dataPrazos) {
+                var prazos = dataPrazos.data || (Array.isArray(dataPrazos) ? dataPrazos : []);
+                todosOsPrazos = prazos;
+                var urgentes = prazos.filter(function (p) {
+                    return p.status === 'atrasado' || p.status === 'hoje';
+                });
+                document.getElementById('dashCountPrazos').textContent = dataPrazos.total || prazos.length;
+                document.getElementById('dashSubPrazos').textContent =
+                    urgentes.length > 0 ? urgentes.length + ' urgente' + (urgentes.length > 1 ? 's' : '') : 'pendentes';
+                renderDashPrazos(urgentes.slice(0, 5), prazos.slice(0, 5));
+            }
+
+            // Processos
+            if (dataProcessos) {
+                document.getElementById('dashCountProcessos').textContent = dataProcessos.total || 0;
+            }
+
+            // Audiências próximas
+            if (dataAudiencias) {
+                var aud = Array.isArray(dataAudiencias) ? dataAudiencias : (dataAudiencias.data || []);
+                todasAsAudiencias = aud;
+                var agora2 = new Date();
+                var proximas = aud.filter(function (a) { return new Date(a.data_audiencia) >= agora2; });
+                document.getElementById('dashCountAudiencias').textContent = proximas.length;
+            }
+
+            if (window.lucide) lucide.createIcons();
+        });
+    }
+
+    function renderDashPrazos(urgentes, todos) {
+        var el = document.getElementById('dashPrazosUrgentes');
+        var lista = urgentes.length > 0 ? urgentes : todos;
+
+        if (!lista || !lista.length) {
+            el.innerHTML = '<div class="dash-empty-msg">Nenhum prazo urgente — tudo em dia! ✓</div>';
+            return;
+        }
+
+        var titulo = urgentes.length > 0 ? '' : '';
+
+        el.innerHTML = lista.map(function (p) {
+            var cor = p.status === 'atrasado' ? '#dc2626' : p.status === 'hoje' ? '#d97706' : '#2563eb';
+            var label = p.status === 'atrasado' ? 'Atrasado' : p.status === 'hoje' ? 'Hoje' : formatarData(p.data_limite);
+            var bgLabel = p.status === 'atrasado' ? '#fee2e2' : p.status === 'hoje' ? '#fef3c7' : '#dbeafe';
+            var corLabel = p.status === 'atrasado' ? '#991b1b' : p.status === 'hoje' ? '#92400e' : '#1e40af';
+
+            return '<div class="dash-prazo-item" data-goto-prazos="1">' +
+                '<div class="dash-prazo-dot" style="background:' + cor + ';"></div>' +
+                '<div class="dash-prazo-info">' +
+                '<div class="dash-prazo-titulo">' + esc(p.titulo || 'Sem título') + '</div>' +
+                '<div class="dash-prazo-meta">' + esc(p.cliente_nome || '—') + '</div>' +
+                '</div>' +
+                '<span class="dash-prazo-badge" style="background:' + bgLabel + ';color:' + corLabel + ';">' + label + '</span>' +
+                '</div>';
+        }).join('');
+
+        // Click nos prazos → vai para aba prazos
+        el.querySelectorAll('[data-goto-prazos]').forEach(function (item) {
+            item.addEventListener('click', function () { mostrarTab('prazos'); });
+        });
     }
 
     // ─── CLIENTES ─────────────────────────────────────────────────────────────
@@ -563,9 +662,16 @@
             }, 400);
         });
 
-        // Tab inicial via query param ou padrão clientes
+        // Cards do dashboard → navegar para módulo
+        document.querySelectorAll('[data-goto]').forEach(function (card) {
+            card.addEventListener('click', function () {
+                mostrarTab(card.getAttribute('data-goto'));
+            });
+        });
+
+        // Tab inicial via query param ou padrão dashboard
         var urlParams = new URLSearchParams(window.location.search);
-        var tabInicial = urlParams.get('tab') || 'clientes';
+        var tabInicial = urlParams.get('tab') || 'dashboard';
 
         // Oculta loading e mostra app
         document.getElementById('loadingState').style.display = 'none';

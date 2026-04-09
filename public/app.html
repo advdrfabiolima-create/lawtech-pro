@@ -406,6 +406,184 @@
         }
 
         .refresh-btn svg { width: 16px; height: 16px; }
+
+        /* ─── DASHBOARD ──────────────────────────────────────── */
+        #tabDashboard { background: #f8fafc; padding-bottom: 24px; }
+
+        .dash-hero {
+            background: #000;
+            padding: 22px 20px 52px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dash-hero::after {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 180px; height: 180px;
+            background: radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .dash-greeting {
+            font-size: 27px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+            margin-bottom: 4px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .dash-date {
+            font-size: 13px;
+            color: rgba(255,255,255,0.45);
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+
+        .dash-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 0 16px;
+            margin-top: -30px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .dash-card {
+            background: white;
+            border-radius: 18px;
+            padding: 18px 16px 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.09), 0 1px 4px rgba(0,0,0,0.04);
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.04);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.12s, box-shadow 0.12s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .dash-card:active { transform: scale(0.96); box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
+
+        .dash-card-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: 18px 18px 0 0;
+        }
+
+        .dash-card-icon {
+            width: 42px; height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+
+        .dash-card-icon svg { width: 20px; height: 20px; }
+
+        .dash-card-count {
+            font-size: 34px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -1.5px;
+            margin-bottom: 4px;
+            color: #0f172a;
+        }
+
+        .dash-card-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 2px;
+        }
+
+        .dash-card-sub {
+            font-size: 11px;
+            color: #9ca3af;
+            font-weight: 400;
+        }
+
+        .dash-section { padding: 20px 16px 0; }
+
+        .dash-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #9ca3af;
+            margin-bottom: 10px;
+        }
+
+        .dash-prazo-item {
+            background: white;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            border: 1px solid #f1f5f9;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .dash-prazo-item:active { background: #f8fafc; }
+
+        .dash-prazo-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .dash-prazo-info { flex: 1; overflow: hidden; }
+
+        .dash-prazo-titulo {
+            font-size: 14px;
+            font-weight: 600;
+            color: #111827;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dash-prazo-meta {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dash-prazo-badge {
+            flex-shrink: 0;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 20px;
+        }
+
+        .dash-empty-msg {
+            text-align: center;
+            color: #9ca3af;
+            font-size: 14px;
+            padding: 16px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #f1f5f9;
+        }
+
+        /* ─── BOTTOM NAV 5 ITENS ─────────────────────────────── */
+        #bottomNav { grid-template-columns: repeat(5, 1fr); }
     </style>
 </head>
 <body>
@@ -433,6 +611,63 @@
         <div id="loadingState">
             <div class="spinner"></div>
             Carregando...
+        </div>
+
+        <!-- TAB: DASHBOARD -->
+        <div id="tabDashboard" class="tab-content">
+            <div class="dash-hero">
+                <div class="dash-greeting" id="dashGreeting">Olá!</div>
+                <div class="dash-date" id="dashDate"></div>
+            </div>
+
+            <div class="dash-cards">
+                <div class="dash-card" data-goto="clientes">
+                    <div class="dash-card-bar" style="background:#2563eb;"></div>
+                    <div class="dash-card-icon" style="background:#eff6ff;">
+                        <i data-lucide="users" style="color:#2563eb;"></i>
+                    </div>
+                    <div class="dash-card-count" id="dashCountClientes">—</div>
+                    <div class="dash-card-label">Clientes</div>
+                    <div class="dash-card-sub">cadastrados</div>
+                </div>
+
+                <div class="dash-card" data-goto="prazos">
+                    <div class="dash-card-bar" style="background:#dc2626;"></div>
+                    <div class="dash-card-icon" style="background:#fef2f2;">
+                        <i data-lucide="clock" style="color:#dc2626;"></i>
+                    </div>
+                    <div class="dash-card-count" id="dashCountPrazos">—</div>
+                    <div class="dash-card-label">Prazos</div>
+                    <div class="dash-card-sub" id="dashSubPrazos">pendentes</div>
+                </div>
+
+                <div class="dash-card" data-goto="processos">
+                    <div class="dash-card-bar" style="background:#059669;"></div>
+                    <div class="dash-card-icon" style="background:#ecfdf5;">
+                        <i data-lucide="folder-open" style="color:#059669;"></i>
+                    </div>
+                    <div class="dash-card-count" id="dashCountProcessos">—</div>
+                    <div class="dash-card-label">Processos</div>
+                    <div class="dash-card-sub">ativos</div>
+                </div>
+
+                <div class="dash-card" data-goto="audiencias">
+                    <div class="dash-card-bar" style="background:#7c3aed;"></div>
+                    <div class="dash-card-icon" style="background:#f5f3ff;">
+                        <i data-lucide="calendar-check" style="color:#7c3aed;"></i>
+                    </div>
+                    <div class="dash-card-count" id="dashCountAudiencias">—</div>
+                    <div class="dash-card-label">Audiências</div>
+                    <div class="dash-card-sub">próximas</div>
+                </div>
+            </div>
+
+            <div class="dash-section">
+                <div class="dash-section-title">Atenção hoje</div>
+                <div id="dashPrazosUrgentes">
+                    <div class="dash-empty-msg">Carregando prazos...</div>
+                </div>
+            </div>
         </div>
 
         <!-- TAB: CLIENTES -->
@@ -494,6 +729,10 @@
 
     <!-- BOTTOM NAV -->
     <nav id="bottomNav">
+        <button class="nav-btn active" data-tab="dashboard">
+            <i data-lucide="home"></i>
+            <span>Início</span>
+        </button>
         <button class="nav-btn" data-tab="clientes">
             <i data-lucide="users"></i>
             <span>Clientes</span>
