@@ -680,12 +680,15 @@
         (compromissos || []).forEach(function (c) {
             var icones = { pagamento: '💰', reuniao: '📋', audiencia_externa: '⚖️', outro: '📌' };
             var ic = icones[c.tipo] || '📅';
-            var val = c.valor ? ' · R$ ' + parseFloat(c.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '';
+            var val = c.valor ? 'R$ ' + parseFloat(c.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '';
+            var cliente = c.cliente_nome || '';
+            var processo = c.processo_numero || '';
+            var sub = [val, cliente, processo].filter(Boolean).join(' · ');
             items += '<div class="cal-detalhe-item">' +
                 '<div class="cal-detalhe-dot" style="background:#d97706;"></div>' +
                 '<div><div class="cal-detalhe-titulo">' + ic + ' ' + esc(c.titulo) + '</div>' +
-                '<div class="cal-detalhe-sub">' + val + '</div></div>' +
-                '</div>';
+                (sub ? '<div class="cal-detalhe-sub">' + esc(sub) + '</div>' : '') +
+                '</div></div>';
         });
 
         panel.innerHTML = '<div class="cal-detalhe-header">' + dia + ' de ' + MESES[calMes - 1] + ' de ' + calAno + '</div>' + items;
