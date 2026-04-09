@@ -297,12 +297,13 @@
             return;
         }
 
-        el.innerHTML = lista.map(function (c) {
-            return '<div class="card">' +
+        el.innerHTML = lista.map(function (c, idx) {
+            var clicavel = c.total_processos > 0;
+            return '<div class="card' + (clicavel ? ' card-clicavel' : '') + '" data-cliente-idx="' + idx + '">' +
                 '<div class="card-header">' +
                 '<span class="card-title">' + esc(c.nome) + '</span>' +
-                (c.total_processos > 0
-                    ? '<span class="badge badge-azul">' + c.total_processos + ' proc.</span>'
+                (clicavel
+                    ? '<span class="badge badge-azul" style="cursor:pointer;">' + c.total_processos + ' proc. <i data-lucide="chevron-right" style="width:11px;height:11px;vertical-align:middle;"></i></span>'
                     : '') +
                 '</div>' +
                 '<div class="card-meta">' +
@@ -312,6 +313,19 @@
                 '</div>' +
                 '</div>';
         }).join('');
+
+        // Guarda referência e adiciona listeners nos cards clicáveis
+        el._clientesLista = lista;
+        el.querySelectorAll('[data-cliente-idx]').forEach(function (card) {
+            var cliente = lista[parseInt(card.getAttribute('data-cliente-idx'))];
+            if (cliente && cliente.total_processos > 0) {
+                card.addEventListener('click', function (e) {
+                    // Ignora clique no botão WhatsApp
+                    if (e.target.closest('a[href*="wa.me"]')) return;
+                    abrirProcessosCliente(cliente);
+                });
+            }
+        });
 
         if (window.lucide) lucide.createIcons();
     }
@@ -790,6 +804,60 @@
             esc(telefone) + '</a>';
     }
 
+    // ─── BOTTOM SHEET ────────────────────────────────────────────────────────
+
+    function abrirBottomSheet(titulo, sub, bodyHtml) {
+        document.getElementById('bsTitle').textContent = titulo;
+        document.getElementById('bsSub').textContent = sub;
+        document.getElementById('bsBody').innerHTML = bodyHtml;
+        document.getElementById('bottomSheet').classList.add('ativo');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function fecharBottomSheet() {
+        document.getElementById('bottomSheet').classList.remove('ativo');
+    }
+
+    function abrirProcessosCliente(cliente) {
+        if (!cliente.id || !cliente.total_processos) return;
+
+        abrirBottomSheet(
+            cliente.nome,
+            'Carregando processos...',
+            '<div class="empty"><div class="spinner"></div></div>'
+        );
+
+        apiGet('/api/por-cliente/' + cliente.id).then(function (data) {
+            if (!data) return;
+            var processos = Array.isArray(data) ? data : [];
+
+            document.getElementById('bsSub').textContent =
+                processos.length + ' processo' + (processos.length !== 1 ? 's' : '') + ' vinculado' + (processos.length !== 1 ? 's' : '');
+
+            if (!processos.length) {
+                document.getElementById('bsBody').innerHTML =
+                    '<div class="dash-empty-msg" style="margin-top:16px;">Nenhum processo encontrado.</div>';
+                return;
+            }
+
+            var poloLabel = { ativo: 'Polo Ativo (Autor)', passivo: 'Polo Passivo (Réu)' };
+
+            document.getElementById('bsBody').innerHTML = processos.map(function (p) {
+                var tags = [p.esfera, p.tribunal, p.uf].filter(Boolean);
+                return '<div class="bs-processo-card">' +
+                    '<div class="bs-numero">' + esc(p.numero) + '</div>' +
+                    (p.parte_contraria ? '<div class="bs-polo" style="margin-bottom:4px;"><strong>Parte contrária:</strong> ' + esc(p.parte_contraria) + '</div>' : '') +
+                    '<div class="bs-processo-meta">' +
+                    tags.map(function (t) { return '<span class="bs-tag">' + esc(t) + '</span>'; }).join('') +
+                    (p.polo_cliente ? '<span class="bs-tag" style="background:#eff6ff;color:#1e40af;border-color:#bfdbfe;">' + esc(poloLabel[p.polo_cliente] || p.polo_cliente) + '</span>' : '') +
+                    '</div>' +
+                    '</div>';
+            }).join('');
+        }).catch(function () {
+            document.getElementById('bsSub').textContent = 'Erro ao carregar';
+        });
+    }
+
     // ─── ESCAPE HTML ─────────────────────────────────────────────────────────
 
     function esc(str) {
@@ -905,6 +973,9 @@
                 carregarProcessos(val || null);
             }, 400);
         });
+
+        // Fechar bottom sheet ao clicar no overlay
+        document.getElementById('bsOverlay').addEventListener('click', fecharBottomSheet);
 
         // Cards do dashboard → navegar para módulo
         document.querySelectorAll('[data-goto]').forEach(function (card) {

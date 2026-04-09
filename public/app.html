@@ -189,6 +189,8 @@
         }
 
         .card:active { box-shadow: 0 0 0 2px rgba(37,99,235,0.3); }
+        .card-clicavel { cursor: pointer; }
+        .card-clicavel:active { background: #f8fafc; }
 
         .card-header {
             display: flex;
@@ -585,6 +587,110 @@
         /* ─── BOTTOM NAV 5 ITENS ─────────────────────────────── */
         #bottomNav { grid-template-columns: repeat(5, 1fr); }
 
+        /* ─── BOTTOM SHEET ──────────────────────────────────── */
+        #bottomSheet {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            display: none;
+        }
+
+        #bottomSheet.ativo { display: block; }
+
+        .bs-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+        }
+
+        .bs-panel {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            background: white;
+            border-radius: 20px 20px 0 0;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.25s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to   { transform: translateY(0); }
+        }
+
+        .bs-header {
+            padding: 16px 20px 12px;
+            border-bottom: 1px solid var(--borda);
+            flex-shrink: 0;
+        }
+
+        .bs-handle {
+            width: 36px; height: 4px;
+            background: var(--borda);
+            border-radius: 2px;
+            margin: 0 auto 14px;
+        }
+
+        .bs-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--texto);
+        }
+
+        .bs-sub {
+            font-size: 13px;
+            color: var(--cinza);
+            margin-top: 2px;
+        }
+
+        .bs-body {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            flex: 1;
+            padding: 12px 16px 32px;
+        }
+
+        .bs-processo-card {
+            background: var(--fundo);
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+        }
+
+        .bs-numero {
+            font-size: 13px;
+            font-weight: 700;
+            font-family: monospace;
+            color: var(--azul);
+            margin-bottom: 6px;
+            word-break: break-all;
+        }
+
+        .bs-processo-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .bs-tag {
+            background: white;
+            border: 1px solid var(--borda);
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 11px;
+            color: var(--cinza);
+            font-weight: 500;
+        }
+
+        .bs-polo {
+            font-size: 12px;
+            color: var(--cinza);
+            margin-top: 4px;
+        }
+
         /* ─── CALENDÁRIO MOBILE ──────────────────────────────── */
         .cal-toggle-wrap {
             display: flex;
@@ -944,6 +1050,19 @@
             <span>Audiências</span>
         </button>
     </nav>
+
+    <!-- BOTTOM SHEET: processos do cliente -->
+    <div id="bottomSheet">
+        <div class="bs-overlay" id="bsOverlay"></div>
+        <div class="bs-panel">
+            <div class="bs-header">
+                <div class="bs-handle"></div>
+                <div class="bs-title" id="bsTitle"></div>
+                <div class="bs-sub" id="bsSub"></div>
+            </div>
+            <div class="bs-body" id="bsBody"></div>
+        </div>
+    </div>
 
     <!-- TOAST -->
     <div id="toast"></div>
