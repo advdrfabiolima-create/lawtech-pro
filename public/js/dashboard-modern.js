@@ -307,6 +307,17 @@ async function inicializarDashboard() {
         // Atualizar o card Status da Assinatura
         const planoAtualCard = document.getElementById('planoAtual');
         if (planoAtualCard) planoAtualCard.innerText = planName;
+
+        // Badge de ciclo (mensal / anual) — só exibe quando há plano pago
+        const cicloBadge = document.getElementById('cicloPlano');
+        if (cicloBadge && dataPlan.ciclo) {
+            const eAnual = dataPlan.ciclo === 'anual';
+            cicloBadge.textContent = eAnual ? 'Anual' : 'Mensal';
+            cicloBadge.style.display = 'inline';
+            cicloBadge.style.background = eAnual ? 'rgba(82,183,136,0.15)' : 'rgba(74,144,226,0.12)';
+            cicloBadge.style.color = eAnual ? '#065f46' : '#1e40af';
+            cicloBadge.style.border = eAnual ? '1px solid rgba(82,183,136,0.35)' : '1px solid rgba(74,144,226,0.25)';
+        }
         
         const badgeContainer = document.getElementById('premiumWelcome');
         if (badgeContainer) {
