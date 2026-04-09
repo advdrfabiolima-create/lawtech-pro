@@ -8,7 +8,9 @@
     var dadosCarregados = {};
     var todosOsPrazos = [];
     var todosOsClientes = [];
+    var todasAsAudiencias = [];
     var filtroAtivo = 'todos';
+    var filtroAud = 'agendadas';
     var searchTimerClientes = null;
     var searchTimerProcessos = null;
 
@@ -337,44 +339,47 @@
         var lista = document.getElementById('listaAudiencias');
         lista.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
 
-        apiGet('/api/audiencias?limit=100').then(function (data) {
+        apiGet('/api/audiencias?limit=200').then(function (data) {
             if (!data) return;
-            var aud = Array.isArray(data) ? data : (data.data || []);
-
-            // Ordena por data
-            aud.sort(function (a, b) {
-                return new Date(a.data_audiencia) - new Date(b.data_audiencia);
-            });
-
-            // Separa futuras e passadas
-            var agora = new Date();
-            var futuras = aud.filter(function (a) { return new Date(a.data_audiencia) >= agora; });
-            var passadas = aud.filter(function (a) { return new Date(a.data_audiencia) < agora; }).reverse();
-
-            renderAudiencias(futuras.concat(passadas), lista);
+            todasAsAudiencias = Array.isArray(data) ? data : (data.data || []);
+            renderAudiencias();
         }).catch(function () {
             lista.innerHTML = iconeVazio('wifi-off', 'Erro ao carregar audiências');
             if (window.lucide) lucide.createIcons();
         });
     }
 
-    function renderAudiencias(lista, el) {
-        if (!lista.length) {
-            el.innerHTML = iconeVazio('calendar-check', 'Nenhuma audiência encontrada');
+    function renderAudiencias() {
+        var el = document.getElementById('listaAudiencias');
+        var agora = new Date();
+
+        var filtradas = todasAsAudiencias.filter(function (a) {
+            var data = new Date(a.data_audiencia);
+            return filtroAud === 'agendadas' ? data >= agora : data < agora;
+        });
+
+        // Agendadas: mais próximas primeiro; Realizadas: mais recentes primeiro
+        filtradas.sort(function (a, b) {
+            var diff = new Date(a.data_audiencia) - new Date(b.data_audiencia);
+            return filtroAud === 'agendadas' ? diff : -diff;
+        });
+
+        if (!filtradas.length) {
+            el.innerHTML = iconeVazio('calendar-check',
+                filtroAud === 'agendadas' ? 'Nenhuma audiência agendada' : 'Nenhuma audiência realizada');
             if (window.lucide) lucide.createIcons();
             return;
         }
 
-        var agora = new Date();
+        var corBloco = filtroAud === 'agendadas' ? 'var(--azul)' : '#64748b';
 
-        el.innerHTML = lista.map(function (a) {
-            var isPast = new Date(a.data_audiencia) < agora;
+        el.innerHTML = filtradas.map(function (a) {
             var tipo = a.tipo ? a.tipo.replace(/_/g, ' ') : 'Audiência';
             tipo = tipo.charAt(0).toUpperCase() + tipo.slice(1);
 
-            return '<div class="card" style="' + (isPast ? 'opacity:0.65;' : '') + '">' +
+            return '<div class="card">' +
                 '<div class="card-row">' +
-                '<div class="aud-data-bloco" style="' + (isPast ? 'background:#64748b;' : '') + '">' +
+                '<div class="aud-data-bloco" style="background:' + corBloco + ';">' +
                 '<div class="aud-dia">' + diaNumero(a.data_audiencia) + '</div>' +
                 '<div class="aud-mes">' + mesAbrev(a.data_audiencia) + '</div>' +
                 '<div class="aud-hora">' + formatarHora(a.data_audiencia) + '</div>' +
@@ -467,9 +472,24 @@
             carregarPrazos();
         });
 
+        // Abas audiências
+        document.querySelectorAll('[data-aud]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('[data-aud]').forEach(function (b) { b.classList.remove('ativo'); });
+                btn.classList.add('ativo');
+                filtroAud = btn.getAttribute('data-aud');
+                if (todasAsAudiencias.length > 0) {
+                    renderAudiencias();
+                } else {
+                    carregarAudiencias();
+                }
+            });
+        });
+
         // Refresh audiências
         document.getElementById('btnRefreshAudiencias').addEventListener('click', function () {
             dadosCarregados['audiencias'] = false;
+            todasAsAudiencias = [];
             carregarAudiencias();
         });
 

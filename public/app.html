@@ -45,7 +45,7 @@
             position: fixed;
             top: 0; left: 0; right: 0;
             height: var(--header-h);
-            background: var(--azul-escuro);
+            background: #000000;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -480,9 +480,10 @@
 
         <!-- TAB: AUDIÊNCIAS -->
         <div id="tabAudiencias" class="tab-content">
-            <div class="section-top" style="padding-top:16px;">
-                <span class="section-title">Audiências</span>
-                <button class="refresh-btn" id="btnRefreshAudiencias">
+            <div class="filtros-wrap">
+                <button class="filtro-btn ativo" data-aud="agendadas">Agendadas</button>
+                <button class="filtro-btn" data-aud="realizadas">Realizadas</button>
+                <button class="refresh-btn" id="btnRefreshAudiencias" style="margin-left:auto;">
                     <i data-lucide="refresh-cw"></i> Atualizar
                 </button>
             </div>

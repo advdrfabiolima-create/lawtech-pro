@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lawtech-app-v3';
+const CACHE_NAME = 'lawtech-app-v4';
 const APP_SHELL = [
     '/app',
     '/js/app.js',
