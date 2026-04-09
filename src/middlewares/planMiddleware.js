@@ -2,6 +2,7 @@ const pool = require('../config/db');
 const planLimits = require('../config/planLimits.json');
 const logger = require('../utils/logger');
 const { registrarLog } = require('../utils/auditLog');
+const { verificarTrialAtivo } = require('../utils/trialHelper');
 
 /**
  * 🔒 MIDDLEWARE DE VERIFICAÇÃO DE PLANO
@@ -20,7 +21,13 @@ const checkFeature = (featureName) => {
             logger.info({ featureName }, '[MIDDLEWARE] checkFeature chamado');
             const escritorioId = req.user.escritorio_id;
             logger.info({ escritorioId }, '[MIDDLEWARE] escritorioId');
-            
+
+            // Trial ativo → libera todas as funcionalidades
+            const trial = await verificarTrialAtivo(escritorioId);
+            if (trial.emTrial) {
+                logger.info({ featureName, diasRestantes: trial.diasRestantes }, '[MIDDLEWARE] Trial ativo — feature liberada');
+                return next();
+            }
 
             const result = await pool.query(
                 `SELECT p.slug, p.nome 
@@ -94,6 +101,13 @@ const checkLimit = (resourceType) => {
     return async (req, res, next) => {
         try {
             const escritorioId = req.user.escritorio_id;
+
+            // Trial ativo → sem limites de recursos
+            const trial = await verificarTrialAtivo(escritorioId);
+            if (trial.emTrial) {
+                logger.info({ resourceType, diasRestantes: trial.diasRestantes }, '[MIDDLEWARE] Trial ativo — limite ignorado');
+                return next();
+            }
 
             const planoResult = await pool.query(
                 `SELECT p.slug, p.nome 

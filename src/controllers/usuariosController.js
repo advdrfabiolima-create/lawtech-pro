@@ -2,6 +2,7 @@ const pool = require('../config/db');
 const bcrypt = require('bcrypt');
 const planLimits = require('../config/planLimits.json');
 const logger = require('../utils/logger');
+const { verificarTrialAtivo } = require('../utils/trialHelper');
 
 /**
  * ============================================================
@@ -10,6 +11,10 @@ const logger = require('../utils/logger');
  */
 const verificarLimiteUsuarios = async (escritorioId) => {
     try {
+        // Trial ativo → sem limite de usuários
+        const trial = await verificarTrialAtivo(escritorioId);
+        if (trial.emTrial) return { permitido: true, ilimitado: true, plano: 'Trial' };
+
         // Buscar plano do escritório
         const planoResult = await pool.query(
             `SELECT p.slug, p.nome 

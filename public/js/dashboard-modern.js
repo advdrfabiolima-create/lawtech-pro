@@ -242,10 +242,24 @@ async function inicializarDashboard() {
             // Só mostra cronômetro de trial para contas em período de teste
             if (user.plano_financeiro_status === 'trial' && user.data_criacao) {
                 iniciarCronometroTrial(user.data_criacao);
+
+                // Banner de aviso de trial
+                const banner = document.getElementById('banner-trial');
+                if (banner && user.dias_restantes > 0) {
+                    banner.style.display = 'flex';
+                    const msg = document.getElementById('banner-trial-msg');
+                    if (msg) {
+                        const dias = user.dias_restantes;
+                        const planoNome = user.plano_nome || 'seu plano';
+                        msg.textContent = `Você tem ${dias} dia${dias !== 1 ? 's' : ''} de teste restante${dias !== 1 ? 's' : ''}. Após o encerramento, somente as funcionalidades do plano ${planoNome} estarão disponíveis.`;
+                    }
+                }
             } else {
-                // Conta paga: esconde o timer de trial
+                // Conta paga: esconde o timer de trial e o banner
                 const trialEl = document.getElementById('trial-timer');
                 if (trialEl) trialEl.style.display = 'none';
+                const banner = document.getElementById('banner-trial');
+                if (banner) banner.style.display = 'none';
             }
 
             // ✅ REMOVIDO: Verificação duplicada que forçava modal aparecer

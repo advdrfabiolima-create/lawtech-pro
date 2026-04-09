@@ -1,6 +1,7 @@
 const pool = require('../config/db');
 const planLimits = require('../config/planLimits.json');
 const logger = require('../utils/logger');
+const { verificarTrialAtivo } = require('../utils/trialHelper');
 const { getPagination, buildPage } = require('../utils/paginate');
 const fileStorage = require('../utils/storage');
 
@@ -12,6 +13,10 @@ const fileStorage = require('../utils/storage');
  */
 async function verificarLimitePrazos(escritorioId) {
   try {
+    // Trial ativo → sem limite de prazos
+    const trial = await verificarTrialAtivo(escritorioId);
+    if (trial.emTrial) return { permitido: true, ilimitado: true, plano: 'Trial' };
+
     // Buscar plano do escritório
     const planoResult = await pool.query(
       `SELECT p.slug, p.nome 

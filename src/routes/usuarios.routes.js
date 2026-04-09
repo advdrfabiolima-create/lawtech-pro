@@ -10,6 +10,7 @@ const { registrarLog } = require('../utils/auditLog');
 
 // Carregar limites dos planos
 const planLimits = require('../config/planLimits.json');
+const { verificarTrialAtivo } = require('../utils/trialHelper');
 
 /**
  * 📌 ROTA: ADICIONAR MEMBRO À EQUIPE (CONVIDAR FUNCIONÁRIO)
@@ -31,47 +32,51 @@ router.post('/auth/convidar-funcionario', authMiddleware, roleMiddleware('admin'
     try {
         const escritorioId = req.user.escritorio_id;
 
-        // 1. Verificar o plano atual do escritório
-        const escritorioResult = await pool.query(
-            'SELECT plano_id FROM escritorios WHERE id = $1',
-            [escritorioId]
-        );
+        // Trial ativo → pula verificação de limite de usuários
+        const trial = await verificarTrialAtivo(escritorioId);
+        if (!trial.emTrial) {
+            // 1. Verificar o plano atual do escritório
+            const escritorioResult = await pool.query(
+                'SELECT plano_id FROM escritorios WHERE id = $1',
+                [escritorioId]
+            );
 
-        if (escritorioResult.rowCount === 0) {
-            return res.status(404).json({ erro: 'Escritório não encontrado' });
-        }
+            if (escritorioResult.rowCount === 0) {
+                return res.status(404).json({ erro: 'Escritório não encontrado' });
+            }
 
-        // 2. Buscar slug do plano via JOIN (evita hardcode de IDs)
-        const planoResult = await pool.query(
-            'SELECT slug, nome FROM planos WHERE id = $1',
-            [escritorioResult.rows[0].plano_id]
-        );
+            // 2. Buscar slug do plano via JOIN (evita hardcode de IDs)
+            const planoResult = await pool.query(
+                'SELECT slug, nome FROM planos WHERE id = $1',
+                [escritorioResult.rows[0].plano_id]
+            );
 
-        const planoSlug = planoResult.rows[0]?.slug || 'basico';
-        const planoConfig = planLimits[planoSlug];
+            const planoSlug = planoResult.rows[0]?.slug || 'basico';
+            const planoConfig = planLimits[planoSlug];
 
-        if (!planoConfig) {
-            return res.status(500).json({ erro: 'Configuração de plano não encontrada' });
-        }
+            if (!planoConfig) {
+                return res.status(500).json({ erro: 'Configuração de plano não encontrada' });
+            }
 
-        // 3. Contar usuários atuais do escritório
-        const countResult = await pool.query(
-            'SELECT COUNT(*) as total FROM usuarios WHERE escritorio_id = $1',
-            [escritorioId]
-        );
+            // 3. Contar usuários atuais do escritório
+            const countResult = await pool.query(
+                'SELECT COUNT(*) as total FROM usuarios WHERE escritorio_id = $1',
+                [escritorioId]
+            );
 
-        const usuariosAtuais = parseInt(countResult.rows[0].total);
-        const limiteUsuarios = planoConfig.usuarios.max;
+            const usuariosAtuais = parseInt(countResult.rows[0].total);
+            const limiteUsuarios = planoConfig.usuarios.max;
 
-        // 4. Verificar se atingiu o limite (apenas se não for ilimitado)
-        if (!planoConfig.usuarios.ilimitado && usuariosAtuais >= limiteUsuarios) {
-            return res.status(402).json({
-                erro: 'Limite de usuários atingido',
-                message: `Você atingiu o limite de ${limiteUsuarios} usuários do plano ${planoConfig.nome}.`,
-                max: limiteUsuarios,
-                current: usuariosAtuais,
-                current_plan: planoConfig.nome
-            });
+            // 4. Verificar se atingiu o limite (apenas se não for ilimitado)
+            if (!planoConfig.usuarios.ilimitado && usuariosAtuais >= limiteUsuarios) {
+                return res.status(402).json({
+                    erro: 'Limite de usuários atingido',
+                    message: `Você atingiu o limite de ${limiteUsuarios} usuários do plano ${planoConfig.nome}.`,
+                    max: limiteUsuarios,
+                    current: usuariosAtuais,
+                    current_plan: planoConfig.nome
+                });
+            }
         }
 
         // 5. Verificar se o e-mail já está cadastrado
