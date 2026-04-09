@@ -1934,6 +1934,203 @@
         }
 
         /* ================================================
+           SEÇÃO APP MOBILE
+           ================================================ */
+        .app-section {
+            background: linear-gradient(135deg, #0a0a0a 0%, #0f172a 50%, #1e1b4b 100%);
+            padding: 90px 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .app-section::before {
+            content: '';
+            position: absolute;
+            top: -100px; left: -100px;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .app-section::after {
+            content: '';
+            position: absolute;
+            bottom: -80px; right: -80px;
+            width: 350px; height: 350px;
+            background: radial-gradient(circle, rgba(124,58,237,0.10) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .app-section-inner {
+            display: flex;
+            align-items: center;
+            gap: 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .app-texto { flex: 1; }
+
+        .app-bullets { display: flex; flex-direction: column; gap: 10px; }
+
+        .app-bullet {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            color: rgba(255,255,255,0.75);
+            font-weight: 400;
+        }
+
+        .app-bullet-check {
+            width: 22px; height: 22px;
+            background: rgba(37,99,235,0.25);
+            border: 1px solid rgba(37,99,235,0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #60a5fa;
+            flex-shrink: 0;
+            font-weight: 700;
+        }
+
+        .app-mockup-wrap {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .phone-outer {
+            width: 220px;
+            height: 440px;
+            background: linear-gradient(145deg, #2a2a2a, #111);
+            border-radius: 36px;
+            padding: 8px;
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.08),
+                0 30px 80px rgba(0,0,0,0.6),
+                0 0 60px rgba(37,99,235,0.15),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            position: relative;
+        }
+
+        .phone-outer::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: 50%;
+            transform: translateX(-50%);
+            width: 80px; height: 3px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 0 0 3px 3px;
+        }
+
+        .phone-inner {
+            width: 100%;
+            height: 100%;
+            background: #f1f5f9;
+            border-radius: 28px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .phone-notch {
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 60px; height: 18px;
+            background: #000;
+            border-radius: 0 0 12px 12px;
+            z-index: 10;
+        }
+
+        .phone-screen {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Cards do mockup */
+        .mock-card {
+            background: white;
+            border-radius: 10px;
+            padding: 8px 7px 7px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+            border: 1px solid rgba(0,0,0,0.04);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mock-card-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .mock-icon {
+            width: 20px; height: 20px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+        }
+
+        .mock-icon svg { width: 11px; height: 11px; }
+
+        .mock-count {
+            font-size: 16px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.5px;
+        }
+
+        .mock-label {
+            font-size: 7px;
+            font-weight: 600;
+            color: #374151;
+            margin-top: 2px;
+        }
+
+        .mock-prazo-item {
+            background: white;
+            border-radius: 6px;
+            padding: 5px 7px;
+            margin-bottom: 4px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .mock-nav {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .mock-nav span {
+            font-size: 5px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        /* Responsivo app section */
+        @media (max-width: 900px) {
+            .app-section-inner { flex-direction: column-reverse; gap: 40px; }
+            .app-texto { text-align: center; }
+            .app-bullets { align-items: flex-start; }
+        }
+
+        @media (max-width: 480px) {
+            .phone-outer { width: 180px; height: 360px; }
+        }
+
+        /* ================================================
            SEÇÃO COMO FUNCIONA
            ================================================ */
         .how-it-works {
@@ -2484,6 +2681,119 @@ src="https://www.facebook.com/tr?id=4408320902783347&ev=PageView&noscript=1"
             </div>
         </div>
     </section>
+
+    <!-- ===== SEÇÃO APP MOBILE ===== -->
+    <section class="app-section">
+        <div class="container">
+            <div class="app-section-inner">
+
+                <!-- Coluna texto -->
+                <div class="app-texto">
+                    <span class="section-badge" style="background:rgba(255,255,255,0.12);color:white;border:1px solid rgba(255,255,255,0.2);">Novo</span>
+                    <h2 style="color:white;font-size:clamp(28px,4vw,42px);font-weight:800;margin:16px 0 12px;line-height:1.2;letter-spacing:-0.5px;">
+                        LawTech Pro<br>no seu bolso
+                    </h2>
+                    <p style="color:rgba(255,255,255,0.7);font-size:16px;line-height:1.6;margin-bottom:28px;">
+                        Acesse clientes, prazos, processos e audiências de qualquer lugar. Instale o app direto do navegador — sem App Store, sem Play Store.
+                    </p>
+                    <div class="app-bullets">
+                        <div class="app-bullet"><span class="app-bullet-check">✓</span> Dashboard com resumo do dia</div>
+                        <div class="app-bullet"><span class="app-bullet-check">✓</span> Calendário de prazos e compromissos</div>
+                        <div class="app-bullet"><span class="app-bullet-check">✓</span> Avisos por WhatsApp para audiências</div>
+                        <div class="app-bullet"><span class="app-bullet-check">✓</span> Concluir prazos com um toque</div>
+                        <div class="app-bullet"><span class="app-bullet-check">✓</span> Funciona offline</div>
+                    </div>
+                    <div style="margin-top:32px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <a href="/app" class="btn btn-primary btn-lg" style="background:white;color:#111;border:none;">
+                            Abrir no celular
+                        </a>
+                        <span style="color:rgba(255,255,255,0.5);font-size:13px;">Acesse pelo celular e instale</span>
+                    </div>
+                </div>
+
+                <!-- Mockup celular CSS -->
+                <div class="app-mockup-wrap">
+                    <div class="phone-outer">
+                        <div class="phone-inner">
+                            <!-- Notch -->
+                            <div class="phone-notch"></div>
+                            <!-- Tela do app -->
+                            <div class="phone-screen">
+                                <!-- Header preto -->
+                                <div style="background:#000;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;">
+                                    <img src="/Logo LawTech Pro_transparente.png" alt="LawTech Pro" style="height:16px;">
+                                    <div style="width:16px;height:16px;border:1.5px solid rgba(255,255,255,0.4);border-radius:3px;"></div>
+                                </div>
+                                <!-- Hero escuro -->
+                                <div style="background:#000;padding:10px 10px 22px;position:relative;overflow:hidden;">
+                                    <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:radial-gradient(circle,rgba(37,99,235,0.25),transparent 70%);border-radius:50%;"></div>
+                                    <div style="font-size:11px;font-weight:800;color:white;letter-spacing:-0.3px;">Bom dia, Fábio!</div>
+                                    <div style="font-size:7px;color:rgba(255,255,255,0.4);margin-top:1px;">Quarta, 09 de Abril de 2026</div>
+                                </div>
+                                <!-- Cards 2x2 -->
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:0 7px;margin-top:-12px;position:relative;z-index:2;">
+                                    <div class="mock-card" style="--accent:#2563eb;--icon-bg:#eff6ff;">
+                                        <div class="mock-card-bar" style="background:#2563eb;"></div>
+                                        <div class="mock-icon" style="background:#eff6ff;">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                        </div>
+                                        <div class="mock-count" style="color:#0f172a;">247</div>
+                                        <div class="mock-label">Clientes</div>
+                                    </div>
+                                    <div class="mock-card" style="--accent:#dc2626;--icon-bg:#fef2f2;">
+                                        <div class="mock-card-bar" style="background:#dc2626;"></div>
+                                        <div class="mock-icon" style="background:#fef2f2;">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                        </div>
+                                        <div class="mock-count" style="color:#0f172a;">38</div>
+                                        <div class="mock-label">Prazos</div>
+                                    </div>
+                                    <div class="mock-card" style="--accent:#059669;--icon-bg:#ecfdf5;">
+                                        <div class="mock-card-bar" style="background:#059669;"></div>
+                                        <div class="mock-icon" style="background:#ecfdf5;">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                                        </div>
+                                        <div class="mock-count" style="color:#0f172a;">89</div>
+                                        <div class="mock-label">Processos</div>
+                                    </div>
+                                    <div class="mock-card" style="--accent:#7c3aed;--icon-bg:#f5f3ff;">
+                                        <div class="mock-card-bar" style="background:#7c3aed;"></div>
+                                        <div class="mock-icon" style="background:#f5f3ff;">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg>
+                                        </div>
+                                        <div class="mock-count" style="color:#0f172a;">5</div>
+                                        <div class="mock-label">Audiências</div>
+                                    </div>
+                                </div>
+                                <!-- Preview prazos -->
+                                <div style="padding:8px 7px 4px;">
+                                    <div style="font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#9ca3af;margin-bottom:5px;">Atenção hoje</div>
+                                    <div class="mock-prazo-item" style="border-left:2px solid #dc2626;">
+                                        <div style="font-size:7px;font-weight:600;color:#111;">Contestação — Ação de Cobrança</div>
+                                        <div style="font-size:6px;color:#9ca3af;margin-top:1px;">João Ferreira · Atrasado</div>
+                                    </div>
+                                    <div class="mock-prazo-item" style="border-left:2px solid #d97706;">
+                                        <div style="font-size:7px;font-weight:600;color:#111;">Recurso de Apelação</div>
+                                        <div style="font-size:6px;color:#9ca3af;margin-top:1px;">Maria Santos · Hoje</div>
+                                    </div>
+                                </div>
+                                <!-- Bottom nav -->
+                                <div style="position:absolute;bottom:0;left:0;right:0;background:white;border-top:1px solid #e2e8f0;display:grid;grid-template-columns:repeat(5,1fr);padding:4px 0 6px;">
+                                    <div class="mock-nav active"><svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" style="width:12px;height:12px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span style="color:#2563eb;">Início</span></div>
+                                    <div class="mock-nav"><svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="width:12px;height:12px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>Clientes</span></div>
+                                    <div class="mock-nav"><svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="width:12px;height:12px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Prazos</span></div>
+                                    <div class="mock-nav"><svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="width:12px;height:12px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span>Processos</span></div>
+                                    <div class="mock-nav"><svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="width:12px;height:12px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Audiências</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+    <!-- ===== FIM SEÇÃO APP ===== -->
 
     <section class="section section-pricing" id="planos">
         <div class="container">
