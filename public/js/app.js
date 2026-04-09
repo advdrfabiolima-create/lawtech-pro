@@ -361,7 +361,7 @@
             else if (dias === 0) diasTexto = 'Hoje';
             else diasTexto = 'em ' + dias + 'd';
 
-            return '<div class="card">' +
+            return '<div class="card" id="prazo-card-' + p.id + '">' +
                 '<div class="card-row">' +
                 '<div class="prazo-left" style="background:' + corBloco + ';color:' + corTexto + '">' +
                 '<div class="prazo-data">' + diaNumero(p.data_limite) + '</div>' +
@@ -377,10 +377,22 @@
                 (p.processo_numero ? '<span class="meta-item"><i data-lucide="folder"></i>' + esc(p.processo_numero) + '</span>' : '') +
                 (diasTexto ? '<span class="meta-item" style="color:' + corTexto + ';font-weight:600;">' + diasTexto + '</span>' : '') +
                 '</div>' +
+                '<div style="margin-top:10px;">' +
+                '<button data-concluir-id="' + p.id + '" style="display:inline-flex;align-items:center;gap:6px;background:#059669;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;">' +
+                '<i data-lucide="check-circle" style="width:15px;height:15px;"></i>Concluir' +
+                '</button>' +
+                '</div>' +
                 '</div>' +
                 '</div>' +
                 '</div>';
         }).join('');
+
+        // Listeners dos botões concluir
+        document.getElementById('listaPrazos').querySelectorAll('[data-concluir-id]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                concluirPrazo(btn.getAttribute('data-concluir-id'), btn);
+            });
+        });
 
         if (window.lucide) lucide.createIcons();
     }
@@ -517,6 +529,53 @@
         });
 
         if (window.lucide) lucide.createIcons();
+    }
+
+    // ─── CONCLUIR PRAZO ──────────────────────────────────────────────────────
+
+    function concluirPrazo(id, btn) {
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        btn.innerHTML = '<i data-lucide="loader" style="width:15px;height:15px;"></i>Salvando...';
+        if (window.lucide) lucide.createIcons();
+
+        fetch('/api/prazos/' + id + '/concluir', {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + getToken(),
+                'Content-Type': 'application/json'
+            }
+        }).then(function (r) { return r.json(); }).then(function (data) {
+            if (data.sucesso || data.ok) {
+                // Remove da lista local e re-renderiza
+                todosOsPrazos = todosOsPrazos.filter(function (p) { return String(p.id) !== String(id); });
+                var card = document.getElementById('prazo-card-' + id);
+                if (card) {
+                    card.style.transition = 'opacity 0.3s, transform 0.3s';
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateX(40px)';
+                    setTimeout(function () {
+                        renderPrazos();
+                        // Atualiza contador do dashboard se já foi carregado
+                        var el = document.getElementById('dashCountPrazos');
+                        if (el && el.textContent !== '—') {
+                            el.textContent = Math.max(0, parseInt(el.textContent) - 1);
+                        }
+                    }, 300);
+                }
+                mostrarToast('Prazo concluído!');
+            } else {
+                mostrarToast(data.erro || 'Erro ao concluir prazo');
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.innerHTML = '<i data-lucide="check-circle" style="width:15px;height:15px;"></i>Concluir';
+                if (window.lucide) lucide.createIcons();
+            }
+        }).catch(function () {
+            mostrarToast('Erro de conexão');
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        });
     }
 
     // ─── WHATSAPP AUDIÊNCIA ───────────────────────────────────────────────────
