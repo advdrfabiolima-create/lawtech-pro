@@ -11,6 +11,11 @@
     var todasAsAudiencias = [];
     var filtroAtivo = 'todos';
     var filtroAud = 'agendadas';
+    var calMes = new Date().getMonth() + 1;
+    var calAno = new Date().getFullYear();
+    var calDados = {};
+    var calDiaSelecionado = null;
+    var vistaAtiva = 'lista'; // 'lista' ou 'calendario'
     var searchTimerClientes = null;
     var searchTimerProcessos = null;
 
@@ -531,6 +536,165 @@
         if (window.lucide) lucide.createIcons();
     }
 
+    // ─── CALENDÁRIO ──────────────────────────────────────────────────────────
+
+    var MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+    function alternarVista(vista) {
+        vistaAtiva = vista;
+        var wrapLista = document.getElementById('listaPrazosWrap');
+        var wrapCal = document.getElementById('calendarioView');
+        var btnLista = document.getElementById('btnToggleLista');
+        var btnCal = document.getElementById('btnToggleCal');
+
+        if (vista === 'lista') {
+            wrapLista.classList.remove('oculto');
+            wrapCal.classList.remove('ativo');
+            btnLista.classList.add('ativo');
+            btnCal.classList.remove('ativo');
+        } else {
+            wrapLista.classList.add('oculto');
+            wrapCal.classList.add('ativo');
+            btnCal.classList.add('ativo');
+            btnLista.classList.remove('ativo');
+            carregarCalendario();
+        }
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function carregarCalendario() {
+        var grid = document.getElementById('calGrid');
+        grid.innerHTML = '<div style="grid-column:span 7;padding:30px;text-align:center;color:var(--cinza);"><div class="spinner" style="margin:0 auto;"></div></div>';
+
+        apiGet('/api/calendario/mensal?mes=' + calMes + '&ano=' + calAno).then(function (data) {
+            if (!data || !data.ok) return;
+            calDados = data;
+            desenharCalendario();
+        }).catch(function () {
+            grid.innerHTML = '<div style="grid-column:span 7;padding:20px;text-align:center;color:var(--cinza);">Erro ao carregar</div>';
+        });
+    }
+
+    function desenharCalendario() {
+        document.getElementById('calMesTitulo').textContent = MESES[calMes - 1] + ' ' + calAno;
+
+        var hoje = new Date();
+        var primeiroDia = new Date(calAno, calMes - 1, 1).getDay();
+        var totalDias = new Date(calAno, calMes, 0).getDate();
+
+        // Indexa eventos por dia
+        var prazosPorDia = {}, feriadosPorDia = {}, compromissosPorDia = {};
+        (calDados.prazos || []).forEach(function (p) {
+            var d = new Date(p.data_limite).getUTCDate();
+            if (!prazosPorDia[d]) prazosPorDia[d] = [];
+            prazosPorDia[d].push(p);
+        });
+        (calDados.feriados || []).forEach(function (f) {
+            var d = new Date(f.data).getUTCDate();
+            if (!feriadosPorDia[d]) feriadosPorDia[d] = [];
+            feriadosPorDia[d].push(f);
+        });
+        (calDados.compromissos || []).forEach(function (c) {
+            var d = new Date(c.data + 'T12:00:00').getDate();
+            if (!compromissosPorDia[d]) compromissosPorDia[d] = [];
+            compromissosPorDia[d].push(c);
+        });
+
+        var dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+        var html = dias.map(function (d) {
+            return '<div class="cal-weekday">' + d + '</div>';
+        }).join('');
+
+        // Dias vazios
+        for (var i = 0; i < primeiroDia; i++) html += '<div class="cal-day vazio"></div>';
+
+        for (var dia = 1; dia <= totalDias; dia++) {
+            var ehHoje = dia === hoje.getDate() && calMes === (hoje.getMonth() + 1) && calAno === hoje.getFullYear();
+            var ehFeriado = !!feriadosPorDia[dia];
+            var ehSelecionado = calDiaSelecionado === dia;
+
+            var classes = 'cal-day';
+            if (ehHoje) classes += ' hoje';
+            if (ehFeriado) classes += ' feriado';
+            if (ehSelecionado) classes += ' selecionado';
+
+            var numHtml = '<div class="cal-day-num">' + dia + '</div>';
+
+            var dots = '';
+            if (feriadosPorDia[dia]) dots += '<div class="cal-dot cal-dot-feriado"></div>';
+            if (prazosPorDia[dia]) {
+                var nPrazos = Math.min(prazosPorDia[dia].length, 3);
+                for (var k = 0; k < nPrazos; k++) dots += '<div class="cal-dot cal-dot-prazo"></div>';
+            }
+            if (compromissosPorDia[dia]) dots += '<div class="cal-dot cal-dot-compromisso"></div>';
+
+            html += '<div class="' + classes + '" data-cal-dia="' + dia + '">' +
+                numHtml +
+                '<div class="cal-dots">' + dots + '</div>' +
+                '</div>';
+        }
+
+        document.getElementById('calGrid').innerHTML = html;
+
+        // Listener de toque nos dias
+        document.getElementById('calGrid').querySelectorAll('[data-cal-dia]').forEach(function (el) {
+            el.addEventListener('click', function () {
+                var dia = parseInt(el.getAttribute('data-cal-dia'));
+                calDiaSelecionado = dia;
+                desenharCalendario(); // re-renderiza para mostrar seleção
+                mostrarDetalhesDia(dia, prazosPorDia[dia], feriadosPorDia[dia], compromissosPorDia[dia]);
+            });
+        });
+
+        if (calDiaSelecionado) {
+            mostrarDetalhesDia(calDiaSelecionado, prazosPorDia[calDiaSelecionado], feriadosPorDia[calDiaSelecionado], compromissosPorDia[calDiaSelecionado]);
+        }
+    }
+
+    function mostrarDetalhesDia(dia, prazos, feriados, compromissos) {
+        var panel = document.getElementById('calDetalhePanel');
+        var temEventos = (prazos && prazos.length) || (feriados && feriados.length) || (compromissos && compromissos.length);
+
+        if (!temEventos) {
+            panel.innerHTML = '<div class="cal-detalhe-header">' + dia + ' de ' + MESES[calMes - 1] + '</div>' +
+                '<div class="cal-detalhe-item" style="color:var(--cinza);">Nenhum compromisso neste dia.</div>';
+            panel.classList.add('ativo');
+            return;
+        }
+
+        var items = '';
+        (feriados || []).forEach(function (f) {
+            items += '<div class="cal-detalhe-item">' +
+                '<div class="cal-detalhe-dot" style="background:#dc2626;"></div>' +
+                '<div><div class="cal-detalhe-titulo">' + esc(f.titulo) + '</div>' +
+                '<div class="cal-detalhe-sub">' + (f.tipo === 'suspensao' ? 'Suspensão de prazo' : 'Feriado') + '</div></div>' +
+                '</div>';
+        });
+        (prazos || []).forEach(function (p) {
+            items += '<div class="cal-detalhe-item">' +
+                '<div class="cal-detalhe-dot" style="background:#2563eb;"></div>' +
+                '<div><div class="cal-detalhe-titulo">' + esc(p.tipo || 'Prazo') + '</div>' +
+                '<div class="cal-detalhe-sub">' + esc(p.cliente || '') + (p.processo_numero ? ' · ' + p.processo_numero : '') + '</div></div>' +
+                '</div>';
+        });
+        (compromissos || []).forEach(function (c) {
+            var icones = { pagamento: '💰', reuniao: '📋', audiencia_externa: '⚖️', outro: '📌' };
+            var ic = icones[c.tipo] || '📅';
+            var val = c.valor ? ' · R$ ' + parseFloat(c.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '';
+            items += '<div class="cal-detalhe-item">' +
+                '<div class="cal-detalhe-dot" style="background:#d97706;"></div>' +
+                '<div><div class="cal-detalhe-titulo">' + ic + ' ' + esc(c.titulo) + '</div>' +
+                '<div class="cal-detalhe-sub">' + val + '</div></div>' +
+                '</div>';
+        });
+
+        panel.innerHTML = '<div class="cal-detalhe-header">' + dia + ' de ' + MESES[calMes - 1] + ' de ' + calAno + '</div>' + items;
+        panel.classList.add('ativo');
+
+        // Scroll suave até o painel
+        setTimeout(function () { panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100);
+    }
+
     // ─── CONCLUIR PRAZO ──────────────────────────────────────────────────────
 
     function concluirPrazo(id, btn) {
@@ -659,6 +823,24 @@
         // Logout
         document.getElementById('btnLogout').addEventListener('click', function () {
             if (confirm('Deseja sair?')) logout();
+        });
+
+        // Toggle Lista / Calendário
+        document.getElementById('btnToggleLista').addEventListener('click', function () { alternarVista('lista'); });
+        document.getElementById('btnToggleCal').addEventListener('click', function () { alternarVista('calendario'); });
+
+        // Navegação do calendário
+        document.getElementById('calBtnAnterior').addEventListener('click', function () {
+            calMes--; if (calMes < 1) { calMes = 12; calAno--; }
+            calDiaSelecionado = null;
+            document.getElementById('calDetalhePanel').classList.remove('ativo');
+            carregarCalendario();
+        });
+        document.getElementById('calBtnProximo').addEventListener('click', function () {
+            calMes++; if (calMes > 12) { calMes = 1; calAno++; }
+            calDiaSelecionado = null;
+            document.getElementById('calDetalhePanel').classList.remove('ativo');
+            carregarCalendario();
         });
 
         // Filtros prazos
