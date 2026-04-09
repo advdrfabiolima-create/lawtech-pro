@@ -3,6 +3,7 @@
 
     var TOKEN_KEY = 'token';
     var USER_KEY = 'usuario';
+    var deferredInstallPrompt = null;
     var tabAtual = 'clientes';
     var dadosCarregados = {};
     var todosOsPrazos = [];
@@ -466,5 +467,53 @@
         mostrarTab(tabInicial);
     }
 
-    document.addEventListener('DOMContentLoaded', init);
+    // ─── PWA INSTALL ──────────────────────────────────────────────────────────
+
+    // Android: captura o prompt de instalação nativo
+    window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        var btn = document.getElementById('btnInstalar');
+        if (btn) btn.style.display = 'inline-block';
+    });
+
+    // iOS: detecta Safari no iPhone/iPad e mostra banner de instrução
+    function verificarInstalavelIos() {
+        var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        var isStandalone = window.navigator.standalone === true;
+        var jaDismissed = localStorage.getItem('ios_banner_dismissed');
+        if (isIos && !isStandalone && !jaDismissed) {
+            var banner = document.getElementById('bannerIos');
+            if (banner) {
+                setTimeout(function () { banner.style.display = 'block'; }, 1500);
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Botão instalar Android
+        var btnInstalar = document.getElementById('btnInstalar');
+        if (btnInstalar) {
+            btnInstalar.addEventListener('click', function () {
+                if (!deferredInstallPrompt) return;
+                deferredInstallPrompt.prompt();
+                deferredInstallPrompt.userChoice.then(function () {
+                    deferredInstallPrompt = null;
+                    btnInstalar.style.display = 'none';
+                });
+            });
+        }
+
+        // Fechar banner iOS
+        var btnFecharIos = document.getElementById('btnFecharIos');
+        if (btnFecharIos) {
+            btnFecharIos.addEventListener('click', function () {
+                document.getElementById('bannerIos').style.display = 'none';
+                localStorage.setItem('ios_banner_dismissed', '1');
+            });
+        }
+
+        verificarInstalavelIos();
+        init();
+    });
 })();
