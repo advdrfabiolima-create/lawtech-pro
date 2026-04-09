@@ -95,7 +95,7 @@
     function logout() {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
-        window.location.href = '/login';
+        window.location.href = '/login?redirect=/app';
     }
 
     function carregarUsuario() {
@@ -396,7 +396,7 @@
 
     function init() {
         if (!getToken()) {
-            window.location.href = '/login';
+            window.location.href = '/login?redirect=/app';
             return;
         }
 

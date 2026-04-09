@@ -247,7 +247,8 @@
                         return;
                     }
                     salvarSessao(data.token, data.usuario, lembrar);
-                    window.location.href = '/dashboard-modern.html';
+                    const redirParam = new URLSearchParams(window.location.search).get('redirect');
+                    window.location.href = redirParam || '/dashboard-modern.html';
                     return;
                 }
 
@@ -314,7 +315,8 @@
 
         function finalizarLogin2FA(data) {
             salvarSessao(data.token, data.usuario, window._lembrar || false);
-            window.location.href = '/dashboard-modern.html';
+            const redirParam = new URLSearchParams(window.location.search).get('redirect');
+            window.location.href = redirParam || '/dashboard-modern.html';
         }
 
         async function verificar2FA() {
