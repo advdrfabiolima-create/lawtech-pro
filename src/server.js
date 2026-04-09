@@ -397,6 +397,12 @@ app.get('/portal-cliente', (req, res) => res.sendFile(path.join(publicPath, 'por
 app.get('/acesso/:slug', (req, res) => res.sendFile(path.join(publicPath, 'acesso-portal.html')));
 app.get('/reunioes-page', (req, res) => res.sendFile(path.join(publicPath, 'reunioes.html')));
 app.get('/verificar-email', (req, res) => res.sendFile(path.join(publicPath, 'verificar-email.html')));
+app.get('/app', (req, res) => res.sendFile(path.join(publicPath, 'app.html')));
+app.get('/service-worker.js', (req, res) => {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Service-Worker-Allowed', '/');
+    res.sendFile(path.join(publicPath, 'service-worker.js'));
+});
 app.get('/manual', (req, res) => res.sendFile(path.join(publicPath, 'manual.html')));
 
 app.get('/pagamento-pendente', (req, res) => {

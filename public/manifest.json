@@ -1,0 +1,38 @@
+{
+  "name": "LawTech Pro",
+  "short_name": "LawTech",
+  "description": "Gerencie clientes, prazos, processos e audiências no seu celular",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Prazos",
+      "url": "/app?tab=prazos",
+      "description": "Ver prazos urgentes"
+    },
+    {
+      "name": "Audiências",
+      "url": "/app?tab=audiencias",
+      "description": "Ver próximas audiências"
+    }
+  ]
+}
