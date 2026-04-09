@@ -198,6 +198,7 @@ router.get('/me', async (req, res) => {
                 plano_id: usuario.plano_id,
                 plano_nome: usuario.plano_nome || 'Básico',
                 plano_financeiro_status: usuario.plano_financeiro_status,
+                trial_expira_em: usuario.trial_expira_em || null,
                 ultimo_pagamento: usuario.ultimo_pagamento,
                 proxima_cobranca: usuario.proxima_cobranca,
                 renovacao_automatica: usuario.renovacao_automatica,

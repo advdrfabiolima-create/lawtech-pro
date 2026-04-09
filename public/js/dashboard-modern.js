@@ -240,8 +240,8 @@ async function inicializarDashboard() {
             if (uEmail) uEmail.innerText = user.email;
 
             // Só mostra cronômetro de trial para contas em período de teste
-            if (user.plano_financeiro_status === 'trial' && user.data_criacao) {
-                iniciarCronometroTrial(user.data_criacao);
+            if (user.plano_financeiro_status === 'trial' && (user.trial_expira_em || user.data_criacao)) {
+                iniciarCronometroTrial(user.trial_expira_em || user.data_criacao, !!user.trial_expira_em);
 
                 // Banner de aviso de trial
                 const banner = document.getElementById('banner-trial');
@@ -585,26 +585,17 @@ function iniciarContagemRegressiva() {
         // 🕐 CRONÔMETRO DE TRIAL
         let trialInterval = null;
 
-        function iniciarCronometroTrial(dataCriacao) {
-            console.log('🕐 Iniciando cronômetro de trial com data:', dataCriacao);
-            
+        function iniciarCronometroTrial(dataReferencia, isExpiracao) {
             const trialTimer = document.getElementById('trial-timer');
             const trialCountdown = document.getElementById('trial-countdown');
-            
-            if (!trialTimer || !trialCountdown) {
-                console.error('❌ Elementos do cronômetro não encontrados!');
-                return;
-            }
-            
-            if (!dataCriacao) {
-                console.warn('⚠️ data_criacao não fornecida, cronômetro não será exibido');
-                return;
-            }
 
-            // Calcular data de expiração (data_criacao + 7 dias)
-            const dataInicio = new Date(dataCriacao);
-            const dataExpiracao = new Date(dataInicio);
-            dataExpiracao.setDate(dataExpiracao.getDate() + 7);
+            if (!trialTimer || !trialCountdown || !dataReferencia) return;
+
+            // Se recebeu trial_expira_em diretamente, usa ele.
+            // Caso contrário (fallback legado), soma 7 dias à data de criação.
+            const dataExpiracao = isExpiracao
+                ? new Date(dataReferencia)
+                : (() => { const d = new Date(dataReferencia); d.setDate(d.getDate() + 7); return d; })();
             
             console.log('📅 Data de expiração calculada:', dataExpiracao);
             
