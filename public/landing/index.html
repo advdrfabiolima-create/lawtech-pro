@@ -94,52 +94,17 @@
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
+      gap: 10px;
+      text-decoration: none;
     }
 
-    .brand-badge {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      background:
-        linear-gradient(135deg, rgba(37, 99, 235, 1), rgba(96, 165, 250, 0.95));
-      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
-      position: relative;
-      flex-shrink: 0;
-    }
-
-    .brand-badge::before,
-    .brand-badge::after {
-      content: "";
-      position: absolute;
-      background: rgba(255,255,255,0.92);
-      border-radius: 999px;
-    }
-
-    .brand-badge::before {
-      width: 16px;
-      height: 3px;
-      top: 11px;
-      left: 11px;
-      transform: rotate(-40deg);
-    }
-
-    .brand-badge::after {
-      width: 10px;
-      height: 3px;
-      top: 19px;
-      left: 15px;
-      transform: rotate(50deg);
-    }
-
-    .brand small {
+    .brand-logo {
+      height: 36px;
+      width: auto;
       display: block;
-      color: var(--muted-2);
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.02em;
+      object-fit: contain;
+      /* leve brilho para destacar no fundo escuro */
+      filter: brightness(1.08) drop-shadow(0 2px 8px rgba(37,99,235,0.18));
     }
 
     .top-cta {
@@ -652,14 +617,16 @@
 
     .proof-stat strong {
       display: block;
-      font-size: 34px;
-      letter-spacing: -0.04em;
-      margin-bottom: 6px;
+      font-size: clamp(24px, 3vw, 34px);
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      line-height: 1.1;
     }
 
     .proof-stat span {
       color: var(--muted);
-      font-size: 15px;
+      font-size: 14px;
+      line-height: 1.45;
     }
 
     .faq-grid {
@@ -888,7 +855,11 @@
 
     @media (max-width: 760px) {
       .topbar-inner {
-        min-height: 64px;
+        min-height: 60px;
+      }
+
+      .brand-logo {
+        height: 28px;
       }
 
       .top-cta {
@@ -960,13 +931,13 @@
 <body>
   <header class="topbar">
     <div class="container topbar-inner">
-      <div class="brand">
-        <div class="brand-badge"></div>
-        <div>
-          LawTech Pro
-          <small>Gestão jurídica com foco em controle</small>
-        </div>
-      </div>
+      <a href="#" class="brand">
+        <img
+          src="/Logo LawTech Pro_transparente.png"
+          alt="LawTech Pro"
+          class="brand-logo"
+        />
+      </a>
       <a href="#cadastro" class="top-cta">COMEÇAR TESTE GRÁTIS</a>
     </div>
   </header>
@@ -1192,8 +1163,8 @@
             <span>para testar sem compromisso</span>
           </div>
           <div class="card proof-stat">
-            <strong>1 lugar</strong>
-            <span>para processos, clientes e prazos</span>
+            <strong>Tudo centralizado</strong>
+            <span>Processos, clientes e prazos organizados em um único sistema.</span>
           </div>
           <div class="card proof-stat">
             <strong>Mais controle</strong>
