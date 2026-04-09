@@ -7,6 +7,7 @@
     var tabAtual = 'clientes';
     var dadosCarregados = {};
     var todosOsPrazos = [];
+    var todosOsClientes = [];
     var filtroAtivo = 'todos';
     var searchTimerClientes = null;
     var searchTimerProcessos = null;
@@ -144,22 +145,42 @@
     // ─── CLIENTES ─────────────────────────────────────────────────────────────
 
     function carregarClientes(busca) {
-        var url = '/api/clientes?limit=100';
-        if (busca) url += '&search=' + encodeURIComponent(busca);
+        // Se já temos dados, filtra localmente (instantâneo)
+        if (todosOsClientes.length > 0) {
+            filtrarClientesLocal(busca);
+            return;
+        }
 
         var lista = document.getElementById('listaClientes');
         lista.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
 
-        apiGet(url).then(function (data) {
+        apiGet('/api/clientes?limit=300').then(function (data) {
             if (!data) return;
-            var clientes = data.data || data.clientes || (Array.isArray(data) ? data : []);
-            var total = data.total || clientes.length;
-            document.getElementById('countClientes').textContent = total;
-            renderClientes(clientes);
+            todosOsClientes = data.data || data.clientes || (Array.isArray(data) ? data : []);
+            document.getElementById('countClientes').textContent = data.total || todosOsClientes.length;
+            filtrarClientesLocal(busca);
         }).catch(function () {
             lista.innerHTML = iconeVazio('wifi-off', 'Erro ao carregar clientes');
             if (window.lucide) lucide.createIcons();
         });
+    }
+
+    function filtrarClientesLocal(busca) {
+        var lista = document.getElementById('listaClientes');
+        if (!busca || !busca.trim()) {
+            document.getElementById('countClientes').textContent = todosOsClientes.length;
+            renderClientes(todosOsClientes);
+            return;
+        }
+        var termo = busca.trim().toLowerCase();
+        var filtrados = todosOsClientes.filter(function (c) {
+            return (c.nome && c.nome.toLowerCase().indexOf(termo) !== -1) ||
+                   (c.email && c.email.toLowerCase().indexOf(termo) !== -1) ||
+                   (c.telefone && c.telefone.toLowerCase().indexOf(termo) !== -1) ||
+                   (c.documento && c.documento.toLowerCase().indexOf(termo) !== -1);
+        });
+        document.getElementById('countClientes').textContent = filtrados.length;
+        renderClientes(filtrados);
     }
 
     function renderClientes(lista) {
@@ -179,7 +200,7 @@
                     : '') +
                 '</div>' +
                 '<div class="card-meta">' +
-                (c.telefone ? '<span class="meta-item"><i data-lucide="phone"></i>' + esc(c.telefone) + '</span>' : '') +
+                (c.telefone ? '<span class="meta-item">' + whatsappBtn(c.telefone) + '</span>' : '') +
                 (c.email ? '<span class="meta-item"><i data-lucide="mail"></i>' + esc(c.email) + '</span>' : '') +
                 (c.cidade ? '<span class="meta-item"><i data-lucide="map-pin"></i>' + esc(c.cidade) + (c.estado ? '/' + c.estado : '') + '</span>' : '') +
                 '</div>' +
@@ -376,6 +397,22 @@
         if (window.lucide) lucide.createIcons();
     }
 
+    // ─── WHATSAPP ─────────────────────────────────────────────────────────────
+
+    function whatsappBtn(telefone) {
+        var numeros = (telefone || '').replace(/\D/g, '');
+        if (!numeros) return '<i data-lucide="phone"></i>' + esc(telefone);
+        // Adiciona DDI 55 se não tiver
+        var wa = numeros.length <= 11 ? '55' + numeros : numeros;
+        var url = 'https://wa.me/' + wa;
+        return '<a href="' + url + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;color:#25d366;text-decoration:none;">' +
+            '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="#25d366">' +
+            '<path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>' +
+            '<path d="M12 0C5.373 0 0 5.373 0 12c0 2.12.554 4.112 1.523 5.837L0 24l6.335-1.508A11.948 11.948 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.001-1.368l-.357-.213-3.758.895.952-3.654-.233-.375A9.818 9.818 0 012.182 12c0-5.42 4.398-9.818 9.818-9.818 5.42 0 9.818 4.398 9.818 9.818 0 5.42-4.398 9.818-9.818 9.818z"/>' +
+            '</svg>' +
+            esc(telefone) + '</a>';
+    }
+
     // ─── ESCAPE HTML ─────────────────────────────────────────────────────────
 
     function esc(str) {
@@ -436,13 +473,17 @@
             carregarAudiencias();
         });
 
-        // Search clientes (debounce 400ms)
+        // Search clientes — filtra localmente nos dados já carregados
         document.getElementById('searchClientes').addEventListener('input', function () {
             var val = this.value.trim();
             clearTimeout(searchTimerClientes);
             searchTimerClientes = setTimeout(function () {
-                carregarClientes(val || null);
-            }, 400);
+                if (todosOsClientes.length > 0) {
+                    filtrarClientesLocal(val || null);
+                } else {
+                    carregarClientes(val || null);
+                }
+            }, 300);
         });
 
         // Search processos (debounce 400ms)
