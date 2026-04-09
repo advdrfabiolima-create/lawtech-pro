@@ -85,14 +85,22 @@
             // Formulário de contato submit listener (migrado de onsubmit inline)
             const contatoForm = document.getElementById('contatoForm');
             if (contatoForm) contatoForm.addEventListener('submit', enviarContato);
+
+            // Meta Pixel — Lead: clique nos botões "Começar Teste Gratuito"
+            document.querySelectorAll('a.btn-primary[href="#planos"]').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    if (typeof fbq !== 'undefined') fbq('track', 'Lead');
+                });
+            });
         });
 
         function iniciarTeste(plano) {
     const isAnnual = document.getElementById('billingToggle').checked;
     const cobranca = isAnnual ? 'anual' : 'mensal';
 
-    // 🔵 Evento Meta Pixel - Clique no botão de teste
+    // Meta Pixel — ViewContent: plano selecionado
     if (typeof fbq !== 'undefined') {
+        fbq('track', 'ViewContent', { content_name: 'Plano Selecionado' });
         fbq('track', 'InitiateCheckout', {
             content_name: plano,
             content_category: 'Plano SaaS Jurídico',

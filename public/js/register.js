@@ -332,13 +332,9 @@
             if (response.ok) {
                 emailRegistrado = email;
 
-                // 🔥 EVENTO META PIXEL
+                // Meta Pixel — CompleteRegistration: cadastro concluído com sucesso
                 if (typeof fbq !== 'undefined') {
-                    fbq('track', 'CompleteRegistration', {
-                        content_name: localStorage.getItem('plano_escolhido_nome') || 'Plano',
-                        content_category: 'Trial SaaS Jurídico',
-                        status: 'sucesso'
-                    });
+                    fbq('track', 'CompleteRegistration');
                 }
 
                 // ============================================================

@@ -45,6 +45,12 @@ let planoSelecionado = null;
 
 function abrirModalConfirmacao(nomePlano) {
     planoSelecionado = nomePlano;
+
+    // Meta Pixel — ViewContent: plano selecionado
+    if (typeof fbq !== 'undefined') {
+        fbq('track', 'ViewContent', { content_name: 'Plano Selecionado' });
+    }
+
     const isAnual = document.getElementById('billing-toggle').checked;
     const ciclo = isAnual ? 'Anual' : 'Mensal';
 
