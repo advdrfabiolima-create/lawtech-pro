@@ -167,7 +167,8 @@ app.use(helmet({
                 "https://cdn.tailwindcss.com",
                 "https://cdnjs.cloudflare.com",
                 "https://js.stripe.com",
-                "https://connect.facebook.net"  // Meta Pixel
+                "https://connect.facebook.net",  // Meta Pixel script
+                "'sha256-+Trh7emX7aU6wPWzbOtSpyFmmjEUazkQAIh1QWmGLyg='"  // Meta Pixel inline init
             ],
             scriptSrcAttr: [], // sem inline handlers — todos os scripts são externos
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
