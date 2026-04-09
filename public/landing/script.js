@@ -1,28 +1,19 @@
 /* ========================================
-   LawTech Pro — Landing Page Script v2
+   LawTech Pro — Landing Page Script v3
    ======================================== */
 
-// ---- SCROLL SUAVE ----
-document.querySelectorAll('[data-scroll]').forEach(el => {
-  el.addEventListener('click', () => {
-    const target = document.getElementById(el.dataset.scroll);
-    if (!target) return;
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setTimeout(() => {
-      const first = target.querySelector('input');
-      if (first) first.focus();
-    }, 650);
+// ---- ANO NO RODAPÉ ----
+document.getElementById('year').textContent = new Date().getFullYear();
+
+// ---- FAQ: fecha os outros ao abrir um ----
+const faqs = document.querySelectorAll('details.faq');
+faqs.forEach(faq => {
+  faq.addEventListener('toggle', () => {
+    if (faq.open) {
+      faqs.forEach(item => { if (item !== faq) item.open = false; });
+    }
   });
 });
-
-// ---- FADE-UP COM INTERSECTION OBSERVER ----
-const io = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); }
-  });
-}, { threshold: 0.1 });
-
-document.querySelectorAll('.fu').forEach(el => io.observe(el));
 
 // ---- FORMULÁRIO ----
 const form    = document.getElementById('registerForm');
@@ -43,13 +34,23 @@ form.addEventListener('submit', async e => {
   e.preventDefault();
   msg.className = 'form-msg';
 
-  const nome  = document.getElementById('nome').value.trim();
+  const nome  = document.getElementById('name').value.trim();
   const email = document.getElementById('email').value.trim().toLowerCase();
-  const senha = document.getElementById('senha').value;
+  const senha = document.getElementById('password').value;
 
-  if (!nome || nome.length < 3)           return (showMsg('err', 'Informe seu nome completo.'),  document.getElementById('nome').focus());
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return (showMsg('err', 'Informe um e-mail válido.'), document.getElementById('email').focus());
-  if (senha.length < 6)                   return (showMsg('err', 'A senha deve ter pelo menos 6 caracteres.'), document.getElementById('senha').focus());
+  // Validações
+  if (!nome || nome.length < 3) {
+    showMsg('err', 'Informe seu nome completo.');
+    return document.getElementById('name').focus();
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showMsg('err', 'Informe um e-mail válido.');
+    return document.getElementById('email').focus();
+  }
+  if (senha.length < 6) {
+    showMsg('err', 'A senha deve ter pelo menos 6 caracteres.');
+    return document.getElementById('password').focus();
+  }
 
   setLoading(true);
 
@@ -63,8 +64,11 @@ form.addEventListener('submit', async e => {
 
     if (res.ok && data.ok) {
       localStorage.setItem('token', data.token);
+
+      // Meta Pixel — CompleteRegistration
       if (typeof fbq !== 'undefined') fbq('track', 'CompleteRegistration');
-      showMsg('ok', '✅ Conta criada! Redirecionando...');
+
+      showMsg('ok', '✅ Conta criada com sucesso! Redirecionando...');
       setTimeout(() => { window.location.href = '/dashboard-modern'; }, 1500);
     } else {
       showMsg('err', data.erro || 'Erro ao criar conta. Tente novamente.');
@@ -76,7 +80,7 @@ form.addEventListener('submit', async e => {
   }
 });
 
-// Remove espaços do email ao digitar
+// Remove espaços do e-mail ao digitar
 document.getElementById('email').addEventListener('input', function () {
   this.value = this.value.replace(/\s/g, '');
 });
