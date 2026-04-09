@@ -145,7 +145,7 @@
 
     function carregarClientes(busca) {
         var url = '/api/clientes?limit=100';
-        if (busca) url += '&busca=' + encodeURIComponent(busca);
+        if (busca) url += '&search=' + encodeURIComponent(busca);
 
         var lista = document.getElementById('listaClientes');
         lista.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
