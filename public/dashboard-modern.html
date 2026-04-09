@@ -504,13 +504,12 @@
             cursor: pointer;
         }
 
-        #notif-container:hover {
+        #notif-btn:hover {
             background: var(--bg-elevated);
         }
 
-        #notif-container i {
+        #notif-btn svg {
             color: var(--text-tertiary);
-            width: 20px;
         }
 
         #notif-count {
@@ -1667,14 +1666,20 @@ input, textarea, select {
                     <i data-lucide="book-open" style="width:16px; height:16px;"></i>
                     Manual
                 </a>
-                <div id="notif-container" data-action="toggleNotifDropdown" style="position:relative; cursor:pointer; padding:8px; border-radius:8px; transition:0.2s;">
-                    <i class="lucide lucide-bell" style="width:20px; color:var(--muted);"></i>
-                    <span id="notif-count" style="display:none; position:absolute; top:2px; right:2px; background:var(--danger); color:white; font-size:9px; font-weight:800; padding:2px 4px; border-radius:10px; border:2px solid white;">0</span>
+                <div id="notif-container" style="position:relative;">
+                    <!-- Botão trigger (sino + badge) -->
+                    <div id="notif-btn" style="cursor:pointer; padding:8px; border-radius:8px; transition:background 0.2s; position:relative;" title="Notificações">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);display:block;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span id="notif-count" style="display:none; position:absolute; top:2px; right:2px; background:var(--danger); color:white; font-size:9px; font-weight:800; padding:2px 5px; border-radius:10px; border:2px solid white; min-width:16px; text-align:center; line-height:1.4;">0</span>
+                    </div>
                     <!-- Dropdown de Notificações -->
-                    <div id="notif-dropdown" style="display:none; position:absolute; top:42px; right:0; width:360px; max-height:440px; background:white; border:1px solid var(--border); border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,0.12); z-index:2000; overflow:hidden;">
+                    <div id="notif-dropdown" style="display:none; position:absolute; top:44px; right:0; width:360px; max-height:440px; background:white; border:1px solid var(--border); border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,0.12); z-index:2000; overflow:hidden;">
                         <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-bottom:1px solid var(--border);">
-                            <span style="font-weight:700; font-size:14px; color:var(--text-primary);">Notificações</span>
-                            <button id="btnMarcarTodasLidas" style="background:none; border:none; color:var(--accent-blue); font-size:12px; font-weight:600; cursor:pointer;">Marcar todas como lidas</button>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                                <span style="font-weight:700; font-size:14px; color:var(--text-primary);">Notificações</span>
+                            </div>
+                            <button id="btnMarcarTodasLidas" style="background:none; border:none; color:var(--accent-blue); font-size:12px; font-weight:600; cursor:pointer; padding:4px 8px; border-radius:6px; transition:background 0.2s;">Marcar todas como lidas</button>
                         </div>
                         <div id="notif-list" style="max-height:360px; overflow-y:auto; padding:4px 0;">
                             <p style="text-align:center; color:var(--muted); padding:24px; font-size:13px;">Nenhuma notificação.</p>

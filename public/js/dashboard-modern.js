@@ -135,20 +135,22 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     })();
 
-    // Notificações
-    const notifContainer = document.getElementById('notif-container');
-    const notifDropdown  = document.getElementById('notif-dropdown');
+    // Notificações — trigger separado do dropdown
+    const notifBtn = document.getElementById('notif-btn');
+    const notifDropdownEl = document.getElementById('notif-dropdown');
 
-    if (notifContainer && notifDropdown) {
-        notifContainer.addEventListener('click', (e) => {
+    if (notifBtn) {
+        notifBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            notifDropdown.style.display = notifDropdown.style.display === 'none' ? 'block' : 'none';
+            toggleNotifDropdown();
         });
     }
-
-    document.addEventListener('click', () => {
-        if (notifDropdown) notifDropdown.style.display = 'none';
-    });
+    // Impede que cliques dentro do dropdown fechem ele
+    if (notifDropdownEl) {
+        notifDropdownEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
 });
 
         // Formatação de diferença de dias
@@ -802,7 +804,8 @@ let notifDropdownAberto = false;
 
 function toggleNotifDropdown() {
     const dropdown = document.getElementById('notif-dropdown');
-    notifDropdownAberto = !notifDropdownAberto;
+    const estaAberto = dropdown.style.display === 'block';
+    notifDropdownAberto = !estaAberto;
     dropdown.style.display = notifDropdownAberto ? 'block' : 'none';
     if (notifDropdownAberto) carregarNotificacoes();
 }
