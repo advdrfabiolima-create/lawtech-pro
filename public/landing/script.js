@@ -15,6 +15,32 @@ faqs.forEach(faq => {
   });
 });
 
+// ---- META PIXEL: Lead — clique em qualquer CTA que leva ao formulário ----
+let _leadFired = false;
+document.querySelectorAll('a[href="#cadastro"]').forEach(function (el) {
+  el.addEventListener('click', function () {
+    if (!_leadFired && typeof fbq !== 'undefined') {
+      fbq('track', 'Lead');
+      _leadFired = true;
+    }
+  });
+});
+
+// ---- META PIXEL: ViewContent — formulário de cadastro entra na tela ----
+// (não há seleção de plano separada na landing; ViewContent dispara ao chegar no form)
+var _viewContentFired = false;
+var _cadastroSection = document.getElementById('cadastro');
+if (_cadastroSection && 'IntersectionObserver' in window) {
+  var _obs = new IntersectionObserver(function (entries) {
+    if (entries[0].isIntersecting && !_viewContentFired) {
+      if (typeof fbq !== 'undefined') fbq('track', 'ViewContent');
+      _viewContentFired = true;
+      _obs.disconnect();
+    }
+  }, { threshold: 0.4 });
+  _obs.observe(_cadastroSection);
+}
+
 // ---- FORMULÁRIO ----
 const form    = document.getElementById('registerForm');
 const msg     = document.getElementById('formMsg');
@@ -65,11 +91,9 @@ form.addEventListener('submit', async e => {
     if (res.ok && data.ok) {
       localStorage.setItem('token', data.token);
 
-      // Meta Pixel — CompleteRegistration
-      if (typeof fbq !== 'undefined') fbq('track', 'CompleteRegistration');
-
       showMsg('ok', '✅ Conta criada com sucesso! Redirecionando...');
-      setTimeout(() => { window.location.href = '/dashboard-modern'; }, 1500);
+      // CompleteRegistration é disparado na página /obrigado
+      setTimeout(() => { window.location.href = '/obrigado'; }, 1200);
     } else {
       showMsg('err', data.erro || 'Erro ao criar conta. Tente novamente.');
       setLoading(false);
