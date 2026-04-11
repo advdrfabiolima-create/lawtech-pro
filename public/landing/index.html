@@ -509,15 +509,17 @@
       justify-content: center;
       margin-bottom: 14px;
       font-size: 20px;
-      background: rgba(59, 130, 246, 0.08);
-      border: 1px solid rgba(59, 130, 246, 0.16);
-      filter: grayscale(1) brightness(2.2);
-      transition: filter 0.2s ease, background 0.2s ease;
+      background: rgba(37, 99, 235, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.18);
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
+      filter: grayscale(1) brightness(0.4) sepia(1) hue-rotate(190deg) saturate(6) brightness(1.6);
+      transition: filter 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
     }
 
     .card:hover .card-icon {
-      filter: grayscale(1) brightness(2.8);
-      background: rgba(59, 130, 246, 0.13);
+      background: rgba(37, 99, 235, 0.18);
+      box-shadow: 0 0 18px rgba(59, 130, 246, 0.28);
+      filter: grayscale(1) brightness(0.4) sepia(1) hue-rotate(190deg) saturate(6) brightness(1.9);
     }
 
     .card h3 {
