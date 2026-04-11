@@ -809,11 +809,51 @@
       transform: none;
     }
 
+    /* ── CRO: botão hero maior e mais contrastante ── */
+    .hero-actions .btn-primary {
+      min-height: 60px;
+      padding: 0 34px;
+      font-size: 16px;
+      letter-spacing: 0.02em;
+      box-shadow: 0 16px 44px rgba(37, 99, 235, 0.42);
+    }
+
+    /* ── CRO: flash badge no form ── */
+    .form-flash {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(37, 99, 235, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.22);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #93c5fd;
+      margin-bottom: 14px;
+    }
+
+    /* ── CRO: microcopy abaixo do botão ── */
     .micro {
       margin-top: 14px;
       color: var(--muted-2);
       font-size: 13px;
       text-align: center;
+    }
+
+    /* ── CRO: "30 segundos" abaixo das checkmarks ── */
+    .hero-seconds {
+      margin: 8px 0 0;
+      font-size: 13px;
+      color: var(--muted-2);
+    }
+
+    /* ── CRO: checkmarks no hero-meta ── */
+    .hero-meta .check {
+      color: var(--success);
+      font-weight: 900;
+      font-size: 13px;
+      flex-shrink: 0;
     }
 
     .form-msg {
@@ -853,6 +893,9 @@
       .proof-grid {
         grid-template-columns: repeat(2, 1fr);
       }
+
+      /* CRO: no mobile/tablet o form sobe antes da copy de apoio */
+      .form-card { order: -1; }
     }
 
     @media (max-width: 760px) {
@@ -940,7 +983,7 @@
           class="brand-logo"
         />
       </a>
-      <a href="#cadastro" class="top-cta">COMEÇAR TESTE GRÁTIS</a>
+      <a href="#cadastro" class="top-cta">Começar agora — grátis</a>
     </div>
   </header>
 
@@ -949,30 +992,25 @@
     <section class="hero">
       <div class="container hero-grid">
         <div class="hero-copy">
-          <div class="eyebrow">Teste grátis por 7 dias</div>
+          <div class="eyebrow">Teste grátis por 7 dias · sem cartão</div>
           <h1>
-            Você pode estar <span class="accent">perdendo dinheiro</span> todos os dias sem perceber.
+            Seu escritório está <span class="accent">perdendo dinheiro</span> todos os dias.
           </h1>
           <p class="lead">
-            Prazos esquecidos, clientes sem acompanhamento e processos desorganizados travam o crescimento do escritório.
-            Com o LawTech Pro, você centraliza sua rotina jurídica em um só lugar e volta ao controle.
-          </p>
-
-          <p style="margin:20px 0 0; font-size:15px; color:var(--muted); display:flex; align-items:flex-start; gap:8px; max-width:52ch;">
-            <span style="color:#22c55e; flex-shrink:0; font-size:16px;">✦</span>
-            Agenda de audiências com alertas por e-mail, avisos via WhatsApp e registro de ATA em poucos cliques.
+            Prazos esquecidos e clientes sem acompanhamento estão travando seu crescimento.
           </p>
 
           <div class="hero-actions">
-            <a href="#cadastro" class="btn btn-primary">COMEÇAR TESTE GRÁTIS</a>
-            <a href="#como-funciona" class="btn btn-secondary">VER COMO FUNCIONA</a>
+            <a href="#cadastro" class="btn btn-primary">Começar teste grátis agora</a>
+            <a href="#como-funciona" class="btn btn-secondary">Ver como funciona</a>
           </div>
 
           <div class="hero-meta">
-            <span><i class="dot"></i> Sem cartão de crédito</span>
-            <span><i class="dot"></i> Acesso imediato</span>
-            <span><i class="dot"></i> Foco em advogados autônomos e escritórios modernos de advocacia</span>
+            <span><span class="check">✔</span> Sem cartão de crédito</span>
+            <span><span class="check">✔</span> Acesso imediato</span>
+            <span><span class="check">✔</span> 7 dias grátis</span>
           </div>
+          <p class="hero-seconds">Leva menos de 30 segundos para começar.</p>
         </div>
 
         <div class="hero-panel">
@@ -1039,8 +1077,8 @@
     <section>
       <div class="container">
         <div class="section-header">
-          <h2>Advogados não perdem dinheiro só por falta de clientes.</h2>
-          <p>Muitos perdem por desorganização. E isso custa caro em silêncio.</p>
+          <h2>O problema não é falta de clientes.</h2>
+          <p>É desorganização. Processos espalhados, prazos esquecidos e clientes sem acompanhamento fazem você perder dinheiro todos os dias — sem perceber.</p>
         </div>
 
         <div class="pain-grid">
@@ -1076,10 +1114,7 @@
       <div class="container">
         <div class="section-header">
           <h2>O LawTech Pro organiza seu escritório em minutos.</h2>
-          <p>
-            Em vez de depender de memória, planilhas e improviso, você passa a ter um sistema único
-            para controlar prazos, processos, tarefas e clientes com clareza.
-          </p>
+          <p>Um sistema único para prazos, processos, tarefas e clientes. Sem planilhas. Sem improviso.</p>
         </div>
 
         <div class="comparison">
@@ -1114,11 +1149,8 @@
       <div class="container">
         <div class="cta-shell">
           <h2>Pare de perder tempo, dinheiro e controle da sua rotina.</h2>
-          <p>
-            Comece agora seu teste gratuito e veja como o LawTech Pro pode organizar seu escritório
-            desde o primeiro acesso.
-          </p>
-          <a href="#cadastro" class="btn btn-primary">Teste grátis e veja seus prazos chegando no E-mail</a>
+          <p>Comece agora e veja seu escritório organizado desde o primeiro acesso.</p>
+          <a href="#cadastro" class="btn btn-primary">Começar teste grátis agora</a>
         </div>
       </div>
     </section>
@@ -1127,51 +1159,45 @@
     <section>
       <div class="container">
         <div class="section-header">
-          <h2>Tudo o que você precisa para sair do caos e voltar ao controle.</h2>
-          <p>Menos tempo procurando informação. Mais tempo cuidando do que realmente gera resultado.</p>
+          <h2>Tudo o que você precisa para voltar ao controle.</h2>
+          <p>Menos tempo procurando. Mais tempo advogando.</p>
         </div>
 
         <div class="benefits-grid">
           <article class="card">
             <div class="card-icon">🗓️</div>
             <h3>Controle de prazos</h3>
-            <p>Acompanhe compromissos e reduza o risco de esquecer etapas importantes da sua rotina jurídica.</p>
+            <p>Alertas automáticos antes do vencimento. Nunca mais um prazo esquecido.</p>
           </article>
 
           <article class="card">
             <div class="card-icon">⚖️</div>
             <h3>Gestão de processos</h3>
-            <p>Visualize melhor o andamento dos casos, pendências e próximos passos sem depender do improviso.</p>
+            <p>Todos os casos, pendências e próximos passos em um único painel.</p>
           </article>
 
           <article class="card">
             <div class="card-icon">📇</div>
             <h3>Organização de clientes</h3>
-            <p>Centralize dados e histórico para atender com mais agilidade e consistência.</p>
+            <p>Histórico centralizado. Atendimento mais ágil e consistente.</p>
           </article>
 
           <article class="card">
-            <div class="card-icon">🚀</div>
-            <h3>Rotina mais produtiva</h3>
-            <p>Menos retrabalho. Mais controle. Mais espaço para crescer com organização.</p>
-          </article>
-
-          <article class="card">
-            <div class="card-icon">🗓️</div>
-            <h3>Agenda de audiências inteligente</h3>
-            <p>Organize todas as audiências e compromissos em um só lugar, sem risco de esquecer.</p>
+            <div class="card-icon">📅</div>
+            <h3>Agenda de audiências</h3>
+            <p>Compromissos organizados com lembretes automáticos e registro de ATA em cliques.</p>
           </article>
 
           <article class="card">
             <div class="card-icon">💬</div>
-            <h3>Avisos por e-mail e WhatsApp</h3>
-            <p>Receba alertas de prazos e audiências por e-mail automaticamente e envie avisos via WhatsApp com um clique.</p>
+            <h3>Alertas por e-mail e WhatsApp</h3>
+            <p>Notificações de prazos no e-mail e avisos via WhatsApp com um clique.</p>
           </article>
 
           <article class="card">
-            <div class="card-icon">📝</div>
-            <h3>Registro de ATA simplificado</h3>
-            <p>Registre e consulte atas de forma rápida e organizada, sem perder histórico.</p>
+            <div class="card-icon">🚀</div>
+            <h3>Rotina sem retrabalho</h3>
+            <p>Menos improviso. Mais foco no que gera resultado para o escritório.</p>
           </article>
         </div>
       </div>
@@ -1251,23 +1277,20 @@
       <div class="container form-wrap">
         <div class="form-copy">
           <div class="eyebrow">Comece agora</div>
-          <h2>Crie sua conta grátis e veja a diferença desde o primeiro acesso.</h2>
-          <p>
-            Se o seu escritório ainda depende de memória, anotações soltas ou planilhas, você está operando com risco.
-            O LawTech Pro te entrega mais clareza e mais controle.
-          </p>
+          <h2>Crie sua conta grátis e retome o controle do escritório.</h2>
+          <p>Sem planilhas. Sem improviso. Sem risco de prazo perdido.</p>
 
           <div class="form-list">
-            <div><span class="badge-check">✓</span><span>Teste grátis por 7 dias</span></div>
-            <div><span class="badge-check">✓</span><span>Cadastro rápido e sem burocracia</span></div>
-            <div><span class="badge-check">✓</span><span>Sem distrações, foco em organização</span></div>
-            <div><span class="badge-check">✓</span><span>Ideal para advogados autônomos e escritórios modernos de advocacia</span></div>
+            <div><span class="badge-check">✓</span><span>7 dias grátis, sem cartão de crédito</span></div>
+            <div><span class="badge-check">✓</span><span>Acesso imediato após o cadastro</span></div>
+            <div><span class="badge-check">✓</span><span>Prazos, processos e clientes centralizados</span></div>
+            <div><span class="badge-check">✓</span><span>Alertas automáticos por e-mail e WhatsApp</span></div>
           </div>
         </div>
 
         <div class="form-card">
-          <h3>Começar teste gratuito</h3>
-          <p>Preencha os dados abaixo para criar sua conta.</p>
+          <div class="form-flash">⚡ Crie sua conta em menos de 30 segundos</div>
+          <h3>Criar conta gratuita</h3>
 
           <div id="formMsg" class="form-msg"></div>
 
@@ -1294,7 +1317,7 @@
           </form>
 
           <div class="micro">
-            Ao criar sua conta, você inicia seu teste gratuito por 7 dias.
+            Sem burocracia. Sem risco. Acesso imediato.
           </div>
         </div>
       </div>
@@ -1303,7 +1326,7 @@
 
   <!-- Botão flutuante mobile -->
   <div class="floating-mobile-cta">
-    <a href="#cadastro" class="btn btn-primary">COMEÇAR TESTE GRÁTIS</a>
+    <a href="#cadastro" class="btn btn-primary">Criar conta gratuita</a>
   </div>
 
   <footer class="footer">
