@@ -161,6 +161,25 @@
       border: 1px solid rgba(59, 130, 246, 0.22);
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow-strong);
+      position: relative;
+    }
+
+    .hero-selo {
+      position: absolute;
+      top: -36px;
+      right: -18px;
+      width: 96px;
+      height: auto;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    @media (max-width: 1080px) {
+      .hero-selo {
+        top: -40px;
+        right: 16px;
+        width: 80px;
+      }
     }
 
     .hero-copy {
@@ -995,6 +1014,7 @@
         </div>
 
         <div class="form-card hero-form-card">
+          <img src="/selo_dourado.png" alt="7 dias grátis sem compromisso" class="hero-selo" />
           <div class="form-flash">⚡ Crie sua conta em menos de 30 segundos</div>
           <h3>Criar conta gratuita</h3>
 
