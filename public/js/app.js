@@ -513,7 +513,7 @@
                 '<div class="aud-data-bloco" style="background:' + corBloco + ';">' +
                 '<div class="aud-dia">' + diaNumero(a.data_audiencia) + '</div>' +
                 '<div class="aud-mes">' + mesAbrev(a.data_audiencia) + '</div>' +
-                '<div class="aud-hora">' + formatarHora(a.data_audiencia) + '</div>' +
+                '<div class="aud-hora">' + (a.hora_audiencia ? a.hora_audiencia.slice(0, 5) : formatarHora(a.data_audiencia)) + '</div>' +
                 '</div>' +
                 '<div style="flex:1">' +
                 '<div class="card-header" style="margin-bottom:4px">' +
