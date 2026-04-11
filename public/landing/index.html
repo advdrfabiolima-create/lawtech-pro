@@ -145,12 +145,22 @@
       align-items: stretch;
     }
 
-    .hero-copy,
-    .hero-panel {
+    .hero-copy {
       background: linear-gradient(180deg, rgba(15, 23, 42, 0.62), rgba(15, 23, 42, 0.38));
       border: 1px solid var(--line);
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow);
+    }
+
+    /* form-card when placed inside hero-grid */
+    .hero-grid .hero-form-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72));
+      border: 1px solid rgba(59, 130, 246, 0.22);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-strong);
     }
 
     .hero-copy {
@@ -263,27 +273,6 @@
       border-radius: 999px;
       background: var(--success);
       box-shadow: 0 0 0 6px rgba(34,197,94,.08);
-    }
-
-    .hero-panel {
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 16px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero-panel::before {
-      content: "";
-      position: absolute;
-      inset: auto -80px -120px auto;
-      width: 260px;
-      height: 260px;
-      background: radial-gradient(circle, rgba(37,99,235,.22), transparent 70%);
-      border-radius: 50%;
-      pointer-events: none;
     }
 
     .mini-bar {
@@ -880,8 +869,7 @@
     }
 
     @media (max-width: 1080px) {
-      .hero-grid,
-      .form-wrap {
+      .hero-grid {
         grid-template-columns: 1fr;
       }
 
@@ -894,8 +882,10 @@
         grid-template-columns: repeat(2, 1fr);
       }
 
-      /* CRO: no mobile/tablet o form sobe antes da copy de apoio */
-      .form-card { order: -1; }
+      /* on tablet, form moves above copy */
+      .hero-grid .hero-form-card {
+        order: -1;
+      }
     }
 
     @media (max-width: 760px) {
@@ -916,7 +906,7 @@
       }
 
       .hero-copy,
-      .hero-panel,
+      .hero-form-card,
       .card,
       .panel,
       .cta-shell,
@@ -934,7 +924,7 @@
       }
 
       .hero-copy,
-      .hero-panel,
+      .hero-form-card,
       .cta-shell,
       .form-copy,
       .form-card {
@@ -947,28 +937,19 @@
         font-size: 16px;
       }
 
-      .floating-mobile-cta {
-        position: fixed;
-        left: 12px;
-        right: 12px;
-        bottom: 12px;
-        z-index: 60;
-        display: block;
+      /* Form now visible in hero — redundant CTAs and floating button not needed */
+      .hero-actions,
+      .hero-meta,
+      .hero-seconds {
+        display: none;
       }
 
-      .floating-mobile-cta a {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        min-height: 54px;
-        border-radius: 14px;
-        font-weight: 900;
-        font-size: 15px;
+      .floating-mobile-cta {
+        display: none !important;
       }
 
       .footer {
-        padding-bottom: 90px;
+        padding-bottom: 36px;
       }
     }
   </style>
@@ -989,7 +970,7 @@
 
   <main>
     <!-- HERO -->
-    <section class="hero">
+    <section class="hero" id="cadastro">
       <div class="container hero-grid">
         <div class="hero-copy">
           <div class="eyebrow">Teste grátis por 7 dias · sem cartão</div>
@@ -1013,52 +994,36 @@
           <p class="hero-seconds">Leva menos de 30 segundos para começar.</p>
         </div>
 
-        <div class="hero-panel">
-          <div class="dashboard">
-            <div class="mini-bar">
-              <span class="mini-dot"></span>
-              <span class="mini-dot"></span>
-              <span class="mini-dot"></span>
+        <div class="form-card hero-form-card">
+          <div class="form-flash">⚡ Crie sua conta em menos de 30 segundos</div>
+          <h3>Criar conta gratuita</h3>
+
+          <div id="formMsg" class="form-msg"></div>
+
+          <form id="registerForm" novalidate>
+            <div class="field">
+              <label for="name">Nome completo</label>
+              <input id="name" name="name" type="text" placeholder="Dr. João da Silva"
+                autocomplete="name" required />
             </div>
 
-            <div class="dash-head">
-              <div class="dash-title">Painel de controle jurídico</div>
-              <div class="dash-chip">Organizado</div>
+            <div class="field">
+              <label for="email">E-mail</label>
+              <input id="email" name="email" type="email" placeholder="voce@escritorio.com.br"
+                autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" required />
             </div>
 
-            <div class="dash-stats">
-              <div class="stat">
-                <small>Prazos do dia</small>
-                <strong>08</strong>
-              </div>
-              <div class="stat">
-                <small>Processos ativos</small>
-                <strong>124</strong>
-              </div>
-              <div class="stat">
-                <small>Clientes</small>
-                <strong>67</strong>
-              </div>
-              <div class="stat">
-                <small>Tarefas</small>
-                <strong>12</strong>
-              </div>
+            <div class="field">
+              <label for="password">Senha</label>
+              <input id="password" name="password" type="password" placeholder="Mínimo 6 caracteres"
+                autocomplete="new-password" required />
             </div>
 
-            <div class="dash-list">
-              <div class="dash-row">
-                <span>Revisar audiência de amanhã</span>
-                <div class="pill-warn">Hoje</div>
-              </div>
-              <div class="dash-row">
-                <span>Contato com cliente pendente</span>
-                <div class="pill-danger">Urgente</div>
-              </div>
-              <div class="dash-row">
-                <span>Petição protocolada</span>
-                <div class="pill-ok">Concluído</div>
-              </div>
-            </div>
+            <button type="submit" id="btnSubmit" class="submit">COMEÇAR TESTE GRATUITO</button>
+          </form>
+
+          <div class="micro">
+            Sem burocracia. Sem risco. Acesso imediato.
           </div>
         </div>
       </div>
@@ -1272,56 +1237,6 @@
       </div>
     </section>
 
-    <!-- FORMULÁRIO -->
-    <section class="form-section" id="cadastro">
-      <div class="container form-wrap">
-        <div class="form-copy">
-          <div class="eyebrow">Comece agora</div>
-          <h2>Crie sua conta grátis e retome o controle do escritório.</h2>
-          <p>Sem planilhas. Sem improviso. Sem risco de prazo perdido.</p>
-
-          <div class="form-list">
-            <div><span class="badge-check">✓</span><span>7 dias grátis, sem cartão de crédito</span></div>
-            <div><span class="badge-check">✓</span><span>Acesso imediato após o cadastro</span></div>
-            <div><span class="badge-check">✓</span><span>Prazos, processos e clientes centralizados</span></div>
-            <div><span class="badge-check">✓</span><span>Alertas automáticos por e-mail e WhatsApp</span></div>
-          </div>
-        </div>
-
-        <div class="form-card">
-          <div class="form-flash">⚡ Crie sua conta em menos de 30 segundos</div>
-          <h3>Criar conta gratuita</h3>
-
-          <div id="formMsg" class="form-msg"></div>
-
-          <form id="registerForm" novalidate>
-            <div class="field">
-              <label for="name">Nome completo</label>
-              <input id="name" name="name" type="text" placeholder="Dr. João da Silva"
-                autocomplete="name" required />
-            </div>
-
-            <div class="field">
-              <label for="email">E-mail</label>
-              <input id="email" name="email" type="email" placeholder="voce@escritorio.com.br"
-                autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" required />
-            </div>
-
-            <div class="field">
-              <label for="password">Senha</label>
-              <input id="password" name="password" type="password" placeholder="Mínimo 6 caracteres"
-                autocomplete="new-password" required />
-            </div>
-
-            <button type="submit" id="btnSubmit" class="submit">COMEÇAR TESTE GRATUITO</button>
-          </form>
-
-          <div class="micro">
-            Sem burocracia. Sem risco. Acesso imediato.
-          </div>
-        </div>
-      </div>
-    </section>
   </main>
 
   <!-- Botão flutuante mobile -->
