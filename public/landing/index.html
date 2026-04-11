@@ -509,8 +509,15 @@
       justify-content: center;
       margin-bottom: 14px;
       font-size: 20px;
-      background: rgba(37, 99, 235, 0.14);
-      border: 1px solid rgba(59,130,246,.2);
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.16);
+      filter: grayscale(1) brightness(2.2);
+      transition: filter 0.2s ease, background 0.2s ease;
+    }
+
+    .card:hover .card-icon {
+      filter: grayscale(1) brightness(2.8);
+      background: rgba(59, 130, 246, 0.13);
     }
 
     .card h3 {
