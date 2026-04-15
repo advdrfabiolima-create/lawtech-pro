@@ -58,10 +58,11 @@ router.post('/cancelar-assinatura', authMiddleware, roleMiddleware('admin'), asy
             });
         }
 
-        // Marcar como cancelada (renovacao_automatica = false)
+        // Marcar como cancelada (renovacao_automatica = false) e agendar expiração
         await pool.query(
-            `UPDATE escritorios 
-             SET renovacao_automatica = false
+            `UPDATE escritorios
+             SET renovacao_automatica = false,
+                 data_cancelamento_agendado = proxima_cobranca
              WHERE id = $1`,
             [escritorioId]
         );
