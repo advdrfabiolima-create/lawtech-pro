@@ -182,6 +182,40 @@ if (oabApenasNumeros) {
 });
 
 // ============================================================
+// ROTA 1b: SALVAR APENAS OAB + UF (boas-vindas / onboarding rápido)
+// PUT /api/config/oab-rapido
+// ============================================================
+router.put('/config/oab-rapido', authMiddleware, roleMiddleware('admin'), async (req, res) => {
+    const { oab, uf } = req.body;
+    if (!oab || !uf) {
+        return res.status(400).json({ ok: false, erro: 'OAB e UF são obrigatórios.' });
+    }
+    const oabNumeros = oab.replace(/\D/g, '');
+    if (!oabNumeros) {
+        return res.status(400).json({ ok: false, erro: 'Número da OAB inválido.' });
+    }
+    const ufFinal = uf.trim().toUpperCase();
+    if (!/^[A-Z]{2}$/.test(ufFinal)) {
+        return res.status(400).json({ ok: false, erro: 'UF inválida.' });
+    }
+    try {
+        await pool.query(
+            'UPDATE escritorios SET oab = $1, uf = $2, estado = $2 WHERE id = $3',
+            [oabNumeros, ufFinal, req.user.escritorio_id]
+        );
+        // Invalida cache do usuário
+        const { rows } = await pool.query('SELECT id FROM usuarios WHERE escritorio_id = $1', [req.user.escritorio_id]);
+        const cache = require('../utils/cache');
+        for (const u of rows) await cache.del(`auth:user:${u.id}`);
+
+        res.json({ ok: true, mensagem: 'OAB salva com sucesso.' });
+    } catch (err) {
+        logger.error({ err: err.message }, 'Erro ao salvar OAB rapida');
+        res.status(500).json({ ok: false, erro: 'Erro ao salvar OAB.' });
+    }
+});
+
+// ============================================================
 // ROTA 2: BUSCAR DADOS DO ESCRITÓRIO (GET)
 // ============================================================
 router.get('/meu-escritorio', authMiddleware, async (req, res) => {

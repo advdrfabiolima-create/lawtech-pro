@@ -42,6 +42,64 @@ async function verificarPrimeiroAcesso() {
 }
 
 // ============================================================
+// BOAS-VINDAS — PASSO 0: SALVAR OAB
+// ============================================================
+async function salvarOabBoasVindas() {
+    const oab = (document.getElementById('welcomeOabNumero')?.value || '').trim();
+    const uf  = (document.getElementById('welcomeOabUf')?.value || '').trim();
+    const erroEl = document.getElementById('welcomeOabErro');
+
+    erroEl.style.display = 'none';
+
+    if (!oab) {
+        erroEl.textContent = 'Informe o número da OAB.';
+        erroEl.style.display = 'block';
+        document.getElementById('welcomeOabNumero').focus();
+        return;
+    }
+    if (!uf) {
+        erroEl.textContent = 'Selecione o Estado (UF) da sua OAB.';
+        erroEl.style.display = 'block';
+        document.getElementById('welcomeOabUf').focus();
+        return;
+    }
+
+    const btn = document.getElementById('btnSalvarOab');
+    btn.disabled = true;
+    btn.textContent = 'Salvando…';
+
+    try {
+        const res = await API.put('/api/config/oab-rapido', { oab, uf });
+        if (res.ok) {
+            // Avança para o passo 1
+            document.getElementById('welcome-step-oab').style.display  = 'none';
+            document.getElementById('welcome-step-tour').style.display = 'block';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        } else {
+            const data = await res.json().catch(() => ({}));
+            erroEl.textContent = data.erro || 'Erro ao salvar. Tente novamente.';
+            erroEl.style.display = 'block';
+        }
+    } catch (_) {
+        erroEl.textContent = 'Falha de conexão. Verifique sua internet e tente novamente.';
+        erroEl.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '✅ Salvar OAB e Continuar';
+    }
+}
+
+function pularOabBoasVindas() {
+    document.getElementById('welcome-step-oab').style.display  = 'none';
+    document.getElementById('welcome-step-tour').style.display = 'block';
+    // Atualiza título para deixar claro que OAB ainda falta
+    document.querySelector('#welcome-step-tour .welcome-title').textContent = 'Bem-vindo ao LawTech Pro!';
+    const aviso = document.querySelector('#welcome-step-tour .welcome-subtitle');
+    if (aviso) aviso.innerHTML = 'Sua plataforma está pronta!<br><strong style="color:#f59e0b;">⚠️ Lembre-se: cadastre sua OAB em Configurações para ativar o monitoramento DJEN.</strong>';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+// ============================================================
 // FECHAR MODAL DE BOAS-VINDAS
 // ============================================================
 async function fecharModalBoasVindas() {

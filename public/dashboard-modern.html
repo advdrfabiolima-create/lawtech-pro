@@ -1540,54 +1540,118 @@ input, textarea, select {
     <!-- MODAL DE BOAS-VINDAS -->
 <div class="modal-welcome" id="modalWelcome">
     <div class="welcome-content">
-        <div class="welcome-header">
-            <div class="welcome-icon">👋</div>
-            <h1 class="welcome-title">Bem-vindo ao LawTech Pro!</h1>
-            <p class="welcome-subtitle">
-                Sua plataforma completa de gestão jurídica está pronta.<br>
-                Um tour guiado vai te mostrar tudo que você precisa saber.
-            </p>
+
+        <!-- ══════════════════════════════════════════════════════
+             PASSO 0 — Captura da OAB (exibido primeiro)
+        ══════════════════════════════════════════════════════ -->
+        <div id="welcome-step-oab">
+            <div class="welcome-header">
+                <div class="welcome-icon">⚖️</div>
+                <h1 class="welcome-title">Informe sua OAB para ativar o sistema</h1>
+                <p class="welcome-subtitle">
+                    Seu número da OAB é essencial para o monitoramento de publicações, prazos automáticos e DJEN.<br>
+                    <strong>Leva menos de 10 segundos.</strong>
+                </p>
+            </div>
+
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;margin:16px 0;display:flex;align-items:flex-start;gap:10px;text-align:left;">
+                <span style="font-size:20px;flex-shrink:0;">💡</span>
+                <p style="font-size:13px;color:#1e40af;margin:0;line-height:1.5;">
+                    Você poderá completar os demais dados do escritório em <strong>Configurações</strong> depois. Por enquanto, só precisamos da OAB.
+                </p>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:16px;">
+                <div>
+                    <label style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">
+                        Número da OAB <span style="color:#ef4444;">*</span>
+                    </label>
+                    <input type="text" id="welcomeOabNumero"
+                        placeholder="Ex: 12345"
+                        maxlength="7"
+                        style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;box-sizing:border-box;outline:none;"
+                        oninput="this.value=this.value.replace(/\D/g,'')">
+                </div>
+                <div>
+                    <label style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">
+                        Estado (UF) <span style="color:#ef4444;">*</span>
+                    </label>
+                    <select id="welcomeOabUf"
+                        style="padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;background:#fff;cursor:pointer;outline:none;min-width:80px;">
+                        <option value="">UF</option>
+                        <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+                        <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+                        <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+                        <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+                        <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+                        <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+                        <option>SP</option><option>SE</option><option>TO</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="welcomeOabErro" style="display:none;color:#ef4444;font-size:13px;margin-bottom:12px;padding:8px 12px;background:#fef2f2;border-radius:6px;border:1px solid #fecaca;"></div>
+
+            <button type="button" id="btnSalvarOab" class="btn-primary" data-action="salvarOabBoasVindas" style="width:100%;padding:12px;">
+                ✅ Salvar OAB e Continuar
+            </button>
+            <div style="text-align:center;margin-top:10px;">
+                <button type="button" data-action="pularOabBoasVindas"
+                    style="background:none;border:none;color:#94a3b8;font-size:12px;cursor:pointer;text-decoration:underline;">
+                    Pular por agora (não recomendado)
+                </button>
+            </div>
         </div>
 
-        <!-- Passo 1 destacado: Configurações -->
-        <div style="background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:2px solid #0ea5e9;border-radius:12px;padding:16px;margin:16px 0;display:flex;align-items:center;gap:14px;text-align:left;">
-            <div style="font-size:32px;flex-shrink:0;">⚙️</div>
-            <div>
-                <p style="font-size:14px;font-weight:700;color:#0c4a6e;margin:0 0 4px;">1º passo: Configure seu escritório</p>
-                <p style="font-size:12px;color:#0369a1;margin:0;">Antes de cadastrar clientes e processos, preencha os dados do escritório em <strong>Configurações</strong>. O tour vai te guiar até lá.</p>
+        <!-- ══════════════════════════════════════════════════════
+             PASSO 1 — Boas-vindas (exibido após salvar OAB)
+        ══════════════════════════════════════════════════════ -->
+        <div id="welcome-step-tour" style="display:none;">
+            <div class="welcome-header">
+                <div class="welcome-icon">👋</div>
+                <h1 class="welcome-title">OAB salva! Bem-vindo ao LawTech Pro!</h1>
+                <p class="welcome-subtitle">
+                    Sua plataforma completa de gestão jurídica está pronta.<br>
+                    Um tour guiado vai te mostrar tudo que você precisa saber.
+                </p>
             </div>
+
+            <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px solid #22c55e;border-radius:12px;padding:14px 16px;margin:16px 0;display:flex;align-items:center;gap:12px;text-align:left;">
+                <span style="font-size:28px;flex-shrink:0;">✅</span>
+                <div>
+                    <p style="font-size:14px;font-weight:700;color:#15803d;margin:0 0 2px;">OAB registrada com sucesso!</p>
+                    <p style="font-size:12px;color:#16a34a;margin:0;">Agora complete os dados do escritório em <strong>Configurações</strong> e depois cadastre seus clientes e processos.</p>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
+                <div style="background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); border-radius: 10px; padding: 14px; color: white; text-align: center;">
+                    <i data-lucide="users" style="width: 28px; height: 28px; margin: 0 auto 6px; display: block;"></i>
+                    <h3 style="font-size: 13px; margin-bottom: 2px; font-weight: 700;">Clientes</h3>
+                    <p style="font-size: 11px; opacity: 0.85; margin: 0;">Gerencie sua carteira</p>
+                </div>
+                <div style="background: linear-gradient(135deg, #52B788 0%, #3D8B64 100%); border-radius: 10px; padding: 14px; color: white; text-align: center;">
+                    <i data-lucide="folder" style="width: 28px; height: 28px; margin: 0 auto 6px; display: block;"></i>
+                    <h3 style="font-size: 13px; margin-bottom: 2px; font-weight: 700;">Processos</h3>
+                    <p style="font-size: 11px; opacity: 0.85; margin: 0;">Cadastre e monitore</p>
+                </div>
+                <div style="background: linear-gradient(135deg, #F2A65A 0%, #E89544 100%); border-radius: 10px; padding: 14px; color: white; text-align: center;">
+                    <i data-lucide="clock" style="width: 28px; height: 28px; margin: 0 auto 6px; display: block;"></i>
+                    <h3 style="font-size: 13px; margin-bottom: 2px; font-weight: 700;">Prazos</h3>
+                    <p style="font-size: 11px; opacity: 0.85; margin: 0;">Controle e alertas</p>
+                </div>
+                <div style="background: linear-gradient(135deg, #7E8CE0 0%, #5E6CB0 100%); border-radius: 10px; padding: 14px; color: white; text-align: center;">
+                    <i data-lucide="sparkles" style="width: 28px; height: 28px; margin: 0 auto 6px; display: block;"></i>
+                    <h3 style="font-size: 13px; margin-bottom: 2px; font-weight: 700;">IA Jurídica</h3>
+                    <p style="font-size: 11px; opacity: 0.85; margin: 0;">Petições e assistente</p>
+                </div>
+            </div>
+
+            <button type="button" class="btn-primary" data-action="fecharModalBoasVindas">
+                🚀 Iniciar Tour Guiado
+            </button>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
-            <!-- Card Clientes -->
-            <div style="background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); border-radius: 10px; padding: 14px; color: white; text-align: center;">
-                <i data-lucide="users" style="width: 28px; height: 28px; margin: 0 auto 6px; display: block;"></i>
-                <h3 style="font-size: 13px; margin-bottom: 2px; font-weight: 700;">Clientes</h3>
-                <p style="font-size: 11px; opacity: 0.85; margin: 0;">Gerencie sua carteira</p>
-            </div>
-            <!-- Card Processos -->
-            <div style="background: linear-gradient(135deg, #52B788 0%, #3D8B64 100%); border-radius: 10px; padding: 14px; color: white; text-align: center;">
-                <i data-lucide="folder" style="width: 28px; height: 28px; margin: 0 auto 6px; display: block;"></i>
-                <h3 style="font-size: 13px; margin-bottom: 2px; font-weight: 700;">Processos</h3>
-                <p style="font-size: 11px; opacity: 0.85; margin: 0;">Cadastre e monitore</p>
-            </div>
-            <!-- Card Prazos -->
-            <div style="background: linear-gradient(135deg, #F2A65A 0%, #E89544 100%); border-radius: 10px; padding: 14px; color: white; text-align: center;">
-                <i data-lucide="clock" style="width: 28px; height: 28px; margin: 0 auto 6px; display: block;"></i>
-                <h3 style="font-size: 13px; margin-bottom: 2px; font-weight: 700;">Prazos</h3>
-                <p style="font-size: 11px; opacity: 0.85; margin: 0;">Controle e alertas</p>
-            </div>
-            <!-- Card IA Jurídica -->
-            <div style="background: linear-gradient(135deg, #7E8CE0 0%, #5E6CB0 100%); border-radius: 10px; padding: 14px; color: white; text-align: center;">
-                <i data-lucide="sparkles" style="width: 28px; height: 28px; margin: 0 auto 6px; display: block;"></i>
-                <h3 style="font-size: 13px; margin-bottom: 2px; font-weight: 700;">IA Jurídica</h3>
-                <p style="font-size: 11px; opacity: 0.85; margin: 0;">Petições e assistente</p>
-            </div>
-        </div>
-
-        <button type="button" class="btn-primary" data-action="fecharModalBoasVindas">
-            🚀 Iniciar Tour Guiado
-        </button>
     </div>
 </div>
 
