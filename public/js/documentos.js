@@ -720,6 +720,10 @@ async function abrirModalAssinar(docId, processoId) {
 }
 
 function adicionarLinhaSignatario(nome = '', email = '') {
+    // Quando chamada via data-action (sem data-args), o event delegation passa o
+    // elemento DOM como primeiro argumento. Garante que nome/email sejam strings.
+    if (typeof nome !== 'string') nome = '';
+    if (typeof email !== 'string') email = '';
     const list = document.getElementById('assinarSignatariosList');
     const row = document.createElement('div');
     row.className = 'sign-row';
