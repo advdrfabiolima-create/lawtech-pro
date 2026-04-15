@@ -7,11 +7,6 @@
  * Dependência: api.js (deve ser carregado antes)
  */
 (function () {
-    const STORAGE_KEY = 'onboarding_concluido';
-
-    // Se já foi marcado como concluído nesta sessão, não faz nada
-    if (sessionStorage.getItem(STORAGE_KEY) === '1') return;
-
     async function carregarOnboarding() {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         if (!token) return;
@@ -25,10 +20,7 @@
             status = await res.json();
         } catch (_) { return; }
 
-        if (status.concluido) {
-            sessionStorage.setItem(STORAGE_KEY, '1');
-            return;
-        }
+        if (status.concluido) return;
 
         renderizarBanner(status);
     }
