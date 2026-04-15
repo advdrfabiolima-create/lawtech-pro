@@ -126,8 +126,8 @@
         // Insere no início do main content (compatível com as variantes de layout do projeto)
         const alvo =
             document.getElementById('main-content') ||
+            document.querySelector('main.content') ||
             document.querySelector('.main-content') ||
-            document.querySelector('.main') ||
             document.querySelector('main') ||
             document.querySelector('.content') ||
             document.body;
