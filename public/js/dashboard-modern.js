@@ -251,9 +251,8 @@ async function inicializarDashboard() {
                     banner.style.display = 'flex';
                     const msg = document.getElementById('banner-trial-msg');
                     if (msg) {
-                        const dias = user.dias_restantes;
-                        const planoNome = user.plano_nome || 'seu plano';
-                        msg.textContent = `Você tem ${dias} dia${dias !== 1 ? 's' : ''} de teste restante${dias !== 1 ? 's' : ''}. Após o encerramento, somente as funcionalidades do plano ${planoNome} estarão disponíveis.`;
+                        const planoNome = user.plano_nome || 'Básico';
+                        msg.textContent = `Aproveite o seu período de teste (TRIAL). Após o encerramento, somente as funcionalidades do plano ${planoNome} estarão disponíveis.`;
                     }
                 }
             } else {

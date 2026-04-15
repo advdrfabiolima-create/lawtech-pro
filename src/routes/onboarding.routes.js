@@ -14,7 +14,7 @@ router.get('/onboarding/status', authMiddleware, async (req, res) => {
                 [escritorioId]
             ),
             pool.query(
-                'SELECT COUNT(*) FROM clientes WHERE escritorio_id = $1 AND deletado IS NOT TRUE',
+                'SELECT COUNT(*) FROM clientes WHERE escritorio_id = $1',
                 [escritorioId]
             ),
             pool.query(

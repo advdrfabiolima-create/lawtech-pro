@@ -156,7 +156,7 @@ cron.schedule('0 10 * * *', async () => {
 
             // ── Verificar se onboarding está incompleto ──────────────────────
             const [clientesRes, processosRes] = await Promise.all([
-                pool.query('SELECT COUNT(*) FROM clientes WHERE escritorio_id = $1 AND deletado IS NOT TRUE', [esc.escritorio_id]),
+                pool.query('SELECT COUNT(*) FROM clientes WHERE escritorio_id = $1', [esc.escritorio_id]),
                 pool.query('SELECT COUNT(*) FROM processos WHERE escritorio_id = $1', [esc.escritorio_id])
             ]);
             const temOab      = !!(esc.oab && esc.oab.trim() !== '');
