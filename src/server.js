@@ -80,6 +80,7 @@ const calendarSyncRoutes = require('./routes/calendarSync.routes');
 const andamentosRoutes = require('./routes/andamentos.routes');
 const portalClienteRoutes = require('./routes/portalCliente.routes');
 const reunioesRoutes = require('./routes/reunioes.routes');
+const onboardingRoutes = require('./routes/onboarding.routes');
 const fileStorage = require('./utils/storage');
 const { registrarLog } = require('./utils/auditLog');
 const cache = require('./utils/cache');
@@ -352,6 +353,7 @@ app.use('/api', authMiddleware, verificarPagamento, chatRoutes);
 app.use('/api', authMiddleware, verificarPagamento, documentosRoutes);
 app.use('/api', authMiddleware, verificarPagamento, andamentosRoutes);
 app.use('/api', authMiddleware, verificarPagamento, reunioesRoutes);
+app.use('/api', onboardingRoutes); // Onboarding — authMiddleware interno na rota
 app.use('/webhook', assinaturaDigitalRoutes); // ClickSign webhook — público (APÓS express.json)
 app.use('/api', authMiddleware, verificarPagamento, assinaturaDigitalRoutes);
 app.use('/api', authMiddleware, verificarPagamento, addonClicksignRoutes);
@@ -512,6 +514,7 @@ require('./cron/cobrancasTrial');
 require('./cron/cobrancasRecorrentes');
 require('./cron/djen_scraper_cron');
 require('./cron/crmFollowup');
+require('./cron/onboardingFollowup');
 require('./cron/auditoriaStripeCron'); // [M-5] Reativado: stripe_customer_id adicionado em migration 004
 require('./cron/datajudCron');         // Sincronização diária de andamentos via DataJud (CNJ)
 
