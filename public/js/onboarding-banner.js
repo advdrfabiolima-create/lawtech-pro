@@ -181,6 +181,13 @@
         });
     }
 
+    // Expõe função de refresh para ser chamada por outros scripts (ex: após salvar OAB no modal)
+    window.recarregarOnboardingBanner = function () {
+        const existing = document.getElementById('onboarding-banner');
+        if (existing) existing.remove();
+        carregarOnboarding();
+    };
+
     // Aguarda DOM estar pronto antes de injetar
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', carregarOnboarding);

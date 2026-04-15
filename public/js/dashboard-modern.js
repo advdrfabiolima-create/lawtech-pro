@@ -70,18 +70,25 @@ async function salvarOabBoasVindas() {
 
     try {
         const res = await API.put('/api/config/oab-rapido', { oab, uf });
-        if (res.ok) {
+        if (res && res.ok) {
+            // Atualiza o banner de onboarding para refletir a OAB recém salva
+            if (typeof window.recarregarOnboardingBanner === 'function') {
+                window.recarregarOnboardingBanner();
+            }
             // Avança para o passo 1
             document.getElementById('welcome-step-oab').style.display  = 'none';
             document.getElementById('welcome-step-tour').style.display = 'block';
             if (typeof lucide !== 'undefined') lucide.createIcons();
-        } else {
+        } else if (res) {
             const data = await res.json().catch(() => ({}));
             erroEl.textContent = data.erro || 'Erro ao salvar. Tente novamente.';
             erroEl.style.display = 'block';
+        } else {
+            erroEl.textContent = 'Falha de conexão. Verifique sua internet e tente novamente.';
+            erroEl.style.display = 'block';
         }
     } catch (_) {
-        erroEl.textContent = 'Falha de conexão. Verifique sua internet e tente novamente.';
+        erroEl.textContent = 'Erro inesperado. Tente novamente.';
         erroEl.style.display = 'block';
     } finally {
         btn.disabled = false;
