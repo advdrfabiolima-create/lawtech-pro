@@ -42,7 +42,7 @@
                 ok: s.configurou_escritorio,
                 label: 'Configurar escritório',
                 desc: 'Nome, OAB e endereço',
-                href: '/config',
+                href: '/config-page',
                 icon: '⚙️'
             },
             {
