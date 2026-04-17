@@ -877,7 +877,7 @@ Identificamos que você já atingiu ${percentual}% do seu limite de ${recurso} n
 
 Para garantir que sua operação não pare e você continue aproveitando todas as nossas automações, gostaria de conhecer as condições especiais para o próximo plano?`;
 
-    const url = `https://web.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
     window.open(url, '_blank');
 }
 
@@ -900,7 +900,7 @@ Identificamos uma pendência financeira no sistema LawTech referente ao escritó
 
 Podemos ajudar com a segunda via do boleto ou chave PIX para manter seu acesso regularizado?`;
 
-    const url = `https://web.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
     window.open(url, '_blank');
 }
 
