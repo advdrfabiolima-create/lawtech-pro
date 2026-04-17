@@ -2,11 +2,9 @@
  * Migration 007 — adiciona coluna telefone em escritorios
  */
 exports.up = (pgm) => {
-    pgm.addColumn('escritorios', {
-        telefone: { type: 'varchar(20)', notNull: false, default: null }
-    });
+    pgm.sql(`ALTER TABLE escritorios ADD COLUMN IF NOT EXISTS telefone VARCHAR(20)`);
 };
 
 exports.down = (pgm) => {
-    pgm.dropColumn('escritorios', 'telefone');
+    pgm.sql(`ALTER TABLE escritorios DROP COLUMN IF EXISTS telefone`);
 };
