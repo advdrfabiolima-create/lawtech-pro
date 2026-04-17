@@ -5,6 +5,7 @@ const pool = require('../../config/db');
 const logger = require('../../utils/logger');
 const cache = require('../../utils/cache');
 const { encrypt } = require('../../utils/crypto');
+const { registrarLog } = require('../../utils/auditLog');
 async function invalidarCacheEscritorio(escritorioId) {
     try {
         const users = await pool.query('SELECT id FROM usuarios WHERE escritorio_id = $1', [escritorioId]);
@@ -88,6 +89,7 @@ router.post('/pagar-trial-pix', async (req, res) => {
         const valor = parseFloat(plano.preco_mensal);
 
         if (!u.documento) {
+            await registrarLog({ escritorio_id: u.escritorio_id, servico: 'pagamento.pix-trial', tipo_erro: 'VALIDATION', mensagem_erro: 'CPF/CNPJ não cadastrado — bloqueou geração de PIX trial' });
             return res.status(400).json({ ok: false, erro: 'CPF/CNPJ não cadastrado. Entre em contato com o suporte.' });
         }
 
@@ -154,6 +156,7 @@ router.post('/pagar-trial-pix', async (req, res) => {
     } catch (err) {
         const msg = err.response?.data?.errors?.[0]?.description || err.message;
         logger.error(`[ERRO] [PIX TRIAL] ${msg}`);
+        await registrarLog({ servico: 'pagamento.pix-trial', tipo_erro: 'API_ERROR', mensagem_erro: msg });
         res.status(500).json({ ok: false, erro: 'Erro ao gerar PIX: ' + msg });
     }
 });
@@ -215,6 +218,7 @@ router.get('/verificar-pix/:cobrancaId', async (req, res) => {
 
     } catch (err) {
         logger.error(`[ERRO] [VERIFICAR PIX] ${err.message}`);
+        await registrarLog({ servico: 'pagamento.verificar-pix', tipo_erro: 'API_ERROR', mensagem_erro: err.message });
         res.status(500).json({ ok: false, erro: 'Erro ao verificar pagamento' });
     }
 });
@@ -318,6 +322,7 @@ router.post('/gerar-pix-registro', async (req, res) => {
     } catch (err) {
         const msg = err.response?.data?.errors?.[0]?.description || err.message;
         logger.error(`[ERRO] [PIX REGISTRO] ${msg}`);
+        await registrarLog({ servico: 'pagamento.pix-registro', tipo_erro: 'API_ERROR', mensagem_erro: msg });
         res.status(500).json({ ok: false, erro: 'Erro ao gerar PIX: ' + msg });
     }
 });
@@ -359,6 +364,7 @@ router.post('/pagar-trial-cartao', async (req, res) => {
             return res.status(400).json({ ok: false, erro: 'Trial ainda está ativo' });
         }
         if (!u.documento) {
+            await registrarLog({ escritorio_id: u.escritorio_id, servico: 'pagamento.cartao-trial', tipo_erro: 'VALIDATION', mensagem_erro: 'CPF/CNPJ não cadastrado — bloqueou cobrança de cartão' });
             return res.status(400).json({ ok: false, erro: 'CPF/CNPJ não cadastrado. Entre em contato com o suporte.' });
         }
 
@@ -402,6 +408,7 @@ router.post('/pagar-trial-cartao', async (req, res) => {
 
         if (!aprovado) {
             logger.info(`[ERRO] [CARTAO TRIAL] Recusado: status ${pg.status}`);
+            await registrarLog({ escritorio_id: u.escritorio_id, servico: 'pagamento.cartao-trial', tipo_erro: 'CARTAO_RECUSADO', mensagem_erro: `Cartão recusado pelo gateway — status: ${pg.status}` });
             return res.status(402).json({ ok: false, erro: 'Cartão recusado. Verifique os dados e tente novamente.' });
         }
 
@@ -455,6 +462,7 @@ router.post('/pagar-trial-cartao', async (req, res) => {
     } catch (err) {
         const msg = err.response?.data?.errors?.[0]?.description || err.message;
         logger.error(`[ERRO] [CARTAO TRIAL] ${msg}`);
+        await registrarLog({ servico: 'pagamento.cartao-trial', tipo_erro: 'API_ERROR', mensagem_erro: msg });
         const isCardError = msg.toLowerCase().includes('declin') ||
             msg.toLowerCase().includes('recusad') ||
             msg.toLowerCase().includes('credit card') ||
