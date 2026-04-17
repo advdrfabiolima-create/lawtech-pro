@@ -451,7 +451,7 @@ async function carregarInfoRodape() {
         pix_chave: document.getElementById('confPixChave').value
     };
 
-    const res = await fetch('/api/config/escritorio', {
+    const res = await fetch('/api/config/bancario', {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',

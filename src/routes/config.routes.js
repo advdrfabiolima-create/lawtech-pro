@@ -189,6 +189,25 @@ if (oabApenasNumeros) {
 // ROTA 1b: SALVAR APENAS OAB + UF (boas-vindas / onboarding rápido)
 // PUT /api/config/oab-rapido
 // ============================================================
+// Rota dedicada para dados bancários — não toca em outros campos
+router.put('/config/bancario', authMiddleware, roleMiddleware('admin'), async (req, res) => {
+    const { banco_codigo, agencia, conta, conta_digito, pix_chave } = req.body;
+    try {
+        await pool.query(
+            `UPDATE escritorios SET
+                banco_codigo = $1, agencia = $2, conta = $3,
+                conta_digito = $4, pix_chave = $5
+             WHERE id = $6`,
+            [banco_codigo || null, agencia || null, conta || null,
+             conta_digito || null, pix_chave || null, req.user.escritorio_id]
+        );
+        res.json({ ok: true });
+    } catch (err) {
+        logger.error({ err: err.message }, 'Erro ao salvar dados bancários');
+        res.status(500).json({ ok: false, erro: 'Erro ao salvar dados bancários' });
+    }
+});
+
 router.put('/config/oab-rapido', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     const { oab, uf } = req.body;
     if (!oab || !uf) {
