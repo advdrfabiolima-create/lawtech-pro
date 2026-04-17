@@ -241,6 +241,7 @@ async function carregarInfoRodape() {
                 'confAdvogadoResponsavel': d.advogado_responsavel,
                 'confEscritorio': d.nome,
                 'confOab': (() => { const n = (d.oab || '').replace(/\D/g, ''); if (!n) return ''; const padded = n.padStart(6, '0'); const num = padded.length >= 6 ? `${padded.slice(0,3)}.${padded.slice(3,6)}` : padded; return d.estado ? `${num}/${d.estado}` : num; })(),
+                'confTelefone': d.telefone ? d.telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3').replace(/^(\d{2})(\d{4})(\d{4})$/, '($1) $2-$3') : '',
                 'confDocumento': d.documento,
                 'confDataNascimento': d.data_nascimento ? d.data_nascimento.split('T')[0] : '',
                 'confCep': d.cep,
@@ -398,6 +399,7 @@ async function carregarInfoRodape() {
                 documento: document.getElementById('confDocumento')?.value || '',
                 dataNascimento: document.getElementById('confDataNascimento')?.value || null,
                 email: document.getElementById('perfilEmail')?.value || '',
+                telefone: document.getElementById('confTelefone')?.value || '',
                 endereco: document.getElementById('confEndereco')?.value || '',
                 cidade: document.getElementById('confCidade')?.value || '',
                 estado: document.getElementById('confEstado')?.value?.toUpperCase() || '',
@@ -1130,6 +1132,18 @@ window.onload = () => {
     if (inputCep) {
         inputCep.addEventListener('input', function() { mascaraCEP(this); });
         inputCep.addEventListener('blur', buscarCep);
+    }
+
+    const inputTelefone = document.getElementById('confTelefone');
+    if (inputTelefone) {
+        inputTelefone.addEventListener('input', function () {
+            let v = this.value.replace(/\D/g, '').slice(0, 11);
+            if (v.length > 10) v = v.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+            else if (v.length > 6) v = v.replace(/^(\d{2})(\d{4,5})(\d{0,4})/, '($1) $2-$3');
+            else if (v.length > 2) v = v.replace(/^(\d{2})(\d+)/, '($1) $2');
+            else if (v.length > 0) v = v.replace(/^(\d+)/, '($1');
+            this.value = v;
+        });
     }
 
     // Input file — onchange

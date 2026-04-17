@@ -38,9 +38,9 @@ const logoUpload = multer({
 // ROTA 1: SALVAR/ATUALIZAR DADOS DO ESCRITÓRIO (PUT)
 // ============================================================
 router.put('/escritorio', authMiddleware, roleMiddleware('admin'), async (req, res) => {
-    const { 
-        nome, advogado_responsavel, oab, documento, dataNascimento, email, endereco, 
-        cidade, estado, cep, banco_codigo, agencia, conta, conta_digito, pix_chave, renda_mensal 
+    const {
+        nome, advogado_responsavel, oab, documento, dataNascimento, email, telefone, endereco,
+        cidade, estado, cep, banco_codigo, agencia, conta, conta_digito, pix_chave, renda_mensal
     } = req.body;
     
     const escritorioId = req.user.escritorio_id;
@@ -52,34 +52,38 @@ router.put('/escritorio', authMiddleware, roleMiddleware('admin'), async (req, r
         const rendaTratada = (renda_mensal && renda_mensal !== '') ? parseFloat(renda_mensal) : 0;
         
         // 2. Salva no Banco de Dados Neon
+        const telefoneLimpo = telefone ? telefone.replace(/\D/g, '').slice(0, 20) : null;
+
         const query = `
-            UPDATE escritorios SET 
-                nome = $1, 
-                advogado_responsavel = $2, 
-                oab = $3, 
-                documento = $4, 
-                data_nascimento = $5, 
-                email = $6, 
-                endereco = $7, 
-                cidade = $8, 
-                estado = $9, 
-                cep = $10, 
-                banco_codigo = $11, 
-                agencia = $12, 
-                conta = $13, 
-                conta_digito = $14, 
-                pix_chave = $15, 
-                renda_mensal = $16,
+            UPDATE escritorios SET
+                nome = $1,
+                advogado_responsavel = $2,
+                oab = $3,
+                documento = $4,
+                data_nascimento = $5,
+                email = $6,
+                telefone = $7,
+                endereco = $8,
+                cidade = $9,
+                estado = $10,
+                cep = $11,
+                banco_codigo = $12,
+                agencia = $13,
+                conta = $14,
+                conta_digito = $15,
+                pix_chave = $16,
+                renda_mensal = $17,
                 plano_financeiro_status = 'ativo',
-                uf = $9
-            WHERE id = $17
+                uf = $10
+            WHERE id = $18
         `;
 
         const values = [
-            nome || null, advogado_responsavel || '', oabApenasNumeros, 
-            documento || null, dataNascimento || null, email || null, 
-            endereco || null, cidade || null, ufFinal, cep || null, 
-            banco_codigo || null, agencia || null, conta || null, 
+            nome || null, advogado_responsavel || '', oabApenasNumeros,
+            documento || null, dataNascimento || null, email || null,
+            telefoneLimpo,
+            endereco || null, cidade || null, ufFinal, cep || null,
+            banco_codigo || null, agencia || null, conta || null,
             conta_digito || null, pix_chave || null, rendaTratada, escritorioId
         ];
 
@@ -223,7 +227,7 @@ router.get('/meu-escritorio', authMiddleware, async (req, res) => {
         const escritorioId = req.user.escritorio_id;
         const resultado = await pool.query(
             `SELECT id, nome, advogado_responsavel, oab, documento, data_nascimento, email,
-                    endereco, cidade, estado, cep, banco_codigo, agencia, conta, conta_digito,
+                    telefone, endereco, cidade, estado, cep, banco_codigo, agencia, conta, conta_digito,
                     pix_chave, renda_mensal, plano_id, plano_financeiro_status, logo_arquivo,
                     logo_base64, portal_slug, renovacao_automatica, data_cancelamento_agendado
              FROM escritorios WHERE id = $1`,
