@@ -157,9 +157,10 @@ router.get('/escritorios', async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT 
-                e.id, 
-                e.nome, 
-                e.oab, 
+                e.id,
+                e.nome,
+                e.oab,
+                e.uf,
                 e.advogado_responsavel,
                 e.data_criacao AS data_criacao, -- ✅ Usa data atual como fallback
                 e.renovacao_automatica,
@@ -333,6 +334,7 @@ router.get('/no-limite', async (req, res) => {
                 e.id,
                 e.nome,
                 e.oab,
+                e.uf,
                 p.nome as plano_ativo,
                 p.slug as plano_slug,
                 (SELECT COUNT(*) FROM usuarios WHERE escritorio_id = e.id) as total_usuarios,
@@ -373,6 +375,7 @@ router.get('/no-limite', async (req, res) => {
                 id: esc.id,
                 nome: esc.nome,
                 oab: esc.oab,
+                uf: esc.uf,
                 plano_ativo: esc.plano_ativo,
                 limite_usuarios: limiteUsuarios,
                 limite_prazos: limitePrazos,
@@ -408,6 +411,7 @@ router.get('/inadimplencia', async (req, res) => {
                 e.id,
                 e.nome,
                 e.oab,
+                e.uf,
                 p.nome as plano_ativo,
                 p.preco_mensal as valor_mensalidade,
                 e.plano_financeiro_status as status_pagamento,

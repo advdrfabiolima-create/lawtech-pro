@@ -46,6 +46,7 @@ exports.listarEscritorios = async (req, res) => {
                 e.nome,
                 e.advogado_responsavel,
                 e.oab,
+                e.uf,
                 e.email,
                 e.plano_ativo,
                 e.criado_em as data_criacao,

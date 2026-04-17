@@ -239,7 +239,7 @@ function renderizarTabelaEscritorios(lista) {
                         </div>
                     </div>
                 </td>
-                <td><code class="text-info" style="font-size: 0.85rem;">${esc.oab || '-'}</code></td>
+                <td><code class="text-info" style="font-size: 0.85rem;">${esc.oab ? (esc.uf ? `${esc.oab}/${esc.uf}` : esc.oab) : '-'}</code></td>
                 <td><span class="badge badge-${plano}">${esc.plano_ativo || 'INDIVIDUAL'}</span></td>
                 <td class="text-center">${totalUsuarios}</td>
                 <td class="text-center">${totalProcessos}</td>
@@ -581,7 +581,7 @@ function renderizarTabelaInadimplentes(lista) {
                     </span>
                 </td>
                 <td><strong style="text-transform: uppercase; letter-spacing: 0.5px;">${item.nome}</strong></td>
-                <td><span class="badge badge-status">${item.oab}</span></td>
+                <td><span class="badge badge-status">${item.oab ? (item.uf ? `${item.oab}/${item.uf}` : item.oab) : 'N/A'}</span></td>
                 <td><span class="badge badge-${planoInad}">${item.plano_ativo}</span></td>
                 <td>${formatarDataCurtaBR(item.data_vencimento)}</td>
                 <td><strong style="color: ${item.dias_atraso > 10 ? '#ef4444' : item.dias_atraso > 0 ? '#f59e0b' : '#10b981'}">${item.dias_atraso} dias</strong></td>
@@ -677,7 +677,7 @@ function renderizarTabelaUpgrade(lista) {
         tbody.innerHTML += `
             <tr>
                 <td><strong style="text-transform: uppercase; letter-spacing: 0.5px;">${item.nome}</strong></td>
-                <td><span class="badge badge-status">${item.oab || 'N/A'}</span></td>
+                <td><span class="badge badge-status">${item.oab ? (item.uf ? `${item.oab}/${item.uf}` : item.oab) : 'N/A'}</span></td>
                 <td><span class="badge badge-${planoUpg}">${item.plano_ativo}</span></td>
                 <td>${item.total_usuarios} / ${limiteUsuariosText}</td>
                 <td><strong style="color: ${corUsuarios}">${percUsuariosText}</strong></td>
