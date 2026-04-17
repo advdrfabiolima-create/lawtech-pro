@@ -78,10 +78,6 @@ router.post('/pagar-trial-pix', async (req, res) => {
         if (!['trial', 'inadimplente'].includes(u.plano_financeiro_status)) {
             return res.status(400).json({ ok: false, erro: 'Conta já está ativa' });
         }
-        // trial_expira_em NULL com status 'trial' = cron zerou o campo sem concluir cobrança → permitir pagamento
-        if (u.plano_financeiro_status === 'trial' && u.trial_expira_em && new Date(u.trial_expira_em) > new Date()) {
-            return res.status(400).json({ ok: false, erro: 'Trial ainda está ativo' });
-        }
 
         const planoR = await pool.query('SELECT nome, preco_mensal FROM planos WHERE id = $1', [u.plano_id]);
         if (planoR.rows.length === 0) return res.status(400).json({ ok: false, erro: 'Plano não encontrado' });
@@ -358,10 +354,6 @@ router.post('/pagar-trial-cartao', async (req, res) => {
 
         if (!['trial', 'inadimplente'].includes(u.plano_financeiro_status)) {
             return res.status(400).json({ ok: false, erro: 'Conta já está ativa ou suspensa' });
-        }
-        // trial_expira_em NULL com status 'trial' = cron zerou o campo sem concluir cobrança → permitir pagamento
-        if (u.plano_financeiro_status === 'trial' && u.trial_expira_em && new Date(u.trial_expira_em) > new Date()) {
-            return res.status(400).json({ ok: false, erro: 'Trial ainda está ativo' });
         }
         if (!u.documento) {
             await registrarLog({ escritorio_id: u.escritorio_id, servico: 'pagamento.cartao-trial', tipo_erro: 'VALIDATION', mensagem_erro: 'CPF/CNPJ não cadastrado — bloqueou cobrança de cartão' });
