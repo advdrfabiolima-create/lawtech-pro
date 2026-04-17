@@ -460,8 +460,7 @@ router.get('/cancelamentos', async (req, res) => {
                 p.nome AS plano_ativo
             FROM escritorios e
             JOIN planos p ON p.id = e.plano_id
-            WHERE e.renovacao_automatica = false
-              AND e.plano_financeiro_status IN ('pago', 'ativo', 'trial')
+            WHERE e.data_cancelamento_agendado IS NOT NULL
             ORDER BY e.data_cancelamento_agendado DESC NULLS LAST
         `);
         res.json({ ok: true, total: result.rowCount, cancelamentos: result.rows });
