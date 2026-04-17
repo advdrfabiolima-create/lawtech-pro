@@ -240,7 +240,7 @@ async function carregarInfoRodape() {
             const campos = {
                 'confAdvogadoResponsavel': d.advogado_responsavel,
                 'confEscritorio': d.nome,
-                'confOab': (() => { const n = (d.oab || '').replace(/\D/g, ''); return n ? (d.estado ? `${n}/${d.estado}` : n) : ''; })(),
+                'confOab': (() => { const n = (d.oab || '').replace(/\D/g, ''); if (!n) return ''; const padded = n.padStart(6, '0'); const num = padded.length >= 6 ? `${padded.slice(0,3)}.${padded.slice(3,6)}` : padded; return d.estado ? `${num}/${d.estado}` : num; })(),
                 'confDocumento': d.documento,
                 'confDataNascimento': d.data_nascimento ? d.data_nascimento.split('T')[0] : '',
                 'confCep': d.cep,

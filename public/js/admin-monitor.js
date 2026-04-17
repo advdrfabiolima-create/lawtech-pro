@@ -102,6 +102,14 @@ async function carregarDadosEscritorios() {
     }
 }
 
+function formatarOab(oab, uf) {
+    const n = (oab || '').replace(/\D/g, '');
+    if (!n) return '-';
+    const padded = n.padStart(6, '0');
+    const num = padded.length >= 6 ? `${padded.slice(0, 3)}.${padded.slice(3, 6)}` : padded;
+    return uf ? `${num}/${uf}` : num;
+}
+
 function renderizarStatsEscritorios(stats) {
     // Popular cards da seção Overview
     const containerOverview = document.getElementById('stats-overview-cards');
@@ -239,7 +247,7 @@ function renderizarTabelaEscritorios(lista) {
                         </div>
                     </div>
                 </td>
-                <td><code class="text-info" style="font-size: 0.85rem;">${(n => n ? (esc.uf ? `${n}/${esc.uf}` : n) : '-')((esc.oab || '').replace(/\D/g, ''))}</code></td>
+                <td><code class="text-info" style="font-size: 0.85rem;">${formatarOab(esc.oab, esc.uf)}</code></td>
                 <td><span class="badge badge-${plano}">${esc.plano_ativo || 'INDIVIDUAL'}</span></td>
                 <td class="text-center">${totalUsuarios}</td>
                 <td class="text-center">${totalProcessos}</td>
@@ -581,7 +589,7 @@ function renderizarTabelaInadimplentes(lista) {
                     </span>
                 </td>
                 <td><strong style="text-transform: uppercase; letter-spacing: 0.5px;">${item.nome}</strong></td>
-                <td><span class="badge badge-status">${(n => n ? (item.uf ? `${n}/${item.uf}` : n) : 'N/A')((item.oab || '').replace(/\D/g, ''))}</span></td>
+                <td><span class="badge badge-status">${formatarOab(item.oab, item.uf)}</span></td>
                 <td><span class="badge badge-${planoInad}">${item.plano_ativo}</span></td>
                 <td>${formatarDataCurtaBR(item.data_vencimento)}</td>
                 <td><strong style="color: ${item.dias_atraso > 10 ? '#ef4444' : item.dias_atraso > 0 ? '#f59e0b' : '#10b981'}">${item.dias_atraso} dias</strong></td>
@@ -677,7 +685,7 @@ function renderizarTabelaUpgrade(lista) {
         tbody.innerHTML += `
             <tr>
                 <td><strong style="text-transform: uppercase; letter-spacing: 0.5px;">${item.nome}</strong></td>
-                <td><span class="badge badge-status">${(n => n ? (item.uf ? `${n}/${item.uf}` : n) : 'N/A')((item.oab || '').replace(/\D/g, ''))}</span></td>
+                <td><span class="badge badge-status">${formatarOab(item.oab, item.uf)}</span></td>
                 <td><span class="badge badge-${planoUpg}">${item.plano_ativo}</span></td>
                 <td>${item.total_usuarios} / ${limiteUsuariosText}</td>
                 <td><strong style="color: ${corUsuarios}">${percUsuariosText}</strong></td>
