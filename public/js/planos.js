@@ -84,7 +84,13 @@ function fecharModalPlano() {
 
 async function confirmarUpgrade() {
     if (!planoSelecionado) return;
-    
+
+    // Usuários em trial devem pagar pelo fluxo de ativação, não pelo upgrade
+    if (statusFinanceiro === 'trial') {
+        window.location.href = '/pagamento-pendente';
+        return;
+    }
+
     const btnConfirmar = document.getElementById('btnConfirmar');
     const textoOriginal = btnConfirmar.innerText;
     btnConfirmar.innerText = '⏳ Processando...';

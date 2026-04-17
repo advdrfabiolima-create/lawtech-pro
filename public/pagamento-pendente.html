@@ -7,108 +7,116 @@
 <!-- End Meta Pixel Code -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assinatura Suspensa | LawTech Pro</title>
+    <title>Ativar Assinatura | LawTech Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        :root { --primary: #2563eb; --text: #0f172a; --bg: #f8fafc; --danger: #ef4444; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
-        
-        .container { 
-            background: white; 
-            padding: 48px 40px; 
-            border-radius: 24px; 
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); 
-            text-align: center; 
-            max-width: 480px; 
-            width: 100%; 
-            border: 1px solid #e2e8f0; 
-        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter',sans-serif; background:#f8fafc; display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
 
-        .icon-box { 
-            background: #fef2f2; 
-            width: 80px; 
-            height: 80px; 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            margin: 0 auto 24px; 
-            border: 2px solid #fee2e2; 
-        }
+        /* Etapa 1 — escolha */
+        .card { background:white; padding:40px 36px; border-radius:16px; max-width:460px; width:100%; box-shadow:0 25px 50px rgba(0,0,0,0.12); text-align:center; }
+        .icon-lock { width:66px;height:66px;background:#fef3c7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:30px; }
+        h2 { color:#0f172a;font-size:22px;font-weight:700;margin:0 0 10px; }
+        .subtitle { color:#64748b;font-size:15px;line-height:1.65;margin:0 0 28px; }
+        .btn-metodo { display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:12px; }
+        .btn-pix  { background:#059669;color:white; }
+        .btn-card { background:#1e3a8a;color:white; }
+        .link-sair { display:inline-block;color:#94a3b8;font-size:13px;text-decoration:none;margin-top:16px;cursor:pointer;border:none;background:none; }
 
-        h1 { color: var(--text); font-size: 28px; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.5px; }
-        p { color: #64748b; font-size: 16px; margin-bottom: 32px; line-height: 1.6; padding: 0 10px; }
+        /* Etapa PIX */
+        .step { display:none;background:white;border-radius:16px;padding:36px;max-width:480px;width:100%;box-shadow:0 25px 50px rgba(0,0,0,0.25);text-align:center;position:relative; }
+        .btn-back { position:absolute;top:16px;left:18px;background:none;border:none;cursor:pointer;color:#64748b;font-size:14px;font-weight:600; }
+        #pixQrImg { width:190px;height:190px;border:2px solid #e2e8f0;border-radius:10px;margin:0 auto 14px;display:block; }
+        .pix-row { display:flex;gap:8px;margin-bottom:16px; }
+        .pix-input { flex:1;padding:9px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:11px;color:#334155;background:#f8fafc;font-family:monospace;min-width:0; }
+        .btn-copy { padding:9px 13px;background:#1e3a8a;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:12px;white-space:nowrap; }
+        .status-box { display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:#fef3c7;border-radius:10px;color:#92400e;font-size:13px;font-weight:500;margin-bottom:8px; }
+        .sucesso-box { display:none;padding:16px;background:#f0fdf4;border-radius:10px;margin-top:8px; }
 
-        .btn-group { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 14px; 
-            width: 100%;
-            max-width: 380px; /* Mantém os botões com tamanho elegante */
-            margin: 0 auto;
-        }
-
-        /* 🚀 FIX DE CENTRALIZAÇÃO DOS BOTÕES */
-        .btn { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; /* Centraliza o conteúdo horizontalmente */
-            gap: 12px; 
-            width: 100%; 
-            padding: 16px; 
-            border-radius: 12px; 
-            font-weight: 700; 
-            text-decoration: none; 
-            transition: all 0.2s ease; 
-            font-size: 15px; 
-            border: none;
-            box-sizing: border-box;
-        }
-
-        .btn-pay { background: var(--primary); color: white; }
-        .btn-pay:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3); }
-
-        .btn-pix { background: #10b981; color: white; }
-        .btn-pix:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3); }
-
-        .btn-back { 
-            background: transparent; 
-            color: #94a3b8; 
-            margin-top: 20px; 
-            font-size: 14px; 
-            cursor: pointer; 
-            border: none;
-            font-weight: 500;
-        }
-        .btn-back:hover { color: var(--text); }
+        /* Etapa Cartão */
+        .card-form { text-align:left; }
+        label { display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;margin-top:14px; }
+        input[type=text] { width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;box-sizing:border-box; }
+        .grid2 { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+        .btn-pagar { width:100%;padding:14px;background:#1e3a8a;color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-top:18px; }
+        .erro-msg { display:none;padding:11px 14px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;color:#dc2626;font-size:13px;font-weight:500;margin-bottom:10px; }
     </style>
-    <link rel="stylesheet" href="mobile.css">
 </head>
 <body>
-    <div class="container">
-        <div class="icon-box">
-            <i data-lucide="alert-circle" style="color: var(--danger); width: 40px; height: 40px;"></i>
+
+<!-- Etapa 1: escolha método -->
+<div class="card" id="step1">
+    <div class="icon-lock">🔒</div>
+    <h2 id="step1Titulo">Ativar Assinatura</h2>
+    <p class="subtitle" id="step1Sub">Escolha uma forma de pagamento para ativar seu plano.</p>
+    <button class="btn-metodo btn-pix" id="btnIniciarPix"><span style="font-size:20px">🏦</span> Pagar com PIX</button>
+    <button class="btn-metodo btn-card" id="btnMostrarCartao"><span style="font-size:20px">💳</span> Pagar com Cartão de Crédito</button>
+    <br>
+    <button class="link-sair" id="btnLogout">Sair e entrar com outra conta</button>
+</div>
+
+<!-- Etapa PIX -->
+<div class="step" id="stepPix">
+    <button class="btn-back" id="btnVoltarPix">← Voltar</button>
+    <div id="pixLoading">
+        <div style="font-size:40px;margin:20px 0 10px">⏳</div>
+        <h3 style="color:#0f172a;font-size:18px;font-weight:700;margin:0 0 8px">Gerando PIX...</h3>
+        <p style="color:#64748b;font-size:14px">Aguarde um instante</p>
+    </div>
+    <div id="pixContent" style="display:none">
+        <div style="font-size:32px;margin:8px 0 4px">🏦</div>
+        <h3 style="color:#0f172a;font-size:18px;font-weight:700;margin:0 0 4px">Pagamento via PIX</h3>
+        <p id="pixPlanInfo" style="color:#059669;font-size:14px;font-weight:600;margin:0 0 16px"></p>
+        <img id="pixQrImg" src="" alt="QR Code PIX">
+        <p style="color:#64748b;font-size:12px;margin:0 0 6px;font-weight:600;text-align:left">Código PIX (Copia e Cola):</p>
+        <div class="pix-row">
+            <input id="pixPayload" type="text" readonly class="pix-input">
+            <button id="btnCopiarPix" class="btn-copy">Copiar</button>
         </div>
-        <h1>Assinatura Suspensa</h1>
-        <p>Seu período de teste de 7 dias chegou ao fim. Para continuar acessando seus processos e prazos, regularize sua assinatura agora.</p>
-        
-        <div class="btn-group">
-            <a href="/planos-page" class="btn btn-pay">
-                <i data-lucide="credit-card" style="width: 20px;"></i> 
-                <span>Pagar com Cartão de Crédito</span>
-            </a>
-            <a href="/planos-page" class="btn btn-pix">
-                <i data-lucide="qr-code" style="width: 20px;"></i> 
-                <span>Pagar via PIX (Liberação Imediata)</span>
-            </a>
-            <button id="btnLogout" class="btn btn-back">Sair do Sistema e entrar com outra conta</button>
+        <div class="status-box">⏳ Aguardando confirmação do pagamento...</div>
+        <div class="sucesso-box" id="pixSucesso">
+            <p style="color:#059669;font-size:15px;font-weight:700;margin:0 0 12px">✅ Pagamento confirmado!</p>
+            <button onclick="window.location.href='/dashboard-modern'" style="width:100%;padding:12px;background:#059669;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer">Acessar o sistema</button>
         </div>
     </div>
+    <div id="pixErro" style="display:none">
+        <div style="font-size:36px;margin:20px 0 10px">❌</div>
+        <p id="pixErroMsg" style="color:#dc2626;font-size:14px;font-weight:600;margin:0 0 16px"></p>
+        <button id="btnPixRetry" style="width:100%;padding:12px;background:#dc2626;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Tentar novamente</button>
+    </div>
+</div>
 
-    
-    <script src="mobile.js"></script>
-    <script src="/js/api.js"></script>
-    <script src="/js/pagamento-pendente.js"></script>
+<!-- Etapa Cartão -->
+<div class="step" id="stepCartao" style="max-height:92vh;overflow-y:auto">
+    <button class="btn-back" id="btnVoltarCartao">← Voltar</button>
+    <div style="text-align:center;margin-bottom:20px;padding-top:8px">
+        <div style="font-size:32px;margin-bottom:6px">💳</div>
+        <h3 style="color:#0f172a;font-size:18px;font-weight:700;margin:0 0 4px">Pagamento com Cartão</h3>
+        <p id="cartaoPlanInfo" style="color:#1e3a8a;font-size:14px;font-weight:600;margin:0"></p>
+    </div>
+    <div id="cartaoSucesso" style="display:none;text-align:center;padding:20px 0">
+        <div style="font-size:48px;margin-bottom:12px">✅</div>
+        <h3 style="color:#059669;font-size:18px;font-weight:700;margin:0 0 8px">Pagamento aprovado!</h3>
+        <p style="color:#64748b;font-size:14px;margin:0 0 20px">Seu acesso foi liberado com sucesso.</p>
+        <button onclick="window.location.href='/dashboard-modern'" style="width:100%;padding:14px;background:#059669;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer">Acessar o sistema</button>
+    </div>
+    <div id="cartaoFormWrapper" class="card-form">
+        <div id="cartaoErro" class="erro-msg"></div>
+        <form id="formCartao">
+            <label>Nome no cartão</label>
+            <input type="text" id="cartaoNome" placeholder="NOME SOBRENOME" required style="text-transform:uppercase">
+            <label>Número do cartão</label>
+            <input type="text" id="cartaoNumero" placeholder="0000 0000 0000 0000" maxlength="19" inputmode="numeric">
+            <div class="grid2">
+                <div><label>Validade (MM/AA)</label><input type="text" id="cartaoValidade" placeholder="MM/AA" maxlength="5" inputmode="numeric"></div>
+                <div><label>CVV</label><input type="text" id="cartaoCvv" placeholder="000" maxlength="4" inputmode="numeric"></div>
+            </div>
+            <button type="submit" class="btn-pagar" id="btnPagarCartao">Pagar <span id="cartaoValorBtn"></span></button>
+        </form>
+    </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/pagamento-pendente.js"></script>
 </body>
 </html>
