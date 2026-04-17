@@ -869,7 +869,7 @@ let churnData = [];
 
 async function carregarChurn() {
     try {
-        const res = await API.get('/api/admin/cancelamentos');
+        const res = await API.get('/systems/cancelamentos');
         if (!res.ok) throw new Error('Erro ao carregar cancelamentos');
         const data = await res.json();
         churnData = data.cancelamentos || [];
