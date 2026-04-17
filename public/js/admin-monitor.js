@@ -907,9 +907,8 @@ function renderizarTabelaChurn(lista) {
         const cancelamentoEm = e.data_cancelamento_agendado
             ? formatarDataBR(e.data_cancelamento_agendado)
             : '<span style="color:#94a3b8">—</span>';
-        const whatsappMsg = encodeURIComponent(
-            `Olá, Dr(a). ${e.advogado_responsavel || 'Colega'}, tudo bem?\n\nAqui é da LawTech Pro. Notamos que você cancelou a renovação automática da sua assinatura.\n\nGostaria de entender o que aconteceu e ver se podemos ajudar. Podemos conversar?`
-        );
+        const waMsg = `Olá, Dr(a). ${e.advogado_responsavel || 'Colega'}, tudo bem?\n\nAqui é da LawTech Pro. Notamos que você cancelou a renovação automática da sua assinatura.\n\nGostaria de entender o que aconteceu e ver se podemos ajudar. Podemos conversar?`;
+        const waUrl = whatsappUrl(e.telefone, waMsg);
         return `<tr>
             <td><strong>${e.nome || '—'}</strong></td>
             <td>${e.advogado_responsavel || '—'}</td>
@@ -919,7 +918,7 @@ function renderizarTabelaChurn(lista) {
             <td>${statusBadge}</td>
             <td>${cancelamentoEm}</td>
             <td>
-                <a href="https://api.whatsapp.com/send?text=${whatsappMsg}" target="_blank"
+                <a href="${waUrl}" target="_blank"
                    class="action-btn" style="background:#25d366;color:white;border:none;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">
                     WhatsApp
                 </a>
@@ -937,6 +936,15 @@ function exportarChurn() {
 }
 
 // Função para Oferecer Upgrade (Baseada em Uso de Limites)
+// Monta URL do WhatsApp com número (se disponível) e mensagem
+function whatsappUrl(telefone, mensagem) {
+    const num = (telefone || '').replace(/\D/g, '');
+    const txt = encodeURIComponent(mensagem);
+    return num
+        ? `https://api.whatsapp.com/send?phone=55${num}&text=${txt}`
+        : `https://api.whatsapp.com/send?text=${txt}`;
+}
+
 function oferecerUpgrade(id) {
     const escritorio = upgradeData.find(e => e.id === id);
     if (!escritorio) return;
@@ -953,8 +961,7 @@ Identificamos que você já atingiu ${percentual}% do seu limite de ${recurso} n
 
 Para garantir que sua operação não pare e você continue aproveitando todas as nossas automações, gostaria de conhecer as condições especiais para o próximo plano?`;
 
-    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
-    window.open(url, '_blank');
+    window.open(whatsappUrl(escritorio.telefone, mensagem), '_blank');
 }
 
 // Função de Contato Financeiro (Com Detalhes da Fatura)
@@ -976,8 +983,7 @@ Identificamos uma pendência financeira no sistema LawTech referente ao escritó
 
 Podemos ajudar com a segunda via do boleto ou chave PIX para manter seu acesso regularizado?`;
 
-    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
-    window.open(url, '_blank');
+    window.open(whatsappUrl(escritorio.telefone, mensagem), '_blank');
 }
 
 async function gerarRelatorioMensal() {

@@ -330,11 +330,12 @@ router.get('/no-limite', async (req, res) => {
         
         // ✅ OTIMIZADO: 1 única query com subqueries (escalável para 1000+ escritórios)
         const result = await pool.query(`
-            SELECT 
+            SELECT
                 e.id,
                 e.nome,
                 e.oab,
                 e.uf,
+                e.telefone,
                 p.nome as plano_ativo,
                 p.slug as plano_slug,
                 (SELECT COUNT(*) FROM usuarios WHERE escritorio_id = e.id) as total_usuarios,
@@ -407,11 +408,12 @@ router.get('/no-limite', async (req, res) => {
 router.get('/inadimplencia', async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT 
+            SELECT
                 e.id,
                 e.nome,
                 e.oab,
                 e.uf,
+                e.telefone,
                 p.nome as plano_ativo,
                 p.preco_mensal as valor_mensalidade,
                 e.plano_financeiro_status as status_pagamento,
@@ -454,6 +456,7 @@ router.get('/cancelamentos', async (req, res) => {
                 e.email,
                 e.oab,
                 e.uf,
+                e.telefone,
                 e.plano_financeiro_status,
                 e.data_cancelamento_agendado,
                 e.criado_em,
