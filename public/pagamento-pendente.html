@@ -76,7 +76,7 @@
         <div class="status-box">⏳ Aguardando confirmação do pagamento...</div>
         <div class="sucesso-box" id="pixSucesso">
             <p style="color:#059669;font-size:15px;font-weight:700;margin:0 0 12px">✅ Pagamento confirmado!</p>
-            <button onclick="window.location.href='/dashboard-modern'" style="width:100%;padding:12px;background:#059669;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer">Acessar o sistema</button>
+            <button id="btnPixAcessar" style="width:100%;padding:12px;background:#059669;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer">Acessar o sistema</button>
         </div>
     </div>
     <div id="pixErro" style="display:none">
@@ -98,7 +98,7 @@
         <div style="font-size:48px;margin-bottom:12px">✅</div>
         <h3 style="color:#059669;font-size:18px;font-weight:700;margin:0 0 8px">Pagamento aprovado!</h3>
         <p style="color:#64748b;font-size:14px;margin:0 0 20px">Seu acesso foi liberado com sucesso.</p>
-        <button onclick="window.location.href='/dashboard-modern'" style="width:100%;padding:14px;background:#059669;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer">Acessar o sistema</button>
+        <button id="btnCartaoAcessar" style="width:100%;padding:14px;background:#059669;color:white;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer">Acessar o sistema</button>
     </div>
     <div id="cartaoFormWrapper" class="card-form">
         <div id="cartaoErro" class="erro-msg"></div>

@@ -194,6 +194,9 @@ document.getElementById('btnPixRetry').addEventListener('click', iniciarPix);
 document.getElementById('formCartao').addEventListener('submit', processarCartao);
 document.getElementById('btnLogout').addEventListener('click', () => { localStorage.clear(); sessionStorage.clear(); window.location.href = '/login'; });
 
+document.getElementById('btnPixAcessar').addEventListener('click', () => { window.location.href = '/dashboard-modern'; });
+document.getElementById('btnCartaoAcessar').addEventListener('click', () => { window.location.href = '/dashboard-modern'; });
+
 // ── Start ─────────────────────────────────────────────────────
 mostrarStep('step1');
 init();
