@@ -333,6 +333,7 @@ router.get('/no-limite', async (req, res) => {
             SELECT
                 e.id,
                 e.nome,
+                e.advogado_responsavel,
                 e.oab,
                 e.uf,
                 e.telefone,
@@ -375,6 +376,8 @@ router.get('/no-limite', async (req, res) => {
             return {
                 id: esc.id,
                 nome: esc.nome,
+                advogado_responsavel: esc.advogado_responsavel,
+                telefone: esc.telefone,
                 oab: esc.oab,
                 uf: esc.uf,
                 plano_ativo: esc.plano_ativo,
@@ -411,6 +414,7 @@ router.get('/inadimplencia', async (req, res) => {
             SELECT
                 e.id,
                 e.nome,
+                e.advogado_responsavel,
                 e.oab,
                 e.uf,
                 e.telefone,
