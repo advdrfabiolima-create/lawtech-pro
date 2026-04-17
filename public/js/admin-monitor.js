@@ -737,7 +737,8 @@ function trocarAba(aba, botaoClicado) {
             'inadimplencia': 2,
             'upgrade': 3,
             'logs': 4,
-            'audit': 5
+            'audit': 5,
+            'churn': 6
         }[aba];
         
         if (index !== undefined) {
@@ -761,8 +762,8 @@ function trocarAba(aba, botaoClicado) {
     if (aba === 'inadimplencia') carregarInadimplentes();
     if (aba === 'upgrade') carregarUpgrade();
     if (aba === 'logs') carregarLogs();
-    if (aba === 'audit') { carregarAuditoriaFinanceira();
-    }
+    if (aba === 'audit') carregarAuditoriaFinanceira();
+    if (aba === 'churn') carregarChurn();
 }
 
 // ==========================================
@@ -858,6 +859,81 @@ function exportarAudit() {
     });
     
     baixarCSV(csv, 'audit-log-lawtech.csv');
+}
+
+// ==========================================
+// ABA: CANCELAMENTOS (CHURN)
+// ==========================================
+
+let churnData = [];
+
+async function carregarChurn() {
+    try {
+        const res = await API.get('/api/admin/cancelamentos');
+        if (!res.ok) throw new Error('Erro ao carregar cancelamentos');
+        const data = await res.json();
+        churnData = data.cancelamentos || [];
+        renderizarTabelaChurn(churnData);
+    } catch (err) {
+        document.getElementById('body-churn').innerHTML = `
+            <tr><td colspan="8" style="text-align:center;color:#ef4444;padding:24px;">
+                Erro ao carregar cancelamentos: ${err.message}
+            </td></tr>`;
+    }
+}
+
+function renderizarTabelaChurn(lista) {
+    const tbody = document.getElementById('body-churn');
+    const count = document.getElementById('count-churn');
+    if (count) count.textContent = `${lista.length} REGISTRO${lista.length !== 1 ? 'S' : ''}`;
+
+    if (!lista.length) {
+        tbody.innerHTML = `
+            <tr><td colspan="8">
+                <div class="empty-state">
+                    <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+                    <div class="empty-title">Nenhum cancelamento encontrado</div>
+                    <div class="empty-text">Nenhum usuário cancelou a renovação automática</div>
+                </div>
+            </td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = lista.map(e => {
+        const oabFmt = formatarOab(e.oab, e.uf);
+        const statusBadge = e.plano_financeiro_status === 'pago' || e.plano_financeiro_status === 'ativo'
+            ? `<span class="badge badge-active">PAGO</span>`
+            : `<span class="badge badge-trial">TRIAL</span>`;
+        const cancelamentoEm = e.data_cancelamento_agendado
+            ? formatarDataBR(e.data_cancelamento_agendado)
+            : '<span style="color:#94a3b8">—</span>';
+        const whatsappMsg = encodeURIComponent(
+            `Olá, Dr(a). ${e.advogado_responsavel || 'Colega'}, tudo bem?\n\nAqui é da LawTech Pro. Notamos que você cancelou a renovação automática da sua assinatura.\n\nGostaria de entender o que aconteceu e ver se podemos ajudar. Podemos conversar?`
+        );
+        return `<tr>
+            <td><strong>${e.nome || '—'}</strong></td>
+            <td>${e.advogado_responsavel || '—'}</td>
+            <td><a href="mailto:${e.email}" style="color:#6366f1">${e.email || '—'}</a></td>
+            <td>${oabFmt}</td>
+            <td>${e.plano_ativo || '—'}</td>
+            <td>${statusBadge}</td>
+            <td>${cancelamentoEm}</td>
+            <td>
+                <a href="https://api.whatsapp.com/send?text=${whatsappMsg}" target="_blank"
+                   class="action-btn" style="background:#25d366;color:white;border:none;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">
+                    WhatsApp
+                </a>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function exportarChurn() {
+    let csv = 'Escritório,Advogado,E-mail,OAB,Plano,Status,Cancelamento Agendado\n';
+    churnData.forEach(e => {
+        csv += `"${e.nome || ''}","${e.advogado_responsavel || ''}","${e.email || ''}","${formatarOab(e.oab, e.uf)}","${e.plano_ativo || ''}","${e.plano_financeiro_status || ''}","${e.data_cancelamento_agendado ? formatarDataBR(e.data_cancelamento_agendado) : ''}"\n`;
+    });
+    baixarCSV(csv, 'cancelamentos-lawtech.csv');
 }
 
 // Função para Oferecer Upgrade (Baseada em Uso de Limites)

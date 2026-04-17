@@ -1136,6 +1136,9 @@
     <button class="tab-btn" data-action="trocarAba" data-args='["audit", 5]'>
         <i class="bi bi-journal-text me-2"></i>REGISTRO DE AUDITORIA
     </button>
+    <button class="tab-btn" data-action="trocarAba" data-args='["churn", 6]'>
+        <i class="bi bi-person-x me-2"></i>CANCELAMENTOS
+    </button>
 </div>
         </nav>
         
@@ -1704,6 +1707,60 @@
                                 </div>
                                 <div class="empty-title">Carregando auditoria financeira...</div>
                                 <div class="empty-text">Os eventos Stripe aparecerão aqui</div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Seção Cancelamentos (Churn) -->
+<div id="secao-churn" class="tab-content">
+    <div class="filters-card">
+        <div class="filters-header">
+            <div class="section-title">
+                <span class="title-icon">📉</span>
+                <span>CANCELAMENTOS AGENDADOS</span>
+            </div>
+            <button class="btn-export" data-action="exportarChurn">
+                <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                </svg>
+                <span>EXPORTAR CSV</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="table-header">
+            <div class="table-title">USUÁRIOS QUE CANCELARAM A RENOVAÇÃO AUTOMÁTICA</div>
+            <div class="table-count" id="count-churn">0 REGISTROS</div>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ESCRITÓRIO</th>
+                        <th>ADVOGADO</th>
+                        <th>E-MAIL</th>
+                        <th>OAB</th>
+                        <th>PLANO</th>
+                        <th>STATUS</th>
+                        <th>CANCELAMENTO EM</th>
+                        <th>AÇÕES</th>
+                    </tr>
+                </thead>
+                <tbody id="body-churn">
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                </div>
+                                <div class="empty-title">Carregando cancelamentos...</div>
+                                <div class="empty-text">Usuários que cancelaram a renovação automática aparecerão aqui</div>
                             </div>
                         </td>
                     </tr>
