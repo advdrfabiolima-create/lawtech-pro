@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const logger = require('../utils/logger');
+const { registrarLog } = require('../utils/auditLog');
 
 // ============================================================
 // FUNÇÃO LISTAR PLANOS
@@ -133,7 +134,7 @@ async function upgradePlano(req, res) {
     // 4.2. Durante TRIAL: NÃO pode upgrade sem pagamento
     if (escritorio.plano_financeiro_status === 'trial' && escritorio.dias_trial > 0) {
       logger.warn({ escritorioId }, '[UPGRADE BLOQUEADO] Tentativa durante trial');
-      
+      await registrarLog({ escritorio_id: escritorioId, servico: 'planos.upgrade', tipo_erro: 'TRIAL_ATIVO', mensagem_erro: `Tentativa de upgrade bloqueada — trial ativo (${Math.ceil(escritorio.dias_trial)} dias restantes)` });
       return res.status(402).json({
         error: 'Upgrade não permitido durante período trial',
         message: 'Você está no período de teste gratuito. Para fazer upgrade, é necessário primeiro ativar seu plano atual através do pagamento.',
@@ -150,6 +151,7 @@ async function upgradePlano(req, res) {
     // 4.3. Trial EXPIRADO sem pagamento: Sistema bloqueado
     if (escritorio.plano_financeiro_status === 'trial' && escritorio.dias_trial <= 0) {
       logger.warn({ escritorioId }, '[UPGRADE BLOQUEADO] Trial expirado');
+      await registrarLog({ escritorio_id: escritorioId, servico: 'planos.upgrade', tipo_erro: 'TRIAL_EXPIRADO', mensagem_erro: 'Tentativa de upgrade com trial expirado sem pagamento' });
       return res.status(402).json({
         error: 'Trial expirado',
         message: 'Seu período de teste expirou. Ative seu plano para continuar.',
@@ -192,6 +194,7 @@ async function upgradePlano(req, res) {
 
     // ✅ Se chegou aqui, status está em estado inválido
     logger.error({ status: escritorio.plano_financeiro_status, escritorioId }, '[UPGRADE] Status de plano invalido');
+    await registrarLog({ escritorio_id: escritorioId, servico: 'planos.upgrade', tipo_erro: 'STATUS_INVALIDO', mensagem_erro: `Status financeiro inválido para upgrade: ${escritorio.plano_financeiro_status}` });
     return res.status(500).json({
       error: 'Status de plano inválido',
       message: 'Entre em contato com o suporte',
@@ -203,7 +206,8 @@ async function upgradePlano(req, res) {
 
   } catch (err) {
     logger.error({ err: err.message, stack: err.stack }, '[UPGRADE] Erro ao processar upgrade');
-    res.status(500).json({ 
+    await registrarLog({ escritorio_id: req.user?.escritorio_id, servico: 'planos.upgrade', tipo_erro: 'EXCEPTION', mensagem_erro: err.message });
+    res.status(500).json({
       error: 'Erro ao processar upgrade',
       detalhes: err.message
     });

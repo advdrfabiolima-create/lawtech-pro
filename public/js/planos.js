@@ -132,7 +132,7 @@ async function confirmarUpgrade() {
         } else {
             const errorData = await response.json();
             console.error('❌ Erro do servidor:', errorData);
-            alert("❌ Erro ao atualizar plano: " + (errorData.erro || 'Erro desconhecido'));
+            alert("❌ Erro ao atualizar plano: " + (errorData.erro || errorData.error || errorData.message || 'Erro desconhecido'));
             btnConfirmar.innerText = textoOriginal;
             btnConfirmar.disabled = false;
         }
