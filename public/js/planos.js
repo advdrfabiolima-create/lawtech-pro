@@ -62,6 +62,19 @@ function abrirModalConfirmacao(nomePlano) {
     };
     document.getElementById('tituloPlano').innerText = `Plano ${nomePlano} (${ciclo})`;
     document.getElementById('descricaoPlano').innerHTML = `<strong>Excelente escolha!</strong><br>${BENEFICIOS[nomePlano]}`;
+
+    // Aviso de trial ativo
+    const avisoEl = document.getElementById('avisoTrialAtivo');
+    if (avisoEl) {
+        if (statusFinanceiro === 'trial' && diasTrialRestantes > 0) {
+            const diasTxt = diasTrialRestantes === 1 ? '1 dia restante' : `${diasTrialRestantes} dias restantes`;
+            avisoEl.innerHTML = `⚠️ <strong>Atenção:</strong> Você ainda tem <strong>${diasTxt}</strong> de trial gratuito. Ao assinar agora, o período restante será descartado e sua assinatura começa imediatamente.`;
+            avisoEl.style.display = 'block';
+        } else {
+            avisoEl.style.display = 'none';
+        }
+    }
+
     document.getElementById('modalPlano').style.display = 'flex';
 }
 
@@ -128,6 +141,8 @@ async function confirmarUpgrade() {
 // Variável global para guardar o estado vindo do banco
 // id=0 significa "nenhum plano ativo pago"
 let meuPlanoAtual = { id: 0, ciclo: 'mensal' };
+let diasTrialRestantes = 0;
+let statusFinanceiro = '';
 
 // Função Unificada para Atualizar os Botões
 function atualizarEstadoDosBotoes() {
@@ -192,6 +207,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 id: statusPago ? parseInt(dados.id) : 0,
                 ciclo: dados.ciclo || 'mensal'
             };
+            diasTrialRestantes = parseInt(dados.dias_trial_restantes) || 0;
+            statusFinanceiro = dados.plano_financeiro_status || '';
             
             console.log('💾 meuPlanoAtual definido como:', meuPlanoAtual);
             

@@ -27,7 +27,13 @@ async function meuPlano(req, res) {
         p.limite_prazos,
         p.slug,
         e.ciclo,
-        e.plano_financeiro_status
+        e.plano_financeiro_status,
+        e.trial_expira_em,
+        CASE
+          WHEN e.trial_expira_em IS NOT NULL AND e.plano_financeiro_status = 'trial'
+          THEN GREATEST(0, CEIL(EXTRACT(EPOCH FROM (e.trial_expira_em - NOW())) / 86400))
+          ELSE 0
+        END as dias_trial_restantes
       FROM escritorios e
       JOIN planos p ON p.id = e.plano_id
       WHERE e.id = $1
