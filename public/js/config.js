@@ -240,7 +240,7 @@ async function carregarInfoRodape() {
             const campos = {
                 'confAdvogadoResponsavel': d.advogado_responsavel,
                 'confEscritorio': d.nome,
-                'confOab': d.oab,
+                'confOab': d.oab ? (d.estado ? `${d.oab}/${d.estado}` : d.oab) : '',
                 'confDocumento': d.documento,
                 'confDataNascimento': d.data_nascimento ? d.data_nascimento.split('T')[0] : '',
                 'confCep': d.cep,
