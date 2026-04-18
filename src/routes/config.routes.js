@@ -191,6 +191,24 @@ if (oabApenasNumeros) {
 // ROTA 1b: SALVAR APENAS OAB + UF (boas-vindas / onboarding rápido)
 // PUT /api/config/oab-rapido
 // ============================================================
+// Rota dedicada para salvar telefone/WhatsApp
+router.put('/config/telefone', authMiddleware, roleMiddleware('admin'), async (req, res) => {
+    const { telefone } = req.body;
+    try {
+        const telefoneLimpo = telefone ? telefone.replace(/\D/g, '').slice(0, 20) : null;
+        logger.info({ telefoneLimpo, escritorioId: req.user.escritorio_id }, '[CONFIG TELEFONE] salvando');
+        await pool.query(
+            'UPDATE escritorios SET telefone = $1 WHERE id = $2',
+            [telefoneLimpo, req.user.escritorio_id]
+        );
+        logger.info({ telefoneLimpo }, '[CONFIG TELEFONE] salvo com sucesso');
+        res.json({ ok: true });
+    } catch (err) {
+        logger.error({ err: err.message }, '[CONFIG TELEFONE] erro');
+        res.status(500).json({ ok: false, erro: 'Erro ao salvar telefone' });
+    }
+});
+
 // Rota dedicada para dados bancários — não toca em outros campos
 router.put('/config/bancario', authMiddleware, roleMiddleware('admin'), async (req, res) => {
     const { banco_codigo, agencia, conta, conta_digito, pix_chave } = req.body;

@@ -419,6 +419,15 @@ async function carregarInfoRodape() {
             });
 
             if (res.ok) {
+                // Salva telefone separadamente (rota dedicada)
+                const telVal = document.getElementById('confTelefone')?.value || '';
+                if (telVal) {
+                    await fetch('/api/config/telefone', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ telefone: telVal })
+                    });
+                }
                 alert("✅ Dados salvos com sucesso!");
                 const btnSalvar = document.getElementById('btnSalvarEscritorio');
                 const btnEditar = document.getElementById('btnEditarEscritorio');
