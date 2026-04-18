@@ -74,7 +74,6 @@ router.put('/escritorio', authMiddleware, roleMiddleware('admin'), async (req, r
                 conta_digito = $15,
                 pix_chave = $16,
                 renda_mensal = $17,
-                plano_financeiro_status = 'ativo',
                 uf = $10
             WHERE id = $18
             RETURNING telefone
