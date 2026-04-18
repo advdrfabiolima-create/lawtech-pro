@@ -53,6 +53,7 @@ router.put('/escritorio', authMiddleware, roleMiddleware('admin'), async (req, r
         
         // 2. Salva no Banco de Dados Neon
         const telefoneLimpo = telefone ? telefone.replace(/\D/g, '').slice(0, 20) : null;
+        logger.info({ telefone_recebido: telefone, telefone_limpo: telefoneLimpo, escritorioId }, '[CONFIG PUT] telefone');
 
         const query = `
             UPDATE escritorios SET
@@ -76,6 +77,7 @@ router.put('/escritorio', authMiddleware, roleMiddleware('admin'), async (req, r
                 plano_financeiro_status = 'ativo',
                 uf = $10
             WHERE id = $18
+            RETURNING telefone
         `;
 
         const values = [
@@ -87,7 +89,8 @@ router.put('/escritorio', authMiddleware, roleMiddleware('admin'), async (req, r
             conta_digito || null, pix_chave || null, rendaTratada, escritorioId
         ];
 
-        await pool.query(query, values);
+        const updateResult = await pool.query(query, values);
+        logger.info({ telefone_gravado: updateResult.rows[0]?.telefone }, '[CONFIG PUT] telefone gravado no banco');
 
         // 🚀 3. GATILHO DO RADAR ESCAVADOR (ESCALA AUTOMÁTICA)
 if (oabApenasNumeros) {
@@ -254,6 +257,7 @@ router.get('/meu-escritorio', authMiddleware, async (req, res) => {
         );
 
         if (resultado.rowCount > 0) {
+            logger.info({ telefone: resultado.rows[0].telefone, escritorioId }, '[CONFIG GET] meu-escritorio telefone');
             res.json({ ok: true, dados: resultado.rows[0] });
         } else {
             res.json({ ok: false, mensagem: "Escritório não encontrado." });
