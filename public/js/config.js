@@ -241,7 +241,7 @@ async function carregarInfoRodape() {
                 'confAdvogadoResponsavel': d.advogado_responsavel,
                 'confEscritorio': d.nome,
                 'confOab': (() => { const n = (d.oab || '').replace(/\D/g, ''); if (!n) return ''; const padded = n.padStart(6, '0'); const num = padded.length >= 6 ? `${padded.slice(0,3)}.${padded.slice(3,6)}` : padded; return d.estado ? `${num}/${d.estado}` : num; })(),
-                'confTelefone': d.telefone ? d.telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3').replace(/^(\d{2})(\d{4})(\d{4})$/, '($1) $2-$3') : '',
+                'confTelefone': (() => { const v = (d.telefone || '').replace(/\D/g, ''); console.log('[LOAD] telefone raw:', d.telefone, '| digits:', v); if (!v) return ''; if (v.length === 11) return `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`; if (v.length === 10) return `(${v.slice(0,2)}) ${v.slice(2,6)}-${v.slice(6)}`; return v; })(),
                 'confDocumento': d.documento,
                 'confDataNascimento': d.data_nascimento ? d.data_nascimento.split('T')[0] : '',
                 'confCep': d.cep,
