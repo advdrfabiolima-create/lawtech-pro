@@ -235,6 +235,7 @@ async function carregarInfoRodape() {
         const resEsc = await fetch('/api/config/meu-escritorio', { headers: { Authorization: `Bearer ${token}` } });
         const dataEsc = await resEsc.json();
         
+        console.log('[DEBUG ESC] status:', resEsc.status, '| ok:', dataEsc.ok, '| campos:', Object.keys(dataEsc.dados || {}).join(','));
         if(dataEsc.ok && dataEsc.dados) {
             const d = dataEsc.dados;
             const campos = {

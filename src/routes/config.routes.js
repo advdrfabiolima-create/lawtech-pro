@@ -274,7 +274,7 @@ router.get('/meu-escritorio', authMiddleware, async (req, res) => {
         );
 
         if (resultado.rowCount > 0) {
-            logger.info({ telefone: resultado.rows[0].telefone, escritorioId }, '[CONFIG GET] meu-escritorio telefone');
+            logger.warn({ telefone: resultado.rows[0].telefone, escritorioId }, '[CONFIG GET] meu-escritorio telefone');
             res.json({ ok: true, dados: resultado.rows[0] });
         } else {
             res.json({ ok: false, mensagem: "Escritório não encontrado." });
