@@ -399,7 +399,11 @@ async function carregarInfoRodape() {
                 documento: document.getElementById('confDocumento')?.value || '',
                 dataNascimento: document.getElementById('confDataNascimento')?.value || null,
                 email: document.getElementById('perfilEmail')?.value || '',
-                telefone: document.getElementById('confTelefone')?.value || '',
+                telefone: (function() {
+                    const el = document.getElementById('confTelefone');
+                    console.log('[DEBUG] confTelefone element:', el, 'value:', el ? el.value : 'ELEMENT NOT FOUND');
+                    return el ? el.value : '';
+                })(),
                 endereco: document.getElementById('confEndereco')?.value || '',
                 cidade: document.getElementById('confCidade')?.value || '',
                 estado: document.getElementById('confEstado')?.value?.toUpperCase() || '',
