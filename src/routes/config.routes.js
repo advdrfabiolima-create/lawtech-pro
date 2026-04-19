@@ -48,7 +48,7 @@ router.put('/escritorio', authMiddleware, roleMiddleware('admin'), async (req, r
     try {
         // 1. Limpeza e Preparação dos dados
         const oabApenasNumeros = oab ? oab.replace(/\D/g, '') : null;
-        const ufFinal = estado ? estado.toUpperCase() : 'BA';
+        const ufFinal = estado ? estado.toUpperCase() : null;
         const rendaTratada = (renda_mensal && renda_mensal !== '') ? parseFloat(renda_mensal) : 0;
         
         // 2. Salva no Banco de Dados Neon
@@ -66,7 +66,7 @@ router.put('/escritorio', authMiddleware, roleMiddleware('admin'), async (req, r
                 telefone = $7,
                 endereco = $8,
                 cidade = $9,
-                estado = $10,
+                estado = COALESCE($10, estado),
                 cep = $11,
                 banco_codigo = $12,
                 agencia = $13,
@@ -74,7 +74,7 @@ router.put('/escritorio', authMiddleware, roleMiddleware('admin'), async (req, r
                 conta_digito = $15,
                 pix_chave = $16,
                 renda_mensal = $17,
-                uf = $10
+                uf = COALESCE($10, uf)
             WHERE id = $18
             RETURNING telefone
         `;
