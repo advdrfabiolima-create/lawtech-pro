@@ -112,6 +112,17 @@ function highlightTermos(texto) {
     return t;
 }
 
+// EXTRAIR TEXTO LIMPO DO HTML DO DJEN
+function stripHTML(html) {
+    if (!html) return '';
+    try {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        return (doc.body.innerText || doc.body.textContent || '').replace(/\s+/g, ' ').trim();
+    } catch {
+        return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+}
+
 // COPIAR TEXTO
 async function copiarTexto(texto, btnEl) {
     try {
@@ -371,10 +382,10 @@ function renderizarTabela() {
     container.innerHTML = filtradas.map(p => {
         const status = p.status || 'pendente';
         const dataFormatada = new Date(p.data_publicacao).toLocaleDateString('pt-BR');
-        const partes = extrairPartes(p.conteudo);
-        // Snippet: primeiros ~120 chars escapados (evita quebrar innerHTML)
-        const snippetRaw = (p.conteudo || '').replace(/\s+/g, ' ').trim();
-        const snippet = esc(snippetRaw.length > 120 ? snippetRaw.substring(0, 120) + '…' : snippetRaw);
+        const textoLimpo = stripHTML(p.conteudo);
+        const partes = extrairPartes(textoLimpo);
+        // Snippet: primeiros ~120 chars do texto limpo (sem HTML)
+        const snippet = esc(textoLimpo.length > 120 ? textoLimpo.substring(0, 120) + '…' : textoLimpo);
 
         const statusLabel = { pendente: 'Pendente', convertida: 'Convertida', descartada: 'Descartada' }[status] || status;
         const statusDot = { pendente: '#f59e0b', convertida: '#10b981', descartada: '#ef4444' }[status] || '#f59e0b';
@@ -503,7 +514,7 @@ function verDetalhes(id) {
                 </button>
             </div>
             <div style="background: var(--bg-primary); padding: 16px; border-radius: 8px; line-height: 1.7; border: 1px solid var(--border-subtle);">
-                ${highlightTermos(pub.conteudo)}
+                ${highlightTermos(stripHTML(pub.conteudo))}
             </div>
         </div>
         <div style="display:flex; gap:8px; padding-top:16px; border-top:1px solid var(--border-subtle);">
@@ -523,7 +534,7 @@ function verDetalhes(id) {
 // COPIAR CONTEÚDO DO MODAL
 function copiarConteudoModal(btnEl) {
     const pub = publicacoes.find(p => p.id === modalPubId);
-    if (pub) copiarTexto(pub.conteudo, btnEl);
+    if (pub) copiarTexto(stripHTML(pub.conteudo), btnEl);
 }
 
 // FECHAR MODAL
