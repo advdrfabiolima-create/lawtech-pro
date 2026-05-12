@@ -176,12 +176,12 @@ const token = localStorage.getItem('token');
         return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
     }
 
-    function handleFileUpload(input) {
-        const newFiles = Array.from(input.files);
+    function adicionarArquivos(files) {
+        const newFiles = Array.from(files || []);
         let totalAtual = getTotalSize();
 
         for (const file of newFiles) {
-            if (file.type !== 'application/pdf') {
+            if (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)) {
                 alert('Apenas arquivos PDF são aceitos: ' + file.name);
                 continue;
             }
@@ -193,8 +193,12 @@ const token = localStorage.getItem('token');
             totalAtual += file.size;
         }
 
-        input.value = '';
         renderUploadedFiles();
+    }
+
+    function handleFileUpload(input) {
+        adicionarArquivos(input.files);
+        input.value = '';
     }
 
     function removeFileAt(index) {
@@ -217,7 +221,7 @@ const token = localStorage.getItem('token');
             <div class="uploaded-file show" style="margin-top:8px;">
                 <i class="lucide lucide-check-circle" style="color:#10b981; font-size:20px;"></i>
                 <span>${file.name} <small style="color:var(--text-secondary);">(${formatSize(file.size)})</small></span>
-                <button type="button" onclick="removeFileAt(${i})" class="btn-remove-file" title="Remover">
+                <button type="button" data-action="removeFileAt" data-args='[${i}]' class="btn-remove-file" title="Remover">
                     <i class="lucide lucide-x" style="color:#dc2626; font-size:18px;"></i>
                 </button>
             </div>
@@ -236,6 +240,39 @@ const token = localStorage.getItem('token');
         arquivosPDF = [];
         document.getElementById('pdfInput').value = '';
         renderUploadedFiles();
+    }
+
+    function clicarElemento(id) {
+        const el = document.getElementById(id);
+        if (el) el.click();
+    }
+
+    function configurarUploadDocumentos() {
+        const uploadZone = document.getElementById('uploadZone');
+        const pdfInput = document.getElementById('pdfInput');
+
+        if (pdfInput) {
+            pdfInput.addEventListener('change', function() {
+                handleFileUpload(this);
+            });
+        }
+
+        if (!uploadZone) return;
+
+        uploadZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadZone.classList.add('drag-over');
+        });
+
+        uploadZone.addEventListener('dragleave', function() {
+            uploadZone.classList.remove('drag-over');
+        });
+
+        uploadZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+            adicionarArquivos(e.dataTransfer.files);
+        });
     }
 
     // ==================== GERAR PETIÇÃO ====================
@@ -452,15 +489,16 @@ const token = localStorage.getItem('token');
                 if (data.ok && data.peticoes.length > 0) {
                     container.innerHTML = data.peticoes.map(p => {
                         const conteudo = p.conteudo_editado || p.conteudo_gerado || '';
-                        return `
-                        <div class="peticao-item" onclick='abrirPeticaoHistorico(${JSON.stringify({
+                        const peticaoArgs = JSON.stringify([{
                             id: p.id,
                             titulo: p.titulo,
                             conteudo: '',
                             status: p.status,
                             autor: p.autor,
                             reu: p.reu
-                        }).replace(/'/g, "&#39;")})' data-id="${p.id}">
+                        }]).replace(/'/g, "&#39;");
+                        return `
+                        <div class="peticao-item" data-action="abrirPeticaoHistorico" data-args='${peticaoArgs}' data-id="${p.id}">
                             <div class="peticao-icon"><i class="lucide lucide-file-text"></i></div>
                             <div class="peticao-info">
                                 <h4>${escapeHtml(p.titulo)}</h4>
@@ -565,6 +603,7 @@ const token = localStorage.getItem('token');
     window.onload = () => {
         carregarDadosUsuario();
         carregarClientes();
+        configurarUploadDocumentos();
         if (typeof lucide !== 'undefined') lucide.createIcons();
     };
 
@@ -585,6 +624,20 @@ const token = localStorage.getItem('token');
     document.getElementById('btnTipoCpf').addEventListener('click', () => setTipoCpfCnpj('cpf'));
     document.getElementById('btnTipoCnpj').addEventListener('click', () => setTipoCpfCnpj('cnpj'));
     document.getElementById('cpf').addEventListener('input', function() { aplicarMascaraCpfCnpj(this); });
+
+    window.toggleUserMenu = toggleUserMenu;
+    window.clicarElemento = clicarElemento;
+    window.removeFileAt = removeFileAt;
+    window.gerarPDF = gerarPDF;
+    window.editarPeticao = editarPeticao;
+    window.fecharModalEdicao = fecharModalEdicao;
+    window.deletarPeticao = deletarPeticao;
+    window.novaPeticao = novaPeticao;
+    window.fecharPreview = fecharPreview;
+    window.toggleHistorico = toggleHistorico;
+    window.abrirPeticaoHistorico = abrirPeticaoHistorico;
+    window.logout = logout;
+    window.toggleIaMenu = toggleIaMenu;
 
 
 (function(){var t=localStorage.getItem('token');if(!t)return;var _ci;function checkChat(){fetch('/api/chat/nao-lidas',{headers:{Authorization:'Bearer '+t}}).then(function(r){if(r.status===402){clearInterval(_ci);return null;}return r.json()}).then(function(d){if(!d||!d.ok)return;var total=Object.values(d.naoLidas).reduce(function(a,b){return a+b},0);var b=document.getElementById('chatBadge');if(b){b.style.display=total>0?'inline-flex':'none';b.textContent=total>99?'99+':total}}).catch(function(){})}checkChat();_ci=setInterval(checkChat,30000);})();
