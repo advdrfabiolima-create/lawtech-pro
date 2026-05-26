@@ -89,6 +89,15 @@ window.onload = async () => {
 
 // ─── DOMContentLoaded listeners ───────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function () {
+    const btnNovoDocumento = document.querySelector('[data-action="abrirModalUpload"]');
+    if (btnNovoDocumento) {
+        btnNovoDocumento.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            abrirModalUpload();
+        });
+    }
+
     // toggleIaMenu especial
     const lia = document.getElementById('linkIaMenu');
     if (lia) lia.addEventListener('click', toggleIaMenu);

@@ -9,190 +9,217 @@
     <title>LawTech Pro — Reuniões</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <link rel="stylesheet" href="/css/design-system.css">
+
     <style>
-        :root {
-            --bg-primary: #F8FAFB;
-            --bg-secondary: #1E3A5F;
-            --bg-tertiary: #2A4A73;
-            --bg-elevated: #ffffff;
-            --text-primary: #2C3E50;
-            --text-secondary: #5A6C7D;
-            --text-tertiary: #7B8794;
-            --accent-blue: #4A90E2;
-            --accent-blue-light: #5BA4DB;
-            --accent-blue-glow: rgba(74, 144, 226, 0.2);
-            --accent-green: #52B788;
-            --accent-purple: #7E8CE0;
-            --accent-orange: #F2A65A;
-            --accent-red: #E76F51;
-            --border-subtle: rgba(42, 74, 115, 0.08);
-            --border-medium: rgba(42, 74, 115, 0.12);
-            --radius-sm: 4px;
-            --radius-md: 6px;
-            --radius-lg: 8px;
-            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-            --bg: var(--bg-primary);
-            --sidebar: var(--bg-secondary);
-            --white: var(--bg-elevated);
-            --border: var(--border-medium);
-            --primary: var(--accent-blue);
-            --success: var(--accent-green);
-            --danger: var(--accent-red);
-            --warning: var(--accent-orange);
-            --muted: var(--text-tertiary);
-            --text-main: var(--text-primary);
+        /* ══════════════════════════════════════════════════════════
+           REUNIÕES — estilos específicos da página
+           (tabela de reuniões + modal de videochamada PeerJS/Daily)
+        ══════════════════════════════════════════════════════════ */
+
+        /* keep-lowercase override */
+        .keep-lowercase { text-transform: none !important; }
+
+        /* Main scroll */
+        .main { overflow-y: auto; }
+        .content { padding: 28px 32px 48px; flex: 1; overflow-y: auto; max-height: calc(100vh - 72px); }
+
+        /* ── Layout btn ─────────────────────────────────────────── */
+        .btn-layout {
+            background: rgba(255,255,255,0.08); color: #cbd5e1;
+            border: 1px solid rgba(255,255,255,0.12);
+            padding: 5px 11px; border-radius: 6px; font-size: 11px; font-weight: 600;
+            cursor: pointer; transition: background var(--t) var(--ease); white-space: nowrap;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
-        * { box-sizing: border-box; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; height: 100vh; overflow: hidden; text-transform: uppercase; -webkit-font-smoothing: antialiased; }
-        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.015; background-image: linear-gradient(rgba(74, 144, 226, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(74, 144, 226, 0.08) 1px, transparent 1px); background-size: 50px 50px; animation: patternMove 20s linear infinite; pointer-events: none; }
-        @keyframes patternMove { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }
-        body::after { content: ""; position: fixed; width: 600px; height: 600px; background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%); top: -300px; right: -300px; border-radius: 50%; filter: blur(100px); opacity: 0.08; z-index: 0; animation: float 20s ease-in-out infinite; pointer-events: none; }
-        @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-30px, 30px) scale(0.9); } }
-        @keyframes slideInLeft { from { opacity: 0; transform: translateX(-100%); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-        .btn-layout { background:rgba(255,255,255,0.08); color:#cbd5e1; border:1px solid rgba(255,255,255,0.12); padding:5px 11px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer; transition:0.2s; white-space:nowrap; }
-        .btn-layout:hover { background:rgba(255,255,255,0.18); }
-        .btn-layout.active { background:rgba(99,102,241,0.4); border-color:rgba(99,102,241,0.7); color:#a5b4fc; }
+        .btn-layout:hover { background: rgba(255,255,255,0.18); }
+        .btn-layout.active { background: rgba(99,102,241,0.4); border-color: rgba(99,102,241,0.7); color: #a5b4fc; }
 
-        /* Sidebar */
-        .sidebar { width: 280px; background: var(--bg-secondary); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border-right: 1px solid var(--border-subtle); padding: 32px 24px; display: flex; flex-direction: column; height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
-        .sidebar-header { text-align: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0; }
-        .sidebar-header img { width: 100%; max-width: 180px; height: auto; filter: drop-shadow(0 0 20px var(--accent-blue-glow)); transition: all var(--transition-base); }
-        .sidebar-header img:hover { filter: drop-shadow(0 0 30px var(--accent-blue-glow)); transform: scale(1.05); }
-        .menu { display: flex; flex-direction: column; gap: 6px; flex-grow: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; }
-        .menu a { display: flex; align-items: center; padding: 10px 16px; color: #94a3b8; text-decoration: none; border-radius: var(--radius-lg); font-size: 14px; font-weight: 600; transition: all var(--transition-base); position: relative; overflow: hidden; border: 1px solid transparent; }
-        .menu a::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent-blue); transform: scaleY(0); transition: transform var(--transition-base); }
-        .menu a:hover::before, .menu a.active::before { transform: scaleY(1); }
-        .menu a i { margin-right: 12px; font-size: 18px; transition: all var(--transition-base); }
-        .menu a:hover { background: rgba(255,255,255,0.05); color: #e2e8f0; transform: translateX(4px); }
-        .menu a.active { background: rgba(37,99,235,0.15); color: #60a5fa; border: 1px solid rgba(37,99,235,0.4); }
-        .menu a.active i { color: #60a5fa; }
-        .btn-crm-gold-nav { background: #fbbf24 !important; color: #000 !important; font-weight: 700 !important; margin-top: 8px !important; display: flex !important; align-items: center; justify-content: center; padding: 8px 12px !important; border-radius: 8px; text-decoration: none; font-size: 12px; transition: 0.3s; }
-        .btn-crm-gold-nav:hover { background: #facc15 !important; transform: scale(1.02); }
-        .btn-crm-gold-nav i { margin-right: 10px; }
-        .sidebar-footer { padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
-        .sidebar-footer span { color: #cbd5e1 !important; }
-        .footer-info-row { display: flex; justify-content: flex-start; align-items: center; gap: 5px; font-size: 12px; width: 100%; }
-        .footer-info-row span:first-child { text-transform: uppercase; color: var(--text-tertiary); font-weight: 700; min-width: 65px; }
-        .keep-lowercase { text-transform: lowercase !important; color: #cbd5e1; font-weight: 500; }
-        .menu-item-with-submenu { position: relative; }
-        .submenu { display: none; flex-direction: column; gap: 4px; padding-left: 16px; margin-top: 4px; }
-        .submenu.open { display: flex; }
-        .submenu a { font-size: 13px; padding: 8px 14px; }
-
-        /* Main */
-        .main { margin-left: 280px; min-height: 100vh; display: flex; flex-direction: column; position: relative; z-index: 1; width: calc(100% - 280px); }
-        .header { background: rgba(255,255,255,0.85); backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); height: 72px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 900; }
-        .content { padding: 32px 40px; flex-grow: 1; overflow-y: auto; max-height: calc(100vh - 72px); }
-
-        /* Botões */
-        .btn-primary { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; transition: all var(--transition-base); }
-        .btn-primary:hover { background: var(--accent-blue-light); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(74,144,226,0.3); }
-        .btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; padding: 10px 20px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; transition: all var(--transition-base); }
-        .btn-secondary:hover { background: #e2e8f0; }
-        .btn-danger { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; padding: 8px 14px; border-radius: var(--radius-md); font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--transition-base); }
-        .btn-danger:hover { background: #fecaca; }
-        .btn-icon { background: none; border: none; cursor: pointer; padding: 6px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; }
-        .btn-icon:hover { background: rgba(0,0,0,0.05); }
-
-        /* Tabela */
-        .table-container { background: white; border-radius: 12px; border: 1px solid var(--border-subtle); overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        /* ── Tabela ─────────────────────────────────────────────── */
+        .table-container {
+            background: var(--surface); border-radius: var(--r-xl);
+            border: 1px solid var(--border); overflow: hidden; box-shadow: var(--sh-card);
+        }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f8fafc; padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); border-bottom: 1px solid var(--border-subtle); }
-        td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; font-size: 14px; vertical-align: middle; }
+        th {
+            background: var(--surface-fill-2); padding: 12px 16px; text-align: left;
+            font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--t2); border-bottom: 1px solid var(--border); white-space: nowrap;
+        }
+        td {
+            padding: 14px 16px; border-bottom: 1px solid var(--border);
+            font-size: 13.5px; vertical-align: middle; color: var(--t1);
+        }
         tr:last-child td { border-bottom: none; }
-        tr:hover td { background: #f8fafc; }
+        tr:hover td { background: var(--surface-fill-2); }
 
-        /* Status badges */
-        .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
-        .badge-agendada { background: #dbeafe; color: #1d4ed8; }
-        .badge-concluida { background: #f1f5f9; color: #475569; }
-        .badge-cancelada { background: #fee2e2; color: #dc2626; }
+        /* ── Status badges ──────────────────────────────────────── */
+        .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: var(--r-pill); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+        .badge-agendada  { background: var(--accent-fill); color: var(--accent); }
+        .badge-concluida { background: var(--surface-fill); color: var(--t2); }
+        .badge-cancelada { background: var(--red-bg); color: var(--red); }
 
-        /* Modal */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; }
+        /* btn-icon específico de reuniões */
+        .btn-icon {
+            background: none; border: none; cursor: pointer; padding: 6px;
+            border-radius: var(--r-sm); display: inline-flex; align-items: center;
+            justify-content: center; transition: background var(--t) var(--ease); color: var(--t2);
+        }
+        .btn-icon:hover { background: var(--surface-fill); color: var(--t1); }
+
+        /* ── Modal Nova Reunião ──────────────────────────────────── */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.40);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            z-index: 2000; align-items: center; justify-content: center;
+        }
         .modal-overlay.show { display: flex; }
-        .modal { background: white; border-radius: 16px; padding: 32px; width: 90%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.15); animation: modalIn 0.3s cubic-bezier(0.16,1,0.3,1); }
+        .modal {
+            background: var(--surface); border-radius: var(--r-xl); padding: 32px;
+            width: 90%; max-width: 560px; max-height: 90vh; overflow-y: auto;
+            box-shadow: var(--sh-modal); animation: modalIn 0.28s var(--spring);
+            border: 1px solid var(--border);
+        }
         @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-        .modal-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
-        .modal-title i { color: var(--accent-blue); }
+
+        .modal-title {
+            font-size: 18px; font-weight: 700; color: var(--t1);
+            margin-bottom: 24px; display: flex; align-items: center; gap: 10px;
+            letter-spacing: -0.02em;
+        }
+        .modal-title i { color: var(--accent); }
+
         .form-group { margin-bottom: 18px; }
-        .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-        .form-input { width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: var(--radius-md); font-size: 14px; color: var(--text-primary); transition: border-color 0.2s; font-family: 'Outfit', sans-serif; background: white; text-transform: none; }
-        .form-input:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(74,144,226,0.1); }
+        .form-label {
+            display: block; font-size: 11px; font-weight: 700; color: var(--t2);
+            text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px;
+        }
+        .form-input {
+            width: 100%; padding: 10px 14px;
+            background: var(--surface-fill); border: 1.5px solid transparent;
+            border-radius: var(--r-md); font-size: 14px; color: var(--t1);
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: border-color var(--t) var(--ease), box-shadow var(--t) var(--ease);
+            -webkit-appearance: none; appearance: none;
+        }
+        .form-input:focus { outline: none; border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 4px var(--accent-glow); }
+        .form-input::placeholder { color: var(--t3); font-weight: 400; }
+        select.form-input {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236E6E73' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; cursor: pointer;
+        }
         .link-box { text-transform: none; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
+        .modal-actions {
+            display: flex; gap: 12px; justify-content: flex-end;
+            margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);
+        }
 
-        /* Modal Videochamada PeerJS */
-        .modal-video { background: #0f172a; border-radius: 16px; width: 96%; max-width: 1140px; height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.5); animation: modalIn 0.3s cubic-bezier(0.16,1,0.3,1); }
-        .modal-video-header { padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; background: #1e293b; gap: 12px; }
+        /* ── Modal Videochamada ──────────────────────────────────── */
+        .modal-video {
+            background: #0f172a; border-radius: var(--r-xl);
+            width: 96%; max-width: 1140px; height: 90vh;
+            display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: var(--sh-modal); animation: modalIn 0.28s var(--spring);
+        }
+        .modal-video-header {
+            padding: 10px 18px; display: flex; align-items: center;
+            justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08);
+            flex-shrink: 0; background: #1e293b; gap: 12px;
+        }
         .modal-video-title { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; overflow: hidden; }
-        .modal-video-logo { height: 22px; opacity: 0.9; flex-shrink: 0; }
+        .modal-video-logo  { height: 22px; opacity: 0.9; flex-shrink: 0; }
         .modal-video-title span { font-size: 14px; font-weight: 700; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .btn-vcall-end { background: #ef4444; color: white; border: none; padding: 7px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
-        .btn-vcall-end:hover { background: #dc2626; }
+        .btn-vcall-end { background: var(--red); color: white; border: none; padding: 7px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: opacity var(--t) var(--ease); flex-shrink: 0; font-family: inherit; }
+        .btn-vcall-end:hover { opacity: 0.88; }
+
         #videoArea { flex: 1; min-height: 0; position: relative; background: #020617; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         #remoteVideo { width: 100%; height: 100%; object-fit: cover; display: none; }
-        #localVideo { position: absolute; bottom: 72px; right: 14px; width: 160px; height: 100px; object-fit: cover; border-radius: 10px; border: 2px solid rgba(255,255,255,0.15); background: #111827; z-index: 20; }
+        #localVideo  { position: absolute; bottom: 72px; right: 14px; width: 160px; height: 100px; object-fit: cover; border-radius: 10px; border: 2px solid rgba(255,255,255,0.15); background: #111827; z-index: 20; }
+
         #videoWaitOverlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #475569; padding-bottom: 60px; }
         #videoWaitOverlay .wait-icon { font-size: 48px; line-height: 1; }
         #videoWaitMsg { font-size: 14px; color: #64748b; }
-        /* Logo marca-d'água no vídeo */
+
         #videoWatermark { position: absolute; top: 14px; left: 14px; z-index: 15; pointer-events: none; opacity: 0.35; }
         #videoWatermark img { height: 26px; filter: brightness(0) invert(1); }
-        /* Barra de controles flutuante no rodapé do vídeo */
+
         #videoControls { position: absolute; bottom: 0; left: 0; right: 0; height: 60px; display: flex; align-items: center; justify-content: center; gap: 12px; background: linear-gradient(transparent, rgba(0,0,0,0.65)); z-index: 25; padding: 0 16px; }
-        .btn-vcall { background: rgba(255,255,255,0.12); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.18); padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; backdrop-filter: blur(6px); }
+
+        .btn-vcall { background: rgba(255,255,255,0.12); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.18); padding: 8px 18px; border-radius: var(--r-sm); font-size: 13px; font-weight: 600; cursor: pointer; transition: background var(--t) var(--ease); backdrop-filter: blur(6px); font-family: inherit; }
         .btn-vcall:hover { background: rgba(255,255,255,0.22); }
         .btn-vcall.off { background: rgba(239,68,68,0.25); border-color: rgba(239,68,68,0.5); color: #fca5a5; }
-        .video-status-badge { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; background: rgba(0,0,0,0.45); color: #94a3b8; transition: 0.3s; white-space: nowrap; backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.08); }
+
+        .video-status-badge { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: var(--r-pill); background: rgba(0,0,0,0.45); color: #94a3b8; transition: all var(--t) var(--ease); white-space: nowrap; backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.08); }
         .video-status-badge.connected { background: rgba(52,211,153,0.2); color: #34d399; border-color: rgba(52,211,153,0.3); }
-        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e3a5f; color: white; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--t1); color: white; padding: 12px 24px; border-radius: var(--r-md); font-size: 14px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; box-shadow: var(--sh-elevated); }
         .toast.show { opacity: 1; }
 
-        /* Modal de anotações (leitura/edição pós-reunião) */
-        .notas-meta { font-size: 13px; color: var(--text-tertiary); margin: -14px 0 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+        /* ── Modal Anotações ─────────────────────────────────────── */
+        .notas-meta { font-size: 13px; color: var(--t2); margin: -14px 0 20px; display: flex; gap: 10px; flex-wrap: wrap; }
         .notas-meta span { display: flex; align-items: center; gap: 5px; }
-        #notasModalTexto { width: 100%; padding: 16px; border: 1.5px solid #e8e4d9; border-radius: 10px; font-size: 14px; font-family: 'Outfit', sans-serif; color: var(--text-primary); background: #fafaf8; line-height: 1.75; resize: vertical; min-height: 240px; transition: border-color 0.2s; text-transform: none; }
-        #notasModalTexto:focus { outline: none; border-color: var(--accent-blue); background: #fff; box-shadow: 0 0 0 3px rgba(74,144,226,0.1); }
-        .notas-empty { text-align: center; padding: 32px 0; color: var(--text-tertiary); font-size: 14px; }
+        #notasModalTexto {
+            width: 100%; padding: 16px;
+            border: 1.5px solid var(--border-md); border-radius: var(--r-md);
+            font-size: 14px; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--t1); background: var(--surface-fill-2); line-height: 1.75;
+            resize: vertical; min-height: 240px;
+            transition: border-color var(--t) var(--ease);
+            text-transform: none;
+        }
+        #notasModalTexto:focus { outline: none; border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 4px var(--accent-glow); }
+        .notas-empty { text-align: center; padding: 32px 0; color: var(--t2); font-size: 14px; }
 
-        /* Painel de anotações */
+        /* ── Painel de anotações (videochamada) ──────────────────── */
         #videoBody { flex: 1; display: flex; min-height: 0; }
         #notesPanel { width: 300px; background: #1e293b; border-left: 1px solid rgba(255,255,255,0.08); display: none; flex-direction: column; flex-shrink: 0; }
         #notesPanel.open { display: flex; }
         .notes-panel-header { padding: 11px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-        #notasTextarea { flex: 1; background: transparent; border: none; color: #e2e8f0; font-size: 13px; font-family: 'Outfit', sans-serif; line-height: 1.65; resize: none; padding: 14px 16px; outline: none; }
+        #notasTextarea { flex: 1; background: transparent; border: none; color: #e2e8f0; font-size: 13px; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; line-height: 1.65; resize: none; padding: 14px 16px; outline: none; }
         #notasTextarea::placeholder { color: #334155; font-style: italic; }
         .notes-save-status { padding: 7px 16px; font-size: 11px; color: #475569; border-top: 1px solid rgba(255,255,255,0.05); flex-shrink: 0; min-height: 28px; }
         .notes-save-status.saved { color: #34d399; }
         .notes-save-status.error { color: #f87171; }
-        .btn-vcall-notes { background: rgba(255,255,255,0.07); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); padding: 6px 13px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
-        .btn-vcall-notes:hover { background: rgba(255,255,255,0.14); color: #e2e8f0; }
+
+        .btn-vcall-notes { background: rgba(255,255,255,0.07); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); padding: 6px 13px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background var(--t) var(--ease); flex-shrink: 0; font-family: inherit; }
+        .btn-vcall-notes:hover  { background: rgba(255,255,255,0.14); color: #e2e8f0; }
         .btn-vcall-notes.active { background: rgba(99,102,241,0.2); border-color: rgba(99,102,241,0.4); color: #a5b4fc; }
+
+        /* ── Recording badge ─────────────────────────────────────── */
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* ── User menu dropdown ──────────────────────────────────── */
+        .user-menu-dropdown {
+            display: none; position: absolute; top: calc(100% + 10px); right: 0;
+            background: rgba(255,255,255,0.96); backdrop-filter: blur(24px) saturate(200%);
+            -webkit-backdrop-filter: blur(24px) saturate(200%);
+            border: 1px solid var(--border-md); border-radius: var(--r-md);
+            box-shadow: var(--sh-elevated); min-width: 160px; z-index: 1000; overflow: hidden;
+        }
+        .user-menu-dropdown.show { display: block; }
+        .user-menu-dropdown a {
+            display: flex; align-items: center; gap: 8px;
+            padding: 11px 16px; font-size: 13px; color: var(--t1);
+            text-decoration: none; transition: background var(--t) var(--ease); font-weight: 500;
+        }
+        .user-menu-dropdown a:hover { background: var(--surface-fill); }
+        .user-menu-dropdown a:last-child { color: var(--red); border-top: 1px solid var(--border); }
+
+        /* ── Empty state ─────────────────────────────────────────── */
+        .empty-state { text-align: center; padding: 60px 24px; color: var(--t2); }
+        .empty-state i { margin-bottom: 16px; opacity: 0.25; display: block; }
+        .empty-state h3 { font-size: 18px; font-weight: 700; color: var(--t1); margin-bottom: 8px; letter-spacing: -0.02em; }
+        .empty-state p { font-size: 14px; }
+
         @media (max-width: 640px) {
             #notesPanel { width: 100%; position: absolute; inset: 0; z-index: 30; }
         }
     </style>
     <link rel="stylesheet" href="/mobile.css">
-    <style>
-        /* User menu */
-        .user-menu-dropdown { display: none; position: absolute; top: 48px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); min-width: 160px; z-index: 1000; }
-        .user-menu-dropdown.show { display: block; }
-        .user-menu-dropdown a { display: block; padding: 10px 16px; font-size: 13px; color: var(--text-primary); text-decoration: none; transition: background 0.2s; }
-        .user-menu-dropdown a:hover { background: #f8fafc; }
-        .user-menu-dropdown a:last-child { color: var(--danger); border-top: 1px solid #f1f5f9; }
-
-        /* Empty state */
-        .empty-state { text-align: center; padding: 60px 24px; color: var(--text-tertiary); }
-        .empty-state i { margin-bottom: 16px; opacity: 0.4; }
-        .empty-state h3 { font-size: 18px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
-        .empty-state p { font-size: 14px; }
-    </style>
 </head>
 <body>
 
@@ -210,34 +237,37 @@
         <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
         <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
         <div class="menu-item-with-submenu">
-            <a href="/ia-page" id="linkIaMenu" style="display:flex; align-items:center; gap:10px;">
-                <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
+            <a href="#" id="linkIaMenu">
+                <i class="lucide lucide-sparkles" style="color:#fbbf24;opacity:1;"></i>
                 IA Jurídica
-                <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">PREMIUM</span>
+                <span style="font-size:9px;background:rgba(251,191,36,0.18);color:#fbbf24;border:1px solid rgba(251,191,36,0.30);padding:2px 7px;border-radius:20px;font-weight:700;margin-left:auto;">PREMIUM</span>
             </a>
             <div class="submenu" id="submenu-ia">
                 <a href="/peticoes.html"><i class="lucide lucide-file-text"></i> Petições IA</a>
                 <a href="/ia-page"><i class="lucide lucide-bot"></i> Assistente IA</a>
             </div>
         </div>
-        <a href="/chat-page"><i class="lucide lucide-message-circle"></i> 💬 Chat <span id="chatBadge" style="display:none;background:#ef4444;color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 5px;margin-left:auto;box-shadow:0 0 8px rgba(239,68,68,0.5);"></span></a>
+        <a href="/chat-page">
+            <i class="lucide lucide-message-circle"></i> Chat
+            <span id="chatBadge" style="display:none;background:#FF3B30;color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 5px;margin-left:auto;"></span>
+        </a>
         <a href="/relatorios-page"><i class="lucide lucide-bar-chart-3"></i> Relatórios</a>
         <a href="/documentos-page"><i class="lucide lucide-folder-open"></i> Documentos (GED)</a>
         <a href="/reunioes-page" class="active"><i class="lucide lucide-video"></i> Reuniões</a>
         <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
         <a href="/config-page" id="guia-config"><i class="lucide lucide-settings"></i> Configurações</a>
-        <a href="/crm-page" class="btn-crm-gold-nav" data-action="limparBolinha">
-            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
-            <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
+        <a href="/crm-page" class="btn-crm-gold-nav" data-action="limparBolinha" id="linkCrm">
+            <i class="lucide lucide-trending-up"></i> CRM Prospecção
+            <span id="dotNotificacao" style="display:none;width:7px;height:7px;background:#FF3B30;border-radius:50%;margin-left:auto;box-shadow:0 0 6px #FF3B30;"></span>
         </a>
     </nav>
     <div class="sidebar-footer">
         <div class="footer-info-row">
-            <span>Usuário:</span>
+            <span>Usuário</span>
             <span id="footerEmail" class="keep-lowercase">...</span>
         </div>
         <div class="footer-info-row">
-            <span>Plano:</span>
+            <span>Plano</span>
             <span id="footerPlano" class="keep-lowercase">...</span>
         </div>
     </div>
@@ -245,17 +275,17 @@
 
 <div class="main">
     <header class="header">
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <h2 style="font-size: 18px; font-weight: 700;">🎥 Reuniões com Clientes</h2>
+        <div class="header-left">
+            <h2>Reuniões com Clientes</h2>
         </div>
-        <div style="display:flex; gap:20px; align-items:center;">
+        <div style="display:flex;gap:12px;align-items:center;">
             <button class="btn-primary" data-action="abrirModalNovaReuniao">+ Nova Reunião</button>
-            <div style="position: relative; display: flex; align-items: center; gap: 12px;">
-                <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
-                <div id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">A</div>
+            <div style="position:relative;display:flex;align-items:center;gap:10px;">
+                <span id="userNameHeader" style="font-size:13px;font-weight:500;color:var(--t2);">Advogado</span>
+                <div id="userCircle" style="width:34px;height:34px;background:var(--accent);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700;border:2px solid rgba(255,255,255,0.9);box-shadow:0 0 0 1px rgba(0,0,0,0.08);font-size:12px;">A</div>
                 <div class="user-menu-dropdown" id="userMenuDropdown">
-                    <a href="/config-page">Configurações</a>
-                    <a href="#" data-action="logout">Sair</a>
+                    <a href="/config-page"><i data-lucide="user" style="width:14px;height:14px;"></i> Meus Dados</a>
+                    <a href="#" data-action="logout"><i data-lucide="log-out" style="width:14px;height:14px;"></i> Sair</a>
                 </div>
             </div>
         </div>
@@ -298,7 +328,7 @@
         </div>
         <div class="form-group">
             <label class="form-label">Descrição</label>
-            <textarea class="form-input" id="reuniaoDescricao" rows="3" placeholder="Detalhes sobre a reunião..." style="resize:vertical;"></textarea>
+            <textarea class="form-input" id="reuniaoDescricao" rows="3" placeholder="Detalhes sobre a reunião..." style="resize:vertical;text-transform:none;min-height:80px;"></textarea>
         </div>
         <div class="form-row">
             <div class="form-group">
@@ -347,26 +377,26 @@
                     <div class="wait-icon">📹</div>
                     <p id="videoWaitMsg">Aguardando o cliente entrar na sala...</p>
                 </div>
-                <!-- Badge de gravação (visível apenas localmente) -->
-                <div id="recordingBadge" style="display:none; position:absolute; top:12px; left:12px; z-index:10; background:rgba(220,38,38,0.92); color:#fff; border-radius:20px; padding:5px 12px; font-size:12px; font-weight:700; align-items:center; gap:7px; backdrop-filter:blur(4px); box-shadow:0 2px 8px rgba(0,0,0,0.3);">
+                <!-- Badge de gravação -->
+                <div id="recordingBadge" style="display:none;position:absolute;top:12px;left:12px;z-index:10;background:rgba(220,38,38,0.92);color:#fff;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;align-items:center;gap:7px;backdrop-filter:blur(4px);box-shadow:0 2px 8px rgba(0,0,0,0.3);">
                     <span style="width:9px;height:9px;background:#fff;border-radius:50%;display:inline-block;animation:blink 1s infinite;"></span>
                     REC <span id="recordingTimer">00:00</span>
                 </div>
-                <!-- Barra de seleção de layout (aparece só durante gravação) -->
-                <div id="layoutBar" style="display:flex; position:absolute; bottom:70px; left:50%; transform:translateX(-50%); z-index:30; background:rgba(15,23,42,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:8px 12px; gap:8px; align-items:center; backdrop-filter:blur(8px); flex-wrap:wrap; justify-content:center;">
-                    <span style="font-size:11px;color:#94a3b8;font-weight:600;">🖥️ Layout:</span>
-                    <button class="btn-layout active" id="layout_pip"           data-action="setRecordLayout" data-args='["pip"]'>🖼️ PiP</button>
-                    <button class="btn-layout"        id="layout_sidebyside"    data-action="setRecordLayout" data-args='["sidebyside"]'>⬛⬛ Lado a lado</button>
-                    <button class="btn-layout"        id="layout_focus_remote"  data-action="setRecordLayout" data-args='["focus_remote"]'>👤 Cliente</button>
-                    <button class="btn-layout"        id="layout_focus_local"   data-action="setRecordLayout" data-args='["focus_local"]'>🧑‍💼 Você</button>
+                <!-- Barra de seleção de layout -->
+                <div id="layoutBar" style="display:flex;position:absolute;bottom:70px;left:50%;transform:translateX(-50%);z-index:30;background:rgba(15,23,42,0.9);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:8px 12px;gap:8px;align-items:center;backdrop-filter:blur(8px);flex-wrap:wrap;justify-content:center;">
+                    <span style="font-size:11px;color:#94a3b8;font-weight:600;">Layout:</span>
+                    <button class="btn-layout active" id="layout_pip"           data-action="setRecordLayout" data-args='["pip"]'>PiP</button>
+                    <button class="btn-layout"        id="layout_sidebyside"    data-action="setRecordLayout" data-args='["sidebyside"]'>Lado a lado</button>
+                    <button class="btn-layout"        id="layout_focus_remote"  data-action="setRecordLayout" data-args='["focus_remote"]'>Cliente</button>
+                    <button class="btn-layout"        id="layout_focus_local"   data-action="setRecordLayout" data-args='["focus_local"]'>Você</button>
                 </div>
                 <video id="remoteVideo" autoplay playsinline></video>
-                <video id="localVideo" autoplay muted playsinline></video>
+                <video id="localVideo"  autoplay muted playsinline></video>
                 <!-- Controles flutuantes na base -->
                 <div id="videoControls">
                     <span class="video-status-badge" id="videoStatus">Iniciando...</span>
-                    <button class="btn-vcall" id="btnMute" data-action="toggleMute">🎤 Mudo</button>
-                    <button class="btn-vcall" id="btnCam" data-action="toggleCamera">📷 Câmera</button>
+                    <button class="btn-vcall" id="btnMute"   data-action="toggleMute">🎤 Mudo</button>
+                    <button class="btn-vcall" id="btnCam"    data-action="toggleCamera">📷 Câmera</button>
                     <button class="btn-vcall" id="btnScreen" data-action="toggleShareScreen">🖥️ Tela</button>
                     <button class="btn-vcall" id="btnRecord" data-action="toggleRecording">⏺️ Gravar</button>
                 </div>
@@ -399,7 +429,6 @@
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
-
 
     <script src="/js/api.js"></script>
     <script src="/js/reunioes.js"></script>

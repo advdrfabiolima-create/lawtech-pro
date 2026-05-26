@@ -162,7 +162,7 @@ function renderConversas() {
     if (geralMatch) {
         const geralActive = conversaAtiva?.tipo === 'geral' ? 'active' : '';
         const geralBadge = naoLidasMap.geral ? `<span class="badge-nao-lida">${naoLidasMap.geral}</span>` : '';
-        html += `<div class="conversation-item ${geralActive}" data-action="abrirConversa" data-tipo="geral">
+        html += `<div class="conversation-item ${geralActive}" data-chat-action="abrirConversa" data-tipo="geral">
             <div class="conv-icon geral">🏢</div>
             <div class="conv-info">
                 <div class="conv-name">Chat Geral</div>
@@ -175,7 +175,7 @@ function renderConversas() {
         const badge = naoLidasMap[u.id] ? `<span class="badge-nao-lida">${naoLidasMap[u.id]}</span>` : '';
         const iniciais = getIniciais(u.nome);
         const onlineDot = u.online ? '<span class="online-dot"></span>' : '';
-        html += `<div class="conversation-item ${dmActive}" data-action="abrirConversa" data-tipo="dm" data-id="${u.id}" data-nome="${escaparHtml(u.nome)}">
+        html += `<div class="conversation-item ${dmActive}" data-chat-action="abrirConversa" data-tipo="dm" data-id="${u.id}" data-nome="${escaparHtml(u.nome)}">
             <div class="conv-icon dm" style="position:relative;">${iniciais}${onlineDot}</div>
             <div class="conv-info">
                 <div class="conv-name">${escaparHtml(u.nome)}</div>
@@ -188,6 +188,14 @@ function renderConversas() {
 
 // ── ABRIR CONVERSA ────────────────────────────────────────────────────────────
 function abrirConversa(tipo, usuarioId, nome) {
+    if (tipo && typeof tipo === 'object' && tipo.dataset) {
+        const item = tipo;
+        tipo = item.dataset.tipo;
+        usuarioId = item.dataset.id ? parseInt(item.dataset.id) : null;
+        nome = item.dataset.nome || '';
+    }
+    if (!tipo || (tipo !== 'geral' && !nome)) return;
+
     if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
     ultimoMsgId = 0;
     mensagensExibidas = new Set();
@@ -1191,6 +1199,8 @@ function showToast(msg, type = '') {
 
 // ── UTILS ─────────────────────────────────────────────────────────────────────
 function getIniciais(nome) {
+    nome = String(nome || '').trim();
+    if (!nome) return '?';
     const partes = nome.trim().split(' ').filter(n => n);
     let iniciais = partes[0] ? partes[0][0] : '?';
     if (partes.length > 1) iniciais += partes[partes.length - 1][0];
@@ -1205,20 +1215,20 @@ function escaparHtml(str) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('linkIaMenu').addEventListener('click', toggleIaMenu);
-    document.getElementById('linkCrmNav').addEventListener('click', limparBolinha);
-    document.getElementById('userCircle').addEventListener('click', toggleUserMenu);
-    document.getElementById('linkEscolherAvatar').addEventListener('click', (e) => {
+    document.getElementById('linkIaMenu')?.addEventListener('click', toggleIaMenu);
+    document.getElementById('linkCrm')?.addEventListener('click', limparBolinha);
+    document.getElementById('userCircle')?.addEventListener('click', toggleUserMenu);
+    document.getElementById('linkEscolherAvatar')?.addEventListener('click', (e) => {
         e.preventDefault();
         abrirModalAvatar();
         toggleUserMenu();
     });
-    document.getElementById('linkLogoutChat').addEventListener('click', (e) => { e.preventDefault(); logout(); });
-    document.getElementById('filterConversas').addEventListener('input', (e) => filtrarConversas(e.target.value));
+    document.getElementById('linkLogoutChat')?.addEventListener('click', (e) => { e.preventDefault(); logout(); });
+    document.getElementById('filterConversas')?.addEventListener('input', (e) => filtrarConversas(e.target.value));
 
     // ── Conversas: event delegation ────────────────────────────────────────────
-    document.getElementById('conversationsList').addEventListener('click', (e) => {
-        const item = e.target.closest('[data-action="abrirConversa"]');
+    document.getElementById('conversationsList')?.addEventListener('click', (e) => {
+        const item = e.target.closest('[data-chat-action="abrirConversa"]');
         if (!item) return;
         const tipo = item.dataset.tipo;
         const id   = item.dataset.id ? parseInt(item.dataset.id) : null;
@@ -1226,24 +1236,24 @@ document.addEventListener('DOMContentLoaded', () => {
         abrirConversa(tipo, id, nome);
     });
 
-    document.getElementById('btnFecharSearchPanel').addEventListener('click', fecharSearchPanel);
-    document.getElementById('searchInput').addEventListener('input', (e) => pesquisarMensagens(e.target.value));
+    document.getElementById('btnFecharSearchPanel')?.addEventListener('click', fecharSearchPanel);
+    document.getElementById('searchInput')?.addEventListener('input', (e) => pesquisarMensagens(e.target.value));
 
     // ── Search results: event delegation ──────────────────────────────────────
-    document.getElementById('searchResults').addEventListener('click', (e) => {
+    document.getElementById('searchResults')?.addEventListener('click', (e) => {
         const item = e.target.closest('[data-action="searchScrollTo"]');
         if (!item) return;
         const id = parseInt(item.dataset.id);
         scrollToMsg(id);
         fecharSearchPanel();
     });
-    document.getElementById('btnFecharThreadPanel').addEventListener('click', fecharThreadPanel);
-    document.getElementById('threadInput').addEventListener('keydown', onThreadKeyDown);
-    document.getElementById('threadInput').addEventListener('input', (e) => autoResizeEl(e.target));
-    document.getElementById('btnEnviarThread').addEventListener('click', enviarRespostaThread);
-    document.getElementById('btnCancelarSchedule').addEventListener('click', () => fecharModal('scheduleModal'));
-    document.getElementById('btnConfirmarAgendamento').addEventListener('click', confirmarAgendamento);
-    document.getElementById('shareType').addEventListener('change', updateShareModal);
-    document.getElementById('btnCancelarShare').addEventListener('click', () => fecharModal('shareModal'));
-    document.getElementById('btnConfirmarCompartilhamento').addEventListener('click', confirmarCompartilhamento);
+    document.getElementById('btnFecharThreadPanel')?.addEventListener('click', fecharThreadPanel);
+    document.getElementById('threadInput')?.addEventListener('keydown', onThreadKeyDown);
+    document.getElementById('threadInput')?.addEventListener('input', (e) => autoResizeEl(e.target));
+    document.getElementById('btnEnviarThread')?.addEventListener('click', enviarRespostaThread);
+    document.getElementById('btnCancelarSchedule')?.addEventListener('click', () => fecharModal('scheduleModal'));
+    document.getElementById('btnConfirmarAgendamento')?.addEventListener('click', confirmarAgendamento);
+    document.getElementById('shareType')?.addEventListener('change', updateShareModal);
+    document.getElementById('btnCancelarShare')?.addEventListener('click', () => fecharModal('shareModal'));
+    document.getElementById('btnConfirmarCompartilhamento')?.addEventListener('click', confirmarCompartilhamento);
 });

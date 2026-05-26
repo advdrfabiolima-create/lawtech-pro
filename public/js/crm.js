@@ -598,8 +598,9 @@
 
     function toggleUserMenu() {
         const m = document.getElementById('userDropdown');
-        if (m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
+        if (m) m.style.display = getComputedStyle(m).display === 'none' ? 'block' : 'none';
     }
+    window.toggleUserMenu = toggleUserMenu;
 
     window.addEventListener('click', (e) => {
         if (!e.target.closest('#userCircle') && !e.target.closest('#userDropdown')) {

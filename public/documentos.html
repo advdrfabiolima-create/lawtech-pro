@@ -9,267 +9,256 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GED — Documentos | LawTech Pro</title>
     <link rel="icon" type="image/png" href="/favicon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="/css/design-system.css">
+
     <style>
-        :root {
-            --bg-primary: #F8FAFB;
-            --bg-secondary: #1E3A5F;
-            --bg-tertiary: #2A4A73;
-            --bg-elevated: #ffffff;
-            --text-primary: #2C3E50;
-            --text-secondary: #5A6C7D;
-            --text-tertiary: #7B8794;
-            --accent-blue: #4A90E2;
-            --accent-blue-light: #5BA4DB;
-            --accent-blue-glow: rgba(74, 144, 226, 0.2);
-            --accent-red: #E76F51;
-            --border-subtle: rgba(42, 74, 115, 0.08);
-            --border-medium: rgba(42, 74, 115, 0.12);
-            --radius-sm: 4px;
-            --radius-md: 6px;
-            --radius-lg: 8px;
-            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-            --bg: var(--bg-primary);
-            --sidebar: var(--bg-secondary);
-            --white: var(--bg-elevated);
-            --border: var(--border-medium);
-            --primary: var(--accent-blue);
-            --danger: var(--accent-red);
-            --muted: var(--text-tertiary);
-            --text-main: var(--text-primary);
-            --sidebar-hover: var(--bg-tertiary);
-            --radius: var(--radius-md);
-        }
+        /* ══════════════════════════════════════════════════════════
+           DOCUMENTOS (GED) — estilos específicos da página
+        ══════════════════════════════════════════════════════════ */
 
-        * { box-sizing: border-box; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; height: 100vh; overflow-x: auto; overflow-y: hidden; }
+        /* Body scroll para conteúdo longo */
+        body { overflow-x: auto; overflow-y: hidden; }
 
-        /* ── Sidebar ────────────────────────────────────────────── */
-        .sidebar {
-            width: 280px;
-            background: var(--bg-secondary);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-right: 1px solid var(--border-subtle);
-            padding: 32px 24px;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            z-index: 1000;
-            animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        /* keep-lowercase override */
+        .keep-lowercase { text-transform: none !important; }
+
+        /* ── Main layout ───────────────────────────────────────── */
+        .main { overflow-y: auto; }
+        .content { padding: 28px 32px 48px; flex: 1; }
+
+        /* ── Stats Row ─────────────────────────────────────────── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
         }
-        @keyframes slideInLeft {
-            from { opacity: 0; transform: translateX(-100%); }
-            to   { opacity: 1; transform: translateX(0); }
+        .stat-card {
+            background: linear-gradient(135deg, #0A84FF 0%, #0071E3 52%, #005BC4 100%);
+            border-radius: var(--r-xl);
+            padding: 22px 24px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 12px 26px rgba(0, 113, 227, 0.25);
+            position: relative;
+            overflow: hidden;
+            color: #fff;
         }
-        .sidebar-header {
-            text-align: center;
-            margin-bottom: 16px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-subtle);
-            flex-shrink: 0;
-        }
-        .sidebar-header img {
-            width: 100%; max-width: 180px; height: auto;
-            filter: drop-shadow(0 0 20px var(--accent-blue-glow));
-            transition: all var(--transition-base);
-        }
-        .sidebar-header img:hover {
-            filter: drop-shadow(0 0 30px var(--accent-blue-glow));
-            transform: scale(1.05);
-        }
-        .menu {
-            display: flex; flex-direction: column; gap: 6px;
-            flex-grow: 1; overflow-y: auto; overflow-x: hidden; min-height: 0;
-        }
-        .menu a {
-            display: flex; align-items: center;
-            padding: 10px 16px;
-            color: #94a3b8;
-            text-decoration: none;
-            border-radius: var(--radius-lg);
-            font-size: 14px; font-weight: 600;
-            text-transform: uppercase;
-            transition: all var(--transition-base);
-            position: relative; overflow: hidden;
-            border: 1px solid transparent;
-        }
-        .menu a::before {
+        .stat-card::before {
             content: '';
-            position: absolute; top: 0; left: 0;
-            width: 4px; height: 100%;
-            background: var(--accent-blue);
-            transform: scaleY(0);
-            transition: transform var(--transition-base);
+            position: absolute;
+            top: -60%;
+            right: -30%;
+            width: 180px;
+            height: 180px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.18);
         }
-        .menu a:hover::before, .menu a.active::before { transform: scaleY(1); }
-        .menu a i { margin-right: 12px; font-size: 18px; transition: all var(--transition-base); }
-        .menu a:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: #e2e8f0;
-            transform: translateX(4px);
-            border: 1px solid transparent;
+        .stat-card:nth-child(2) {
+            background: linear-gradient(135deg, #34C759 0%, #21A94D 52%, #16863B 100%);
+            box-shadow: 0 12px 26px rgba(52, 199, 89, 0.25);
         }
-        .menu a.active {
-            background: rgba(37, 99, 235, 0.15);
-            color: #60a5fa;
-            border: 1px solid rgba(37, 99, 235, 0.4);
+        .stat-card:nth-child(3) {
+            background: linear-gradient(135deg, #FFB020 0%, #FF8A00 48%, #E05500 100%);
+            box-shadow: 0 12px 26px rgba(255, 138, 0, 0.25);
         }
-        .menu a.active i { color: #60a5fa; }
-        .menu-item-with-submenu { position: relative; }
-        .submenu { display: none; flex-direction: column; gap: 2px; padding-left: 28px; margin-top: 2px; }
-        .submenu a { font-size: 13px; padding: 8px 12px; }
-        .btn-crm-gold-nav {
-            background: #fbbf24 !important;
-            color: #000 !important;
-            font-weight: 700 !important;
-            margin-top: 8px !important;
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            padding: 8px 12px !important;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 12px;
-            transition: 0.3s;
-        }
-        .btn-crm-gold-nav:hover { background: #facc15 !important; transform: scale(1.02); }
-        .btn-crm-gold-nav i { margin-right: 10px; }
-        .sidebar-footer {
-            padding-top: 24px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 12px;
-            margin-top: auto;
-            display: flex; flex-direction: column; gap: 8px;
-        }
-        .sidebar-footer span { color: #cbd5e1 !important; }
-        .footer-info-row {
-            display: flex; justify-content: flex-start; align-items: center;
-            gap: 5px; font-size: 12px; width: 100%;
-        }
-        .footer-info-row span:first-child {
-            text-transform: uppercase;
-            color: var(--text-tertiary);
+        .stat-card .label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.86);
             font-weight: 700;
-            min-width: 65px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
         }
-        .keep-lowercase { text-transform: lowercase !important; color: #cbd5e1; font-weight: 500; }
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.04em;
+            position: relative;
+            z-index: 1;
+        }
 
-        /* ── Main ───────────────────────────────────────────────── */
-        .main { margin-left: 280px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; }
-        .header { background: var(--white); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e2e8f0; color: #1e293b; flex-shrink: 0; position: sticky; top: 0; z-index: 900; }
-        .content { padding: 24px; flex: 1; overflow-y: auto; }
-
-        /* Cards */
-        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-        .stat-card { background: var(--white); border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; color: #1e293b; }
-        .stat-card .label { font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-        .stat-card .value { font-size: 28px; font-weight: 700; color: #1e293b; }
-
-        /* Filtros */
-        .filters-row { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+        /* ── Filtros ────────────────────────────────────────────── */
+        .filters-row {
+            display: flex; gap: 12px; align-items: center;
+            margin-bottom: 20px; flex-wrap: wrap;
+        }
         .filters-row input, .filters-row select {
-            padding: 9px 14px; border: 1px solid #e2e8f0; border-radius: 8px;
-            font-size: 14px; background: var(--white); color: #1e293b; outline: none;
+            padding: 9px 14px;
+            border: 1px solid var(--border-md);
+            border-radius: var(--r-pill);
+            font-size: 13.5px;
+            background: var(--surface);
+            color: var(--t1);
+            outline: none;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: border-color var(--t) var(--ease), box-shadow var(--t) var(--ease);
         }
-        .filters-row input:focus, .filters-row select:focus { border-color: var(--primary); }
+        .filters-row input:focus, .filters-row select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
         .filters-row input[type="text"] { flex: 1; min-width: 200px; }
-        .toggle-label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #64748b; cursor: pointer; white-space: nowrap; }
-        .toggle-label input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
-
-        /* Tabela */
-        .table-wrap { background: var(--white); border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; }
-        thead th { padding: 12px 14px; text-align: left; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
-        tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.15s; }
-        tbody tr:last-child { border-bottom: none; }
-        tbody tr:hover { background: #f8fafc; }
-        tbody td { padding: 13px 14px; font-size: 13px; color: #1e293b; vertical-align: middle; }
-
-        /* Badges */
-        .badge { display: inline-block; padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
-        .badge-peticao   { background:#dbeafe; color:#1e40af; }
-        .badge-contrato  { background:#d1fae5; color:#065f46; }
-        .badge-procuracao{ background:#fef3c7; color:#92400e; }
-        .badge-decisao   { background:#ede9fe; color:#5b21b6; }
-        .badge-citacao   { background:#fee2e2; color:#991b1b; }
-        .badge-recurso   { background:#fce7f3; color:#9d174d; }
-        .badge-laudo     { background:#e0f2fe; color:#075985; }
-        .badge-acordo    { background:#ecfdf5; color:#14532d; }
-        .badge-comprovante{background:#f5f3ff; color:#4c1d95;}
-        .badge-modelo    { background:#fef9c3; color:#713f12; }
-        .badge-outros    { background:#f1f5f9; color:#475569; }
-        .badge-modelo-tag{ background:#0f172a; color:#fbbf24; border:1px solid #fbbf24; }
-        .badge-assinatura-aguardando { background:#fef9c3; color:#92400e; border:1px solid #fcd34d; font-size:11px; padding:2px 7px; border-radius:20px; font-weight:700; white-space:nowrap; }
-        .badge-assinatura-concluido  { background:#dcfce7; color:#14532d; border:1px solid #86efac; font-size:11px; padding:2px 7px; border-radius:20px; font-weight:700; white-space:nowrap; }
-
-        /* Ações */
-        .btn-icon { background: none; border: none; cursor: pointer; padding: 5px; border-radius: 5px; color: #64748b; transition: background 0.15s, color 0.15s; }
-        .btn-icon:hover { background: #f1f5f9; color: #1e293b; }
-        .btn-icon.danger:hover { background: #fee2e2; color: #ef4444; }
-        .btn-primary { background: var(--primary); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
-        .btn-primary:hover { opacity: 0.9; }
-        .btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; padding: 9px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
-        .btn-secondary:hover { background: #e2e8f0; }
-
-        /* Modais */
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-overlay.open { display: flex; }
-        .modal { background: var(--white); border-radius: 14px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.25); color: #1e293b; }
-        .modal-header { padding: 20px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--white); z-index: 1; }
-        .modal-header h3 { font-size: 17px; font-weight: 700; }
-        .modal-body { padding: 24px; }
-        .modal-footer { padding: 16px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 12px; }
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px;
-            font-size: 14px; color: #1e293b; outline: none;
+        .filters-row select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236E6E73' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 32px;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
         }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); }
+        .toggle-label {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13.5px; color: var(--t2); cursor: pointer; white-space: nowrap;
+        }
+        .toggle-label input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
+
+        /* ── Tabela ─────────────────────────────────────────────── */
+        .table-wrap {
+            background: var(--surface);
+            border-radius: var(--r-xl);
+            border: 1px solid var(--border);
+            box-shadow: var(--sh-card);
+            overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead th {
+            padding: 12px 14px;
+            text-align: left;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--t2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--surface-fill-2);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background var(--t) var(--ease);
+        }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--surface-fill-2); }
+        tbody td { padding: 13px 14px; font-size: 13.5px; color: var(--t1); vertical-align: middle; }
+
+        /* ── Badges de categoria ────────────────────────────────── */
+        .badge { display: inline-block; padding: 3px 9px; border-radius: var(--r-pill); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+        .badge-peticao    { background: var(--accent-fill); color: var(--accent); }
+        .badge-contrato   { background: var(--green-bg);    color: #065f46; }
+        .badge-procuracao { background: var(--yellow-bg);   color: #92400e; }
+        .badge-decisao    { background: var(--purple-bg);   color: #5b21b6; }
+        .badge-citacao    { background: var(--red-bg);      color: #991b1b; }
+        .badge-recurso    { background: rgba(249,115,22,0.1); color: #9d174d; }
+        .badge-laudo      { background: rgba(14,165,233,0.1); color: #075985; }
+        .badge-acordo     { background: var(--green-bg);    color: #14532d; }
+        .badge-comprovante{ background: var(--purple-bg);   color: #4c1d95; }
+        .badge-modelo     { background: var(--yellow-bg);   color: #713f12; }
+        .badge-outros     { background: var(--surface-fill);color: var(--t2); }
+        .badge-modelo-tag { background: #0f172a; color: #fbbf24; border: 1px solid #fbbf24; }
+        .badge-assinatura-aguardando { background: var(--yellow-bg); color: #92400e; border: 1px solid rgba(255,159,10,0.3); font-size: 10.5px; padding: 2px 8px; border-radius: var(--r-pill); font-weight: 700; white-space: nowrap; }
+        .badge-assinatura-concluido  { background: var(--green-bg);  color: #14532d; border: 1px solid rgba(52,199,89,0.3); font-size: 10.5px; padding: 2px 8px; border-radius: var(--r-pill); font-weight: 700; white-space: nowrap; }
+
+        /* ── Ações ──────────────────────────────────────────────── */
+        .btn-icon {
+            background: none; border: none; cursor: pointer; padding: 5px;
+            border-radius: var(--r-sm); color: var(--t2);
+            transition: background var(--t) var(--ease), color var(--t) var(--ease);
+        }
+        .btn-icon:hover { background: var(--surface-fill); color: var(--t1); }
+        .btn-icon.danger:hover { background: var(--red-bg); color: var(--red); }
+
+        /* Badge processo no header */
+        #processBadge {
+            display: none; background: var(--accent-fill); color: var(--accent);
+            border: 1px solid rgba(0,113,227,0.2); padding: 4px 12px;
+            border-radius: var(--r-pill); font-size: 13px; font-weight: 600;
+        }
+
+        /* User dropdown */
+        #userDropdown {
+            display: none; position: absolute; top: calc(100% + 10px); right: 0;
+            background: rgba(255,255,255,0.96); backdrop-filter: blur(24px) saturate(200%);
+            -webkit-backdrop-filter: blur(24px) saturate(200%);
+            border: 1px solid var(--border-md); border-radius: var(--r-md);
+            box-shadow: var(--sh-elevated); min-width: 190px; z-index: 200; overflow: hidden;
+        }
+        #userDropdown a {
+            display: flex; align-items: center; gap: 10px;
+            padding: 11px 16px; color: var(--t1); text-decoration: none;
+            font-size: 13px; font-weight: 500;
+            transition: background var(--t) var(--ease);
+        }
+        #userDropdown a:hover { background: var(--surface-fill); }
+        #userDropdown a:last-child { color: var(--red); border-top: 1px solid var(--border); }
+
+        /* ── Modais ─────────────────────────────────────────────── */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.40); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-overlay.open { display: flex; }
+        .modal { background: var(--surface); border-radius: var(--r-xl); width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: var(--sh-modal); border: 1px solid var(--border); animation: modalIn 0.28s var(--spring); }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--surface); z-index: 1; }
+        .modal-header h3 { font-size: 17px; font-weight: 700; color: var(--t1); letter-spacing: -0.02em; }
+        .modal-body { padding: 24px; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 11px; font-weight: 700; color: var(--t2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 10px 14px;
+            background: var(--surface-fill); border: 1.5px solid transparent;
+            border-radius: var(--r-md); font-size: 14px; color: var(--t1);
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            outline: none; transition: border-color var(--t) var(--ease), box-shadow var(--t) var(--ease);
+            -webkit-appearance: none; appearance: none;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+        .form-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236E6E73' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; cursor: pointer;
+        }
         .form-group textarea { min-height: 80px; resize: vertical; }
 
         /* Drop zone */
         .drop-zone {
-            border: 2px dashed #cbd5e1; border-radius: 10px; padding: 32px; text-align: center;
-            cursor: pointer; transition: all 0.2s; margin-bottom: 16px;
+            border: 1.5px dashed var(--border-md); border-radius: var(--r-lg);
+            padding: 32px; text-align: center; cursor: pointer;
+            transition: border-color var(--t) var(--ease), background var(--t) var(--ease);
+            margin-bottom: 16px; background: var(--surface-fill-2);
         }
-        .drop-zone:hover, .drop-zone.over { border-color: var(--primary); background: rgba(59,130,246,0.05); }
-        .drop-zone .dz-icon { font-size: 40px; margin-bottom: 8px; color: #94a3b8; }
-        .drop-zone .dz-text { font-size: 14px; color: #64748b; }
-        .drop-zone .dz-file { font-size: 13px; font-weight: 600; color: #1e293b; margin-top: 6px; }
+        .drop-zone:hover, .drop-zone.over { border-color: var(--accent); background: var(--accent-fill); }
+        .drop-zone .dz-icon { font-size: 40px; margin-bottom: 8px; color: var(--t3); display: block; }
+        .drop-zone .dz-text { font-size: 13.5px; color: var(--t2); }
+        .drop-zone .dz-file { font-size: 13px; font-weight: 600; color: var(--t1); margin-top: 6px; }
         input[type="file"].hidden-input { display: none; }
 
         /* Progress */
-        .progress-bar-wrap { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-top: 10px; display: none; }
-        .progress-bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.2s; border-radius: 4px; }
+        .progress-bar-wrap { height: 6px; background: var(--surface-fill); border-radius: var(--r-pill); overflow: hidden; margin-top: 10px; display: none; }
+        .progress-bar-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.2s; border-radius: var(--r-pill); }
 
         /* Versões modal */
-        .version-item { padding: 12px 0; border-bottom: 1px solid #f1f5f9; display: flex; align-items: flex-start; gap: 12px; }
+        .version-item { padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 12px; }
         .version-item:last-child { border-bottom: none; }
-        .version-badge { background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 5px; white-space: nowrap; }
+        .version-badge { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: var(--r-sm); white-space: nowrap; }
 
         /* Empty state */
-        .empty-state { text-align: center; padding: 60px 20px; color: #94a3b8; }
-        .empty-state i { font-size: 48px; margin-bottom: 16px; display: block; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--t2); }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; display: block; opacity: 0.25; }
 
-        /* Badge processo no header */
-        #processBadge { display: none; background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
-
-        /* User dropdown */
-        #userDropdown { display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 4px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001; }
-        #userDropdown a { display: block; padding: 10px 16px; color: #1e293b; text-decoration: none; font-size: 13px; }
-        #userDropdown a:hover { background: #f8fafc; }
+        /* Legenda assinatura */
+        #legendaAssinatura {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--r-lg); padding: 10px 16px; margin-bottom: 16px;
+            font-size: 12px; color: var(--t2);
+        }
 
         @media (max-width: 1280px) {
-            .sidebar { width: 220px; padding: 20px 16px; }
-            .sidebar-header img { max-width: 150px; }
-            .menu a { padding: 10px 14px; font-size: 13px; }
-            .main { margin-left: 220px; }
             .stats-row { grid-template-columns: repeat(3, 1fr); }
         }
     </style>
@@ -291,48 +280,52 @@
         <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
         <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
         <div class="menu-item-with-submenu">
-            <a href="/ia-page" id="linkIaMenu" style="display:flex;align-items:center;gap:10px;">
-                <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
+            <a href="#" id="linkIaMenu">
+                <i class="lucide lucide-sparkles" style="color:#fbbf24;opacity:1;"></i>
                 IA Jurídica
-                <span style="font-size:9px;background:#fbbf24;color:#000;padding:2px 5px;border-radius:4px;font-weight:bold;margin-left:auto;">PREMIUM</span>
+                <span style="font-size:9px;background:rgba(251,191,36,0.18);color:#fbbf24;border:1px solid rgba(251,191,36,0.30);padding:2px 7px;border-radius:20px;font-weight:700;margin-left:auto;">PREMIUM</span>
             </a>
             <div class="submenu" id="submenu-ia">
                 <a href="/peticoes.html"><i class="lucide lucide-file-text"></i> Petições IA</a>
                 <a href="/ia-page"><i class="lucide lucide-bot"></i> Assistente IA</a>
             </div>
         </div>
-        <a href="/chat-page"><i class="lucide lucide-message-circle"></i> 💬 Chat</a>
+        <a href="/chat-page">
+            <i class="lucide lucide-message-circle"></i> Chat
+            <span id="chatBadge" style="display:none;background:#FF3B30;color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 5px;margin-left:auto;"></span>
+        </a>
         <a href="/relatorios-page"><i class="lucide lucide-bar-chart-3"></i> Relatórios</a>
         <a href="/documentos-page" class="active"><i class="lucide lucide-folder-open"></i> Documentos (GED)</a>
         <a href="/reunioes-page"><i class="lucide lucide-video"></i> Reuniões</a>
         <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
-        <a href="/config-page"><i class="lucide lucide-settings"></i> Configurações</a>
-        <a href="/crm-page" class="btn-crm-gold-nav">
-            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+        <a href="/config-page" id="guia-config"><i class="lucide lucide-settings"></i> Configurações</a>
+        <a href="/crm-page" class="btn-crm-gold-nav" id="linkCrm">
+            <i class="lucide lucide-trending-up"></i> CRM Prospecção
+            <span id="dotNotificacao" style="display:none;width:7px;height:7px;background:#FF3B30;border-radius:50%;margin-left:auto;box-shadow:0 0 6px #FF3B30;"></span>
         </a>
     </nav>
     <div class="sidebar-footer">
-        <div class="footer-info-row"><span>Usuário:</span><span id="footerEmail" class="keep-lowercase">...</span></div>
-        <div class="footer-info-row"><span>Plano:</span><span id="footerPlano" class="keep-lowercase">...</span></div>
+        <div class="footer-info-row"><span>Usuário</span><span id="footerEmail" class="keep-lowercase">...</span></div>
+        <div class="footer-info-row"><span>Plano</span><span id="footerPlano" class="keep-lowercase">...</span></div>
     </div>
 </aside>
 
 <div class="main">
     <header class="header">
-        <div style="display:flex;align-items:center;gap:12px;">
-            <h2 style="font-size:18px;font-weight:700;">📁 Documentos (GED)</h2>
+        <div class="header-left">
+            <h2>Documentos (GED)</h2>
             <span id="processBadge"></span>
         </div>
         <div style="display:flex;gap:12px;align-items:center;">
             <button class="btn-primary" data-action="abrirModalUpload">+ Novo Documento</button>
-            <div style="position:relative;">
-                <span id="userNameHeader" style="font-size:13px;font-weight:600;color:#64748b;margin-right:6px;"></span>
+            <div class="user-menu">
+                <span id="userNameHeader"></span>
                 <div data-action="toggleUserDropdown"
                      id="userCircle"
-                     style="width:38px;height:38px;background:var(--primary);color:white;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700;font-size:13px;text-transform:uppercase;">--</div>
+                     style="width:34px;height:34px;background:var(--accent);color:white;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700;font-size:12px;border:2px solid rgba(255,255,255,0.9);box-shadow:0 0 0 1px rgba(0,0,0,0.08);">--</div>
                 <div id="userDropdown">
-                    <a href="/config-page">👤 Meus Dados</a>
-                    <a href="#" data-action="logout" style="color:#ef4444;font-weight:600;">🚪 Sair</a>
+                    <a href="/config-page"><i data-lucide="user" style="width:14px;height:14px;"></i> Meus Dados</a>
+                    <a href="#" data-action="logout"><i data-lucide="log-out" style="width:14px;height:14px;"></i> Sair</a>
                 </div>
             </div>
         </div>
@@ -378,28 +371,28 @@
         </div>
 
         <!-- Legenda dos ícones de Assinatura Digital -->
-        <div id="legendaAssinatura" style="display:none;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:12px;color:#475569;">
-            <span style="font-weight:700;color:#334155;margin-right:12px;">Assinatura Digital:</span>
+        <div id="legendaAssinatura" style="display:none;">
+            <span style="font-weight:700;color:var(--t1);margin-right:12px;">Assinatura Digital:</span>
             <span style="display:inline-flex;align-items:center;gap:5px;margin-right:16px;">
-                <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#ede9fe;border-radius:6px;color:#7c3aed;">
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:var(--purple-bg);border-radius:6px;color:var(--purple);">
                     <i data-lucide="settings" style="width:13px;height:13px;"></i>
                 </span>
                 Configurar API Key
             </span>
             <span style="display:inline-flex;align-items:center;gap:5px;margin-right:16px;">
-                <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#ede9fe;border-radius:6px;color:#7c3aed;">
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:var(--purple-bg);border-radius:6px;color:var(--purple);">
                     <i data-lucide="pen-line" style="width:13px;height:13px;"></i>
                 </span>
                 Enviar para assinatura
             </span>
             <span style="display:inline-flex;align-items:center;gap:5px;margin-right:16px;">
-                <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#fef3c7;border-radius:6px;color:#d97706;">
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:var(--yellow-bg);border-radius:6px;color:var(--yellow);">
                     <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>
                 </span>
                 Verificar status
             </span>
             <span style="display:inline-flex;align-items:center;gap:5px;">
-                <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#dcfce7;border-radius:6px;color:#16a34a;">
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:var(--green-bg);border-radius:6px;color:var(--green);">
                     <i data-lucide="file-check" style="width:13px;height:13px;"></i>
                 </span>
                 Baixar documento assinado
@@ -422,7 +415,7 @@
                     </tr>
                 </thead>
                 <tbody id="listaDocumentos">
-                    <tr><td colspan="8" style="text-align:center;padding:50px;color:#94a3b8;">Carregando…</td></tr>
+                    <tr><td colspan="8" style="text-align:center;padding:50px;color:var(--t3);">Carregando…</td></tr>
                 </tbody>
             </table>
         </div>
@@ -441,7 +434,7 @@
                  ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
                 <div class="dz-icon">📎</div>
                 <div class="dz-text">Arraste o arquivo aqui ou clique para selecionar</div>
-                <div class="dz-text" style="font-size:12px;margin-top:4px;color:#94a3b8;">PDF, DOC, DOCX, JPG, PNG — até 20 MB</div>
+                <div class="dz-text" style="font-size:12px;margin-top:4px;color:var(--t3);">PDF, DOC, DOCX, JPG, PNG — até 20 MB</div>
                 <div class="dz-file" id="dzFileName"></div>
             </div>
             <input type="file" id="fileInput" class="hidden-input"
@@ -475,18 +468,18 @@
                 <textarea id="uploadDescricao" placeholder="Descrição opcional…"></textarea>
             </div>
             <div class="form-group">
-                <label>Tags <span style="font-weight:400;color:#94a3b8;">(separadas por vírgula)</span></label>
+                <label>Tags <span style="font-weight:400;color:var(--t3);">(separadas por vírgula)</span></label>
                 <input type="text" id="uploadTags" placeholder="Ex: urgente, 1ª vara, recurso">
             </div>
             <div class="form-group" id="uploadProcessoGrupo">
-                <label>Processo <span style="font-weight:400;color:#94a3b8;">(opcional)</span></label>
+                <label>Processo <span style="font-weight:400;color:var(--t3);">(opcional)</span></label>
                 <select id="uploadProcesso">
                     <option value="">— Sem vínculo com processo —</option>
                 </select>
             </div>
             <div class="form-group">
-                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                    <input type="checkbox" id="uploadModelo" style="width:16px;height:16px;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;font-size:13.5px;font-weight:500;color:var(--t1);">
+                    <input type="checkbox" id="uploadModelo" style="width:16px;height:16px;accent-color:var(--accent);">
                     Salvar como modelo reutilizável
                 </label>
             </div>
@@ -551,7 +544,7 @@
             <button class="btn-icon" data-action="fecharModal" data-args='["modalVersoes"]'><i data-lucide="x"></i></button>
         </div>
         <div class="modal-body" id="versoesBody">
-            <div style="text-align:center;padding:30px;color:#94a3b8;">Carregando…</div>
+            <div style="text-align:center;padding:30px;color:var(--t3);">Carregando…</div>
         </div>
     </div>
 </div>
@@ -592,85 +585,84 @@
             <button class="btn-icon" data-action="fecharModal" data-args='["modalAssinar"]'><i data-lucide="x"></i></button>
         </div>
         <div class="modal-body">
-            <div id="assinarDocNome" style="font-weight:600;color:var(--text-primary);margin-bottom:16px;padding:10px 12px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;"></div>
+            <div id="assinarDocNome" style="font-weight:600;color:var(--t1);margin-bottom:16px;padding:10px 12px;background:var(--surface-fill);border-radius:var(--r-md);border:1px solid var(--border);"></div>
 
             <div style="margin-bottom:14px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                    <label style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em;">Signatários</label>
+                    <label style="font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.04em;">Signatários</label>
                     <button type="button" data-action="adicionarLinhaSignatario"
-                        style="padding:3px 10px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">
+                        style="padding:3px 10px;background:var(--accent-fill);color:var(--accent);border:1px solid rgba(0,113,227,0.2);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">
                         + Adicionar
                     </button>
                 </div>
                 <div id="assinarSignatariosList"></div>
-                <div id="assinarSignAviso" style="display:none;color:#ef4444;font-size:12px;margin-top:6px;"></div>
-                <div id="assinarAutoInfo" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:8px 10px;margin-top:8px;font-size:12px;color:#1e40af;">
-                    Polo ativo do processo preenchido automaticamente. Voce pode editar ou adicionar mais signatarios.
+                <div id="assinarSignAviso" style="display:none;color:var(--red);font-size:12px;margin-top:6px;"></div>
+                <div id="assinarAutoInfo" style="display:none;background:var(--accent-fill);border:1px solid rgba(0,113,227,0.2);border-radius:var(--r-md);padding:8px 10px;margin-top:8px;font-size:12px;color:var(--accent);">
+                    Polo ativo do processo preenchido automaticamente. Você pode editar ou adicionar mais signatários.
                 </div>
             </div>
 
             <div style="margin-bottom:14px;">
-                <label for="assinarDeadline" style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Prazo para assinatura</label>
-                <input type="date" id="assinarDeadline" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:14px;background:#f8fafc;">
+                <label for="assinarDeadline" style="font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Prazo para assinatura</label>
+                <input type="date" id="assinarDeadline" style="width:100%;padding:8px 10px;border:1.5px solid transparent;border-radius:var(--r-md);font-size:14px;background:var(--surface-fill);font-family:inherit;color:var(--t1);outline:none;transition:border-color var(--t) var(--ease);" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='transparent'">
             </div>
 
             <div>
-                <label for="assinarMensagem" style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Mensagem para o signatário (opcional)</label>
-                <textarea id="assinarMensagem" rows="3" placeholder="Ex: Por favor, assine o contrato referente ao processo…" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:14px;resize:vertical;background:#f8fafc;"></textarea>
+                <label for="assinarMensagem" style="font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Mensagem para o signatário (opcional)</label>
+                <textarea id="assinarMensagem" rows="3" placeholder="Ex: Por favor, assine o contrato referente ao processo…" style="width:100%;padding:8px 10px;border:1.5px solid transparent;border-radius:var(--r-md);font-size:14px;resize:vertical;background:var(--surface-fill);font-family:inherit;color:var(--t1);outline:none;transition:border-color var(--t) var(--ease);" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='transparent'"></textarea>
             </div>
         </div>
         <div class="modal-footer">
             <button class="btn-secondary" data-action="fecharModal" data-args='["modalAssinar"]'>Cancelar</button>
-            <button class="btn-primary" id="btnEnviarAssinatura" data-action="enviarAssinatura" style="background:#7c3aed;">🔏 Enviar para Assinatura</button>
+            <button class="btn-primary" id="btnEnviarAssinatura" data-action="enviarAssinatura" style="background:var(--purple);">Enviar para Assinatura</button>
         </div>
     </div>
 </div>
-
-
 
 <!-- ─── MODAL ADD-ON CLICKSIGN ──────────────────────────────────────────────── -->
 <div class="modal-overlay" id="modalAddonClickSign">
     <div class="modal" style="max-width:480px;">
         <div class="modal-header">
-            <h3 id="addonModalTitulo">🔏 Assinatura Digital via ClickSign</h3>
+            <h3 id="addonModalTitulo">Assinatura Digital via ClickSign</h3>
             <button class="btn-icon" data-action="fecharModal" data-args='["modalAddonClickSign"]'><i data-lucide="x"></i></button>
         </div>
         <div class="modal-body">
-            <p id="addonModalDescricao" style="color:#475569;font-size:14px;margin-bottom:18px;">
+            <p id="addonModalDescricao" style="color:var(--t2);font-size:14px;margin-bottom:18px;">
                 Envie documentos para assinatura eletrônica com validade jurídica (MP 2.200-2/2001).
             </p>
 
             <div id="addonModalFeatures" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
-                <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#334155;">
-                    <span style="color:#16a34a;font-weight:700;">✅</span> 20 assinaturas por mês
+                <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--t1);">
+                    <span style="color:var(--green);font-weight:700;">✓</span> 20 assinaturas por mês
                 </div>
-                <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#334155;">
-                    <span style="color:#16a34a;font-weight:700;">✅</span> Link de assinatura por e-mail
+                <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--t1);">
+                    <span style="color:var(--green);font-weight:700;">✓</span> Link de assinatura por e-mail
                 </div>
-                <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#334155;">
-                    <span style="color:#16a34a;font-weight:700;">✅</span> Download do PDF assinado
+                <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--t1);">
+                    <span style="color:var(--green);font-weight:700;">✓</span> Download do PDF assinado
                 </div>
-                <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#334155;">
-                    <span style="color:#16a34a;font-weight:700;">✅</span> Rastreamento de status em tempo real
+                <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--t1);">
+                    <span style="color:var(--green);font-weight:700;">✓</span> Rastreamento de status em tempo real
                 </div>
             </div>
 
             <div id="addonAvisoLimite"></div>
 
-            <div id="addonModalPreco" style="background:#f1f5f9;border-radius:8px;padding:14px 16px;text-align:center;">
-                <span style="font-size:22px;font-weight:800;color:#1e293b;">R$ 49,90</span>
-                <span style="font-size:14px;color:#64748b;">/mês — cobrado via Stripe</span>
+            <div id="addonModalPreco" style="background:var(--surface-fill);border-radius:var(--r-lg);padding:14px 16px;text-align:center;">
+                <span style="font-size:22px;font-weight:800;color:var(--t1);letter-spacing:-0.04em;">R$ 49,90</span>
+                <span style="font-size:14px;color:var(--t2);">/mês — cobrado via Stripe</span>
             </div>
         </div>
         <div class="modal-footer">
             <button class="btn-secondary" data-action="fecharModal" data-args='["modalAddonClickSign"]'>Fechar</button>
             <button id="btnAtivarAddon" data-action="ativarAddon"
-                style="background:#7c3aed;color:#fff;border:none;padding:10px 22px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;">
-                Ativar por R$ 49,90/mês →
+                style="background:var(--purple);color:#fff;border:none;padding:10px 22px;border-radius:var(--r-pill);font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;transition:opacity var(--t) var(--ease);">
+                Ativar por R$ 49,90/mês
             </button>
         </div>
     </div>
 </div>
+
     <script src="/js/api.js"></script>
     <script src="/js/documentos.js"></script>
     <script src="/mobile.js" defer></script>

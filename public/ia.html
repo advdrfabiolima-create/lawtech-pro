@@ -9,293 +9,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LawTech Pro — Assistente Jurídico IA</title>
     <link rel="icon" type="image/png" href="favicon.png">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="/css/design-system.css">
 
     <style>
-         :root {
-            /* Light Theme Colors - Professional & Clean */
-            --bg-primary: #F8FAFB;
-            --bg-secondary: #1E3A5F;
-            --bg-tertiary: #2A4A73;
-            --bg-elevated: #ffffff;
-            
-            --text-primary: #2C3E50;
-            --text-secondary: #5A6C7D;
-            --text-tertiary: #7B8794;
-            
-            --accent-blue: #4A90E2;
-            --accent-blue-light: #5BA4DB;
-            --accent-blue-glow: rgba(74, 144, 226, 0.2);
-            
-            --accent-green: #52B788;
-            --accent-purple: #7E8CE0;
-            --accent-orange: #F2A65A;
-            --accent-red: #E76F51;
-            --accent-gold: #F4D06F;
-            
-            --border-subtle: rgba(42, 74, 115, 0.08);
-            --border-medium: rgba(42, 74, 115, 0.12);
-            
-            --radius-sm: 4px;
-            --radius-md: 6px;
-            --radius-lg: 8px;
-            
-            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-            
-            /* Compatibility */
-            --bg: var(--bg-primary);
-            --sidebar: var(--bg-secondary);
-            --white: var(--bg-elevated);
-            --border: var(--border-medium);
-            --primary: var(--accent-blue);
-            --success: var(--accent-green);
-            --danger: var(--accent-red);
-            --warning: var(--accent-orange);
-            --muted: var(--text-tertiary);
-            --text-main: var(--text-primary);
-            --text-menu: var(--text-tertiary);
-            --sidebar-hover: var(--bg-tertiary);
-            --radius: var(--radius-md);
-            --whatsapp: #25d366;
-            --ai-bubble: #f1f5f9;
-            --user-bubble: #2563eb;
+        /* ── IA-SPECIFIC STYLES ─────────────────────────────────── */
+
+        /* Variáveis de cor específicas do chat IA */
+        :root {
+            --ai-bubble:   var(--surface);
+            --user-bubble: var(--accent);
             --claude-accent: #ca8a4c;
         }
 
-        /* Reset LawTech Pro */
-        * { box-sizing: border-box; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--text-main); line-height: 1.5; display: flex; height: 100vh; overflow: hidden; }
-
-        /* Sidebar Premium */
-.sidebar {
-    width: 280px;
-    background: var(--bg-secondary);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border-right: 1px solid var(--border-subtle);
-    padding: 32px 24px;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 1000;
-    animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-100%); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-/* Sidebar Header */
-.sidebar-header {
-    text-align: center;
-    margin-bottom: 16px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--border-subtle);
-    flex-shrink: 0;
-}
-
-.sidebar-header img {
-    width: 100%;
-    max-width: 180px;
-    height: auto;
-    filter: drop-shadow(0 0 20px var(--accent-blue-glow));
-    transition: all var(--transition-base);
-}
-
-.sidebar-header img:hover {
-    filter: drop-shadow(0 0 30px var(--accent-blue-glow));
-    transform: scale(1.05);
-}
-
-/* Menu Container */
-.menu {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex-grow: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    min-height: 0;
-}
-
-/* Menu Links */
-.menu a {
-    display: flex;
-    align-items: center;
-    padding: 10px 16px;
-    color: #94a3b8; /* CINZA CLARO para links não ativos */
-    text-decoration: none;
-    border-radius: var(--radius-lg);
-    font-size: 14px;
-    font-weight: 600;
-    transition: all var(--transition-base);
-    position: relative;
-    overflow: hidden;
-    border: 1px solid transparent; /* ← ADICIONAR ESTA LINHA */
-}
-
-/* Barra lateral azul nos links */
-.menu a::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: var(--accent-blue);
-    transform: scaleY(0);
-    transition: transform var(--transition-base);
-}
-
-.menu a:hover::before,
-.menu a.active::before {
-    transform: scaleY(1);
-}
-
-/* Ícones dos links */
-.menu a i {
-    margin-right: 12px;
-    font-size: 18px;
-    transition: all var(--transition-base);
-}
-
-/* Hover dos links */
-.menu a:hover {
-    background: rgba(255, 255, 255, 0.05); /* Hover suave */
-    color: #e2e8f0; /* Cinza bem claro no hover */
-    transform: translateX(4px);
-}
-
-/* Link ativo */
-.menu a.active {
-    background: rgba(37, 99, 235, 0.15); /* Azul visível */
-    color: #60a5fa; /* Azul claro */
-    border: 1px solid rgba(37, 99, 235, 0.4);
-}
-
-.menu a.active i {
-    color: #60a5fa; /* Azul claro */
-}
-
-/* Botão CRM Gold - IMPORTANTE: margin-top cria o espaçamento */
-.btn-crm-gold-nav {
-    background: #fbbf24 !important;
-    color: #000 !important;
-    font-weight: 700 !important;
-    margin-top: 8px !important;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 12px !important;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 12px;
-    transition: 0.3s;
-}
-
-.btn-crm-gold-nav:hover { 
-    background: #facc15 !important; 
-    transform: scale(1.02); 
-}
-
-.btn-crm-gold-nav i { 
-    margin-right: 10px; 
-}
-
-/* Sidebar Footer */
-.sidebar-footer {
-    padding-top: 24px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 12px;
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.sidebar-footer span {
-    color: #cbd5e1 !important;
-}
-
-/* Footer Info Row - Alinhamento das informações */
-.footer-info-row {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-    width: 100%;
-}
-
-.footer-info-row span:first-child {
-    text-transform: uppercase;
-    color: var(--text-tertiary);
-    font-weight: 700;
-    min-width: 65px; /* Alinha os dois pontos verticalmente */
-}
-
-/* Mantém e-mail e plano minúsculos */
-.keep-lowercase {
-    text-transform: lowercase !important;
-    color: #cbd5e1;
-    font-weight: 500;
-}
-
-        /* Área Principal */
-        .main { margin-left: 280px; flex: 1; display: flex; flex-direction: column; height: 100vh; background: var(--bg); }
-
-        /* Cabeçalho (72px) */
-        .header {
-            background: var(--white); height: 72px; padding: 0 32px;
-            display: flex; align-items: center; justify-content: space-between;
-            border-bottom: 1px solid var(--border); flex-shrink: 0;
-        }
-
-        /* Badge Claude */
+        /* Badge LawTech IA */
         .claude-badge {
-            display: inline-flex; align-items: center; gap: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             background: linear-gradient(135deg, #ca8a4c 0%, #d4a574 100%);
-            color: white; padding: 4px 10px; border-radius: 12px;
-            font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
-            box-shadow: 0 2px 8px rgba(202, 138, 76, 0.3);
+            color: white;
+            padding: 4px 10px;
+            border-radius: var(--r-pill);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(202,138,76,0.3);
         }
 
-        /* Chat Container */
+        /* Chat container */
         #chat-container {
-            flex: 1; overflow-y: auto; padding: 32px;
-            display: flex; flex-direction: column; gap: 20px;
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
             scroll-behavior: smooth;
         }
 
         .message {
-            max-width: 75%; padding: 16px 20px; border-radius: 16px;
-            font-size: 14px; line-height: 1.6; position: relative;
+            max-width: 75%;
+            padding: 16px 20px;
+            border-radius: var(--r-lg);
+            font-size: 14px;
+            line-height: 1.6;
+            position: relative;
             animation: slideUp 0.3s ease-out;
         }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
 
         .user-message {
-            align-self: flex-end; background-color: var(--user-bubble);
-            color: white; border-bottom-right-radius: 4px;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            align-self: flex-end;
+            background-color: var(--user-bubble);
+            color: white;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,113,227,0.2);
         }
 
         .ai-message {
-            align-self: flex-start; background-color: var(--white);
-            color: var(--text-main); border: 1px solid var(--border);
-            border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            align-self: flex-start;
+            background-color: var(--surface);
+            color: var(--t1);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+            box-shadow: var(--sh-card);
         }
-
-        /* Badge da Claude na mensagem */
 
         /* Botão copiar resposta */
         .btn-copiar-msg {
@@ -306,10 +92,10 @@
             border-radius: 6px; opacity: 0;
             transition: opacity .15s, background .15s;
             display: flex; align-items: center; gap: 4px;
-            color: #94a3b8; font-size: 11px; font-family: inherit;
+            color: var(--t3); font-size: 11px; font-family: inherit;
         }
         .ai-message:hover .btn-copiar-msg { opacity: 1; }
-        .btn-copiar-msg:hover { background: #f1f5f9; color: #475569; }
+        .btn-copiar-msg:hover { background: var(--surface-fill); color: var(--t2); }
         .btn-copiar-msg svg { width: 14px; height: 14px; }
 
         .ai-message::before {
@@ -327,74 +113,65 @@
 
         /* Área de Input */
         .input-area-container {
-            background: var(--white); padding: 24px 32px;
-            border-top: 1px solid var(--border); flex-shrink: 0;
+            background: var(--surface);
+            padding: 20px 32px 24px;
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
         }
 
         .input-box {
-            display: flex; align-items: center; gap: 12px;
-            background: #f1f5f9; padding: 8px 16px; border-radius: 30px;
-            border: 1px solid var(--border); transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--surface-fill);
+            padding: 8px 16px;
+            border-radius: var(--r-pill);
+            border: 1.5px solid transparent;
+            transition: border-color var(--t) var(--ease), background var(--t) var(--ease), box-shadow var(--t) var(--ease);
         }
-
-        .input-box:focus-within { 
-            border-color: var(--primary); 
-            background: var(--white); 
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); 
+        .input-box:focus-within {
+            border-color: var(--accent);
+            background: var(--surface);
+            box-shadow: 0 0 0 4px var(--accent-glow);
         }
 
         input[type="text"] {
             flex: 1; border: none; background: transparent;
-            padding: 10px; outline: none; font-size: 14px; color: var(--text-main);
+            padding: 10px; outline: none;
+            font-size: 14px; color: var(--t1);
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
+        input[type="text"]::placeholder { color: var(--t3); }
 
         .btn-send {
-            background: var(--primary); color: white; border: none;
-            width: 40px; height: 40px; border-radius: 50%;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: 0.2s; font-size: 18px; padding: 0;
+            background: var(--accent);
+            color: white; border: none;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform var(--ts) var(--spring), background var(--t) var(--ease);
+            font-size: 18px; padding: 0;
+            box-shadow: var(--sh-btn);
         }
-        .btn-send:disabled { background: var(--muted); cursor: not-allowed; }
-        .btn-send:hover:not(:disabled) { transform: scale(1.1); background: #1d4ed8; }
+        .btn-send:disabled { background: var(--t3); cursor: not-allowed; box-shadow: none; }
+        .btn-send:hover:not(:disabled) { transform: scale(1.1); background: var(--accent-dark); }
 
         /* Status de digitação */
-        .status-badge { 
-            font-size: 12px; color: var(--muted); margin-bottom: 8px; 
-            display: none; align-items: center; gap: 6px; 
+        .status-badge {
+            font-size: 12px; color: var(--t2); margin-bottom: 8px;
+            display: none; align-items: center; gap: 6px;
         }
-        .dot-flashing { 
-            width: 6px; height: 6px; border-radius: 50%; 
-            background-color: var(--claude-accent); 
-            animation: dotFlashing 1s infinite linear alternate; 
+        .dot-flashing {
+            width: 6px; height: 6px; border-radius: 50%;
+            background-color: var(--claude-accent);
+            animation: dotFlashing 1s infinite linear alternate;
         }
         @keyframes dotFlashing { from { opacity: 1; } to { opacity: 0.3; } }
 
-        /* Botão CRM Gold */
-        .btn-crm-gold-nav {
-            background: #fbbf24 !important;
-            color: #000 !important;
-            font-weight: 700 !important;
-            margin-top: 8px !important;
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            padding: 8px 12px !important;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 12px;
-            transition: 0.3s;
-        }
-        .btn-crm-gold-nav:hover { 
-            background: #facc15 !important; 
-            transform: scale(1.02); 
-        }
-        .btn-crm-gold-nav i { margin-right: 10px; }
-
-        /* Melhorias de formatação Markdown */
+        /* Markdown formatting */
         .ai-message h1, .ai-message h2, .ai-message h3 {
-            color: var(--text-main);
-            margin-top: 16px;
-            margin-bottom: 8px;
+            color: var(--t1); margin-top: 16px; margin-bottom: 8px;
         }
         .ai-message h1 { font-size: 20px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
         .ai-message h2 { font-size: 18px; }
@@ -402,198 +179,97 @@
         .ai-message ul, .ai-message ol { margin-left: 20px; margin-top: 8px; }
         .ai-message li { margin-bottom: 6px; }
         .ai-message code {
-            background: #f1f5f9;
+            background: var(--surface-fill);
             padding: 2px 6px;
             border-radius: 4px;
             font-family: 'Courier New', monospace;
             font-size: 13px;
-            color: #e11d48;
+            color: var(--red);
         }
         .ai-message pre {
-            background: #1e293b;
-            color: #f1f5f9;
-            padding: 16px;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 12px 0;
+            background: #1e293b; color: #f1f5f9;
+            padding: 16px; border-radius: var(--r-md);
+            overflow-x: auto; margin: 12px 0;
         }
-        .ai-message pre code {
-            background: transparent;
-            color: inherit;
-            padding: 0;
-        }
+        .ai-message pre code { background: transparent; color: inherit; padding: 0; }
         .ai-message blockquote {
             border-left: 4px solid var(--claude-accent);
-            padding-left: 16px;
-            margin: 12px 0;
-            color: var(--muted);
-            font-style: italic;
+            padding-left: 16px; margin: 12px 0;
+            color: var(--t2); font-style: italic;
         }
-        .ai-message strong {
-            color: var(--text-main);
-            font-weight: 600;
-        }
+        .ai-message strong { color: var(--t1); font-weight: 600; }
 
-        /* ✅ UPLOAD DE PDF/DOCX */
+        /* Anexar arquivo */
         .btn-attach {
-            background: var(--primary);
-            color: white;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            border-radius: 50%;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            flex-shrink: 0;
-            font-size: 20px;
+            background: var(--accent); color: white; border: none;
+            cursor: pointer; padding: 0; border-radius: 50%;
+            transition: transform var(--ts) var(--spring), background var(--t) var(--ease);
+            display: flex; align-items: center; justify-content: center;
+            width: 40px; height: 40px; flex-shrink: 0; font-size: 20px;
         }
-        .btn-attach:hover { 
-            background: #1d4ed8;
-            transform: scale(1.05);
-        }
+        .btn-attach:hover { background: var(--accent-dark); transform: scale(1.05); }
         .btn-attach:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .file-preview {
             display: none; margin-top: 12px; padding: 12px;
-            background: #fffbeb; border: 1px solid #fde68a;
-            border-radius: 8px; align-items: center; gap: 12px;
+            background: var(--yellow-bg); border: 1px solid rgba(255,159,10,0.3);
+            border-radius: var(--r-md); align-items: center; gap: 12px;
         }
         .file-preview.active { display: flex; }
         .file-info { flex: 1; display: flex; align-items: center; gap: 10px; }
         .file-icon {
-            width: 40px; height: 40px; background: #fbbf24;
-            border-radius: 8px; display: flex; align-items: center;
+            width: 40px; height: 40px; background: var(--yellow);
+            border-radius: var(--r-sm); display: flex; align-items: center;
             justify-content: center; color: white; font-weight: 700; font-size: 11px;
         }
         .file-details { flex: 1; }
         .file-name { font-weight: 600; font-size: 13px; color: #92400e; }
         .file-size { font-size: 11px; color: #a16207; }
         .btn-remove-file {
-            background: #dc2626; color: white; border: none;
-            padding: 6px 12px; border-radius: 6px; cursor: pointer;
-            font-size: 12px; font-weight: 600; transition: 0.2s;
+            background: var(--red); color: white; border: none;
+            padding: 6px 12px; border-radius: var(--r-sm);
+            cursor: pointer; font-size: 12px; font-weight: 600;
+            transition: opacity var(--t) var(--ease);
         }
-        .btn-remove-file:hover { background: #b91c1c; }
+        .btn-remove-file:hover { opacity: 0.85; }
 
-        /* ⚠️ AVISO DE LIMITAÇÕES - VERSÃO COMPACTA */
+        /* Aviso de limitações */
         .limits-warning {
-            background: #fef3c7;
-            border: 1px solid #fbbf24;
-            border-radius: 6px;
-            padding: 8px 12px;
-            margin-bottom: 10px;
-            font-size: 11px;
-            color: #92400e;
-            text-align: center;
-            line-height: 1.4;
+            background: var(--yellow-bg);
+            border: 1px solid rgba(255,159,10,0.3);
+            border-radius: var(--r-sm);
+            padding: 8px 12px; margin-bottom: 10px;
+            font-size: 11px; color: #92400e;
+            text-align: center; line-height: 1.4;
         }
-        .limits-warning strong {
-            color: #78350f;
-            font-weight: 600;
+        .limits-warning strong { color: #78350f; font-weight: 600; }
+
+        /* Botão limpar */
+        #btnLimpar {
+            padding: 0 14px;
+            background: var(--surface-fill);
+            border: 1px solid var(--border-md);
+            border-radius: var(--r-md);
+            cursor: pointer;
+            color: var(--t2);
+            font-size: 12px;
+            font-weight: 700;
+            height: 44px;
+            white-space: nowrap;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: background var(--t) var(--ease), color var(--t) var(--ease);
         }
+        #btnLimpar:hover { background: var(--red-bg); color: var(--red); }
 
-        /* Padronização LawTech Pro - Caixa Alta Global */
-body {
-    text-transform: uppercase;
-}
+        /* keep-lowercase override — email/plano em minúsculas */
+        .keep-lowercase { text-transform: none !important; }
 
-/* Garante que os campos de digitação também mostrem caixa alta enquanto o usuário digita */
-input, textarea, select {
-    text-transform: uppercase;
-}
-
-/* Opcional: Se quiser que os números dos processos mantenham o estilo técnico, 
-   mas ainda em caixa alta */
-.numero-processo, .processo-hash {
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 1px;
-}
-
-/* Container do rodapé */
-.sidebar-footer {
-    padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-/* Alinhamento à esquerda (Início) */
-.footer-info-row {
-    display: flex;
-    justify-content: flex-start; /* Alinha no começo da linha */
-    align-items: center;
-    gap: 5px; /* Espaço fixo após os ":" */
-    font-size: 12px;
-}
-
-/* Rótulos em caixa alta */
-.footer-info-row span:first-child {
-    text-transform: uppercase;
-    color: var(--text-tertiary, #64748b);
-    font-weight: 700;
-    white-space: nowrap;
-}
-
-/* ✅ Regra para e-mail e plano em minúsculas */
-.keep-lowercase {
-    text-transform: none !important; /* Cancela o uppercase global */
-    font-variant: normal !important;
-    color: #cbd5e1;
-}
-
-.menu-item-with-submenu {
-    cursor: pointer;
-}
-
-.submenu {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out;
-    padding-left: 30px;
-}
-
-.submenu.open {
-    max-height: 200px;
-}
-
-.submenu a {
-    padding: 10px 16px;
-    font-size: 13px;
-    margin-top: 4px;
-}
-
-.submenu a.active {
-    background: rgba(37, 99, 235, 0.15);
-    color: #60a5fa;
-    border: 1px solid rgba(96, 165, 250, 0.4);
-    border-radius: 8px;
-    font-weight: 700;
-    pointer-events: none;
-}
-
-.menu-item-with-submenu > a {
-    background: rgba(37, 99, 235, 0.08);
-    border: 1px solid rgba(37, 99, 235, 0.25);
-}
-
-        /* Responsividade Notebook */
-        @media (max-width: 1280px) {
-            .sidebar { width: 220px; padding: 20px 16px; }
-            .sidebar-header { margin-bottom: 12px; }
-            .sidebar-header img { max-width: 150px; }
-            .menu { overflow-y: auto; }
-            .menu a { padding: 10px 14px; font-size: 13px; }
-            .main { margin-left: 220px; }
-            .header { padding: 16px 24px; }
-            .content { padding: 24px; }
+        /* Submenu IA ativo */
+        #linkIaAtivo.active {
+            background: var(--sb-item-active) !important;
+            color: #fff !important;
+            pointer-events: none;
         }
-
     </style>
     <link rel="stylesheet" href="mobile.css">
 </head>
@@ -612,161 +288,119 @@ input, textarea, select {
         <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
         <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
         <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
-<div class="menu-item-with-submenu">
-
-    <!-- LINK PRINCIPAL (apenas abre/fecha submenu) -->
-    <a href="#" id="linkIaMenu" style="display:flex; align-items:center; gap:10px;">
-        <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
-        IA Jurídica
-        <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">
-            PREMIUM
-        </span>
-    </a>
-
-    <!-- SUBMENU (aberto por padrão nesta página) -->
-    <div class="submenu open" id="submenu-ia">
-        <a href="/peticoes.html">
-            <i class="lucide lucide-file-text"></i>
-            Petições IA
+        <div class="menu-item-with-submenu">
+            <a href="#" id="linkIaMenu">
+                <i class="lucide lucide-sparkles" style="color:#fbbf24;opacity:1;"></i>
+                IA Jurídica
+                <span style="font-size:9px;background:rgba(251,191,36,0.18);color:#fbbf24;border:1px solid rgba(251,191,36,0.30);padding:2px 7px;border-radius:20px;font-weight:700;margin-left:auto;">PREMIUM</span>
+            </a>
+            <div class="submenu open" id="submenu-ia">
+                <a href="/peticoes.html"><i class="lucide lucide-file-text"></i> Petições IA</a>
+                <a href="/ia-page" id="linkIaAtivo" class="active"><i class="lucide lucide-bot"></i> Assistente IA</a>
+            </div>
+        </div>
+        <a href="/chat-page">
+            <i class="lucide lucide-message-circle"></i> Chat
+            <span id="chatBadge" style="display:none;background:#FF3B30;color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 5px;margin-left:auto;"></span>
         </a>
-
-        <a href="#" id="linkIaAtivo" class="active"><i class="lucide lucide-bot"></i>Assistente IA</a>
-    </div>
-
-</div>
-
-        <a href="/chat-page"><i class="lucide lucide-message-circle"></i> 💬 Chat <span id="chatBadge" style="display:none;background:#ef4444;color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 5px;margin-left:auto;box-shadow:0 0 8px rgba(239,68,68,0.5);"></span></a>
         <a href="/relatorios-page"><i class="lucide lucide-bar-chart-3"></i> Relatórios</a>
         <a href="/documentos-page"><i class="lucide lucide-folder-open"></i> Documentos (GED)</a>
         <a href="/reunioes-page"><i class="lucide lucide-video"></i> Reuniões</a>
         <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
-        <a href="/config-page" id="guia-config">
-            <i class="lucide lucide-settings"></i> Configurações
-        </a>
-        <a href="/crm-page" class="btn-crm-gold-nav" id="linkCrmNav">
-            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
-            <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
+        <a href="/config-page" id="guia-config"><i class="lucide lucide-settings"></i> Configurações</a>
+        <a href="/crm-page" class="btn-crm-gold-nav" id="linkCrm">
+            <i class="lucide lucide-trending-up"></i> CRM Prospecção
+            <span id="dotNotificacao" style="display:none;width:7px;height:7px;background:#FF3B30;border-radius:50%;margin-left:auto;box-shadow:0 0 6px #FF3B30;"></span>
         </a>
     </nav>
     <div class="sidebar-footer">
         <div class="footer-info-row">
-            <span>Usuário:</span> 
+            <span>Usuário</span>
             <span id="userEmail" class="keep-lowercase">...</span>
         </div>
         <div class="footer-info-row">
-            <span>Plano:</span> 
+            <span>Plano</span>
             <span id="planNameFooter" class="keep-lowercase">...</span>
         </div>
     </div>
 </aside>
 
-    <div class="main">
-        <header class="header">
-            <div>
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;">
-                    <h2 style="font-size: 18px; font-weight: 600;">✨ Assistente Jurídico IA</h2>
-                    <span class="claude-badge">
-                        <i class="lucide lucide-zap" style="width: 12px; height: 12px;"></i>
-                        LawTech IA
-                    </span>
-                </div>
-                <p style="color: var(--muted); font-size: 12px; font-weight: 500;">
-                    Consulte jurisprudência, análise de teses e suporte técnico instantâneo.
-                </p>
-            </div>
-            
-            <div style="display:flex; gap:20px; align-items:center;">
-                <div style="position: relative; display: flex; align-items: center; gap: 12px;">
-                    <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
-                    <div id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
-                        --
-                    </div>
-                    <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
-                        <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">👤 Meus Dados</a>
-                        <a href="#" id="linkLogout" style="display: block; padding: 10px 16px; color: #dc2626; text-decoration: none; font-size: 13px; font-weight: 600;">🚪 Sair</a>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <div id="chat-container">
-            <div class="message ai-message" style="margin-top: 20px;">
-                <strong>👋 Olá! Sou LawTech IA, sua assistente jurídica sênior.</strong>
-                <br><br>
-                Fui treinada para ajudar advogados brasileiros com:
-                <ul style="margin-top: 10px;">
-                    <li>📚 Análise de jurisprudência (STF, STJ, Tribunais)</li>
-                    <li>⚖️ Sugestões de teses e fundamentação legal</li>
-                    <li>📝 Elaboração de petições e recursos</li>
-                    <li>⏰ Orientações sobre prazos processuais</li>
-                    <li>🔍 Pesquisa de legislação aplicável</li>
-                </ul>
-                <br>
-                <strong>Como posso ajudar você hoje?</strong>
+<div class="main">
+    <header class="header">
+        <div class="header-left">
+            <h2>Assistente Jurídico IA</h2>
+            <span class="claude-badge">
+                <i class="lucide lucide-zap" style="width:12px;height:12px;"></i>
+                LawTech IA
+            </span>
+        </div>
+        <div class="user-menu">
+            <span id="userNameHeader">Advogado</span>
+            <div id="userCircle">--</div>
+            <div id="userDropdown">
+                <a href="/config-page"><i class="lucide lucide-user"></i> Meus Dados</a>
+                <a href="#" id="linkLogout"><i class="lucide lucide-log-out"></i> Sair</a>
             </div>
         </div>
+    </header>
 
-        <div class="input-area-container">
-            <div id="status-ia" class="status-badge">
-                <div class="dot-flashing"></div> LawTech IA está analisando...
-            </div>
-
-            <!-- ⚠️ AVISO DE LIMITAÇÕES - COMPACTO -->
-            <div class="limits-warning">
-                <strong>⚠️ Limite:</strong> Apenas PDF • Máx 10 MB • Até 100 páginas
-            </div>
-
-            <!-- ✅ PREVIEW DO ARQUIVO -->
-            <div id="file-preview" class="file-preview">
-                <div class="file-info">
-                    <div class="file-icon" id="file-icon-type">PDF</div>
-                    <div class="file-details">
-                        <div class="file-name" id="file-name">documento.pdf</div>
-                        <div class="file-size" id="file-size">1.2 MB</div>
-                    </div>
-                </div>
-                <button class="btn-remove-file" id="btnRemoverArquivo">
-                    <i class="lucide lucide-x" style="width: 14px; height: 14px;"></i> Remover
-                </button>
-            </div>
-
-            <div class="input-box">
-                <!-- ✅ INPUT DE ARQUIVO (OCULTO) -->
-                <input
-                    type="file"
-                    id="file-input"
-                    accept=".pdf,.docx,.doc"
-                    style="display: none;"
-                >
-                
-                <!-- ✅ BOTÃO DE ANEXAR (VISÍVEL E DESTACADO) -->
-                <button
-                    class="btn-attach"
-                    id="btnAnexar"
-                    title="Anexar PDF (Máx: 10 MB, 100 páginas)">
-                    📎
-                </button>
-
-                <input 
-                    type="text" 
-                    id="pergunta" 
-                    placeholder="Ex: Analise este contrato... Ou: Qual o prazo para apelação?" 
-                    autocomplete="off"
-                >
-                <button type="button" id="btnLimpar" title="Limpar conversa" style="padding:0 14px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:10px;cursor:pointer;color:#64748b;font-size:12px;font-weight:700;height:44px;white-space:nowrap;font-family:inherit;">🗑️ LIMPAR</button>
-                <button id="btn-enviar" class="btn-send">
-                    ➤
-                </button>
-            </div>
-            <div style="text-align: center; margin-top: 12px; font-size: 11px; color: var(--muted);">
-                <i class="lucide lucide-shield-check" style="width: 12px; height: 12px; vertical-align: middle;"></i>
-                Powered by LawTech Pro IA • Recurso Premium
-            </div>
+    <div id="chat-container">
+        <div class="message ai-message" style="margin-top:20px;">
+            <strong>Olá! Sou LawTech IA, sua assistente jurídica sênior.</strong>
+            <br><br>
+            Fui treinada para ajudar advogados brasileiros com:
+            <ul style="margin-top:10px;">
+                <li>Análise de jurisprudência (STF, STJ, Tribunais)</li>
+                <li>Sugestões de teses e fundamentação legal</li>
+                <li>Elaboração de petições e recursos</li>
+                <li>Orientações sobre prazos processuais</li>
+                <li>Pesquisa de legislação aplicável</li>
+            </ul>
+            <br>
+            <strong>Como posso ajudar você hoje?</strong>
         </div>
     </div>
 
+    <div class="input-area-container">
+        <div id="status-ia" class="status-badge">
+            <div class="dot-flashing"></div> LawTech IA está analisando...
+        </div>
 
+        <div class="limits-warning">
+            <strong>Limite:</strong> Apenas PDF &bull; Máx 10 MB &bull; Até 100 páginas
+        </div>
 
+        <div id="file-preview" class="file-preview">
+            <div class="file-info">
+                <div class="file-icon" id="file-icon-type">PDF</div>
+                <div class="file-details">
+                    <div class="file-name" id="file-name">documento.pdf</div>
+                    <div class="file-size" id="file-size">1.2 MB</div>
+                </div>
+            </div>
+            <button class="btn-remove-file" id="btnRemoverArquivo">
+                <i class="lucide lucide-x" style="width:14px;height:14px;vertical-align:middle;"></i> Remover
+            </button>
+        </div>
+
+        <div class="input-box">
+            <input type="file" id="file-input" accept=".pdf,.docx,.doc" style="display:none;">
+            <button class="btn-attach" id="btnAnexar" title="Anexar PDF (Máx: 10 MB, 100 páginas)">📎</button>
+            <input
+                type="text"
+                id="pergunta"
+                placeholder="Ex: Analise este contrato... Ou: Qual o prazo para apelação?"
+                autocomplete="off"
+            >
+            <button type="button" id="btnLimpar" title="Limpar conversa">🗑️ Limpar</button>
+            <button id="btn-enviar" class="btn-send">➤</button>
+        </div>
+        <div style="text-align:center;margin-top:12px;font-size:11px;color:var(--t3);">
+            <i class="lucide lucide-shield-check" style="width:12px;height:12px;vertical-align:middle;"></i>
+            Powered by LawTech Pro IA &bull; Recurso Premium
+        </div>
+    </div>
+</div>
 
     <script src="mobile.js"></script>
     <script src="/js/api.js"></script>

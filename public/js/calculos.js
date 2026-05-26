@@ -56,7 +56,7 @@
 
     function toggleUserMenu() {
         const m = document.getElementById('userDropdown');
-        if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
+        if (m) m.style.display = getComputedStyle(m).display === 'none' ? 'block' : 'none';
     }
 
     window.addEventListener('click', (e) => {
@@ -684,13 +684,14 @@
         }, 100);
         if (typeof lucide !== 'undefined') lucide.createIcons();
 
-        document.getElementById('linkIaMenu').addEventListener('click', toggleIaMenu);
-        document.getElementById('linkCrmNav').addEventListener('click', limparBolinha);
+        document.getElementById('linkIaMenu')?.addEventListener('click', toggleIaMenu);
+        document.getElementById('linkCrmNav')?.addEventListener('click', limparBolinha);
+        document.getElementById('linkCrm')?.addEventListener('click', limparBolinha);
         document.getElementById('btnPrint').addEventListener('click', () => window.print());
         document.getElementById('btnProcessarCalculo').addEventListener('click', processarCalculo);
         document.getElementById('btnSalvarHistorico').addEventListener('click', salvarNoBanco);
-        document.getElementById('userCircle').addEventListener('click', toggleUserMenu);
-        document.getElementById('linkLogout').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+        document.getElementById('userCircle')?.addEventListener('click', toggleUserMenu);
+        document.getElementById('linkLogout')?.addEventListener('click', (e) => { e.preventDefault(); logout(); });
         document.getElementById('procNum').addEventListener('input', (e) => mascaraCNJ(e.target));
         document.getElementById('btnAddLinha').addEventListener('click', addLinha);
         document.getElementById('jurosIncidencia').addEventListener('change', toggleCitacao);

@@ -7,7 +7,7 @@ const token = localStorage.getItem('token');
     // ==================== USER MENU ====================
     function toggleUserMenu() {
         const m = document.getElementById('userDropdown');
-        if (m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
+        if (m) m.style.display = getComputedStyle(m).display === 'none' ? 'block' : 'none';
     }
 
     window.addEventListener('click', (e) => {

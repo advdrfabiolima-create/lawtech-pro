@@ -10,438 +10,18 @@
     <title>LawTech Pro — Agenda de Audiências</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+
     <!-- FORÇAR RELOAD SEM CACHE -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/design-system.css">
 
     <style>
-        :root {
-            /* Neutral Blue Theme - Corporativo Dashboard */
-            --bg-primary: #F8FAFB;
-            --bg-secondary: #1E3A5F;
-            --bg-tertiary: #2A4A73;
-            --bg-elevated: #FFFFFF;
-            --bg-glass: rgba(255, 255, 255, 0.95);
-            
-            --text-primary: #2C3E50;
-            --text-secondary: #5A6C7D;
-            --text-tertiary: #7B8794;
-            
-            --accent-blue: #4A90E2;
-            --accent-blue-light: #5BA4DB;
-            --accent-blue-glow: rgba(74, 144, 226, 0.2);
-            
-            --accent-green: #52B788;
-            --accent-purple: #7E8CE0;
-            --accent-orange: #F2A65A;
-            --accent-red: #E76F51;
-            --accent-gold: #F4D06F;
-            
-            --border-subtle: rgba(42, 74, 115, 0.08);
-            --border-medium: rgba(42, 74, 115, 0.12);
-            --border-strong: rgba(42, 74, 115, 0.2);
-            
-            --shadow-glow: 0 0 20px rgba(74, 144, 226, 0.15);
-            
-            --radius-sm: 4px;
-            --radius-md: 6px;
-            --radius-lg: 8px;
-            --radius-xl: 10px;
-            
-            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
-            
-            /* Compatibility */
-            --bg: var(--bg-primary);
-            --sidebar: var(--bg-secondary);
-            --white: var(--bg-elevated);
-            --border: var(--border-medium);
-            --primary: var(--accent-blue);
-            --success: var(--accent-green);
-            --danger: var(--accent-red);
-            --warning: var(--accent-orange);
-            --gold: var(--accent-gold);
-            --muted: var(--text-tertiary);
-            --text-main: var(--text-primary);
-            --text-menu: var(--text-tertiary);
-            --sidebar-hover: var(--bg-tertiary);
-            --radius: var(--radius-md);
-            --whatsapp: #25d366;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-            text-transform: uppercase;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            overflow-x: hidden;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* Animated Background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            opacity: 0.015;
-            background-image: 
-                linear-gradient(rgba(74, 144, 226, 0.08) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(74, 144, 226, 0.08) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: patternMove 20s linear infinite;
-            pointer-events: none;
-        }
-
-        @keyframes patternMove {
-            0% { background-position: 0 0; }
-            100% { background-position: 50px 50px; }
-        }
-
-        body::after {
-            content: '';
-            position: fixed;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%);
-            top: -300px;
-            right: -300px;
-            border-radius: 50%;
-            filter: blur(100px);
-            opacity: 0.08;
-            z-index: 0;
-            animation: float 20s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(30px, -50px) scale(1.1); }
-            66% { transform: translate(-30px, 30px) scale(0.9); }
-        }
-
-        /* Sidebar Premium - IDÊNTICA AO CLIENTES */
-.sidebar {
-    width: 280px;
-    background: var(--bg-secondary);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border-right: 1px solid var(--border-subtle);
-    padding: 32px 24px;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 1000;
-    animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-100%); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-/* Sidebar Header */
-.sidebar-header {
-    text-align: center;
-    margin-bottom: 16px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--border-subtle);
-    flex-shrink: 0;
-}
-
-.sidebar-header img {
-    width: 100%;
-    max-width: 180px;
-    height: auto;
-    filter: drop-shadow(0 0 20px var(--accent-blue-glow));
-    transition: all var(--transition-base);
-}
-
-.sidebar-header img:hover {
-    filter: drop-shadow(0 0 30px var(--accent-blue-glow));
-    transform: scale(1.05);
-}
-
-/* Menu Container */
-.menu {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex-grow: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    min-height: 0;
-}
-
-/* Menu Links */
-.menu a {
-    display: flex;
-    align-items: center;
-    padding: 10px 16px;
-    color: #94a3b8; /* CINZA CLARO para links não ativos */
-    text-decoration: none;
-    border-radius: var(--radius-lg);
-    font-size: 14px;
-    font-weight: 600;
-    transition: all var(--transition-base);
-    position: relative;
-    overflow: hidden;
-}
-
-/* Barra lateral azul nos links */
-.menu a::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: var(--accent-blue);
-    transform: scaleY(0);
-    transition: transform var(--transition-base);
-}
-
-.menu a:hover::before,
-.menu a.active::before {
-    transform: scaleY(1);
-}
-
-/* Ícones dos links */
-.menu a i {
-    margin-right: 12px;
-    font-size: 18px;
-    transition: all var(--transition-base);
-}
-
-/* Hover dos links */
-.menu a:hover {
-    background: rgba(255, 255, 255, 0.05); /* Hover suave */
-    color: #e2e8f0; /* Cinza bem claro no hover */
-    transform: translateX(4px);
-}
-
-/* Link ativo */
-.menu a.active {
-    background: rgba(37, 99, 235, 0.15); /* Azul visível */
-    color: #60a5fa; /* Azul claro */
-    border: 1px solid rgba(37, 99, 235, 0.4);
-}
-
-.menu a.active i {
-    color: #60a5fa; /* Azul claro */
-}
-
-/* Botão CRM Gold - IMPORTANTE: margin-top cria o espaçamento */
-.btn-crm-gold-nav {
-    background: #fbbf24 !important;
-    color: #000 !important;
-    font-weight: 700 !important;
-    margin-top: 8px !important;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 12px !important;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 12px;
-    transition: 0.3s;
-}
-
-.btn-crm-gold-nav:hover { 
-    background: #facc15 !important; 
-    transform: scale(1.02); 
-}
-
-.btn-crm-gold-nav i { 
-    margin-right: 10px; 
-}
-
-/* Sidebar Footer */
-.sidebar-footer {
-    padding-top: 24px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 12px;
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.sidebar-footer span {
-    color: #cbd5e1 !important;
-}
-
-/* Footer Info Row - Alinhamento das informações */
-.footer-info-row {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-    width: 100%;
-}
-
-.footer-info-row span:first-child {
-    text-transform: uppercase;
-    color: var(--text-tertiary);
-    font-weight: 700;
-    min-width: 65px; /* Alinha os dois pontos verticalmente */
-}
-
-/* Mantém e-mail e plano minúsculos */
-.keep-lowercase {
-    text-transform: lowercase !important;
-    color: #cbd5e1;
-    font-weight: 500;
-}
-
-        /* Main Content */
-        .main {
-            margin-left: 280px;
-            width: calc(100% - 280px);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            z-index: 1;
-            overflow: hidden;
-        }
-
-        /* Header Premium */
-        .header {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(30px) saturate(180%);
-            -webkit-backdrop-filter: blur(30px) saturate(180%);
-            height: 80px;
-            min-height: 80px;
-            flex-shrink: 0;
-            padding: 0 40px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-            position: relative;
-            z-index: 900;
-            box-shadow: 
-                0 1px 3px rgba(0, 0, 0, 0.05),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
-        }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .header h2 {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--text-primary);
-            letter-spacing: -0.5px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .user-menu {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            position: relative;
-        }
-
-        .user-menu span {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-secondary);
-        }
-
-        #userCircle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-light));
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all var(--transition-base);
-        }
-
-        #userCircle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
-        }
-
-        #userDropdown {
-            display: none;
-            position: absolute;
-            top: 55px;
-            right: 0;
-            background: white;
-            border: 1px solid var(--border-medium);
-            border-radius: var(--radius-md);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            min-width: 200px;
-            overflow: hidden;
-            z-index: 1000;
-        }
-
-        #userDropdown a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 16px;
-            color: var(--text-primary);
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all var(--transition-fast);
-        }
-
-        #userDropdown a:hover {
-            background: var(--bg-primary);
-            color: var(--accent-blue);
-        }
-
-        #userDropdown a i {
-            font-size: 16px;
-        }
-
-        .content {
-            padding: 32px 40px;
-            flex-grow: 1;
-            min-height: 0;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-
-        /* CARDS DE ESTATÍSTICAS */
+        /* ── Stats ─────────────────────────────────── */
         .stats-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -450,16 +30,16 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #5B9FD8 0%, #4A90E2 100%);
+            background: linear-gradient(135deg, #0A84FF 0%, #0071E3 52%, #005BC4 100%);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 6px;
+            border-radius: var(--r-md);
             padding: 14px 18px;
             position: relative;
             overflow: hidden;
-            transition: all var(--transition-base);
+            transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease);
             animation: slideUp 0.5s ease-out forwards;
             opacity: 0;
-            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+            box-shadow: 0 10px 24px rgba(0, 113, 227, 0.28);
             display: flex;
             align-items: center;
             gap: 14px;
@@ -472,7 +52,7 @@
             right: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0%, transparent 68%);
             animation: pulseCard 4s ease-in-out infinite;
         }
 
@@ -492,23 +72,33 @@
 
         .stat-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(74, 144, 226, 0.25);
+            box-shadow: 0 16px 34px rgba(0, 113, 227, 0.36);
         }
 
         .stat-card.orange {
-            background: linear-gradient(135deg, #F2A65A 0%, #E89543 100%);
+            background: linear-gradient(135deg, #FFB020 0%, #FF8A00 48%, #E05500 100%);
+            box-shadow: 0 10px 24px rgba(255, 138, 0, 0.28);
         }
 
         .stat-card.green {
-            background: linear-gradient(135deg, #52B788 0%, #40916c 100%);
+            background: linear-gradient(135deg, #34C759 0%, #21A94D 52%, #16863B 100%);
+            box-shadow: 0 10px 24px rgba(52, 199, 89, 0.28);
+        }
+
+        .stat-card.orange:hover {
+            box-shadow: 0 16px 34px rgba(255, 138, 0, 0.36);
+        }
+
+        .stat-card.green:hover {
+            box-shadow: 0 16px 34px rgba(52, 199, 89, 0.36);
         }
 
         .stat-card-icon {
             width: 40px;
             height: 40px;
             flex-shrink: 0;
-            background: rgba(255, 255, 255, 0.25);
-            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.28);
+            border-radius: var(--r-sm);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -548,21 +138,21 @@
             z-index: 2;
         }
 
-        /* Main Content Card */
+        /* ── Main content card ──────────────────────── */
         .main-content {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-subtle);
-            border-radius: 6px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
             padding: 32px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            box-shadow: var(--sh-card);
         }
 
-        /* Abas */
+        /* ── Tabs ───────────────────────────────────── */
         .tabs {
             display: flex;
             gap: 8px;
             margin-bottom: 24px;
-            border-bottom: 2px solid var(--border-subtle);
+            border-bottom: 2px solid var(--border);
         }
 
         .tab {
@@ -571,38 +161,34 @@
             border: none;
             border-bottom: 3px solid transparent;
             cursor: pointer;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 14px;
             font-weight: 700;
-            color: var(--text-tertiary);
-            transition: all var(--transition-base);
+            color: var(--t2);
+            transition: all var(--t) var(--ease);
             position: relative;
             margin-bottom: -2px;
         }
 
         .tab:hover {
-            color: var(--accent-blue);
-            background: rgba(74, 144, 226, 0.05);
+            color: var(--accent);
+            background: rgba(0, 113, 227, 0.05);
         }
 
         .tab.active {
-            color: var(--accent-blue);
-            border-bottom-color: var(--accent-blue);
+            color: var(--accent);
+            border-bottom-color: var(--accent);
         }
 
         .tab-badge {
             display: inline-block;
-            background: var(--accent-blue);
+            background: var(--accent);
             color: white;
             font-size: 10px;
             font-weight: 800;
             padding: 2px 8px;
             border-radius: 12px;
             margin-left: 8px;
-        }
-
-        .tab.active .tab-badge {
-            background: var(--accent-blue);
         }
 
         .tab-content {
@@ -613,7 +199,7 @@
             display: block;
         }
 
-        /* Toolbar */
+        /* ── Toolbar ────────────────────────────────── */
         .toolbar {
             display: flex;
             justify-content: space-between;
@@ -634,58 +220,34 @@
             left: 16px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-tertiary);
+            color: var(--t2);
             font-size: 18px;
         }
 
         .search-box input {
             width: 100%;
             padding: 14px 16px 14px 48px;
-            border: 1px solid var(--border-medium);
-            border-radius: var(--radius-lg);
-            font-family: 'Outfit', sans-serif;
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+            font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 14px;
             font-weight: 500;
-            color: var(--text-primary);
-            transition: all var(--transition-base);
-            background: var(--bg-elevated);
+            color: var(--t1);
+            transition: border-color var(--t) var(--ease), box-shadow var(--t) var(--ease);
+            background: var(--surface);
         }
 
         .search-box input:focus {
             outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px var(--accent-blue-glow);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-light));
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            border-radius: var(--radius-lg);
-            font-family: 'Outfit', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            transition: all var(--transition-base);
-            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3);
-        }
-
-        .btn-primary i { font-size: 18px; }
-
-        /* Tabela */
+        /* ── Table ──────────────────────────────────── */
         .table-container {
             overflow-x: auto;
-            border-radius: 6px;
-            border: 1px solid var(--border-subtle);
+            border-radius: var(--r-sm);
+            border: 1px solid var(--border);
         }
 
         table {
@@ -703,14 +265,14 @@
             text-align: left;
             font-size: 11px;
             font-weight: 800;
-            color: var(--text-secondary);
+            color: var(--t2);
             letter-spacing: 1px;
-            border-bottom: 2px solid var(--border-medium);
+            border-bottom: 2px solid var(--border-md);
         }
 
         tbody tr {
-            border-bottom: 1px solid var(--border-subtle);
-            transition: all var(--transition-fast);
+            border-bottom: 1px solid var(--border);
+            transition: background var(--t) var(--ease);
         }
 
         tbody tr:hover {
@@ -721,11 +283,11 @@
             padding: 16px 20px;
             font-size: 13px;
             font-weight: 500;
-            color: var(--text-primary);
+            color: var(--t1);
         }
 
-        /* Badges de Alerta */
-        .badge {
+        /* ── Urgency badges ─────────────────────────── */
+        .badge-hoje {
             display: inline-block;
             font-size: 10px;
             font-weight: 800;
@@ -733,27 +295,38 @@
             border-radius: 12px;
             text-transform: uppercase;
             margin-left: 8px;
-        }
-
-        .badge-hoje {
             background: linear-gradient(135deg, #fee2e2, #fecaca);
             color: #dc2626;
             border: 1px solid #fca5a5;
         }
 
         .badge-amanha {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            margin-left: 8px;
             background: linear-gradient(135deg, #fffbeb, #fde68a);
             color: #d97706;
             border: 1px solid #fcd34d;
         }
 
         .badge-proximo {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            margin-left: 8px;
             background: linear-gradient(135deg, #dcfce7, #bbf7d0);
             color: #16a34a;
             border: 1px solid #86efac;
         }
 
-        /* Botões de Ação */
+        /* ── Action buttons ─────────────────────────── */
         .action-buttons {
             display: flex;
             gap: 6px;
@@ -762,7 +335,6 @@
             justify-content: center;
         }
 
-        /* Dropdown de ações */
         .action-menu {
             position: relative;
             display: inline-block;
@@ -844,7 +416,7 @@
             background: #fef2f2;
         }
 
-        /* WhatsApp icon-only */
+        /* ── btn-action variants ────────────────────── */
         .btn-zap-icon {
             width: 42px;
             height: 42px;
@@ -863,7 +435,7 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            transition: all var(--transition-base);
+            transition: all var(--t) var(--ease);
             position: relative;
             overflow: hidden;
         }
@@ -909,7 +481,7 @@
         }
 
         .btn-realizada {
-            background: linear-gradient(135deg, var(--accent-green), #40916c);
+            background: linear-gradient(135deg, var(--green), #40916c);
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
@@ -952,287 +524,16 @@
             box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
 
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal-content {
-            background: var(--bg-elevated);
-            border-radius: var(--radius-xl);
-            max-width: 800px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            animation: modalSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @keyframes modalSlide {
-            from { opacity: 0; transform: translateY(-50px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .modal-header {
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-light));
-            color: white;
-            padding: 24px 32px;
-            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h2 {
-            font-size: 20px;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .close {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all var(--transition-base);
-        }
-
-        .close:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: rotate(90deg);
-        }
-
-        .modal-body {
-            padding: 32px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .form-group label {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            letter-spacing: 0.5px;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            padding: 12px 16px;
-            border: 1px solid var(--border-medium);
-            border-radius: var(--radius-md);
-            font-family: 'Outfit', sans-serif;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-primary);
-            transition: all var(--transition-base);
-            background: var(--bg-elevated);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px var(--accent-blue-glow);
-        }
-
-        .modal-footer {
-            padding: 24px 32px;
-            border-top: 1px solid var(--border-subtle);
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-        }
-
-        .btn-secondary {
-            background: var(--bg-primary);
-            color: var(--text-secondary);
-            border: 1px solid var(--border-medium);
-            padding: 12px 24px;
-            border-radius: var(--radius-md);
-            font-family: 'Outfit', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all var(--transition-base);
-        }
-
-        .btn-secondary:hover {
-            background: var(--bg-elevated);
-            border-color: var(--text-secondary);
-        }
-
-        /* Rodapé */
-        .footer-info-section {
-            margin-top: 48px;
-            padding-top: 24px;
-            border-top: 2px solid var(--border-subtle);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 32px;
-            flex-wrap: wrap;
-        }
-
-        .footer-info-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-
-        .footer-info-item i {
-            color: var(--accent-blue);
-            font-size: 16px;
-        }
-
-        .footer-info-item span {
-            color: var(--text-primary);
-        }
-
-        /* Responsividade */
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* Responsividade - Notebook */
-        @media (max-width: 1280px) {
-            .sidebar { width: 220px; padding: 20px 16px; }
-            .sidebar-header { margin-bottom: 12px; }
-            .sidebar-header img { max-width: 150px; }
-            .menu { overflow-y: auto; }
-            .menu a { padding: 10px 14px; font-size: 13px; }
-            .main { margin-left: 220px; width: calc(100% - 220px); }
-            .header { padding: 16px 24px; }
-            .content { padding: 24px; }
-        }
-
-        @media (max-width: 1024px) {
-            .main {
-                margin-left: 220px;
-                width: calc(100% - 220px);
-            }
-
-            .content {
-                padding: 24px 20px;
-            }
-
-            .stats-container {
-                grid-template-columns: 1fr;
-            }
-
-            .header h2 {
-                font-size: 18px;
-            }
-
-            .toolbar {
-                flex-direction: column;
-            }
-
-            .search-box {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .main-content {
-                padding: 20px;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            table {
-                font-size: 12px;
-            }
-
-            thead th,
-            tbody td {
-                padding: 12px;
-            }
-        }
-
-        .menu-item-with-submenu {
-    cursor: pointer;
-}
-
-.submenu {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out;
-    padding-left: 30px;
-}
-
-.submenu.open {
-    max-height: 200px;
-}
-
-.submenu a {
-    padding: 10px 16px;
-    font-size: 13px;
-    margin-top: 4px;
-}
-        /* ── Paginação ─────────────────────────────── */
+        /* ── Paginação ──────────────────────────────── */
         .paginacao-audiencias {
             display: none;
             align-items: center;
             justify-content: space-between;
             padding: 14px 20px;
             background: #fff;
-            border: 1px solid rgba(42, 74, 115, 0.08);
+            border: 1px solid var(--border);
             border-top: none;
-            border-radius: 0 0 6px 6px;
+            border-radius: 0 0 var(--r-sm) var(--r-sm);
             flex-wrap: wrap;
             gap: 10px;
             font-family: inherit;
@@ -1260,11 +561,30 @@
         .pag-ativo { background: #1e3a5f !important; color: #fff !important; border-color: #1e3a5f !important; }
         .pag-ellipsis { font-size: 13px; color: #94a3b8; padding: 0 4px; line-height: 32px; }
 
+        /* ── Spinner ────────────────────────────────── */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* ── Responsive ─────────────────────────────── */
+        @media (max-width: 1024px) {
+            .stats-container { grid-template-columns: 1fr; }
+            .toolbar { flex-direction: column; }
+            .search-box { width: 100%; }
+        }
+
+        @media (max-width: 640px) {
+            .main-content { padding: 20px; }
+            .action-buttons { flex-direction: column; }
+            table { font-size: 12px; }
+            thead th, tbody td { padding: 12px; }
+        }
     </style>
     <link rel="stylesheet" href="mobile.css">
 </head>
 <body>
-    <!-- SIDEBAR - IDÊNTICA AO CLIENTES -->
+    <!-- SIDEBAR -->
 <aside class="sidebar">
     <div class="sidebar-header">
         <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
@@ -1278,85 +598,64 @@
         <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
         <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
         <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
-<div class="menu-item-with-submenu">
 
-    <!-- LINK PRINCIPAL (IA PAGE) -->
-    <a href="/ia-page" id="linkIaMenu" style="display:flex; align-items:center; gap:10px;">
-        <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
-        IA Jurídica
-        <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">
-            PREMIUM
-        </span>
-    </a>
+        <div class="menu-item-with-submenu">
+            <a href="/ia-page" id="linkIaMenu" style="display:flex; align-items:center; gap:10px;">
+                <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
+                IA Jurídica
+                <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">PREMIUM</span>
+            </a>
+            <div class="submenu" id="submenu-ia">
+                <a href="/peticoes.html"><i class="lucide lucide-file-text"></i> Petições IA</a>
+                <a href="/ia-page"><i class="lucide lucide-bot"></i> Assistente IA</a>
+            </div>
+        </div>
 
-    <!-- SUBMENU -->
-    <div class="submenu" id="submenu-ia">
-        <a href="/peticoes.html">
-            <i class="lucide lucide-file-text"></i>
-            Petições IA
+        <a href="/chat-page"><i class="lucide lucide-message-circle"></i> Chat
+            <span id="chatBadge" style="display:none;background:#ef4444;color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 5px;margin-left:auto;box-shadow:0 0 8px rgba(239,68,68,0.5);"></span>
         </a>
-
-        <a href="/ia-page">
-            <i class="lucide lucide-bot"></i>
-            Assistente IA
-        </a>
-    </div>
-
-</div>
-
-        <a href="/chat-page"><i class="lucide lucide-message-circle"></i> 💬 Chat <span id="chatBadge" style="display:none;background:#ef4444;color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 5px;margin-left:auto;box-shadow:0 0 8px rgba(239,68,68,0.5);"></span></a>
         <a href="/relatorios-page"><i class="lucide lucide-bar-chart-3"></i> Relatórios</a>
         <a href="/documentos-page"><i class="lucide lucide-folder-open"></i> Documentos (GED)</a>
         <a href="/reunioes-page"><i class="lucide lucide-video"></i> Reuniões</a>
         <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
-        <a href="/config-page" id="guia-config">
-            <i class="lucide lucide-settings"></i> Configurações
-        </a>
+        <a href="/config-page" id="guia-config"><i class="lucide lucide-settings"></i> Configurações</a>
         <a href="/crm-page" class="btn-crm-gold-nav" data-action="limparBolinha">
-            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
+            <i class="lucide lucide-trending-up"></i> CRM Prospecção
             <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
         </a>
     </nav>
     <div class="sidebar-footer">
         <div class="footer-info-row">
-            <span>Usuário:</span> 
+            <span>Usuário:</span>
             <span id="userEmail" class="keep-lowercase">...</span>
         </div>
-  
-    <div class="footer-info-row">
-        <span>Plano:</span> 
-        <span id="footerPlano" class="keep-lowercase">...</span>
+        <div class="footer-info-row">
+            <span>Plano:</span>
+            <span id="footerPlano" class="keep-lowercase">...</span>
+        </div>
     </div>
-</div>
 </aside>
 
     <!-- MAIN CONTENT -->
     <div class="main">
         <!-- HEADER -->
         <header class="header">
-            <h2>
-                <i class="lucide lucide-calendar-days"></i>
-                AGENDA DE AUDIÊNCIAS
-            </h2>
-            
+            <div class="header-left">
+                <h2>Agenda de Audiências</h2>
+                <p>Gerencie audiências agendadas e acompanhe o histórico de realizadas.</p>
+            </div>
             <div class="user-menu">
-                <span id="userNameHeader">ADVOGADO</span>
-                <div data-action="toggleUserMenu" id="userCircle">
-                    --
-                </div>
+                <span id="userNameHeader">Advogado</span>
+                <div data-action="toggleUserMenu" id="userCircle">--</div>
                 <div id="userDropdown">
-                    <a href="/config-page"><i class="lucide lucide-user"></i> MEUS DADOS</a>
-                    <a href="#" data-action="logout"><i class="lucide lucide-log-out"></i> SAIR</a>
+                    <a href="/config-page"><i class="lucide lucide-user"></i> Meus Dados</a>
+                    <a href="#" data-action="logout"><i class="lucide lucide-log-out"></i> Sair</a>
                 </div>
             </div>
         </header>
 
         <!-- CONTENT -->
         <main class="content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <p style="color: var(--muted); font-size: 14px;">GERENCIE AUDIÊNCIAS AGENDADAS E ACOMPANHE O HISTÓRICO DE REALIZADAS.</p>
-            </div>
-
             <!-- CARDS DE ESTATÍSTICAS -->
             <div class="stats-container">
                 <div class="stat-card">
@@ -1410,7 +709,7 @@
                             <i class="lucide lucide-search"></i>
                             <input type="text" id="buscaAudiencia" placeholder="BUSCAR POR CLIENTE OU Nº DO PROCESSO..." />
                         </div>
-                        <button class="btn-primary" data-action="abrirModal">
+                        <button class="btn btn-primary" data-action="abrirModal">
                             <i class="lucide lucide-plus"></i>
                             NOVA AUDIÊNCIA
                         </button>
@@ -1431,7 +730,7 @@
                             </thead>
                             <tbody id="listaAudiencias">
                                 <tr>
-                                    <td colspan="6" style="text-align: center; padding: 60px 20px; color: var(--text-tertiary);">
+                                    <td colspan="6" style="text-align: center; padding: 60px 20px; color: var(--t2);">
                                         <i class="lucide lucide-loader" style="font-size: 32px; animation: spin 1s linear infinite;"></i>
                                         <p style="margin-top: 16px; font-weight: 600;">CARREGANDO AUDIÊNCIAS...</p>
                                     </td>
@@ -1459,7 +758,7 @@
                             </thead>
                             <tbody id="listaAudienciasRealizadas">
                                 <tr>
-                                    <td colspan="6" style="text-align: center; padding: 60px 20px; color: var(--text-tertiary);">
+                                    <td colspan="6" style="text-align: center; padding: 60px 20px; color: var(--t2);">
                                         <i class="lucide lucide-loader" style="font-size: 32px; animation: spin 1s linear infinite;"></i>
                                         <p style="margin-top: 16px; font-weight: 600;">CARREGANDO AUDIÊNCIAS...</p>
                                     </td>
@@ -1537,8 +836,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" data-action="fecharModal">CANCELAR</button>
-                    <button type="submit" class="btn-primary">
+                    <button type="button" class="btn btn-ghost" data-action="fecharModal">CANCELAR</button>
+                    <button type="submit" class="btn btn-primary">
                         <i class="lucide lucide-save"></i>
                         SALVAR AUDIÊNCIA
                     </button>
@@ -1562,8 +861,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" data-action="fecharModalAta">CANCELAR</button>
-                    <button type="submit" class="btn-primary">
+                    <button type="button" class="btn btn-ghost" data-action="fecharModalAta">CANCELAR</button>
+                    <button type="submit" class="btn btn-primary">
                         <i class="lucide lucide-save"></i>
                         <span id="textoSalvarAta">SALVAR ATA</span>
                     </button>
@@ -1587,8 +886,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" data-action="fecharModalEditarLocal">CANCELAR</button>
-                    <button type="submit" class="btn-primary">
+                    <button type="button" class="btn btn-ghost" data-action="fecharModalEditarLocal">CANCELAR</button>
+                    <button type="submit" class="btn btn-primary">
                         <i class="lucide lucide-save"></i>
                         SALVAR
                     </button>
@@ -1599,7 +898,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.451.0/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/imask@7.1.3/dist/imask.min.js"></script>
-    
 
     <script src="mobile.js"></script>
     <script src="/js/api.js"></script>

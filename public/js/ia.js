@@ -345,7 +345,7 @@ const token = localStorage.getItem('token');
     // Menu dropdown do usuário
     function toggleUserMenu() {
         const m = document.getElementById('userDropdown');
-        if(m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
+        if (m) m.style.display = getComputedStyle(m).display === 'none' ? 'block' : 'none';
     }
 
     window.addEventListener('click', (e) => {
@@ -396,11 +396,12 @@ const token = localStorage.getItem('token');
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('linkIaMenu').addEventListener('click', toggleIaMenu);
-        document.getElementById('linkIaAtivo').addEventListener('click', (e) => e.preventDefault());
-        document.getElementById('linkCrmNav').addEventListener('click', limparBolinha);
-        document.getElementById('userCircle').addEventListener('click', toggleUserMenu);
-        document.getElementById('linkLogout').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+        document.getElementById('linkIaMenu')?.addEventListener('click', toggleIaMenu);
+        document.getElementById('linkIaAtivo')?.addEventListener('click', (e) => e.preventDefault());
+        document.getElementById('linkCrmNav')?.addEventListener('click', limparBolinha);
+        document.getElementById('linkCrm')?.addEventListener('click', limparBolinha);
+        document.getElementById('userCircle')?.addEventListener('click', toggleUserMenu);
+        document.getElementById('linkLogout')?.addEventListener('click', (e) => { e.preventDefault(); logout(); });
         document.getElementById('btnRemoverArquivo').addEventListener('click', removerArquivo);
         document.getElementById('file-input').addEventListener('change', handleFileSelect);
         document.getElementById('btnAnexar').addEventListener('click', () => document.getElementById('file-input').click());

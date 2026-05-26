@@ -10,882 +10,292 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/design-system.css">
 
     <style>
-        :root {
-            /* Neutral Blue Theme - Corporativo Dashboard */
-            --bg-primary: #F8FAFB;
-            --bg-secondary: #1E3A5F;
-            --bg-tertiary: #2A4A73;
-            --bg-elevated: #FFFFFF;
-            --bg-glass: rgba(255, 255, 255, 0.95);
-            
-            --text-primary: #2C3E50;
-            --text-secondary: #5A6C7D;
-            --text-tertiary: #7B8794;
-            
-            --accent-blue: #4A90E2;
-            --accent-blue-light: #5BA4DB;
-            --accent-blue-glow: rgba(74, 144, 226, 0.2);
-            
-            --accent-green: #52B788;
-            --accent-purple: #7E8CE0;
-            --accent-orange: #F2A65A;
-            --accent-red: #E76F51;
-            --accent-gold: #F4D06F;
-            
-            --border-subtle: rgba(42, 74, 115, 0.08);
-            --border-medium: rgba(42, 74, 115, 0.12);
-            --border-strong: rgba(42, 74, 115, 0.2);
-            
-            --shadow-glow: 0 0 20px rgba(74, 144, 226, 0.15);
-            
-            --radius-sm: 4px;
-            --radius-md: 6px;
-            --radius-lg: 8px;
-            --radius-xl: 10px;
-            
-            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
-            
-            /* Compatibility */
-            --bg: var(--bg-primary);
-            --sidebar: var(--bg-secondary);
-            --white: var(--bg-elevated);
-            --border: var(--border-medium);
-            --primary: var(--accent-blue);
-            --success: var(--accent-green);
-            --danger: var(--accent-red);
-            --warning: var(--accent-orange);
-            --gold: var(--accent-gold);
-            --muted: var(--text-tertiary);
-            --text-main: var(--text-primary);
-            --text-menu: var(--text-tertiary);
-            --sidebar-hover: var(--bg-tertiary);
-            --radius: var(--radius-md);
-        }
+        /* ── Estilos específicos de clientes.html ── */
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-            text-transform: uppercase;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            overflow-x: hidden;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* Animated Background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            opacity: 0.015;
-            background-image: 
-                linear-gradient(rgba(74, 144, 226, 0.08) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(74, 144, 226, 0.08) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: patternMove 20s linear infinite;
-            pointer-events: none;
-        }
-
-        @keyframes patternMove {
-            0% { background-position: 0 0; }
-            100% { background-position: 50px 50px; }
-        }
-
-        body::after {
-            content: '';
-            position: fixed;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%);
-            top: -300px;
-            right: -300px;
-            border-radius: 50%;
-            filter: blur(100px);
-            opacity: 0.08;
-            z-index: 0;
-            animation: float 20s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(30px, -50px) scale(1.1); }
-            66% { transform: translate(-30px, 30px) scale(0.9); }
-        }
-
-        /* Sidebar Premium - IDÊNTICA AO DASHBOARD */
-.sidebar {
-    width: 280px;
-    background: var(--bg-secondary);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border-right: 1px solid var(--border-subtle);
-    padding: 32px 24px;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 1000;
-    animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-100%); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-/* Sidebar Header */
-.sidebar-header {
-    text-align: center;
-    margin-bottom: 16px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--border-subtle);
-    flex-shrink: 0;
-}
-
-.sidebar-header img {
-    width: 100%;
-    max-width: 180px;
-    height: auto;
-    filter: drop-shadow(0 0 20px var(--accent-blue-glow));
-    transition: all var(--transition-base);
-}
-
-.sidebar-header img:hover {
-    filter: drop-shadow(0 0 30px var(--accent-blue-glow));
-    transform: scale(1.05);
-}
-
-/* Menu Container */
-.menu {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex-grow: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    min-height: 0;
-}
-
-/* Menu Links */
-.menu a {
-    display: flex;
-    align-items: center;
-    padding: 10px 16px;
-    color: #94a3b8; /* CINZA CLARO para links não ativos */
-    text-decoration: none;
-    border-radius: var(--radius-lg);
-    font-size: 14px;
-    font-weight: 600;
-    transition: all var(--transition-base);
-    position: relative;
-    overflow: hidden;
-}
-
-/* Barra lateral azul nos links */
-.menu a::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: var(--accent-blue);
-    transform: scaleY(0);
-    transition: transform var(--transition-base);
-}
-
-.menu a:hover::before,
-.menu a.active::before {
-    transform: scaleY(1);
-}
-
-/* Ícones dos links */
-.menu a i {
-    margin-right: 12px;
-    font-size: 18px;
-    transition: all var(--transition-base);
-}
-
-/* Hover dos links */
-.menu a:hover {
-    background: rgba(255, 255, 255, 0.05); /* Hover suave */
-    color: #e2e8f0; /* Cinza bem claro no hover */
-    transform: translateX(4px);
-}
-
-/* Link ativo */
-.menu a.active {
-    background: rgba(37, 99, 235, 0.15); /* Azul visível */
-    color: #60a5fa; /* Azul claro */
-    border: 1px solid rgba(37, 99, 235, 0.4);
-}
-
-.menu a.active i {
-    color: #60a5fa; /* Azul claro */
-}
-
-/* Botão CRM Gold - IMPORTANTE: margin-top cria o espaçamento */
-.btn-crm-gold-nav {
-    background: #fbbf24 !important;
-    color: #000 !important;
-    font-weight: 700 !important;
-    margin-top: 8px !important;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 12px !important;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 12px;
-    transition: 0.3s;
-}
-
-.btn-crm-gold-nav:hover { 
-    background: #facc15 !important; 
-    transform: scale(1.02); 
-}
-
-.btn-crm-gold-nav i { 
-    margin-right: 10px; 
-}
-
-/* Sidebar Footer */
-.sidebar-footer {
-    padding-top: 24px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 12px;
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.sidebar-footer span {
-    color: #cbd5e1 !important;
-}
-
-/* Footer Info Row - Alinhamento das informações */
-.footer-info-row {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-    width: 100%;
-}
-
-.footer-info-row span:first-child {
-    text-transform: uppercase;
-    color: var(--text-tertiary);
-    font-weight: 700;
-    min-width: 65px; /* Alinha os dois pontos verticalmente */
-}
-
-/* Mantém e-mail e plano minúsculos */
-.keep-lowercase {
-    text-transform: lowercase !important;
-    color: #cbd5e1;
-    font-weight: 500;
-}
-        /* Layout Principal */
-        .container {
-            margin-left: 280px;
-            padding: 32px 40px;
-            min-height: 100vh;
-            position: relative;
-            z-index: 1;
-        }
-
-
-
-        /* Main Content */
-        .main {
-            margin-left: 280px;
-            width: calc(100% - 280px);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            z-index: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-top: 80px;
-        }
-
-        /* Header Premium */
-        .header {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(30px) saturate(180%);
-            -webkit-backdrop-filter: blur(30px) saturate(180%);
-            height: 80px;
-            padding: 0 40px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-            position: fixed;
-            top: 0;
-            left: 280px;
-            right: 0;
-            z-index: 900;
-
-            box-shadow: 
-                0 1px 3px rgba(0, 0, 0, 0.05),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
-        }
-
-
-
-        .header h2 {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--text-primary);
-            letter-spacing: -0.5px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .user-menu {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            position: relative;
-        }
-
-        .user-menu span {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-secondary);
-        }
-
-        #userCircle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-light));
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all var(--transition-base);
-        }
-
-        #userCircle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
-        }
-
-        #userDropdown {
-            display: none;
-            position: absolute;
-            top: 55px;
-            right: 0;
-            background: white;
-            border: 1px solid var(--border-medium);
-            border-radius: var(--radius-md);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            min-width: 200px;
-            overflow: hidden;
-            z-index: 1000;
-        }
-
-        #userDropdown a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 16px;
-            color: var(--text-primary);
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all var(--transition-fast);
-        }
-
-        #userDropdown a:hover {
-            background: var(--bg-primary);
-            color: var(--accent-blue);
-        }
-
-        #userDropdown a i {
-            font-size: 16px;
-        }
-
-        .content {
-            padding: 32px 40px;
-            flex-grow: 1;
-        }
-
-        /* Rodapé com informações */
-        .footer-info-section {
-            margin-top: 48px;
-            padding-top: 24px;
-            border-top: 2px solid var(--border-subtle);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 32px;
-            flex-wrap: wrap;
-        }
-
-        .footer-info-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-
-        .footer-info-item i {
-            color: var(--accent-blue);
-            font-size: 16px;
-        }
-
-        .footer-info-item span {
-            color: var(--text-primary);
-        }
-
-        /* CARDS DE ESTATÍSTICAS - DESIGN CORPORATIVO AZUL */
+        /* Stats */
         .stats-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 32px;
+            gap: 16px;
+            margin-bottom: 28px;
         }
 
         .stat-card {
-            opacity: 1;
-            background: linear-gradient(135deg, #5B9FD8 0%, #4A90E2 100%);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 6px;
-            padding: 14px 18px;
-            position: relative;
-            overflow: hidden;
-            transition: all var(--transition-base);
-            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+            background: linear-gradient(135deg, #0071e3 0%, #0062c4 100%);
+            border-radius: var(--r-md);
+            padding: 16px 20px;
             display: flex;
             align-items: center;
             gap: 14px;
+            box-shadow: 0 4px 14px rgba(0,113,227,0.22);
+            transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease);
+            position: relative;
+            overflow: hidden;
         }
 
         .stat-card::before {
             content: '';
             position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-            animation: pulseCard 4s ease-in-out infinite;
-        }
-
-        @keyframes pulseCard {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-        }
-
-
-
-
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(74, 144, 226, 0.25);
+            top: -40%;
+            right: -30%;
+            width: 160%;
+            height: 160%;
+            background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
+            pointer-events: none;
         }
 
         .stat-card.green {
-            background: linear-gradient(135deg, #2A4A73 0%, #1E3A5F 100%);
+            background: linear-gradient(135deg, #28a745 0%, #1e8037 100%);
+            box-shadow: 0 4px 14px rgba(40,167,69,0.22);
         }
 
-        .stat-card.green::before {
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
 
         .stat-card-icon {
-            width: 40px;
-            height: 40px;
-            flex-shrink: 0;
-            background: rgba(255, 255, 255, 0.25);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
-            position: relative;
-            z-index: 2;
+            width: 42px; height: 42px; flex-shrink: 0;
+            background: rgba(255,255,255,0.22);
+            border-radius: var(--r-sm);
+            display: flex; align-items: center; justify-content: center;
+            position: relative; z-index: 1;
         }
 
-        .stat-card-icon i {
-            width: 24px;
-            height: 24px;
-            color: white;
-            stroke-width: 2;
+        .stat-card-icon svg, .stat-card-icon i { width: 22px; height: 22px; color: white; }
+
+        .stat-card-value {
+            font-size: 28px; font-weight: 800; color: white;
+            line-height: 1; position: relative; z-index: 1;
         }
 
         .stat-card-label {
-            font-size: 11px;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.9);
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-            position: relative;
-            z-index: 2;
+            font-size: 11px; font-weight: 600;
+            color: rgba(255,255,255,0.85);
+            letter-spacing: 0.5px; margin-bottom: 4px;
+            position: relative; z-index: 1;
         }
 
-        .stat-card-value {
-            font-size: 26px;
-            font-weight: 800;
-            color: white;
-            line-height: 1;
-            margin-bottom: 2px;
-            position: relative;
-            z-index: 2;
-        }
-
-        /* Conteúdo Principal - Card Branco */
+        /* Main content card */
         .main-content {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-subtle);
-            border-radius: 6px;
-            padding: 32px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+            box-shadow: var(--sh-card);
         }
 
-        /* Toolbar de Ações */
+        /* Toolbar */
         .toolbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 16px;
-            margin-bottom: 24px;
+            gap: 12px;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
             flex-wrap: wrap;
         }
 
         .search-box {
-            flex: 1;
-            min-width: 250px;
-            position: relative;
+            flex: 1; min-width: 240px; position: relative;
         }
 
         .search-box i {
-            position: absolute;
-            left: 16px;
-            top: 50%;
+            position: absolute; left: 14px; top: 50%;
             transform: translateY(-50%);
-            color: var(--text-tertiary);
-            font-size: 18px;
+            color: var(--t3); font-size: 16px;
         }
 
         .search-box input {
             width: 100%;
-            padding: 14px 16px 14px 48px;
-            border: 1px solid var(--border-medium);
-            border-radius: var(--radius-lg);
-            font-family: 'Outfit', sans-serif;
-            font-size: 14px;
+            padding: 10px 14px 10px 42px;
+            border: 1px solid var(--border-md);
+            border-radius: var(--r-md);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 13.5px;
             font-weight: 500;
-            color: var(--text-primary);
-            transition: all var(--transition-base);
-            background: var(--bg-elevated);
+            color: var(--t1);
+            background: var(--surface);
+            transition: border-color var(--t) var(--ease), box-shadow var(--t) var(--ease);
         }
 
         .search-box input:focus {
             outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px var(--accent-blue-glow);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-light));
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            border-radius: var(--radius-lg);
-            font-family: 'Outfit', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            transition: all var(--transition-base);
-            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3);
-        }
-
-        .btn-primary i { font-size: 18px; }
-
-        /* Tabela Moderna */
+        /* Table */
         .table-container {
             overflow-x: auto;
-            border-radius: 6px;
-            border: 1px solid var(--border-subtle);
         }
-        /* Garante que colunas não quebrem conteúdo */
-        #listaClientes td:nth-child(2),
-        table thead th:nth-child(2) { min-width: 130px; white-space: nowrap; }
-        #listaClientes td:nth-child(1),
-        table thead th:nth-child(1) { min-width: 180px; }
 
         table {
             width: 100%;
+            min-width: 1180px;
+            table-layout: fixed;
             border-collapse: separate;
             border-spacing: 0;
         }
 
         thead {
-            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            background: var(--surface-fill-2);
         }
 
         thead th {
-            padding: 16px 20px;
+            padding: 14px 20px;
             text-align: left;
             font-size: 11px;
-            font-weight: 800;
-            color: var(--text-secondary);
-            letter-spacing: 1px;
-            border-bottom: 2px solid var(--border-medium);
+            font-weight: 700;
+            color: var(--t2);
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-md);
+            white-space: nowrap;
         }
 
-        thead th:nth-child(4) { width: 140px; } /* TELEFONE */
-        thead th:nth-child(5) { min-width: 180px; } /* CIDADE/UF — mais espaço */
-        thead th:nth-child(6) { width: 56px; text-align: center; } /* AÇÕES */
+        thead th:nth-child(1) { width: 29%; }
+        thead th:nth-child(2) { width: 14%; }
+        thead th:nth-child(3) { width: 22%; }
+        thead th:nth-child(4) { width: 15%; }
+        thead th:nth-child(5) { width: 15%; }
+        thead th:nth-child(6) { width: 96px; text-align: center; }
 
         tbody tr {
-            border-bottom: 1px solid var(--border-subtle);
-            transition: all var(--transition-fast);
+            border-bottom: 1px solid var(--border);
+            transition: background var(--t) var(--ease);
         }
 
-        tbody tr:hover {
-            background: #f8fafc;
-        }
+        tbody tr:last-child { border-bottom: none; }
+
+        tbody tr:hover { background: var(--surface-fill-2); }
 
         tbody td {
-            padding: 16px 20px;
+            padding: 14px 20px;
             font-size: 13px;
             font-weight: 500;
-            color: var(--text-primary);
+            color: var(--t1);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: middle;
         }
 
-        /* DROPDOWN DE AÇÕES ⋮ */
-        .td-acoes { width: 56px; text-align: center; }
+        #listaClientes td:nth-child(4),
+        table thead th:nth-child(4) {
+            min-width: 170px;
+        }
+
+        /* Dropdown de ações ⋮ */
+        .td-acoes { width: 96px; text-align: center; padding-right: 28px; }
 
         .dropdown-acoes { position: relative; display: inline-block; }
 
         .btn-menu-acoes {
-            width: 34px;
-            height: 34px;
-            border-radius: 8px;
-            border: 1px solid var(--border-medium);
-            background: var(--bg-elevated);
-            color: var(--text-secondary);
+            width: 32px; height: 32px;
+            border-radius: var(--r-sm);
+            border: 1px solid var(--border-md);
+            background: var(--surface);
+            color: var(--t2);
             cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: all var(--transition-fast);
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: background var(--t) var(--ease), color var(--t) var(--ease);
         }
+
         .btn-menu-acoes:hover {
-            background: #1E3A5F;
+            background: var(--t1);
             color: #fff;
-            border-color: #1E3A5F;
-            box-shadow: 0 2px 8px rgba(30,58,95,0.18);
+            border-color: var(--t1);
         }
-        .btn-menu-acoes i { font-size: 16px; pointer-events: none; }
+
+        .btn-menu-acoes i { font-size: 15px; pointer-events: none; }
 
         .menu-acoes {
             display: none;
             position: fixed;
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-medium);
-            border-radius: 10px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.13);
+            background: var(--surface);
+            border: 1px solid var(--border-md);
+            border-radius: var(--r-md);
+            box-shadow: var(--sh-elevated);
             min-width: 180px;
             z-index: 9999;
             overflow: hidden;
             animation: dropIn 0.15s ease-out;
         }
+
         @keyframes dropIn {
             from { opacity: 0; transform: translateY(-6px); }
             to   { opacity: 1; transform: translateY(0); }
         }
+
         .menu-acoes button {
             width: 100%;
             padding: 10px 16px;
             background: none;
             border: none;
-            border-bottom: 1px solid var(--border-subtle);
-            font-family: 'Outfit', sans-serif;
+            border-bottom: 1px solid var(--border);
+            font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 13px;
-            font-weight: 600;
-            color: var(--text-primary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-align: left;
-            transition: background var(--transition-fast);
-        }
-        .menu-acoes button:last-child { border-bottom: none; }
-        .menu-acoes button:hover { background: #f0f6ff; }
-        .menu-acoes button i { font-size: 15px; color: var(--text-secondary); flex-shrink: 0; }
-        .menu-acoes button:hover i { color: #1E3A5F; }
-        .menu-acoes .btn-menu-edit:hover  { background: #fffbeb; }
-        .menu-acoes .btn-menu-edit:hover i { color: #d97706; }
-        .menu-acoes .btn-menu-delete { color: #dc2626; }
-        .menu-acoes .btn-menu-delete i { color: #dc2626; }
-        .menu-acoes .btn-menu-delete:hover { background: #fff1f1; }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .modal-content {
-            background: var(--bg-elevated);
-            border-radius: var(--radius-xl);
-            max-width: 800px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            animation: modalSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @keyframes modalSlide {
-            from { opacity: 0; transform: translateY(-50px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .modal-header {
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-light));
-            color: white;
-            padding: 24px 32px;
-            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h2 {
-            font-size: 20px;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .modal-header h2 i { font-size: 24px; }
-
-        .close {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all var(--transition-base);
-        }
-
-        .close:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: rotate(90deg);
-        }
-
-        .modal-body {
-            padding: 32px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .form-group label {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            letter-spacing: 0.5px;
-        }
-
-        .form-group input,
-        .form-group select {
-            padding: 12px 16px;
-            border: 1px solid var(--border-medium);
-            border-radius: var(--radius-md);
-            font-family: 'Outfit', sans-serif;
-            font-size: 14px;
             font-weight: 500;
-            color: var(--text-primary);
-            transition: all var(--transition-base);
-            background: var(--bg-elevated);
+            color: var(--t1);
+            cursor: pointer;
+            display: flex; align-items: center; gap: 10px;
+            text-align: left;
+            transition: background var(--t) var(--ease);
         }
 
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px var(--accent-blue-glow);
+        .menu-acoes button:last-child { border-bottom: none; }
+        .menu-acoes button:hover { background: var(--surface-fill-2); }
+        .menu-acoes button i { font-size: 15px; color: var(--t2); flex-shrink: 0; }
+        .menu-acoes .btn-menu-edit:hover { background: rgba(255,159,10,0.07); }
+        .menu-acoes .btn-menu-edit:hover i { color: var(--yellow); }
+        .menu-acoes .btn-menu-delete { color: var(--red); }
+        .menu-acoes .btn-menu-delete i { color: var(--red); }
+        .menu-acoes .btn-menu-delete:hover { background: var(--red-bg); }
+
+        /* Paginação */
+        #paginacaoClientes {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 10px;
+            font-family: inherit;
         }
 
+        #paginacaoClientes.ativo { display: flex; }
+        .pag-info { font-size: 12px; font-weight: 600; color: var(--t2); letter-spacing: .5px; }
+        .pag-info strong { color: var(--t1); }
+        .pag-controles { display: flex; align-items: center; gap: 6px; }
+
+        .pag-nav {
+            padding: 6px 14px; font-size: 12px; font-weight: 700;
+            border: 1px solid var(--border-md); border-radius: var(--r-sm);
+            background: var(--surface); color: var(--t2); cursor: pointer;
+            letter-spacing: .5px; transition: all .15s; font-family: inherit;
+        }
+
+        .pag-nav:hover:not(:disabled) { background: var(--t1); color: #fff; border-color: var(--t1); }
+        .pag-nav:disabled { opacity: .4; cursor: not-allowed; }
+
+        .pag-num {
+            width: 32px; height: 32px; font-size: 12px; font-weight: 700;
+            border: 1px solid var(--border-md); border-radius: var(--r-sm);
+            background: var(--surface); color: var(--t2); cursor: pointer;
+            transition: all .15s; font-family: inherit;
+        }
+
+        .pag-num:hover:not(.pag-ativo) { background: var(--t1); color: #fff; border-color: var(--t1); }
+        .pag-ativo { background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important; }
+        .pag-ellipsis { font-size: 13px; color: var(--t3); padding: 0 4px; line-height: 32px; }
+
+        /* Radio group */
         .radio-group {
             display: flex;
-            gap: 16px;
+            gap: 12px;
         }
 
         .radio-group label {
@@ -894,387 +304,190 @@
             gap: 8px;
             cursor: pointer;
             padding: 10px 16px;
-            border: 1px solid var(--border-medium);
-            border-radius: var(--radius-md);
-            transition: all var(--transition-base);
+            border: 1px solid var(--border-md);
+            border-radius: var(--r-md);
+            transition: border-color var(--t) var(--ease), background var(--t) var(--ease);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--t1);
         }
 
         .radio-group label:hover {
-            border-color: var(--accent-blue);
-            background: var(--accent-blue-glow);
+            border-color: var(--accent);
+            background: var(--accent-fill);
         }
 
-        .radio-group input[type="radio"]:checked + span {
-            font-weight: 700;
-            color: var(--accent-blue);
-        }
-
-        .modal-footer {
-            padding: 24px 32px;
-            border-top: 1px solid var(--border-subtle);
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-        }
-
-        .btn-secondary {
-            background: var(--bg-primary);
-            color: var(--text-secondary);
-            border: 1px solid var(--border-medium);
-            padding: 12px 24px;
-            border-radius: var(--radius-md);
-            font-family: 'Outfit', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all var(--transition-base);
-        }
-
-        .btn-secondary:hover {
-            background: var(--bg-elevated);
-            border-color: var(--text-secondary);
-        }
-
-        /* Responsividade - Notebook */
         @media (max-width: 1280px) {
-            .sidebar { width: 220px; padding: 20px 16px; }
-            .sidebar-header { margin-bottom: 12px; }
-            .sidebar-header img { max-width: 150px; }
-            .menu { overflow-y: auto; }
-            .menu a { padding: 10px 14px; font-size: 13px; }
-            .main { margin-left: 220px; width: calc(100% - 220px); }
-            .header { padding: 16px 24px; left: 0; }
-            .content { padding: 24px; }
-        }
-
-        @media (max-width: 1024px) {
-            .main {
-                margin-left: 220px;
-                width: calc(100% - 220px);
-            }
-
-            .content {
-                padding: 24px 20px;
-            }
-
-            .stats-container {
-                grid-template-columns: 1fr;
-            }
-
-            .header h2 {
-                font-size: 18px;
-            }
-
-            .toolbar {
-                flex-direction: column;
-            }
-
-            .search-box {
-                width: 100%;
-            }
+            .stats-container { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
         }
 
         @media (max-width: 640px) {
-            .main-content {
-                padding: 20px;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            table {
-                font-size: 12px;
-            }
-
-            thead th,
-            tbody td {
-                padding: 12px;
-            }
+            .form-grid { grid-template-columns: 1fr; }
         }
-
-        .menu-item-with-submenu {
-    cursor: pointer;
-}
-
-.submenu {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out;
-    padding-left: 30px;
-}
-
-.submenu.open {
-    max-height: 200px;
-}
-
-.submenu a {
-    padding: 10px 16px;
-    font-size: 13px;
-    margin-top: 4px;
-}
-
-/* Badge NOVO */
-.badge-novo {
-    display: none;
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: white;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 9px;
-    font-weight: 900;
-    letter-spacing: 0.5px;
-    margin-left: 8px;
-    animation: pulse 2s infinite;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.8; transform: scale(1.05); }
-}
-
-    
-        /* ── Paginação ─────────────────────────────── */
-        #paginacaoClientes {
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 20px;
-            background: var(--bg-card, #fff);
-            border: 1px solid var(--border-subtle, #e2e8f0);
-            border-top: none;
-            border-radius: 0 0 10px 10px;
-            flex-wrap: wrap;
-            gap: 10px;
-            font-family: inherit;
-        }
-        #paginacaoClientes.ativo { display: flex; }
-        .pag-info { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .5px; }
-        .pag-info strong { color: #1e293b; }
-        .pag-controles { display: flex; align-items: center; gap: 6px; }
-        .pag-nav {
-            padding: 6px 14px; font-size: 12px; font-weight: 700;
-            border: 1px solid #cbd5e1; border-radius: 8px;
-            background: #f8fafc; color: #475569; cursor: pointer;
-            text-transform: uppercase; letter-spacing: .5px;
-            transition: all .15s; font-family: inherit;
-        }
-        .pag-nav:hover:not(:disabled) { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
-        .pag-nav:disabled { opacity: .4; cursor: not-allowed; }
-        .pag-num {
-            width: 32px; height: 32px; font-size: 12px; font-weight: 700;
-            border: 1px solid #cbd5e1; border-radius: 8px;
-            background: #f8fafc; color: #475569; cursor: pointer;
-            transition: all .15s; font-family: inherit;
-        }
-        .pag-num:hover:not(.pag-ativo) { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
-        .pag-ativo { background: #1e3a5f !important; color: #fff !important; border-color: #1e3a5f !important; }
-        .pag-ellipsis { font-size: 13px; color: #94a3b8; padding: 0 4px; line-height: 32px; }
     </style>
     <link rel="stylesheet" href="mobile.css">
 </head>
 <body>
-    <!-- SIDEBAR - IDÊNTICA AO DASHBOARD COM MAIÚSCULAS -->
 <aside class="sidebar">
     <div class="sidebar-header">
         <img src="Logo LawTech Pro_transparente.png" alt="LawTech Pro">
     </div>
     <nav class="menu">
         <a href="/dashboard"><i class="lucide lucide-layout-dashboard"></i> Dashboard</a>
-        <a href="/clientes-page" class="active">
-            <i class="lucide lucide-users"></i> Clientes
-            <span id="badgeClientes" style="display: none; background: #ef4444; color: white; font-size: 9px; font-weight: 800; padding: 3px 6px; border-radius: 4px; margin-left: auto; animation: pulse 2s ease-in-out infinite;">NOVO</span>
-        </a>
+        <a href="/clientes-page" class="active"><i class="lucide lucide-users"></i> Clientes</a>
         <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
         <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
         <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
         <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
         <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
         <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
- <div class="menu-item-with-submenu">
-
-    <!-- LINK PRINCIPAL (IA PAGE) -->
-    <a href="/ia-page" id="linkIaMenu" style="display:flex; align-items:center; gap:10px;">
-        <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
-        IA Jurídica
-        <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">
-            PREMIUM
-        </span>
-    </a>
-
-    <!-- SUBMENU -->
-    <div class="submenu" id="submenu-ia">
-        <a href="/peticoes.html">
-            <i class="lucide lucide-file-text"></i>
-            Petições IA
+        <div class="menu-item-with-submenu">
+            <a href="#" id="linkIaMenu">
+                <i class="lucide lucide-sparkles" style="color:#fbbf24;opacity:1;"></i>
+                IA Jurídica
+                <span style="font-size:9px;background:rgba(251,191,36,0.18);color:#fbbf24;border:1px solid rgba(251,191,36,0.30);padding:2px 7px;border-radius:20px;font-weight:700;margin-left:auto;">PREMIUM</span>
+            </a>
+            <div class="submenu open" id="submenu-ia">
+                <a href="/peticoes.html"><i class="lucide lucide-file-text"></i> Petições IA</a>
+                <a href="/ia-page"><i class="lucide lucide-bot"></i> Assistente IA</a>
+            </div>
+        </div>
+        <a href="/chat-page">
+            <i class="lucide lucide-message-circle"></i> Chat
+            <span id="chatBadge" style="display:none;background:#FF3B30;color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 5px;margin-left:auto;"></span>
         </a>
-
-        <a href="/ia-page">
-            <i class="lucide lucide-bot"></i>
-            Assistente IA
-        </a>
-    </div>
-
-</div>
-
-        <a href="/chat-page"><i class="lucide lucide-message-circle"></i> 💬 Chat <span id="chatBadge" style="display:none;background:#ef4444;color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 5px;margin-left:auto;box-shadow:0 0 8px rgba(239,68,68,0.5);"></span></a>
         <a href="/relatorios-page"><i class="lucide lucide-bar-chart-3"></i> Relatórios</a>
         <a href="/documentos-page"><i class="lucide lucide-folder-open"></i> Documentos (GED)</a>
         <a href="/reunioes-page"><i class="lucide lucide-video"></i> Reuniões</a>
         <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
-        <a href="/config-page" id="guia-config">
-            <i class="lucide lucide-settings"></i> Configurações
-        </a>
-        <a href="/crm-page" class="btn-crm-gold-nav" data-action="limparBolinha">
-            <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
-            <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
+        <a href="/config-page" id="guia-config"><i class="lucide lucide-settings"></i> Configurações</a>
+        <a href="/crm-page" class="btn-crm-gold-nav" id="linkCrm">
+            <i class="lucide lucide-trending-up"></i> CRM Prospecção
+            <span id="dotNotificacao" style="display:none;width:7px;height:7px;background:#FF3B30;border-radius:50%;margin-left:auto;box-shadow:0 0 6px #FF3B30;"></span>
         </a>
     </nav>
-        <div class="sidebar-footer">
-    <div class="footer-info-row">
-        <span>Usuário:</span> 
-        <span id="footerEmail" class="keep-lowercase">...</span>
+    <div class="sidebar-footer">
+        <div class="footer-info-row">
+            <span>Usuário</span>
+            <span id="footerEmail" class="keep-lowercase">...</span>
+        </div>
+        <div class="footer-info-row">
+            <span>Plano</span>
+            <span id="footerPlano" class="keep-lowercase">...</span>
+        </div>
     </div>
-    
-    <div class="footer-info-row">
-        <span>Plano:</span> 
-        <span id="footerPlano" class="keep-lowercase">...</span>
-    </div>
-</div>
-    </aside>
+</aside>
 
     <!-- MAIN CONTENT -->
     <div class="main">
         <!-- HEADER -->
         <header class="header">
-    <h2>
-        <i class="lucide lucide-users"></i>
-        GESTÃO DE CLIENTES
-    </h2>
-    
-    <div style="display:flex; gap:20px; align-items:center;">
-        <div style="position: relative; display: flex; align-items: center; gap: 12px;">
-            <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--muted);">Advogado</span>
-            
-            <div data-action="toggleUserMenu" id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; border: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase;">
-                --
+            <div class="header-left">
+                <i class="lucide lucide-users" style="font-size:18px;color:var(--accent);"></i>
+                <h2>Gestão de Clientes</h2>
             </div>
-            
-            <div id="userDropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 180px; z-index: 1001;">
-                <a href="/config-page" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 13px; border-bottom: 1px solid var(--border);">
-                    👤 Meus Dados
-                </a>
-                <a href="#" data-action="logout" style="display: block; padding: 10px 16px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: 600;">
-                    🚪 Sair
-                </a>
+            <div class="user-menu">
+                <span id="userNameHeader">Advogado</span>
+                <div data-action="toggleUserMenu" id="userCircle">--</div>
+                <div id="userDropdown">
+                    <a href="/config-page"><i class="lucide lucide-user"></i> Meus Dados</a>
+                    <a href="#" data-action="logout"><i class="lucide lucide-log-out"></i> Sair</a>
+                </div>
             </div>
-        </div>
-    </div>
-</header>
+        </header>
 
         <!-- CONTENT -->
         <main class="content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <p style="color: var(--muted); font-size: 14px;">ADMINISTRE SUA BASE DE CLIENTES E VISUALIZE PROCESSOS VINCULADOS.</p>
+            <div class="page-title-section" style="margin-bottom:24px;">
+                <p style="color:var(--t2); font-size:14px;">Administre sua base de clientes e visualize processos vinculados.</p>
             </div>
 
             <!-- CARDS DE ESTATÍSTICAS -->
-<div class="stats-container">
-    <!-- Card 1: Total de Clientes -->
-    <div class="stat-card">
-        <div class="stat-card-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-        </div>
-        <div style="position:relative; z-index:2;">
-            <div class="stat-card-value" id="totalClientes">0</div>
-            <div class="stat-card-label">TOTAL DE CLIENTES</div>
-        </div>
-    </div>
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <div style="position:relative; z-index:2;">
+                        <div class="stat-card-value" id="totalClientes">0</div>
+                        <div class="stat-card-label">Total de Clientes</div>
+                    </div>
+                </div>
 
-    <!-- Card 2: Clientes Ativos -->
-    <div class="stat-card green">
-        <div class="stat-card-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <polyline points="17 11 19 13 23 9"></polyline>
-            </svg>
-        </div>
-        <div style="position:relative; z-index:2;">
-            <div class="stat-card-value" id="clientesAtivos">0</div>
-            <div class="stat-card-label">CLIENTES COM PROCESSOS</div>
-        </div>
-    </div>
+                <div class="stat-card green">
+                    <div class="stat-card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <polyline points="17 11 19 13 23 9"></polyline>
+                        </svg>
+                    </div>
+                    <div style="position:relative; z-index:2;">
+                        <div class="stat-card-value" id="clientesAtivos">0</div>
+                        <div class="stat-card-label">Clientes com Processos</div>
+                    </div>
+                </div>
 
-    <!-- Card 3: Processos -->
-    <div class="stat-card">
-        <div class="stat-card-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-            </svg>
-        </div>
-        <div style="position:relative; z-index:2;">
-            <div class="stat-card-value" id="processosVinculados">0</div>
-            <div class="stat-card-label">PROCESSOS VINCULADOS</div>
-        </div>
-    </div>
-</div>
+                <div class="stat-card">
+                    <div class="stat-card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </div>
+                    <div style="position:relative; z-index:2;">
+                        <div class="stat-card-value" id="processosVinculados">0</div>
+                        <div class="stat-card-label">Processos Vinculados</div>
+                    </div>
+                </div>
+            </div>
 
             <!-- TABELA DE CLIENTES -->
             <div class="main-content">
-            <!-- Toolbar -->
-            <div class="toolbar">
-                <div class="search-box" style="max-width: 350px;">
-                    <i class="lucide lucide-search"></i>
-                    <input type="text" id="searchClientes" placeholder="BUSCAR CLIENTE..." />
+                <div class="toolbar">
+                    <div class="search-box" style="max-width: 350px;">
+                        <i class="lucide lucide-search"></i>
+                        <input type="text" id="searchClientes" placeholder="Buscar cliente..." />
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-ghost" data-action="exportarCSV" title="Exportar clientes para CSV">
+                            <i class="lucide lucide-download"></i>
+                            Backup CSV
+                        </button>
+                        <button class="btn btn-primary" data-action="abrirModal">
+                            <i class="lucide lucide-user-plus"></i>
+                            Novo Cliente
+                        </button>
+                    </div>
                 </div>
-                <div style="display: flex; gap: 12px;">
-                    <button class="btn-secondary" data-action="exportarCSV" title="Exportar clientes para CSV">
-                        <i class="lucide lucide-download"></i>
-                        BACKUP CSV
-                    </button>
-                    <button class="btn-primary" data-action="abrirModal">
-                        <i class="lucide lucide-user-plus"></i>
-                        NOVO CLIENTE
-                    </button>
-                </div>
-            </div>
 
-            <!-- Tabela de Clientes -->
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>NOME</th>
-                            <th>DOCUMENTO</th>
-                            <th>EMAIL</th>
-                            <th>TELEFONE</th>
-                            <th>CIDADE/UF</th>
-                            <th>AÇÕES</th>
-                        </tr>
-                    </thead>
-                    <tbody id="listaClientes">
-                        <tr>
-                            <td colspan="7" style="text-align: center; padding: 60px 20px; color: var(--text-tertiary);">
-                                <i class="lucide lucide-loader" style="font-size: 32px; animation: spin 1s linear infinite;"></i>
-                                <p style="margin-top: 16px; font-weight: 600;">CARREGANDO CLIENTES...</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <!-- Paginação -->
-            <div id="paginacaoClientes"></div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Documento</th>
+                                <th>E-mail</th>
+                                <th>Telefone</th>
+                                <th>Cidade/UF</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaClientes">
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 60px 20px; color: var(--t3);">
+                                    <i class="lucide lucide-loader" style="font-size: 28px; animation: spin 1s linear infinite;"></i>
+                                    <p style="margin-top: 12px; font-weight: 600;">Carregando clientes...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="paginacaoClientes"></div>
             </div>
         </main>
     </div>
@@ -1283,28 +496,28 @@
     <div class="modal" id="modalCliente">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalTitle"><i class="lucide lucide-user-plus"></i>NOVO CLIENTE</h2>
+                <h2 id="modalTitle"><i class="lucide lucide-user-plus"></i> Novo Cliente</h2>
                 <button class="close" data-action="fecharModal">×</button>
             </div>
             <form id="formCliente">
                 <div class="modal-body">
                     <div class="form-grid">
                         <div class="form-group full-width">
-                            <label>TIPO DE PESSOA</label>
+                            <label>Tipo de Pessoa</label>
                             <div class="radio-group">
                                 <label>
                                     <input type="radio" name="tipoPessoa" id="cliTipoFisica" value="fisica" checked />
-                                    <span>PESSOA FÍSICA</span>
+                                    <span>Pessoa Física</span>
                                 </label>
                                 <label>
                                     <input type="radio" name="tipoPessoa" id="cliTipoJuridica" value="juridica" />
-                                    <span>PESSOA JURÍDICA</span>
+                                    <span>Pessoa Jurídica</span>
                                 </label>
                             </div>
                         </div>
 
                         <div class="form-group full-width">
-                            <label>NOME COMPLETO / RAZÃO SOCIAL *</label>
+                            <label>Nome Completo / Razão Social *</label>
                             <input type="text" id="cliNome" required />
                         </div>
 
@@ -1314,17 +527,17 @@
                         </div>
 
                         <div class="form-group" id="groupNascimento">
-                            <label>DATA DE NASCIMENTO</label>
+                            <label>Data de Nascimento</label>
                             <input type="date" id="cliDataNascimento" />
                         </div>
 
                         <div class="form-group">
-                            <label>E-MAIL *</label>
+                            <label>E-mail *</label>
                             <input type="email" id="cliEmail" required />
                         </div>
 
                         <div class="form-group">
-                            <label>TELEFONE</label>
+                            <label>Telefone</label>
                             <input type="text" id="cliTelefone" />
                         </div>
 
@@ -1334,19 +547,19 @@
                         </div>
 
                         <div class="form-group">
-                            <label>CIDADE</label>
+                            <label>Cidade</label>
                             <input type="text" id="cliCidade" />
                         </div>
 
                         <div class="form-group full-width">
-                            <label>ENDEREÇO</label>
+                            <label>Endereço</label>
                             <input type="text" id="cliEndereco" />
                         </div>
 
                         <div class="form-group">
                             <label>UF</label>
                             <select id="cliUf">
-                                <option value="">SELECIONE</option>
+                                <option value="">Selecione</option>
                                 <option value="AC">AC</option>
                                 <option value="AL">AL</option>
                                 <option value="AP">AP</option>
@@ -1379,10 +592,10 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" data-action="fecharModal">CANCELAR</button>
-                    <button type="submit" class="btn-primary">
+                    <button type="button" class="btn btn-ghost" data-action="fecharModal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
                         <i class="lucide lucide-save"></i>
-                        SALVAR CLIENTE
+                        Salvar Cliente
                     </button>
                 </div>
             </form>
@@ -1393,7 +606,7 @@
     <div class="modal" id="modalVisualizarProcessos">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="tituloModalProcessos"><i class="lucide lucide-briefcase"></i>PROCESSOS DO CLIENTE</h2>
+                <h2 id="tituloModalProcessos"><i class="lucide lucide-briefcase"></i> Processos do Cliente</h2>
                 <button class="close" data-action="fecharModalProcessos">×</button>
             </div>
             <div class="modal-body">
@@ -1406,7 +619,7 @@
     <div class="modal" id="modalContratos">
         <div class="modal-content" style="max-width: 860px;">
             <div class="modal-header">
-                <h2 id="tituloModalContratos"><i class="lucide lucide-file-signature"></i> CONTRATOS DE HONORÁRIOS</h2>
+                <h2 id="tituloModalContratos"><i class="lucide lucide-file-signature"></i> Contratos de Honorários</h2>
                 <button class="close" data-action="fecharModalContratos">×</button>
             </div>
             <div class="modal-body" id="corpoModalContratos">
@@ -1419,63 +632,63 @@
     <div class="modal" id="modalFormContrato">
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
-                <h2 id="tituloFormContrato"><i class="lucide lucide-plus-circle"></i> NOVO CONTRATO</h2>
+                <h2 id="tituloFormContrato"><i class="lucide lucide-plus-circle"></i> Novo Contrato</h2>
                 <button class="close" data-action="fecharModalFormContrato">×</button>
             </div>
             <form id="formContrato">
                 <div class="modal-body">
                     <div class="form-grid">
                         <div class="form-group full-width">
-                            <label>TÍTULO DO CONTRATO *</label>
+                            <label>Título do Contrato *</label>
                             <input type="text" id="ctTitulo" placeholder="Ex: Contrato Trabalhista — João Silva" required />
                         </div>
                         <div class="form-group">
-                            <label>TIPO DE HONORÁRIO *</label>
+                            <label>Tipo de Honorário *</label>
                             <select id="ctTipo" required>
-                                <option value="">SELECIONE</option>
-                                <option value="fixo">HONORÁRIOS FIXOS</option>
-                                <option value="exito">HONORÁRIOS DE ÊXITO</option>
-                                <option value="misto">MISTO (FIXO + ÊXITO)</option>
-                                <option value="consultoria">CONSULTORIA</option>
-                                <option value="outros">OUTROS</option>
+                                <option value="">Selecione</option>
+                                <option value="fixo">Honorários Fixos</option>
+                                <option value="exito">Honorários de Êxito</option>
+                                <option value="misto">Misto (Fixo + Êxito)</option>
+                                <option value="consultoria">Consultoria</option>
+                                <option value="outros">Outros</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>DATA DE ASSINATURA</label>
+                            <label>Data de Assinatura</label>
                             <input type="date" id="ctDataAssinatura" />
                         </div>
                         <div class="form-group" id="campoValorFixo" style="display:none;">
-                            <label>VALOR FIXO (R$)</label>
+                            <label>Valor Fixo (R$)</label>
                             <input type="number" id="ctValorFixo" min="0" step="0.01" placeholder="0,00" />
                         </div>
                         <div class="form-group" id="campoPercentual" style="display:none;">
-                            <label>PERCENTUAL DE ÊXITO (%)</label>
+                            <label>Percentual de Êxito (%)</label>
                             <input type="number" id="ctPercentual" min="0" max="100" step="0.1" placeholder="0,0" />
                         </div>
                         <div class="form-group" id="campoPagamento" style="display:none;">
-                            <label>FORMA DE PAGAMENTO</label>
+                            <label>Forma de Pagamento</label>
                             <select id="ctFormaPagamento">
-                                <option value="">SELECIONE</option>
+                                <option value="">Selecione</option>
                                 <option value="pix">PIX</option>
-                                <option value="dinheiro">DINHEIRO</option>
-                                <option value="transferencia">TRANSFERÊNCIA BANCÁRIA</option>
-                                <option value="cartao_credito">CARTÃO DE CRÉDITO</option>
-                                <option value="cartao_debito">CARTÃO DE DÉBITO</option>
-                                <option value="boleto">BOLETO BANCÁRIO</option>
+                                <option value="dinheiro">Dinheiro</option>
+                                <option value="transferencia">Transferência Bancária</option>
+                                <option value="cartao_credito">Cartão de Crédito</option>
+                                <option value="cartao_debito">Cartão de Débito</option>
+                                <option value="boleto">Boleto Bancário</option>
                             </select>
                         </div>
                         <div class="form-group" id="campoVencimento" style="display:none;">
-                            <label>VENCIMENTO DO PAGAMENTO</label>
+                            <label>Vencimento do Pagamento</label>
                             <select id="ctVencimento">
-                                <option value="assinatura">NA DATA DE ASSINATURA</option>
-                                <option value="7dias">7 DIAS APÓS ASSINATURA</option>
-                                <option value="15dias">15 DIAS APÓS ASSINATURA</option>
-                                <option value="30dias">30 DIAS APÓS ASSINATURA</option>
-                                <option value="parcelado">PARCELADO</option>
+                                <option value="assinatura">Na data de assinatura</option>
+                                <option value="7dias">7 dias após assinatura</option>
+                                <option value="15dias">15 dias após assinatura</option>
+                                <option value="30dias">30 dias após assinatura</option>
+                                <option value="parcelado">Parcelado</option>
                             </select>
                         </div>
                         <div class="form-group" id="campoParcelamento" style="display:none;">
-                            <label>NÚMERO DE PARCELAS</label>
+                            <label>Número de Parcelas</label>
                             <select id="ctParcelas">
                                 <option value="2">2x</option>
                                 <option value="3">3x</option>
@@ -1487,22 +700,22 @@
                             </select>
                         </div>
                         <div class="form-group full-width">
-                            <label>PROCESSO VINCULADO (OPCIONAL)</label>
+                            <label>Processo Vinculado (Opcional)</label>
                             <select id="ctProcesso">
-                                <option value="">SEM PROCESSO VINCULADO</option>
+                                <option value="">Sem processo vinculado</option>
                             </select>
                         </div>
                         <div class="form-group full-width">
-                            <label>OBSERVAÇÕES</label>
+                            <label>Observações</label>
                             <textarea id="ctObs" placeholder="Condições especiais, prazos, forma de pagamento..."></textarea>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" data-action="fecharModalFormContrato">CANCELAR</button>
-                    <button type="submit" class="btn-primary">
+                    <button type="button" class="btn btn-ghost" data-action="fecharModalFormContrato">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
                         <i class="lucide lucide-save"></i>
-                        <span id="textoSalvarContrato">SALVAR CONTRATO</span>
+                        <span id="textoSalvarContrato">Salvar Contrato</span>
                     </button>
                 </div>
             </form>
@@ -1513,36 +726,33 @@
     <div class="modal" id="modalUploadContrato">
         <div class="modal-content" style="max-width: 480px;">
             <div class="modal-header">
-                <h2><i class="lucide lucide-upload"></i> ENVIAR PDF ASSINADO</h2>
+                <h2><i class="lucide lucide-upload"></i> Enviar PDF Assinado</h2>
                 <button class="close" data-action="fecharModalUpload">×</button>
             </div>
             <div class="modal-body">
-                <p style="color:var(--text-secondary); font-size:13px; margin-bottom:20px;">
+                <p style="color:var(--t2); font-size:13px; margin-bottom:20px;">
                     Selecione o PDF do contrato já assinado para vinculá-lo ao cadastro do cliente.
                 </p>
                 <div class="form-group">
-                    <label>ARQUIVO PDF *</label>
+                    <label>Arquivo PDF *</label>
                     <input type="file" id="inputPdfContrato" accept="application/pdf" style="padding:8px;" />
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-secondary" data-action="fecharModalUpload">CANCELAR</button>
-                <button type="button" class="btn-primary" data-action="confirmarUploadContrato">
+                <button type="button" class="btn btn-ghost" data-action="fecharModalUpload">Cancelar</button>
+                <button type="button" class="btn btn-primary" data-action="confirmarUploadContrato">
                     <i class="lucide lucide-upload"></i>
-                    ENVIAR PDF
+                    Enviar PDF
                 </button>
             </div>
         </div>
     </div>
 
-
-    <!-- =====================================================
-         MODAL 1 — Listagem de Procurações do Cliente
-    ====================================================== -->
+    <!-- MODAL 1 — Listagem de Procurações do Cliente -->
     <div class="modal" id="modalProcuracoes">
         <div class="modal-content" style="max-width: 860px;">
             <div class="modal-header">
-                <h2 id="tituloModalProcuracoes"><i class="lucide lucide-scroll-text"></i> PROCURAÇÕES</h2>
+                <h2 id="tituloModalProcuracoes"><i class="lucide lucide-scroll-text"></i> Procurações</h2>
                 <button class="close" data-action="fecharModalProcuracoes">×</button>
             </div>
             <div class="modal-body" id="corpoModalProcuracoes">
@@ -1551,117 +761,107 @@
         </div>
     </div>
 
-    <!-- =====================================================
-         MODAL 2 — Formulário Novo/Editar Procuração
-    ====================================================== -->
+    <!-- MODAL 2 — Formulário Novo/Editar Procuração -->
     <div class="modal" id="modalFormProcuracao">
         <div class="modal-content" style="max-width: 660px;">
             <div class="modal-header">
-                <h2 id="tituloFormProcuracao"><i class="lucide lucide-plus-circle"></i> NOVA PROCURAÇÃO</h2>
+                <h2 id="tituloFormProcuracao"><i class="lucide lucide-plus-circle"></i> Nova Procuração</h2>
                 <button class="close" data-action="fecharModalFormProcuracao">×</button>
             </div>
             <form id="formProcuracao">
                 <div class="modal-body">
                     <div class="form-grid">
 
-                        <!-- Tipo -->
                         <div class="form-group full-width">
-                            <label>TIPO DE PROCURAÇÃO *</label>
+                            <label>Tipo de Procuração *</label>
                             <select id="prTipo" required>
-                                <option value="">SELECIONE</option>
-                                <option value="ad_judicia">AD JUDICIA (JUDICIAL)</option>
-                                <option value="extrajudicial">EXTRAJUDICIAL</option>
-                                <option value="ad_judicia_extrajudicial">AD JUDICIA + EXTRAJUDICIAL</option>
+                                <option value="">Selecione</option>
+                                <option value="ad_judicia">Ad Judicia (Judicial)</option>
+                                <option value="extrajudicial">Extrajudicial</option>
+                                <option value="ad_judicia_extrajudicial">Ad Judicia + Extrajudicial</option>
                             </select>
                         </div>
 
-                        <!-- Finalidade -->
                         <div class="form-group full-width">
-                            <label>FINALIDADE / OBJETO *</label>
+                            <label>Finalidade / Objeto *</label>
                             <input type="text" id="prFinalidade" placeholder="Ex: Ação de Cobrança de Condomínio" required />
                         </div>
 
-                        <!-- Nacionalidade / Estado Civil / Profissão -->
                         <div class="form-group">
-                            <label>NACIONALIDADE</label>
+                            <label>Nacionalidade</label>
                             <input type="text" id="prNacionalidade" placeholder="Ex: brasileira" />
                         </div>
                         <div class="form-group">
-                            <label>ESTADO CIVIL</label>
+                            <label>Estado Civil</label>
                             <select id="prEstadoCivil">
-                                <option value="">NÃO INFORMAR</option>
-                                <option value="solteiro(a)">SOLTEIRO(A)</option>
-                                <option value="casado(a)">CASADO(A)</option>
-                                <option value="divorciado(a)">DIVORCIADO(A)</option>
-                                <option value="viúvo(a)">VIÚVO(A)</option>
-                                <option value="união estável">UNIÃO ESTÁVEL</option>
+                                <option value="">Não informar</option>
+                                <option value="solteiro(a)">Solteiro(a)</option>
+                                <option value="casado(a)">Casado(a)</option>
+                                <option value="divorciado(a)">Divorciado(a)</option>
+                                <option value="viúvo(a)">Viúvo(a)</option>
+                                <option value="união estável">União Estável</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>PROFISSÃO</label>
+                            <label>Profissão</label>
                             <input type="text" id="prProfissao" placeholder="Ex: comerciante" />
                         </div>
 
-                        <!-- Parte contrária -->
                         <div class="form-group full-width" id="campoParte" style="display:none;">
-                            <label>PARTE CONTRÁRIA (RÉUS)</label>
+                            <label>Parte Contrária (Réus)</label>
                             <textarea id="prParteContraria" rows="2"
                                 placeholder="Ex: CONDOMÍNIO XYZ, CNPJ nº 00.000.000/0001-00, com sede na Rua ABC, nº 1, Cidade/UF"></textarea>
                         </div>
 
-                        <!-- Poderes especiais checkboxes -->
                         <div class="form-group full-width">
-                            <label>PODERES ESPECIAIS</label>
+                            <label>Poderes Especiais</label>
                             <div style="display:flex; flex-wrap:wrap; gap:10px 24px; margin-top:4px;">
-                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;text-transform:none;">
+                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;">
                                     <input type="checkbox" id="prDesistir" checked> Desistir / Transigir
                                 </label>
-                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;text-transform:none;">
+                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;">
                                     <input type="checkbox" id="prReceberValores" checked> Receber valores / dar quitação
                                 </label>
-                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;text-transform:none;">
+                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;">
                                     <input type="checkbox" id="prJusticaGratuita" checked> Requerer Justiça Gratuita
                                 </label>
-                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;text-transform:none;">
+                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;">
                                     <input type="checkbox" id="prSubstabelecer" checked> Substabelecer
                                 </label>
-                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;text-transform:none;">
+                                <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;">
                                     <input type="checkbox" id="prIrrevogavel" checked> Irretratável e Irrevogável
                                 </label>
                             </div>
                         </div>
 
-                        <!-- Cidade/Data -->
                         <div class="form-group">
-                            <label>CIDADE DE ASSINATURA *</label>
+                            <label>Cidade de Assinatura *</label>
                             <input type="text" id="prCidadeAssinatura" placeholder="Ex: Feira de Santana" required />
                         </div>
                         <div class="form-group">
-                            <label>DATA DE ASSINATURA</label>
+                            <label>Data de Assinatura</label>
                             <input type="date" id="prDataAssinatura" />
                         </div>
 
-                        <!-- Processo vinculado -->
                         <div class="form-group full-width">
-                            <label>PROCESSO VINCULADO (OPCIONAL)</label>
+                            <label>Processo Vinculado (Opcional)</label>
                             <select id="prProcesso">
-                                <option value="">SEM PROCESSO VINCULADO</option>
+                                <option value="">Sem processo vinculado</option>
                             </select>
                         </div>
 
-                        <!-- Observações -->
                         <div class="form-group full-width">
-                            <label>OBSERVAÇÕES ADICIONAIS</label>
+                            <label>Observações Adicionais</label>
                             <textarea id="prObs" rows="2" placeholder="Informações complementares..."></textarea>
                         </div>
 
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-secondary" data-action="fecharModalFormProcuracao">CANCELAR</button>
-                    <button type="submit" class="btn-primary">
+                    <button type="button" class="btn btn-ghost" data-action="fecharModalFormProcuracao">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
                         <i class="lucide lucide-save"></i>
-                        <span id="textoSalvarProcuracao">SALVAR PROCURAÇÃO</span>
+                        <span id="textoSalvarProcuracao">Salvar Procuração</span>
                     </button>
                 </div>
             </form>
@@ -1672,7 +872,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/imask@7.1.3/dist/imask.min.js"></script>
-    
 
     <script src="mobile.js"></script>
     <script src="/js/api.js"></script>

@@ -26,19 +26,54 @@ document.addEventListener('click', function (e) {
 (function () {
     const _fetch = window.fetch;
     window.fetch = async function (url, opts) {
-        const res = await _fetch(url, opts);
         const urlStr = typeof url === 'string' ? url : '';
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const isApi = urlStr.startsWith('/api/');
+        const isPublicApi =
+            urlStr.startsWith('/api/auth/') ||
+            urlStr.startsWith('/api/portal/') ||
+            urlStr.startsWith('/api/contato') ||
+            urlStr.startsWith('/api/crm/public');
+        const isPublicPage =
+            window.location.pathname.includes('/login') ||
+            window.location.pathname.includes('/registro') ||
+            window.location.pathname.includes('/recuperar-senha') ||
+            window.location.pathname.includes('/nova-senha') ||
+            window.location.pathname.includes('/portal-cliente') ||
+            window.location.pathname.includes('/verificar-email');
+
+        if (isApi && !isPublicApi && !token && !isPublicPage) {
+            window.location.href = '/login.html';
+            return new Response(JSON.stringify({ ok: false, erro: 'Sessao expirada' }), {
+                status: 401,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        const res = await _fetch(url, opts);
 
         // 401 — token inválido/expirado
         if (
             res.status === 401 &&
             urlStr.startsWith('/api/') &&
             !urlStr.startsWith('/api/auth/') &&
-            (localStorage.getItem('token') || sessionStorage.getItem('token'))
+            !isPublicPage
         ) {
             localStorage.removeItem('token');
             sessionStorage.removeItem('token');
-            window.location.href = '/login';
+            window.location.href = '/login.html';
+        }
+
+        // 402: assinatura/trial bloqueado. Evita telas quebradas com "undefined".
+        if (
+            res.status === 402 &&
+            urlStr.startsWith('/api/') &&
+            !urlStr.startsWith('/api/auth/') &&
+            !urlStr.startsWith('/api/pagamentos/') &&
+            !window.location.pathname.includes('/planos') &&
+            !isPublicPage
+        ) {
+            window.location.href = '/planos-page?status=bloqueado';
         }
 
         // 403 — e-mail não verificado

@@ -15,6 +15,15 @@ const TOKEN = localStorage.getItem('token');
         verificarBolinhaCRM();
 
         // toggleIaMenu — precisa do Event nativo para preventDefault
+        const btnNovaReuniao = document.querySelector('[data-action="abrirModalNovaReuniao"]');
+        if (btnNovaReuniao) {
+            btnNovaReuniao.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                abrirModalNovaReuniao();
+            });
+        }
+
         const linkIaMenu = document.getElementById('linkIaMenu');
         if (linkIaMenu) linkIaMenu.addEventListener('click', toggleIaMenu);
 

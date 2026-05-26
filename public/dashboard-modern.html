@@ -12,285 +12,27 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.451.0/font/lucide.css" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <link rel="stylesheet" href="/css/design-system.css">
 
     <style>
-        :root {
-            /* Light Theme Colors - Professional & Clean */
-            --bg-primary: #F8FAFB;
-            --bg-secondary: #1E3A5F;
-            --bg-tertiary: #2A4A73;
-            --bg-elevated: #ffffff;
-            
-            --text-primary: #2C3E50;
-            --text-secondary: #5A6C7D;
-            --text-tertiary: #7B8794;
-            
-            --accent-blue: #4A90E2;
-            --accent-blue-light: #5BA4DB;
-            --accent-blue-glow: rgba(74, 144, 226, 0.2);
-            
-            --accent-green: #52B788;
-            --accent-purple: #7E8CE0;
-            --accent-orange: #F2A65A;
-            --accent-red: #E76F51;
-            --accent-gold: #F4D06F;
-            
-            --border-subtle: rgba(42, 74, 115, 0.08);
-            --border-medium: rgba(42, 74, 115, 0.12);
-            
-            --radius-sm: 4px;
-            --radius-md: 6px;
-            --radius-lg: 8px;
-            
-            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-            
-            /* Compatibility */
-            --bg: var(--bg-primary);
-            --sidebar: var(--bg-secondary);
-            --white: var(--bg-elevated);
-            --border: var(--border-medium);
-            --primary: var(--accent-blue);
-            --success: var(--accent-green);
-            --danger: var(--accent-red);
-            --warning: var(--accent-orange);
-            --gold: var(--accent-gold);
-            --muted: var(--text-tertiary);
-            --text-main: var(--text-primary);
-            --text-menu: var(--text-tertiary);
-            --sidebar-hover: var(--bg-tertiary);
-            --radius: var(--radius-md);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        /* ── Base ── */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--t1);
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             overflow-x: hidden;
         }
 
-        /* Animated Background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            opacity: 0.015;
-            background-image: 
-                linear-gradient(rgba(74, 144, 226, 0.08) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(74, 144, 226, 0.08) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: patternMove 20s linear infinite;
-            pointer-events: none;
-        }
-
-        @keyframes patternMove {
-            0% { background-position: 0 0; }
-            100% { background-position: 50px 50px; }
-        }
-
-        body::after {
-            content: '';
-            position: fixed;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%);
-            top: -300px;
-            right: -300px;
-            border-radius: 50%;
-            filter: blur(100px);
-            opacity: 0.08;
-            z-index: 0;
-            animation: float 20s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(30px, -50px) scale(1.1); }
-            66% { transform: translate(-30px, 30px) scale(0.9); }
-        }
-
-        /* Sidebar Premium */
-        .sidebar {
-            width: 280px;
-            background: var(--bg-secondary);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-right: 1px solid var(--border-subtle);
-            padding: 32px 24px;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            z-index: 1000;
-            animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @keyframes slideInLeft {
-            from { opacity: 0; transform: translateX(-100%); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .sidebar-header {
-            text-align: center;
-            margin-bottom: 16px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-subtle);
-            flex-shrink: 0;
-        }
-
-        .sidebar-header img {
-            width: 100%;
-            max-width: 180px;
-            height: auto;
-            filter: drop-shadow(0 0 20px var(--accent-blue-glow));
-            transition: all var(--transition-base);
-        }
-
-        .sidebar-header img:hover {
-            filter: drop-shadow(0 0 30px var(--accent-blue-glow));
-            transform: scale(1.05);
-        }
-
-        .menu {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            flex-grow: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            min-height: 0;
-        }
-
-.menu a {
-    display: flex;
-    align-items: center;
-    padding: 10px 16px;
-    color: #94a3b8; /* ✅ CINZA CLARO para links não ativos */
-    text-decoration: none;
-    border-radius: var(--radius-lg);
-    font-size: 14px;
-    font-weight: 600;
-    transition: all var(--transition-base);
-    position: relative;
-    overflow: hidden;
-}
-
-.menu a::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: var(--accent-blue);
-    transform: scaleY(0);
-    transition: transform var(--transition-base);
-}
-
-.menu a:hover::before,
-.menu a.active::before {
-    transform: scaleY(1);
-}
-
-.menu a i {
-    margin-right: 12px;
-    font-size: 18px;
-    transition: all var(--transition-base);
-}
-
-.menu a:hover {
-    background: rgba(255, 255, 255, 0.05); /* ✅ Hover mais suave */
-    color: #e2e8f0; /* ✅ Cinza bem claro no hover */
-    transform: translateX(4px);
-}
-
-.menu a.active {
-    background: rgba(37, 99, 235, 0.15); /* ✅ Azul mais visível */
-    color: #60a5fa; /* ✅ Azul claro */
-    border: 1px solid rgba(37, 99, 235, 0.4);
-}
-
-.menu a.active i {
-    color: #60a5fa; /* ✅ Azul claro */
-}
-
-        /* Botão CRM Gold */
-        .btn-manual-header {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            padding: 7px 14px;
-            background: rgba(74,144,226,0.1);
-            border: 1px solid rgba(74,144,226,0.25);
-            border-radius: 8px;
-            color: var(--accent-blue);
-            font-size: 13px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-        .btn-manual-header:hover {
-            background: rgba(74,144,226,0.18);
-        }
-
-        .btn-crm-gold-nav {
-            background: #fbbf24 !important;
-            color: #000 !important;
-            font-weight: 700 !important;
-            margin-top: 8px !important;
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            padding: 8px 12px !important;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 12px;
-            transition: 0.3s;
-        }
-        
-        .btn-crm-gold-nav:hover { 
-            background: #facc15 !important; 
-            transform: scale(1.02); 
-        }
-        
-        .btn-crm-gold-nav i { 
-            margin-right: 10px; 
-        }
-
-        .sidebar-footer {
-            padding-top: 24px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 12px;
-            margin-top: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .sidebar-footer span {
-            color: #cbd5e1 !important;
-        }
-
-        /* Main Content */
+        /* ── Main Content ── */
         .main {
             margin-left: 280px;
             min-height: 100vh;
@@ -300,116 +42,52 @@
             z-index: 1;
         }
 
-        /* DROPDOWN IA JURÍDICA */
-.menu-item-with-submenu {
-    cursor: pointer;
-}
+        /* ── Content Area ── */
+        .content { padding: 40px; }
 
-.submenu {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out;
-    padding-left: 30px;
-}
-
-.submenu.open {
-    max-height: 200px;
-}
-
-.submenu a {
-    padding: 10px 16px;
-    font-size: 13px;
-    margin-top: 4px;
-}
-
-        /* Header Premium */
-        .header {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(30px) saturate(180%);
-            -webkit-backdrop-filter: blur(30px) saturate(180%);
-            height: 80px;
-            padding: 0 40px;
+        /* ── Botão Manual Header ── */
+        .btn-manual-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-            position: sticky;
-            top: 0;
-            z-index: 900;
-            animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 
-                0 1px 3px rgba(0, 0, 0, 0.05),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+            gap: 7px;
+            padding: 7px 14px;
+            background: var(--accent-fill);
+            border: 1px solid var(--accent-glow);
+            border-radius: var(--r-pill);
+            color: var(--accent);
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all var(--t) var(--ease);
         }
+        .btn-manual-header:hover { background: rgba(0,113,227,0.14); }
 
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .header input {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-medium);
-            padding: 14px 20px;
-            border-radius: var(--radius-lg);
-            width: 400px;
-            font-size: 14px;
-            color: var(--text-primary);
-            transition: all var(--transition-base);
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .header input:focus {
-            outline: none;
-            border-color: var(--accent-green);
-            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
-        }
-
-        .header input::placeholder {
-            color: var(--text-tertiary);
-        }
-
-        /* Trial Timer Premium */
+        /* ── Trial Timer ── */
         #trial-timer {
             display: none;
             align-items: center;
             gap: 12px;
-            background: rgba(251, 191, 36, 0.1);
-            border: 1px solid rgba(251, 191, 36, 0.3);
+            background: var(--yellow-bg);
+            border: 1px solid rgba(255,159,10,0.30);
             padding: 12px 24px;
-            border-radius: var(--radius-lg);
+            border-radius: var(--r-pill);
             font-weight: 700;
             font-size: 13px;
-            color: var(--accent-gold);
-            font-family: 'JetBrains Mono', monospace;
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+            color: var(--yellow);
         }
 
-        #trial-timer i {
-            color: var(--accent-gold);
-            animation: pulse-icon 2s ease-in-out infinite;
-        }
+        #trial-timer i { color: var(--yellow); animation: pulse-icon 2s ease-in-out infinite; }
 
         @keyframes pulse-icon {
             0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.8; }
+            50%       { transform: scale(1.1); opacity: 0.8; }
         }
 
-        .time-display {
-            font-weight: 900;
-            letter-spacing: 1px;
-        }
+        .time-display { font-weight: 900; letter-spacing: 1px; }
+        .trial-label  { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        .trial-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* User Profile */
-        .user-profile {
-            position: relative;
-        }
+        /* ── User Profile ── */
+        .user-profile { position: relative; }
 
         .user-profile-nav {
             display: flex;
@@ -417,22 +95,22 @@
             gap: 12px;
             cursor: pointer;
             padding: 8px 16px;
-            border-radius: var(--radius-lg);
-            transition: all var(--transition-base);
+            border-radius: var(--r-md);
+            transition: all var(--t) var(--ease);
             border: 1px solid transparent;
             min-width: 150px;
             justify-content: flex-end;
         }
 
         .user-profile-nav:hover {
-            background: var(--bg-elevated);
-            border-color: var(--border-medium);
+            background: var(--surface);
+            border-color: var(--border-md);
         }
 
         #userCircle {
             width: 42px;
             height: 42px;
-            background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-green-light) 100%);
+            background: var(--accent);
             color: white;
             border-radius: 50%;
             display: flex;
@@ -441,20 +119,17 @@
             font-weight: 700;
             font-size: 16px;
             text-transform: uppercase;
-            box-shadow: 0 4px 12px var(--accent-green-glow);
-            transition: all var(--transition-base);
-            border: 2px solid var(--bg-secondary);
+            box-shadow: var(--sh-btn);
+            transition: all var(--t) var(--ease);
+            border: 2px solid var(--surface);
         }
 
-        .user-profile-nav:hover #userCircle {
-            transform: scale(1.1);
-            box-shadow: 0 6px 16px var(--accent-green-glow);
-        }
+        .user-profile-nav:hover #userCircle { transform: scale(1.1); }
 
         #userNameHeader {
             font-size: 14px;
             font-weight: 600;
-            color: var(--text-primary) !important;
+            color: var(--t1) !important;
         }
 
         .dropdown-menu {
@@ -462,15 +137,13 @@
             position: absolute;
             top: 70px;
             right: 0;
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-medium);
-            border-radius: var(--radius-lg);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            background: var(--surface);
+            border: 1px solid var(--border-md);
+            border-radius: var(--r-md);
+            box-shadow: var(--sh-elevated);
             width: 220px;
             z-index: 1000;
             overflow: hidden;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
         }
 
         .dropdown-menu a {
@@ -478,42 +151,27 @@
             align-items: center;
             gap: 12px;
             padding: 14px 18px;
-            color: var(--text-secondary);
+            color: var(--t2);
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
-            transition: all var(--transition-base);
+            transition: all var(--t) var(--ease);
         }
 
         .dropdown-menu a:hover {
-             background: rgba(37, 99, 235, 0.08); /* azul claro suave */
-            color: var(--text-primary);
+            background: var(--accent-fill);
+            color: var(--t1);
         }
 
-        /* Prevenir hover escuro no item do toggle */
-        .dropdown-menu a[data-action="resetarTour"]:hover {
-            background: rgba(0, 0, 0, 0.03);
-        }
+        .dropdown-menu a i { font-size: 18px; }
 
-        .dropdown-menu a i {
-            font-size: 18px;
-        }
-
-        /* Notification Badge */
+        /* ── Notification Badge ── */
         #notif-container {
             position: relative;
             padding: 10px;
-            border-radius: var(--radius-lg);
-            transition: all var(--transition-base);
+            border-radius: var(--r-md);
+            transition: all var(--t) var(--ease);
             cursor: pointer;
-        }
-
-        #notif-btn:hover {
-            background: var(--bg-elevated);
-        }
-
-        #notif-btn svg {
-            color: var(--text-tertiary);
         }
 
         #notif-count {
@@ -521,22 +179,16 @@
             position: absolute;
             top: 4px;
             right: 4px;
-            background: var(--accent-red);
+            background: var(--red);
             color: white;
             font-size: 10px;
             font-weight: 800;
             padding: 3px 6px;
             border-radius: 12px;
-            border: 2px solid var(--bg-secondary);
-            font-family: 'JetBrains Mono', monospace;
+            border: 2px solid var(--surface);
         }
 
-        /* Content Area */
-        .content {
-            padding: 40px;
-        }
-
-        /* Cards Grid */
+        /* ── Stat Cards ── */
         .cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -545,24 +197,24 @@
         }
 
         .card {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-subtle);
-            border-radius: 6px;  /* Bordas mais quadradas */
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
             padding: 24px;
-            transition: all var(--transition-base);
+            transition: all var(--t) var(--ease);
             cursor: pointer;
             position: relative;
             overflow: hidden;
             animation: slideUp 0.5s ease-out backwards;
-            box-shadow: 0 1px 3px rgba(42, 74, 115, 0.06);
+            box-shadow: var(--sh-card);
         }
 
         /* Cards Azuis de Destaque no Topo */
         .card-blue-highlight {
-            background: linear-gradient(135deg, #5BA4DB 0%, #4A90E2 100%);
+            background: linear-gradient(135deg, #0071e3 0%, #0062c4 100%);
             color: white;
             border: none;
-            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.2);
+            box-shadow: 0 2px 8px rgba(0,113,227,0.20);
         }
 
         .card-blue-highlight h3,
@@ -572,25 +224,17 @@
             color: white !important;
         }
 
-        .card-blue-highlight small {
-            opacity: 0.9;
-        }
+        .card-blue-highlight small { opacity: 0.9; }
 
-        /* Cards Azuis Claros de Estatísticas */
+        /* Cards Stat Azuis Claros */
         .card-stat-blue {
-            background: #E8F4FD;
-            border: 1px solid #B8DCFA;
-            border-radius: 6px;
+            background: var(--accent-fill);
+            border: 1px solid var(--accent-glow);
+            border-radius: var(--r-md);
         }
 
-        .card-stat-blue h2 {
-            color: #2A5A8F;
-        }
-
-        .card-stat-blue small,
-        .card-stat-blue p {
-            color: #4A6B8A;
-        }
+        .card-stat-blue h2 { color: var(--accent); }
+        .card-stat-blue small, .card-stat-blue p { color: var(--accent); opacity: 0.8; }
 
         .card:nth-child(1) { animation-delay: 0.05s; }
         .card:nth-child(2) { animation-delay: 0.1s; }
@@ -599,10 +243,10 @@
 
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* Borda superior colorida com gradiente */
+        /* Borda superior colorida */
         .card::before {
             content: '';
             position: absolute;
@@ -610,78 +254,36 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
             transform: scaleX(0);
             transform-origin: center;
             transition: transform var(--transition-slow);
         }
 
-        .card[style*="border-left:5px solid var(--danger)"]::before {
-            background: linear-gradient(90deg, transparent, var(--accent-red), transparent);
-        }
-
-        .card[style*="border-left:5px solid var(--primary)"]::before {
-            background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
-        }
-
-        .card[style*="border-left:5px solid var(--warning)"]::before {
-            background: linear-gradient(90deg, transparent, var(--accent-orange), transparent);
-        }
-
-        .card[style*="border-left:5px solid var(--success)"]::before,
-        .card[style*="border-left:5px solid #8b5cf6"]::before {
-            background: linear-gradient(90deg, transparent, var(--accent-green), transparent);
-        }
-
-        /* Glow effect no hover */
-        .card::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%);
-            transform: translate(-50%, -50%);
-            opacity: 0;
-            transition: all 0.6s ease-out;
-            pointer-events: none;
-        }
-
-        .card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .card:hover::after {
-            width: 400px;
-            height: 400px;
-            opacity: 1;
-        }
+        .card:hover::before { transform: scaleX(1); }
 
         .card:hover {
             transform: translateY(-2px);
-            border-color: var(--border-medium);
-            box-shadow: 0 4px 12px rgba(42, 74, 115, 0.12);
+            border-color: var(--border-md);
+            box-shadow: var(--sh-elevated);
         }
 
         .card-blue-highlight:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(74, 144, 226, 0.3);
+            box-shadow: 0 4px 16px rgba(0,113,227,0.30);
         }
 
         .card-stat-blue:hover {
-            border-color: #A0CFEF;
-            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.15);
+            border-color: rgba(0,113,227,0.25);
+            box-shadow: 0 2px 8px rgba(0,113,227,0.12);
         }
 
         .card small {
-            color: var(--text-tertiary);
+            color: var(--t2);
             font-size: 11px;
             text-transform: uppercase;
             font-weight: 700;
             letter-spacing: 0.1em;
-            font-family: 'JetBrains Mono', monospace;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -692,7 +294,7 @@
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: var(--accent-blue);
+            background: var(--accent);
             opacity: 0.6;
         }
 
@@ -700,7 +302,7 @@
             margin-top: 16px;
             font-size: 48px;
             font-weight: 900;
-            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-blue) 100%);
+            background: linear-gradient(135deg, var(--t1) 0%, var(--accent) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -708,245 +310,194 @@
             line-height: 1;
         }
 
-        .card h3 {
-            color: var(--text-primary);
-            font-size: 20px;
-            font-weight: 700;
-        }
+        .card h3 { color: var(--t1); font-size: 20px; font-weight: 700; }
+        .card p  { color: var(--t2); font-size: 13px; }
 
-        .card p {
-            color: var(--text-secondary);
-            font-size: 13px;
-        }
-
-        /* Premium Cards */
+        /* ── Cards Premium/IA ── */
         .card-premium,
         .card-ia {
-            background: linear-gradient(135deg, 
-                rgba(251, 191, 36, 0.08) 0%, 
-                rgba(252, 211, 77, 0.05) 50%,
-                rgba(251, 191, 36, 0.08) 100%);
-            border: 1px solid rgba(251, 191, 36, 0.4);
-            box-shadow: 
-                0 4px 6px -1px rgba(251, 191, 36, 0.1),
-                0 2px 4px -1px rgba(251, 191, 36, 0.06),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+            background: linear-gradient(135deg,
+                rgba(255,159,10,0.08) 0%,
+                rgba(255,159,10,0.04) 50%,
+                rgba(255,159,10,0.08) 100%);
+            border: 1px solid rgba(255,159,10,0.35);
+            box-shadow: 0 4px 6px -1px rgba(255,159,10,0.08), inset 0 1px 0 0 rgba(255,255,255,0.9);
         }
 
         .card-premium::before,
         .card-ia::before {
-            background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+            background: linear-gradient(90deg, transparent, var(--yellow), transparent);
         }
 
         .card-premium:hover,
         .card-ia:hover {
-            box-shadow: 
-                0 20px 25px -5px rgba(251, 191, 36, 0.2),
-                0 10px 10px -5px rgba(251, 191, 36, 0.1),
-                0 0 40px rgba(251, 191, 36, 0.3),
-                inset 0 1px 0 0 rgba(255, 255, 255, 1);
-            border-color: rgba(251, 191, 36, 0.6);
+            box-shadow: 0 20px 25px -5px rgba(255,159,10,0.15), 0 0 40px rgba(255,159,10,0.2);
+            border-color: rgba(255,159,10,0.5);
         }
 
-        .card-premium::after,
-        .card-ia::after {
-            background: radial-gradient(circle, rgba(251, 191, 36, 0.15) 0%, transparent 70%);
-        }
-
-        .gold-glow {
-            animation: gold-pulse 2s infinite alternate;
-        }
+        .gold-glow { animation: gold-pulse 2s infinite alternate; }
 
         @keyframes gold-pulse {
-            from { 
-                box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
-                filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.3));
-            }
-            to { 
-                box-shadow: 0 0 40px rgba(251, 191, 36, 0.5);
-                filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.5));
-            }
+            from { box-shadow: 0 0 20px rgba(255,159,10,0.20); filter: drop-shadow(0 0 10px rgba(255,159,10,0.20)); }
+            to   { box-shadow: 0 0 40px rgba(255,159,10,0.40); filter: drop-shadow(0 0 20px rgba(255,159,10,0.40)); }
         }
 
-        /* Section Cards */
+        /* ── Section Cards ── */
         .section {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-subtle);
-            border-radius: 6px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
             padding: 24px;
             margin-bottom: 24px;
-            box-shadow: 0 1px 3px rgba(42, 74, 115, 0.06);
-            transition: all var(--transition-base);
+            box-shadow: var(--sh-card);
+            transition: all var(--t) var(--ease);
         }
 
         .section:hover {
-            box-shadow: 0 4px 12px rgba(42, 74, 115, 0.12);
-            border-color: var(--border-medium);
+            box-shadow: var(--sh-elevated);
+            border-color: var(--border-md);
         }
 
         .section h3 {
             font-size: 20px;
             font-weight: 800;
-            color: var(--text-primary);
+            color: var(--t1);
             margin-bottom: 24px;
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
-        .section h3 i {
-            color: var(--accent-blue);
-            filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.3));
-        }
+        .section h3 i { color: var(--accent); }
 
+        /* ── Plan Status Card ── */
         .plan-status-card {
             position: relative;
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-            border: 2px solid #3b82f6;
-            border-bottom: 4px solid #2563eb;
-            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            background: var(--accent-fill);
+            border: 2px solid var(--accent-glow);
+            border-bottom: 4px solid var(--accent);
+            box-shadow: 0 8px 32px rgba(0,113,227,0.12), inset 0 1px 0 rgba(255,255,255,0.8);
         }
 
         .plan-status-card:hover {
-            border-color: #2563eb;
-            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.35), inset 0 1px 0 rgba(255, 255, 255, 1);
+            border-color: var(--accent);
+            box-shadow: 0 12px 40px rgba(0,113,227,0.20), inset 0 1px 0 rgba(255,255,255,1);
         }
 
-        /* Buttons */
+        /* ── Buttons ── */
         .btn-primary {
-            background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-green-light) 100%);
+            background: var(--accent);
             color: #ffffff;
             border: none;
             padding: 14px 28px;
-            border-radius: var(--radius-lg);
+            border-radius: var(--r-pill);
             cursor: pointer;
             font-weight: 700;
             font-size: 14px;
-            transition: all var(--transition-base);
-            box-shadow: 0 4px 12px var(--accent-green-glow);
+            transition: all var(--t) var(--ease);
+            box-shadow: var(--sh-btn);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: inherit;
         }
 
         .btn-primary:hover {
+            background: var(--accent-dark);
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px var(--accent-green-glow);
+            box-shadow: 0 8px 20px rgba(0,113,227,0.28);
         }
 
         .btn-ia-analise {
-            background: rgba(251, 191, 36, 0.1);
-            color: var(--accent-gold);
-            border: 1px solid rgba(251, 191, 36, 0.3);
+            background: var(--yellow-bg);
+            color: var(--yellow);
+            border: 1px solid rgba(255,159,10,0.30);
             padding: 6px 12px;
-            border-radius: var(--radius-sm);
+            border-radius: var(--r-sm);
             font-size: 11px;
             font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: all var(--transition-base);
-            font-family: 'JetBrains Mono', monospace;
+            transition: all var(--t) var(--ease);
+            font-family: inherit;
         }
 
         .btn-ia-analise:hover {
-            background: rgba(251, 191, 36, 0.2);
+            background: rgba(255,159,10,0.18);
             transform: scale(1.05);
         }
 
-        /* Badges */
+        /* ── Premium Badge ── */
         .premium-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(252, 211, 77, 0.1) 100%);
-            border: 1px solid rgba(251, 191, 36, 0.4);
+            background: var(--yellow-bg);
+            border: 1px solid rgba(255,159,10,0.35);
             padding: 10px 18px;
-            border-radius: var(--radius-lg);
-            color: var(--accent-gold);
+            border-radius: var(--r-pill);
+            color: var(--yellow);
             font-weight: 800;
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 1.2px;
-            font-family: 'JetBrains Mono', monospace;
-            transition: all var(--transition-base);
+            transition: all var(--t) var(--ease);
             cursor: default;
-            box-shadow: 
-                0 2px 4px rgba(251, 191, 36, 0.1),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+            box-shadow: 0 2px 4px rgba(255,159,10,0.08), inset 0 1px 0 0 rgba(255,255,255,0.5);
         }
 
         .premium-badge:hover {
             transform: translateY(-2px);
-            box-shadow: 
-                0 6px 20px rgba(251, 191, 36, 0.25),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.7);
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(252, 211, 77, 0.15) 100%);
-            border-color: rgba(251, 191, 36, 0.5);
+            box-shadow: 0 6px 20px rgba(255,159,10,0.20);
         }
 
-        .premium-badge i {
-            color: var(--accent-gold);
-            filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.6));
-        }
+        .premium-badge i { color: var(--yellow); filter: drop-shadow(0 0 4px rgba(255,159,10,0.5)); }
 
-        /* Progress Bar */
+        /* ── Progress Bar ── */
         .progress {
             height: 10px;
-            background: #E8F4FD;
+            background: var(--border);
             border-radius: 6px;
             overflow: hidden;
             margin: 12px 0;
-            border: 1px solid #D0E7F9;
+            border: 1px solid var(--border-md);
         }
 
         .progress div {
             height: 100%;
-            background: linear-gradient(90deg, #4A90E2 0%, #5BA4DB 50%, #4A90E2 100%);
+            background: linear-gradient(90deg, var(--accent) 0%, var(--accent-blue-light) 50%, var(--accent) 100%);
             background-size: 200% 100%;
-            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.8s var(--ease);
             border-radius: 6px;
             animation: progressShine 3s ease-in-out infinite;
             position: relative;
         }
 
-        .progress div::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 50%;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
-            border-radius: 6px 6px 0 0;
-        }
-
         @keyframes progressShine {
             0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+            50%       { background-position: 100% 50%; }
         }
 
-        /* Modal IA */
+        /* ── Modal IA ── */
         #modalIA {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(10, 14, 26, 0.95);
+            background: rgba(0, 0, 0, 0.55);
             z-index: 3000;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(8px);
         }
 
         .modal-ia-content {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-medium);
+            background: var(--surface);
+            border: 1px solid var(--border-md);
             width: 90%;
             max-width: 700px;
             padding: 32px;
-            border-radius: var(--radius-xl);
+            border-radius: var(--r-xl);
             position: relative;
             max-height: 80vh;
             overflow-y: auto;
@@ -958,21 +509,19 @@
             gap: 12px;
             margin-bottom: 24px;
             padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border);
         }
 
-        .modal-ia-header h3 {
-            color: var(--text-primary);
-        }
+        .modal-ia-header h3 { color: var(--t1); }
 
         .ai-text-response {
             font-size: 14px;
-            color: var(--text-secondary);
+            color: var(--t2);
             line-height: 1.8;
             white-space: pre-wrap;
         }
 
-        /* Switch Mini */
+        /* ── Switch Mini ── */
         .switch-mini {
             position: relative;
             display: inline-block;
@@ -980,20 +529,13 @@
             height: 18px;
         }
 
-        .switch-mini input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+        .switch-mini input { opacity: 0; width: 0; height: 0; }
 
         .slider-mini {
             position: absolute;
             cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #e2e8f0;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--border-md);
             transition: .4s;
             border-radius: 34px;
         }
@@ -1005,389 +547,241 @@
             width: 12px;
             left: 3px;
             bottom: 3px;
-            background-color: #94a3b8;
+            background-color: var(--t3);
             transition: .4s;
             border-radius: 50%;
         }
 
-        input:checked + .slider-mini {
-            background-color: var(--accent-green);
-        }
+        input:checked + .slider-mini { background-color: var(--green); }
+        input:checked + .slider-mini:before { transform: translateX(14px); background-color: white; }
 
-        input:checked + .slider-mini:before {
-            transform: translateX(14px);
-            background-color: white;
-        }
-
-        /* Notification Dot */
+        /* ── Notification Dot ── */
         #dotNotificacao {
             display: none;
             width: 8px;
             height: 8px;
-            background: var(--accent-red);
+            background: var(--red);
             border-radius: 50%;
             margin-left: 8px;
-            box-shadow: 0 0 8px var(--accent-red);
+            box-shadow: 0 0 8px var(--red);
             animation: pulse-dot 2s infinite;
         }
 
         @keyframes pulse-dot {
             0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); opacity: 0.8; }
+            50%       { transform: scale(1.2); opacity: 0.8; }
         }
 
-        /* Inputs and Selects */
+        /* ── Inputs and Selects ── */
         input[type="text"],
         select {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-medium);
-            color: var(--text-primary);
+            background: var(--surface);
+            border: 1px solid var(--border-md);
+            color: var(--t1);
             padding: 10px 16px;
-            border-radius: var(--radius-lg);
+            border-radius: var(--r-sm);
             font-size: 13px;
-            transition: all var(--transition-base);
+            transition: all var(--t) var(--ease);
             outline: none;
+            font-family: inherit;
         }
 
         input[type="text"]:focus,
         select:focus {
-            border-color: var(--accent-green);
-            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
         }
 
-        input[type="text"]::placeholder {
-            color: var(--text-tertiary);
+        input[type="text"]::placeholder { color: var(--t3); }
+        select option { background: var(--surface); color: var(--t1); }
+
+        /* ── Prazos List Style ── */
+        .prazo-item-modern {
+            display: flex;
+            align-items: center;
+            padding: 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+            margin-bottom: 12px;
+            transition: all var(--t) var(--ease);
+            box-shadow: var(--sh-card);
+            border-left: 4px solid transparent;
+            text-transform: uppercase;
         }
 
-        select option {
-            background: var(--bg-elevated);
-            color: var(--text-primary);
+        .prazo-item-modern:hover {
+            transform: translateX(2px);
+            border-color: var(--border-md);
+            box-shadow: var(--sh-elevated);
+            border-left-color: var(--accent);
         }
 
-        /* Responsive - Notebook */
-        @media (max-width: 1280px) {
-            .sidebar { width: 220px; padding: 20px 16px; }
-            .sidebar-header { margin-bottom: 12px; }
-            .sidebar-header img { max-width: 150px; }
-            .menu { overflow-y: auto; }
-            .menu a { padding: 10px 14px; font-size: 13px; }
-            .main { margin-left: 220px; }
-            .header { padding: 16px 24px; }
-            .content { padding: 24px; }
-            .cards { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+        .prazo-indicator { width: 4px; height: 38px; border-radius: 4px; margin-right: 16px; }
+        .prazo-content { flex: 1; }
+
+        .prazo-main-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
         }
 
-        @media (max-width: 1024px) {
-            .sidebar {
-                width: 240px;
-            }
+        .prazo-title { font-weight: 700; color: var(--t1); font-size: 14px; }
 
-            .main {
-                margin-left: 240px;
-            }
-
-            .content {
-                padding: 24px;
-            }
-
-            .cards {
-                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-                gap: 16px;
-            }
+        .prazo-meta-info {
+            display: flex;
+            gap: 15px;
+            font-size: 11px;
+            color: var(--t2);
         }
 
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-
-            .main {
-                margin-left: 0;
-            }
-
-            .header {
-                padding: 0 20px;
-            }
-
-            .header input {
-                width: 100%;
-                max-width: 300px;
-            }
-
-            .cards {
-                grid-template-columns: 1fr;
-            }
-
-            /* Grids inline do dashboard → coluna única ou 2 colunas compactas */
-            .dash-grid-2col {
-                grid-template-columns: 1fr !important;
-            }
-            .dash-grid-crm {
-                grid-template-columns: 1fr 1fr !important;
-                gap: 12px !important;
-            }
-            .dash-grid-tribunais {
-                grid-template-columns: 1fr 1fr !important;
-                gap: 10px !important;
-            }
-            .form-grid {
-                grid-template-columns: 1fr !important;
-            }
+        /* Tags de Urgência */
+        .tag-urgencia {
+            padding: 4px 10px;
+            border-radius: var(--r-sm);
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            display: inline-block;
         }
 
-        /* SaaS Professional - Prazos List Style */
-.prazo-item-modern {
-    display: flex;
-    align-items: center;
-    padding: 18px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border-subtle);
-    border-radius: 6px; /* Bordas mais retas */
-    margin-bottom: 12px;
-    transition: all var(--transition-base);
-    box-shadow: 0 1px 3px rgba(42, 74, 115, 0.06);
-    border-left: 4px solid transparent;
-    text-transform: uppercase; 
-}
+        .tag-vencido { background: var(--red-bg);    color: var(--red);    border: 1px solid rgba(255,59,48,0.15); }
+        .tag-hoje    { background: var(--orange-bg);  color: var(--orange); border: 1px solid rgba(255,107,53,0.15); }
+        .tag-proximo { background: var(--accent-fill); color: var(--accent); border: 1px solid var(--accent-glow); }
 
-.prazo-item-modern:hover {
-    transform: translateX(2px);
-    border-color: var(--border-medium);
-    box-shadow: 0 2px 8px rgba(42, 74, 115, 0.1);
-    border-left-color: var(--accent-blue);
-}
+        .btn-concluir-dash {
+            background: var(--green-bg);
+            border: 1px solid rgba(52,199,89,0.25);
+            color: #16a34a;
+            padding: 8px;
+            border-radius: var(--r-sm);
+            cursor: pointer;
+            transition: all var(--t) var(--ease);
+            margin-left: 10px;
+        }
 
-.prazo-indicator {
-    width: 4px;
-    height: 38px;
-    border-radius: 4px;
-    margin-right: 16px;
-}
+        .btn-concluir-dash:hover { background: rgba(52,199,89,0.20); transform: scale(1.1); }
 
-.prazo-content { flex: 1; }
+        /* Cores de Borda por Urgência */
+        .urgencia-hoje    { border-left-color: var(--red) !important; }
+        .urgencia-hoje .tag-urgencia { background: var(--red-bg); color: var(--red); border: 1px solid rgba(255,59,48,0.15); }
 
-.prazo-main-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 4px;
-}
+        .urgencia-amanha  { border-left-color: var(--yellow) !important; }
+        .urgencia-amanha .tag-urgencia { background: var(--yellow-bg); color: var(--yellow); border: 1px solid rgba(255,159,10,0.15); }
 
-.prazo-title {
-    font-weight: 700;
-    color: var(--text-primary);
-    font-size: 14px;
-}
+        .urgencia-futuro  { border-left-color: var(--green) !important; }
+        .urgencia-futuro .tag-urgencia { background: var(--green-bg); color: var(--green); border: 1px solid rgba(52,199,89,0.15); }
 
-.prazo-meta-info {
-    display: flex;
-    gap: 15px;
-    font-size: 11px;
-    color: var(--text-tertiary);
-    font-family: 'JetBrains Mono', monospace;
-}
+        .border-vencido { border-left-color: var(--red) !important; }
+        .border-hoje    { border-left-color: var(--yellow) !important; }
+        .border-proximo { border-left-color: var(--accent) !important; }
 
-/* Tags de Urgência SaaS */
-.tag-urgencia {
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 10px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    white-space: nowrap; /* Impede que a tag quebre em duas linhas */
-    display: inline-block;
-}
+        /* Countdown Timer */
+        .countdown-timer {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--red);
+            background: var(--red-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
 
-.tag-vencido { background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
-.tag-hoje { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
-.tag-proximo { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }
+        .card-prazos-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+            padding: 24px;
+            box-shadow: var(--sh-card);
+            position: relative;
+            overflow: hidden;
+            border-top: 4px solid var(--accent);
+        }
 
-.btn-concluir-dash {
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    color: #16a34a;
-    padding: 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.2s;
-    margin-left: 10px;
-}
+        .card-prazos-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        }
 
-.btn-concluir-dash:hover { background: #dcfce7; transform: scale(1.1); }
+        /* ── Uppercase global ── */
+        body { text-transform: uppercase; }
+        input, textarea, select { text-transform: uppercase; }
 
-/* Detalhe de borda SaaS para os itens de prazo */
-/* SaaS Professional - Bordas Laterais Dinâmicas */
-.prazo-item-modern {
-    display: flex;
-    align-items: center;
-    padding: 16px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border-subtle);
-    border-radius: 6px;
-    margin-bottom: 12px;
-    transition: all var(--transition-base);
-    box-shadow: 0 1px 3px rgba(42, 74, 115, 0.06);
-    border-left: 4px solid transparent;
-}
+        .numero-processo, .processo-hash { letter-spacing: 1px; }
 
-/* Cores de Borda e Tags por Urgência - Tons Suaves */
-.urgencia-hoje { 
-    border-left-color: #E76F51 !important; 
-}
-.urgencia-hoje .tag-urgencia { 
-    background: #FFE8E3; color: #C85A42; border: 1px solid #FFD0C7; 
-}
+        .footer-info-row {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            width: 100%;
+        }
 
-.urgencia-amanha { 
-    border-left-color: #F2A65A !important; 
-}
-.urgencia-amanha .tag-urgencia { 
-    background: #FFF4E6; color: #D97706; border: 1px solid #FFE8C7; 
-}
+        .footer-info-row span:first-child {
+            text-transform: uppercase;
+            color: var(--t3);
+            font-weight: 700;
+            min-width: 65px;
+        }
 
-.urgencia-futuro { 
-    border-left-color: #52B788 !important; 
-}
-.urgencia-futuro .tag-urgencia { 
-    background: #E8F5E9; color: #2E7D32; border: 1px solid #C8E6C9; 
-}
+        .keep-lowercase {
+            text-transform: lowercase !important;
+            color: var(--sb-text);
+            display: inline-block;
+        }
 
-/* Cores das bordas baseadas na urgência */
-.border-vencido { border-left-color: #E76F51 !important; }
-.border-hoje { border-left-color: #F2A65A !important; }
-.border-proximo { border-left-color: #4A90E2 !important; }
+        .prazo-meta-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 10px;
+            text-align: left;
+        }
 
-/* Estilo do Contador Regressivo */
-.countdown-timer {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-weight: 800;
-    color: var(--accent-red);
-    background: rgba(239, 68, 68, 0.1);
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-left: 8px;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.card-prazos-container {
-    background: var(--bg-elevated);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-    box-shadow: var(--shadow-md);
-    position: relative;
-    overflow: hidden;
-    /* Destaque sutil na borda superior para não ficar "vazio" */
-    border-top: 4px solid var(--primary); 
-}
-
-/* Opcional: Um efeito de brilho interno para dar sofisticação */
-.card-prazos-container::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-}
-
-/* Padronização LawTech Pro - Caixa Alta Global */
-body {
-    text-transform: uppercase;
-}
-
-/* Garante que os campos de digitação também mostrem caixa alta enquanto o usuário digita */
-input, textarea, select {
-    text-transform: uppercase;
-}
-
-/* Opcional: Se quiser que os números dos processos mantenham o estilo técnico, 
-   mas ainda em caixa alta */
-.numero-processo, .processo-hash {
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 1px;
-}
-
-.footer-info-row {
-    display: flex;
-    justify-content: flex-start; /* Força o início na esquerda */
-    align-items: center;
-    gap: 5px; /* Espaço pequeno entre ":" e o dado */
-    font-size: 12px;
-    width: 100%;
-}
-
-.footer-info-row span:first-child {
-    text-transform: uppercase;
-    color: var(--text-tertiary);
-    font-weight: 700;
-    min-width: 65px; /* Alinha os dois pontos verticalmente */
-}
-
-/* Mantém e-mail e plano minúsculos */
-.keep-lowercase {
-    text-transform: lowercase !important;
-    color: #cbd5e1;
-    display: inline-block;
-}
-
-/* AJUSTE DOS CARDS DE PRAZO: Remove o grid que jogava coisas para a direita */
-.prazo-meta-list {
-    display: flex; 
-    flex-direction: column; 
-    gap: 4px; 
-    margin-top: 10px;
-    text-align: left; /* Garante alinhamento à esquerda */
-}
-
-       /* Modal de Boas-Vindas */
+        /* ── Modal de Boas-Vindas ── */
         .modal-welcome {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.85);
+            background: rgba(0,0,0,0.50);
             backdrop-filter: blur(8px);
             z-index: 9999;
             align-items: center;
             justify-content: center;
         }
 
-        .modal-welcome.show {
-            display: flex;
-        }
+        .modal-welcome.show { display: flex; }
 
         .welcome-content {
-            background: white;
+            background: var(--surface);
             max-width: 550px;
             width: 90%;
             max-height: 85vh;
             overflow-y: auto;
-            border-radius: 16px;
+            border-radius: var(--r-lg);
             padding: 32px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            animation: slideInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--sh-modal);
+            animation: slideInUp 0.5s var(--spring);
         }
 
         @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(50px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+            from { opacity: 0; transform: translateY(50px) scale(0.95); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        .welcome-header {
-            text-align: center;
-            margin-bottom: 24px;
-        }
+        .welcome-header { text-align: center; margin-bottom: 24px; }
 
         .welcome-icon {
             font-size: 48px;
@@ -1397,35 +791,31 @@ input, textarea, select {
 
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            50%       { transform: translateY(-10px); }
         }
 
         .welcome-title {
             font-size: 24px;
             font-weight: 800;
-            color: #1e40af;
+            color: var(--accent);
             margin-bottom: 6px;
         }
 
         .welcome-subtitle {
             font-size: 14px;
-            color: #64748b;
+            color: var(--t2);
             line-height: 1.5;
         }
 
-        .welcome-form {
-            margin-top: 32px;
-        }
+        .welcome-form { margin-top: 32px; }
 
-        .form-group {
-            margin-bottom: 24px;
-        }
+        .form-group { margin-bottom: 24px; }
 
         .form-label {
             display: block;
             font-size: 12px;
             font-weight: 700;
-            color: #475569;
+            color: var(--t2);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 8px;
@@ -1434,60 +824,59 @@ input, textarea, select {
         .form-input {
             width: 100%;
             padding: 10px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
+            border: 2px solid var(--border-md);
+            border-radius: var(--r-sm);
             font-size: 16px;
             font-weight: 600;
-            transition: all 0.2s;
+            transition: all var(--t) var(--ease);
+            font-family: inherit;
+            background: var(--surface);
+            color: var(--t1);
         }
 
         .form-input:focus {
             outline: none;
-            border-color: #4A90E2;
-            box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
         }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 16px;
-        }
+        .form-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
 
         .btn-primary {
             width: 100%;
-            background: linear-gradient(135deg, #4A90E2, #5BA4DB);
+            background: var(--accent);
             color: white;
             border: none;
             padding: 16px 32px;
-            border-radius: 10px;
+            border-radius: var(--r-pill);
             font-size: 16px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all var(--t) var(--ease);
             margin-top: 16px;
+            font-family: inherit;
         }
 
         .btn-primary:hover {
+            background: var(--accent-dark);
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(74, 144, 226, 0.4);
+            box-shadow: 0 8px 24px rgba(0,113,227,0.28);
         }
 
-        .btn-primary:active {
-            transform: translateY(0);
-        }
+        .btn-primary:active { transform: translateY(0); }
 
         .info-box {
-            background: #eff6ff;
-            border: 2px solid #bfdbfe;
-            border-radius: 10px;
+            background: var(--accent-fill);
+            border: 2px solid var(--accent-glow);
+            border-radius: var(--r-sm);
             padding: 16px;
             margin-top: 24px;
         }
 
         .info-box strong {
-            color: #1e40af;
+            color: var(--accent);
             font-size: 13px;
             display: block;
             margin-bottom: 8px;
@@ -1495,7 +884,7 @@ input, textarea, select {
 
         .info-box p {
             font-size: 13px;
-            color: #475569;
+            color: var(--t2);
             line-height: 1.5;
             margin: 0;
         }
@@ -1504,46 +893,52 @@ input, textarea, select {
             display: none;
             text-align: center;
             padding: 20px;
-            background: #f0fdf4;
-            border-radius: 10px;
+            background: var(--green-bg);
+            border-radius: var(--r-sm);
             margin-top: 16px;
         }
 
-        .sync-indicator.show {
-            display: block;
-        }
+        .sync-indicator.show { display: block; }
 
         .sync-spinner {
             width: 40px;
             height: 40px;
-            border: 4px solid #d1fae5;
-            border-top-color: #10b981;
+            border: 4px solid rgba(52,199,89,0.20);
+            border-top-color: var(--green);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 12px;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .sync-message { font-size: 14px; font-weight: 600; color: #065f46; }
+
+        /* ── Responsive ── */
+        @media (max-width: 1280px) {
+            .main { margin-left: 220px; }
+            .content { padding: 24px; }
+            .cards { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
         }
 
-        .sync-message {
-            font-size: 14px;
-            font-weight: 600;
-            color: #065f46;
+        @media (max-width: 768px) {
+            .main { margin-left: 0; }
+            .cards { grid-template-columns: 1fr; }
+            .dash-grid-2col    { grid-template-columns: 1fr !important; }
+            .dash-grid-crm     { grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
+            .dash-grid-tribunais { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+            .form-grid         { grid-template-columns: 1fr !important; }
         }
     </style>
     <link rel="stylesheet" href="mobile.css">
 </head>
-<body>
+<body class="dashboard-avatar-own">
 
     <!-- MODAL DE BOAS-VINDAS -->
 <div class="modal-welcome" id="modalWelcome">
     <div class="welcome-content">
 
-        <!-- ══════════════════════════════════════════════════════
-             PASSO 0 — Captura da OAB (exibido primeiro)
-        ══════════════════════════════════════════════════════ -->
+        <!-- PASSO 0 — Captura da OAB -->
         <div id="welcome-step-oab">
             <div class="welcome-header">
                 <div class="welcome-icon">⚖️</div>
@@ -1554,30 +949,30 @@ input, textarea, select {
                 </p>
             </div>
 
-            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;margin:16px 0;display:flex;align-items:flex-start;gap:10px;text-align:left;">
+            <div style="background:var(--accent-fill);border:1px solid var(--accent-glow);border-radius:var(--r-sm);padding:14px 16px;margin:16px 0;display:flex;align-items:flex-start;gap:10px;text-align:left;">
                 <span style="font-size:20px;flex-shrink:0;">💡</span>
-                <p style="font-size:13px;color:#1e40af;margin:0;line-height:1.5;">
+                <p style="font-size:13px;color:var(--accent);margin:0;line-height:1.5;">
                     Você poderá completar os demais dados do escritório em <strong>Configurações</strong> depois. Por enquanto, só precisamos da OAB.
                 </p>
             </div>
 
             <div style="display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:16px;">
                 <div>
-                    <label style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">
-                        Número da OAB <span style="color:#ef4444;">*</span>
+                    <label style="font-size:12px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">
+                        Número da OAB <span style="color:var(--red);">*</span>
                     </label>
                     <input type="text" id="welcomeOabNumero"
                         placeholder="Ex: 12345"
                         maxlength="7"
-                        style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;box-sizing:border-box;outline:none;"
+                        style="width:100%;padding:10px 12px;border:1.5px solid var(--border-md);border-radius:var(--r-sm);font-size:15px;box-sizing:border-box;outline:none;"
                         oninput="this.value=this.value.replace(/\D/g,'')">
                 </div>
                 <div>
-                    <label style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">
-                        Estado (UF) <span style="color:#ef4444;">*</span>
+                    <label style="font-size:12px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">
+                        Estado (UF) <span style="color:var(--red);">*</span>
                     </label>
                     <select id="welcomeOabUf"
-                        style="padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;background:#fff;cursor:pointer;outline:none;min-width:80px;">
+                        style="padding:10px 12px;border:1.5px solid var(--border-md);border-radius:var(--r-sm);font-size:15px;background:var(--surface);cursor:pointer;outline:none;min-width:80px;">
                         <option value="">UF</option>
                         <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
                         <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
@@ -1590,22 +985,20 @@ input, textarea, select {
                 </div>
             </div>
 
-            <div id="welcomeOabErro" style="display:none;color:#ef4444;font-size:13px;margin-bottom:12px;padding:8px 12px;background:#fef2f2;border-radius:6px;border:1px solid #fecaca;"></div>
+            <div id="welcomeOabErro" style="display:none;color:var(--red);font-size:13px;margin-bottom:12px;padding:8px 12px;background:var(--red-bg);border-radius:var(--r-sm);border:1px solid rgba(255,59,48,0.20);"></div>
 
             <button type="button" id="btnSalvarOab" class="btn-primary" data-action="salvarOabBoasVindas" style="width:100%;padding:12px;">
-                ✅ Salvar OAB e Continuar
+                Salvar OAB e Continuar
             </button>
             <div style="text-align:center;margin-top:10px;">
                 <button type="button" data-action="pularOabBoasVindas"
-                    style="background:none;border:none;color:#94a3b8;font-size:12px;cursor:pointer;text-decoration:underline;">
+                    style="background:none;border:none;color:var(--t3);font-size:12px;cursor:pointer;text-decoration:underline;">
                     Pular por agora (não recomendado)
                 </button>
             </div>
         </div>
 
-        <!-- ══════════════════════════════════════════════════════
-             PASSO 1 — Boas-vindas (exibido após salvar OAB)
-        ══════════════════════════════════════════════════════ -->
+        <!-- PASSO 1 — Boas-vindas -->
         <div id="welcome-step-tour" style="display:none;">
             <div class="welcome-header">
                 <div class="welcome-icon">👋</div>
@@ -1616,7 +1009,7 @@ input, textarea, select {
                 </p>
             </div>
 
-            <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px solid #22c55e;border-radius:12px;padding:14px 16px;margin:16px 0;display:flex;align-items:center;gap:12px;text-align:left;">
+            <div style="background:var(--green-bg);border:2px solid rgba(52,199,89,0.30);border-radius:var(--r-md);padding:14px 16px;margin:16px 0;display:flex;align-items:center;gap:12px;text-align:left;">
                 <span style="font-size:28px;flex-shrink:0;">✅</span>
                 <div>
                     <p style="font-size:14px;font-weight:700;color:#15803d;margin:0 0 2px;">OAB registrada com sucesso!</p>
@@ -1625,22 +1018,22 @@ input, textarea, select {
             </div>
 
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
-                <div style="background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); border-radius: 10px; padding: 14px; color: white; text-align: center;">
+                <div style="background: var(--accent); border-radius: var(--r-md); padding: 14px; color: white; text-align: center;">
                     <i data-lucide="users" style="width: 28px; height: 28px; margin: 0 auto 6px; display: block;"></i>
                     <h3 style="font-size: 13px; margin-bottom: 2px; font-weight: 700;">Clientes</h3>
                     <p style="font-size: 11px; opacity: 0.85; margin: 0;">Gerencie sua carteira</p>
                 </div>
-                <div style="background: linear-gradient(135deg, #52B788 0%, #3D8B64 100%); border-radius: 10px; padding: 14px; color: white; text-align: center;">
+                <div style="background: var(--green); border-radius: var(--r-md); padding: 14px; color: white; text-align: center;">
                     <i data-lucide="folder" style="width: 28px; height: 28px; margin: 0 auto 6px; display: block;"></i>
                     <h3 style="font-size: 13px; margin-bottom: 2px; font-weight: 700;">Processos</h3>
                     <p style="font-size: 11px; opacity: 0.85; margin: 0;">Cadastre e monitore</p>
                 </div>
-                <div style="background: linear-gradient(135deg, #F2A65A 0%, #E89544 100%); border-radius: 10px; padding: 14px; color: white; text-align: center;">
+                <div style="background: var(--yellow); border-radius: var(--r-md); padding: 14px; color: white; text-align: center;">
                     <i data-lucide="clock" style="width: 28px; height: 28px; margin: 0 auto 6px; display: block;"></i>
                     <h3 style="font-size: 13px; margin-bottom: 2px; font-weight: 700;">Prazos</h3>
                     <p style="font-size: 11px; opacity: 0.85; margin: 0;">Controle e alertas</p>
                 </div>
-                <div style="background: linear-gradient(135deg, #7E8CE0 0%, #5E6CB0 100%); border-radius: 10px; padding: 14px; color: white; text-align: center;">
+                <div style="background: var(--purple); border-radius: var(--r-md); padding: 14px; color: white; text-align: center;">
                     <i data-lucide="sparkles" style="width: 28px; height: 28px; margin: 0 auto 6px; display: block;"></i>
                     <h3 style="font-size: 13px; margin-bottom: 2px; font-weight: 700;">IA Jurídica</h3>
                     <p style="font-size: 11px; opacity: 0.85; margin: 0;">Petições e assistente</p>
@@ -1648,7 +1041,7 @@ input, textarea, select {
             </div>
 
             <button type="button" class="btn-primary" data-action="fecharModalBoasVindas">
-                🚀 Iniciar Tour Guiado
+                Iniciar Tour Guiado
             </button>
         </div>
 
@@ -1664,112 +1057,97 @@ input, textarea, select {
             <a href="/clientes-page"><i class="lucide lucide-users"></i> Clientes</a>
             <a href="/prazos-page"><i class="lucide lucide-clock"></i> Prazos</a>
             <a href="/processos-page"><i class="lucide lucide-folder"></i> Processos</a>
-            <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>            
+            <a href="/audiencias-page"><i class="lucide lucide-calendar-days"></i> Audiências</a>
             <a href="/calculos-page"><i class="lucide lucide-calculator"></i> Cálculos Jurídicos</a>
             <a href="/financeiro-page"><i class="lucide lucide-credit-card"></i> Financeiro</a>
             <a href="/publicacoes-page"><i class="lucide lucide-clock"></i> Publicações DJEN</a>
-<div class="menu-item-with-submenu">
-
-    <!-- LINK PRINCIPAL (apenas abre/fecha submenu) -->
-    <a href="#" id="linkIaMenu" style="display:flex; align-items:center; gap:10px;">
-        <i class="lucide lucide-sparkles" style="color:#fbbf24;"></i>
-        IA Jurídica
-        <span style="font-size:9px; background:#fbbf24; color:#000; padding:2px 5px; border-radius:4px; font-weight:bold; margin-left:auto;">
-            PREMIUM
-        </span>
-    </a>
-
-    <!-- SUBMENU -->
-    <div class="submenu" id="submenu-ia">
-        <a href="/peticoes.html">
-            <i class="lucide lucide-file-text"></i>
-            Petições IA
-        </a>
-
-        <a href="/ia-page">
-            <i class="lucide lucide-bot"></i>
-            Assistente IA
-        </a>
-    </div>
-
-</div>
-            <a href="/chat-page"><i class="lucide lucide-message-circle"></i> 💬 Chat <span id="chatBadge" style="display:none;background:#ef4444;color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 5px;margin-left:auto;box-shadow:0 0 8px rgba(239,68,68,0.5);"></span></a>
-            <a href="/relatorios-page"><i class="lucide lucide-bar-chart-3"></i> Relatórios</a>
-        <a href="/documentos-page"><i class="lucide lucide-folder-open"></i> Documentos (GED)</a>
-        <a href="/reunioes-page"><i class="lucide lucide-video"></i> Reuniões</a>
-            <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
-            <a href="/config-page" id="guia-config">
-                <i class="lucide lucide-settings"></i> Configurações
+            <div class="menu-item-with-submenu">
+                <a href="#" id="linkIaMenu">
+                    <i class="lucide lucide-sparkles" style="color:#fbbf24;opacity:1;"></i>
+                    IA Jurídica
+                    <span style="font-size:9px;background:rgba(251,191,36,0.18);color:#fbbf24;border:1px solid rgba(251,191,36,0.30);padding:2px 7px;border-radius:20px;font-weight:700;margin-left:auto;">PREMIUM</span>
+                </a>
+                <div class="submenu open" id="submenu-ia">
+                    <a href="/peticoes.html"><i class="lucide lucide-file-text"></i> Petições IA</a>
+                    <a href="/ia-page"><i class="lucide lucide-bot"></i> Assistente IA</a>
+                </div>
+            </div>
+            <a href="/chat-page">
+                <i class="lucide lucide-message-circle"></i> Chat
+                <span id="chatBadge" style="display:none;background:#FF3B30;color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 5px;margin-left:auto;"></span>
             </a>
+            <a href="/relatorios-page"><i class="lucide lucide-bar-chart-3"></i> Relatórios</a>
+            <a href="/documentos-page"><i class="lucide lucide-folder-open"></i> Documentos (GED)</a>
+            <a href="/reunioes-page"><i class="lucide lucide-video"></i> Reuniões</a>
+            <a href="/planos-page"><i class="lucide lucide-award"></i> Gestão de Planos</a>
+            <a href="/config-page" id="guia-config"><i class="lucide lucide-settings"></i> Configurações</a>
             <a href="/crm-page" class="btn-crm-gold-nav" data-action="limparBolinha">
-                <i class="lucide lucide-trending-up"></i> CRM PROSPECÇÃO
-                <span id="dotNotificacao" style="display:none; width:8px; height:8px; background:#ef4444; border-radius:50%; margin-left:8px; box-shadow:0 0 8px #ef4444;"></span>
+                <i class="lucide lucide-trending-up"></i> CRM Prospecção
+                <span id="dotNotificacao" style="display:none;width:7px;height:7px;background:#FF3B30;border-radius:50%;margin-left:auto;box-shadow:0 0 6px #FF3B30;"></span>
             </a>
         </nav>
         <div class="sidebar-footer">
-    <div class="footer-info-row">
-        <span>Usuário:</span> 
-        <span id="userEmail" class="keep-lowercase">...</span>
-    </div>
-    <div class="footer-info-row">
-        <span>Plano:</span> 
-        <span id="planNameFooter" class="keep-lowercase">...</span>
-    </div>
-</div>
+            <div class="footer-info-row">
+                <span>Usuário</span>
+                <span id="userEmail" class="keep-lowercase">...</span>
+            </div>
+            <div class="footer-info-row">
+                <span>Plano</span>
+                <span id="planNameFooter" class="keep-lowercase">...</span>
+            </div>
+        </div>
     </aside>
 
     <div class="main">
         <header class="header">
-            <h1 style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin: 0;">Dashboard</h1>
-            
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--t1); margin: 0;">Dashboard</h1>
+
             <!-- Cronômetro de Trial -->
             <div id="trial-timer">
                 <i class="lucide lucide-clock"></i>
                 <span class="trial-label">Teste Grátis:</span>
                 <span class="time-display" id="trial-countdown">7d 00h 00m</span>
             </div>
-            
+
             <div style="display:flex; gap:20px; align-items:center;">
                 <a href="/manual" class="btn-manual-header">
                     <i data-lucide="book-open" style="width:16px; height:16px;"></i>
                     Manual
                 </a>
                 <div id="notif-container" style="position:relative;">
-                    <!-- Botão trigger (sino + badge) -->
-                    <div id="notif-btn" style="cursor:pointer; padding:8px; border-radius:8px; transition:background 0.2s; position:relative;" title="Notificações">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);display:block;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                        <span id="notif-count" style="display:none; position:absolute; top:2px; right:2px; background:var(--danger); color:white; font-size:9px; font-weight:800; padding:2px 5px; border-radius:10px; border:2px solid white; min-width:16px; text-align:center; line-height:1.4;">0</span>
+                    <div id="notif-btn" style="cursor:pointer; padding:8px; border-radius:var(--r-sm); transition:background 0.2s; position:relative;" title="Notificações">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--t2);display:block;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span id="notif-count" style="display:none; position:absolute; top:2px; right:2px; background:var(--red); color:white; font-size:9px; font-weight:800; padding:2px 5px; border-radius:10px; border:2px solid white; min-width:16px; text-align:center; line-height:1.4;">0</span>
                     </div>
-                    <!-- Dropdown de Notificações -->
-                    <div id="notif-dropdown" style="display:none; position:absolute; top:44px; right:0; width:360px; max-height:440px; background:white; border:1px solid var(--border); border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,0.12); z-index:2000; overflow:hidden;">
+                    <div id="notif-dropdown" style="display:none; position:absolute; top:44px; right:0; width:360px; max-height:440px; background:var(--surface); border:1px solid var(--border-md); border-radius:var(--r-md); box-shadow:var(--sh-elevated); z-index:2000; overflow:hidden;">
                         <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-bottom:1px solid var(--border);">
                             <div style="display:flex;align-items:center;gap:8px;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                                <span style="font-weight:700; font-size:14px; color:var(--text-primary);">Notificações</span>
+                                <span style="font-weight:700; font-size:14px; color:var(--t1);">Notificações</span>
                             </div>
-                            <button id="btnMarcarTodasLidas" style="background:none; border:none; color:var(--accent-blue); font-size:12px; font-weight:600; cursor:pointer; padding:4px 8px; border-radius:6px; transition:background 0.2s;">Marcar todas como lidas</button>
+                            <button id="btnMarcarTodasLidas" style="background:none; border:none; color:var(--accent); font-size:12px; font-weight:600; cursor:pointer; padding:4px 8px; border-radius:var(--r-sm); transition:background 0.2s;">Marcar todas como lidas</button>
                         </div>
                         <div id="notif-list" style="max-height:360px; overflow-y:auto; padding:4px 0;">
-                            <p style="text-align:center; color:var(--muted); padding:24px; font-size:13px;">Nenhuma notificação.</p>
+                            <p style="text-align:center; color:var(--t2); padding:24px; font-size:13px;">Nenhuma notificação.</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="user-profile" style="position:relative;">
     <div class="user-profile-nav" id="btnUserMenu" style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
-        <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--text-main);">Advogado</span>
-        <div id="userCircle" style="width: 38px; height: 38px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 2px solid var(--white); box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-transform: uppercase; font-size: 13px;">
+        <span id="userNameHeader" style="font-size: 13px; font-weight: 600; color: var(--t1);">Advogado</span>
+        <div id="userCircle" style="width: 38px; height: 38px; background: var(--accent); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 2px solid var(--surface); box-shadow: var(--sh-btn); text-transform: uppercase; font-size: 13px;">
             --
         </div>
     </div>
-    
+
     <div id="userDropdown" class="dropdown-menu">
     <a href="/config-page"><i class="lucide lucide-user" style="width:16px;"></i> Meus Dados</a>
     <a href="/planos-page"><i class="lucide lucide-award" style="width:16px;"></i> Meu Plano</a>
-    
+
     <div id="guia-tour-switch" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; transition: background 0.2s; background: transparent;">
-        <a href="javascript:void(0)" data-action="resetarTour" style="padding: 0; margin: 0; flex-grow: 1; display: flex; align-items: center; border:none; background:none; color: var(--text-secondary);">
-            <i class="lucide lucide-help-circle" style="width:16px; margin-right: 8px; color: var(--text-secondary);"></i> Ver Tour
+        <a href="javascript:void(0)" data-action="resetarTour" style="padding: 0; margin: 0; flex-grow: 1; display: flex; align-items: center; border:none; background:none; color: var(--t2);">
+            <i class="lucide lucide-help-circle" style="width:16px; margin-right: 8px; color: var(--t2);"></i> Ver Tour
         </a>
         <label class="switch-mini" title="Ativar/Desativar Auto-start">
             <input type="checkbox" id="switchTourNav">
@@ -1778,46 +1156,46 @@ input, textarea, select {
     </div>
 
     <div style="border-top:1px solid var(--border); margin:4px 0;"></div>
-    <a href="javascript:void(0)" data-action="logout" style="color:var(--danger);">
+    <a href="javascript:void(0)" data-action="logout" style="color:var(--red);">
         <i class="lucide lucide-log-out" style="width:16px;"></i> Sair
     </a>
 </div>
             </div>
         </header>
 
-        <!-- Banner Trial: exibido apenas durante o período de teste -->
-        <div id="banner-trial" style="display:none; align-items:center; gap:14px; background:linear-gradient(135deg,#1e3a5f 0%,#2a4a73 100%); border:1px solid rgba(74,144,226,0.35); border-radius:10px; padding:14px 20px; margin:16px 24px 0;">
-            <div style="width:40px;height:40px;border-radius:10px;background:rgba(74,144,226,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <i data-lucide="sparkles" style="width:20px;height:20px;color:#60a5fa;"></i>
+        <!-- Banner Trial -->
+        <div id="banner-trial" style="display:none; align-items:center; gap:14px; background:var(--sb-bg); border:1px solid rgba(0,113,227,0.20); border-radius:var(--r-md); padding:14px 20px; margin:16px 24px 0;">
+            <div style="width:40px;height:40px;border-radius:var(--r-sm);background:var(--accent-fill);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i data-lucide="sparkles" style="width:20px;height:20px;color:var(--accent);"></i>
             </div>
             <div style="flex:1;">
                 <p style="font-size:14px;font-weight:700;color:#e2e8f0;margin:0 0 2px;">
                     Período de Teste — Todas as funcionalidades liberadas
                 </p>
-                <p style="font-size:12px;color:#94a3b8;margin:0;" id="banner-trial-msg">
+                <p style="font-size:12px;color:var(--sb-text);margin:0;" id="banner-trial-msg">
                     Durante o trial você tem acesso completo ao sistema. Após o encerramento, apenas as funcionalidades do seu plano estarão disponíveis.
                 </p>
             </div>
-            <a href="/planos-page" style="flex-shrink:0;padding:7px 14px;background:rgba(74,144,226,0.18);border:1px solid rgba(74,144,226,0.4);border-radius:8px;color:#60a5fa;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;">
+            <a href="/planos-page" style="flex-shrink:0;padding:7px 14px;background:var(--accent-fill);border:1px solid var(--accent-glow);border-radius:var(--r-pill);color:var(--accent);font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;">
                 Ver planos
             </a>
         </div>
 
         <main class="content">
     <div class="cards">
-        <div class="card" data-action="navegarPara" data-args='["/prazos-page"]' style="cursor:pointer; border-left:5px solid var(--danger);">
+        <div class="card" data-action="navegarPara" data-args='["/prazos-page"]' style="cursor:pointer; border-left:5px solid var(--red);">
             <small>Prazos Vencidos</small>
             <h2 id="count-vencidos">0</h2>
         </div>
-        <div class="card" data-action="navegarPara" data-args='["/audiencias-page"]' style="cursor:pointer; border-left:5px solid var(--primary);">
+        <div class="card" data-action="navegarPara" data-args='["/audiencias-page"]' style="cursor:pointer; border-left:5px solid var(--accent);">
             <small>Audiências</small>
             <h2 id="totalAudiencias">0</h2>
         </div>
-        <div class="card" data-action="navegarPara" data-args='["/prazos-page"]' style="cursor:pointer; border-left:5px solid var(--danger);">
+        <div class="card" data-action="navegarPara" data-args='["/prazos-page"]' style="cursor:pointer; border-left:5px solid var(--red);">
             <small>Prazos da Semana</small>
             <h2 id="count-semana">0</h2>
         </div>
-        <div class="card" data-action="navegarPara" data-args='["/prazos-page"]' style="cursor:pointer; border-left:5px solid var(--success);">
+        <div class="card" data-action="navegarPara" data-args='["/prazos-page"]' style="cursor:pointer; border-left:5px solid var(--green);">
             <small>Total de Prazos</small>
             <h2 id="count-total-prazos">0</h2>
         </div>
@@ -1827,7 +1205,7 @@ input, textarea, select {
         <!-- CARD CÁLCULOS - AZUL DESTAQUE -->
         <div class="card card-blue-highlight" data-action="navegarPara" data-args='["/calculos-page"]' style="cursor:pointer;">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <div style="background: rgba(255,255,255,0.2); padding: 12px; border-radius: 8px;">
+                <div style="background: rgba(255,255,255,0.2); padding: 12px; border-radius: var(--r-sm);">
                     <i data-lucide="calculator" style="width: 24px; height: 24px; color: white;"></i>
                 </div>
                 <div>
@@ -1839,9 +1217,9 @@ input, textarea, select {
         </div>
 
         <!-- CARD ASSISTENTE IA - AZUL DESTAQUE -->
-        <div class="card card-blue-highlight" data-action="navegarPara" data-args='["/peticoes.html"]' style="cursor:pointer; background: linear-gradient(135deg, #4A90E2 0%, #5BA4DB 100%);">
+        <div class="card card-blue-highlight" data-action="navegarPara" data-args='["/peticoes.html"]' style="cursor:pointer;">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <div style="background: rgba(255,255,255,0.25); padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div style="background: rgba(255,255,255,0.25); padding: 12px; border-radius: var(--r-sm); box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                     <i data-lucide="sparkles" style="width: 24px; height: 24px; color: #FFD700;"></i>
                 </div>
                 <div>
@@ -1860,7 +1238,7 @@ input, textarea, select {
         <div class="card card-stat-blue" id="guia-crm" data-action="navegarPara" data-args='["/crm-page"]' style="cursor:pointer;">
             <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">
                 <small style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Novos Leads</small>
-                <div style="background: #4A90E2; color: white; font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 4px;">CRM</div>
+                <div style="background: var(--accent); color: white; font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 4px;">CRM</div>
             </div>
             <h2 id="crm-leads-count" style="font-size: 36px; font-weight: 800; margin: 8px 0;">0</h2>
             <p style="font-size: 11px; margin-top: 8px; display:flex; align-items:center; gap:6px;">
@@ -1868,10 +1246,10 @@ input, textarea, select {
             </p>
         </div>
 
-        <div class="card card-stat-blue" data-action="navegarPara" data-args='["/crm-page"]' style="cursor:pointer; background: #FFF4E6; border-color: #FFD8A8;">
-            <small style="color: #B8752E; font-size: 11px; font-weight: 700; text-transform: uppercase;">Em Triagem</small>
-            <h2 id="crm-triagem-count" style="font-size: 36px; font-weight: 800; color: #D97706; margin: 8px 0;">0</h2>
-            <p style="font-size: 11px; color: #B8752E; margin-top: 8px; display:flex; align-items:center; gap:6px;">
+        <div class="card card-stat-blue" data-action="navegarPara" data-args='["/crm-page"]' style="cursor:pointer; background: var(--yellow-bg); border-color: rgba(255,159,10,0.25);">
+            <small style="color: var(--yellow); font-size: 11px; font-weight: 700; text-transform: uppercase;">Em Triagem</small>
+            <h2 id="crm-triagem-count" style="font-size: 36px; font-weight: 800; color: var(--yellow); margin: 8px 0;">0</h2>
+            <p style="font-size: 11px; color: var(--yellow); margin-top: 8px; display:flex; align-items:center; gap:6px; opacity:0.8;">
                 <i data-lucide="filter" style="width: 12px; height: 12px;"></i> Em qualificação
             </p>
         </div>
@@ -1884,58 +1262,56 @@ input, textarea, select {
             </p>
         </div>
 
-        <div class="card card-stat-blue" data-action="navegarPara" data-args='["/crm-page"]' style="cursor:pointer; background: #E8F5E9; border-color: #A5D6A7;">
-            <small style="color: #2E7D32; font-size: 11px; font-weight: 700; text-transform: uppercase;">Contratos Ganhos</small>
-            <h2 id="crm-ganho-count" style="font-size: 36px; font-weight: 800; color: #16a34a; margin: 8px 0;">0</h2>
-            <p style="font-size: 11px; color: #2E7D32; margin-top: 8px; display:flex; align-items:center; gap:6px;">
+        <div class="card card-stat-blue" data-action="navegarPara" data-args='["/crm-page"]' style="cursor:pointer; background: var(--green-bg); border-color: rgba(52,199,89,0.25);">
+            <small style="color: var(--green); font-size: 11px; font-weight: 700; text-transform: uppercase;">Contratos Ganhos</small>
+            <h2 id="crm-ganho-count" style="font-size: 36px; font-weight: 800; color: var(--green); margin: 8px 0;">0</h2>
+            <p style="font-size: 11px; color: var(--green); margin-top: 8px; display:flex; align-items:center; gap:6px; opacity:0.8;">
                 <i data-lucide="trophy" style="width: 12px; height: 12px;"></i> Convertidos
             </p>
         </div>
     </div>
 
     <!-- CARD TRIBUNAIS (LARGURA TOTAL) -->
-    <div class="card" data-action="navegarPara" data-args='["/tribunais-page"]' style="cursor:pointer; margin-bottom:24px; border-left: 4px solid #4A90E2;">
+    <div class="card" data-action="navegarPara" data-args='["/tribunais-page"]' style="cursor:pointer; margin-bottom:24px; border-left: 4px solid var(--accent);">
         <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:16px;">
             <div>
-                <small style="color: var(--text-tertiary); font-size:11px; font-weight:700; text-transform:uppercase;">Consultas Institucionais</small>
-                <h3 style="font-size:20px; margin:8px 0 4px 0; color:var(--text-primary);">Tribunais Brasileiros</h3>
-                <p style="font-size:13px; color:var(--text-secondary); margin:0;">
+                <small style="color: var(--t2); font-size:11px; font-weight:700; text-transform:uppercase;">Consultas Institucionais</small>
+                <h3 style="font-size:20px; margin:8px 0 4px 0; color:var(--t1);">Tribunais Brasileiros</h3>
+                <p style="font-size:13px; color:var(--t2); margin:0;">
                     Acesso direto a 91 tribunais do país
                 </p>
             </div>
-            <div style="background:#E8F4FD; padding:12px; border-radius:6px;">
-                <i data-lucide="landmark" style="width:24px; height:24px; color:#4A90E2;"></i>
+            <div style="background:var(--accent-fill); padding:12px; border-radius:var(--r-sm);">
+                <i data-lucide="landmark" style="width:24px; height:24px; color:var(--accent);"></i>
             </div>
         </div>
 
-        <!-- Categorias de Tribunais em 4 colunas -->
         <div class="dash-grid-tribunais" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px;">
-            <div style="background:#F8FAFB; padding:14px; border-radius:6px; border-left:3px solid #4A90E2;">
-                <div style="font-size:10px; font-weight:700; color:#4A6B8A; margin-bottom:6px;">SUPERIORES</div>
-                <div style="font-size:24px; font-weight:800; color:#2A5A8F;">5</div>
-                <div style="font-size:9px; color:#7B8794; margin-top:4px;">STF • STJ • TST • TSE • STM</div>
+            <div style="background:var(--surface-fill); padding:14px; border-radius:var(--r-sm); border-left:3px solid var(--accent);">
+                <div style="font-size:10px; font-weight:700; color:var(--t2); margin-bottom:6px;">SUPERIORES</div>
+                <div style="font-size:24px; font-weight:800; color:var(--accent);">5</div>
+                <div style="font-size:9px; color:var(--t3); margin-top:4px;">STF • STJ • TST • TSE • STM</div>
             </div>
-            <div style="background:#F8FAFB; padding:14px; border-radius:6px; border-left:3px solid #5BA4DB;">
-                <div style="font-size:10px; font-weight:700; color:#4A6B8A; margin-bottom:6px;">FEDERAIS</div>
-                <div style="font-size:24px; font-weight:800; color:#2A5A8F;">6</div>
-                <div style="font-size:9px; color:#7B8794; margin-top:4px;">TRF1 ao TRF6</div>
+            <div style="background:var(--surface-fill); padding:14px; border-radius:var(--r-sm); border-left:3px solid var(--accent-blue-light);">
+                <div style="font-size:10px; font-weight:700; color:var(--t2); margin-bottom:6px;">FEDERAIS</div>
+                <div style="font-size:24px; font-weight:800; color:var(--accent);">6</div>
+                <div style="font-size:9px; color:var(--t3); margin-top:4px;">TRF1 ao TRF6</div>
             </div>
-            <div style="background:#F8FAFB; padding:14px; border-radius:6px; border-left:3px solid #F2A65A;">
-                <div style="font-size:10px; font-weight:700; color:#B8752E; margin-bottom:6px;">ESTADUAIS</div>
-                <div style="font-size:24px; font-weight:800; color:#D97706;">27</div>
-                <div style="font-size:9px; color:#7B8794; margin-top:4px;">TJ de todos os estados</div>
+            <div style="background:var(--surface-fill); padding:14px; border-radius:var(--r-sm); border-left:3px solid var(--yellow);">
+                <div style="font-size:10px; font-weight:700; color:var(--t2); margin-bottom:6px;">ESTADUAIS</div>
+                <div style="font-size:24px; font-weight:800; color:var(--yellow);">27</div>
+                <div style="font-size:9px; color:var(--t3); margin-top:4px;">TJ de todos os estados</div>
             </div>
-            <div style="background:#F8FAFB; padding:14px; border-radius:6px; border-left:3px solid #7E8CE0;">
-                <div style="font-size:10px; font-weight:700; color:#5A6B9F; margin-bottom:6px;">ESPECIALIZADOS</div>
-                <div style="font-size:24px; font-weight:800; color:#7E8CE0;">51</div>
-                <div style="font-size:9px; color:#7B8794; margin-top:4px;">TRT • TRE • Outros</div>
+            <div style="background:var(--surface-fill); padding:14px; border-radius:var(--r-sm); border-left:3px solid var(--purple);">
+                <div style="font-size:10px; font-weight:700; color:var(--t2); margin-bottom:6px;">ESPECIALIZADOS</div>
+                <div style="font-size:24px; font-weight:800; color:var(--purple);">51</div>
+                <div style="font-size:9px; color:var(--t3); margin-top:4px;">TRT • TRE • Outros</div>
             </div>
         </div>
 
-        <!-- Indicador de acesso rápido -->
-        <div style="margin-top:16px; padding:10px 14px; background:#E8F4FD; border-radius:6px; display:flex; align-items:center; gap:10px; border-left:3px solid #4A90E2;">
-            <i data-lucide="external-link" style="width:14px; height:14px; color:#4A90E2;"></i>
-            <span style="font-size:11px; color:#4A6B8A; font-weight:600;">Clique para acessar todos os tribunais →</span>
+        <div style="margin-top:16px; padding:10px 14px; background:var(--accent-fill); border-radius:var(--r-sm); display:flex; align-items:center; gap:10px; border-left:3px solid var(--accent);">
+            <i data-lucide="external-link" style="width:14px; height:14px; color:var(--accent);"></i>
+            <span style="font-size:11px; color:var(--accent); font-weight:600;">Clique para acessar todos os tribunais →</span>
         </div>
     </div>
 
@@ -1943,44 +1319,44 @@ input, textarea, select {
     <div class="dash-grid-2col" style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-bottom:24px;">
 
     <!-- CARD LINK DE FORMULÁRIO -->
-    <div id="premiumLinkCard" class="card" style="background: #E8F4FD; border: 1px solid #B8DCFA; border-left: 4px solid #4A90E2;">
+    <div id="premiumLinkCard" class="card" style="background: var(--accent-fill); border: 1px solid var(--accent-glow); border-left: 4px solid var(--accent);">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
-            <div style="background: #4A90E2; padding: 12px; border-radius: 6px; box-shadow: 0 2px 8px rgba(74, 144, 226, 0.2);">
+            <div style="background: var(--accent); padding: 12px; border-radius: var(--r-sm); box-shadow: var(--sh-btn);">
                 <i data-lucide="link-2" style="width: 22px; height: 22px; color: #fff;"></i>
             </div>
             <div>
-                <small style="color: #4A6B8A; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: block;">Formulário de Captação - Copie o link e cole em suas Redes Sociais</small>
-                <h3 style="font-size: 17px; margin: 4px 0 0 0; font-weight: 700; color: #2A5A8F;">Link Exclusivo Online</h3>
+                <small style="color: var(--accent); font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: block;">Formulário de Captação - Copie o link e cole em suas Redes Sociais</small>
+                <h3 style="font-size: 17px; margin: 4px 0 0 0; font-weight: 700; color: var(--accent);">Link Exclusivo Online</h3>
             </div>
         </div>
-        <div style="display: flex; gap: 10px; margin-top: 12px; background: #FFFFFF; padding: 12px; border-radius: 6px; border: 1px solid #D0E7F9;">
-            <input type="text" id="linkCaptura" readonly style="flex: 1; background: #F8FAFB; border: 1px solid #D0E7F9; padding: 10px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #4A6B8A; font-family: 'JetBrains Mono', monospace;"/>
-            <button id="btnCopiarLink" data-action="copiarLink" style="background: #4A90E2; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; flex-shrink: 0;">
+        <div style="display: flex; gap: 10px; margin-top: 12px; background: var(--surface); padding: 12px; border-radius: var(--r-sm); border: 1px solid var(--accent-glow);">
+            <input type="text" id="linkCaptura" readonly style="flex: 1; background: var(--surface-fill); border: 1px solid var(--accent-glow); padding: 10px; border-radius: 4px; font-size: 11px; font-weight: 600; color: var(--accent);"/>
+            <button id="btnCopiarLink" data-action="copiarLink" style="background: var(--accent); color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; flex-shrink: 0;">
                 <i data-lucide="copy" style="width: 16px; height: 16px;"></i>
             </button>
         </div>
     </div>
 
     <!-- CARD PESQUISA JUSBRASIL -->
-    <div class="card" style="border-left: 4px solid #52B788;">
-        <h3 style="color:#2A5A8F; font-size:18px; font-weight:700;">O que você quer pesquisar agora?</h3>
-        <p style="font-size:11px; color:var(--text-secondary); margin-bottom:12px;">Busque por jurisprudência, doutrina, modelos e legislação.</p>
-        
-        <div style="display:flex; gap:8px; background:#F8FAFB; padding:10px; border-radius:6px; align-items: center; border: 1px solid var(--border-subtle);">
-            <select id="tipoPesquisa" style="border:none; background:transparent; font-size:13px; font-weight:600; color:var(--text-main); outline:none; cursor:pointer; padding: 0 10px;">            
+    <div class="card" style="border-left: 4px solid var(--green);">
+        <h3 style="color:var(--t1); font-size:18px; font-weight:700;">O que você quer pesquisar agora?</h3>
+        <p style="font-size:11px; color:var(--t2); margin-bottom:12px;">Busque por jurisprudência, doutrina, modelos e legislação.</p>
+
+        <div style="display:flex; gap:8px; background:var(--surface-fill); padding:10px; border-radius:var(--r-sm); align-items: center; border: 1px solid var(--border);">
+            <select id="tipoPesquisa" style="border:none; background:transparent; font-size:13px; font-weight:600; color:var(--t1); outline:none; cursor:pointer; padding: 0 10px;">
                 <option value="jusbrasil">Jusbrasil</option>
                 <option value="tjba">Jurisprudência TJBA</option>
                 <option value="stj">Jurisprudência STJ</option>
                 <option value="tst">Jurisprudência TST</option>
                 <option value="google">Google Jurídico</option>
             </select>
-            
-            <div style="width: 1px; height: 20px; background: var(--border-medium); margin: 0 5px;"></div>
+
+            <div style="width: 1px; height: 20px; background: var(--border-md); margin: 0 5px;"></div>
 
             <input type="text" id="termoPesquisa" placeholder="Digite os termos da busca..."
                 style="flex:1; border:none; background:transparent; outline:none; font-size:13px; padding: 5px;">
-            
-            <button data-action="executarBusca" style="background:var(--success); color:white; border:none; width: 45px; height: 38px; border-radius:8px; cursor:pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+
+            <button data-action="executarBusca" style="background:var(--green); color:white; border:none; width: 45px; height: 38px; border-radius:var(--r-sm); cursor:pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
                 <i data-lucide="search" style="color: white !important;"></i>
             </button>
         </div>
@@ -1990,42 +1366,40 @@ input, textarea, select {
 
     <div class="section" id="guia-prazos">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3 style="font-size:16px; font-weight:700;"><i class="lucide lucide-calendar-days" style="color:var(--primary);"></i> Lista de Prazos</h3>
-            <a href="/prazos-page" style="font-size:12px; color:var(--primary); font-weight:600;">Ver todos os Prazos</a>
+            <h3 style="font-size:16px; font-weight:700;"><i class="lucide lucide-calendar-days" style="color:var(--accent);"></i> Lista de Prazos</h3>
+            <a href="/prazos-page" style="font-size:12px; color:var(--accent); font-weight:600;">Ver todos os Prazos</a>
         </div>
         <div id="lista-prazos"></div>
     </div>
 
-    <div class="section plan-status-card" style="background: #E8F4FD; border: 1px solid #B8DCFA;">
+    <div class="section plan-status-card" style="background: var(--accent-fill); border: 1px solid var(--accent-glow);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
             <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="background: #4A90E2; padding: 12px; border-radius: 6px; box-shadow: 0 2px 8px rgba(74, 144, 226, 0.2);">
+                <div style="background: var(--accent); padding: 12px; border-radius: var(--r-sm); box-shadow: var(--sh-btn);">
                     <i data-lucide="crown" style="width: 24px; height: 24px; color: #fff;"></i>
                 </div>
                 <div>
-                    <h3 style="font-size: 18px; font-weight: 700; color: #2A5A8F; margin: 0;">Status da Assinatura</h3>
-                    <p style="font-size: 13px; color: #4A6B8A; margin: 4px 0 0 0;">
-                        Plano atual: <span id="planoAtual" style="color: #4A90E2; font-weight: 700;">...</span>
+                    <h3 style="font-size: 18px; font-weight: 700; color: var(--accent); margin: 0;">Status da Assinatura</h3>
+                    <p style="font-size: 13px; color: var(--t2); margin: 4px 0 0 0;">
+                        Plano atual: <span id="planoAtual" style="color: var(--accent); font-weight: 700;">...</span>
                         <span id="cicloPlano" style="display:none; margin-left:8px; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700;"></span>
                     </p>
                 </div>
             </div>
-            <div id="premiumWelcome" class="premium-badge" style="display: none; background: #4A90E2; color: white; padding: 8px 14px; border-radius: 6px; font-size: 11px; font-weight: 700; box-shadow: 0 2px 8px rgba(74, 144, 226, 0.25); align-items: center; gap: 6px;">
+            <div id="premiumWelcome" class="premium-badge" style="display: none; background: var(--accent); color: white; padding: 8px 14px; border-radius: var(--r-pill); font-size: 11px; font-weight: 700; box-shadow: var(--sh-btn); align-items: center; gap: 6px;">
                 <i data-lucide="crown" style="width: 16px; height: 16px;"></i> Membro Premium
             </div>
         </div>
-        <div style="background: #FFFFFF; padding: 16px; border-radius: 6px; border: 1px solid #D0E7F9;">
-            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 8px; color: #4A6B8A; text-transform: uppercase; letter-spacing: 0.5px;">
+        <div style="background: var(--surface); padding: 16px; border-radius: var(--r-sm); border: 1px solid var(--accent-glow);">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 8px; color: var(--t2); text-transform: uppercase; letter-spacing: 0.5px;">
                 <span>Consumo do Limite</span>
-                <span id="percentualTexto" style="color: #4A90E2;">0%</span>
+                <span id="percentualTexto" style="color: var(--accent);">0%</span>
             </div>
             <div class="progress"><div id="progressBar" style="width: 0%"></div></div>
         </div>
     </div>
 </main>
     </div>
-
-    
 
     <audio id="notificacaoSom" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
 
