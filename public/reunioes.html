@@ -78,6 +78,7 @@
         }
         .modal-overlay.show { display: flex; }
         .modal {
+            display: block; position: relative; inset: auto;
             background: var(--surface); border-radius: var(--r-xl); padding: 32px;
             width: 90%; max-width: 560px; max-height: 90vh; overflow-y: auto;
             box-shadow: var(--sh-modal); animation: modalIn 0.28s var(--spring);

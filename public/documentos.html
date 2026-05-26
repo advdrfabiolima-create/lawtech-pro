@@ -200,7 +200,7 @@
         /* ── Modais ─────────────────────────────────────────────── */
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.40); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 2000; justify-content: center; align-items: center; }
         .modal-overlay.open { display: flex; }
-        .modal { background: var(--surface); border-radius: var(--r-xl); width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: var(--sh-modal); border: 1px solid var(--border); animation: modalIn 0.28s var(--spring); }
+        .modal { display: block; position: relative; inset: auto; padding: 0; background: var(--surface); border-radius: var(--r-xl); width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: var(--sh-modal); border: 1px solid var(--border); animation: modalIn 0.28s var(--spring); }
         @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--surface); z-index: 1; }
         .modal-header h3 { font-size: 17px; font-weight: 700; color: var(--t1); letter-spacing: -0.02em; }

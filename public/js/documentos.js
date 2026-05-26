@@ -918,16 +918,16 @@ function exibirAvisoUpgrade(mensagem) {
 
 // ─── Modal helpers ────────────────────────────────────────────────────────────
 function abrirModal(id) {
-    document.getElementById(id).classList.add('open');
+    document.getElementById(id).classList.add('open', 'show');
 }
 function fecharModal(id) {
-    document.getElementById(id).classList.remove('open');
+    document.getElementById(id).classList.remove('open', 'show');
 }
 
 // Fechar modal ao clicar no overlay
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) overlay.classList.remove('open');
+        if (e.target === overlay) overlay.classList.remove('open', 'show');
     });
 });
 
