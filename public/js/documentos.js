@@ -930,3 +930,38 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
         if (e.target === overlay) overlay.classList.remove('open');
     });
 });
+
+Object.assign(window, {
+    navegarPara,
+    removerElemento,
+    clicarElemento,
+    toggleUserDropdown,
+    logout,
+    toggleIaMenu,
+    filtrar,
+    baixarDoc,
+    abrirModalUpload,
+    onFileSelect,
+    onDragOver,
+    onDragLeave,
+    onDrop,
+    enviarUpload,
+    abrirEditar,
+    salvarEdicao,
+    abrirVersoes,
+    abrirNovaVersao,
+    onFileSelectNV,
+    onDropNV,
+    enviarNovaVersao,
+    excluirDocumento,
+    verificarStatusAssinatura,
+    baixarDocumentoAssinado,
+    abrirModalAssinar,
+    adicionarLinhaSignatario,
+    removerLinhaSignatario,
+    enviarAssinatura,
+    abrirModalAddon,
+    ativarAddon,
+    abrirModal,
+    fecharModal
+});

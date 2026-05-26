@@ -1,4 +1,13 @@
 const TOKEN = localStorage.getItem('token');
+    window.addEventListener('DOMContentLoaded', () => {
+        const btnNovaReuniao = document.querySelector('[data-action="abrirModalNovaReuniao"]');
+        if (!btnNovaReuniao) return;
+        btnNovaReuniao.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            abrirModalNovaReuniao();
+        });
+    });
     if (!TOKEN) { window.location.href = '/login'; }
 
     // ── Helpers obrigatórios ───────────────────────────────────────────────────
@@ -975,3 +984,31 @@ const TOKEN = localStorage.getItem('token');
         if (!dot) return;
         if (localStorage.getItem('crmNovoLead') === '1') dot.style.display = 'inline-block';
     }
+
+    Object.assign(window, {
+        navegarPara,
+        removerElemento,
+        clicarElemento,
+        abrirModalNovaReuniao,
+        fecharModalNovaReuniao,
+        criarReuniao,
+        reenviarEmail,
+        entrarReuniao,
+        toggleNotasPanel,
+        toggleMute,
+        toggleCamera,
+        toggleShareScreen,
+        toggleRecording,
+        setRecordLayout,
+        fecharModalVideo,
+        atualizarStatus,
+        cancelarReuniao,
+        verNotasReuniao,
+        fecharModalNotas,
+        salvarNotasModal,
+        excluirReuniao,
+        toggleUserMenu,
+        logout,
+        toggleIaMenu,
+        limparBolinha
+    });
