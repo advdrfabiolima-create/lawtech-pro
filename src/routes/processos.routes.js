@@ -36,6 +36,106 @@ router.get('/processos/novos-andamentos', authMiddleware, async (req, res) => {
 });
 
 /**
+ * EXPORTAR PROCESSOS EM CSV
+ * GET /api/processos/exportar
+ */
+router.get('/processos/exportar', authMiddleware, async (req, res) => {
+  try {
+    const escritorioId = req.user.escritorio_id;
+    const { status, busca, ufs } = req.query;
+    const conditions = ['p.escritorio_id = $1'];
+    const params = [escritorioId];
+    let idx = 2;
+
+    if (status) {
+      conditions.push(`p.status = $${idx++}`);
+      params.push(status);
+    }
+
+    if (busca && busca.trim()) {
+      const termo = '%' + busca.trim().toLowerCase() + '%';
+      conditions.push(`(LOWER(p.numero) LIKE $${idx} OR EXISTS (
+        SELECT 1 FROM partes_processo pp_busca
+        WHERE pp_busca.processo_id = p.id
+          AND LOWER(pp_busca.pessoa_nome) LIKE $${idx}
+      ))`);
+      params.push(termo);
+      idx++;
+    }
+
+    if (ufs && ufs.trim()) {
+      const lista = ufs.split(',').map(u => u.trim().toUpperCase()).filter(Boolean);
+      if (lista.length > 0) {
+        const placeholders = lista.map((_, i) => `$${idx + i}`).join(', ');
+        conditions.push(`p.uf IN (${placeholders})`);
+        params.push(...lista);
+      }
+    }
+
+    const result = await pool.query(
+      `SELECT
+         p.numero,
+         COALESCE(partes.ativo, p.cliente, '') AS polo_ativo,
+         COALESCE(partes.passivo, p.parte_contraria, '') AS polo_passivo,
+         p.esfera,
+         p.tribunal,
+         p.instancia,
+         p.uf,
+         p.status
+       FROM processos p
+       LEFT JOIN LATERAL (
+         SELECT
+           STRING_AGG(pp.pessoa_nome, ' | ' ORDER BY pp.eh_principal DESC, pp.id)
+             FILTER (WHERE pp.polo = 'ativo') AS ativo,
+           STRING_AGG(pp.pessoa_nome, ' | ' ORDER BY pp.eh_principal DESC, pp.id)
+             FILTER (WHERE pp.polo = 'passivo') AS passivo
+         FROM partes_processo pp
+         WHERE pp.processo_id = p.id
+       ) partes ON TRUE
+       WHERE ${conditions.join(' AND ')}
+       ORDER BY p.id DESC`,
+      params
+    );
+
+    const protegerFormula = (valor) => {
+      const texto = valor == null ? '' : String(valor);
+      return /^[=+\-@]/.test(texto) ? "'" + texto : texto;
+    };
+    const escaparCsv = (valor) => `"${protegerFormula(valor).replace(/"/g, '""')}"`;
+    const cabecalho = [
+      'Numero do processo',
+      'Polo ativo',
+      'Polo passivo',
+      'Esfera',
+      'Tribunal',
+      'Instancia',
+      'UF',
+      'Status'
+    ];
+    const linhas = result.rows.map(processo => [
+      processo.numero,
+      processo.polo_ativo,
+      processo.polo_passivo,
+      processo.esfera,
+      processo.tribunal,
+      processo.instancia,
+      processo.uf,
+      processo.status
+    ].map(escaparCsv).join(';'));
+
+    const csv = '\uFEFF' + [cabecalho.map(escaparCsv).join(';'), ...linhas].join('\r\n');
+    const data = new Date().toISOString().slice(0, 10);
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="processos-${data}.csv"`);
+    res.send(csv);
+  } catch (err) {
+    logger.error({ err: err.message }, 'Erro ao exportar processos');
+    res.status(500).json({ erro: 'Erro ao exportar processos' });
+  }
+});
+
+/**
  * CADASTRAR NOVO PROCESSO (COM MÚLTIPLAS PARTES)
  * POST /api/processos
  */

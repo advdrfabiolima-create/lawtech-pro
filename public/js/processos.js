@@ -696,6 +696,60 @@ let gerenciadorPartesEdicao = null;
     // ============================================
     // PAGINAÇÃO
     // ============================================
+    async function exportarProcessos(btn) {
+        btn = btn || document.getElementById('btnExportarProcessos');
+        const textoOriginal = btn ? btn.innerHTML : '';
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" style="width:15px;height:15px;"></i> Exportando...';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        try {
+            const params = new URLSearchParams({ status: abaAtual });
+            if (termoBuscaProcessos && termoBuscaProcessos.trim()) {
+                params.set('busca', termoBuscaProcessos.trim());
+            }
+            if (ufsFiltroAtual && ufsFiltroAtual.trim()) {
+                params.set('ufs', ufsFiltroAtual.trim());
+            }
+
+            const response = await fetch('/api/processos/exportar?' + params.toString(), {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (!response.ok) {
+                const erro = await response.json().catch(() => ({}));
+                throw new Error(erro.erro || 'Falha ao gerar o arquivo CSV.');
+            }
+
+            const blob = await response.blob();
+            const disposition = response.headers.get('Content-Disposition') || '';
+            const nomeEncontrado = disposition.match(/filename="?([^"]+)"?/i);
+            const nomeArquivo = nomeEncontrado ? nomeEncontrado[1] : 'processos.csv';
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+
+            link.href = url;
+            link.download = nomeArquivo;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Erro ao exportar processos:', err);
+            alert(err.message || 'Nao foi possivel exportar os processos.');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = textoOriginal;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        }
+    }
+    window.exportarProcessos = exportarProcessos;
+
     function carregarProcessosPagina(pagina) {
         carregarProcessos(pagina, termoBuscaProcessos, ufsFiltroAtual);
     }
